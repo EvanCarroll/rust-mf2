@@ -87,6 +87,19 @@ enum Command {
         )]
         args: Vec<OsString>,
     },
+    /// The catalog size report and budget B7 (Phase 2, A8):
+    /// `cargo run --release -p catalog-bench -- size ARGS`; fails if a B7
+    /// threshold fails (every argument, `--help` included, goes to catalog-bench).
+    #[command(disable_help_flag = true)]
+    CatalogSize {
+        /// Passed through to `catalog-bench size` unchanged.
+        #[arg(
+            trailing_var_arg = true,
+            allow_hyphen_values = true,
+            value_name = "ARGS"
+        )]
+        args: Vec<OsString>,
+    },
 }
 
 fn run(command: Command) -> Result<()> {
@@ -115,6 +128,15 @@ fn run(command: Command) -> Result<()> {
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {
             let mut full: Vec<OsString> = ["run", "--release", "-p", "workload-gen", "--"]
+                .into_iter()
+                .map(OsString::from)
+                .collect();
+            full.extend(args);
+            let refs: Vec<&std::ffi::OsStr> = full.iter().map(OsString::as_os_str).collect();
+            cmd::run_inherit(&cmd::cargo(), &refs, &root)
+        }
+        Command::CatalogSize { args } => {
+            let mut full: Vec<OsString> = ["run", "--release", "-p", "catalog-bench", "--", "size"]
                 .into_iter()
                 .map(OsString::from)
                 .collect();

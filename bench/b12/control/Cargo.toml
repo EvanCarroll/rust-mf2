@@ -1,0 +1,16 @@
+[package]
+name = "b12-control"
+description = "B12 positive control: the b12-base scaffolding plus one deliberate panic path; the check must see its panic import."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-harness.workspace = true
+
+[lints]
+workspace = true

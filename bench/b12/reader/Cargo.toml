@@ -1,0 +1,17 @@
+[package]
+name = "b12-reader"
+description = "B12 harness: every public API of the mf2-catalog reader and a full view walk, behind the b12-base scaffolding."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-harness.workspace = true
+mf2-catalog.workspace = true
+
+[lints]
+workspace = true

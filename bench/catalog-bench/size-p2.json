@@ -1,0 +1,777 @@
+{
+  "tool": "catalog-bench 0.0.0",
+  "build": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "profile": "release",
+    "opt_level": "3",
+    "debug_assertions": false,
+    "crates": "brotli 9.0.0, flate2 1.1.10, miniz_oxide 0.9.1, zlib-rs 0.6.8"
+  },
+  "unix_time": 1790026945,
+  "gnu_gzip": "gzip 1.13",
+  "b7_gz": "gnu",
+  "manifest_hash": "43e0dc12eeb05ef1",
+  "corpus": "bench/corpora/workload-1600.json",
+  "locales": [
+    {
+      "tag": "en",
+      "dir": "ltr",
+      "messages": 1600,
+      "kinds": {
+        "simple": 1256,
+        "pattern": 330,
+        "select": 14,
+        "absent": 0
+      },
+      "source_bytes": 43250,
+      "plural_locale": "en",
+      "plural_bytes": 5,
+      "stripped": {
+        "whole": {
+          "raw": 51502,
+          "gz_gnu": 20592,
+          "gz_flate2": 20634,
+          "gz_zlib_rs": 20652,
+          "br": 18072
+        },
+        "structure": {
+          "raw": 12404,
+          "gz_gnu": 6940,
+          "gz_flate2": 6943,
+          "gz_zlib_rs": 6943,
+          "br": 6363
+        },
+        "pool": {
+          "raw": 39098,
+          "gz_gnu": 12804,
+          "gz_flate2": 12813,
+          "gz_zlib_rs": 12835,
+          "br": 11329
+        },
+        "header": 92,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4566
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 8
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 39098
+          }
+        ],
+        "lossless": 1600
+      },
+      "unstripped": {
+        "whole": {
+          "raw": 73132,
+          "gz_gnu": 29858,
+          "gz_flate2": 30168,
+          "gz_zlib_rs": 29905,
+          "br": 26446
+        },
+        "structure": {
+          "raw": 34034,
+          "gz_gnu": 16885,
+          "gz_flate2": 16884,
+          "gz_zlib_rs": 16899,
+          "br": 15061
+        },
+        "pool": {
+          "raw": 39098,
+          "gz_gnu": 12804,
+          "gz_flate2": 12813,
+          "gz_zlib_rs": 12835,
+          "br": 11329
+        },
+        "header": 102,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4566
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 8
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 8,
+            "name": "IDS",
+            "raw": 21620
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 39098
+          }
+        ],
+        "lossless": 1600
+      },
+      "names": {
+        "entries": 141,
+        "names": 263,
+        "names_str32": 1334,
+        "names_varint": 701,
+        "messages_str32": 4566,
+        "messages_varint": 4508,
+        "whole_varint": {
+          "raw": 50811,
+          "gz_gnu": 20540,
+          "gz_flate2": 20581,
+          "gz_zlib_rs": 20600,
+          "br": 17868
+        }
+      }
+    },
+    {
+      "tag": "pl",
+      "dir": "ltr",
+      "messages": 1600,
+      "kinds": {
+        "simple": 1256,
+        "pattern": 330,
+        "select": 14,
+        "absent": 0
+      },
+      "source_bytes": 58518,
+      "plural_locale": "pl",
+      "plural_bytes": 32,
+      "stripped": {
+        "whole": {
+          "raw": 67930,
+          "gz_gnu": 26706,
+          "gz_flate2": 27069,
+          "gz_zlib_rs": 27067,
+          "br": 24137
+        },
+        "structure": {
+          "raw": 12829,
+          "gz_gnu": 7242,
+          "gz_flate2": 7246,
+          "gz_zlib_rs": 7244,
+          "br": 6710
+        },
+        "pool": {
+          "raw": 55101,
+          "gz_gnu": 18567,
+          "gz_flate2": 18569,
+          "gz_zlib_rs": 18569,
+          "br": 17307
+        },
+        "header": 92,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4964
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 35
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 55101
+          }
+        ],
+        "lossless": 1600
+      },
+      "unstripped": {
+        "whole": {
+          "raw": 89560,
+          "gz_gnu": 36852,
+          "gz_flate2": 36858,
+          "gz_zlib_rs": 36090,
+          "br": 32609
+        },
+        "structure": {
+          "raw": 34459,
+          "gz_gnu": 17234,
+          "gz_flate2": 17236,
+          "gz_zlib_rs": 17248,
+          "br": 15382
+        },
+        "pool": {
+          "raw": 55101,
+          "gz_gnu": 18567,
+          "gz_flate2": 18569,
+          "gz_zlib_rs": 18569,
+          "br": 17307
+        },
+        "header": 102,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4964
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 35
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 8,
+            "name": "IDS",
+            "raw": 21620
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 55101
+          }
+        ],
+        "lossless": 1600
+      },
+      "names": {
+        "entries": 141,
+        "names": 263,
+        "names_str32": 1334,
+        "names_varint": 708,
+        "messages_str32": 4964,
+        "messages_varint": 4909,
+        "whole_varint": {
+          "raw": 67249,
+          "gz_gnu": 26662,
+          "gz_flate2": 27031,
+          "gz_zlib_rs": 27029,
+          "br": 24056
+        }
+      }
+    },
+    {
+      "tag": "en-XA",
+      "dir": "ltr",
+      "messages": 1600,
+      "kinds": {
+        "simple": 1256,
+        "pattern": 330,
+        "select": 14,
+        "absent": 0
+      },
+      "source_bytes": 95078,
+      "plural_locale": "en",
+      "plural_bytes": 5,
+      "stripped": {
+        "whole": {
+          "raw": 101156,
+          "gz_gnu": 23686,
+          "gz_flate2": 24569,
+          "gz_zlib_rs": 24563,
+          "br": 21537
+        },
+        "structure": {
+          "raw": 13014,
+          "gz_gnu": 7337,
+          "gz_flate2": 7339,
+          "gz_zlib_rs": 7340,
+          "br": 6901
+        },
+        "pool": {
+          "raw": 88142,
+          "gz_gnu": 16255,
+          "gz_flate2": 16275,
+          "gz_zlib_rs": 16253,
+          "br": 14504
+        },
+        "header": 92,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 5176
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 8
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 88142
+          }
+        ],
+        "lossless": 1600
+      },
+      "unstripped": {
+        "whole": {
+          "raw": 122786,
+          "gz_gnu": 34084,
+          "gz_flate2": 34669,
+          "gz_zlib_rs": 34125,
+          "br": 30081
+        },
+        "structure": {
+          "raw": 34644,
+          "gz_gnu": 17313,
+          "gz_flate2": 17315,
+          "gz_zlib_rs": 17329,
+          "br": 15492
+        },
+        "pool": {
+          "raw": 88142,
+          "gz_gnu": 16255,
+          "gz_flate2": 16275,
+          "gz_zlib_rs": 16253,
+          "br": 14504
+        },
+        "header": 102,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 5176
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 8
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 8,
+            "name": "IDS",
+            "raw": 21620
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 88142
+          }
+        ],
+        "lossless": 1600
+      },
+      "names": {
+        "entries": 141,
+        "names": 263,
+        "names_str32": 1334,
+        "names_varint": 708,
+        "messages_str32": 5176,
+        "messages_varint": 5121,
+        "whole_varint": {
+          "raw": 100475,
+          "gz_gnu": 23623,
+          "gz_flate2": 24518,
+          "gz_zlib_rs": 24518,
+          "br": 21410
+        }
+      }
+    },
+    {
+      "tag": "ar-XB",
+      "dir": "rtl",
+      "messages": 1600,
+      "kinds": {
+        "simple": 1256,
+        "pattern": 330,
+        "select": 14,
+        "absent": 0
+      },
+      "source_bytes": 54491,
+      "plural_locale": "ar",
+      "plural_bytes": 17,
+      "stripped": {
+        "whole": {
+          "raw": 61418,
+          "gz_gnu": 20597,
+          "gz_flate2": 21292,
+          "gz_zlib_rs": 21307,
+          "br": 18423
+        },
+        "structure": {
+          "raw": 12426,
+          "gz_gnu": 6958,
+          "gz_flate2": 6959,
+          "gz_zlib_rs": 6961,
+          "br": 6545
+        },
+        "pool": {
+          "raw": 48992,
+          "gz_gnu": 13401,
+          "gz_flate2": 13404,
+          "gz_zlib_rs": 13417,
+          "br": 11734
+        },
+        "header": 92,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4576
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 20
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 48992
+          }
+        ],
+        "lossless": 1600
+      },
+      "unstripped": {
+        "whole": {
+          "raw": 83048,
+          "gz_gnu": 30547,
+          "gz_flate2": 30915,
+          "gz_zlib_rs": 30594,
+          "br": 26987
+        },
+        "structure": {
+          "raw": 34056,
+          "gz_gnu": 16925,
+          "gz_flate2": 16923,
+          "gz_zlib_rs": 16941,
+          "br": 15115
+        },
+        "pool": {
+          "raw": 48992,
+          "gz_gnu": 13401,
+          "gz_flate2": 13404,
+          "gz_zlib_rs": 13417,
+          "br": 11734
+        },
+        "header": 102,
+        "sections": [
+          {
+            "kind": 1,
+            "name": "INDEX",
+            "raw": 6400
+          },
+          {
+            "kind": 2,
+            "name": "MESSAGES",
+            "raw": 4576
+          },
+          {
+            "kind": 4,
+            "name": "NAMES",
+            "raw": 1334
+          },
+          {
+            "kind": 6,
+            "name": "LOCALE",
+            "raw": 20
+          },
+          {
+            "kind": 7,
+            "name": "FUNCS",
+            "raw": 4
+          },
+          {
+            "kind": 8,
+            "name": "IDS",
+            "raw": 21620
+          },
+          {
+            "kind": 15,
+            "name": "STRINGS",
+            "raw": 48992
+          }
+        ],
+        "lossless": 1600
+      },
+      "names": {
+        "entries": 141,
+        "names": 263,
+        "names_str32": 1334,
+        "names_varint": 708,
+        "messages_str32": 4576,
+        "messages_varint": 4521,
+        "whole_varint": {
+          "raw": 60737,
+          "gz_gnu": 20523,
+          "gz_flate2": 21248,
+          "gz_zlib_rs": 21260,
+          "br": 18406
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "locale": "en",
+      "rule": "B7 raw ≤ 1.25 × source + 8 B/message",
+      "value": 51502,
+      "limit": 66862,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
+      "value": 20592,
+      "limit": 22649,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "rule": "B7 reference en: gz (GNU gzip -9 -n) ≤ 25 KB",
+      "value": 20592,
+      "limit": 25600,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "rule": "lossless: decode = parse (stripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "rule": "lossless: decode = parse (unstripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "pl",
+      "rule": "B7 raw ≤ 1.25 × source + 8 B/message",
+      "value": 67930,
+      "limit": 85947,
+      "passed": true
+    },
+    {
+      "locale": "pl",
+      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
+      "value": 26706,
+      "limit": 30283,
+      "passed": true
+    },
+    {
+      "locale": "pl",
+      "rule": "lossless: decode = parse (stripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "pl",
+      "rule": "lossless: decode = parse (unstripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "en-XA",
+      "rule": "B7 raw ≤ 1.25 × source + 8 B/message",
+      "value": 101156,
+      "limit": 131647,
+      "passed": true
+    },
+    {
+      "locale": "en-XA",
+      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
+      "value": 23686,
+      "limit": 48563,
+      "passed": true
+    },
+    {
+      "locale": "en-XA",
+      "rule": "lossless: decode = parse (stripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "en-XA",
+      "rule": "lossless: decode = parse (unstripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "ar-XB",
+      "rule": "B7 raw ≤ 1.25 × source + 8 B/message",
+      "value": 61418,
+      "limit": 80913,
+      "passed": true
+    },
+    {
+      "locale": "ar-XB",
+      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
+      "value": 20597,
+      "limit": 28269,
+      "passed": true
+    },
+    {
+      "locale": "ar-XB",
+      "rule": "lossless: decode = parse (stripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    },
+    {
+      "locale": "ar-XB",
+      "rule": "lossless: decode = parse (unstripped)",
+      "value": 1600,
+      "limit": 1600,
+      "passed": true
+    }
+  ],
+  "p07": [
+    {
+      "locale": "en",
+      "gz": "gnu",
+      "raw": 635,
+      "gz_bytes": 56,
+      "br": 143,
+      "structure_gz": 84,
+      "pool_gz": 0,
+      "unstripped_gz": 767,
+      "beyond_noise": false
+    },
+    {
+      "locale": "pl",
+      "gz": "gnu",
+      "raw": 628,
+      "gz_bytes": 59,
+      "br": 69,
+      "structure_gz": 91,
+      "pool_gz": 0,
+      "unstripped_gz": 812,
+      "beyond_noise": false
+    },
+    {
+      "locale": "en-XA",
+      "gz": "gnu",
+      "raw": 628,
+      "gz_bytes": 66,
+      "br": 60,
+      "structure_gz": 69,
+      "pool_gz": 0,
+      "unstripped_gz": 707,
+      "beyond_noise": false
+    },
+    {
+      "locale": "ar-XB",
+      "gz": "gnu",
+      "raw": 628,
+      "gz_bytes": 79,
+      "br": -68,
+      "structure_gz": 81,
+      "pool_gz": 0,
+      "unstripped_gz": 728,
+      "beyond_noise": false
+    }
+  ],
+  "passed": true
+}

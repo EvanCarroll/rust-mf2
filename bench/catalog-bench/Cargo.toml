@@ -1,0 +1,23 @@
+[package]
+name = "catalog-bench"
+description = "Phase 2 A8/A9: .mf2b catalog sizes against B7 and the native reader cost (load, get, text) on the reference workload."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+brotli.workspace = true
+clap.workspace = true
+flate2.workspace = true
+mf2-catalog = { workspace = true, features = ["writer", "decode", "manifest"] }
+mf2-model.workspace = true
+mf2-syntax.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+workload-gen.workspace = true
+zlib-rs.workspace = true
+
+[lints]
+workspace = true

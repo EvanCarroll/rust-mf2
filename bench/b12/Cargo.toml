@@ -1,0 +1,46 @@
+# B12 check for the catalog reader (plans/09-phase-2-work-order.md, A9;
+# plans/06-size-and-perf.md §3, "How B6, B12, B13 are checked").
+#
+# A standalone workspace (the root workspace excludes `bench/b12`): the
+# harnesses are `no_std` cdylibs for wasm32-unknown-unknown with their own
+# `#[panic_handler]` and `#[global_allocator]`, which the root workspace's
+# host builds must never see. `check.sh` builds them and runs the check.
+[workspace]
+resolver = "3"
+members = ["harness", "base", "reader", "control"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+b12-harness = { path = "harness" }
+# The client path: no features (the writer, decoder and manifest are build side).
+mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
+
+[workspace.lints.rust]
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_safety_doc = "allow"
+must_use_candidate = "allow"
+
+# The 06 §3 size method, identical to the root workspace's `wasm-release`:
+# opt-level z, fat LTO, one CGU, abort, strip; then `wasm-opt -Oz`, gzip -9.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+# The same build keeping the symbol names (the wasm `name` section), for the
+# twiggy symbol check.
+[profile.wasm-syms]
+inherits = "wasm-release"
+strip = false

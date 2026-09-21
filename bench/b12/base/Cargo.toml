@@ -1,0 +1,16 @@
+[package]
+name = "b12-base"
+description = "B12 size base: the harness scaffolding and the same host input and sinks as b12-reader, without the reader."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-harness.workspace = true
+
+[lints]
+workspace = true

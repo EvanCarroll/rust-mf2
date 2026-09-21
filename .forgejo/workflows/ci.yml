@@ -2,7 +2,7 @@
 #
 # Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
 # job checks (cargo fmt --check, clippy -D warnings, cargo test, the
-# conformance report, which runs layers L1/L2 over the suite), so "green
+# conformance report, which runs layers L1-L3 over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain and publish conformance/REPORT.md.
 #
@@ -11,6 +11,20 @@
 # visible. Its cost (a fat-LTO release build plus ≈ 15 s of measurement) is
 # why it is a job of its own rather than a step of `cargo xtask ci`; whether it
 # runs on every push is the owner's call (plans/08, A9).
+#
+# Job `b12`: budget B12 for the catalog reader (plans/09-phase-2-work-order.md,
+# A9; plans/06-size-and-perf.md §3): bench/b12/check.sh builds no_std wasm
+# harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
+# survives in the reader; it also records the reader's size delta (part of
+# B1). It needs binaryen (wasm-opt, wasm-dis) and twiggy, installed at pinned
+# versions: binaryen from its release tarball (checked against the published
+# sha256), twiggy with `cargo install --locked`.
+#
+# Job `catalog-size`: budget B7 on the committed reference corpus and the
+# four generated locales (plans/09-phase-2-work-order.md, A8;
+# bench/catalog-bench). Deterministic, ≈ 30 s of release build and 4 s of
+# work; it needs GNU gzip, which B7 is measured with (the owner may switch
+# the verdict to a Rust gzip with `--gz flate2`).
 #
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
@@ -127,4 +141,133 @@ jobs:
           path: |
             target/parser-gate/report.md
             target/parser-gate/report.json
+          if-no-files-found: error
+
+  catalog-size:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: B7 on the committed corpus (GNU gzip -9 -n; exit 1 on a failed threshold)
+        run: |
+          cargo xtask catalog-size --md target/catalog-bench/SIZE.md \
+            --json target/catalog-bench/size.json
+
+      - name: Upload the size report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: catalog-size-report
+          path: |
+            target/catalog-bench/SIZE.md
+            target/catalog-bench/size.json
+          if-no-files-found: error
+
+  b12:
+    # PLACEHOLDER: see the `ci` job. The runner needs git, curl, tar, gzip,
+    # sha256sum, a C linker (cc) and node (for upload-artifact); x86_64 Linux
+    # (the binaryen tarball below).
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      # The versions bench/b12/README.md's figures were measured with.
+      BINARYEN_VERSION: "120"
+      TWIGGY_VERSION: "0.8.0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          # Installs the channel, components and targets (wasm32-unknown-unknown
+          # among them) named in rust-toolchain.toml.
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Install binaryen and twiggy (pinned)
+        run: |
+          set -eu
+          tools="${RUNNER_TEMP:-/tmp}/b12-tools"
+          mkdir -p "$tools"
+          name="binaryen-version_$BINARYEN_VERSION"
+          tarball="$name-x86_64-linux.tar.gz"
+          url="https://github.com/WebAssembly/binaryen/releases/download/version_$BINARYEN_VERSION/$tarball"
+          curl --proto '=https' --tlsv1.2 -sSfL -o "$tools/$tarball" "$url"
+          curl --proto '=https' --tlsv1.2 -sSfL -o "$tools/$tarball.sha256" "$url.sha256"
+          expected="$(cut -d ' ' -f 1 < "$tools/$tarball.sha256")"
+          echo "$expected  $tools/$tarball" | sha256sum -c -
+          tar -xzf "$tools/$tarball" -C "$tools"
+          echo "$tools/$name/bin" >> "$GITHUB_PATH"
+          "$tools/$name/bin/wasm-opt" --version
+          cargo install --locked twiggy --version "$TWIGGY_VERSION"
+          twiggy --version
+
+      - name: B12 check (exit 1 on a panic path or core::fmt in the reader)
+        run: bash bench/b12/check.sh
+
+      - name: Upload the B12 report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: b12-report
+          path: |
+            bench/b12/target/b12/b12.txt
+            bench/b12/target/b12/size.tsv
           if-no-files-found: error

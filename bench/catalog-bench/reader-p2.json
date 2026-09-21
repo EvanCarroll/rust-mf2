@@ -1,0 +1,1189 @@
+{
+  "tool": "catalog-bench 0.0.0",
+  "build": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "profile": "release",
+    "opt_level": "3",
+    "debug_assertions": false,
+    "crates": "brotli 9.0.0, flate2 1.1.10, miniz_oxide 0.9.1, zlib-rs 0.6.8"
+  },
+  "settings": {
+    "runs": 31,
+    "min_sample": 10,
+    "warmup": 50,
+    "batch": 32
+  },
+  "available_parallelism": 8,
+  "load_before": [
+    1.4,
+    1.22,
+    1.47
+  ],
+  "load_after": [
+    1.31,
+    1.21,
+    1.46
+  ],
+  "cpu_mhz": [
+    2715.3315000000002,
+    2106.847625
+  ],
+  "unix_time": 1790027030,
+  "rows": [
+    {
+      "locale": "en",
+      "op": "new",
+      "per_pass": 32,
+      "passes_per_sample": 135,
+      "ns": {
+        "min": 2214.1780092592594,
+        "q1": 2242.101041666667,
+        "median": 2287.2939814814813,
+        "q3": 2412.0457175925926,
+        "max": 3082.488888888889
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": 5700.0
+    },
+    {
+      "locale": "en",
+      "op": "new-unstripped",
+      "per_pass": 32,
+      "passes_per_sample": 56,
+      "ns": {
+        "min": 6064.476004464285,
+        "q1": 6196.231305803572,
+        "median": 6262.880022321428,
+        "q3": 6413.518973214286,
+        "max": 6887.934151785715
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "clone",
+      "per_pass": 32,
+      "passes_per_sample": 360,
+      "ns": {
+        "min": 825.2715277777778,
+        "q1": 845.6744791666666,
+        "median": 855.3483506944444,
+        "q3": 865.3410590277778,
+        "max": 1009.4464409722223
+      },
+      "allocs": {
+        "allocs": 1,
+        "bytes": 51502
+      },
+      "allocs_per_op": 1.0,
+      "checksum": 51502,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 429,
+      "ns": {
+        "min": 18.305739907650736,
+        "q1": 18.85287589268481,
+        "median": 19.260550754977505,
+        "q3": 19.46294430092201,
+        "max": 25.11603788992324
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 27402,
+      "p08_ns": 20.7
+    },
+    {
+      "locale": "en",
+      "op": "utf8",
+      "per_pass": 1256,
+      "passes_per_sample": 387,
+      "ns": {
+        "min": 7.5925994502872,
+        "q1": 7.9943022844352285,
+        "median": 8.181647986306555,
+        "q3": 8.318396245823664,
+        "max": 9.009165308843134
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 27402,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "get-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 10527,
+      "ns": {
+        "min": 2.81162868352951,
+        "q1": 2.856717358826222,
+        "median": 2.9209446992006125,
+        "q3": 2.9498680161547073,
+        "max": 3.556186832704359
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 330,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "get-select",
+      "per_pass": 14,
+      "passes_per_sample": 161291,
+      "ns": {
+        "min": 3.4412393039377807,
+        "q1": 3.510295721043686,
+        "median": 3.5441752573210623,
+        "q3": 3.5818682204391887,
+        "max": 4.005924075118885
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 14,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "walk-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 556,
+      "ns": {
+        "min": 53.459619577065624,
+        "q1": 54.87743078264661,
+        "median": 55.613723566601266,
+        "q3": 56.12741443209069,
+        "max": 57.62176258992806
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 9746,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "walk-select",
+      "per_pass": 14,
+      "passes_per_sample": 5791,
+      "ns": {
+        "min": 117.01080494363174,
+        "q1": 121.86607913757801,
+        "median": 123.57694205293929,
+        "q3": 124.50735747588622,
+        "max": 146.3121099242667
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1927,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "new",
+      "per_pass": 32,
+      "passes_per_sample": 124,
+      "ns": {
+        "min": 2256.193800403226,
+        "q1": 2338.913684475807,
+        "median": 2391.794858870968,
+        "q3": 2453.170236895161,
+        "max": 2568.8606350806454
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": 6700.0
+    },
+    {
+      "locale": "pl",
+      "op": "new-unstripped",
+      "per_pass": 32,
+      "passes_per_sample": 51,
+      "ns": {
+        "min": 6148.27205882353,
+        "q1": 6338.385723039216,
+        "median": 6449.574754901961,
+        "q3": 6584.214767156863,
+        "max": 8182.614583333333
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "clone",
+      "per_pass": 32,
+      "passes_per_sample": 272,
+      "ns": {
+        "min": 1105.1506204044117,
+        "q1": 1130.9285386029412,
+        "median": 1140.3227251838234,
+        "q3": 1161.6600413602941,
+        "max": 1251.1467141544117
+      },
+      "allocs": {
+        "allocs": 1,
+        "bytes": 67930
+      },
+      "allocs_per_op": 1.0,
+      "checksum": 67930,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 121,
+      "ns": {
+        "min": 62.08432252460915,
+        "q1": 62.91787848081276,
+        "median": 65.61035295046587,
+        "q3": 68.49326867400116,
+        "max": 79.88875217139548
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 36349,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "utf8",
+      "per_pass": 1256,
+      "passes_per_sample": 171,
+      "ns": {
+        "min": 48.99343967668641,
+        "q1": 50.61500586657727,
+        "median": 51.56168286959437,
+        "q3": 52.82153732260588,
+        "max": 57.60875982418892
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 36349,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "get-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 10571,
+      "ns": {
+        "min": 2.7538695057662044,
+        "q1": 2.8300685408622215,
+        "median": 2.9017747238729172,
+        "q3": 2.9382814045286847,
+        "max": 3.359032860054523
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 330,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "get-select",
+      "per_pass": 14,
+      "passes_per_sample": 169492,
+      "ns": {
+        "min": 3.427460545967614,
+        "q1": 3.503507961606279,
+        "median": 3.527911136134533,
+        "q3": 3.583817693881886,
+        "max": 4.025257407850686
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 14,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "walk-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 329,
+      "ns": {
+        "min": 64.4044395320991,
+        "q1": 66.93509717233121,
+        "median": 68.65587178778668,
+        "q3": 70.65781062908724,
+        "max": 72.81871603573731
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 12809,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "walk-select",
+      "per_pass": 14,
+      "passes_per_sample": 2124,
+      "ns": {
+        "min": 327.8217648641377,
+        "q1": 338.0047753564703,
+        "median": 342.980461393597,
+        "q3": 347.8610438525693,
+        "max": 365.2455945655098
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 4821,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "new",
+      "per_pass": 32,
+      "passes_per_sample": 135,
+      "ns": {
+        "min": 2247.2685185185187,
+        "q1": 2275.729398148148,
+        "median": 2308.3756944444444,
+        "q3": 2387.8618055555553,
+        "max": 2719.173842592593
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": 6900.0
+    },
+    {
+      "locale": "en-XA",
+      "op": "new-unstripped",
+      "per_pass": 32,
+      "passes_per_sample": 48,
+      "ns": {
+        "min": 6041.231119791667,
+        "q1": 6270.528645833334,
+        "median": 6335.429036458333,
+        "q3": 6515.909505208334,
+        "max": 7263.018229166667
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "clone",
+      "per_pass": 32,
+      "passes_per_sample": 182,
+      "ns": {
+        "min": 1594.7408997252746,
+        "q1": 1651.6087740384614,
+        "median": 1662.7000343406594,
+        "q3": 1707.5188873626375,
+        "max": 1907.7247596153845
+      },
+      "allocs": {
+        "allocs": 1,
+        "bytes": 101156
+      },
+      "allocs_per_op": 1.0,
+      "checksum": 101156,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 90,
+      "ns": {
+        "min": 76.23008669497523,
+        "q1": 76.83297062986554,
+        "median": 77.81809978768578,
+        "q3": 78.65567055909412,
+        "max": 81.74765569709837
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 65396,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "utf8",
+      "per_pass": 1256,
+      "passes_per_sample": 122,
+      "ns": {
+        "min": 61.15889631408583,
+        "q1": 63.23174336953117,
+        "median": 64.6656964602694,
+        "q3": 65.83157891302078,
+        "max": 75.31754463819567
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 65396,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "get-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 10061,
+      "ns": {
+        "min": 2.7982072991117817,
+        "q1": 2.8590722351233238,
+        "median": 2.914897609430956,
+        "q3": 2.9440458656739343,
+        "max": 3.7449422161180435
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 330,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "get-select",
+      "per_pass": 14,
+      "passes_per_sample": 144928,
+      "ns": {
+        "min": 3.40975124593887,
+        "q1": 3.5284284018862566,
+        "median": 3.5418473803740973,
+        "q3": 3.5910144051824746,
+        "max": 5.98311082547393
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 14,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "walk-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 277,
+      "ns": {
+        "min": 81.85761951646428,
+        "q1": 85.60805710534953,
+        "median": 86.62653976588994,
+        "q3": 87.71558363417569,
+        "max": 115.85532217481676
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 21382,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "walk-select",
+      "per_pass": 14,
+      "passes_per_sample": 3101,
+      "ns": {
+        "min": 224.1240152946054,
+        "q1": 232.403003639379,
+        "median": 233.89344451098725,
+        "q3": 236.54017137328972,
+        "max": 281.16510802966786
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 4125,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "new",
+      "per_pass": 32,
+      "passes_per_sample": 131,
+      "ns": {
+        "min": 2227.872853053435,
+        "q1": 2312.4006440839694,
+        "median": 2338.4799618320612,
+        "q3": 2436.412810114504,
+        "max": 2997.804389312977
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": 6100.0
+    },
+    {
+      "locale": "ar-XB",
+      "op": "new-unstripped",
+      "per_pass": 32,
+      "passes_per_sample": 52,
+      "ns": {
+        "min": 6123.787259615385,
+        "q1": 6222.892728365385,
+        "median": 6387.4489182692305,
+        "q3": 6564.698317307692,
+        "max": 7374.400841346154
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "clone",
+      "per_pass": 32,
+      "passes_per_sample": 296,
+      "ns": {
+        "min": 1068.4249366554054,
+        "q1": 1081.5931165540542,
+        "median": 1093.6514991554054,
+        "q3": 1111.2974028716217,
+        "max": 1426.7945523648648
+      },
+      "allocs": {
+        "allocs": 1,
+        "bytes": 61418
+      },
+      "allocs_per_op": 1.0,
+      "checksum": 61418,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 212,
+      "ns": {
+        "min": 27.283187868044706,
+        "q1": 28.244905585266196,
+        "median": 28.552344970556423,
+        "q3": 28.89059495553419,
+        "max": 32.14230561230622
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 34938,
+      "p08_ns": 28.4
+    },
+    {
+      "locale": "ar-XB",
+      "op": "utf8",
+      "per_pass": 1256,
+      "passes_per_sample": 364,
+      "ns": {
+        "min": 14.569831840134388,
+        "q1": 15.041355340519353,
+        "median": 15.452080562749353,
+        "q3": 15.971755354518093,
+        "max": 17.59631133198012
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 34938,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "get-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 11062,
+      "ns": {
+        "min": 2.8298677426954413,
+        "q1": 2.86302027689661,
+        "median": 2.9194742580387127,
+        "q3": 2.934075568558483,
+        "max": 3.5767563539937433
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 330,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "get-select",
+      "per_pass": 14,
+      "passes_per_sample": 81968,
+      "ns": {
+        "min": 3.457253353224952,
+        "q1": 3.5252912286327764,
+        "median": 3.5596443559856112,
+        "q3": 3.5831796729037118,
+        "max": 3.6516663297175205
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 14,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "walk-pattern",
+      "per_pass": 330,
+      "passes_per_sample": 516,
+      "ns": {
+        "min": 60.35900281888654,
+        "q1": 61.63816654921306,
+        "median": 62.357141179234205,
+        "q3": 63.683682757810665,
+        "max": 78.73491895701198
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 13115,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "walk-select",
+      "per_pass": 14,
+      "passes_per_sample": 5061,
+      "ns": {
+        "min": 135.79487396618399,
+        "q1": 137.3520125892681,
+        "median": 139.1758828012533,
+        "q3": 141.18671493493662,
+        "max": 235.22252801535552
+      },
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "allocs_per_op": 0.0,
+      "checksum": 2263,
+      "p08_ns": null
+    }
+  ],
+  "loads": [
+    {
+      "locale": "en",
+      "catalog": "stripped",
+      "bytes": 51502,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "en",
+      "catalog": "unstripped",
+      "bytes": 73132,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "pl",
+      "catalog": "stripped",
+      "bytes": 67930,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "pl",
+      "catalog": "unstripped",
+      "bytes": 89560,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "en-XA",
+      "catalog": "stripped",
+      "bytes": 101156,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "en-XA",
+      "catalog": "unstripped",
+      "bytes": 122786,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "ar-XB",
+      "catalog": "stripped",
+      "bytes": 61418,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    },
+    {
+      "locale": "ar-XB",
+      "catalog": "unstripped",
+      "bytes": 83048,
+      "allocs": {
+        "allocs": 0,
+        "bytes": 0
+      },
+      "zero_copy": true
+    }
+  ],
+  "gate": [
+    {
+      "rule": "en stripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en stripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en unstripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en unstripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl stripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl stripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl unstripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl unstripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA stripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA stripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA unstripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA unstripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB stripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB stripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB unstripped: `Catalog::new` allocations",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB unstripped: 0 copies (buffer moved in, kept)",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `Catalog::new` (stripped): median ≤ 1.5 × P0.8 (5.70 µs)",
+      "value": 2287.2939814814813,
+      "limit": 8550.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en simple: `get` + `text`: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en simple: `get` + `text`: median ≤ 1.5 × P0.8 (20.7 ns)",
+      "value": 19.260550754977505,
+      "limit": 31.049999999999997,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en simple ≤ 100 ns (B10, the reader's share)",
+      "value": 19.260550754977505,
+      "limit": 100.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `str::from_utf8` alone, same strings (part of simple): allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `get`, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `get`, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `get` + walk, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en `get` + walk, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl `Catalog::new` (stripped): median ≤ 1.5 × P0.8 (6.70 µs)",
+      "value": 2391.794858870968,
+      "limit": 10050.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl simple: `get` + `text`: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl simple ≤ 100 ns (B10, the reader's share) — reported: B10 is stated for the reference workload",
+      "value": 65.61035295046587,
+      "limit": 100.0,
+      "passed": true,
+      "informative": true
+    },
+    {
+      "rule": "pl `str::from_utf8` alone, same strings (part of simple): allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl `get`, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl `get`, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl `get` + walk, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "pl `get` + walk, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA `Catalog::new` (stripped): median ≤ 1.5 × P0.8 (6.90 µs)",
+      "value": 2308.3756944444444,
+      "limit": 10350.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA simple: `get` + `text`: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA simple ≤ 100 ns (B10, the reader's share) — reported: B10 is stated for the reference workload",
+      "value": 77.81809978768578,
+      "limit": 100.0,
+      "passed": true,
+      "informative": true
+    },
+    {
+      "rule": "en-XA `str::from_utf8` alone, same strings (part of simple): allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA `get`, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA `get`, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA `get` + walk, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "en-XA `get` + walk, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB `Catalog::new` (stripped): median ≤ 1.5 × P0.8 (6.10 µs)",
+      "value": 2338.4799618320612,
+      "limit": 9150.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB simple: `get` + `text`: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB simple: `get` + `text`: median ≤ 1.5 × P0.8 (28.4 ns)",
+      "value": 28.552344970556423,
+      "limit": 42.599999999999994,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB simple ≤ 100 ns (B10, the reader's share) — reported: B10 is stated for the reference workload",
+      "value": 28.552344970556423,
+      "limit": 100.0,
+      "passed": true,
+      "informative": true
+    },
+    {
+      "rule": "ar-XB `str::from_utf8` alone, same strings (part of simple): allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB `get`, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB `get`, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB `get` + walk, pattern: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    },
+    {
+      "rule": "ar-XB `get` + walk, select: allocations per sweep",
+      "value": 0.0,
+      "limit": 0.0,
+      "passed": true,
+      "informative": false
+    }
+  ],
+  "passed": true
+}

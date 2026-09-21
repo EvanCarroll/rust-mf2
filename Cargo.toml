@@ -8,10 +8,12 @@ members = [
     "conformance",
     "bench/workload-gen",
     "bench/parser-gate",
+    "bench/catalog-bench",
 ]
-# Standalone workspaces: the Phase 0 experiments, and the cargo-fuzz targets
-# (nightly only).
-exclude = ["probes", "fuzz"]
+# Standalone workspaces: the Phase 0 experiments, the cargo-fuzz targets
+# (nightly only), and the B12 wasm harnesses (no_std cdylibs with their own
+# panic handler and allocator; bench/b12/check.sh).
+exclude = ["probes", "fuzz", "bench/b12"]
 
 [workspace.package]
 version = "0.0.0"
@@ -41,6 +43,13 @@ jsonschema = { version = "0.56.0", default-features = false }
 # The one exact pin (the audited alpha, plans/05-tooling.md §1): a dependency of
 # bench/parser-gate and a dev-dependency (differential oracle) of mf2-conformance.
 ox_mf2_parser = "=0.14.0-alpha.12"
+# bench/catalog-bench (B7 sizes, plans/06 §3): brotli quality 11 / window 22 as
+# P0.7 measured; two pure-Rust gzip implementations beside GNU `gzip -9 -n`
+# (flate2 with its default backend, miniz_oxide; and zlib-rs, the zlib port).
+brotli = "9.0.0"
+flate2 = "1.1.10"
+zlib-rs = "0.6.8"
+workload-gen = { path = "bench/workload-gen" }
 
 [workspace.lints.rust]
 # Product crates add `#![forbid(unsafe_code)]` themselves. The bench crates need
