@@ -1,0 +1,52 @@
+[package]
+name = "mf2-catalog"
+description = "The .mf2b binary catalog: a no_std client reader and (features) the writer, the model-rebuilding decoder and the manifest file."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# The manifest file (`manifest.mf2m`) and `manifest_hash` (build side).
+manifest = []
+# The encoder: `writer::catalog` and `writer::single` (build side).
+writer = ["manifest", "dep:unicode-normalization"]
+# The model-rebuilding decoder (build side; conformance layer L3).
+decode = []
+
+[dependencies]
+mf2-model.workspace = true
+thiserror.workspace = true
+unicode-normalization = { workspace = true, optional = true }
+
+[dev-dependencies]
+mf2-model = { workspace = true, features = ["serde"] }
+mf2-syntax.workspace = true
+serde_json.workspace = true
+
+[[test]]
+name = "vectors"
+required-features = ["writer", "decode"]
+
+[[test]]
+name = "reader"
+required-features = ["writer", "decode"]
+
+[[test]]
+name = "roundtrip"
+required-features = ["writer", "decode"]
+
+[[test]]
+name = "manifest"
+required-features = ["writer"]
+
+[[test]]
+name = "linear"
+required-features = ["writer", "decode"]
+
+[[test]]
+name = "skew"
+required-features = ["writer", "decode"]
+
+[lints]
+workspace = true
