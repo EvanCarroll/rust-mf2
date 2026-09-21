@@ -19,9 +19,11 @@ This section is the canonical statement of the rule; other documents point here.
 
 * Do **not** read, search, list or reference anything outside the repository
   root: no parent directories, no sibling directories, no other projects on this
-  machine. Everything needed is in the tree (`plans/`, `third_party/`,
-  `probes/audit/`) or is produced by a Phase 0 task (CLDR inputs: A4; the
-  reference workload: A7).
+  machine. Everything needed is in the tree (`plans/`, `third_party/`, the
+  committed corpora in `bench/corpora/`) or is produced by a Phase 0 task
+  (CLDR inputs: A4; the reference workload: A7). The Phase 0 probes and the
+  planning session's scratch code (`probes/`, `probes/audit/`) were deleted in
+  Phase 2 (C5) and stay in the first commit's history.
 * Network access is limited to:
   1. `rustup` — toolchains and targets;
   2. crates.io, docs.rs and official crate repositories — dependencies and their
@@ -80,5 +82,5 @@ This section is the canonical statement of the rule; other documents point here.
 
 `plans/` · `third_party/` (pinned spec, test suite, CLDR subset, resource-format
 pin) · `crates/` · `conformance/` · `bench/` · `examples/` · `fuzz/` · `xtask/` ·
-`probes/` (throwaway Phase 0 experiments; `probes/audit/` holds the planning
-session's scratch code) · `.forgejo/workflows/`.
+`tools/` · `.forgejo/workflows/`. (`probes/`, the throwaway Phase 0
+experiments, was deleted in Phase 2; see the first commit.)

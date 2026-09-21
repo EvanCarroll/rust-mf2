@@ -144,7 +144,7 @@ mf2-two/
 ├── fuzz/                       cargo-fuzz: parser, catalog decoder
 ├── tools/e2e/                  Playwright harness (project-local npm install)
 ├── tools/oracle/               optional JS reference-implementation differ (dev only)
-├── probes/                     Phase 0 throwaway experiments; audit/ = planning-session scratch code
+├── probes/                     Phase 0 throwaway experiments (deleted in Phase 2, C5; in the first commit)
 ├── xtask/                      spec-sync, cldr-sync, resource-sync, conformance-report, size, gen-workload
 └── .forgejo/workflows/         CI
 ```

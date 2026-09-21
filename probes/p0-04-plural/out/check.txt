@@ -1,6 +1,0 @@
-CLDR 48 — every sample, every category, every locale
-cardinal  locales  224 | rules  275 (+224 other) | listed items  5424 (729 ranges) | samples  12396 = 5798 @integer + 6598 @decimal (216 with exponent)
-ordinal   locales  108 | rules   82 (+108 other) | listed items  1039 (135 ranges) | samples   2645 = 2645 @integer + 0 @decimal (0 with exponent)
-total samples 15041; assertions 75205; failures 0
-samples passing: 15041 / 15041 (100.000 %)
-audit `hand` semantics (c/e treated as 0) would fail 54 samples in 9 locales: ca/cardinal:6 es/cardinal:6 fr/cardinal:6 it/cardinal:6 lld/cardinal:6 pt/cardinal:6 pt-PT/cardinal:6 scn/cardinal:6 vec/cardinal:6

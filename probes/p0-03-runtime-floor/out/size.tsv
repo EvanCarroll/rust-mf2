@@ -1,7 +1,0 @@
-crate	raw	gz	base	delta_raw	delta_gz
-base	590	403	-	-	-
-floor	15358	7811	base	14768	7408
-floor-pa	14635	7425	base	14045	7022
-std-base	12434	5558	-	-	-
-std-floor	27025	12810	std-base	14591	7252
-std-floor-pa	26209	12383	std-base	13775	6825

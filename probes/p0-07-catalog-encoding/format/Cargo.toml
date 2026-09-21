@@ -1,9 +1,0 @@
-[package]
-name = "mf2b-format"
-description = "P0.7: byte-format constants of the probe .mf2b encoding, shared by writer (p07-enc) and reader (p0-03 runtime)"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-publish.workspace = true
-
-[dependencies]

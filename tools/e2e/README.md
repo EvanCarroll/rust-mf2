@@ -52,6 +52,11 @@ prints one `PASS`/`FAIL` line.
 One script per check in `checks/`. Each exports `run(ctx)`, where `ctx` holds
 `browser`, `baseUrl`, `assert(id, pass, details)`, `data` and `log`.
 
+The two checks below ran against the Phase 0 probe app
+`probes/p0-02-vertical-slice`, deleted in Phase 2 (C5; it is in the first
+commit's history). They are kept as the starting point for the Phase 6
+checks against `examples/demo-ssr`, and do not run without that app.
+
 | Check | App | What it asserts |
 |---|---|---|
 | `p002` | `probes/p0-02-vertical-slice` | P0.2: HTTP-level checks (404 through the error handler, `Content-Language`/`Vary`, immutable catalog, `/i18n/<tag>` redirect, the fallback when there is no owner); the catalog preload overlaps the wasm request, and the preload is reused (one request); text is identical before and after hydration; the lazy route in both locales; switching and switching back gives the same text as server-rendered pages; all four `SsrMode`s render streamed `Tr` text from the request locale with zero server-side context misses; zero console warnings or errors; a skewed catalog is rejected |

@@ -1,9 +1,0 @@
-[package]
-name = "plural-eval"
-description = "P0.4: no_std, fmt-free, panic-free evaluator over the encoded plural.* LOCALE entries"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-publish.workspace = true
-
-[dependencies]

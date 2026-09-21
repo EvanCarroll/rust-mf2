@@ -1,3 +1,0 @@
-core::fmt symbols: 0
-panic symbols:     0
-mf2dt alone (no_std harness): raw 6037 gz 3344
