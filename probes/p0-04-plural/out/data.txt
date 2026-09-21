@@ -1,0 +1,51 @@
+CLDR 48
+cardinal  224 locales; distinct rule sets: 40 by condition text, 40 by encoded bytes; entry bytes min 0 / median 3 / max 61 / mean 6.5 (n=224)
+          all distinct entries concatenated: 634 B
+ordinal   108 locales; distinct rule sets: 25 by condition text, 25 by encoded bytes; entry bytes min 0 / median 0 / max 50 / mean 3.9 (n=108)
+          all distinct entries concatenated: 303 B
+locales in ordinals.json but not plurals.json: []
+per locale (cardinal + ordinal entry, 116 ordinals by fallback): min 0 / median 3.5 / max 84 / mean 8.4 (n=224)
+largest: Some((84, "kw"))
+panel (raw entry bytes; container framing not included):
+  locale  cardinal  ordinal   sum
+  en             5       15    20   (ordinal from en)
+  es            15        0    15   (ordinal from es)
+  de             5        0     5   (ordinal from de)
+  fr            16        3    19   (ordinal from fr)
+  ar            17        0    17   (ordinal from ar)
+  he            14        0    14   (ordinal from he)
+  ja             0        0     0   (ordinal from ja)
+  hi             5       13    18   (ordinal from hi)
+  ru            31        0    31   (ordinal from ru)
+  pl            32        0    32   (ordinal from pl)
+  cy            15       20    35   (ordinal from cy)
+
+per-locale plural data, bytes: ours (encoded entry) vs ICU4X 2.3 postcard payload (compiled data | from CLDR 48.2.1) vs ICU4X blob
+locale | ours card ord | payload card (baked|source) | payload ord (baked|source) | blob card | blob card+ord
+en     |    5   15 |   36 |   36 |   98 |   98 |    53 |   165
+es     |   15    0 |   97 |   97 |    5 |    5 |   114 |   132
+de     |    5    0 |   36 |   36 |    5 |    5 |    53 |    71
+fr     |   16    3 |  105 |  105 |   21 |   21 |   122 |   157
+ar     |   17    0 |   85 |   85 |    5 |    5 |   102 |   120
+he     |   14    0 |   97 |   97 |    5 |    5 |   114 |   132
+ja     |    0    0 |    5 |    5 |    5 |    5 |    22 |    31
+hi     |    5   13 |   36 |   36 |   77 |   77 |    53 |   143
+ru     |   31    0 |  188 |  188 |    5 |    5 |   206 |   224
+pl     |   32    0 |  188 |  188 |    5 |    5 |   206 |   224
+cy     |   15   20 |   85 |   85 |  125 |  125 |   102 |   241
+blob en+ar+ru cardinal: 344 B
+
+locale       ours card       ours ord      ours both |      ICU blob card  ICU blob card+ord
+                raw/gz         raw/gz         raw/gz |             raw/gz             raw/gz
+en                5/25          15/35          20/40 |              53/50             165/96
+es               15/35           0/20          15/35 |             114/79             132/91
+de                5/25           0/20           5/25 |              53/50              71/64
+fr               16/36           3/23          19/39 |             122/80            157/102
+ar               17/37           0/20          17/37 |             102/69             120/82
+he               14/34           0/20          14/34 |             114/74             132/87
+ja                0/20           0/20           0/20 |              22/36              31/44
+hi                5/25          13/33          18/38 |              53/52             143/90
+ru               31/48           0/20          31/48 |            206/100            224/112
+pl               32/52           0/20          32/52 |            206/109            224/121
+cy               15/35          20/40          35/49 |             102/62            241/101
+ICU blob en+ar+ru cardinal: 344/154 B raw/gz

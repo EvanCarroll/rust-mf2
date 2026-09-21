@@ -1,0 +1,202 @@
+Gnuplot not found, using plotters backend
+Benchmarking load/Catalog::new/en
+Benchmarking load/Catalog::new/en: Warming up for 1.0000 s
+Benchmarking load/Catalog::new/en: Collecting 100 samples in estimated 3.1239 s (101k iterations)
+Benchmarking load/Catalog::new/en: Analyzing
+load/Catalog::new/en    time:   [11.710 µs 12.001 µs 12.332 µs]
+                        change: [+24.764% +31.309% +38.907%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 10 outliers among 100 measurements (10.00%)
+  7 (7.00%) high mild
+  3 (3.00%) high severe
+Benchmarking load/Catalog::new/pl
+Benchmarking load/Catalog::new/pl: Warming up for 1.0000 s
+Benchmarking load/Catalog::new/pl: Collecting 100 samples in estimated 3.2358 s (20k iterations)
+Benchmarking load/Catalog::new/pl: Analyzing
+load/Catalog::new/pl    time:   [140.61 µs 143.52 µs 146.48 µs]
+                        change: [+1280.1% +1311.1% +1344.7%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 10 outliers among 100 measurements (10.00%)
+  6 (6.00%) high mild
+  4 (4.00%) high severe
+Benchmarking load/Catalog::new/en-XA
+Benchmarking load/Catalog::new/en-XA: Warming up for 1.0000 s
+Benchmarking load/Catalog::new/en-XA: Collecting 100 samples in estimated 3.3088 s (15k iterations)
+Benchmarking load/Catalog::new/en-XA: Analyzing
+load/Catalog::new/en-XA time:   [181.65 µs 184.41 µs 187.14 µs]
+                        change: [+1341.7% +1404.8% +1466.8%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 5 outliers among 100 measurements (5.00%)
+  2 (2.00%) low mild
+  3 (3.00%) high mild
+Benchmarking load/Catalog::new/ar-XB
+Benchmarking load/Catalog::new/ar-XB: Warming up for 1.0000 s
+Benchmarking load/Catalog::new/ar-XB: Collecting 100 samples in estimated 3.0845 s (25k iterations)
+Benchmarking load/Catalog::new/ar-XB: Analyzing
+load/Catalog::new/ar-XB time:   [97.493 µs 100.06 µs 103.52 µs]
+                        change: [+992.47% +1043.4% +1101.9%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) high mild
+  12 (12.00%) high severe
+Benchmarking load/from_utf8(pool)/en
+Benchmarking load/from_utf8(pool)/en: Warming up for 1.0000 s
+Benchmarking load/from_utf8(pool)/en: Collecting 100 samples in estimated 3.0257 s (510k iterations)
+Benchmarking load/from_utf8(pool)/en: Analyzing
+load/from_utf8(pool)/en time:   [5.5843 µs 5.7703 µs 5.9866 µs]
+                        change: [+78.909% +85.229% +91.969%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 14 outliers among 100 measurements (14.00%)
+  5 (5.00%) high mild
+  9 (9.00%) high severe
+Benchmarking load/from_utf8(pool)/pl
+Benchmarking load/from_utf8(pool)/pl: Warming up for 1.0000 s
+Benchmarking load/from_utf8(pool)/pl: Collecting 100 samples in estimated 3.6160 s (15k iterations)
+Benchmarking load/from_utf8(pool)/pl: Analyzing
+load/from_utf8(pool)/pl time:   [223.27 µs 225.45 µs 227.55 µs]
+                        change: [+84.374% +87.862% +91.165%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) low mild
+  2 (2.00%) high mild
+Benchmarking load/from_utf8(pool)/en-XA
+Benchmarking load/from_utf8(pool)/en-XA: Warming up for 1.0000 s
+Benchmarking load/from_utf8(pool)/en-XA: Collecting 100 samples in estimated 4.4584 s (15k iterations)
+Benchmarking load/from_utf8(pool)/en-XA: Analyzing
+load/from_utf8(pool)/en-XA
+                        time:   [292.38 µs 296.60 µs 301.25 µs]
+                        change: [+86.579% +89.035% +91.754%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 14 outliers among 100 measurements (14.00%)
+  8 (8.00%) high mild
+  6 (6.00%) high severe
+Benchmarking load/from_utf8(pool)/ar-XB
+Benchmarking load/from_utf8(pool)/ar-XB: Warming up for 1.0000 s
+Benchmarking load/from_utf8(pool)/ar-XB: Collecting 100 samples in estimated 3.1405 s (50k iterations)
+Benchmarking load/from_utf8(pool)/ar-XB: Analyzing
+load/from_utf8(pool)/ar-XB
+                        time:   [58.112 µs 59.386 µs 60.898 µs]
+                        change: [+84.593% +88.594% +92.884%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 12 outliers among 100 measurements (12.00%)
+  4 (4.00%) high mild
+  8 (8.00%) high severe
+Benchmarking load/clone(bytes)/en (setup cost, excluded above)
+Benchmarking load/clone(bytes)/en (setup cost, excluded above): Warming up for 1.0000 s
+Benchmarking load/clone(bytes)/en (setup cost, excluded above): Collecting 100 samples in estimated 3.0077 s (1.1M iterations)
+Benchmarking load/clone(bytes)/en (setup cost, excluded above): Analyzing
+load/clone(bytes)/en (setup cost, excluded above)
+                        time:   [2.7589 µs 2.7988 µs 2.8435 µs]
+                        change: [+36.987% +40.269% +43.708%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking format/en/simple (fast path, all simple ids)
+Benchmarking format/en/simple (fast path, all simple ids): Warming up for 1.0000 s
+Benchmarking format/en/simple (fast path, all simple ids): Collecting 100 samples in estimated 3.0001 s (132M iterations)
+Benchmarking format/en/simple (fast path, all simple ids): Analyzing
+format/en/simple (fast path, all simple ids)
+                        time:   [22.360 ns 22.843 ns 23.416 ns]
+                        change: [−9.7794% −7.0984% −4.2463%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 7 outliers among 100 measurements (7.00%)
+  2 (2.00%) high mild
+  5 (5.00%) high severe
+Benchmarking format/en/simple via write() into a reused String
+Benchmarking format/en/simple via write() into a reused String: Warming up for 1.0000 s
+Benchmarking format/en/simple via write() into a reused String: Collecting 100 samples in estimated 3.0001 s (93M iterations)
+Benchmarking format/en/simple via write() into a reused String: Analyzing
+format/en/simple via write() into a reused String
+                        time:   [24.584 ns 25.079 ns 25.679 ns]
+                        change: [−57.416% −56.624% −55.738%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+Benchmarking format/en/1-arg pattern, reused String
+Benchmarking format/en/1-arg pattern, reused String: Warming up for 1.0000 s
+Benchmarking format/en/1-arg pattern, reused String: Collecting 100 samples in estimated 3.0003 s (28M iterations)
+Benchmarking format/en/1-arg pattern, reused String: Analyzing
+format/en/1-arg pattern, reused String
+                        time:   [99.146 ns 100.15 ns 101.36 ns]
+                        change: [−39.967% −38.121% −36.313%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+Benchmarking format/en/1-arg pattern, new String::with_capacity(128)
+Benchmarking format/en/1-arg pattern, new String::with_capacity(128): Warming up for 1.0000 s
+Benchmarking format/en/1-arg pattern, new String::with_capacity(128): Collecting 100 samples in estimated 3.0003 s (23M iterations)
+Benchmarking format/en/1-arg pattern, new String::with_capacity(128): Analyzing
+format/en/1-arg pattern, new String::with_capacity(128)
+                        time:   [115.84 ns 117.42 ns 119.31 ns]
+                        change: [−34.208% −32.760% −31.360%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high severe
+Benchmarking format/en/select (plural on $count), reused String
+Benchmarking format/en/select (plural on $count), reused String: Warming up for 1.0000 s
+Benchmarking format/en/select (plural on $count), reused String: Collecting 100 samples in estimated 3.0003 s (10.0M iterations)
+Benchmarking format/en/select (plural on $count), reused String: Analyzing
+format/en/select (plural on $count), reused String
+                        time:   [235.17 ns 236.48 ns 238.16 ns]
+                        change: [−59.248% −58.382% −57.504%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking format/ar-XB/simple (fast path, all simple ids)
+Benchmarking format/ar-XB/simple (fast path, all simple ids): Warming up for 1.0000 s
+Benchmarking format/ar-XB/simple (fast path, all simple ids): Collecting 100 samples in estimated 3.0000 s (238M iterations)
+Benchmarking format/ar-XB/simple (fast path, all simple ids): Analyzing
+format/ar-XB/simple (fast path, all simple ids)
+                        time:   [10.838 ns 10.890 ns 10.949 ns]
+                        change: [−87.895% −87.679% −87.464%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Benchmarking format/ar-XB/simple via write() into a reused String
+Benchmarking format/ar-XB/simple via write() into a reused String: Warming up for 1.0000 s
+Benchmarking format/ar-XB/simple via write() into a reused String: Collecting 100 samples in estimated 3.0001 s (142M iterations)
+Benchmarking format/ar-XB/simple via write() into a reused String: Analyzing
+format/ar-XB/simple via write() into a reused String
+                        time:   [19.518 ns 19.780 ns 20.146 ns]
+                        change: [−81.935% −81.564% −81.188%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  2 (2.00%) low mild
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+Benchmarking format/ar-XB/1-arg pattern, reused String
+Benchmarking format/ar-XB/1-arg pattern, reused String: Warming up for 1.0000 s
+Benchmarking format/ar-XB/1-arg pattern, reused String: Collecting 100 samples in estimated 3.0004 s (36M iterations)
+Benchmarking format/ar-XB/1-arg pattern, reused String: Analyzing
+format/ar-XB/1-arg pattern, reused String
+                        time:   [75.371 ns 75.873 ns 76.445 ns]
+                        change: [−63.964% −62.462% −61.017%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  7 (7.00%) high mild
+  1 (1.00%) high severe
+Benchmarking format/ar-XB/1-arg pattern, new String::with_capacity(128)
+Benchmarking format/ar-XB/1-arg pattern, new String::with_capacity(128): Warming up for 1.0000 s
+Benchmarking format/ar-XB/1-arg pattern, new String::with_capacity(128): Collecting 100 samples in estimated 3.0000 s (31M iterations)
+Benchmarking format/ar-XB/1-arg pattern, new String::with_capacity(128): Analyzing
+format/ar-XB/1-arg pattern, new String::with_capacity(128)
+                        time:   [88.712 ns 89.677 ns 90.876 ns]
+                        change: [−62.279% −60.919% −59.696%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high severe
+Benchmarking format/ar-XB/select (plural on $count), reused String
+Benchmarking format/ar-XB/select (plural on $count), reused String: Warming up for 1.0000 s
+Benchmarking format/ar-XB/select (plural on $count), reused String: Collecting 100 samples in estimated 3.0013 s (9.7M iterations)
+Benchmarking format/ar-XB/select (plural on $count), reused String: Analyzing
+format/ar-XB/select (plural on $count), reused String
+                        time:   [288.16 ns 291.32 ns 294.77 ns]
+                        change: [−58.763% −58.202% −57.713%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high mild
+

@@ -1,0 +1,12 @@
+[package]
+name = "oxbench"
+version = "0.0.0"
+edition = "2024"
+[dependencies]
+ox_mf2_parser = "=0.14.0-alpha.12"
+serde_json = "1"
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+[workspace]

@@ -1,0 +1,52 @@
+# Built-in template `closure`: the closure-per-site control, reproducing the
+# stack mf2-two replaces (plans/06-size-and-perf.md §1, §3; plans/00 §2 gaps 6
+# and 7): a `move || lookup("id")` closure per text child and attribute,
+# `Signal::derive(move || …)` per reactive prop, a registry of
+# `fn() -> String` closures for deferred labels, message ids as strings and
+# argument names shipped in the wasm. `lookup` / `lookup_args` are one shared
+# function each, in the support module.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "closure"
+description = "Closure-per-site control: move || lookup(\"id\") per site, Signal::derive for props, fn() -> String registry (the old stack)."
+support = "support.rs"
+prelude = "use crate::support::{lookup, lookup_args};"
+boot = "crate::support::boot();"
+
+[args]
+sep = ", "
+plain = '("{{name}}", {{value}}.to_string())'
+signal = '("{{name}}", {{signal}}.get().to_string())'
+
+[deferred]
+type = "fn() -> String"
+view = "({{label}})()"
+string = "({{label}})()"
+
+[site.string]
+none = 'lookup("{{id}}")'
+plain = 'lookup_args("{{id}}", &[{{args}}])'
+
+[site.child]
+none = 'move || lookup("{{id}}")'
+plain = 'move || lookup_args("{{id}}", &[{{args}}])'
+
+[site.attr]
+none = 'move || lookup("{{id}}")'
+plain = 'move || lookup_args("{{id}}", &[{{args}}])'
+
+[site.reactive_prop]
+none = 'Signal::derive(move || lookup("{{id}}"))'
+plain = 'Signal::derive(move || lookup_args("{{id}}", &[{{args}}]))'
+
+[site.string_prop]
+none = 'lookup("{{id}}")'
+plain = 'lookup_args("{{id}}", &[{{args}}])'
+
+[site.deferred]
+none = '|| lookup("{{id}}")'
+
+[site.if_else]
+none = 'lookup("{{id}}")'
+plain = 'lookup_args("{{id}}", &[{{args}}])'

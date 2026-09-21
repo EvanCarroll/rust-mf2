@@ -1,0 +1,24 @@
+[package]
+name = "b12-numcore"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "B12 symbol check: numcore alone in a no_std cdylib (bump allocator, panic handler ignores PanicInfo); any core::fmt left comes from numcore or fixed_decimal."
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+f64 = ["numcore/f64"]
+# Attribution experiments (size only): drop the selection path / formatting.
+no-select = []
+no-format = []
+only-number = []
+noinline = ["numcore/noinline"]
+# Link the fn-number layer too (numloc with :currency and :unit).
+loc = ["dep:numloc"]
+
+[dependencies]
+numcore = { path = "../../numcore" }
+numloc = { path = "../../numloc", features = ["currency", "unit"], optional = true }

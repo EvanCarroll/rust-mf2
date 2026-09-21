@@ -1,0 +1,22 @@
+[package]
+name = "mf2-model"
+description = "The Unicode MessageFormat 2 interchange data model, MsgId, the shared error kinds and the Frontend trait (no_std)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# (De)serialization as JSON that validates against spec/data-model/message.json.
+serde = ["dep:serde"]
+# ErrorKind <-> the WG test suite's error names ("bad-option", …), for tests and tools.
+suite-names = []
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

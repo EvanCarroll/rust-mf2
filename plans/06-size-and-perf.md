@@ -1,0 +1,267 @@
+# 06 — Size and performance: budgets, reference workload, Phase 0 probes
+
+Part of the [master plan](00-master-plan.md). RFC 2119 keywords apply.
+
+**The budget is the feature.** mf2-two exists because i18n stacks bloat the
+wasm. Every number here is enforced by CI, or is a Phase 0 probe whose result
+replaces an estimate. Anything marked *estimate* MUST be replaced by a
+measurement before Phase 1 begins.
+
+## 1. Motivating baseline (measured)
+
+Measured on a production Leptos 0.8 SSR+hydrate application using a
+Fluent-based i18n stack, two locales, by diffing the release wasm before and
+after i18n was introduced:
+
+| Quantity | Value |
+|---|---|
+| wasm growth from i18n | **+1,765 KB raw / +525 KB gz** (+12.4 %) |
+| …from code | +386 KB gz (73 %) — does **not** scale with locale count |
+| …from data | +127 KB gz (24 %) — all locale text, embedded, ≈ 55 KB gz per locale |
+| Locales shipped to every visitor | all of them |
+| Work at first translation | parse ≈ 190 KB of message source, in the browser |
+
+Two conclusions drive everything:
+
+1. **Code is the bulk.** Moving text out of the wasm recovers a quarter at most.
+   The per-call-site expansion, the parser, the resolver, hash maps of arguments
+   and an all-locales plural table are the real cost.
+2. **Text is what scales.** At 20 locales, embedded text alone would pass 1 MB gz.
+   Locale data MUST be lazy.
+
+## 2. The reference workload
+
+The shape below was measured on that application and is reproduced by a
+**deterministic synthetic generator** (`bench/workload-gen`, seeded). The
+generated app is the only application the size gate measures; nobody needs the
+original.
+
+| Property | Value |
+|---|---|
+| Messages per locale | 1,600, in 18 source files |
+| No placeholder (simple) | 79 % |
+| 1 / 2 / 3 / 4 variables | 14.7 % / 5.0 % / 1.1 % / 0.2 % (with the 79 % above: 100 %) |
+| Selecting (`.match`) | 0.9 %, all plural on one count — these sit **inside** the 1-variable bucket |
+| Number/date formatting functions | none in the baseline; the generator has knobs to add them |
+| Message text | mean 27 B, median 19 B, p90 58 B, max 259 B; ≈ 43 KB total per locale |
+| Message id | kebab-case, mean 23.5 chars |
+| Translator comments | ≈ 60 % of source-file bytes (never shipped) |
+| Call sites | 1,860; 21 % pass arguments; 14 % needed an explicit reactive form in the old stack |
+| Call-site position (heuristic classification, ± 5 points) — **the generator's default mix and the weights of budget B5** | **45 %** non-view code needing a plain `String` (match arms, function returns, error values set from event handlers) · **20 %** text child · **8 %** HTML attribute · **8 %** component prop taking reactive text (`TextProp` / `Signal<String>`) · **4 %** component prop taking `String` · **8 %** deferred label (a closure returning `String` in a registry; becomes a `const` table entry) · **7 %** `if`/`else` between two messages inside a view |
+| Inline elements in sentences | present (e.g. a `<kbd>` inside a sentence), previously faked with private-use placeholder characters — MF2 markup replaces this |
+
+Note what the text numbers imply: real message text is ~43 KB per locale; the
+rest of a source file is comments and string ids. With integer ids and no
+comments, a catalog should be **well under 25 KB gz per locale**.
+
+The generator also emits pseudo-locales (`en-XA` accented/expanded, `ar-XB`
+RTL-wrapped) and can scale N messages × M sites × L locales × R lazy routes, so
+the gate can also be run at 10× scale. Defaults: N = 1,600, M = 1,860, L = 2 real
++ 2 pseudo locales, R = 3. "Matches this table" means: each percentage within
+± 1 percentage point, mean text length within ± 5 %. It also writes every
+locale as flat JSON (`id → source`), and commits the default-seed corpus to
+`bench/corpora/workload-1600.json`.
+
+How the generator (A7, `bench/workload-gen/README.md`) reads this table:
+locales `en` (source), `pl` (second real locale, own plural categories, text
+≈ 1.35× the `en` bytes), `en-XA`, `ar-XB`; "text length" is the byte length of
+the whole MF2 source, placeholders included; markup-only messages count as
+having no variable; the plural selects declare `.input {$count :integer}` (MF2
+requires an annotated selector); an `if`/`else` counts one site per branch; the
+reactive-prop share is 4 % `TextProp` + 4 % `Signal<String>`; the three
+4-variable messages have no call site; `--number` / `--datetime` convert
+existing variable messages, leaving the shape unchanged. Seed 1 measures
+within every tolerance, also at 10× ([phase-0-results](phase-0-results.md) §A).
+
+## 3. Budgets
+
+All wasm numbers: `wasm32-unknown-unknown`, release profile
+(`opt-level="z"`, `lto="fat"`, `codegen-units=1`, `panic="abort"`, `strip=true`),
+then `wasm-opt -Oz`, then gzip -9. Measured as a **delta** against the same
+generated app with every call site replaced by a short literal **distinct per
+site** (its MsgId: workload-gen's `idlit` baseline). Why that baseline (P0.1):
+one identical literal everywhere lets LLVM and wasm-opt merge per-site code and
+understates the baseline by ≈ 11 B gz/site; each site's source text subtracts
+text that moves into the catalog anyway, flattering the design by ≈ 7 B gz/site.
+The size gate also reports the `dummy` (identical literal) figure as a
+conservative bound. Per-site costs are **marginal**: the M-delta between the
+default workload and one twice its size, so fixed library cost (B1) cancels.
+Note that `wasm-opt -Oz` shrinks raw bytes by 13–16 % but grows gz by ≈ 5 % on
+these apps; the size gate records both, and which optimisation level delivers
+the smallest compressed wasm is decided in P6 (the budgets stay on `-Oz` until
+then, for comparability).
+
+| # | Budget | Target | Stretch |
+|---|---|---|---|
+| B1 | Fixed client cost: catalog reader + evaluator + `:string` + selection + plural + bidi + parts/markup + Leptos glue + fetch/boot. Of it, the **core numeric semantics** (`:number`/`:integer`/`:offset`, linked only when the corpus uses them) ≤ 10 KB gz | ≤ 30 KB gz | 20 KB gz |
+| B2 | Feature `fn-number` on **and** used: locale-aware numeric family incl. `:percent` | ≤ 3 KB gz | — |
+| B3 | …plus `:currency` + `:unit`, when used | ≤ 4 KB gz more | — |
+| B4 | Feature `fn-datetime` on **and** used | `datetime-intl`: ≤ 6 KB gz wasm + ≤ 1 KB gz JS glue (of which ≤ 3.5 KB gz date semantics every backend needs); `datetime-icu`: ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar, `icu.blob` ≤ 3 KB gz per locale without zone names, ≤ 25 KB gz with | — |
+| B1′ | Any feature on but **unused** by the corpus | +0 B over B1 | — |
+| B5 | Per call site, marginal, weighted by §2's mix (the reference workload) | ≤ 40 B gz (P0.1: 24.5; 35.7 against the `dummy` bound) | 25 B gz |
+| B6 | Locale bytes in the wasm (text, names, rules, symbols) | **0** | — |
+| B7 | Catalog on the wire (production: COLD and IDS stripped) | reference workload `en`: ≤ 25 KB gz; **every locale**: gz ≤ 0.5 × MF2 source bytes + 1 KB, and raw ≤ 1.25 × source bytes + 8 B/message | — |
+| B8 | Locale data inside the catalog: plural + number symbols | ≤ 0.5 KB gz per locale | — |
+| B9 | Catalog load (validate + index) for 1,600 messages, 4× CPU throttle, warm code. (The cold first install — ≈ 1 ms of one-off engine warm-up in isolation — is counted in the app's boot, measured from P6 on.) | ≤ 1 ms | 0.2 ms |
+| B10 | Format: simple message / 1-argument pattern (native) | ≤ 100 ns, 0 allocs / ≤ 500 ns, ≤ 1 alloc | — |
+| B11 | Extra round trips before hydration | 0 — the catalog is preloaded and downloads in parallel with the wasm | — |
+| B12 | `core::fmt` and panic-formatting machinery reachable from the client runtime crates | **absent** | — |
+| B13 | Unused functions in the wasm | **absent** — an app whose corpus never uses `:datetime` links no date code | — |
+
+**Budgets moved by Phase 0** (evidence in [phase-0-results](phase-0-results.md)):
+the numeric share of B1 was ≤ 6 KB gz and measured 10.2 KB gz (8.5 `no_std`;
+P0.5) — raised to ≤ 10, with two known savings (float → text through the
+`Host`, −2.8 KB gz; build-time option interning, ≈ −0.5) to recover inside B1.
+B2 was ≤ 15 KB gz *(estimate)* and measured 1.7 — tightened to ≤ 3. B3 was
+≤ 5 *(estimate)*, measured 2.9 — tightened to ≤ 4. B4-intl was ≤ 3 *(estimate)*
+and measured 5.4 + 0.6 JS, 3.4 of it semantics every backend needs — raised.
+B4-icu ≈ 100 *(audit)* is confirmed (93 / 105 KB gz) and now carries the blob
+sizes. B7 did not account for locales whose text is longer than the reference:
+the synthetic `pl` (1.35× the `en` bytes) misses 25 KB gz by 1 KB under every
+layout while `en` measures 20.5 KB — so B7 now scales with source bytes (all
+four generated locales meet it; P0.7). B8 was ≤ 2 KB gz and measured ≤ 0.2 —
+tightened to ≤ 0.5. B9 measured 0.08 ms warm at 4×; the cold first install
+(1.12 ms in an isolated page) is engine warm-up of code, not catalog work, so
+B9 names the warm load and the boot budget (P6) carries the rest. B5's value
+is unchanged but its baseline is now defined (distinct per-site literals) and
+its figure is marginal, both for the reasons given under the method above.
+
+**Whole-app ambition** for the reference workload: ≈ 30 KB fixed + 1,860 × 40 B
+≈ **105 KB gz**, against 525 KB gz — and **+0 bytes of wasm per added locale**.
+Phase 0 measured the parts separately — runtime floor 7.0 KB gz, core numeric
+semantics 10.2, call-site library 7.5, 24.5 B gz per site — not the whole; the
+size gate measures the whole from P5 on.
+
+### How B6, B12, B13 are checked (not just hoped for)
+
+* **B6 canary.** Every generated locale contains a unique canary string, a canary
+  variable name and a canary message id. CI greps the final wasm for all three;
+  any hit fails the build.
+* **B12 symbol check.** `twiggy`/`wasm-objdump` over a probe that links only the
+  client runtime crates MUST show no `core::fmt::` symbols and no panic message
+  strings. Rules that make this true: `#![no_std]`, no `format!`/`Debug`/
+  `Display` on the client path, no indexing or `unwrap` that can panic (use
+  `get()` and return the fallback), integer/decimal to text by hand-written
+  routines. Error *types* still use `thiserror`; their `Display` impls exist but
+  MUST be unreachable from the client build.
+* **B13 closed world.** `mf2-build` records which functions the corpus uses and
+  generates the registry constructor with only those handlers. Handlers are
+  plain `fn` items referenced only from that constructor, so dead-code
+  elimination removes the rest. CI builds the reference app with and without a
+  single `:datetime` message and asserts the symbol sets differ accordingly.
+
+### Phase 0 measurements (2026-09-20/21)
+
+Deltas against a fair base (allocation kept alive), `wasm-release`, `wasm-opt
+-Oz`, gzip -9. Full tables, methods and caveats: [phase-0-results](phase-0-results.md).
+
+| Item | Δ raw / Δ gz | Probe |
+|---|---|---|
+| Runtime floor: reader + evaluator + selection + plural + bidi + parts, `no_std`, per-access UTF-8 | 14.0 KB / **7.0 KB** | P0.3 |
+| Own plural evaluator (correct on all 15,041 CLDR samples) | 0.67 KB / **0.43 KB** | P0.4 |
+| `icu_plurals` 2.3 + blob / compiled data | 29.8 KB / 14.5 KB · 39.8 KB / 17.9 KB | P0.4 |
+| Plural data per locale: ours cardinal + ordinal / ICU4X payload cardinal, ordinal | 0–84 B / 5–188 B, 5–125 B | P0.4 |
+| Core numeric semantics over `fixed_decimal` (std app) / `no_std` absolute | 21.7 KB / **10.2 KB** · 17.1 KB / 8.5 KB | P0.5 |
+| `fn-number` layer incl. `:percent` / + `:currency` + `:unit` | 3.5 KB / **1.7 KB** · +6.5 KB / +2.9 KB | P0.5 |
+| `icu_decimal` + blob / `Intl.NumberFormat` glue (over the core) | 35.8 KB / 15.9 KB · 4.0 KB / 1.6 KB (+0.6 KB JS) | P0.5 |
+| MF2 date semantics / + `Intl.DateTimeFormat` glue | 6.2 KB / 3.4 KB · 11.2 KB / **5.4 KB** (+0.6 KB JS) | P0.6 |
+| `icu_datetime` + blob: Gregorian all options / no zone styles / any calendar | 221 KB / **93 KB** · 146 KB / 64 KB · 257 KB / 105 KB | P0.6 |
+| Catalog, reference `en`, stripped | 50.9 KB raw / **20.5 KB gz** / 17.9 KB br | P0.7 |
+
+The planning audit's plural and per-site deltas were taken against a base whose
+allocation LLVM deleted, so they included ≈ 5.1 KB gz of allocator and panic
+runtime; its absolute ICU4X sizes reproduce.
+
+Per call site (P0.1: Leptos 0.8.20 `hydrate`, `wasm-release`, after `wasm-opt
+-Oz`, marginal between M = 1,860 and 3,720, against `idlit`; B gz/site, raw in
+brackets; shapes with < 150 sites carry ± 20 B of noise):
+
+| Call-site shape | concrete `Tr` / `TrArgs` | closure-per-site control |
+|---|---|---|
+| non-view `String` (45 %) | 0.2 [5] (11.5 with args) | 9.6 [33] |
+| text child (20 %) | 101.9 [136] (46.4 without args) | 407 [1,906] |
+| HTML attribute (8 %) | 85.6 [75] (48.3 without args) | 90.8 [194] |
+| `TextProp` / `Signal<String>` / `String` prop, deferred row (24 %) | ≈ 0 | 5–50 |
+| `if`/`else` (7 %) | 33.2 | 34.1 |
+| **weighted (whole apps)** | **24.5 [31]** | **97.3 [432]** |
+
+The planning audit's "14 B raw / ≈ 3 B gz" for a view site reproduces in raw
+bytes only; at whole-file scale a view site costs 43–56 B gz (tachys' per-block
+async hydration code compresses worse around a non-`&str` leaf — a P6 item,
+[04](04-leptos-integration.md) §1). Fixed cost of the call-site library: 7.5 KB
+gz (inside B1).
+
+Reactive-graph costs (P0.11): a `RenderEffect` per node costs 427 B and 10
+allocations on wasm32 (797 B native) and leaks +72 B per churned node until the
+next switch; the registry costs 44.8 B and ≈ 0 allocations per node with a flat
+heap; a switch with 2,000 live nodes takes 6.8 ms of script at 4× CPU throttle
+(registry) vs 12–17 ms (effects) — hence D7 = B.
+
+Comparable prior art: `leptos_i18n`'s lazy mode removes the strings but, by its
+own documentation, "the code to render each key is still baked in" — the
+per-key code is exactly the cost technique 2 below exists to avoid.
+
+## 4. Techniques, ordered by expected effect
+
+1. **No parser in the client.** Parse at build time; ship binary catalogs.
+2. **One concrete call-site type.** `tr!` expands to constructing a small
+   non-generic value (`MsgId` + positional args). Rendering as a text child, as
+   an attribute, or converting into `Signal<String>` / `TextProp` / `String` is
+   implemented **once, inside the library**. No per-site closure type, no
+   per-site monomorphisation of reactive plumbing.
+   See [04-leptos-integration](04-leptos-integration.md).
+3. **Ids are integers, arguments are positional slots**, both resolved at compile
+   time. The wasm contains no message ids and no argument names.
+4. **Closed-world linking** of functions and locale data (B13).
+5. **fmt-free, panic-free runtime** (B12).
+6. **Simple-message fast path**: 79 % of messages never enter the evaluator; text
+   goes from the catalog buffer to the DOM / SSR buffer with no `String`.
+7. **Locale data is sliced and lazy**: this locale's plural rules and symbols
+   travel in this locale's catalog. Adding a locale adds no code.
+8. **Host services instead of tables**: NFC normalization always, and date
+   formatting when the application picks `datetime-intl`, are delegated to the
+   JS host on the client.
+9. **Flattened fallbacks**: every catalog carries every id; one fetch, no chain
+   walking, no second catalog in memory.
+10. **Immutable, content-hashed, precompressed catalogs**, decoupled from the
+    wasm hash.
+11. **No JSON, no serde on the client.** Boot data is two short strings.
+12. **Shared scratch buffer** for pattern formatting; one allocation only when a
+    caller really needs an owned `String`.
+
+## 5. Phase 0 probes
+
+Throwaway code under `probes/` (not workspace members of the real crates; deleted
+or archived at Phase 0 exit). Each probe has a threshold and gates a decision in
+the master plan §8. Results are written to `plans/phase-0-results.md`.
+
+| # | Probe | Method | Threshold | Gates |
+|---|---|---|---|---|
+| **P0.1** | **Call-site cost — go/no-go** | Generate 2,000 sites in the **seven shapes of §2, in §2's proportions** (non-view `String`, text child, HTML attribute, reactive-text prop, `String` prop, `const` table entry, `if`/`else`), 21 % of them with 1–3 args (plain, and signal-valued vs. an enclosing `move \|\|` closure). Compare a closure-per-site control against the concrete-type design, **after `wasm-opt -Oz`**. Report per shape and the weighted average. The audit's 14 B/site (view shapes, no args) is the number to reproduce. | ≤ 40 B gz/site, weighted by §2's mix | The whole project. If the concrete-type design cannot beat the control decisively, stop and rethink. |
+| **P0.2** | **Vertical slice — go/no-go** | Hand-built catalog → concrete type → SSR (including a streamed `Suspense` boundary, to prove the catalog context is reachable whenever `to_html_with_buf` runs) → preload → fetch → hydrate → switch locale, in a cargo-leptos app with one `#[lazy]` route. | zero hydration warnings; catalog request overlaps the wasm request; lazy route sees the i18n state; SSR context lookup works under streaming | D9 (render-time lookup vs. capture), minimum Leptos version, `forbid(unsafe_code)` feasibility in the client crates |
+| P0.3 | Runtime floor | `no_std` evaluator skeleton (catalog reader + pattern + select + parts), fmt-free. | ≤ 12 KB gz | B1 credibility |
+| P0.4 | Plural | Own rule parser + encoder + evaluator, run against **every CLDR `@integer`/`@decimal` sample for every locale** (correctness is the open question; D3 itself is decided). Size comparison against `icu_plurals` (runtime blob, compiled data) on `en`, `ar`, `ru` only to reproduce the audit. | 100 % of samples; ≤ 1.5 KB gz code; ≤ 300 B data/locale | confirms D3; fixes the `plural.*` catalog entries for P2 |
+| P0.5 | Numbers | Core numeric semantics over `fixed_decimal` (all REQUIRED `:number` options incl. rounding modes/increments) with neutral output → its cost inside B1; then the `fn-number` localization layer with catalog-borne symbols → B2; then `:currency` and `:unit` code plus **per-locale data size** for "used" vs. "all" currencies/units → B3. `icu_decimal` + blob measured once for comparison. | B1 (numeric share ≤ 6 KB gz), B2, B3 | budgets only — D4 is decided |
+| P0.6 | Dates | (a) `icu_datetime` + blob (semantic skeleton subset the spec needs), (b) `Intl.DateTimeFormat` glue. | sets B4 | D4 |
+| P0.7 | Catalog encoding | Encode the reference workload; raw/gz/br; single vs split string pools; fixed vs varint index. | B7 | Format details in 02 §6 |
+| P0.8 | Load + lookup speed | wasm in a browser, desktop and 4× CPU-throttled; uses P0.7's encoding and P0.3's evaluator. | B9, B10 | cost of the load step (pool split + UTF-8 pass) |
+| P0.9 | Build orchestration | i18n crate with `build.rs` → manifest + generated `tr!` wrapper → proc-macro reads manifest. Check: cargo-leptos dual (ssr + hydrate) build, incremental rebuild after editing one message, multi-crate workspace, rust-analyzer expansion, wall-clock of 2,000 expansions. | edit→rebuild correctness; ≤ 2 s macro overhead per 2,000 sites | D8 |
+| P0.10 | Hydration tolerance | Source reading says hydration from server HTML never compares or sets text/attribute content. Confirm in a browser: render different text on server and client for one node, in debug and release; then do the same with a *structural* difference (markup). | text: no warning, server text stays until next update; structure: documented failure mode | Risk sizing for `datetime-intl`; hydration gate rules for markup |
+| P0.11 | Node update strategy | 2,000 live translated nodes + a virtual list that churns 100k nodes: (A) `RenderEffect` per node vs (B) library registry. Heap growth, switch latency, bytes. | B: flat heap under churn; switch ≤ 1 frame budget ×2 | D7 |
+| P0.12 | Parser baseline | Create `bench/parser-gate/` (a permanent workspace member, not a probe) and the committed corpora; re-measure `ox_mf2_parser` on them under the comparison rules of [05-tooling](05-tooling.md) §1 (fresh and reused state). These numbers replace the audit table as the baseline. | harness + corpora committed; baseline recorded | The D1 gate at P1 exit |
+
+P0.1, P0.2 and P0.9 are the three that can kill or reshape the project (the
+no-go conditions are in the [work order](07-phase-0-work-order.md), C3); P0.1 and
+P0.2 run first.
+
+## 6. CI size gate (from Phase 5 on)
+
+`cargo xtask size` builds the generated reference app, computes every budget in
+§3, writes `target/size-report.json` + a Markdown table, and fails on regression
+beyond a small tolerance (default 1 % or 256 B, whichever is larger). The report
+is attached to every CI run; the numbers in this file are updated only by a
+commit that also explains the change.
+
+Benchmarks (`criterion` native; a small wasm timing harness in the browser) cover
+load, simple lookup, pattern format, select format, and locale switch with 2,000
+live nodes.

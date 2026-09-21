@@ -1,0 +1,17 @@
+[package]
+name = "plural-rules"
+description = "P0.4 build side: UTS #35 plural-rule parser, sample expander, encoder, CLDR checker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+plural-eval.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+
+[[bin]]
+name = "p04"
+path = "src/bin/p04.rs"

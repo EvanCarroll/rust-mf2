@@ -1,0 +1,28 @@
+# cargo-fuzz targets (plans/01-conformance.md §5, "Fuzzing"). A standalone
+# workspace like `probes/`: cargo-fuzz needs a nightly toolchain, and this is
+# the one place that uses `+nightly` (see README.md). The root workspace
+# excludes this directory.
+[package]
+name = "mf2-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+mf2-model = { path = "../crates/mf2-model" }
+mf2-syntax = { path = "../crates/mf2-syntax" }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false

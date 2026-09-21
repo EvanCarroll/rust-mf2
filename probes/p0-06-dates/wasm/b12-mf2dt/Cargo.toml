@@ -1,0 +1,13 @@
+[package]
+name = "b12-mf2dt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "B12 symbol check: mf2dt alone in a no_std cdylib whose panic handler ignores its argument, so any core::fmt symbol left comes from mf2dt."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+mf2dt = { path = "../../mf2dt" }

@@ -1,0 +1,51 @@
+== wasm-eval (no_std harness)
+  wasm_eval.wasm                           functions/items   22  fmt symbols 0  panic symbols 0
+  eval.syms.opt.wasm                       functions/items   22  fmt symbols 0  panic symbols 0
+  import p04_panic_reachable present: no
+  panic/bounds/overflow strings in data: 0
+  items (twiggy top, optimised):
+     Shallow Bytes │ Shallow % │ Item
+    ───────────────┼───────────┼─────────────────────────────────────────────────────────
+               566 ┊    53.25% ┊ select
+               127 ┊    11.95% ┊ <plural_eval[bc5d08b794ca5d50]::Reader>::varint
+                91 ┊     8.56% ┊ custom section 'target_features'
+                67 ┊     6.30% ┊ custom section 'producers'
+                66 ┊     6.21% ┊ "function names" subsection
+                20 ┊     1.88% ┊ "global names" subsection
+                18 ┊     1.69% ┊ custom section 'target_features' headers
+                17 ┊     1.60% ┊ "module name" subsection
+                12 ┊     1.13% ┊ type[0]: (i32, i32, i64, i64, i64, i32, i32, i32) -> i32
+                12 ┊     1.13% ┊ custom section 'producers' headers
+                 9 ┊     0.85% ┊ export "memory"
+                 9 ┊     0.85% ┊ export "select"
+                49 ┊     4.61% ┊ ... and 10 more.
+              1063 ┊   100.00% ┊ Σ [22 Total Rows]
+== wasm-eval-ops (no_std harness)
+  wasm_eval_ops.wasm                       functions/items   24  fmt symbols 0  panic symbols 0
+  eval-ops.syms.opt.wasm                   functions/items   24  fmt symbols 0  panic symbols 0
+  import p04_panic_reachable present: no
+  panic/bounds/overflow strings in data: 0
+  items (twiggy top, optimised):
+     Shallow Bytes │ Shallow % │ Item
+    ───────────────┼───────────┼────────────────────────────────────────────────
+              1470 ┊    70.37% ┊ select_str
+               127 ┊     6.08% ┊ <plural_eval[bc5d08b794ca5d50]::Reader>::varint
+               121 ┊     5.79% ┊ "function names" subsection
+                91 ┊     4.36% ┊ custom section 'target_features'
+                67 ┊     3.21% ┊ custom section 'producers'
+                56 ┊     2.68% ┊ plural_eval[bc5d08b794ca5d50]::operands::digits
+                21 ┊     1.01% ┊ "module name" subsection
+                20 ┊     0.96% ┊ "global names" subsection
+                18 ┊     0.86% ┊ custom section 'target_features' headers
+                13 ┊     0.62% ┊ export "select_str"
+                12 ┊     0.57% ┊ custom section 'producers' headers
+                 9 ┊     0.43% ┊ export "memory"
+                64 ┊     3.06% ┊ ... and 12 more.
+              2089 ┊   100.00% ┊ Σ [24 Total Rows]
+== std harness: symbols added by the evaluator to the fair std baseline (std-alloc)
+  + <plural_eval[bc5d08b794ca5d50]::Reader>::varint
+  + plural_eval[bc5d08b794ca5d50]::select
+  + type[4]: () -> nil
+  + "type[5]: (i32
+  + type[6]: (i32) -> nil
+  of which fmt/panic: 0

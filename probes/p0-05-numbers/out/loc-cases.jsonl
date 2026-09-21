@@ -1,0 +1,1287 @@
+{"f":"percent","loc":"en","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"en","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"en","o":{},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"en","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"en","o":{},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"en","o":{},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"en","o":{},"out":"-123,457%","v":"-1234.567"}
+{"f":"percent","loc":"en","o":{},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"en","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"-123,456.7%","v":"-1234.567"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"en","o":{"maximumFractionDigits":"1"},"out":"0.5%","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"-€1.00","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"-€1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"EUR"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"USD"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥0","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥1","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"-¥1","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥2","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥13","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥1,235","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"-¥1,235","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥1,000,000","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"JPY"},"out":"¥0","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.00","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1.00","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1.00","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 2.00","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 12.50","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,234.50","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.01","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1.00)","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1,234.57)","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00 euros","v":"0"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00 euros","v":"1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1.00 euros","v":"-1"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00 euros","v":"2"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50 euros","v":"12.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50 euros","v":"1234.5"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,234.57 euros","v":"-1234.567"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,000,000.00 euros","v":"1000000"}
+{"f":"currency","loc":"en","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01 euros","v":"0.005"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"12.5 km","v":"12.5"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"1,234.5 km","v":"1234.5"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"-1,234.567 km","v":"-1234.567"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"1,000,000 km","v":"1000000"}
+{"f":"unit","loc":"en","o":{"unit":"kilometer"},"out":"0.005 km","v":"0.005"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 kilograms","v":"0"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 kilogram","v":"1"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 kilogram","v":"-1"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 kilograms","v":"2"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 kilograms","v":"12.5"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 kilograms","v":"1234.5"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1,234.567 kilograms","v":"-1234.567"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,000,000 kilograms","v":"1000000"}
+{"f":"unit","loc":"en","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 kilograms","v":"0.005"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°C","v":"12.5"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°C","v":"1234.5"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1,234.567°C","v":"-1234.567"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,000,000°C","v":"1000000"}
+{"f":"unit","loc":"en","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°C","v":"0.005"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"0 hours","v":"0"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"1 hour","v":"1"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 hour","v":"-1"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"2 hours","v":"2"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 hours","v":"12.5"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 hours","v":"1234.5"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"-1,234.567 hours","v":"-1234.567"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"1,000,000 hours","v":"1000000"}
+{"f":"unit","loc":"en","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 hours","v":"0.005"}
+{"f":"percent","loc":"es","o":{},"out":"0 %","v":"0"}
+{"f":"percent","loc":"es","o":{},"out":"100 %","v":"1"}
+{"f":"percent","loc":"es","o":{},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"es","o":{},"out":"200 %","v":"2"}
+{"f":"percent","loc":"es","o":{},"out":"1250 %","v":"12.5"}
+{"f":"percent","loc":"es","o":{},"out":"123.450 %","v":"1234.5"}
+{"f":"percent","loc":"es","o":{},"out":"-123.457 %","v":"-1234.567"}
+{"f":"percent","loc":"es","o":{},"out":"100.000.000 %","v":"1000000"}
+{"f":"percent","loc":"es","o":{},"out":"1 %","v":"0.005"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"0 %","v":"0"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"100 %","v":"1"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"200 %","v":"2"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"1250 %","v":"12.5"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"123.450 %","v":"1234.5"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"-123.456,7 %","v":"-1234.567"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"100.000.000 %","v":"1000000"}
+{"f":"percent","loc":"es","o":{"maximumFractionDigits":"1"},"out":"0,5 %","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"1234,50 €","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"-1234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"1.000.000,00 €","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"EUR"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"0,00 US$","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"1,00 US$","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"-1,00 US$","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"2,00 US$","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"12,50 US$","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"1234,50 US$","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"-1234,57 US$","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"1.000.000,00 US$","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"USD"},"out":"0,01 US$","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"0 JPY","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"1 JPY","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"-1 JPY","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"2 JPY","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"13 JPY","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"1235 JPY","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"-1235 JPY","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"1.000.000 JPY","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"JPY"},"out":"0 JPY","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,00 GBP","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1,00 GBP","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1,00 GBP","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"2,00 GBP","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"12,50 GBP","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1234,50 GBP","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1234,57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1.000.000,00 GBP","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,01 GBP","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1234,50 $","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1.000.000,00 $","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"1234,50 €","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"1.000.000,00 €","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,00 euros","v":"0"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,00 euros","v":"1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,00 euros","v":"-1"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2,00 euros","v":"2"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12,50 euros","v":"12.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1234,50 euros","v":"1234.5"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1234,57 euros","v":"-1234.567"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.000.000,00 euros","v":"1000000"}
+{"f":"currency","loc":"es","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,01 euros","v":"0.005"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"12,5 km","v":"12.5"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"1234,5 km","v":"1234.5"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"-1234,567 km","v":"-1234.567"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"1.000.000 km","v":"1000000"}
+{"f":"unit","loc":"es","o":{"unit":"kilometer"},"out":"0,005 km","v":"0.005"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 kilogramos","v":"0"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 kilogramo","v":"1"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 kilogramo","v":"-1"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 kilogramos","v":"2"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12,5 kilogramos","v":"12.5"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1234,5 kilogramos","v":"1234.5"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1234,567 kilogramos","v":"-1234.567"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1.000.000 kilogramos","v":"1000000"}
+{"f":"unit","loc":"es","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0,005 kilogramos","v":"0.005"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12,5°C","v":"12.5"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1234,5°C","v":"1234.5"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1234,567°C","v":"-1234.567"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1.000.000°C","v":"1000000"}
+{"f":"unit","loc":"es","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0,005°C","v":"0.005"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"0 horas","v":"0"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"1 hora","v":"1"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 hora","v":"-1"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"2 horas","v":"2"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"12,5 horas","v":"12.5"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"1234,5 horas","v":"1234.5"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"-1234,567 horas","v":"-1234.567"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"1.000.000 horas","v":"1000000"}
+{"f":"unit","loc":"es","o":{"unit":"hour","unitDisplay":"long"},"out":"0,005 horas","v":"0.005"}
+{"f":"percent","loc":"de","o":{},"out":"0 %","v":"0"}
+{"f":"percent","loc":"de","o":{},"out":"100 %","v":"1"}
+{"f":"percent","loc":"de","o":{},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"de","o":{},"out":"200 %","v":"2"}
+{"f":"percent","loc":"de","o":{},"out":"1.250 %","v":"12.5"}
+{"f":"percent","loc":"de","o":{},"out":"123.450 %","v":"1234.5"}
+{"f":"percent","loc":"de","o":{},"out":"-123.457 %","v":"-1234.567"}
+{"f":"percent","loc":"de","o":{},"out":"100.000.000 %","v":"1000000"}
+{"f":"percent","loc":"de","o":{},"out":"1 %","v":"0.005"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"0 %","v":"0"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"100 %","v":"1"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"200 %","v":"2"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"1.250 %","v":"12.5"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"123.450 %","v":"1234.5"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"-123.456,7 %","v":"-1234.567"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"100.000.000 %","v":"1000000"}
+{"f":"percent","loc":"de","o":{"maximumFractionDigits":"1"},"out":"0,5 %","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"1.234,50 €","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"-1.234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"1.000.000,00 €","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"EUR"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"1.234,50 $","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"-1.234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"1.000.000,00 $","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"USD"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"0 ¥","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"1 ¥","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"-1 ¥","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"2 ¥","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"13 ¥","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"1.235 ¥","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"-1.235 ¥","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"1.000.000 ¥","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"JPY"},"out":"0 ¥","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,00 GBP","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1,00 GBP","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1,00 GBP","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"2,00 GBP","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"12,50 GBP","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1.234,50 GBP","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1.234,57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1.000.000,00 GBP","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,01 GBP","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1.234,50 $","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1.234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1.000.000,00 $","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"1.234,50 €","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1.234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"1.000.000,00 €","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,00 Euro","v":"0"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,00 Euro","v":"1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,00 Euro","v":"-1"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2,00 Euro","v":"2"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12,50 Euro","v":"12.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.234,50 Euro","v":"1234.5"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1.234,57 Euro","v":"-1234.567"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.000.000,00 Euro","v":"1000000"}
+{"f":"currency","loc":"de","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,01 Euro","v":"0.005"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"12,5 km","v":"12.5"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"1.234,5 km","v":"1234.5"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"-1.234,567 km","v":"-1234.567"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"1.000.000 km","v":"1000000"}
+{"f":"unit","loc":"de","o":{"unit":"kilometer"},"out":"0,005 km","v":"0.005"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 Kilogramm","v":"0"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 Kilogramm","v":"1"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 Kilogramm","v":"-1"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 Kilogramm","v":"2"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12,5 Kilogramm","v":"12.5"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1.234,5 Kilogramm","v":"1234.5"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1.234,567 Kilogramm","v":"-1234.567"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1.000.000 Kilogramm","v":"1000000"}
+{"f":"unit","loc":"de","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0,005 Kilogramm","v":"0.005"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0 °C","v":"0"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 °C","v":"1"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1 °C","v":"-1"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2 °C","v":"2"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12,5 °C","v":"12.5"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1.234,5 °C","v":"1234.5"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1.234,567 °C","v":"-1234.567"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1.000.000 °C","v":"1000000"}
+{"f":"unit","loc":"de","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0,005 °C","v":"0.005"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"0 Stunden","v":"0"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"1 Stunde","v":"1"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 Stunde","v":"-1"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"2 Stunden","v":"2"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"12,5 Stunden","v":"12.5"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"1.234,5 Stunden","v":"1234.5"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"-1.234,567 Stunden","v":"-1234.567"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"1.000.000 Stunden","v":"1000000"}
+{"f":"unit","loc":"de","o":{"unit":"hour","unitDisplay":"long"},"out":"0,005 Stunden","v":"0.005"}
+{"f":"percent","loc":"fr","o":{},"out":"0 %","v":"0"}
+{"f":"percent","loc":"fr","o":{},"out":"100 %","v":"1"}
+{"f":"percent","loc":"fr","o":{},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"fr","o":{},"out":"200 %","v":"2"}
+{"f":"percent","loc":"fr","o":{},"out":"1 250 %","v":"12.5"}
+{"f":"percent","loc":"fr","o":{},"out":"123 450 %","v":"1234.5"}
+{"f":"percent","loc":"fr","o":{},"out":"-123 457 %","v":"-1234.567"}
+{"f":"percent","loc":"fr","o":{},"out":"100 000 000 %","v":"1000000"}
+{"f":"percent","loc":"fr","o":{},"out":"1 %","v":"0.005"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"0 %","v":"0"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"100 %","v":"1"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"200 %","v":"2"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"1 250 %","v":"12.5"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"123 450 %","v":"1234.5"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"-123 456,7 %","v":"-1234.567"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"100 000 000 %","v":"1000000"}
+{"f":"percent","loc":"fr","o":{"maximumFractionDigits":"1"},"out":"0,5 %","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"1 234,50 €","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"-1 234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"0,00 $US","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"1,00 $US","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"-1,00 $US","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"2,00 $US","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"12,50 $US","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"1 234,50 $US","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"-1 234,57 $US","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"1 000 000,00 $US","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"USD"},"out":"0,01 $US","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"0 JPY","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"1 JPY","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"-1 JPY","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"2 JPY","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"13 JPY","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"1 235 JPY","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"-1 235 JPY","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"1 000 000 JPY","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"JPY"},"out":"0 JPY","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,00 GBP","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1,00 GBP","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1,00 GBP","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"2,00 GBP","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"12,50 GBP","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1 234,50 GBP","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1 234,57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1 000 000,00 GBP","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,01 GBP","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1 234,50 $","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1 234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1 000 000,00 $","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"(1,00 €)","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"1 234,50 €","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"(1 234,57 €)","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,00 euro","v":"0"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,00 euro","v":"1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,00 euro","v":"-1"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2,00 euros","v":"2"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12,50 euros","v":"12.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1 234,50 euros","v":"1234.5"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1 234,57 euros","v":"-1234.567"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1 000 000,00 euros","v":"1000000"}
+{"f":"currency","loc":"fr","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,01 euro","v":"0.005"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"12,5 km","v":"12.5"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"1 234,5 km","v":"1234.5"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"-1 234,567 km","v":"-1234.567"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"1 000 000 km","v":"1000000"}
+{"f":"unit","loc":"fr","o":{"unit":"kilometer"},"out":"0,005 km","v":"0.005"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 kilogramme","v":"0"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 kilogramme","v":"1"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 kilogramme","v":"-1"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 kilogrammes","v":"2"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12,5 kilogrammes","v":"12.5"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 234,5 kilogrammes","v":"1234.5"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 234,567 kilogrammes","v":"-1234.567"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 000 000 kilogrammes","v":"1000000"}
+{"f":"unit","loc":"fr","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0,005 kilogramme","v":"0.005"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12,5°C","v":"12.5"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 234,5°C","v":"1234.5"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1 234,567°C","v":"-1234.567"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 000 000°C","v":"1000000"}
+{"f":"unit","loc":"fr","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0,005°C","v":"0.005"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"0 heure","v":"0"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"1 heure","v":"1"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 heure","v":"-1"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"2 heures","v":"2"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"12,5 heures","v":"12.5"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"1 234,5 heures","v":"1234.5"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 234,567 heures","v":"-1234.567"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"1 000 000 heures","v":"1000000"}
+{"f":"unit","loc":"fr","o":{"unit":"hour","unitDisplay":"long"},"out":"0,005 heure","v":"0.005"}
+{"f":"percent","loc":"ar","o":{},"out":"0‎%‎","v":"0"}
+{"f":"percent","loc":"ar","o":{},"out":"100‎%‎","v":"1"}
+{"f":"percent","loc":"ar","o":{},"out":"‎-100‎%‎","v":"-1"}
+{"f":"percent","loc":"ar","o":{},"out":"200‎%‎","v":"2"}
+{"f":"percent","loc":"ar","o":{},"out":"1,250‎%‎","v":"12.5"}
+{"f":"percent","loc":"ar","o":{},"out":"123,450‎%‎","v":"1234.5"}
+{"f":"percent","loc":"ar","o":{},"out":"‎-123,457‎%‎","v":"-1234.567"}
+{"f":"percent","loc":"ar","o":{},"out":"100,000,000‎%‎","v":"1000000"}
+{"f":"percent","loc":"ar","o":{},"out":"1‎%‎","v":"0.005"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"0‎%‎","v":"0"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"100‎%‎","v":"1"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"‎-100‎%‎","v":"-1"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"200‎%‎","v":"2"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"1,250‎%‎","v":"12.5"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"123,450‎%‎","v":"1234.5"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"‎-123,456.7‎%‎","v":"-1234.567"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"100,000,000‎%‎","v":"1000000"}
+{"f":"percent","loc":"ar","o":{"maximumFractionDigits":"1"},"out":"0.5‎%‎","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏0.00 €","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏1.00 €","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏‎-1.00 €","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏2.00 €","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏12.50 €","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏1,234.50 €","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏‎-1,234.57 €","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏1,000,000.00 €","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR"},"out":"‏0.01 €","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏0.00 US$","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏1.00 US$","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏‎-1.00 US$","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏2.00 US$","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏12.50 US$","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏1,234.50 US$","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏‎-1,234.57 US$","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏1,000,000.00 US$","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"USD"},"out":"‏0.01 US$","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏0 JP¥","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏1 JP¥","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏‎-1 JP¥","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏2 JP¥","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏13 JP¥","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏1,235 JP¥","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏‎-1,235 JP¥","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏1,000,000 JP¥","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"JPY"},"out":"‏0 JP¥","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏0.00 GBP","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1.00 GBP","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏‎-1.00 GBP","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏2.00 GBP","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏12.50 GBP","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1,234.50 GBP","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏‎-1,234.57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1,000,000.00 GBP","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏0.01 GBP","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏0.00 US$","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1.00 US$","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏‎-1.00 US$","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏2.00 US$","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏12.50 US$","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1,234.50 US$","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏‎-1,234.57 US$","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1,000,000.00 US$","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏0.01 US$","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜0.00€","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜1.00€","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"(؜1.00€)","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜2.00€","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜12.50€","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜1,234.50€","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"(؜1,234.57€)","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜1,000,000.00€","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencySign":"accounting"},"out":"؜0.01€","v":"0.005"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00 يورو","v":"0"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00 يورو","v":"1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"‎-1.00 يورو","v":"-1"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00 يورو","v":"2"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50 يورو","v":"12.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50 يورو","v":"1234.5"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"‎-1,234.57 يورو","v":"-1234.567"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,000,000.00 يورو","v":"1000000"}
+{"f":"currency","loc":"ar","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01 يورو","v":"0.005"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"0 كم","v":"0"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"1 كم","v":"1"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"‎-1 كم","v":"-1"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"2 كم","v":"2"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"12.5 كم","v":"12.5"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"1,234.5 كم","v":"1234.5"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"‎-1,234.567 كم","v":"-1234.567"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"1,000,000 كم","v":"1000000"}
+{"f":"unit","loc":"ar","o":{"unit":"kilometer"},"out":"0.005 كم","v":"0.005"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 كيلوغرام","v":"0"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 كيلوغرام","v":"1"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"‎-1 كيلوغرام","v":"-1"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 كيلوغرام","v":"2"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 كيلوغرام","v":"12.5"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 كيلوغرام","v":"1234.5"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"‎-1,234.567 كيلوغرام","v":"-1234.567"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,000,000 كيلوغرام","v":"1000000"}
+{"f":"unit","loc":"ar","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 كيلوغرام","v":"0.005"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°م","v":"0"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°م","v":"1"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"‎-1°م","v":"-1"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°م","v":"2"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°م","v":"12.5"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°م","v":"1234.5"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"‎-1,234.567°م","v":"-1234.567"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,000,000°م","v":"1000000"}
+{"f":"unit","loc":"ar","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°م","v":"0.005"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"0 ساعة","v":"0"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"ساعة","v":"1"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"ساعة","v":"-1"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"2 ساعة","v":"2"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 ساعة","v":"12.5"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 ساعة","v":"1234.5"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"‎-1,234.567 ساعة","v":"-1234.567"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"1,000,000 ساعة","v":"1000000"}
+{"f":"unit","loc":"ar","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 ساعة","v":"0.005"}
+{"f":"percent","loc":"he","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"he","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"he","o":{},"out":"‎-100%","v":"-1"}
+{"f":"percent","loc":"he","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"he","o":{},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"he","o":{},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"he","o":{},"out":"‎-123,457%","v":"-1234.567"}
+{"f":"percent","loc":"he","o":{},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"he","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"‎-100%","v":"-1"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"‎-123,456.7%","v":"-1234.567"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"he","o":{"maximumFractionDigits":"1"},"out":"0.5%","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏0.00 ‏€","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏1.00 ‏€","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏‎-1.00 ‏€","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏2.00 ‏€","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏12.50 ‏€","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏1,234.50 ‏€","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏‎-1,234.57 ‏€","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏1,000,000.00 ‏€","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"EUR"},"out":"‏0.01 ‏€","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏0.00 ‏$","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏1.00 ‏$","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏‎-1.00 ‏$","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏2.00 ‏$","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏12.50 ‏$","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏1,234.50 ‏$","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏‎-1,234.57 ‏$","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏1,000,000.00 ‏$","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"USD"},"out":"‏0.01 ‏$","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏0 ‏¥","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏1 ‏¥","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏‎-1 ‏¥","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏2 ‏¥","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏13 ‏¥","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏1,235 ‏¥","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏‎-1,235 ‏¥","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏1,000,000 ‏¥","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"JPY"},"out":"‏0 ‏¥","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏0.00 ‏GBP","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1.00 ‏GBP","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏‎-1.00 ‏GBP","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏2.00 ‏GBP","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏12.50 ‏GBP","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1,234.50 ‏GBP","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏‎-1,234.57 ‏GBP","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏1,000,000.00 ‏GBP","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"GBP","currencyDisplay":"code"},"out":"‏0.01 ‏GBP","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏0.00 ‏$","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1.00 ‏$","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏‎-1.00 ‏$","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏2.00 ‏$","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏12.50 ‏$","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1,234.50 ‏$","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏‎-1,234.57 ‏$","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏1,000,000.00 ‏$","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"‏0.01 ‏$","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏0.00 ‏€","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏1.00 ‏€","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏‎-1.00 ‏€","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏2.00 ‏€","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏12.50 ‏€","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏1,234.50 ‏€","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏‎-1,234.57 ‏€","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏1,000,000.00 ‏€","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencySign":"accounting"},"out":"‏0.01 ‏€","v":"0.005"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00 אירו","v":"0"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00 אירו","v":"1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"‎-1.00 אירו","v":"-1"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00 אירו","v":"2"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50 אירו","v":"12.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50 אירו","v":"1234.5"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"‎-1,234.57 אירו","v":"-1234.567"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,000,000.00 אירו","v":"1000000"}
+{"f":"currency","loc":"he","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01 אירו","v":"0.005"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"0 ק״מ","v":"0"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"1 ק״מ","v":"1"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"‎-1 ק״מ","v":"-1"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"2 ק״מ","v":"2"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"12.5 ק״מ","v":"12.5"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"1,234.5 ק״מ","v":"1234.5"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"‎-1,234.567 ק״מ","v":"-1234.567"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"1,000,000 ק״מ","v":"1000000"}
+{"f":"unit","loc":"he","o":{"unit":"kilometer"},"out":"0.005 ק״מ","v":"0.005"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 קילוגרם","v":"0"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 קילוגרם","v":"1"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"‎-1 קילוגרם","v":"-1"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 קילוגרם","v":"2"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 קילוגרם","v":"12.5"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 קילוגרם","v":"1234.5"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"‎-1,234.567 קילוגרם","v":"-1234.567"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,000,000 קילוגרם","v":"1000000"}
+{"f":"unit","loc":"he","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 קילוגרם","v":"0.005"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"‎-1°C","v":"-1"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°C","v":"12.5"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°C","v":"1234.5"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"‎-1,234.567°C","v":"-1234.567"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,000,000°C","v":"1000000"}
+{"f":"unit","loc":"he","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°C","v":"0.005"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"0 שעות","v":"0"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"1 שעה","v":"1"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"‎-1 שעה","v":"-1"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"2 שעות","v":"2"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 שעות","v":"12.5"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 שעות","v":"1234.5"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"‎-1,234.567 שעות","v":"-1234.567"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"1,000,000 שעות","v":"1000000"}
+{"f":"unit","loc":"he","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 שעות","v":"0.005"}
+{"f":"percent","loc":"ja","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"ja","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"ja","o":{},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"ja","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"ja","o":{},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"ja","o":{},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"ja","o":{},"out":"-123,457%","v":"-1234.567"}
+{"f":"percent","loc":"ja","o":{},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"ja","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"-123,456.7%","v":"-1234.567"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"ja","o":{"maximumFractionDigits":"1"},"out":"0.5%","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"-€1.00","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"-€1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"USD"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥0","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥1","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"-￥1","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥2","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥13","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥1,235","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"-￥1,235","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥1,000,000","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"JPY"},"out":"￥0","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.00","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1.00","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1.00","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 2.00","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 12.50","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,234.50","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.01","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1.00)","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1,234.57)","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00ユーロ","v":"0"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00ユーロ","v":"1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1.00ユーロ","v":"-1"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00ユーロ","v":"2"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50ユーロ","v":"12.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50ユーロ","v":"1234.5"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,234.57ユーロ","v":"-1234.567"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,000,000.00ユーロ","v":"1000000"}
+{"f":"currency","loc":"ja","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01ユーロ","v":"0.005"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"12.5 km","v":"12.5"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"1,234.5 km","v":"1234.5"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"-1,234.567 km","v":"-1234.567"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"1,000,000 km","v":"1000000"}
+{"f":"unit","loc":"ja","o":{"unit":"kilometer"},"out":"0.005 km","v":"0.005"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 キログラム","v":"0"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 キログラム","v":"1"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 キログラム","v":"-1"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 キログラム","v":"2"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 キログラム","v":"12.5"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 キログラム","v":"1234.5"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1,234.567 キログラム","v":"-1234.567"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,000,000 キログラム","v":"1000000"}
+{"f":"unit","loc":"ja","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 キログラム","v":"0.005"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°C","v":"12.5"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°C","v":"1234.5"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1,234.567°C","v":"-1234.567"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,000,000°C","v":"1000000"}
+{"f":"unit","loc":"ja","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°C","v":"0.005"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"0 時間","v":"0"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"1 時間","v":"1"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 時間","v":"-1"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"2 時間","v":"2"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 時間","v":"12.5"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 時間","v":"1234.5"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"-1,234.567 時間","v":"-1234.567"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"1,000,000 時間","v":"1000000"}
+{"f":"unit","loc":"ja","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 時間","v":"0.005"}
+{"f":"percent","loc":"hi","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"hi","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"hi","o":{},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"hi","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"hi","o":{},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"hi","o":{},"out":"1,23,450%","v":"1234.5"}
+{"f":"percent","loc":"hi","o":{},"out":"-1,23,457%","v":"-1234.567"}
+{"f":"percent","loc":"hi","o":{},"out":"10,00,00,000%","v":"1000000"}
+{"f":"percent","loc":"hi","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"1,23,450%","v":"1234.5"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"-1,23,456.7%","v":"-1234.567"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"10,00,00,000%","v":"1000000"}
+{"f":"percent","loc":"hi","o":{"maximumFractionDigits":"1"},"out":"0.5%","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"-€1.00","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"-€1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€10,00,000.00","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$10,00,000.00","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"USD"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥0","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥1","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"-JP¥1","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥2","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥13","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥1,235","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"-JP¥1,235","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥10,00,000","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"JPY"},"out":"JP¥0","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.00","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1.00","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1.00","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 2.00","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 12.50","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,234.50","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 10,00,000.00","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.01","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$10,00,000.00","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"-€1.00","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"-€1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€10,00,000.00","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00 यूरो","v":"0"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00 यूरो","v":"1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1.00 यूरो","v":"-1"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00 यूरो","v":"2"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50 यूरो","v":"12.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50 यूरो","v":"1234.5"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,234.57 यूरो","v":"-1234.567"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"10,00,000.00 यूरो","v":"1000000"}
+{"f":"currency","loc":"hi","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01 यूरो","v":"0.005"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"0 कि॰मी॰","v":"0"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"1 कि॰मी॰","v":"1"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"-1 कि॰मी॰","v":"-1"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"2 कि॰मी॰","v":"2"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"12.5 कि॰मी॰","v":"12.5"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"1,234.5 कि॰मी॰","v":"1234.5"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"-1,234.567 कि॰मी॰","v":"-1234.567"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"10,00,000 कि॰मी॰","v":"1000000"}
+{"f":"unit","loc":"hi","o":{"unit":"kilometer"},"out":"0.005 कि॰मी॰","v":"0.005"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 किलोग्राम","v":"0"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 किलोग्राम","v":"1"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 किलोग्राम","v":"-1"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 किलोग्राम","v":"2"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 किलोग्राम","v":"12.5"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 किलोग्राम","v":"1234.5"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1,234.567 किलोग्राम","v":"-1234.567"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"10,00,000 किलोग्राम","v":"1000000"}
+{"f":"unit","loc":"hi","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 किलोग्राम","v":"0.005"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°से॰","v":"0"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°से॰","v":"1"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°से॰","v":"-1"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°से॰","v":"2"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°से॰","v":"12.5"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°से॰","v":"1234.5"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1,234.567°से॰","v":"-1234.567"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"10,00,000°से॰","v":"1000000"}
+{"f":"unit","loc":"hi","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°से॰","v":"0.005"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"0 घंटे","v":"0"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"1 घंटा","v":"1"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 घंटा","v":"-1"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"2 घंटे","v":"2"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 घंटे","v":"12.5"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 घंटे","v":"1234.5"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"-1,234.567 घंटे","v":"-1234.567"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"10,00,000 घंटे","v":"1000000"}
+{"f":"unit","loc":"hi","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 घंटे","v":"0.005"}
+{"f":"percent","loc":"ru","o":{},"out":"0 %","v":"0"}
+{"f":"percent","loc":"ru","o":{},"out":"100 %","v":"1"}
+{"f":"percent","loc":"ru","o":{},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"ru","o":{},"out":"200 %","v":"2"}
+{"f":"percent","loc":"ru","o":{},"out":"1 250 %","v":"12.5"}
+{"f":"percent","loc":"ru","o":{},"out":"123 450 %","v":"1234.5"}
+{"f":"percent","loc":"ru","o":{},"out":"-123 457 %","v":"-1234.567"}
+{"f":"percent","loc":"ru","o":{},"out":"100 000 000 %","v":"1000000"}
+{"f":"percent","loc":"ru","o":{},"out":"1 %","v":"0.005"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"0 %","v":"0"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"100 %","v":"1"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"-100 %","v":"-1"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"200 %","v":"2"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"1 250 %","v":"12.5"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"123 450 %","v":"1234.5"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"-123 456,7 %","v":"-1234.567"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"100 000 000 %","v":"1000000"}
+{"f":"percent","loc":"ru","o":{"maximumFractionDigits":"1"},"out":"0,5 %","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"1 234,50 €","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"-1 234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"1 234,50 $","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"-1 234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"1 000 000,00 $","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"USD"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"0 ¥","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"1 ¥","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"-1 ¥","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"2 ¥","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"13 ¥","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"1 235 ¥","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"-1 235 ¥","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"1 000 000 ¥","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"JPY"},"out":"0 ¥","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,00 GBP","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1,00 GBP","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1,00 GBP","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"2,00 GBP","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"12,50 GBP","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1 234,50 GBP","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1 234,57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1 000 000,00 GBP","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,01 GBP","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1 234,50 $","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1 234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1 000 000,00 $","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"1 234,50 €","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"-1 234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,00 евро","v":"0"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,00 евро","v":"1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,00 евро","v":"-1"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2,00 евро","v":"2"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12,50 евро","v":"12.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1 234,50 евро","v":"1234.5"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1 234,57 евро","v":"-1234.567"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1 000 000,00 евро","v":"1000000"}
+{"f":"currency","loc":"ru","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,01 евро","v":"0.005"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"0 км","v":"0"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"1 км","v":"1"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"-1 км","v":"-1"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"2 км","v":"2"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"12,5 км","v":"12.5"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"1 234,5 км","v":"1234.5"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"-1 234,567 км","v":"-1234.567"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"1 000 000 км","v":"1000000"}
+{"f":"unit","loc":"ru","o":{"unit":"kilometer"},"out":"0,005 км","v":"0.005"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 килограмма","v":"0"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 килограмм","v":"1"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 килограмм","v":"-1"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 килограмма","v":"2"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12,5 килограмма","v":"12.5"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 234,5 килограмма","v":"1234.5"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 234,567 килограмма","v":"-1234.567"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 000 000 килограмма","v":"1000000"}
+{"f":"unit","loc":"ru","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0,005 килограмма","v":"0.005"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0 °C","v":"0"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 °C","v":"1"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1 °C","v":"-1"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2 °C","v":"2"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12,5 °C","v":"12.5"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 234,5 °C","v":"1234.5"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1 234,567 °C","v":"-1234.567"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 000 000 °C","v":"1000000"}
+{"f":"unit","loc":"ru","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0,005 °C","v":"0.005"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"0 часа","v":"0"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"1 час","v":"1"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 час","v":"-1"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"2 часа","v":"2"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"12,5 часа","v":"12.5"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"1 234,5 часа","v":"1234.5"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 234,567 часа","v":"-1234.567"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"1 000 000 часа","v":"1000000"}
+{"f":"unit","loc":"ru","o":{"unit":"hour","unitDisplay":"long"},"out":"0,005 часа","v":"0.005"}
+{"f":"percent","loc":"pl","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"pl","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"pl","o":{},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"pl","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"pl","o":{},"out":"1250%","v":"12.5"}
+{"f":"percent","loc":"pl","o":{},"out":"123 450%","v":"1234.5"}
+{"f":"percent","loc":"pl","o":{},"out":"-123 457%","v":"-1234.567"}
+{"f":"percent","loc":"pl","o":{},"out":"100 000 000%","v":"1000000"}
+{"f":"percent","loc":"pl","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"1250%","v":"12.5"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"123 450%","v":"1234.5"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"-123 456,7%","v":"-1234.567"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"100 000 000%","v":"1000000"}
+{"f":"percent","loc":"pl","o":{"maximumFractionDigits":"1"},"out":"0,5%","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"-1,00 €","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"1234,50 €","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"-1234,57 €","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"0,00 USD","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"1,00 USD","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"-1,00 USD","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"2,00 USD","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"12,50 USD","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"1234,50 USD","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"-1234,57 USD","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"1 000 000,00 USD","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"USD"},"out":"0,01 USD","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"0 JPY","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"1 JPY","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"-1 JPY","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"2 JPY","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"13 JPY","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"1235 JPY","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"-1235 JPY","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"1 000 000 JPY","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"JPY"},"out":"0 JPY","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,00 GBP","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1,00 GBP","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1,00 GBP","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"2,00 GBP","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"12,50 GBP","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1234,50 GBP","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-1234,57 GBP","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"1 000 000,00 GBP","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"GBP","currencyDisplay":"code"},"out":"0,01 GBP","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,00 $","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1,00 $","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1,00 $","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"2,00 $","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"12,50 $","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1234,50 $","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-1234,57 $","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"1 000 000,00 $","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"0,01 $","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,00 €","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"1,00 €","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"(1,00 €)","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"2,00 €","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"12,50 €","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"1234,50 €","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"(1234,57 €)","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"1 000 000,00 €","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencySign":"accounting"},"out":"0,01 €","v":"0.005"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,00 euro","v":"0"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,00 euro","v":"1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,00 euro","v":"-1"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2,00 euro","v":"2"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12,50 euro","v":"12.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1234,50 euro","v":"1234.5"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1234,57 euro","v":"-1234.567"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1 000 000,00 euro","v":"1000000"}
+{"f":"currency","loc":"pl","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0,01 euro","v":"0.005"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"12,5 km","v":"12.5"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"1234,5 km","v":"1234.5"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"-1234,567 km","v":"-1234.567"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"1 000 000 km","v":"1000000"}
+{"f":"unit","loc":"pl","o":{"unit":"kilometer"},"out":"0,005 km","v":"0.005"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 kilograma","v":"0"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 kilogram","v":"1"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 kilogram","v":"-1"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 kilograma","v":"2"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12,5 kilograma","v":"12.5"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1234,5 kilograma","v":"1234.5"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1234,567 kilograma","v":"-1234.567"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 000 000 kilograma","v":"1000000"}
+{"f":"unit","loc":"pl","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0,005 kilograma","v":"0.005"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12,5°C","v":"12.5"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1234,5°C","v":"1234.5"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1234,567°C","v":"-1234.567"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1 000 000°C","v":"1000000"}
+{"f":"unit","loc":"pl","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0,005°C","v":"0.005"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"0 godziny","v":"0"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"1 godzina","v":"1"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 godzina","v":"-1"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"2 godziny","v":"2"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"12,5 godziny","v":"12.5"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"1234,5 godziny","v":"1234.5"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"-1234,567 godziny","v":"-1234.567"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"1 000 000 godziny","v":"1000000"}
+{"f":"unit","loc":"pl","o":{"unit":"hour","unitDisplay":"long"},"out":"0,005 godziny","v":"0.005"}
+{"f":"percent","loc":"cy","o":{},"out":"0%","v":"0"}
+{"f":"percent","loc":"cy","o":{},"out":"100%","v":"1"}
+{"f":"percent","loc":"cy","o":{},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"cy","o":{},"out":"200%","v":"2"}
+{"f":"percent","loc":"cy","o":{},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"cy","o":{},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"cy","o":{},"out":"-123,457%","v":"-1234.567"}
+{"f":"percent","loc":"cy","o":{},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"cy","o":{},"out":"1%","v":"0.005"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"0%","v":"0"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"100%","v":"1"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"-100%","v":"-1"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"200%","v":"2"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"1,250%","v":"12.5"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"123,450%","v":"1234.5"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"-123,456.7%","v":"-1234.567"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"100,000,000%","v":"1000000"}
+{"f":"percent","loc":"cy","o":{"maximumFractionDigits":"1"},"out":"0.5%","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"-€1.00","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"-€1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$0.00","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$1.00","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"-US$1.00","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$2.00","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$12.50","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"-US$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"USD"},"out":"US$0.01","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥0","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥1","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"-JP¥1","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥2","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥13","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥1,235","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"-JP¥1,235","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥1,000,000","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"JPY"},"out":"JP¥0","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.00","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1.00","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1.00","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 2.00","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 12.50","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,234.50","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"-GBP 1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"GBP","currencyDisplay":"code"},"out":"GBP 0.01","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.00","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1.00","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1.00","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$2.00","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$12.50","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,234.50","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"-$1,234.57","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"USD","currencyDisplay":"narrowSymbol"},"out":"$0.01","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.00","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1.00","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1.00)","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€2.00","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€12.50","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,234.50","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"(€1,234.57)","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€1,000,000.00","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencySign":"accounting"},"out":"€0.01","v":"0.005"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.00 ewro","v":"0"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1.00 ewro","v":"1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1.00 ewro","v":"-1"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"2.00 ewro","v":"2"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"12.50 ewro","v":"12.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,234.50 ewro","v":"1234.5"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"-1,234.57 ewro","v":"-1234.567"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"1,000,000.00 ewro","v":"1000000"}
+{"f":"currency","loc":"cy","o":{"currency":"EUR","currencyDisplay":"name"},"out":"0.01 ewro","v":"0.005"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"0 km","v":"0"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"1 km","v":"1"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"-1 km","v":"-1"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"2 km","v":"2"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"12.5 km","v":"12.5"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"1,234.5 km","v":"1234.5"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"-1,234.567 km","v":"-1234.567"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"1,000,000 km","v":"1000000"}
+{"f":"unit","loc":"cy","o":{"unit":"kilometer"},"out":"0.005 km","v":"0.005"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0 cilogram","v":"0"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1 cilogram","v":"1"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1 cilogram","v":"-1"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"2 cilogram","v":"2"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"12.5 cilogram","v":"12.5"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,234.5 cilogram","v":"1234.5"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"-1,234.567 cilogram","v":"-1234.567"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"1,000,000 cilogram","v":"1000000"}
+{"f":"unit","loc":"cy","o":{"unit":"kilogram","unitDisplay":"long"},"out":"0.005 cilogram","v":"0.005"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0°C","v":"0"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1°C","v":"1"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1°C","v":"-1"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"2°C","v":"2"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"12.5°C","v":"12.5"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,234.5°C","v":"1234.5"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"-1,234.567°C","v":"-1234.567"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"1,000,000°C","v":"1000000"}
+{"f":"unit","loc":"cy","o":{"unit":"celsius","unitDisplay":"narrow"},"out":"0.005°C","v":"0.005"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"0 awr","v":"0"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"1 awr","v":"1"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"-1 awr","v":"-1"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"2 awr","v":"2"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"12.5 awr","v":"12.5"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"1,234.5 awr","v":"1234.5"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"-1,234.567 awr","v":"-1234.567"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"1,000,000 awr","v":"1000000"}
+{"f":"unit","loc":"cy","o":{"unit":"hour","unitDisplay":"long"},"out":"0.005 awr","v":"0.005"}

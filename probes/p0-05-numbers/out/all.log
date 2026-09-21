@@ -1,0 +1,84 @@
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+TOTAL 70 pass, 0 fail
+node v23.11.0 ICU 76.1: 95675 identical, 0 different; 4325 option sets Intl rejects (RangeError), of which numcore reported Bad Option for 4325
+en: numbering system latn, 307 currencies, 231 units in the full tables
+es: numbering system latn, 283 currencies, 230 units in the full tables
+de: numbering system latn, 305 currencies, 231 units in the full tables
+fr: numbering system latn, 284 currencies, 231 units in the full tables
+ar: numbering system latn, 262 currencies, 230 units in the full tables
+he: numbering system latn, 232 currencies, 231 units in the full tables
+ja: numbering system latn, 305 currencies, 231 units in the full tables
+hi: numbering system latn, 193 currencies, 231 units in the full tables
+ru: numbering system latn, 282 currencies, 230 units in the full tables
+pl: numbering system latn, 270 currencies, 227 units in the full tables
+cy: numbering system latn, 264 currencies, 230 units in the full tables
+loc                core     core+percent     cur-patterns         cur-used          cur-all        unit-used         unit-all
+en        31/63            40/64           88/105          190/163         23620/8084          362/205         18913/5895        
+es        31/63            42/66            69/80          242/186         20431/7235          333/215         16968/5651        
+de        31/63            42/66            69/80          186/151         23414/7343          327/195         16227/5073        
+fr        33/64            44/67            85/88          238/181         22322/7672          404/238         19122/5912        
+ar      117/124          126/125          124/115          223/169         21350/5989         1273/363         70012/9193        
+he        37/67            46/68           164/95          199/155         16547/4974          763/305         29884/6661        
+ja        31/63            40/64           78/100          145/145         22373/6514          234/201         11705/4363        
+hi        65/74            74/75            65/87          327/201         20317/4683          707/286         29370/5956        
+ru        45/80            56/82            69/80          585/260         44281/9639          921/321         46414/9002        
+pl        32/64            41/65            85/88          352/224         27992/8836          583/270         27690/7162        
+cy        31/63            40/64           79/101          348/204         39517/9164          697/255         32798/8427        
+TOTAL 95 pass, 0 fail
+DIFF es grouping=always -6788451431e-6: ours="-6.788,451431" icu="-6788,451431"
+es               922 identical, 22 different
+de               944 identical, 0 different
+fr               944 identical, 0 different
+ar               944 identical, 0 different
+ar-u-nu-arab     944 identical, 0 different
+he               944 identical, 0 different
+ja               944 identical, 0 different
+hi               944 identical, 0 different
+hi-u-nu-deva     944 identical, 0 different
+ru               944 identical, 0 different
+pl               922 identical, 22 different
+cy               944 identical, 0 different
+TOTAL 12228 identical, 44 different
+node v23.11.0, ICU 76.1, CLDR 46.0
+percent: 198 identical, 0 differ only in U+202F/U+00A0, 0 different
+currency: 691 identical, 0 differ only in U+202F/U+00A0, 2 different
+unit: 379 identical, 0 differ only in U+202F/U+00A0, 17 different
+base                 wasm raw    13664 gz     6208 | js raw   7846 gz  2165
+core                 wasm raw    35337 gz    16441 | js raw   7861 gz  2168
+core-f64             wasm raw    39897 gz    19273 | js raw   7873 gz  2176
+loc                  wasm raw    38851 gz    18169 | js raw   7858 gz  2166
+loc-cu               wasm raw    45373 gz    21104 | js raw   7867 gz  2171
+icu-decimal-blob     wasm raw    71096 gz    32326 | js raw   7897 gz  2191
+warning: function `func` is never used
+  --> wasm/w-intl-num/src/../../opts.rs:24:4
+   |
+24 | fn func(code: u8) -> numcore::Func {
+   |    ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+intl-num             wasm raw    39318 gz    18038 | js raw  10465 gz  2782
+[nof64] core::fmt symbols: 0
+[nof64] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[nof64] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[nof64] panic message / source-path strings in the stripped wasm: 0
+[nof64] numcore (no_std harness): raw 17117 gz 8450
+[f64] core::fmt symbols: 0
+[f64] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[f64] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[f64] panic message / source-path strings in the stripped wasm: 0
+[f64] numcore +f64 (no_std harness): raw 21715 gz 11392
+[loc] core::fmt symbols: 0
+[loc] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[loc] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[loc] panic message / source-path strings in the stripped wasm: 0
+[loc] numcore +loc (no_std harness): raw 27623 gz 13395

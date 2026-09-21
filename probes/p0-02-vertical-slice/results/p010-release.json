@@ -1,0 +1,583 @@
+{
+  "check": "p010",
+  "label": "release build",
+  "baseUrl": "http://127.0.0.1:3702",
+  "runs": [
+    {
+      "browser": "chromium",
+      "version": "143.0.7499.4",
+      "executablePath": "~/.cache/ms-playwright/chromium_headless_shell-1200/chrome-headless-shell-linux64/chrome-headless-shell",
+      "assertions": [
+        {
+          "id": "T1 SSR rendered the server variant",
+          "pass": true,
+          "details": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          }
+        },
+        {
+          "id": "T2 hydrated (registry populated)",
+          "pass": true,
+          "details": 12
+        },
+        {
+          "id": "T3 no console warning/error for text or attribute differences",
+          "pass": true,
+          "details": []
+        },
+        {
+          "id": "T4 server text stays after hydration (static, reactive, attribute)",
+          "pass": true,
+          "details": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          }
+        },
+        {
+          "id": "T5 next update replaces the reactive node with client text",
+          "pass": true,
+          "details": {
+            "text": "CLIENT-1",
+            "title": null,
+            "html": "CLIENT-1"
+          }
+        },
+        {
+          "id": "T6 non-reactive nodes keep server text forever (no update ever comes)",
+          "pass": true,
+          "details": {
+            "static": "SERVER",
+            "attr": "SERVER"
+          }
+        },
+        {
+          "id": "/p010/struct: failure mode recorded",
+          "pass": true,
+          "details": {
+            "consoleErrors": 2,
+            "bumpWorks": false,
+            "clientNav": [
+              true,
+              "/p010/struct",
+              false
+            ]
+          }
+        },
+        {
+          "id": "/p010/struct-tr: failure mode recorded",
+          "pass": true,
+          "details": {
+            "consoleErrors": 1,
+            "bumpWorks": true,
+            "clientNav": [
+              true,
+              "/",
+              true
+            ]
+          }
+        }
+      ],
+      "data": {
+        "text": {
+          "dcl": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "hydrated": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "afterBump": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "CLIENT-1",
+              "title": null,
+              "html": "CLIENT-1"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "live": 12,
+          "messages": []
+        },
+        "/p010/struct": {
+          "dcl": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "hydrated": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "live": 12,
+          "bumpWorks": false,
+          "clientNav": [
+            true,
+            "/p010/struct",
+            false
+          ],
+          "messages": [
+            {
+              "type": "error",
+              "text": "panicked at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tachys-0.2.18/src/hydration.rs:227:9:\ninternal error: entered unreachable code\n\nStack:\n\nError\n    at __wbg_new_227d7c05414eb861 (http://127.0.0.1:3702/pkg/p002.js:2:8466)\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2841]:0x77cf2\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[392]:0x313de\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1298]:0x6039d\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2197]:0x70e03\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2592]:0x74b1c\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[482]:0x378e5\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1141]:0x575e0\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[641]:0x417a2\n    at http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n\n"
+            },
+            {
+              "type": "pageerror",
+              "text": "RuntimeError: unreachable"
+            }
+          ]
+        },
+        "/p010/struct-tr": {
+          "dcl": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "hydrated": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "live": 13,
+          "bumpWorks": true,
+          "clientNav": [
+            true,
+            "/",
+            true
+          ],
+          "messages": [
+            {
+              "type": "error",
+              "text": "mf2: hydration expected a text node for a translated message; the server and client markup differ structurally"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0",
+      "executablePath": "~/.cache/ms-playwright/firefox-1542/firefox/firefox",
+      "assertions": [
+        {
+          "id": "T1 SSR rendered the server variant",
+          "pass": true,
+          "details": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          }
+        },
+        {
+          "id": "T2 hydrated (registry populated)",
+          "pass": true,
+          "details": 12
+        },
+        {
+          "id": "T3 no console warning/error for text or attribute differences",
+          "pass": true,
+          "details": []
+        },
+        {
+          "id": "T4 server text stays after hydration (static, reactive, attribute)",
+          "pass": true,
+          "details": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          }
+        },
+        {
+          "id": "T5 next update replaces the reactive node with client text",
+          "pass": true,
+          "details": {
+            "text": "CLIENT-1",
+            "title": null,
+            "html": "CLIENT-1"
+          }
+        },
+        {
+          "id": "T6 non-reactive nodes keep server text forever (no update ever comes)",
+          "pass": true,
+          "details": {
+            "static": "SERVER",
+            "attr": "SERVER"
+          }
+        },
+        {
+          "id": "/p010/struct: failure mode recorded",
+          "pass": true,
+          "details": {
+            "consoleErrors": 2,
+            "bumpWorks": false,
+            "clientNav": [
+              true,
+              "/p010/struct",
+              false
+            ]
+          }
+        },
+        {
+          "id": "/p010/struct-tr: failure mode recorded",
+          "pass": true,
+          "details": {
+            "consoleErrors": 1,
+            "bumpWorks": true,
+            "clientNav": [
+              true,
+              "/",
+              true
+            ]
+          }
+        }
+      ],
+      "data": {
+        "text": {
+          "dcl": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "hydrated": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "SERVER-0",
+              "title": null,
+              "html": "SERVER-0"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "afterBump": {
+            "static-diff": {
+              "text": "SERVER",
+              "title": null,
+              "html": "SERVER"
+            },
+            "dynamic-diff": {
+              "text": "CLIENT-1",
+              "title": null,
+              "html": "CLIENT-1"
+            },
+            "attr-diff": {
+              "text": "attribute differs",
+              "title": "SERVER",
+              "html": "attribute differs"
+            },
+            "struct-diff": null,
+            "after-count": null,
+            "only-server": null
+          },
+          "live": 12,
+          "messages": []
+        },
+        "/p010/struct": {
+          "dcl": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "hydrated": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "live": 12,
+          "bumpWorks": false,
+          "clientNav": [
+            true,
+            "/p010/struct",
+            false
+          ],
+          "messages": [
+            {
+              "type": "error",
+              "text": "panicked at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tachys-0.2.18/src/hydration.rs:227:9:\ninternal error: entered unreachable code\n\nStack:\n\n__wbg_new_227d7c05414eb861@http://127.0.0.1:3702/pkg/p002.js:2:8466\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2841]:0x77cf2\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[392]:0x313de\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1298]:0x6039d\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2197]:0x70e03\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2592]:0x74b1c\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[482]:0x378e5\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1141]:0x575e0\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[641]:0x417a2\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[738]:0x49367\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[639]:0x414e3\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[634]:0x411c4\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[640]:0x416f7\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[260]:0x1ff22\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[632]:0x41121\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1273]:0x5fcc4\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[295]:0x228e0\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[657]:0x437b1\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1083]:0x54e17\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[195]:0x133b1\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1218]:0x5df24\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[309]:0x286b6\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2338]:0x72279\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[335]:0x2c783\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\nVoidFunction*__wbg_queueMicrotask_f6a1fa10b81d1fc0@http://127.0.0.1:3702/pkg/p002.js:2:11488\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[572]:0x3d046\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2682]:0x75688\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2093]:0x6f8d5\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[194]:0x12fbe\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[335]:0x2c783\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\nVoidFunction*__wbg_queueMicrotask_f6a1fa10b81d1fc0@http://127.0.0.1:3702/pkg/p002.js:2:11488\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[572]:0x3d046\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2474]:0x73ed6\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1082]:0x54dc1\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[435]:0x352a7\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2879]:0x78aa3\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1016]:0x52edd\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\npromise callback*__wbg_then_7a850dae4493f353@http://127.0.0.1:3702/pkg/p002.js:2:15650\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[391]:0x31292\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[229]:0x1b461\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[194]:0x12cfc\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[335]:0x2c783\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\nVoidFunction*__wbg_queueMicrotask_f6a1fa10b81d1fc0@http://127.0.0.1:3702/pkg/p002.js:2:11488\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[572]:0x3d046\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2474]:0x73ed6\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1082]:0x54dc1\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[435]:0x352a7\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2879]:0x78aa3\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[1016]:0x52edd\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\npromise callback*__wbg_then_7a850dae4493f353@http://127.0.0.1:3702/pkg/p002.js:2:15650\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[391]:0x31292\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[229]:0x1b39e\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[194]:0x12cfc\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[335]:0x2c783\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[830]:0x4c8a6\nc@http://127.0.0.1:3702/pkg/p002.js:2:17475\no@http://127.0.0.1:3702/pkg/p002.js:2:19005\nVoidFunction*__wbg_queueMicrotask_f6a1fa10b81d1fc0@http://127.0.0.1:3702/pkg/p002.js:2:11488\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[572]:0x3d046\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2682]:0x75688\n@http://127.0.0.1:3702/pkg/p002.wasm:wasm-function[2844]:0x7806d\nhydrate@http://127.0.0.1:3702/pkg/p002.js:1:1764\n@http://127.0.0.1:3702/p010/struct:17:9\npromise callback*@http://127.0.0.1:3702/p010/struct:16:82\npromise callback*@http://127.0.0.1:3702/p010/struct:15:4\n@http://127.0.0.1:3702/p010/struct:21:1\n\n\n"
+            },
+            {
+              "type": "pageerror",
+              "text": "RuntimeError: unreachable executed"
+            }
+          ]
+        },
+        "/p010/struct-tr": {
+          "dcl": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "hydrated": {
+            "static-diff": null,
+            "dynamic-diff": null,
+            "attr-diff": null,
+            "struct-diff": {
+              "text": "element on the server",
+              "title": null,
+              "html": "<b id=\"only-server\">element on the server</b>"
+            },
+            "after-count": {
+              "text": "0",
+              "title": null,
+              "html": "0"
+            },
+            "only-server": {
+              "text": "element on the server",
+              "title": null,
+              "html": "element on the server"
+            }
+          },
+          "live": 13,
+          "bumpWorks": true,
+          "clientNav": [
+            true,
+            "/",
+            true
+          ],
+          "messages": [
+            {
+              "type": "error",
+              "text": "mf2: hydration expected a text node for a translated message; the server and client markup differ structurally"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

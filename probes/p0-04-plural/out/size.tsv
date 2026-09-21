@@ -1,0 +1,14 @@
+crate	raw	gz	base	delta_raw	delta_gz
+base	98	114	-	-	-
+eval	765	543	base	667	429
+base-ops	100	110	-	-	-
+eval-ops	1731	1055	base-ops	1631	945
+audit-hand	900	604	base-ops	800	494
+std-base	56	76	-	-	-
+std-alloc	11778	5197	std-base	11722	5121
+std-eval	12542	5659	std-base	12486	5583
+icu-compiled	51557	23062	std-base	51501	22986
+icu-blob	41616	19648	std-base	41560	19572
+std-eval	12542	5659	std-alloc	764	462
+icu-compiled	51557	23062	std-alloc	39779	17865
+icu-blob	41616	19648	std-alloc	29838	14451

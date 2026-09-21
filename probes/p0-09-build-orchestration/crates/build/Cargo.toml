@@ -1,0 +1,11 @@
+[package]
+name = "p09-build"
+description = "P0.9 stand-in for mf2-build: resource loader, MF2 scanner, manifest, catalogs, codegen (used from build.rs)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+p09-catalog.workspace = true
+thiserror.workspace = true

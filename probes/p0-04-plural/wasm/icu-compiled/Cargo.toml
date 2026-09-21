@@ -1,0 +1,13 @@
+[package]
+name = "wasm-icu-compiled"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+icu_plurals = { workspace = true, features = ["compiled_data"] }
+icu_locale_core.workspace = true

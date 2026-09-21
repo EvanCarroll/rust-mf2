@@ -1,0 +1,16 @@
+[package]
+name = "xtask"
+description = "Repository automation: spec/CLDR sync, conformance report, CI, workload generation."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+clap.workspace = true
+mf2-conformance.workspace = true
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+
+[lints]
+workspace = true

@@ -1,0 +1,15 @@
+[nof64] core::fmt symbols: 0
+[nof64] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[nof64] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[nof64] panic message / source-path strings in the stripped wasm: 0
+[nof64] numcore (no_std harness): raw 17117 gz 8450
+[f64] core::fmt symbols: 0
+[f64] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[f64] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[f64] panic message / source-path strings in the stripped wasm: 0
+[f64] numcore +f64 (no_std harness): raw 21715 gz 11392
+[loc] core::fmt symbols: 0
+[loc] panic entry points: 6 (expect_failed panic panic_bounds_check panic_nounwind_fmt slice_index_fail unwrap_failed )
+[loc] panic_reached import after LTO + wasm-opt: 1 (1 = a panic path is reachable)
+[loc] panic message / source-path strings in the stripped wasm: 0
+[loc] numcore +loc (no_std harness): raw 27623 gz 13395

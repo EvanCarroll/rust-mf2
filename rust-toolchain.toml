@@ -1,0 +1,5 @@
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+# wasm32-wasip1: conformance layer L4 runs the client path under wasmtime.
+targets = ["wasm32-unknown-unknown", "wasm32-wasip1"]

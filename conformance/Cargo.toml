@@ -1,0 +1,25 @@
+[package]
+name = "mf2-conformance"
+description = "The WG MessageFormat 2 test suite, run at every layer of the stack; owns the ledger."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# Validates model JSON against spec/data-model/message.json (layer L2).
+jsonschema.workspace = true
+mf2-model = { workspace = true, features = ["serde", "suite-names"] }
+mf2-syntax.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+sha2.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+toml.workspace = true
+
+[dev-dependencies]
+# The differential oracle (plans/05-tooling.md §1): expected ⊆ reported.
+ox_mf2_parser.workspace = true
+
+[lints]
+workspace = true

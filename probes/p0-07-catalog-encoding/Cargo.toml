@@ -1,0 +1,26 @@
+# P0.7 catalog-encoding probe — standalone workspace (the root workspace
+# excludes `probes`). Throwaway code; see RESULT.md.
+[workspace]
+resolver = "3"
+members = ["format", "enc"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+# Every dependency declared once, at its latest version (crates.io, 2026-09-20).
+[workspace.dependencies]
+mf2b-format = { path = "format" }
+p07-enc = { path = "enc" }
+# P0.4's build side (plural rule parser + encoder), used read-only by path.
+plural-rules = { path = "../p0-04-plural/rules" }
+brotli = "9.0.0"
+clap = { version = "4.6.7", features = ["derive"] }
+thiserror = "2.0.20"
+serde_json = { version = "1.0.151", features = ["preserve_order"] }
+unicode-normalization = "0.1.25"
+
+[profile.release]
+debug = false

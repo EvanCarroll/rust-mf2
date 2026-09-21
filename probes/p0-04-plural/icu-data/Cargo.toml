@@ -1,0 +1,23 @@
+[package]
+name = "icu-data"
+description = "P0.4 comparison: ICU4X plural data sizes (postcard payload, blob) for the panel, and ICU4X as a differential oracle over every CLDR sample"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+plural-rules.workspace = true
+plural-eval.workspace = true
+icu_plurals = { workspace = true, features = ["compiled_data", "datagen", "serde"] }
+icu_provider = { workspace = true, features = ["export"] }
+icu_provider_blob = { workspace = true, features = ["alloc", "export"] }
+icu_provider_export = { workspace = true, features = ["blob_exporter"] }
+icu_provider_source.workspace = true
+icu_locale_core = { workspace = true, features = ["alloc"] }
+fixed_decimal.workspace = true
+icu_locale = { workspace = true, features = ["compiled_data"] }
+postcard.workspace = true
+thiserror.workspace = true
+clap.workspace = true
+serde.workspace = true

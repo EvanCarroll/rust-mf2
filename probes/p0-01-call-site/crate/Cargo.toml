@@ -1,0 +1,35 @@
+[package]
+name = "mf2-probe"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+description = "P0.1/P0.11 throwaway: the concrete Tr / TrArgs call-site types (plans/04 §2-4) over a stub catalog."
+
+[dependencies]
+leptos = "0.8.20"
+
+[features]
+# Node update strategy (plans/04 §4, D7). Default: B, the library-owned
+# registry. `effect` selects A, one RenderEffect per node tracking a global
+# trigger.
+effect = []
+# Strategy C (plan feature `static-locale`): no live update, no per-node
+# bookkeeping. Size comparison only.
+static-locale = []
+# Mirrors of the Leptos modes, for `cargo check` of this crate alone. An app
+# does not need to enable them (the server path is chosen at render time).
+ssr = ["leptos/ssr"]
+hydrate = ["leptos/hydrate"]
+csr = ["leptos/csr"]
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+panic = "deny"
+
+[workspace]

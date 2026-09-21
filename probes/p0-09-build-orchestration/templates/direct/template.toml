@@ -1,0 +1,53 @@
+# P0.9 template `direct` (timing control): no macro at all — every site is
+# the expansion `tr!` would produce, written out (MsgId = workload-gen's
+# {{index}}, the rank in bytewise id order, the same numbering as the manifest).
+name = "direct"
+description = "P0.9 timing control: hand-expanded tr(MsgId(n)) / tr_args(MsgId(n), [ArgValue::from(..)]) — no macro."
+prelude = "use p09_i18n::__mf2::{tr, tr_args, ArgValue, MsgId};"
+support = "support.rs"
+boot = "crate::support::boot();"
+
+[args]
+sep = ", "
+plain = "ArgValue::from({{value}})"
+signal = "ArgValue::from({{signal}})"
+
+[deferred]
+type = "p09_i18n::__mf2::Tr"
+view = "{{label}}"
+string = "{{label}}.to_string()"
+
+[site.string]
+none = 'tr(MsgId({{index}})).to_string()'
+plain = 'tr_args(MsgId({{index}}), [{{args}}]).to_string()'
+
+[site.child]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'
+get = 'move || tr_args(MsgId({{index}}), [{{args}}])'
+
+[site.attr]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'
+get = 'move || tr_args(MsgId({{index}}), [{{args}}])'
+
+[site.text_prop]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'
+get = 'move || tr_args(MsgId({{index}}), [{{args}}]).to_string()'
+
+[site.signal_prop]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'
+get = 'Signal::derive(move || tr_args(MsgId({{index}}), [{{args}}]).to_string())'
+
+[site.string_prop]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'
+
+[site.deferred]
+none = 'tr(MsgId({{index}}))'
+
+[site.if_else]
+none = 'tr(MsgId({{index}}))'
+plain = 'tr_args(MsgId({{index}}), [{{args}}])'

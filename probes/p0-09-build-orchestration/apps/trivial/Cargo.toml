@@ -1,0 +1,33 @@
+# P0.9 reference-workload app, template `trivial` (sources in src/ and style/ are
+# synced from workload-gen by scripts/regen.sh; this manifest is the probe's).
+[package]
+name = "workload-app-trivial"
+version = "0.1.0"
+edition = "2024"
+publish = false
+autobins = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+p09-i18n.workspace = true
+p09-second.workspace = true
+leptos.workspace = true
+leptos_router.workspace = true
+leptos_axum = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+wasm-bindgen.workspace = true
+
+[features]
+hydrate = ["leptos/hydrate", "p09-i18n/hydrate", "p09-second/hydrate"]
+ssr = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:leptos_axum",
+    "leptos/ssr",
+    "leptos_router/ssr",
+    "p09-i18n/ssr",
+    "p09-second/ssr",
+]

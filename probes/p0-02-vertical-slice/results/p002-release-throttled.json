@@ -1,0 +1,542 @@
+{
+  "check": "p002",
+  "label": "release build, Chromium throttled 150 ms RTT / 1.6 Mbps",
+  "baseUrl": "http://127.0.0.1:3702",
+  "runs": [
+    {
+      "browser": "chromium",
+      "version": "143.0.7499.4",
+      "executablePath": "~/.cache/ms-playwright/chromium_headless_shell-1200/chrome-headless-shell-linux64/chrome-headless-shell",
+      "assertions": [
+        {
+          "id": "N1 file_and_error_handler_with_context: 404 rendered in the negotiated locale",
+          "pass": true,
+          "details": 404
+        },
+        {
+          "id": "N2 Content-Language + Vary on SSR responses",
+          "pass": true,
+          "details": {
+            "cl": "ar",
+            "vary": "Cookie, Accept-Language"
+          }
+        },
+        {
+          "id": "N3 shell emits <link rel=preload as=fetch crossorigin data-mf2> first in <head>",
+          "pass": true,
+          "details": "/i18n/ar.e405ae906f55092b.mf2b"
+        },
+        {
+          "id": "N4 catalog served immutable",
+          "pass": true,
+          "details": {
+            "status": 200,
+            "cc": "public, max-age=31536000, immutable",
+            "size": 1221
+          }
+        },
+        {
+          "id": "N5 /i18n/<tag> redirects to the hashed URL (set_locale discovery)",
+          "pass": true,
+          "details": "/i18n/ar.e405ae906f55092b.mf2b"
+        },
+        {
+          "id": "N6 lookup with no owner/context falls back to the default locale (no panic)",
+          "pass": true,
+          "details": "Welcome! Every string on this page comes from a lazily loaded catalog."
+        },
+        {
+          "id": "A1 <html lang dir> = en/ltr",
+          "pass": true,
+          "details": {
+            "lang": "en",
+            "dir": "ltr"
+          }
+        },
+        {
+          "id": "A2 document.title translated after hydration",
+          "pass": true,
+          "details": "mf2-two vertical slice"
+        },
+        {
+          "id": "A3 text before hydration == text after hydration",
+          "pass": true,
+          "details": {
+            "beforeLen": 417,
+            "afterLen": 417
+          }
+        },
+        {
+          "id": "A4 title before hydration == after",
+          "pass": true,
+          "details": [
+            "mf2-two vertical slice",
+            "mf2-two vertical slice"
+          ]
+        },
+        {
+          "id": "A5 exactly one catalog request (preload reused by fetch)",
+          "pass": true,
+          "details": [
+            "link"
+          ]
+        },
+        {
+          "id": "A6 catalog request starts before the wasm request finishes (overlap)",
+          "pass": true,
+          "details": {
+            "catalog": [
+              168.8,
+              329
+            ],
+            "wasm": [
+              168.9,
+              3199.5
+            ]
+          }
+        },
+        {
+          "id": "A7 catalog request starts no later than the wasm request",
+          "pass": true,
+          "details": [
+            168.8,
+            168.9
+          ]
+        },
+        {
+          "id": "A8 network events: catalog starts before wasm ends",
+          "pass": true,
+          "details": {
+            "catalog": [
+              {
+                "url": "/i18n/en.cd00fb729d1f59d5.mf2b",
+                "start": 168,
+                "end": 329
+              }
+            ],
+            "wasm": [
+              {
+                "url": "/pkg/p002.wasm",
+                "start": 169,
+                "end": 3200
+              }
+            ]
+          }
+        },
+        {
+          "id": "B1 attribute (placeholder)",
+          "pass": true
+        },
+        {
+          "id": "B2 TextProp component prop",
+          "pass": true
+        },
+        {
+          "id": "B3 Signal<String>",
+          "pass": true
+        },
+        {
+          "id": "B4 if/else rebuild shows option B",
+          "pass": true
+        },
+        {
+          "id": "B5 to_string() from an event handler",
+          "pass": true
+        },
+        {
+          "id": "B6 server function formats from request context (en)",
+          "pass": true
+        },
+        {
+          "id": "C1 lazy chunk fetched on navigation",
+          "pass": true,
+          "details": [
+            "/pkg/split___lazy_page_view_1096894161660801907.wasm"
+          ]
+        },
+        {
+          "id": "C2 lazy route text (en)",
+          "pass": true
+        },
+        {
+          "id": "C3 lazy route attribute (en)",
+          "pass": true
+        },
+        {
+          "id": "C4 lazy route sees i18n state (current_locale)",
+          "pass": true
+        },
+        {
+          "id": "D1 <html lang dir> updated to ar/rtl",
+          "pass": true,
+          "details": {
+            "langAr": "ar",
+            "dirAr": "rtl"
+          }
+        },
+        {
+          "id": "D2 document.title switched (TextProp)",
+          "pass": true,
+          "details": "الشريحة العمودية لـ mf2-two"
+        },
+        {
+          "id": "D3 lazy route text (ar)",
+          "pass": true
+        },
+        {
+          "id": "D4 lazy route attribute (ar)",
+          "pass": true
+        },
+        {
+          "id": "D5 lazy route current_locale (ar)",
+          "pass": true
+        },
+        {
+          "id": "D6 switched lazy page == server-rendered ar page",
+          "pass": true
+        },
+        {
+          "id": "D7 nav aria-label switched",
+          "pass": true
+        },
+        {
+          "id": "D8 locale cookie set",
+          "pass": true,
+          "details": "ar"
+        },
+        {
+          "id": "E1 client-built home (ar) == server-rendered ar home",
+          "pass": true
+        },
+        {
+          "id": "E2 placeholder (ar)",
+          "pass": true
+        },
+        {
+          "id": "E3 TextProp prop (ar)",
+          "pass": true
+        },
+        {
+          "id": "E4 Signal<String> (ar)",
+          "pass": true
+        },
+        {
+          "id": "E5 registry freed the lazy route nodes (live count back to home level)",
+          "pass": true,
+          "details": {
+            "liveHome": 20,
+            "lazy": 15,
+            "liveBack": 20
+          }
+        },
+        {
+          "id": "E6 server function (ar, via cookie)",
+          "pass": true
+        },
+        {
+          "id": "F1 <html lang dir> back to en/ltr",
+          "pass": true,
+          "details": {
+            "langEn": "en",
+            "dirEn": "ltr"
+          }
+        },
+        {
+          "id": "F2 document.title back to en",
+          "pass": true,
+          "details": "mf2-two vertical slice"
+        },
+        {
+          "id": "F3 switched-back home == server-rendered en home",
+          "pass": true
+        },
+        {
+          "id": "G /stream/ooo: streamed Tr text from the request locale (ar)",
+          "pass": true,
+          "details": {
+            "body": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد.",
+            "body2": "عقدة ثانية في الجزء المُبثّ نفسه.",
+            "bodyB": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد."
+          }
+        },
+        {
+          "id": "G /stream/ooo: SSR <title> in request locale",
+          "pass": true,
+          "details": "الشريحة العمودية لـ mf2-two"
+        },
+        {
+          "id": "G /stream/ooo: <html lang dir> ar/rtl",
+          "pass": true,
+          "details": {
+            "l": "ar",
+            "d": "rtl",
+            "ttl": "الشريحة العمودية لـ mf2-two"
+          }
+        },
+        {
+          "id": "G /stream/ooo: text before == after hydration",
+          "pass": true
+        },
+        {
+          "id": "G /stream/ooo: zero server context misses",
+          "pass": true,
+          "details": {
+            "before": {
+              "hits": 552,
+              "misses": 3
+            },
+            "after": {
+              "hits": 571,
+              "misses": 3
+            }
+          }
+        },
+        {
+          "id": "G /stream/inorder: streamed Tr text from the request locale (ar)",
+          "pass": true,
+          "details": {
+            "body": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد.",
+            "body2": "عقدة ثانية في الجزء المُبثّ نفسه.",
+            "bodyB": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد."
+          }
+        },
+        {
+          "id": "G /stream/inorder: SSR <title> in request locale",
+          "pass": true,
+          "details": "الشريحة العمودية لـ mf2-two"
+        },
+        {
+          "id": "G /stream/inorder: <html lang dir> ar/rtl",
+          "pass": true,
+          "details": {
+            "l": "ar",
+            "d": "rtl",
+            "ttl": "الشريحة العمودية لـ mf2-two"
+          }
+        },
+        {
+          "id": "G /stream/inorder: text before == after hydration",
+          "pass": true
+        },
+        {
+          "id": "G /stream/inorder: zero server context misses",
+          "pass": true,
+          "details": {
+            "before": {
+              "hits": 571,
+              "misses": 3
+            },
+            "after": {
+              "hits": 588,
+              "misses": 3
+            }
+          }
+        },
+        {
+          "id": "G /stream/blocked: streamed Tr text from the request locale (ar)",
+          "pass": true,
+          "details": {
+            "body": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد.",
+            "body2": "عقدة ثانية في الجزء المُبثّ نفسه.",
+            "bodyB": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد."
+          }
+        },
+        {
+          "id": "G /stream/blocked: SSR <title> in request locale",
+          "pass": true,
+          "details": "الشريحة العمودية لـ mf2-two"
+        },
+        {
+          "id": "G /stream/blocked: <html lang dir> ar/rtl",
+          "pass": true,
+          "details": {
+            "l": "ar",
+            "d": "rtl",
+            "ttl": "الشريحة العمودية لـ mf2-two"
+          }
+        },
+        {
+          "id": "G /stream/blocked: text before == after hydration",
+          "pass": true
+        },
+        {
+          "id": "G /stream/blocked: zero server context misses",
+          "pass": true,
+          "details": {
+            "before": {
+              "hits": 588,
+              "misses": 3
+            },
+            "after": {
+              "hits": 605,
+              "misses": 3
+            }
+          }
+        },
+        {
+          "id": "G /stream/async: streamed Tr text from the request locale (ar)",
+          "pass": true,
+          "details": {
+            "body": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد.",
+            "body2": "عقدة ثانية في الجزء المُبثّ نفسه.",
+            "bodyB": "عُرض هذا النص على الخادم بعد اكتمال تحميل المورد."
+          }
+        },
+        {
+          "id": "G /stream/async: SSR <title> in request locale",
+          "pass": true,
+          "details": "الشريحة العمودية لـ mf2-two"
+        },
+        {
+          "id": "G /stream/async: <html lang dir> ar/rtl",
+          "pass": true,
+          "details": {
+            "l": "ar",
+            "d": "rtl",
+            "ttl": "الشريحة العمودية لـ mf2-two"
+          }
+        },
+        {
+          "id": "G /stream/async: text before == after hydration",
+          "pass": true
+        },
+        {
+          "id": "G /stream/async: zero server context misses",
+          "pass": true,
+          "details": {
+            "before": {
+              "hits": 605,
+              "misses": 3
+            },
+            "after": {
+              "hits": 622,
+              "misses": 3
+            }
+          }
+        },
+        {
+          "id": "H1 direct /lazy (ar): SSR text == hydrated text",
+          "pass": true
+        },
+        {
+          "id": "H2 direct /lazy (ar): heading",
+          "pass": true
+        },
+        {
+          "id": "H3 direct /lazy: chunk loaded for hydrate_lazy",
+          "pass": true
+        },
+        {
+          "id": "H4 direct /lazy: switch to en updates lazy text",
+          "pass": true
+        },
+        {
+          "id": "Z zero console warnings/errors (load, hydrate, lazy nav, switch & back, streaming)",
+          "pass": true,
+          "details": []
+        },
+        {
+          "id": "S1 skewed catalog rejected (manifest hash mismatch), app not hydrated",
+          "pass": true,
+          "details": {
+            "errs": [
+              {
+                "where": "skew",
+                "type": "error",
+                "text": "mf2: catalog rejected (manifest hash mismatch)"
+              }
+            ],
+            "live": 0
+          }
+        }
+      ],
+      "data": {
+        "countersAtHttpStart": "hits=442 misses=2",
+        "hydratedAfterMs": 3534,
+        "liveNodesHome": 20,
+        "resourceTiming": {
+          "catalog": [
+            {
+              "name": "http://127.0.0.1:3702/i18n/en.cd00fb729d1f59d5.mf2b",
+              "initiatorType": "link",
+              "startTime": 168.8,
+              "responseStart": 170.2,
+              "responseEnd": 329,
+              "transferSize": 1177,
+              "encodedBodySize": 877
+            }
+          ],
+          "wasm": {
+            "name": "http://127.0.0.1:3702/pkg/p002.wasm",
+            "initiatorType": "link",
+            "startTime": 168.9,
+            "responseStart": 170.5,
+            "responseEnd": 3199.5,
+            "transferSize": 559401,
+            "encodedBodySize": 559101
+          },
+          "js": {
+            "name": "http://127.0.0.1:3702/pkg/p002.js",
+            "initiatorType": "other",
+            "startTime": 168.8,
+            "responseStart": 170.4,
+            "responseEnd": 570.3,
+            "transferSize": 24547,
+            "encodedBodySize": 24247
+          }
+        },
+        "networkEvents": {
+          "catalog": [
+            {
+              "url": "/i18n/en.cd00fb729d1f59d5.mf2b",
+              "start": 168,
+              "end": 329
+            }
+          ],
+          "wasm": [
+            {
+              "url": "/pkg/p002.wasm",
+              "start": 169,
+              "end": 3200
+            }
+          ]
+        },
+        "liveNodesLazy": 15,
+        "liveNodesBackHome": 20,
+        "streaming": {
+          "/stream/ooo": {
+            "via": "cookie",
+            "ssrTitle": "الشريحة العمودية لـ mf2-two",
+            "misses": 0
+          },
+          "/stream/inorder": {
+            "via": "cookie",
+            "ssrTitle": "الشريحة العمودية لـ mf2-two",
+            "misses": 0
+          },
+          "/stream/blocked": {
+            "via": "accept-language",
+            "ssrTitle": "الشريحة العمودية لـ mf2-two",
+            "misses": 0
+          },
+          "/stream/async": {
+            "via": "cookie",
+            "ssrTitle": "الشريحة العمودية لـ mf2-two",
+            "misses": 0
+          }
+        },
+        "consoleMessages": [],
+        "skew": {
+          "consoleMessages": [
+            {
+              "where": "skew",
+              "type": "error",
+              "text": "mf2: catalog rejected (manifest hash mismatch)"
+            }
+          ],
+          "liveNodes": 0
+        }
+      }
+    }
+  ]
+}

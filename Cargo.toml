@@ -1,0 +1,77 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/mf2-model",
+    "crates/mf2-syntax",
+    "xtask",
+    "conformance",
+    "bench/workload-gen",
+    "bench/parser-gate",
+]
+# Standalone workspaces: the Phase 0 experiments, and the cargo-fuzz targets
+# (nightly only).
+exclude = ["probes", "fuzz"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+# Every dependency is declared once, here, at its latest version.
+[workspace.dependencies]
+clap = { version = "4.6.7", features = ["derive"] }
+# `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
+thiserror = { version = "2.0.20", default-features = false }
+mf2-conformance = { path = "conformance" }
+mf2-model = { path = "crates/mf2-model" }
+mf2-syntax = { path = "crates/mf2-syntax" }
+# `default-features = false` so that no_std crates (mf2-model's `serde` feature)
+# can use it; std crates add `features = ["std"]`.
+serde = { version = "1.0.229", default-features = false, features = ["derive", "alloc"] }
+serde_json = "1.0.151"
+sha2 = "0.11.0"
+toml = "1.1.6"
+# no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.
+unicode-normalization = { version = "0.1.25", default-features = false }
+# mf2-conformance: validates model JSON against spec/data-model/message.json.
+jsonschema = { version = "0.56.0", default-features = false }
+# The one exact pin (the audited alpha, plans/05-tooling.md §1): a dependency of
+# bench/parser-gate and a dev-dependency (differential oracle) of mf2-conformance.
+ox_mf2_parser = "=0.14.0-alpha.12"
+
+[workspace.lints.rust]
+# Product crates add `#![forbid(unsafe_code)]` themselves. The bench crates need
+# one `unsafe impl GlobalAlloc` (counting allocator) and `allow` it locally.
+unsafe_code = "deny"
+missing_debug_implementations = "allow"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+# Pedantic, minus the lints that are noise for this codebase.
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+similar_names = "allow"
+too_many_lines = "allow"
+# Client-path crates (mf2-catalog reader, mf2-runtime, mf2-fn-*, mf2-host-web,
+# leptos-mf2) additionally deny, in their own lib.rs: clippy::unwrap_used,
+# clippy::expect_used, clippy::indexing_slicing, clippy::panic, and forbid the
+# fmt machinery on the client path (plans/06-size-and-perf.md, B12).
+
+# Native benches (e.g. the parser gate) use `release`: cargo's opt-level 3 plus
+# fat LTO.
+[profile.release]
+lto = "fat"
+
+# Size-optimised client wasm (plans/06-size-and-perf.md §3). Always followed by
+# `wasm-opt -Oz` before measuring.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

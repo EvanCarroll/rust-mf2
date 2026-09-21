@@ -1,0 +1,102 @@
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+base                 wasm raw    15493 gz     7063 | js raw   7674 gz  2141
+sem                  wasm raw    21668 gz    10427 | js raw   7671 gz  2138
+intl                 wasm raw    26726 gz    12501 | js raw  10402 gz  2769
+intl-inline          wasm raw    25909 gz    12140 | js raw   8481 gz  2381
+icu-blob-fixed       wasm raw   236549 gz   100088 | js raw   7704 gz  2158
+icu-blob-fixed-nozone wasm raw   161854 gz    71479 | js raw   7725 gz  2170
+icu-blob-fixed-offz  wasm raw   236552 gz   100088 | js raw   7719 gz  2165
+icu-blob-any         wasm raw   272048 gz   112317 | js raw   7698 gz  2154
+icu-compiled-fixed   wasm raw  3432082 gz  1078464 | js raw   7716 gz  2167
+icu-compiled-any     wasm raw  3868842 gz  1196137 | js raw   7710 gz  2163
+date1-ar.postcard                raw    2913 gz    1832
+date1-en.postcard                raw    2739 gz    1743
+date1-ja.postcard                raw    2491 gz    1601
+date1-ru.postcard                raw    3413 gz    2007
+fixed-ar.postcard                raw   48791 gz   22523
+fixed-en.postcard                raw   30293 gz   16755
+fixed-ja.postcard                raw   45378 gz   21913
+fixed-ru.postcard                raw   49699 gz   23028
+fixed-und.postcard               raw   24652 gz   14502
+nozone-ar.postcard               raw    4466 gz    2385
+nozone-en.postcard               raw    4380 gz    2298
+nozone-ja.postcard               raw    3956 gz    2157
+nozone-ru.postcard               raw    5124 gz    2572
+nozone-und.postcard              raw    2802 gz    1639
+core::fmt symbols: 0
+panic symbols:     0
+mf2dt alone (no_std harness): raw 6037 gz 3344
+## suite functions/{date,time,datetime}.json — datetime-icu (compiled data, en-US)
+
+PASS `{:date}` → `{:fallback}` errors=["bad-operand"]
+PASS `{horse :date}` → `{|horse|}` errors=["bad-operand"]
+PASS `{|2006-01-02| :date}` → `Jan 2, 2006` errors=[]
+PASS `{|2006-01-02T15:04:06| :date}` → `Jan 2, 2006` errors=[]
+PASS `{|2006-01-02| :date length=long}` → `January 2, 2006` errors=[]
+PASS `.local $d = {|2006-01-02| :date length=long} {{{$d}}}` → `January 2, 2006` errors=[]
+PASS `.local $d = {|2006-01-02| :datetime dateLength=long timePrecision=second} {{{$d :date}}}` → `Jan 2, 2006` errors=[]
+PASS `{:time}` → `{:fallback}` errors=["bad-operand"]
+PASS `{horse :time}` → `{|horse|}` errors=["bad-operand"]
+PASS `{|2006-01-02T15:04:06| :time}` → `3:04 PM` errors=[]
+PASS `{|2006-01-02T15:04:06| :time precision=second}` → `3:04:06 PM` errors=[]
+PASS `.local $t = {|2006-01-02T15:04:06| :time precision=second} {{{$t}}}` → `3:04:06 PM` errors=[]
+PASS `.local $t = {|2006-01-02T15:04:06| :datetime dateLength=long timePrecision=second} {{{$t :time}}}` → `3:04 PM` errors=[]
+PASS `{:datetime}` → `{:fallback}` errors=["bad-operand"]
+PASS `{$x :datetime} (x = true)` → `{|true|}` errors=["bad-operand"]
+PASS `{horse :datetime}` → `{|horse|}` errors=["bad-operand"]
+PASS `{|2006-01-02T15:04:06| :datetime}` → `Jan 2, 2006, 3:04 PM` errors=[]
+PASS `{|2006-01-02T15:04:06| :datetime dateLength=long}` → `January 2, 2006 at 3:04 PM` errors=[]
+PASS `{|2006-01-02T15:04:06| :datetime timePrecision=second}` → `Jan 2, 2006, 3:04:06 PM` errors=[]
+PASS `{$dt :datetime} (dt = datetime 2006-01-02T15:04:06)` → `Jan 2, 2006, 3:04 PM` errors=[]
+
+20/20 error expectations met (the suite has no `exp` for successful date output)
+
+en: blob(fixed) ≡ compiled on 93/93 option sets (0 differ); blob(nozone) ≡ compiled on 81/81
+ar: blob(fixed) ≡ compiled on 93/93 option sets (0 differ); blob(nozone) ≡ compiled on 81/81
+ja: blob(fixed) ≡ compiled on 93/93 option sets (0 differ); blob(nozone) ≡ compiled on 81/81
+ru: blob(fixed) ≡ compiled on 93/93 option sets (0 differ); blob(nozone) ≡ compiled on 81/81
+
+request en-US against an `en` blob: ("Jan 2, 2006, 3:04\u{202f}PM", [])
+date1-en blob, :date                  → ("Jan 2, 2006", [])
+date1-en blob, :date length=long      → ("January 2, 2006", [])
+date1-en blob, :date fields=weekday   → ("", ["unsupported-operation"])
+
+## output sample (datetime-icu, compiled data = CLDR 48.2.1)
+
+| `{$d :date }` | Jan 2, 2006 | 02‏/01‏/2006 | 2006/01/02 | 2 янв. 2006 г. |
+| `{$d :date length=long}` | January 2, 2006 | 2 يناير 2006 | 2006年1月2日 | 2 января 2006 г. |
+| `{$d :date length=short}` | 1/2/06 | 2‏/1‏/2006 | 2006/01/02 | 02.01.2006 |
+| `{$d :date fields=month-day-weekday length=long}` | Monday, January 2 | الاثنين، 2 يناير | 1月2日月曜日 | понедельник, 2 января |
+| `{$d :time }` | 3:04 PM | 3:04 م | 15:04 | 15:04 |
+| `{$d :time precision=second hour12=false}` | 15:04:06 | 15:04:06 | 15:04:06 | 15:04:06 |
+| `{$d :datetime }` | Jan 2, 2006, 3:04 PM | 02‏/01‏/2006، 3:04 م | 2006/01/02 15:04 | 2 янв. 2006 г., 15:04 |
+| `{$d :datetime timeZoneStyle=long}` | Jan 2, 2006, 3:04 PM GMT+00:00 | 02‏/01‏/2006، 3:04 م غرينتش‎+00:00 | 2006/01/02 15:04 GMT+00:00 | 2 янв. 2006 г., 15:04 GMT+00:00 |
+| `{$d :datetime timeZoneStyle=short timeZone=+05:30}` | Jan 2, 2006, 8:34 PM GMT+5:30 | 02‏/01‏/2006، 8:34 م غرينتش‎+5:30 | 2006/01/02 20:34 GMT+5:30 | 2 янв. 2006 г., 20:34 GMT+5:30 |
+| `{$d :datetime timeZone=America/New_York timeZoneStyle=long}` | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ |
+| `{$d :time timeZone=Asia/Kolkata}` | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ |
+| `{$d :date calendar=japanese length=long}` | January 2, 18 Heisei | 2 يناير 18 هيسي | 平成18年1月2日 | 2 января 18 г. Эпоха Хэйсэй |
+| `{$d :time timeZone=Mars/Olympus}` | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ | ⟨err 4⟩ |
+node v23.11.0, ICU 76.1, CLDR 46.0, tz 2025a
+
+| `{$d :date }` | Jan 2, 2006 | 02‏/01‏/2006 | 2006/01/02 | 2 янв. 2006 г. |
+| `{$d :date length=long}` | January 2, 2006 | 2 يناير 2006 | 2006年1月2日 | 2 января 2006 г. |
+| `{$d :date length=short}` | 1/2/06 | 2‏/1‏/2006 | 2006/01/02 | 02.01.2006 |
+| `{$d :date fields=month-day-weekday length=long}` | Monday, January 2 | الاثنين، 2 يناير | 1月2日月曜日 | понедельник, 2 января |
+| `{$d :time }` | 3:04 PM | 3:04 م | 15:04 | 15:04 |
+| `{$d :time precision=second hour12=false}` | 15:04:06 | 15:04:06 | 15:04:06 | 15:04:06 |
+| `{$d :datetime }` | Jan 2, 2006, 3:04 PM | 02‏/01‏/2006، 3:04 م | 2006/01/02 15:04 | 2 янв. 2006 г., 15:04 |
+| `{$d :datetime timeZoneStyle=long}` | Jan 2, 2006, 3:04 PM Coordinated Universal Time | 2 يناير 2006، 3:04 م التوقيت العالمي المنسق | 2006年1月2日 15:04 協定世界時 | 2 янв. 2006 г., 15:04 Всемирное координированное время |
+| `{$d :datetime timeZoneStyle=short timeZone=+05:30}` | Jan 2, 2006, 8:34 PM GMT+5:30 | 2 يناير 2006، 8:34 م غرينتش+5:30 | 2006年1月2日 20:34 GMT+5:30 | 2 янв. 2006 г., 20:34 GMT+5:30 |
+| `{$d :datetime timeZone=America/New_York timeZoneStyle=long}` | Jan 2, 2006, 10:04 AM Eastern Standard Time | 2 يناير 2006، 10:04 ص التوقيت الرسمي الشرقي لأمريكا الشمالية | 2006年1月2日 10:04 アメリカ東部標準時 | 2 янв. 2006 г., 10:04 Восточная Америка, стандартное время |
+| `{$d :time timeZone=Asia/Kolkata}` | 8:34 PM | 8:34 م | 20:34 | 20:34 |
+| `{$d :date calendar=japanese length=long}` | January 2, 18 Heisei | 2 يناير 18 هيسي | 平成18年1月2日 | 2 января 18 г. Эпоха Хэйсэй |
+| `{$d :time timeZone=Mars/Olympus}` | ⟨err 2⟩ | ⟨err 2⟩ | ⟨err 2⟩ | ⟨err 2⟩ |

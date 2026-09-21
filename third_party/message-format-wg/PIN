@@ -1,0 +1,6 @@
+upstream = https://github.com/unicode-org/message-format-wg
+commit   = 5c4ddb27e726fd7881c1787a632efba83ab0d850
+date     = 2026-08-31
+relation = tag LDML48.2 + 3 commits
+contents = spec/ test/ LICENSE (verbatim; never hand-edit)
+refresh  = cargo xtask spec-sync [--rev <sha>]   (update conformance/ledger.toml in the same commit)

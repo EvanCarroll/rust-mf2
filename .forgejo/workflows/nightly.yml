@@ -1,0 +1,91 @@
+# Nightly long runs (plans/08-phase-1-work-order.md, A8): what `cargo test`
+# runs in bounded form, run long.
+#
+# * `generated`: 1,000,000 messages generated from the vendored message.abnf —
+#   well-formed, lossless CST, parse(serialize(m)) == m, deterministic
+#   validation (≈ 1 minute in a release build).
+# * `differential`: mf2-syntax vs ox_mf2_parser on 90,000 generated and mutated
+#   messages. ox hangs on some inputs and then allocates without bound, so it
+#   runs in a child process with a timeout, under a memory limit.
+# * `fuzz`: 30 minutes of the `parse` fuzz target (cargo-fuzz, nightly
+#   toolchain; see fuzz/README.md).
+#
+# Actions: only Forgejo-maintained forks (see ci.yml). Sources are fetched
+# with plain git.
+name: nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  long-runs:
+    # PLACEHOLDER: the remote host is not decided yet; see ci.yml.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchains (pinned stable; nightly for cargo-fuzz)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup toolchain install nightly --profile minimal
+          cargo install --locked cargo-fuzz
+
+      - name: Generated input, 1,000,000 messages
+        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
+
+      - name: Differential against ox (90,000 messages)
+        run: |
+          set -eu
+          cargo build --release -p mf2-conformance --example differential
+          (ulimit -v 4000000; ./target/release/examples/differential 30000) | tee differential.txt
+          # Anything but agreement and ox's known behaviours fails the run.
+          if grep -Eq '^  (SYNTAX DISAGREEMENT|DATA-MODEL DISAGREEMENT):' differential.txt; then
+            exit 1
+          fi
+
+      - name: Fuzz the parser (30 minutes)
+        run: |
+          set -eu
+          cargo xtask fuzz-seed
+          cd fuzz
+          cargo +nightly fuzz run parse -- -dict=mf2.dict -max_len=16384 -timeout=10 \
+            -rss_limit_mb=2048 -max_total_time=1800
+
+      - name: Upload fuzz artifacts and the differential summary
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: nightly
+          path: |
+            differential.txt
+            fuzz/artifacts/
+          if-no-files-found: ignore

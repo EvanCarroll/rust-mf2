@@ -1,0 +1,8 @@
+upstream = https://github.com/w3c/i18n-discuss  (branch gh-pages, directory explainers/)
+commit   = 73b02df9d8bee457de8b6fd9b7bdd7286217e7f4
+date     = 2025-11-13
+files    = message-resources.md  message-resource.abnf  message-resource.d.ts  message-resource.json
+status   = W3C i18n WG incubation explainer; NOT a standard; may change
+license  = none stated in the repository as of 2026-09-20. NOT vendored verbatim.
+           Confirm the license before copying any file here; until then the
+           grammar in crates/mf2-resource is written from the draft, citing this pin.

@@ -1,0 +1,24 @@
+# Build output
+target/
+dist/
+pkg/
+
+# Not committed (repository convention)
+Cargo.lock
+
+# Browser test harness
+node_modules/
+tools/e2e/test-results/
+tools/e2e/playwright-report/
+
+# Compiled wasm is build output, except committed test fixtures
+*.wasm
+!**/fixtures/**/*.wasm
+
+# Local caches (xtask downloads, generated scratch)
+.cache/
+
+# cargo-fuzz working files (seed with `cargo xtask fuzz-seed`)
+fuzz/corpus/
+fuzz/artifacts/
+fuzz/coverage/

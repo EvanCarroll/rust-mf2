@@ -1,0 +1,54 @@
+== wasm-base (no_std harness)
+  wasm_base.wasm             items   38  fmt symbols 0  panic/alloc-failure symbols 0
+  base.syms.opt.wasm         items   39  fmt symbols 0  panic/alloc-failure symbols 0
+  import p03_panic_reachable present after LTO + wasm-opt: no
+  panic/bounds/overflow strings in the stripped optimised module: 0
+  fmt/panic symbols (non-stripped, pre-wasm-opt):
+== wasm-floor (no_std harness)
+  wasm_floor.wasm            items  105  fmt symbols 0  panic/alloc-failure symbols 0
+  floor.syms.opt.wasm        items  109  fmt symbols 0  panic/alloc-failure symbols 0
+  import p03_panic_reachable present after LTO + wasm-opt: no
+  panic/bounds/overflow strings in the stripped optimised module: 0
+  fmt/panic symbols (non-stripped, pre-wasm-opt):
+    custom section '.debug_str'
+    custom section '.debug_line'
+    custom section '.debug_info'
+    custom section '.debug_abbrev'
+    custom section '.debug_ranges'
+    custom section '.debug_abbrev' headers
+    custom section '.debug_ranges' headers
+    custom section '.debug_info' headers
+    custom section '.debug_line' headers
+    custom section '.debug_str' headers
+== wasm-floor with --features p03-rt/utf8-per-access
+  fmt symbols 0  panic/alloc-failure symbols 0  import p03_panic_reachable present: no
+== largest items in the optimised floor module
+   Shallow Bytes │ Shallow % │ Item
+  ───────────────┼───────────┼─────────────────────────────────────────────────────────────────────────────────────────────
+            2717 ┊    10.65% ┊ "function names" subsection
+            2479 ┊     9.72% ┊ custom section '.debug_str'
+            2395 ┊     9.39% ┊ <p03_rt[b119ae91534749ec]::format::Formatter>::run
+            2248 ┊     8.81% ┊ custom section '.debug_line'
+            1949 ┊     7.64% ┊ load
+            1407 ┊     5.51% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::expr
+            1277 ┊     5.01% ┊ custom section '.debug_info'
+             746 ┊     2.92% ┊ p03_rt[b119ae91534749ec]::num::parse_int
+             702 ┊     2.75% ┊ <p03_rt[b119ae91534749ec]::format::Source>::write
+             698 ┊     2.74% ┊ core[ed718c3d60ebd546]::str::converts::from_utf8
+             689 ┊     2.70% ┊ simple
+             615 ┊     2.41% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::category
+             571 ┊     2.24% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::var
+             516 ┊     2.02% ┊ <wasm_floor[cf221cbd8969977]::Out as p03_rt[b119ae91534749ec]::format::PartSink>::part
+             426 ┊     1.67% ┊ custom section '.debug_abbrev'
+             397 ┊     1.56% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::name
+             384 ┊     1.51% ┊ <p03_rt[b119ae91534749ec]::format::PartsOut as p03_rt[b119ae91534749ec]::format::Out>::value
+             362 ┊     1.42% ┊ <p03_rt[b119ae91534749ec]::format::StrOut as p03_rt[b119ae91534749ec]::format::Out>::value
+             274 ┊     1.07% ┊ <p03_rt[b119ae91534749ec]::catalog::Catalog>::str_at
+             265 ┊     1.04% ┊ <p03_rt[b119ae91534749ec]::catalog::Catalog>::get
+             264 ┊     1.03% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::key
+             237 ┊     0.93% ┊ <alloc[508e33bd5656020b]::raw_vec::RawVecInner>::finish_grow
+             215 ┊     0.84% ┊ p03_rt[b119ae91534749ec]::num::fmt_i64
+             200 ┊     0.78% ┊ <p03_rt[b119ae91534749ec]::format::Eval>::skip_expr
+             195 ┊     0.76% ┊ format
+            3285 ┊    12.88% ┊ ... and 84 more.
+           25513 ┊   100.00% ┊ Σ [109 Total Rows]

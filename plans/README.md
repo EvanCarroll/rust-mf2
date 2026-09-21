@@ -1,0 +1,36 @@
+# plans/
+
+Planning documents for **mf2-two**. Start with the master plan; it is the single
+source of truth and links to everything else.
+
+| Order | Document | Read it when |
+|---|---|---|
+| 0 | [00-master-plan.md](00-master-plan.md) | always, first — goals, assessment, layout, feature flags, decisions, phases, risks |
+| 1 | [01-conformance.md](01-conformance.md) | touching anything that parses, encodes, formats or renders a message |
+| 2 | [02-catalog-format.md](02-catalog-format.md) | working on `mf2-catalog`, `mf2-build`, or the runtime's reader |
+| 3 | [03-runtime.md](03-runtime.md) | working on `mf2-runtime`, `mf2-fn-*`, `mf2-host-*` |
+| 4 | [04-leptos-integration.md](04-leptos-integration.md) | working on `leptos-mf2`, `mf2-macros`, `mf2-axum`, examples |
+| 5 | [05-tooling.md](05-tooling.md) | working on `mf2-syntax`, `mf2-resource`, `mf2-build`, `mf2-cli`; the parser performance gate; repository conventions |
+| 6 | [06-size-and-perf.md](06-size-and-perf.md) | budgets, the reference workload, Phase 0 probes, the size gate |
+| 7 | [07-phase-0-work-order.md](07-phase-0-work-order.md) | Phase 0 tasks, dependencies, exit checklist (done) |
+| — | [phase-0-results.md](phase-0-results.md) | the Phase 0 measurements behind every figure in the plans, the go/no-go recommendation |
+| 8 | [08-phase-1-work-order.md](08-phase-1-work-order.md) | Phase 1 tasks (done), the frozen `mf2-model` types, the `Frontend` trait, status at exit |
+| — | [phase-1-results.md](phase-1-results.md) | the Phase 1 measurements: L1/L2, the D1 gate, generated input, the ox differential, fuzzing |
+| 9 | [09-phase-2-work-order.md](09-phase-2-work-order.md) | **doing the work next** — Phase 2 tasks: the `.mf2b` catalog, layer L3 |
+| — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate — e.g. [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md) |
+
+## Rules for anyone (or any agent) working from these plans
+
+1. **Stay inside the repository.** The boundary and network rule is stated once,
+   in the root `CLAUDE.md` ("Boundary"); it applies to everything here. The spec and the test suite are in the tree; the CLDR
+   inputs and the reference workload are produced by Phase 0 tasks A4 and A7. If a requirement seems
+   missing, ask the owner.
+2. **The master plan wins.** If a companion document disagrees with it, fix the
+   companion — or change the master plan deliberately, in the same commit.
+3. **Full MF2, always.** No layer may subset the spec. A test that cannot pass yet
+   is an `xfail` in the ledger with the phase that fixes it, never a skip.
+4. **Numbers, not adjectives.** Size and speed claims come with a measurement and
+   the command that produced it.
+5. Figures in these plans were measured in-tree by Phase 0 (2026-09-20/21);
+   [phase-0-results.md](phase-0-results.md) gives each one's method and command.
+   Where a planning-audit figure did not reproduce, the text says so.

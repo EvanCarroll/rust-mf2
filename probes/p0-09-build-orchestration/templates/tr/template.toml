@@ -1,0 +1,54 @@
+# P0.9 template `tr`: every site is a `tr!` call. `tr!` is the macro_rules
+# wrapper generated into the i18n crate (p09-i18n); it forwards to the
+# proc-macro with the manifest path baked in (plans/05-tooling.md §4).
+# Data only: the app's Cargo.toml is written by the probe (apps/tr).
+name = "tr"
+description = "P0.9: tr!(\"id\", name = value) through the i18n crate's generated wrapper and the proc-macro."
+prelude = "use p09_i18n::tr;"
+support = "support.rs"
+boot = "crate::support::boot();"
+
+[args]
+sep = ", "
+plain = "{{name}} = {{value}}"
+signal = "{{name}} = {{signal}}"
+
+[deferred]
+type = "p09_i18n::__mf2::Tr"
+view = "{{label}}"
+string = "{{label}}.to_string()"
+
+[site.string]
+none = 'tr!("{{id}}").to_string()'
+plain = 'tr!("{{id}}", {{args}}).to_string()'
+
+[site.child]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+get = 'move || tr!("{{id}}", {{args}})'
+
+[site.attr]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+get = 'move || tr!("{{id}}", {{args}})'
+
+[site.text_prop]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+get = 'move || tr!("{{id}}", {{args}}).to_string()'
+
+[site.signal_prop]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+get = 'Signal::derive(move || tr!("{{id}}", {{args}}).to_string())'
+
+[site.string_prop]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+
+[site.deferred]
+none = 'tr!("{{id}}")'
+
+[site.if_else]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'

@@ -1,0 +1,1 @@
+export function mf2_dtf(l, o, t) { try { return new Intl.DateTimeFormat(l, JSON.parse(o)).format(t); } catch (e) { return undefined; } }

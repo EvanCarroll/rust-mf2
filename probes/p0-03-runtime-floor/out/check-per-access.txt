@@ -1,0 +1,50 @@
+== workload: runtime (from the catalog) vs reference (from the data model)
+  en     1600 messages, mismatches 0
+  pl     1600 messages, mismatches 0
+  en-XA  1600 messages, mismatches 0
+  ar-XB  1600 messages, mismatches 0
+== spot checks
+  en     admin.badge                  → Failed
+  en     admin.badges.upload          → ⟨FSI⟩12⟨PDI⟩ participants
+  en     admin.badges.upload          → ⟨FSI⟩{$members}⟨PDI⟩ participants
+  en     common.dialog.add            → Sign enable reconnect 1 use action now.
+  en     common.dialog.add            → Please 5 of fix previous international.
+  en     auth.upload.title            → Mode this.
+  en     app.canary.zq7-canary-msg    → ZQ7-CANARY-TEXT-EN ⟨FSI⟩x⟨PDI⟩
+  en     common.dialog.add variants: 0→* 1→one 2→* 3→* 5→* 22→* 25→* 101→*
+  pl     common.dialog.add variants: 0→many 1→one 2→few 3→few 5→many 22→few 25→many 101→many
+  en-XA  common.dialog.add variants: 0→* 1→one 2→* 3→* 5→* 22→* 25→* 101→*
+  ar-XB  common.dialog.add variants: 0→* 1→one 2→* 3→* 5→* 22→* 25→* 101→*
+  ar-XB  common.dialog.add(1) → ⟨RLO⟩Sign enable reconnect ⟨PDF⟩⟨LRI⟩1⟨PDI⟩⟨RLO⟩ use action now.⟨PDF⟩
+  en     auth.upload.title parts: text:Mode  | markup-open:strong | text:this | markup-close:strong | text:.
+== mini corpus (functions, literals, locals, exact/ordinal/multi-selector selection, markup options, RTL)
+  en  a.unknown-fn             → ⟨FSI⟩{$x}⟨PDI⟩                           errors [unknown-function]
+  en  b.literal-fallback       → ⟨FSI⟩{|a\|b|}⟨PDI⟩                       errors [unknown-function]
+  en  c.function-only          → ⟨FSI⟩{:nope}⟨PDI⟩                        errors [unknown-function]
+  en  d.local                  → Y=42                                     errors []
+  en  d.local                  → Y=42                                     errors []
+  en  e.exact                  → exact one                                errors []
+  en  e.exact                  → other                                    errors []
+  en  f.exact-beats-category   → exact                                    errors []
+  en  f.exact-beats-category   → other                                    errors []
+  en  g.markup-options         → and bold                                 errors []
+  en  h.string-select          → FOO                                      errors []
+  en  h.string-select          → OTHER                                    errors []
+  en  i.bad-selector           → OTHER                                    errors [bad-selector]
+  en  j.two-selectors          → a1                                       errors []
+  en  j.two-selectors          → b1                                       errors []
+  en  j.two-selectors          → none                                     errors []
+  en  k.ordinal                → st                                       errors []
+  en  k.ordinal                → nd                                       errors []
+  en  k.ordinal                → rd                                       errors []
+  en  k.ordinal                → th                                       errors []
+  en  l.bidi                   → ⟨FSI⟩x⟨PDI⟩ and 5 and ⟨FSI⟩lit⟨PDI⟩      errors []
+  ar  l.bidi                   → ⟨FSI⟩x⟨PDI⟩ and ⟨LRI⟩5⟨PDI⟩ and ⟨FSI⟩lit⟨PDI⟩ errors []
+  en  m.bad-operand            → ⟨FSI⟩{$x}⟨PDI⟩                           errors [bad-operand]
+  en  n.local-chain            → [⟨FSI⟩z⟨PDI⟩]                            errors []
+  en  n.local-chain            → [⟨FSI⟩{$x}⟨PDI⟩]                         errors [unresolved]
+  g.markup-options parts: markup-standalone:img[src=x.png,alt=$pic] | text:and  | markup-open:b | text:bold | markup-close:b
+  l.bidi with BidiStrategy::None → x and 5 and lit ; parts string:x | text: and  | number:5 | text: and  | string:lit
+== mutation run
+  3000 mutated catalogs: 1681 rejected by Catalog::new, 1319 loaded and fully formatted (4220800 formats), 0 panics
+== total: 40544 checks passed, 0 failed; 26968 workload formats

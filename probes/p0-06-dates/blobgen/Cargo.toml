@@ -1,0 +1,22 @@
+[package]
+name = "blobgen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "P0.6 probe: per-locale ICU4X blobs, restricted to the markers a wasm binary uses, exported from ICU4X's own compiled data (CLDR 48.2.1) — no CLDR download."
+
+[dependencies]
+icu = { version = "2.3.0", default-features = false, features = ["datagen"] }
+icu_provider = { version = "2.3.1", features = ["export", "baked"] }
+icu_provider_export = { version = "2.3.0", default-features = false, features = ["blob_exporter"] }
+clap = { version = "4.6.7", features = ["derive"] }
+thiserror = "2.0.20"
+icu_datetime_data = "2.3.0"
+icu_decimal_data = "2.3.0"
+icu_time_data = "2.3.0"
+icu_calendar_data = "2.3.0"
+icu_locale = { version = "2.3.0", features = ["compiled_data"] }
+zerovec = "0.11"
+icu_pattern = "0.5"
+zerotrie = "0.2"

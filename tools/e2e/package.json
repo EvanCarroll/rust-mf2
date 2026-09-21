@@ -1,0 +1,16 @@
+{
+  "name": "mf2-two-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Permanent browser test harness for mf2-two (Playwright). See README.md.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "p002": "node run.mjs p002",
+    "p010": "node run.mjs p010",
+    "browsers": "playwright install chromium firefox"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

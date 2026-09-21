@@ -1,0 +1,16 @@
+[package]
+name = "diff"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "P0.5 probe: native differential test of numloc (catalog-borne CLDR 48.2.1 data) against icu_decimal (compiled CLDR 48.2.1) for the locale panel."
+
+[dependencies]
+numcore = { path = "../numcore" }
+numloc = { path = "../numloc", features = ["currency", "unit"] }
+icu_decimal = "2.3.0"
+icu_locale_core = "2.3.0"
+fixed_decimal = "0.7.2"
+writeable = "0.6"
+serde_json = "1.0.151"

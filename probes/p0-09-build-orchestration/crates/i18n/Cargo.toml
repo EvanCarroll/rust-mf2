@@ -1,0 +1,19 @@
+[package]
+name = "p09-i18n"
+description = "P0.9: the application's i18n crate — locales/ + build.rs → manifest, catalogs, generated tr! wrapper."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+p09-mf2.workspace = true
+p09-macros.workspace = true
+
+[build-dependencies]
+p09-build.workspace = true
+
+[features]
+# The application forwards these from its own ssr / hydrate builds.
+ssr = ["p09-mf2/ssr"]
+hydrate = ["p09-mf2/hydrate"]

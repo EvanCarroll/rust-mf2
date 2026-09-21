@@ -1,0 +1,418 @@
+{
+  "tool": "parser-gate 0.0.0",
+  "build": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "opt_level": "3",
+    "debug_assertions": false
+  },
+  "settings": {
+    "runs": 31,
+    "min_sample_ms": 20,
+    "warmup_ms": 100
+  },
+  "available_parallelism": 8,
+  "unix_time": 1789966338,
+  "parsers": [
+    {
+      "key": "ox",
+      "name": "ox_mf2_parser 0.14.0-alpha.12"
+    }
+  ],
+  "corpora": [
+    {
+      "id": "suite",
+      "label": "462 suite messages (14.6 KB)",
+      "messages": 462,
+      "bytes": 14639
+    },
+    {
+      "id": "workload",
+      "label": "1,600-message workload (43.2 KB)",
+      "messages": 1600,
+      "bytes": 43250
+    },
+    {
+      "id": "placeholder-free",
+      "label": "its 1,256 placeholder-free messages (27.4 KB)",
+      "messages": 1256,
+      "bytes": 27402
+    }
+  ],
+  "rows": [
+    {
+      "corpus": "suite",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 46,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 912.4841426689253,
+            "q1": 956.6973931865236,
+            "median": 1010.9589685676642,
+            "q3": 1138.918031244118,
+            "max": 1584.5424430641822
+          },
+          "mb_per_s": 31.342663917449,
+          "allocs": 6110,
+          "alloc_bytes": 1325319,
+          "allocs_per_msg": 13.225108225108226,
+          "alloc_bytes_per_msg": 2868.655844155844,
+          "diagnostics": 287
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 87,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 457.3499776085983,
+            "q1": 481.1242847191123,
+            "median": 508.43105936209383,
+            "q3": 542.1492262526746,
+            "max": 820.0977260287605
+          },
+          "mb_per_s": 62.32142313630958,
+          "allocs": 490,
+          "alloc_bytes": 87567,
+          "allocs_per_msg": 1.0606060606060606,
+          "alloc_bytes_per_msg": 189.53896103896105,
+          "diagnostics": 287
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 26,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 1705.6217116217117,
+            "q1": 1823.7985764235764,
+            "median": 1912.37654012654,
+            "q3": 2079.409299034299,
+            "max": 2616.9657009657008
+          },
+          "mb_per_s": 16.568989694911515,
+          "allocs": 12172,
+          "alloc_bytes": 1612230,
+          "allocs_per_msg": 26.346320346320347,
+          "alloc_bytes_per_msg": 3489.6753246753246,
+          "diagnostics": 314
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 24,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 1857.800054112554,
+            "q1": 1947.0191197691197,
+            "median": 2025.284632034632,
+            "q3": 2133.8291847041846,
+            "max": 3032.127705627706
+          },
+          "mb_per_s": 15.645281006410833,
+          "allocs": 11711,
+          "alloc_bytes": 1423734,
+          "allocs_per_msg": 25.348484848484848,
+          "alloc_bytes_per_msg": 3081.6753246753246,
+          "diagnostics": 314
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 38,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 331.16620065789476,
+            "q1": 350.7553865131579,
+            "median": 361.13675986842105,
+            "q3": 385.07375,
+            "max": 529.4911677631579
+          },
+          "mb_per_s": 74.85045280311188,
+          "allocs": 13683,
+          "alloc_bytes": 2210034,
+          "allocs_per_msg": 8.551875,
+          "alloc_bytes_per_msg": 1381.27125,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 59,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 212.19299788135592,
+            "q1": 222.13468749999998,
+            "median": 231.70751059322035,
+            "q3": 253.91316737288133,
+            "max": 368.99063559322036
+          },
+          "mb_per_s": 116.66108677614406,
+          "allocs": 1623,
+          "alloc_bytes": 267026,
+          "allocs_per_msg": 1.014375,
+          "alloc_bytes_per_msg": 166.89125,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 21,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 618.0790178571428,
+            "q1": 647.7099851190476,
+            "median": 659.0796428571429,
+            "q3": 705.5167113095238,
+            "max": 1099.961369047619
+          },
+          "mb_per_s": 41.01363210494287,
+          "allocs": 18700,
+          "alloc_bytes": 2425325,
+          "allocs_per_msg": 11.6875,
+          "alloc_bytes_per_msg": 1515.828125,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 19,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 682.5213157894736,
+            "q1": 718.9502467105262,
+            "median": 733.1146381578948,
+            "q3": 779.290740131579,
+            "max": 998.2623684210527
+          },
+          "mb_per_s": 36.871791385753426,
+          "allocs": 17101,
+          "alloc_bytes": 1772525,
+          "allocs_per_msg": 10.688125,
+          "alloc_bytes_per_msg": 1107.828125,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 69,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 239.82991784362596,
+            "q1": 250.55773446875287,
+            "median": 258.13539647373767,
+            "q3": 278.49473253023166,
+            "max": 327.46841825902334
+          },
+          "mb_per_s": 84.51719244598576,
+          "allocs": 10048,
+          "alloc_bytes": 1470506,
+          "allocs_per_msg": 8.0,
+          "alloc_bytes_per_msg": 1170.7850318471337,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 99,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 159.98241169658368,
+            "q1": 165.56359373994724,
+            "median": 173.20227755259603,
+            "q3": 177.70972061378112,
+            "max": 312.6161616161616
+          },
+          "mb_per_s": 125.96184813023967,
+          "allocs": 1262,
+          "alloc_bytes": 198506,
+          "allocs_per_msg": 1.0047770700636942,
+          "alloc_bytes_per_msg": 158.04617834394904,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 40,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 418.59932324840764,
+            "q1": 436.5358976910828,
+            "median": 446.79032643312104,
+            "q3": 474.69085390127384,
+            "max": 607.9398089171974
+          },
+          "mb_per_s": 48.83024024952213,
+          "allocs": 11304,
+          "alloc_bytes": 1550890,
+          "allocs_per_msg": 9.0,
+          "alloc_bytes_per_msg": 1234.7850318471337,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 36,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 448.1404812455768,
+            "q1": 473.24212668082095,
+            "median": 487.803034324133,
+            "q3": 516.1766852441614,
+            "max": 659.5416887827317
+          },
+          "mb_per_s": 44.72477095416127,
+          "allocs": 10049,
+          "alloc_bytes": 1038442,
+          "allocs_per_msg": 8.000796178343949,
+          "alloc_bytes_per_msg": 826.7850318471337,
+          "diagnostics": 0
+        }
+      ]
+    }
+  ],
+  "correctness": [
+    {
+      "parser": "ox",
+      "suite_total": 462,
+      "suite_exact": 460,
+      "mismatches": [
+        {
+          "file": "data-model-errors.json",
+          "index": 0,
+          "src": ".input {$foo :x} .match $foo * * {{foo}}",
+          "want": [
+            "variant-key-mismatch"
+          ],
+          "got": [
+            "missing-fallback-variant",
+            "variant-key-mismatch"
+          ]
+        },
+        {
+          "file": "data-model-errors.json",
+          "index": 1,
+          "src": ".input {$foo :x} .input {$bar :x} .match $foo $bar * {{foo}}",
+          "want": [
+            "variant-key-mismatch"
+          ],
+          "got": [
+            "missing-fallback-variant",
+            "variant-key-mismatch"
+          ]
+        }
+      ],
+      "workload_total": 1600,
+      "workload_with_errors": 0
+    }
+  ],
+  "gate": {
+    "status": "baseline-only",
+    "checks": []
+  }
+}

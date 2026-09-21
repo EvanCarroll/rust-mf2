@@ -1,0 +1,931 @@
+{
+  "tool": "parser-gate 0.0.0",
+  "build": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "opt_level": "3",
+    "debug_assertions": false
+  },
+  "settings": {
+    "runs": 31,
+    "min_sample_ms": 20,
+    "warmup_ms": 100
+  },
+  "available_parallelism": 8,
+  "unix_time": 1790017874,
+  "parsers": [
+    {
+      "key": "ox",
+      "name": "ox_mf2_parser 0.14.0-alpha.12"
+    },
+    {
+      "key": "mf2-syntax",
+      "name": "mf2-syntax 0.0.0 (this workspace)"
+    }
+  ],
+  "corpora": [
+    {
+      "id": "suite",
+      "label": "462 suite messages (14.6 KB)",
+      "messages": 462,
+      "bytes": 14639
+    },
+    {
+      "id": "workload",
+      "label": "1,600-message workload (43.2 KB)",
+      "messages": 1600,
+      "bytes": 43250
+    },
+    {
+      "id": "placeholder-free",
+      "label": "its 1,256 placeholder-free messages (27.4 KB)",
+      "messages": 1256,
+      "bytes": 27402
+    }
+  ],
+  "rows": [
+    {
+      "corpus": "suite",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 50,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 799.0041125541126,
+            "q1": 814.1918614718616,
+            "median": 819.8492640692641,
+            "q3": 836.2389610389611,
+            "max": 1055.7483982683982
+          },
+          "mb_per_s": 38.64874748911187,
+          "allocs": 6110,
+          "alloc_bytes": 1325319,
+          "allocs_per_msg": 13.225108225108226,
+          "alloc_bytes_per_msg": 2868.655844155844,
+          "diagnostics": 287
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_cst (new arena per message)",
+          "ns_per_msg": {
+            "min": 147.622987012987,
+            "q1": 155.01181818181817,
+            "median": 158.11454545454546,
+            "q3": 160.68528138528137,
+            "max": 200.3565800865801
+          },
+          "mb_per_s": 200.3999511560198,
+          "allocs": 598,
+          "alloc_bytes": 301104,
+          "allocs_per_msg": 1.2943722943722944,
+          "alloc_bytes_per_msg": 651.7402597402597,
+          "diagnostics": 161
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 96,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 406.6867334054834,
+            "q1": 411.7535511363636,
+            "median": 414.5090863997114,
+            "q3": 421.03139655483403,
+            "max": 521.6858991702742
+          },
+          "mb_per_s": 76.44258769177428,
+          "allocs": 490,
+          "alloc_bytes": 87567,
+          "allocs_per_msg": 1.0606060606060606,
+          "alloc_bytes_per_msg": 189.53896103896105,
+          "diagnostics": 287
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_cst",
+          "ns_per_msg": {
+            "min": 124.71500721500722,
+            "q1": 126.96859217171718,
+            "median": 128.75813943001444,
+            "q3": 129.47048611111111,
+            "max": 160.5227498196248
+          },
+          "mb_per_s": 246.09044000181413,
+          "allocs": 6,
+          "alloc_bytes": 9008,
+          "allocs_per_msg": 0.012987012987012988,
+          "alloc_bytes_per_msg": 19.4978354978355,
+          "diagnostics": 161
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 29,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 1505.6993581131512,
+            "q1": 1518.1595387371249,
+            "median": 1536.8898343036274,
+            "q3": 1550.2492163009406,
+            "max": 1940.7991491267353
+          },
+          "mb_per_s": 20.617058216475446,
+          "allocs": 12172,
+          "alloc_bytes": 1612230,
+          "allocs_per_msg": 26.346320346320347,
+          "alloc_bytes_per_msg": 3489.6753246753246,
+          "diagnostics": 314
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_model (fast path, or new arena per message) + validation",
+          "ns_per_msg": {
+            "min": 293.31870428422155,
+            "q1": 301.8692342140618,
+            "median": 305.06657710105986,
+            "q3": 308.0858337065234,
+            "max": 397.3293775190327
+          },
+          "mb_per_s": 103.86633464488136,
+          "allocs": 1323,
+          "alloc_bytes": 265845,
+          "allocs_per_msg": 2.8636363636363638,
+          "alloc_bytes_per_msg": 575.422077922078,
+          "diagnostics": 186
+        }
+      ]
+    },
+    {
+      "corpus": "suite",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 462,
+      "bytes": 14639,
+      "runs": 31,
+      "passes_per_sample": 27,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 1630.6923200256533,
+            "q1": 1661.5832531665865,
+            "median": 1680.9957511624177,
+            "q3": 1689.2253487253488,
+            "max": 2169.774250440917
+          },
+          "mb_per_s": 18.849629550958735,
+          "allocs": 11711,
+          "alloc_bytes": 1423734,
+          "allocs_per_msg": 25.348484848484848,
+          "alloc_bytes_per_msg": 3081.6753246753246,
+          "diagnostics": 314
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_model (+ validation)",
+          "ns_per_msg": {
+            "min": 268.2318422318422,
+            "q1": 277.4185906685907,
+            "median": 283.5477793811127,
+            "q3": 287.44857303190634,
+            "max": 369.6504729838063
+          },
+          "mb_per_s": 111.7488814594392,
+          "allocs": 871,
+          "alloc_bytes": 97909,
+          "allocs_per_msg": 1.8852813852813852,
+          "alloc_bytes_per_msg": 211.92424242424244,
+          "diagnostics": 186
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 45,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 280.3292777777778,
+            "q1": 284.90009722222226,
+            "median": 288.43202777777776,
+            "q3": 293.1324583333334,
+            "max": 430.08623611111113
+          },
+          "mb_per_s": 93.71792102375748,
+          "allocs": 13683,
+          "alloc_bytes": 2210034,
+          "allocs_per_msg": 8.551875,
+          "alloc_bytes_per_msg": 1381.27125,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_cst (new arena per message)",
+          "ns_per_msg": {
+            "min": 63.96563888888889,
+            "q1": 65.95568750000001,
+            "median": 66.53243055555555,
+            "q3": 67.28630555555556,
+            "max": 85.26538888888889
+          },
+          "mb_per_s": 406.28682545166464,
+          "allocs": 1600,
+          "alloc_bytes": 377984,
+          "allocs_per_msg": 1.0,
+          "alloc_bytes_per_msg": 236.24,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 63,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 195.07096230158731,
+            "q1": 197.74679563492066,
+            "median": 199.26269841269843,
+            "q3": 200.8332490079365,
+            "max": 258.062619047619
+          },
+          "mb_per_s": 135.65634820429278,
+          "allocs": 1623,
+          "alloc_bytes": 267026,
+          "allocs_per_msg": 1.014375,
+          "alloc_bytes_per_msg": 166.89125,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_cst",
+          "ns_per_msg": {
+            "min": 42.02923611111111,
+            "q1": 44.353402777777774,
+            "median": 45.02850198412698,
+            "q3": 45.2427628968254,
+            "max": 58.74787698412698
+          },
+          "mb_per_s": 600.3142189702157,
+          "allocs": 4,
+          "alloc_bytes": 8640,
+          "allocs_per_msg": 0.0025,
+          "alloc_bytes_per_msg": 5.4,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 25,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 516.389675,
+            "q1": 524.095475,
+            "median": 527.375325,
+            "q3": 532.1346375,
+            "max": 684.623275
+          },
+          "mb_per_s": 51.2561902663914,
+          "allocs": 18700,
+          "alloc_bytes": 2425325,
+          "allocs_per_msg": 11.6875,
+          "alloc_bytes_per_msg": 1515.828125,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_model (fast path, or new arena per message) + validation",
+          "ns_per_msg": {
+            "min": 84.212625,
+            "q1": 85.5964125,
+            "median": 86.1411,
+            "q3": 88.13874999999999,
+            "max": 112.107675
+          },
+          "mb_per_s": 313.8020062432451,
+          "allocs": 772,
+          "alloc_bytes": 296184,
+          "allocs_per_msg": 0.4825,
+          "alloc_bytes_per_msg": 185.115,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "workload",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 1600,
+      "bytes": 43250,
+      "runs": 31,
+      "passes_per_sample": 22,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 595.5707102272727,
+            "q1": 603.4304545454545,
+            "median": 610.3904545454545,
+            "q3": 619.0802414772727,
+            "max": 788.6508238636363
+          },
+          "mb_per_s": 44.28517811624303,
+          "allocs": 17101,
+          "alloc_bytes": 1772525,
+          "allocs_per_msg": 10.688125,
+          "alloc_bytes_per_msg": 1107.828125,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_model (+ validation)",
+          "ns_per_msg": {
+            "min": 77.25383522727273,
+            "q1": 79.91825284090909,
+            "median": 82.31392045454545,
+            "q3": 84.26576704545454,
+            "max": 141.01335227272727
+          },
+          "mb_per_s": 328.3922069405857,
+          "allocs": 432,
+          "alloc_bytes": 132008,
+          "allocs_per_msg": 0.27,
+          "alloc_bytes_per_msg": 82.505,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "cst",
+      "mode": "fresh",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 84,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source",
+          "ns_per_msg": {
+            "min": 192.45700636942675,
+            "q1": 197.25090991810737,
+            "median": 198.98506217773735,
+            "q3": 201.30534861237487,
+            "max": 254.44738588110403
+          },
+          "mb_per_s": 109.64078781654703,
+          "allocs": 10048,
+          "alloc_bytes": 1470506,
+          "allocs_per_msg": 8.0,
+          "alloc_bytes_per_msg": 1170.7850318471337,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_cst (new arena per message)",
+          "ns_per_msg": {
+            "min": 41.9658212010919,
+            "q1": 43.13613701850167,
+            "median": 44.30868971792539,
+            "q3": 45.21248483469821,
+            "max": 56.80449082499242
+          },
+          "mb_per_s": 492.38375406225447,
+          "allocs": 1256,
+          "alloc_bytes": 80384,
+          "allocs_per_msg": 1.0,
+          "alloc_bytes_per_msg": 64.0,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "cst",
+      "mode": "reused",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 106,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + shared ParseWorkspace + parse_source_session",
+          "ns_per_msg": {
+            "min": 138.8748422665545,
+            "q1": 147.04612576613388,
+            "median": 149.3975558827064,
+            "q3": 151.37690031246245,
+            "max": 186.7818396226415
+          },
+          "mb_per_s": 146.03236881612963,
+          "allocs": 1262,
+          "alloc_bytes": 198506,
+          "allocs_per_msg": 1.0047770700636942,
+          "alloc_bytes_per_msg": 158.04617834394904,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_cst",
+          "ns_per_msg": {
+            "min": 25.146151303929816,
+            "q1": 25.80113192524937,
+            "median": 26.237298702079077,
+            "q3": 26.96001081600769,
+            "max": 33.33898419661099
+          },
+          "mb_per_s": 831.5215384258639,
+          "allocs": 1,
+          "alloc_bytes": 64,
+          "allocs_per_msg": 0.0007961783439490446,
+          "alloc_bytes_per_msg": 0.050955414012738856,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "model",
+      "mode": "fresh",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 49,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "SourceStore per message + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 332.9870824125829,
+            "q1": 336.53987391134797,
+            "median": 340.273950344469,
+            "q3": 344.7946103600676,
+            "max": 439.82259846613806
+          },
+          "mb_per_s": 64.11563082864814,
+          "allocs": 11304,
+          "alloc_bytes": 1550890,
+          "allocs_per_msg": 9.0,
+          "alloc_bytes_per_msg": 1234.7850318471337,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "parse_model (fast path, or new arena per message) + validation",
+          "ns_per_msg": {
+            "min": 26.039743923046927,
+            "q1": 26.222231249187573,
+            "median": 26.663541531262187,
+            "q3": 27.245791628753413,
+            "max": 36.14688678018978
+          },
+          "mb_per_s": 818.2288521317431,
+          "allocs": 0,
+          "alloc_bytes": 0,
+          "allocs_per_msg": 0.0,
+          "alloc_bytes_per_msg": 0.0,
+          "diagnostics": 0
+        }
+      ]
+    },
+    {
+      "corpus": "placeholder-free",
+      "stage": "model",
+      "mode": "reused",
+      "messages": 1256,
+      "bytes": 27402,
+      "runs": 31,
+      "passes_per_sample": 43,
+      "results": [
+        {
+          "parser": "ox",
+          "api": "shared SourceStore + parse_source + build_semantic_model + validate_semantics",
+          "ns_per_msg": {
+            "min": 376.1390164420086,
+            "q1": 391.90026477558877,
+            "median": 397.17888090653236,
+            "q3": 398.1475614723745,
+            "max": 539.6625314768182
+          },
+          "mb_per_s": 54.92960484478997,
+          "allocs": 10049,
+          "alloc_bytes": 1038442,
+          "allocs_per_msg": 8.000796178343949,
+          "alloc_bytes_per_msg": 826.7850318471337,
+          "diagnostics": 0
+        },
+        {
+          "parser": "mf2-syntax",
+          "api": "one Parser per pass + Parser::parse_model (+ validation)",
+          "ns_per_msg": {
+            "min": 23.243834246778256,
+            "q1": 24.410476225744333,
+            "median": 25.299159383794994,
+            "q3": 26.405828766108726,
+            "max": 35.47124500074063
+          },
+          "mb_per_s": 862.3558850285833,
+          "allocs": 0,
+          "alloc_bytes": 0,
+          "allocs_per_msg": 0.0,
+          "alloc_bytes_per_msg": 0.0,
+          "diagnostics": 0
+        }
+      ]
+    }
+  ],
+  "correctness": [
+    {
+      "parser": "ox",
+      "suite_total": 462,
+      "suite_exact": 460,
+      "mismatches": [
+        {
+          "file": "data-model-errors.json",
+          "index": 0,
+          "src": ".input {$foo :x} .match $foo * * {{foo}}",
+          "want": [
+            "variant-key-mismatch"
+          ],
+          "got": [
+            "missing-fallback-variant",
+            "variant-key-mismatch"
+          ]
+        },
+        {
+          "file": "data-model-errors.json",
+          "index": 1,
+          "src": ".input {$foo :x} .input {$bar :x} .match $foo $bar * {{foo}}",
+          "want": [
+            "variant-key-mismatch"
+          ],
+          "got": [
+            "missing-fallback-variant",
+            "variant-key-mismatch"
+          ]
+        }
+      ],
+      "workload_total": 1600,
+      "workload_with_errors": 0
+    },
+    {
+      "parser": "mf2-syntax",
+      "suite_total": 462,
+      "suite_exact": 462,
+      "mismatches": [],
+      "workload_total": 1600,
+      "workload_with_errors": 0
+    }
+  ],
+  "gate": {
+    "status": "pass",
+    "checks": [
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / fresh",
+        "criterion": "time",
+        "value": 158.11454545454546,
+        "limit": 860.8417272727273,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / fresh",
+        "criterion": "allocs",
+        "value": 598.0,
+        "limit": 6110.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / fresh",
+        "criterion": "bytes",
+        "value": 301104.0,
+        "limit": 1325319.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / reused",
+        "criterion": "time",
+        "value": 128.75813943001444,
+        "limit": 435.234540719697,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / reused",
+        "criterion": "allocs",
+        "value": 6.0,
+        "limit": 490.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / parse → CST / reused",
+        "criterion": "bytes",
+        "value": 9008.0,
+        "limit": 87567.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / fresh",
+        "criterion": "time",
+        "value": 305.06657710105986,
+        "limit": 1613.7343260188088,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / fresh",
+        "criterion": "allocs",
+        "value": 1323.0,
+        "limit": 12172.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / fresh",
+        "criterion": "bytes",
+        "value": 265845.0,
+        "limit": 1612230.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / reused",
+        "criterion": "time",
+        "value": 283.5477793811127,
+        "limit": 1765.0455387205386,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / reused",
+        "criterion": "allocs",
+        "value": 871.0,
+        "limit": 11711.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite / + model + validation / reused",
+        "criterion": "bytes",
+        "value": 97909.0,
+        "limit": 1423734.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / fresh",
+        "criterion": "time",
+        "value": 66.53243055555555,
+        "limit": 302.8536291666667,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / fresh",
+        "criterion": "allocs",
+        "value": 1600.0,
+        "limit": 13683.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / fresh",
+        "criterion": "bytes",
+        "value": 377984.0,
+        "limit": 2210034.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / reused",
+        "criterion": "time",
+        "value": 45.02850198412698,
+        "limit": 209.22583333333336,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / reused",
+        "criterion": "allocs",
+        "value": 4.0,
+        "limit": 1623.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / parse → CST / reused",
+        "criterion": "bytes",
+        "value": 8640.0,
+        "limit": 267026.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / fresh",
+        "criterion": "time",
+        "value": 86.1411,
+        "limit": 553.74409125,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / fresh",
+        "criterion": "allocs",
+        "value": 772.0,
+        "limit": 18700.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / fresh",
+        "criterion": "bytes",
+        "value": 296184.0,
+        "limit": 2425325.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / reused",
+        "criterion": "time",
+        "value": 82.31392045454545,
+        "limit": 640.9099772727272,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / reused",
+        "criterion": "allocs",
+        "value": 432.0,
+        "limit": 17101.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "workload / + model + validation / reused",
+        "criterion": "bytes",
+        "value": 132008.0,
+        "limit": 1772525.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / fresh",
+        "criterion": "time",
+        "value": 44.30868971792539,
+        "limit": 208.9343152866242,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / fresh",
+        "criterion": "allocs",
+        "value": 1256.0,
+        "limit": 10048.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / fresh",
+        "criterion": "bytes",
+        "value": 80384.0,
+        "limit": 1470506.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / reused",
+        "criterion": "time",
+        "value": 26.237298702079077,
+        "limit": 156.86743367684173,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / reused",
+        "criterion": "allocs",
+        "value": 1.0,
+        "limit": 1262.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / parse → CST / reused",
+        "criterion": "bytes",
+        "value": 64.0,
+        "limit": 198506.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / fresh",
+        "criterion": "time",
+        "value": 26.663541531262187,
+        "limit": 357.28764786169245,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / fresh",
+        "criterion": "allocs",
+        "value": 0.0,
+        "limit": 11304.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / fresh",
+        "criterion": "bytes",
+        "value": 0.0,
+        "limit": 1550890.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / reused",
+        "criterion": "time",
+        "value": 25.299159383794994,
+        "limit": 417.03782495185897,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / reused",
+        "criterion": "allocs",
+        "value": 0.0,
+        "limit": 10049.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "placeholder-free / + model + validation / reused",
+        "criterion": "bytes",
+        "value": 0.0,
+        "limit": 1038442.0,
+        "passed": true
+      },
+      {
+        "parser": "mf2-syntax",
+        "row": "suite",
+        "criterion": "correctness",
+        "value": 462.0,
+        "limit": 462.0,
+        "passed": true
+      }
+    ]
+  }
+}

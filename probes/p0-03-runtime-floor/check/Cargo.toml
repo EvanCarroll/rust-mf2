@@ -1,0 +1,17 @@
+[package]
+name = "p03-check"
+description = "P0.3 native check: every workload message × 4 locales through the runtime, against an independent reference formatter over the data model; spot checks; error paths; mutation run"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+p03-rt.workspace = true
+p07-enc.workspace = true
+plural-rules.workspace = true
+plural-eval.workspace = true
+
+[[bin]]
+name = "p03"
+path = "src/main.rs"

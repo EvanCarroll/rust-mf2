@@ -1,0 +1,24 @@
+upstream = https://github.com/unicode-org/cldr-json
+tag      = 48.2.1
+commit   = 26a79cb42bfcc90def764102aa2af126d9ef3108
+cldr     = 48
+license  = Unicode-3.0 (upstream LICENSE copied verbatim to ./LICENSE)
+note     = At this tag the repository ships only `-full` packages (cldr-numbers-full,
+           cldr-units-full, cldr-dates-full, ...) plus cldr-core; there are no `-modern` packages.
+locales  = en es de fr ar he ja hi ru pl cy
+layout   = each file keeps its upstream path relative to upstream's `cldr-json/` directory,
+           copied byte-for-byte from the pinned commit:
+           cldr-core/supplemental/plurals.json
+           cldr-core/supplemental/ordinals.json
+           cldr-core/supplemental/numberingSystems.json
+           cldr-core/supplemental/currencyData.json
+           cldr-numbers-full/main/<loc>/numbers.json
+           cldr-numbers-full/main/<loc>/currencies.json
+           cldr-units-full/main/<loc>/units.json
+           LICENSE  (upstream's /LICENSE)
+vendored = 38 files (3350776 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4):
+           cldr-core/supplemental/{plurals,ordinals,numberingSystems,currencyData}.json;
+           cldr-numbers-full/main/<loc>/{numbers,currencies}.json and
+           cldr-units-full/main/<loc>/units.json for the probe locale panel only;
+           LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are Phase 3/4 work.
+refresh  = cargo xtask cldr-sync

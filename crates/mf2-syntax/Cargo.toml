@@ -1,0 +1,18 @@
+[package]
+name = "mf2-syntax"
+description = "MessageFormat 2 syntax: a lossless-CST parser with recovery, lowering to the data model, validation, serializer and analysis (no_std)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2-model.workspace = true
+thiserror.workspace = true
+unicode-normalization.workspace = true
+
+[dev-dependencies]
+mf2-model = { workspace = true, features = ["suite-names"] }
+
+[lints]
+workspace = true

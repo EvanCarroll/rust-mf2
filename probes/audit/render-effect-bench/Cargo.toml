@@ -1,0 +1,13 @@
+[package]
+name = "bench"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+reactive_graph = { version = "=0.2.14", features = ["effects"] }
+any_spawner = { version = "=0.3.0", features = ["futures-executor"] }
+
+[profile.release]
+opt-level = 2
+
+[workspace]

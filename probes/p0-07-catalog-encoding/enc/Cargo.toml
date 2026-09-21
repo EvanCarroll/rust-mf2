@@ -1,0 +1,20 @@
+[package]
+name = "p07-enc"
+description = "P0.7 build side: throwaway MF2 parser (workload constructs), data model, manifest, .mf2b writer variants, model-rebuilding decoder, size measurement"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2b-format.workspace = true
+plural-rules.workspace = true
+brotli.workspace = true
+clap.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true
+unicode-normalization.workspace = true
+
+[[bin]]
+name = "p07"
+path = "src/bin/p07.rs"

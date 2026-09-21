@@ -1,0 +1,7 @@
+base                 wasm raw    13664 gz     6208 | js raw   7846 gz  2165
+core                 wasm raw    35337 gz    16441 | js raw   7861 gz  2168
+core-f64             wasm raw    39897 gz    19273 | js raw   7873 gz  2176
+loc                  wasm raw    38851 gz    18169 | js raw   7858 gz  2166
+loc-cu               wasm raw    45373 gz    21104 | js raw   7867 gz  2171
+icu-decimal-blob     wasm raw    71096 gz    32326 | js raw   7897 gz  2191
+intl-num             wasm raw    39318 gz    18038 | js raw  10465 gz  2782

@@ -1,0 +1,23 @@
+[package]
+name = "numcore"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "P0.5 probe: core numeric semantics of :number/:integer/:offset over fixed_decimal; neutral output; no_std, fmt-free, panic-free."
+
+[features]
+default = []
+# `Arg::Float(f64)` operands (shortest round-trip via fixed_decimal's `ryu`).
+f64 = ["fixed_decimal/ryu"]
+# Attribution builds only: keep the main functions out of line.
+noinline = []
+
+[dependencies]
+fixed_decimal = { version = "0.7.2", default-features = false }
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+panic = "deny"

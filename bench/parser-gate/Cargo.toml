@@ -1,0 +1,21 @@
+[package]
+name = "parser-gate"
+description = "The D1 parser gate: mf2-syntax against the ox_mf2_parser baseline on the committed corpora (plans/05-tooling.md §1)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+clap.workspace = true
+mf2-conformance.workspace = true
+mf2-model = { workspace = true, features = ["suite-names"] }
+mf2-syntax.workspace = true
+# Pinned exactly (the audited alpha); the only exact pin in the workspace.
+ox_mf2_parser.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+
+[lints]
+workspace = true

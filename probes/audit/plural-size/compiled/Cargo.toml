@@ -1,0 +1,9 @@
+[package]
+name = "compiled"
+version = "0.0.0"
+edition = "2024"
+[lib]
+crate-type = ["cdylib"]
+[dependencies]
+icu_plurals = { version = "2.3", default-features = false, features = ["compiled_data"] }
+icu_locale_core = { version = "2.3", default-features = false }

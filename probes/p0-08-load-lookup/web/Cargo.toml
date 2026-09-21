@@ -1,0 +1,17 @@
+[package]
+name = "p08-web"
+description = "P0.8 browser harness: the P0.3 runtime in wasm (wasm-bindgen), timed from JS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+utf8-per-access = ["p03-rt/utf8-per-access"]
+
+[dependencies]
+p03-rt.workspace = true
+wasm-bindgen.workspace = true

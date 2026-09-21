@@ -1,0 +1,38 @@
+# Built-in template `literal`: the size baseline of plans/06-size-and-perf.md §3.
+# Every call site becomes a string literal holding the source-locale text
+# (for a `.match`, its catch-all variant). Arguments are not passed, and there
+# is no i18n code at all: this is "the same app without i18n".
+#
+# Format: see bench/workload-gen/README.md. Modes that are not listed fall
+# back (signal → get → plain → none; rich → none), so `none` covers
+# everything here.
+
+name = "literal"
+description = "Every call site is a string literal of the source-locale text (size baseline, plans/06 §3)."
+support = "support.rs"
+
+[deferred]
+type = "&'static str"
+view = "{{label}}"
+string = "{{label}}.to_owned()"
+
+[site.string]
+none = 'String::from("{{text}}")'
+
+[site.child]
+none = '"{{text}}"'
+
+[site.attr]
+none = '"{{text}}"'
+
+[site.reactive_prop]
+none = '"{{text}}"'
+
+[site.string_prop]
+none = '"{{text}}"'
+
+[site.deferred]
+none = '"{{text}}"'
+
+[site.if_else]
+none = '"{{text}}"'
