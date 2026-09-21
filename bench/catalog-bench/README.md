@@ -38,7 +38,7 @@ bytes in any profile, but brotli 11 is slow in debug. A `size` run takes about
 
 | Option | Mode | Default | Meaning |
 |---|---|---|---|
-| `--gz gnu\|flate2\|zlib-rs` | size | `gnu` | the gzip implementation used for the B7 verdicts. `gnu` needs GNU `gzip` on `PATH` |
+| `--gz gnu\|flate2\|zlib-rs` | size | `gnu` | the gzip implementation of the reported gz figures (B7 itself is brotli). `gnu` falls back to flate2 when GNU `gzip` is not on `PATH` |
 | `--emit DIR` | size | — | also write `<tag>.mf2b` (stripped), `<tag>.full.mf2b` and `manifest.mf2m` into `DIR` |
 | `--runs N` | bench | 31 | samples per row (`--gate` needs ≥ 31) |
 | `--min-sample-ms MS` | bench | 10 | minimum timed work per sample |
@@ -53,7 +53,7 @@ Exit status:
 * 1 — `size`: a B7 threshold or a round trip failed. `bench --gate`: a gate
   rule failed. `cargo xtask catalog-size` passes this through as a failure.
 * 2 — an error: a stale corpus, a wrong manifest hash, a catalog that does not
-  load, a missing `gzip` with `--gz gnu`, or bad settings.
+  load, or bad settings.
 
 ## Inputs
 
@@ -100,19 +100,25 @@ parsed with `mf2_syntax::parse_model` and must have no diagnostic.
   section table, INDEX, MESSAGES, NAMES, LOCALE, FUNCS, and IDS when
   unstripped). Pool is STRINGS. Each part is compressed on its own, as P0.7
   did, so structure gz + pool gz is more than the whole file's gz.
-* **B7** (production catalogs):
-  * `en` ≤ 25 KB gz (25,600 B).
-  * Every locale: gz ≤ 0.5 × source + 1,024 B.
+* **B7** (production catalogs), on **brotli 11** — the `.br` file the build
+  writes and serves (owner decision, 2026-09-21; gzip is reported, not gated):
+  * `en` ≤ 0.91 × 25 KB = 23,296 B.
+  * Every locale: brotli ≤ 0.91 × (0.5 × source + 1,024 B).
   * Every locale: raw ≤ 1.25 × source + 8 B × messages (integer arithmetic,
     as P0.7).
+
+  0.91 is the former gzip limits' scale: the worst brotli/gzip ratio
+  measured on the four locales (en-XA, 0.909 in P0.7 and in Phase 2), rounded
+  up, so no locale is held tighter than under gzip.
 * **Against P0.7**: the P0.7 figures for the recommended layout are in
   `src/baseline.rs`. They come from P0.7's `out/tables.md`; the `en` row is
-  also in plans/phase-0-results.md §P0.7. A gz delta beyond 100 B or 1 % of
-  P0.7's figure is flagged "beyond noise". The report then shows where the
+  also in plans/phase-0-results.md §P0.7. A brotli delta (the B7 metric)
+  beyond 100 B or 1 % of P0.7's figure is flagged "beyond noise". The report then shows where the
   bytes went, section by section.
 * **NAMES estimate**: format v1 writes NAMES string references as fixed
   `str32` so that a name is one O(1) read. `src/names.rs` re-encodes the
-  stripped catalog's NAMES with varint references. It also re-points every
+  stripped catalog's NAMES with fixed 2-byte references (`str16`, still O(1))
+  and with varint references (P0.7's). It also re-points every
   MESSAGES head at the new entry offsets and moves the INDEX offsets to
   match. Everything else is copied byte for byte, and the result is
   compressed like the real catalog. A unit test checks that `str32 → str32`

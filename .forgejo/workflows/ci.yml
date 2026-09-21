@@ -23,8 +23,8 @@
 # Job `catalog-size`: budget B7 on the committed reference corpus and the
 # four generated locales (plans/09-phase-2-work-order.md, A8;
 # bench/catalog-bench). Deterministic, ≈ 30 s of release build and 4 s of
-# work; it needs GNU gzip, which B7 is measured with (the owner may switch
-# the verdict to a Rust gzip with `--gz flate2`).
+# work. B7 is stated on brotli 11 (plans/06 §3); the gzip figures are
+# reported, not gated, with GNU gzip when the runner has it (else flate2).
 #
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
@@ -181,7 +181,7 @@ jobs:
           rustup toolchain install
           rustup show active-toolchain
 
-      - name: B7 on the committed corpus (GNU gzip -9 -n; exit 1 on a failed threshold)
+      - name: B7 on the committed corpus (brotli 11; exit 1 on a failed threshold)
         run: |
           cargo xtask catalog-size --md target/catalog-bench/SIZE.md \
             --json target/catalog-bench/size.json

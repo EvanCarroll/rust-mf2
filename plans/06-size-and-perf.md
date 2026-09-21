@@ -100,7 +100,7 @@ then, for comparability).
 | B1′ | Any feature on but **unused** by the corpus | +0 B over B1 | — |
 | B5 | Per call site, marginal, weighted by §2's mix (the reference workload) | ≤ 40 B gz (P0.1: 24.5; 35.7 against the `dummy` bound) | 25 B gz |
 | B6 | Locale bytes in the wasm (text, names, rules, symbols) | **0** | — |
-| B7 | Catalog on the wire (production: COLD and IDS stripped) | reference workload `en`: ≤ 25 KB gz; **every locale**: gz ≤ 0.5 × MF2 source bytes + 1 KB, and raw ≤ 1.25 × source bytes + 8 B/message | — |
+| B7 | Catalog on the wire (production: COLD and IDS stripped), **brotli 11** — the `.br` file the build writes and serves | reference workload `en`: ≤ 0.91 × 25 KB = **23,296 B br**; **every locale**: br ≤ 0.91 × (0.5 × MF2 source bytes + 1 KB), and raw ≤ 1.25 × source bytes + 8 B/message | — |
 | B8 | Locale data inside the catalog: plural + number symbols | ≤ 0.5 KB gz per locale | — |
 | B9 | Catalog load (validate + index) for 1,600 messages, 4× CPU throttle, warm code. (The cold first install — ≈ 1 ms of one-off engine warm-up in isolation — is counted in the app's boot, measured from P6 on.) | ≤ 1 ms | 0.2 ms |
 | B10 | Format: simple message / 1-argument pattern (native) | ≤ 100 ns, 0 allocs / ≤ 500 ns, ≤ 1 alloc | — |
@@ -131,6 +131,19 @@ its figure is marginal, both for the reasons given under the method above.
 Phase 0 measured the parts separately — runtime floor 7.0 KB gz, core numeric
 semantics 10.2, call-site library 7.5, 24.5 B gz per site — not the whole; the
 size gate measures the whole from P5 on.
+
+**Budget moved by Phase 2** (owner, 2026-09-21; evidence in
+[phase-2-results](phase-2-results.md) §A8): **B7 is stated on brotli**, the
+encoding nearly every visitor downloads — the build writes a `.br` file beside
+each catalog and `mf2-axum` serves it to any client that accepts brotli
+([02](02-catalog-format.md) §3); the `.gz` file only reaches clients that do
+not. The limits are the gzip ones scaled by **0.91**, the *worst* brotli/gzip
+ratio measured on the four locales (en-XA: 0.909, the same in P0.7 and in
+Phase 2), rounded up — so no locale is held tighter than it was under gzip, and
+every locale, and P0.7's own figures, pass. gzip is still reported (the
+fallback path), not gated; which gzip implementation produces the `.gz` file is
+`mf2-build`'s choice (P5a). The wasm budgets stay on gzip -9: the app's server
+or CDN chooses their encoding, so gzip -9 remains the reproducible stand-in.
 
 ### How B6, B12, B13 are checked (not just hoped for)
 
@@ -200,6 +213,20 @@ heap; a switch with 2,000 live nodes takes 6.8 ms of script at 4× CPU throttle
 Comparable prior art: `leptos_i18n`'s lazy mode removes the strings but, by its
 own documentation, "the code to render each key is still baked in" — the
 per-key code is exactly the cost technique 2 below exists to avoid.
+
+### Phase 2 measurements (2026-09-21)
+
+Details and commands: [phase-2-results](phase-2-results.md).
+
+| Item | Figure | Harness |
+|---|---|---|
+| B7, catalogs stripped, brotli 11: en / pl / en-XA / ar-XB | **18,072** / 24,137 / 21,537 / 18,423 B br (limits 23,296 for `en`; 0.91 × (0.5 × source + 1 KB): 20,610 / 27,557 / 44,192 / 25,725) | `cargo xtask catalog-size` |
+| The same, GNU gzip -9 -n (reported, not gated) | 20,592 / 26,706 / 23,686 / 20,597 B gz | same |
+| Against P0.7's layout, brotli / gzip | +143 / +69 / +60 / −68 B br; +56 … +79 B gz; the pool identical, the delta is NAMES' `str32` | same |
+| Reader: `Catalog::new` native, en stripped / unstripped | **2.29 µs** / 6.26 µs, 0 allocations, 0 copies (P0.8: 5.7 µs) | `catalog-bench bench` |
+| Simple `get` + `text`, native: en / pl / en-XA / ar-XB | **19.3** / 65.6 / 77.8 / 28.6 ns (P0.8 en: 20.7) — UTF-8 per access is 80–85 % on non-Latin text | same |
+| B12, reader: panic import after LTO + `wasm-opt -Oz`; `core::fmt` | **absent**; none | `bench/b12/check.sh` |
+| Reader + a walk over its whole API (part of B1), Δ against the base | 13,613 B raw / **6,787 B gz** (`Catalog::new` 3.4 KB raw) | same |
 
 ## 4. Techniques, ordered by expected effect
 

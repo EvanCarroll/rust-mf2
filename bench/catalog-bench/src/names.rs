@@ -22,6 +22,11 @@ pub enum Encoding {
     /// P0.7's prototype: varint string references (a name is found by skipping the
     /// varints before it).
     Varint,
+    /// Fixed 2-byte little-endian string references (still O(1)): possible
+    /// whenever every name lies in the pool's first 64 KB, which the
+    /// identifiers-first pool makes the usual case. A real format would add a
+    /// width flag (1 B, not counted here).
+    Str16,
 }
 
 impl Encoding {
@@ -41,21 +46,32 @@ impl Encoding {
                     r
                 }
                 Encoding::Varint => read_varint(b, pos)?,
+                Encoding::Str16 => {
+                    let r = u16_at(b, *pos)?;
+                    *pos += 2;
+                    u32::from(r)
+                }
             });
         }
         Ok((n_ext, n_local, refs))
     }
 
     /// Writes one entry.
-    fn write(self, n_ext: u32, n_local: u32, refs: &[u32], out: &mut Vec<u8>) {
+    fn write(self, n_ext: u32, n_local: u32, refs: &[u32], out: &mut Vec<u8>) -> Result<()> {
         varint(n_ext, out);
         varint(n_local, out);
         for &r in refs {
             match self {
                 Encoding::Str32 => out.extend_from_slice(&r.to_le_bytes()),
                 Encoding::Varint => varint(r, out),
+                Encoding::Str16 => out.extend_from_slice(
+                    &u16::try_from(r)
+                        .map_err(|_| Error::Names("a name lies past the pool's first 64 KB"))?
+                        .to_le_bytes(),
+                ),
             }
         }
+        Ok(())
     }
 }
 
@@ -157,7 +173,7 @@ pub fn reencode(catalog: &[u8], from: Encoding, to: Encoding) -> Result<Reencode
         let start = pos;
         let (n_ext, n_local, refs) = from.read(old_names, &mut pos)?;
         map.insert(start, new_names.len());
-        to.write(n_ext, n_local, &refs, &mut new_names);
+        to.write(n_ext, n_local, &refs, &mut new_names)?;
         entries += 1;
         names += refs.len();
     }
@@ -302,6 +318,19 @@ mod tests {
             (v.names_before - v.names_after) + (v.messages_before - v.messages_after)
         );
         let back = reencode(&v.bytes, Encoding::Varint, Encoding::Str32).unwrap();
+        assert_eq!(back.bytes, bytes);
+    }
+
+    #[test]
+    fn str16_round_trips_and_halves_the_references() {
+        let (bytes, _) = sample();
+        let h = reencode(&bytes, Encoding::Str32, Encoding::Str16).unwrap();
+        assert!(h.names_after < h.names_before);
+        assert_eq!(
+            bytes.len() - h.bytes.len(),
+            (h.names_before - h.names_after) + (h.messages_before - h.messages_after)
+        );
+        let back = reencode(&h.bytes, Encoding::Str16, Encoding::Str32).unwrap();
         assert_eq!(back.bytes, bytes);
     }
 }

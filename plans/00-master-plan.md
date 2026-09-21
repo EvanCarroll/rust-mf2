@@ -18,7 +18,9 @@ companion documents elaborate it and MUST NOT contradict it.
 | [phase-0-results](phase-0-results.md) | Phase 0 measurements, go/no-go recommendation |
 | [08-phase-1-work-order](08-phase-1-work-order.md) | Phase 1 work order (done); frozen `mf2-model` types |
 | [phase-1-results](phase-1-results.md) | Phase 1 measurements: L1/L2, the D1 gate, generated input, fuzzing |
-| [09-phase-2-work-order](09-phase-2-work-order.md) | task-level work order for the next phase: the binary catalog |
+| [09-phase-2-work-order](09-phase-2-work-order.md) | Phase 2 work order (done); the frozen `mf2-catalog` API |
+| [phase-2-results](phase-2-results.md) | Phase 2 measurements: format v1, L3, B7, reader cost and B12, fuzzing |
+| [10-phase-3-work-order](10-phase-3-work-order.md) | task-level work order for the next phase: the runtime core |
 
 ---
 
@@ -68,7 +70,7 @@ catalogs; a CI size gate; a go/no-go probe before real work.
 | 9 | **Spec obligations missing**: ordinal rules, plural operands from the *formatted* number, NFC in `:string` selection, Default Bidi Strategy, option inheritance, fallback names. | Listed and owned ([01](01-conformance.md) §6, [03](03-runtime.md) §7). |
 | 10 | **"One implementation" made non-negotiable without measurement**; dates deferred indefinitely; time zone (an SSR problem under any backend) unmentioned. | Function *semantics* are implemented once in Rust; number/date *internationalization* is an opt-in client feature with stated costs; hydration was shown not to compare text ([03](03-runtime.md) §5–6). |
 | 11 | **Deploy skew** between the wasm's id table and cached catalogs. | `manifest_hash` in both; mismatch ⇒ reject and reload ([02](02-catalog-format.md) F6). |
-| 12 | **Catalog budget 60 KB gz/locale** — measured message text is only ≈ 43 KB raw; the rest of a source file is comments and ids. | ≤ 25 KB gz ([06](06-size-and-perf.md) B7). |
+| 12 | **Catalog budget 60 KB gz/locale** — measured message text is only ≈ 43 KB raw; the rest of a source file is comments and ids. | ≤ 25 KB gz, restated in Phase 2 on brotli, the encoding actually served: ≤ 23,296 B br ([06](06-size-and-perf.md) B7). |
 | 13 | **Reactive-graph hazard unnoticed**: one effect per node on a rarely-firing locale signal leaks dead subscribers under node churn. | Library-owned node registry ([04](04-leptos-integration.md) §4); P0.11 measured the leak (+72 B per churned node) and settled D7. |
 | 14 | **Accessibility/SEO absent**: fallback-language text inside a page marked with another `lang` (WCAG 3.1.2), `hreflang`, `Content-Language`/`Vary`. | [04](04-leptos-integration.md) §9; catalog flags fallback messages. |
 | 15 | **No fmt-free / panic-free discipline**, the usual hidden 10–20 KB. | Budget B12 with a symbol check in CI. |
@@ -194,8 +196,9 @@ unused handlers are still eliminated.
 ## 6. Budgets (summary — full table in [06](06-size-and-perf.md))
 
 Fixed client cost ≤ 30 KB gz · ≤ 40 B gz per call site · **0** locale bytes in
-the wasm · catalog ≤ 25 KB gz for the 1,600-message reference locale, and
-≤ 0.5 × source bytes + 1 KB for any locale · 0 extra round trips before
+the wasm · catalog ≤ 23,296 B brotli (the served encoding) for the
+1,600-message reference locale, and ≤ 0.91 × (0.5 × source bytes + 1 KB) for
+any locale · 0 extra round trips before
 hydration · no `core::fmt` reachable from the client runtime · unused functions
 absent. Reference-workload ambition: ≈ 105 KB gz total against
 a measured 525 KB gz for the stack it replaces, and +0 per added locale.
@@ -274,7 +277,7 @@ everything before it).
   zero allocations for placeholder-free messages). If it does not hold, switch
   the `Frontend` to `ox_mf2_parser` and carry on — the lowering is kept.
 
-### P2 — Binary catalog · layer **L3**
+### P2 — Binary catalog · layer **L3** — *done* ([phase-2-results](phase-2-results.md))
 * `mf2-catalog` writer (incl. `writer::single`, the one-message compile used by
   every later layer), reader, model-rebuilding decoder, manifest reader/writer;
   format spec frozen at exit (version 1). The LOCALE section is frozen as a
@@ -372,7 +375,9 @@ push of catalog updates in production; catalog text as JS strings — a lazy
 `JsString` cache, then possibly a v2 catalog container using the JS String
 Builtins' imported string constants
 ([stretch_goals_after_v1/prob_builtin_strings](stretch_goals_after_v1/prob_builtin_strings.md);
-v1 keeps the four seams listed there).
+v1 keeps the four seams listed there); narrower string references in the
+catalog's NAMES section, up to 1.1 % of a catalog's brotli size
+([stretch_goals_after_v1/names_reference_width](stretch_goals_after_v1/names_reference_width.md)).
 
 ## 10. Risks
 
@@ -399,7 +404,8 @@ v1 keeps the four seams listed there).
   (`plans/NN-phase-N-work-order.md`) written at the close of the previous phase,
   because each phase's findings change the next one's tasks. Written so far:
   [07-phase-0-work-order](07-phase-0-work-order.md) (done),
-  [08-phase-1-work-order](08-phase-1-work-order.md) (done) and
-  [09-phase-2-work-order](09-phase-2-work-order.md) (next).
+  [08-phase-1-work-order](08-phase-1-work-order.md) (done),
+  [09-phase-2-work-order](09-phase-2-work-order.md) (done) and
+  [10-phase-3-work-order](10-phase-3-work-order.md) (next).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.

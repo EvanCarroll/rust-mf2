@@ -2,6 +2,9 @@
 
 Part of the [master plan](00-master-plan.md) (§9, P2). RFC 2119 keywords apply.
 Written at the close of Phase 1 from [phase-1-results](phase-1-results.md).
+**Done**: every task and exit item is met — see [§ Status at exit](#status-at-exit)
+and [phase-2-results](phase-2-results.md); the next phase is
+[10-phase-3-work-order](10-phase-3-work-order.md).
 The format itself is specified in [02-catalog-format](02-catalog-format.md);
 this document orders the work, fixes the API the later phases build on, and
 sets the exit criteria.
@@ -180,18 +183,89 @@ soon as A2, A4, A5 exist; A7–A10 alongside.
 
 ## Exit (master plan §9, P2)
 
-- [ ] L3 100 % (301/301); `current_phase = "P2"` bumped in the exit commit and
+- [x] L3 100 % (301/301); `current_phase = "P2"` bumped in the exit commit and
       the harness green
-- [ ] the L3 property holds on generated input (1,000,000 messages)
-- [ ] deterministic output: identical bytes across runs and processes (F8)
-- [ ] B7 met on the committed reference corpus (and the scaled rule for the
-      generated locales)
-- [ ] decoder fuzz run clean (≥ 1 h, command in the results); the linear-time
+- [x] the L3 property holds on generated input (1,000,000 messages) — *40.0 s,
+      invalid models included*
+- [x] deterministic output: identical bytes across runs and processes (F8)
+- [x] B7 met on the committed reference corpus (and the scaled rule for the
+      generated locales) — *restated on brotli by the owner: `en` 18,072 B br
+      of 23,296 (20,592 B gz)*
+- [x] decoder fuzz run clean (≥ 1 h, command in the results); the linear-time
       test green
-- [ ] reader: `no_std`, `forbid(unsafe_code)`, B12 clean; load allocates
+- [x] reader: `no_std`, `forbid(unsafe_code)`, B12 clean; load allocates
       nothing
-- [ ] format version 1 frozen: 02 §2 is the complete byte grammar, with test
+- [x] format version 1 frozen: 02 §2 is the complete byte grammar, with test
       vectors; the API above unchanged (or this document changed in the same
-      commit, with the reason)
-- [ ] `stripped ≡ unstripped formatting` recorded as open until L4 exists (P3)
-- [ ] the Phase 3 work order written from Phase 2's findings
+      commit, with the reason) — *unchanged; additions below*
+- [x] `stripped ≡ unstripped formatting` recorded as open until L4 exists (P3)
+- [x] the Phase 3 work order written from Phase 2's findings
+      ([10](10-phase-3-work-order.md))
+
+## Status at exit
+
+Measurements and commands: [phase-2-results](phase-2-results.md).
+
+**The API as built.** Every frozen name and signature above holds. Additions
+(methods, types and variants, which this document allows):
+
+* `CatalogError` (`#[non_exhaustive]`) gained `Header` (message count,
+  direction, locale tag), `Ids` and `Strings` (the pool must end in NUL); it
+  derives `Debug` and `thiserror::Error`, whose `Display` B12 proves
+  unreachable from the reader.
+* `Catalog`: `chunk`, `cldr_version -> Option<CldrVersion>`, `cold_stripped`,
+  `ids_stripped`, `function_count`, `sections` (the table, for tools),
+  `as_bytes`, `into_bytes`; `impl Debug`. `CldrVersion { major, minor,
+  patch }`. `Entry` is `Clone + Copy`.
+* **The views, frozen with the format** (`crates/mf2-catalog/src/view.rs`):
+  `MsgView` (`is_select`, `catalog`, `names`, `declarations`, `body`);
+  `Declarations` (iterator of `DeclView::{Input(ExprView), Local { index,
+  expr }}`, then `body()`); `Body::{Pattern(PatternView), Select(SelectView)}`;
+  `PatternView::parts()` → `PartView::{Text(StrRef), Expression(ExprView),
+  Markup(MarkupView)}`; `ExprView::{operand() -> Option<Operand>, function()
+  -> Option<FunctionView>}`; `FunctionView::{index, options}`; `OptionsView`
+  (iterator of `(StrRef, Operand)`); `MarkupView::{kind, name, options}`;
+  `SelectView::{selectors() -> Selectors, variants() -> Variants}`;
+  `VariantView::{keys() -> Keys, pattern()}`; `KeyView::{CatchAll,
+  Literal(StrRef)}`; `Operand::{Literal(StrRef), Variable(VarRef)}`;
+  `VarRef::{External(slot), Local(index)}`; `Names` (`external`, `local`,
+  `var`, counts; O(1)). Iterators yield `Result<_, Malformed>`: one `Err`,
+  then the end.
+* `Manifest`: `canonical`, `validate`, `msg_id`; derives `Clone, Default,
+  PartialEq, Eq, Hash, Debug`.
+* `writer::Options` fields, completing the `/* locale entries, fallbacks */`
+  placeholder: `chunk: u8`, `cldr_version: Option<CldrVersion>`,
+  `locale_entries: Vec<(u32, Vec<u8>)>`, `fallback: Vec<(u32, String)>`;
+  `Options::new(locale, dir)`, `Options::stripped()`.
+* `decode_report -> Decoded { message, cold_dropped }` beside `decode`: how the
+  decoder "reports what was dropped" with COLD stripped.
+* `pub mod format`: the byte constants of version 1 (section kinds and their
+  names, header offsets, flags, tags), for tools.
+
+**Departures from the tasks as written:**
+
+* **A1** — COLD became a per-message record of overrides keyed by site
+  (02 §2.5) rather than a reference per node; MESSAGES stores names and keys in
+  NFC, with the written spelling in COLD; NAMES, FUNCS and FALLBACK use 4-byte
+  string references so every name, function and fallback lookup is O(1) or
+  O(log n) (IDS gained a restart table). The header is 32 B, not 30.
+* **A7** — two findings changed the format text: IDS front coding need not be
+  maximal (a reader assumed it; fixed), and records carry no length, so a
+  hostile catalog can make walking every message quadratic. The format keeps
+  it and states the bound (02 §2 "Cost bounds"): a per-record length could not
+  bound strings, which F4 checks per access.
+* **A8** — measuring against P0.7 moved the COLD bit into the declaration
+  count and ordered NAMES most-referenced first (MESSAGES +116 → −2 B); the
+  rest of the delta (+56–79 B gz) is `str32` NAMES, kept for O(1) names.
+  **Owner decision (2026-09-21): B7 is restated on brotli 11**, the encoding
+  the build writes and serves, with the limits scaled by the worst measured
+  brotli/gzip ratio (0.91), so the compressor question for gzip no longer
+  gates anything; gzip is reported (06 §3).
+* **A9** — the B12 check is `bench/b12/check.sh` (a CI job), not an xtask
+  subcommand; the native bench's timing rules run nightly (load-sensitive),
+  its 0-allocation / 0-copy rule in `cargo test`.
+* **C5** — `probes/` deleted, `probes/audit/` included (07 C5); `CLAUDE.md`'s
+  boundary list updated.
+
+**Findings for later phases** are in [10](10-phase-3-work-order.md)
+§"What Phase 2 changes here".

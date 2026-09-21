@@ -639,3 +639,18 @@ freezes them.
 * **INDEX**: fixed 4-byte entries stored as byte planes (0.5–1.4 KB gz smaller
   than row-major, smaller than varint-delta, and still O(1)).
 * **FUNCS** section added; LOCALE container framing fixed (§2, §4.1).
+
+Settled by Phase 2 ([phase-2-results](phase-2-results.md)), with version 1:
+
+* **COLD** is a per-message record of overrides keyed by site (§2.5):
+  MESSAGES stays the formatting-relevant model, and a stripped catalog still
+  says which messages lost data.
+* **O(1) names**: NAMES, FUNCS and FALLBACK hold `str32` references; IDS has
+  restart points. Narrower NAMES references (2-byte, or P0.7's varints) would
+  save 17–204 B brotli per locale; deferred until after v1 by the owner
+  ([stretch_goals_after_v1/names_reference_width](stretch_goals_after_v1/names_reference_width.md)).
+* **Head**: the COLD bit rides on the declaration count and NAMES entries are
+  ordered most-referenced first — MESSAGES is 2 B smaller than P0.7's.
+* **B7**, restated on brotli (the served encoding): `en` 18,072 B br
+  stripped (20,592 B gz), every locale within the scaled rule; `Catalog::new` 2.3 µs native with 0 allocations and 0
+  copies; the reader passes B12.

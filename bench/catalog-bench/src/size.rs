@@ -18,10 +18,22 @@ use crate::error::{Error, Result};
 use crate::names::{self, Encoding};
 use crate::report::{Build, delta, fixed, n, signed, unix_time};
 
-/// B7's absolute bound for the reference `en` (25 KB).
-pub const EN_GZ_MAX: usize = 25 * 1024;
+/// B7 is stated on brotli (quality 11, window 22: the `.br` file the build
+/// writes and `mf2-axum` serves; owner, 2026-09-21). Its limits are the
+/// former gzip limits scaled by `BR_SCALE` = 91/100: the worst brotli/gzip
+/// ratio measured on the four locales (en-XA, 0.909 in P0.7 and in Phase 2),
+/// rounded up, so no locale is held tighter than it was under gzip.
+pub const BR_SCALE: (usize, usize) = (91, 100);
 
-/// A delta against P0.7 beyond this many gz bytes is flagged…
+/// B7's absolute bound for the reference `en`: 0.91 × 25 KB = 23,296 B.
+pub const EN_BR_MAX: usize = 25 * 1024 * BR_SCALE.0 / BR_SCALE.1;
+
+/// B7's bound for any locale: 0.91 × (0.5 × source + 1 KB).
+pub const fn br_limit(source_bytes: usize) -> usize {
+    BR_SCALE.0 * (source_bytes + 2048) / (2 * BR_SCALE.1)
+}
+
+/// A delta against P0.7 beyond this many brotli bytes is flagged…
 pub const FLAG_BYTES: i64 = 100;
 /// …and so is one beyond this fraction of P0.7's figure.
 pub const FLAG_FRACTION: f64 = 0.01;
@@ -78,6 +90,12 @@ pub struct NamesEstimate {
     pub messages_varint: usize,
     /// The whole re-encoded catalog.
     pub whole_varint: Compressed,
+    /// NAMES bytes with fixed 2-byte string references.
+    pub names_str16: usize,
+    /// MESSAGES bytes with the heads re-pointed at the 2-byte NAMES.
+    pub messages_str16: usize,
+    /// The whole catalog with 2-byte NAMES references.
+    pub whole_str16: Compressed,
 }
 
 /// Everything measured for one locale.
@@ -139,7 +157,7 @@ pub struct P07Delta {
     pub pool_gz: i64,
     /// Δ unstripped gz.
     pub unstripped_gz: i64,
-    /// Δ gz beyond 100 B or 1 % of P0.7's figure.
+    /// Δ brotli (the B7 metric) beyond 100 B or 1 % of P0.7's figure.
     pub beyond_noise: bool,
 }
 
@@ -154,8 +172,9 @@ pub struct SizeReport {
     pub unix_time: u64,
     /// GNU gzip's `--version` line, if installed.
     pub gnu_gzip: Option<String>,
-    /// The gzip implementation the B7 verdicts use.
-    pub b7_gz: Gz,
+    /// The gzip implementation of the gz figures (reported, not gated: B7 is
+    /// stated on brotli).
+    pub gz: Gz,
     /// The manifest's hash (asserted to be P0.7's reference).
     pub manifest_hash: String,
     /// The committed source-locale corpus.
@@ -201,6 +220,7 @@ fn measure(bytes: &[u8], lossless: usize, c: &Compressors) -> Result<VariantSize
 
 fn locale_sizes(b: &Built, c: &Compressors) -> Result<LocaleSizes> {
     let v = names::reencode(&b.stripped, Encoding::Str32, Encoding::Varint)?;
+    let h = names::reencode(&b.stripped, Encoding::Str32, Encoding::Str16)?;
     Ok(LocaleSizes {
         tag: b.tag.clone(),
         dir: match b.dir {
@@ -222,15 +242,17 @@ fn locale_sizes(b: &Built, c: &Compressors) -> Result<LocaleSizes> {
             messages_str32: v.messages_before,
             messages_varint: v.messages_after,
             whole_varint: c.all(&v.bytes)?,
+            names_str16: h.names_after,
+            messages_str16: h.messages_after,
+            whole_str16: c.all(&h.bytes)?,
         },
     })
 }
 
-/// B7 (stripped, `gz`) and the round trips, for one locale.
-fn checks(l: &LocaleSizes, gz: Gz) -> Vec<Check> {
+/// B7 (stripped: raw and brotli) and the round trips, for one locale.
+fn checks(l: &LocaleSizes) -> Vec<Check> {
     let src = l.source_bytes;
     let s = &l.stripped;
-    let gz_value = s.whole.gz(gz).unwrap_or(usize::MAX);
     let check = |rule: String, value: usize, limit: usize| Check {
         locale: l.tag.clone(),
         passed: value <= limit,
@@ -246,16 +268,16 @@ fn checks(l: &LocaleSizes, gz: Gz) -> Vec<Check> {
             (5 * src + 32 * l.messages) / 4,
         ),
         check(
-            format!("B7 gz ({}) ≤ 0.5 × source + 1 KB", gz.label()),
-            gz_value,
-            usize::midpoint(src, 2048),
+            "B7 brotli ≤ 0.91 × (0.5 × source + 1 KB)".to_owned(),
+            s.whole.br,
+            br_limit(src),
         ),
     ];
     if l.tag == "en" {
         out.push(check(
-            format!("B7 reference en: gz ({}) ≤ 25 KB", gz.label()),
-            gz_value,
-            EN_GZ_MAX,
+            "B7 reference en: brotli ≤ 0.91 × 25 KB".to_owned(),
+            s.whole.br,
+            EN_BR_MAX,
         ));
     }
     for (name, v) in [("stripped", s), ("unstripped", &l.unstripped)] {
@@ -273,16 +295,17 @@ fn checks(l: &LocaleSizes, gz: Gz) -> Vec<Check> {
 fn p07_delta(l: &LocaleSizes, p: &P07, gz: Gz) -> P07Delta {
     let g = |c: &Compressed| c.gz(gz).unwrap_or(0);
     let d_gz = delta(g(&l.stripped.whole), p.stripped[1]);
+    let d_br = delta(l.stripped.whole.br, p.stripped[2]);
     // `as f64` of byte counts far below 2^52 is exact.
     #[allow(clippy::cast_precision_loss)]
     let beyond =
-        d_gz.abs() > FLAG_BYTES || d_gz.abs() as f64 > FLAG_FRACTION * p.stripped[1] as f64;
+        d_br.abs() > FLAG_BYTES || d_br.abs() as f64 > FLAG_FRACTION * p.stripped[2] as f64;
     P07Delta {
         locale: l.tag.clone(),
         gz,
         raw: delta(l.stripped.whole.raw, p.stripped[0]),
         gz_bytes: d_gz,
-        br: delta(l.stripped.whole.br, p.stripped[2]),
+        br: d_br,
         structure_gz: delta(g(&l.stripped.structure), p.structure[1]),
         pool_gz: delta(g(&l.stripped.pool), p.pool[1]),
         unstripped_gz: delta(g(&l.unstripped.whole), p.unstripped[1]),
@@ -290,21 +313,23 @@ fn p07_delta(l: &LocaleSizes, p: &P07, gz: Gz) -> P07Delta {
     }
 }
 
-/// Runs the size measurement. `b7_gz` picks the gzip implementation of the
-/// verdicts; GNU gzip must then be installed. With `emit`, the catalogs are
-/// also written there: `<tag>.mf2b` (stripped) and `<tag>.full.mf2b`.
+/// Runs the size measurement. `gz` picks the gzip implementation of the
+/// reported gz figures (B7 itself is brotli); without GNU gzip installed,
+/// `Gz::Gnu` falls back to flate2. With `emit`, the catalogs are also written
+/// there: `<tag>.mf2b` (stripped) and `<tag>.full.mf2b`.
 pub fn run(
     repo: &Path,
-    b7_gz: Gz,
+    gz: Gz,
     emit: Option<&Path>,
     mut progress: impl FnMut(&str),
 ) -> Result<SizeReport> {
     let c = Compressors::detect();
-    if b7_gz == Gz::Gnu && c.gnu_version.is_none() {
-        return Err(Error::Settings(
-            "GNU gzip is not installed; install it or pass --gz flate2 / --gz zlib-rs".to_owned(),
-        ));
-    }
+    let gz = if gz == Gz::Gnu && c.gnu_version.is_none() {
+        progress("GNU gzip is not installed: the gz figures use flate2 (B7 is brotli)");
+        Gz::Flate2
+    } else {
+        gz
+    };
     progress("generating the workload locales");
     let sources = corpus::generate(repo)?;
     progress("parsing, writing, loading and decoding the catalogs");
@@ -327,12 +352,8 @@ pub fn run(
         locales.push(locale_sizes(b, &c)?);
     }
     // P0.7's gz figures are GNU gzip's; compare like with like when possible.
-    let p07_gz = if c.gnu_version.is_some() {
-        Gz::Gnu
-    } else {
-        b7_gz
-    };
-    let checks: Vec<Check> = locales.iter().flat_map(|l| checks(l, b7_gz)).collect();
+    let p07_gz = if c.gnu_version.is_some() { Gz::Gnu } else { gz };
+    let checks: Vec<Check> = locales.iter().flat_map(checks).collect();
     let p07 = locales
         .iter()
         .filter_map(|l| baseline::p07(&l.tag).map(|p| p07_delta(l, p, p07_gz)))
@@ -342,7 +363,7 @@ pub fn run(
         build: Build::current(),
         unix_time: unix_time(),
         gnu_gzip: c.gnu_version,
-        b7_gz,
+        gz,
         manifest_hash: format!("{:016x}", manifest.hash()),
         corpus: corpus::COMMITTED_CORPUS,
         passed: checks.iter().all(|c| c.passed),
@@ -371,13 +392,13 @@ impl SizeReport {
 
     /// The gzip implementation the comparison with P0.7 uses.
     fn p07_gz(&self) -> Gz {
-        self.p07.first().map_or(self.b7_gz, |d| d.gz)
+        self.p07.first().map_or(self.gz, |d| d.gz)
     }
 
     /// The Markdown form.
     pub fn to_markdown(&self) -> String {
         let mut o = String::new();
-        let gz = self.b7_gz;
+        let gz = self.gz;
         let _ = writeln!(o, "# Catalog size report — B7 (A8)\n");
         let _ = writeln!(
             o,
@@ -387,8 +408,10 @@ impl SizeReport {
              functions of every locale), `manifest_hash` **`{}`** (P0.7's reference); one \
              `plural.cardinal` LOCALE entry per catalog (P0.4's bytes, CLDR 48.2.1). \
              Compressors: {}; {} (the gzip figures include the 18 B gzip framing); brotli \
-             quality 11, window 22. B7 verdicts use **{}**. KB = 1,024 B. Sizes are \
-             deterministic: the same inputs and compressor versions give the same bytes.\n",
+             quality 11, window 22. **B7 is stated on brotli** (quality 11, window 22 — the \
+             `.br` file the build writes and serves); the gz figures ({}) are reported, not \
+             gated. KB = 1,024 B. Sizes are deterministic: the same inputs and compressor \
+             versions give the same bytes.\n",
             self.tool,
             self.build.line(),
             self.corpus,
@@ -405,20 +428,21 @@ impl SizeReport {
         let _ = writeln!(o, "## B7 — production catalogs (COLD and IDS stripped)\n");
         let _ = writeln!(
             o,
-            "| locale | messages | MF2 source B | raw | raw limit (1.25 × src + 8 × msgs) | gz | gz limit (0.5 × src + 1,024) | gz / src | brotli | verdict |"
+            "| locale | messages | MF2 source B | raw | raw limit (1.25 × src + 8 × msgs) | brotli | brotli limit (0.91 × (0.5 × src + 1,024)) | br / src | gz ({}) | verdict |",
+            gz.label()
         );
         let _ = writeln!(o, "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|");
         for l in &self.locales {
             let mine: Vec<&Check> = self.checks.iter().filter(|c| c.locale == l.tag).collect();
             let raw_limit = mine.first().map_or(0, |c| c.limit);
-            let gz_limit = mine.get(1).map_or(0, |c| c.limit);
+            let br_limit = mine.get(1).map_or(0, |c| c.limit);
             let b7_ok = mine
                 .iter()
                 .filter(|c| c.rule.starts_with("B7"))
                 .all(|c| c.passed);
-            let g = l.stripped.whole.gz(gz).unwrap_or(0);
+            let br = l.stripped.whole.br;
             #[allow(clippy::cast_precision_loss)]
-            let ratio = g as f64 / l.source_bytes.max(1) as f64;
+            let ratio = br as f64 / l.source_bytes.max(1) as f64;
             let _ = writeln!(
                 o,
                 "| {} | {} | {} | {} | {} | **{}** | {} | {} | {} | {} |",
@@ -427,10 +451,10 @@ impl SizeReport {
                 n(l.source_bytes),
                 n(l.stripped.whole.raw),
                 n(raw_limit),
-                n(g),
-                n(gz_limit),
+                n(br),
+                n(br_limit),
                 fixed(ratio, 3),
-                n(l.stripped.whole.br),
+                gz_cell(&l.stripped.whole, gz),
                 if b7_ok { "met" } else { "**NOT MET**" },
             );
         }
@@ -449,9 +473,11 @@ impl SizeReport {
         }
         let _ = writeln!(
             o,
-            "\n**{}** — B7: `en` ≤ 25 KB gz; every locale gz ≤ 0.5 × source + 1 KB and raw ≤ \
-             1.25 × source + 8 B/message (plans/06 §3); every catalog decodes back to the parsed \
-             model.\n",
+            "\n**{}** — B7 (plans/06 §3), on brotli 11: `en` ≤ 0.91 × 25 KB (23,296 B); every \
+             locale ≤ 0.91 × (0.5 × source + 1 KB), and raw ≤ 1.25 × source + 8 B/message; every \
+             catalog decodes back to the parsed model. The factor 0.91 is the worst brotli/gzip \
+             ratio measured (en-XA, 0.909 in P0.7 and in Phase 2), rounded up: no locale is \
+             held tighter than under the former gzip limits.\n",
             if self.passed { "PASS" } else { "FAIL" }
         );
 
@@ -541,9 +567,9 @@ impl SizeReport {
         let _ = writeln!(
             o,
             "\n## Against P0.7's recommended layout\n\nP0.7 (plans/phase-0-results.md §P0.7) \
-             measured the prototype of this format on the same four locales with GNU gzip; \
-             deltas below use **{}**. A gz delta beyond {} B or {} % of P0.7's figure is \
-             flagged.\n",
+             measured the prototype of this format on the same four locales with GNU gzip and \
+             brotli 11; gz deltas below use **{}**. A brotli delta (the B7 metric) beyond {} B \
+             or {} % of P0.7's figure is flagged.\n",
             pg.label(),
             FLAG_BYTES,
             fixed(FLAG_FRACTION * 100.0, 0)
@@ -579,7 +605,7 @@ impl SizeReport {
                 signed(d.pool_gz),
                 n(g(&l.unstripped.whole)),
                 signed(d.unstripped_gz),
-                match (d.beyond_noise, d.gz_bytes > 0) {
+                match (d.beyond_noise, d.br > 0) {
                     (false, _) => "within noise",
                     (true, true) => "**beyond noise**",
                     (true, false) => "improvement",
@@ -734,34 +760,43 @@ impl SizeReport {
         let pg = self.p07_gz();
         let _ = writeln!(
             o,
-            "\n## NAMES: `str32` (format v1) vs varint string references\n\nFormat v1 writes a \
-             NAMES entry as `varint n_ext · varint n_local · str32*` so a name is one O(1) \
-             read; P0.7's prototype wrote varint string references. Estimate: the stripped catalog with \
-             every NAMES entry re-encoded with varint string references and every MESSAGES head \
-             re-pointed (INDEX follows); everything else byte for byte. gz = {}.\n",
+            "\n## NAMES: `str32` (format v1) vs `str16` and varint string references\n\n\
+             Format v1 writes a NAMES entry as `varint n_ext · varint n_local · str32*` so a \
+             name is one O(1) read. Two alternatives, each measured by re-encoding the stripped \
+             catalog's NAMES and re-pointing every MESSAGES head (INDEX follows), everything \
+             else byte for byte: fixed 2-byte references (`str16`, still O(1); needs every name \
+             in the pool's first 64 KB and, in a real format, a 1-byte width flag not counted \
+             here), and P0.7's varint references (a name found by skipping the ones before \
+             it). Δ against format v1; gz = {}.\n",
             pg.label()
         );
         let _ = writeln!(
             o,
-            "| locale | entries | names | NAMES str32 → varint | MESSAGES Δ | catalog raw Δ | gz Δ | brotli Δ |"
+            "| locale | entries | names | encoding | NAMES bytes | MESSAGES Δ | catalog raw Δ | gz Δ | brotli Δ |"
         );
-        let _ = writeln!(o, "|---|---:|---:|---:|---:|---:|---:|---:|");
+        let _ = writeln!(o, "|---|---:|---:|---|---:|---:|---:|---:|---:|");
         for l in &self.locales {
             let e = &l.names;
             let g = |c: &Compressed| c.gz(pg).unwrap_or(0);
-            let _ = writeln!(
-                o,
-                "| {} | {} | {} | {} → {} | {} | {} | {} | {} |",
-                l.tag,
-                n(e.entries),
-                n(e.names),
-                n(e.names_str32),
-                n(e.names_varint),
-                signed(delta(e.messages_varint, e.messages_str32)),
-                signed(delta(e.whole_varint.raw, l.stripped.whole.raw)),
-                signed(delta(g(&e.whole_varint), g(&l.stripped.whole))),
-                signed(delta(e.whole_varint.br, l.stripped.whole.br)),
-            );
+            for (name, names, messages, whole) in [
+                ("str16", e.names_str16, e.messages_str16, &e.whole_str16),
+                ("varint", e.names_varint, e.messages_varint, &e.whole_varint),
+            ] {
+                let _ = writeln!(
+                    o,
+                    "| {} | {} | {} | {} | {} → {} | {} | {} | {} | {} |",
+                    l.tag,
+                    n(e.entries),
+                    n(e.names),
+                    name,
+                    n(e.names_str32),
+                    n(names),
+                    signed(delta(messages, e.messages_str32)),
+                    signed(delta(whole.raw, l.stripped.whole.raw)),
+                    signed(delta(g(whole), g(&l.stripped.whole))),
+                    signed(delta(whole.br, l.stripped.whole.br)),
+                );
+            }
         }
     }
 }

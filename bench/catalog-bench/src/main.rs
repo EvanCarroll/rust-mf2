@@ -27,7 +27,8 @@ struct Cli {
 enum Mode {
     /// A8: catalog sizes and the B7 checks (exit 1 if a B7 threshold fails).
     Size {
-        /// The gzip implementation of the B7 verdicts.
+        /// The gzip implementation of the reported gz figures (B7 itself is
+        /// brotli; without GNU gzip, `gnu` falls back to flate2).
         #[arg(long, value_enum, default_value_t = Gz::Gnu)]
         gz: Gz,
         /// Also write the catalogs here: `<tag>.mf2b` (stripped),

@@ -7,9 +7,9 @@
     "debug_assertions": false,
     "crates": "brotli 9.0.0, flate2 1.1.10, miniz_oxide 0.9.1, zlib-rs 0.6.8"
   },
-  "unix_time": 1790026945,
+  "unix_time": 1790031463,
   "gnu_gzip": "gzip 1.13",
-  "b7_gz": "gnu",
+  "gz": "gnu",
   "manifest_hash": "43e0dc12eeb05ef1",
   "corpus": "bench/corpora/workload-1600.json",
   "locales": [
@@ -158,6 +158,15 @@
           "gz_flate2": 20581,
           "gz_zlib_rs": 20600,
           "br": 17868
+        },
+        "names_str16": 808,
+        "messages_str16": 4522,
+        "whole_str16": {
+          "raw": 50932,
+          "gz_gnu": 20548,
+          "gz_flate2": 20582,
+          "gz_zlib_rs": 20602,
+          "br": 17983
         }
       }
     },
@@ -306,6 +315,15 @@
           "gz_flate2": 27031,
           "gz_zlib_rs": 27029,
           "br": 24056
+        },
+        "names_str16": 808,
+        "messages_str16": 4920,
+        "whole_str16": {
+          "raw": 67360,
+          "gz_gnu": 26675,
+          "gz_flate2": 27040,
+          "gz_zlib_rs": 27038,
+          "br": 24091
         }
       }
     },
@@ -454,6 +472,15 @@
           "gz_flate2": 24518,
           "gz_zlib_rs": 24518,
           "br": 21410
+        },
+        "names_str16": 808,
+        "messages_str16": 5132,
+        "whole_str16": {
+          "raw": 100586,
+          "gz_gnu": 23650,
+          "gz_flate2": 24538,
+          "gz_zlib_rs": 24536,
+          "br": 21467
         }
       }
     },
@@ -602,6 +629,15 @@
           "gz_flate2": 21248,
           "gz_zlib_rs": 21260,
           "br": 18406
+        },
+        "names_str16": 808,
+        "messages_str16": 4532,
+        "whole_str16": {
+          "raw": 60848,
+          "gz_gnu": 20538,
+          "gz_flate2": 21250,
+          "gz_zlib_rs": 21261,
+          "br": 18435
         }
       }
     }
@@ -616,16 +652,16 @@
     },
     {
       "locale": "en",
-      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
-      "value": 20592,
-      "limit": 22649,
+      "rule": "B7 brotli ≤ 0.91 × (0.5 × source + 1 KB)",
+      "value": 18072,
+      "limit": 20610,
       "passed": true
     },
     {
       "locale": "en",
-      "rule": "B7 reference en: gz (GNU gzip -9 -n) ≤ 25 KB",
-      "value": 20592,
-      "limit": 25600,
+      "rule": "B7 reference en: brotli ≤ 0.91 × 25 KB",
+      "value": 18072,
+      "limit": 23296,
       "passed": true
     },
     {
@@ -651,9 +687,9 @@
     },
     {
       "locale": "pl",
-      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
-      "value": 26706,
-      "limit": 30283,
+      "rule": "B7 brotli ≤ 0.91 × (0.5 × source + 1 KB)",
+      "value": 24137,
+      "limit": 27557,
       "passed": true
     },
     {
@@ -679,9 +715,9 @@
     },
     {
       "locale": "en-XA",
-      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
-      "value": 23686,
-      "limit": 48563,
+      "rule": "B7 brotli ≤ 0.91 × (0.5 × source + 1 KB)",
+      "value": 21537,
+      "limit": 44192,
       "passed": true
     },
     {
@@ -707,9 +743,9 @@
     },
     {
       "locale": "ar-XB",
-      "rule": "B7 gz (GNU gzip -9 -n) ≤ 0.5 × source + 1 KB",
-      "value": 20597,
-      "limit": 28269,
+      "rule": "B7 brotli ≤ 0.91 × (0.5 × source + 1 KB)",
+      "value": 18423,
+      "limit": 25725,
       "passed": true
     },
     {
@@ -737,7 +773,7 @@
       "structure_gz": 84,
       "pool_gz": 0,
       "unstripped_gz": 767,
-      "beyond_noise": false
+      "beyond_noise": true
     },
     {
       "locale": "pl",
