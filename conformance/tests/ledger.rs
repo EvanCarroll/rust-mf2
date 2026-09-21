@@ -233,21 +233,63 @@ fn orphan_and_duplicate_entries_are_red() {
 fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L1/L2 pass since Phase 1, so the committed ledger is green at P1; the
-    // L3 xfails say until = "P2".
-    ledger.current_phase = Phase::P1;
-    assert!(check(&suite, &ledger).is_empty());
-    ledger.current_phase = Phase::P2;
+    // L1/L2 pass since Phase 1 and L3 since Phase 2, so the committed ledger
+    // is green at P1 and P2; the L4 xfails of the core files, and the open
+    // stripping note, say until = "P3".
+    for phase in [Phase::P1, Phase::P2] {
+        ledger.current_phase = phase;
+        assert_eq!(check(&suite, &ledger), [], "at {phase}");
+    }
+    ledger.current_phase = Phase::P3;
     let v = check(&suite, &ledger);
-    assert!(!v.is_empty());
-    assert!(v.iter().all(|x| matches!(
-        x,
-        Violation::UntilNotInFuture {
-            column: Column::L3,
-            until: Phase::P2,
-            ..
-        }
-    )));
+    let is_l4 = |x: &Violation| {
+        matches!(
+            x,
+            Violation::UntilNotInFuture {
+                column: Column::L4,
+                until: Phase::P3,
+                ..
+            }
+        )
+    };
+    let is_note = |x: &Violation| {
+        matches!(
+            x,
+            Violation::NoteOverdue { id, until: Phase::P3, .. } if id == "stripped-formats-identically"
+        )
+    };
+    assert!(v.iter().any(is_l4));
+    assert_eq!(v.iter().filter(|x| is_note(x)).count(), 1, "{v:?}");
+    assert!(v.iter().all(|x| is_l4(x) || is_note(x)));
+}
+
+#[test]
+fn an_overdue_open_note_is_red() {
+    let suite = suite();
+    let mut ledger = committed_ledger();
+    let note = ledger
+        .notes
+        .iter_mut()
+        .find(|n| n.id == "stripped-formats-identically")
+        .expect("the stripping note is in the ledger");
+    assert_eq!(
+        (note.status.as_str(), note.until),
+        ("open", Some(Phase::P3))
+    );
+    note.until = Some(ledger.current_phase);
+    assert!(matches!(
+        check(&suite, &ledger).as_slice(),
+        [Violation::NoteOverdue { .. }]
+    ));
+    // Closing the note (the obligation met) is green.
+    let note = ledger
+        .notes
+        .iter_mut()
+        .find(|n| n.id == "stripped-formats-identically")
+        .unwrap();
+    note.status = "pass".to_owned();
+    note.until = None;
+    assert!(check(&suite, &ledger).is_empty());
 }
 
 #[test]
@@ -367,22 +409,36 @@ fn missing_column_is_red_and_unknown_column_is_rejected() {
 fn unverifiable_claims_are_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L3 has no harness until Phase 2.
+    // L4 has no harness until Phase 3 (L3 has one since Phase 2).
+    assert_eq!(
+        ledger.entries[0].cells[&Column::L3],
+        Cell::Pass { via: None }
+    );
     ledger.entries[0]
         .cells
-        .insert(Column::L3, Cell::Pass { via: None });
+        .insert(Column::L4, Cell::Pass { via: None });
     ledger.entries[0].cells.insert(
-        Column::L4,
+        Column::L5,
         Cell::Degraded {
             kind: mf2_conformance::ledger::DegradedKind::UnknownFunction,
             detail: None,
         },
     );
     let v = check(&suite, &ledger);
+    assert_eq!(v.len(), 3, "{v:?}");
     assert!(v.iter().any(|x| matches!(
         x,
         Violation::UnverifiedClaim {
-            column: Column::L3,
+            column: Column::L4,
+            status: "pass",
+            ..
+        }
+    )));
+    assert!(v.iter().any(|x| matches!(
+        x,
+        Violation::UnverifiedClaim {
+            column: Column::L5,
+            status: "degraded",
             ..
         }
     )));

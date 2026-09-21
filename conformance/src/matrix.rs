@@ -209,9 +209,9 @@ impl TestKind {
 
 /// Columns whose harness exists. Nothing in a column without a harness can be
 /// verified, so `pass` and `degraded` are refused there (a pass that nothing
-/// checks is a silent skip). L1/L2 joined in Phase 1; L3 joins in Phase 2, and
-/// so on.
-pub const HARNESSED: &[Column] = &[Column::L1, Column::L2];
+/// checks is a silent skip). L1/L2 joined in Phase 1, L3 in Phase 2; L4 joins
+/// in Phase 3, and so on.
+pub const HARNESSED: &[Column] = &[Column::L1, Column::L2, Column::L3];
 
 #[cfg(test)]
 mod tests {

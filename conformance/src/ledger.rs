@@ -106,7 +106,14 @@ pub struct Note {
     pub id: String,
     pub status: String,
     pub reason: String,
+    /// For an [`OPEN`] note (and only there): the phase whose exit closes it.
+    /// Like an `xfail`'s `until`, it must lie after `current_phase`.
+    pub until: Option<Phase>,
 }
+
+/// The status of a note that records an obligation not yet met; it needs
+/// `until`.
+pub const OPEN: &str = "open";
 
 /// The id of the note every ledger MUST carry (plans/01-conformance.md §2).
 pub const SURROGATES_NOTE_ID: &str = "unpaired-surrogates";
@@ -162,14 +169,30 @@ impl Ledger {
         for (i, v) in array_of_tables(&root, "note")?.into_iter().enumerate() {
             let ctx = format!("[[note]] #{i}");
             for k in v.keys() {
-                if !matches!(k.as_str(), "id" | "status" | "reason") {
+                if !matches!(k.as_str(), "id" | "status" | "reason" | "until") {
                     return Err(err(&ctx, format!("unknown key `{k}`")));
                 }
             }
+            let status = get_str(v, "status", &ctx)?.to_owned();
+            let until = match v.get("until") {
+                None => None,
+                Some(Value::String(p)) => Some(
+                    Phase::parse(p)
+                        .ok_or_else(|| err(&ctx, format!("unknown phase {p:?} in `until`")))?,
+                ),
+                Some(_) => return Err(err(&ctx, "`until` must be a string")),
+            };
+            if (status == OPEN) != until.is_some() {
+                return Err(err(
+                    &ctx,
+                    format!("an {OPEN:?} note needs `until`, and only an {OPEN:?} note has one"),
+                ));
+            }
             notes.push(Note {
                 id: get_str(v, "id", &ctx)?.to_owned(),
-                status: get_str(v, "status", &ctx)?.to_owned(),
+                status,
                 reason: get_str(v, "reason", &ctx)?.to_owned(),
+                until,
             });
         }
 
@@ -197,6 +220,9 @@ impl Ledger {
             out.push_str("\n[[note]]\n");
             let _ = writeln!(out, "id     = {}", toml_str(&n.id));
             let _ = writeln!(out, "status = {}", toml_str(&n.status));
+            if let Some(until) = n.until {
+                let _ = writeln!(out, "until  = {}", toml_str(until.as_str()));
+            }
             let _ = writeln!(out, "reason = {}", toml_str(&n.reason));
         }
         for e in &self.entries {
@@ -244,6 +270,7 @@ impl Ledger {
                 id: SURROGATES_NOTE_ID.to_owned(),
                 status: "n/a".to_owned(),
                 reason: SURROGATES_REASON.to_owned(),
+                until: None,
             }],
             entries,
         }
@@ -261,6 +288,8 @@ const HEADER: &str = "\
 # Statuses: \"pass\" | \"n/a\" | { status = \"xfail\", until = \"<phase>\", reason? }
 #           | { status = \"degraded\", kind, detail? } (L4d/L5d/L6d) | { status = \"skip\", reason }
 # L5/L5d cells may add via = \"dyn\". Tags are never a skip reason.
+# [[note]]: a fact recorded once (id, status, reason); an \"open\" note is an obligation
+# not yet met and names the phase whose exit closes it (until).
 
 ";
 
@@ -496,6 +525,39 @@ L6d = { status = "xfail", until = "P6" }
         assert_eq!(ledger.entries[0].cells.len(), 9);
         let again = Ledger::parse(&ledger.to_toml()).unwrap();
         assert_eq!(again, ledger);
+    }
+
+    #[test]
+    fn notes_round_trip_and_open_notes_need_until() {
+        let text = r#"
+current_phase = "P1"
+
+[[note]]
+id     = "a"
+status = "n/a"
+reason = "a fact"
+
+[[note]]
+id     = "b"
+status = "open"
+until  = "P3"
+reason = "an obligation"
+"#;
+        let ledger = Ledger::parse(text).unwrap();
+        assert_eq!(ledger.notes[0].until, None);
+        assert_eq!(ledger.notes[1].until, Some(Phase::P3));
+        assert_eq!(Ledger::parse(&ledger.to_toml()).unwrap(), ledger);
+        for bad in [
+            "status = \"open\"",
+            "status = \"n/a\"\nuntil = \"P3\"",
+            "status = \"open\"\nuntil = \"P5\"",
+            "status = \"open\"\nuntil = 3",
+            "status = \"open\"\nuntil = \"P3\"\ndue = \"P3\"",
+        ] {
+            let text =
+                format!("current_phase = \"P1\"\n[[note]]\nid = \"x\"\nreason = \"r\"\n{bad}\n");
+            assert!(Ledger::parse(&text).is_err(), "{bad}");
+        }
     }
 
     #[test]

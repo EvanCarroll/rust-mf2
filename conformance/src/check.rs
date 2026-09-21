@@ -11,7 +11,9 @@
 //! 5. `degraded` only in L4d/L5d/L6d, `via` only in L5/L5d;
 //! 6. `pass`/`degraded` only in columns whose harness exists
 //!    ([`crate::matrix::HARNESSED`]) — rules 2 and 3 run there;
-//! 7. the unpaired-surrogates note is present.
+//! 7. the unpaired-surrogates note is present;
+//! 8. no `open` note whose `until` is `current_phase` or earlier (rule 4, for
+//!    an obligation recorded once rather than per test).
 //!
 //! Rules 2 and 3 themselves — a `pass` must pass, an `xfail` must not — need
 //! the layers to run: [`crate::harness::verify`].
@@ -19,7 +21,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::key::TestKey;
-use crate::ledger::{Cell, Ledger, SURROGATES_NOTE_ID};
+use crate::ledger::{Cell, Ledger, OPEN, SURROGATES_NOTE_ID};
 use crate::matrix::{Column, HARNESSED, Phase};
 use crate::suite::{Suite, SuiteTest};
 
@@ -96,6 +98,16 @@ pub enum Violation {
     #[error("ledger lacks the [[note]] with id = \"{0}\"")]
     MissingNote(&'static str),
 
+    #[error(
+        "[[note]] \"{id}\" is open until {until}, which is not after current_phase {current}; \
+         meet the obligation and close the note"
+    )]
+    NoteOverdue {
+        id: String,
+        until: Phase,
+        current: Phase,
+    },
+
     #[error("{key}: {column} is \"pass\" but the harness fails: {detail}")]
     PassFails {
         key: TestKey,
@@ -142,6 +154,18 @@ pub fn check(suite: &Suite, ledger: &Ledger) -> Vec<Violation> {
     }
     if !ledger.notes.iter().any(|n| n.id == SURROGATES_NOTE_ID) {
         v.push(Violation::MissingNote(SURROGATES_NOTE_ID));
+    }
+    for n in &ledger.notes {
+        if let Some(until) = n.until
+            && n.status == OPEN
+            && until <= ledger.current_phase
+        {
+            v.push(Violation::NoteOverdue {
+                id: n.id.clone(),
+                until,
+                current: ledger.current_phase,
+            });
+        }
     }
     v
 }

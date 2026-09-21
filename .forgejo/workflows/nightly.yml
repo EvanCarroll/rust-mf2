@@ -4,6 +4,9 @@
 # * `generated`: 1,000,000 messages generated from the vendored message.abnf —
 #   well-formed, lossless CST, parse(serialize(m)) == m, deterministic
 #   validation (≈ 1 minute in a release build).
+# * `generated_l3` (plans/09-phase-2-work-order.md, A6): the same 1,000,000
+#   messages through a one-message catalog — the unstripped catalog decodes to
+#   the model, the stripped one to its formatting-relevant model (≈ 45 s).
 # * `differential`: mf2-syntax vs ox_mf2_parser on 90,000 generated and mutated
 #   messages. ox hangs on some inputs and then allocates without bound, so it
 #   runs in a child process with a timeout, under a memory limit.
@@ -61,6 +64,9 @@ jobs:
 
       - name: Generated input, 1,000,000 messages
         run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
+
+      - name: Generated input through the catalog (L3), 1,000,000 messages
+        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l3
 
       - name: Differential against ox (90,000 messages)
         run: |

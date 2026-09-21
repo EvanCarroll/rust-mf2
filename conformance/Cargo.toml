@@ -9,6 +9,8 @@ publish.workspace = true
 [dependencies]
 # Validates model JSON against spec/data-model/message.json (layer L2).
 jsonschema.workspace = true
+# Layer L3: write each message as a catalog, decode it back (plans/09 A6).
+mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 mf2-model = { workspace = true, features = ["serde", "suite-names"] }
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }
@@ -16,6 +18,8 @@ serde_json.workspace = true
 sha2.workspace = true
 thiserror = { workspace = true, features = ["std"] }
 toml.workspace = true
+# The formatting-relevant model (L3): names, keys and identifiers in NFC.
+unicode-normalization = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
 # The differential oracle (plans/05-tooling.md §1): expected ⊆ reported.

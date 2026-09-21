@@ -182,7 +182,8 @@ pub fn render(
     if !ledger.notes.is_empty() {
         out.push_str("\n## Notes\n\n");
         for n in &ledger.notes {
-            let _ = writeln!(out, "* `{}` — {}: {}", n.id, n.status, n.reason);
+            let until = n.until.map(|u| format!(" until {u}")).unwrap_or_default();
+            let _ = writeln!(out, "* `{}` — {}{until}: {}", n.id, n.status, n.reason);
         }
     }
 

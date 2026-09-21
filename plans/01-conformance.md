@@ -169,7 +169,11 @@ order.
 
 Ledger-wide notes that are facts about the suite, not about one test (at P0,
 only the unpaired-surrogates N/A of §2), are `[[note]]` tables with `id`,
-`status` and `reason`.
+`status` and `reason`. A note with `status = "open"` is an obligation not yet
+testable and MUST carry `until` (the phase that discharges it); only an open
+note may. Since P2: `stripped-formats-identically`, `until = "P3"` —
+stripped and unstripped catalogs format identically, checked once L4 exists
+(L3 already checks they decode to the same formatting-relevant model).
 
 **Statuses**: `pass`; `xfail` (known failure; `until` names the phase that fixes
 it); `degraded` (default-features columns only: `kind` is `unsupported-operation`,
@@ -195,9 +199,9 @@ The harness fails when:
 2. a `pass` fails;
 3. an `xfail` or `skip` unexpectedly passes — the ledger must be tightened (a
    ratchet: the pass count only goes up);
-4. any `xfail` remains whose `until` is `current_phase` or earlier — the first
-   commit of a phase's exit bumps `current_phase`, and must leave the harness
-   green;
+4. any `xfail`, or `open` note, remains whose `until` is `current_phase` or
+   earlier — the first commit of a phase's exit bumps `current_phase`, and must
+   leave the harness green;
 5. a test is `skip`ped by tag. **Tags are not a skip reason.** `:currency`,
    `:percent`, `u:dir`, `u:id` mark optional spec features; mf2-two implements
    all of them;

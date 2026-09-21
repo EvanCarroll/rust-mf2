@@ -4,8 +4,9 @@
 //! ledger key (`file`, `hash`, `nth` — see [`key`]), the ledger
 //! (`conformance/ledger.toml`) with its generator and checker, the report, and
 //! the per-layer harnesses: [`l1`] (syntax) and [`l2`] (data model) since
-//! Phase 1, run by [`harness`], which holds the ledger to their results. The
-//! other layers are added by the phases that build them.
+//! Phase 1, [`l3`] (the binary catalog) since Phase 2, run by [`harness`],
+//! which holds the ledger to their results. The other layers are added by the
+//! phases that build them.
 
 #![forbid(unsafe_code)]
 
@@ -16,6 +17,7 @@ pub mod harness;
 pub mod key;
 pub mod l1;
 pub mod l2;
+pub mod l3;
 pub mod ledger;
 pub mod matrix;
 pub mod report;
