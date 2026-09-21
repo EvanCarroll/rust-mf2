@@ -71,8 +71,9 @@ enum Command {
     Ci,
     /// Size gate (Phase 5; not implemented yet).
     Size,
-    /// Write the seed corpus of the `parse` fuzz target (fuzz/corpus/parse/):
-    /// the suite's messages and the reference workload.
+    /// Write the seed corpora of the fuzz targets: `parse` (fuzz/corpus/parse/:
+    /// the suite's messages and the reference workload) and `catalog`
+    /// (fuzz/corpus/catalog/: their catalogs, unstripped and stripped).
     FuzzSeed,
     /// Run the reference-workload generator: `cargo run --release -p workload-gen -- ARGS`
     /// (every argument, `--help` included, goes to workload-gen).

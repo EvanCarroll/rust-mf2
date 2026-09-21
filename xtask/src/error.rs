@@ -12,6 +12,9 @@ pub(crate) enum Error {
     #[error(transparent)]
     Conformance(#[from] mf2_conformance::Error),
 
+    #[error("catalog writer: {0}")]
+    CatalogWrite(#[from] mf2_catalog::WriteError),
+
     #[error("output of `{0}` is not UTF-8")]
     Utf8(String, #[source] std::string::FromUtf8Error),
 
