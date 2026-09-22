@@ -1,0 +1,18 @@
+[package]
+name = "b12-dates-web-plain"
+description = "B1′ for mf2-host-web's date features: b12-dates-web-base built alone, without them — the two must be the same size, wasm and JS."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-dates-walk.workspace = true
+mf2-host-web = { workspace = true }
+mf2-runtime = { workspace = true }
+
+[lints]
+workspace = true

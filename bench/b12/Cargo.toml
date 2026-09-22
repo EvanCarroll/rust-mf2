@@ -22,6 +22,18 @@ members = [
     "runtime-intl",
     "runtime-fn-number-intl",
     "runtime-intl-unused",
+    "dates-walk",
+    "dates-base",
+    "dates-semantics",
+    "dates-neutral",
+    "dates-icu-greg-nozones",
+    "dates-icu-greg-zones",
+    "dates-icu-any-nozones",
+    "dates-icu-any-zones",
+    "dates-unused",
+    "dates-web-base",
+    "dates-web-plain",
+    "dates-intl",
 ]
 
 [workspace.package]
@@ -37,6 +49,11 @@ mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
 b12-runtime-walk = { path = "runtime-walk" }
 mf2-runtime = { path = "../../crates/mf2-runtime", default-features = false }
 mf2-fn-number = { path = "../../crates/mf2-fn-number", default-features = false }
+# The date harnesses (plans/11 A11: B4, B12, B13, B1′ for dates); the
+# backends are features of each harness.
+b12-dates-walk = { path = "dates-walk" }
+mf2-fn-datetime = { path = "../../crates/mf2-fn-datetime", default-features = false }
+mf2-host-web = { path = "../../crates/mf2-host-web", default-features = false }
 
 [workspace.lints.rust]
 unreachable_pub = "warn"

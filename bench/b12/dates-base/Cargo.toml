@@ -1,0 +1,17 @@
+[package]
+name = "b12-dates-base"
+description = "B4 base: the date walk (date/time arguments, the context zone from the host) over the core registry — what the date harnesses are measured against."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-dates-walk.workspace = true
+mf2-runtime = { workspace = true }
+
+[lints]
+workspace = true

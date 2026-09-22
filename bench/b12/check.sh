@@ -53,17 +53,43 @@
 #     other sizes are reported, not gated: the
 #     formatter is a stub here, and the browser's (mf2-host-web's `Intl` glue
 #     and its JavaScript) is measured by bench/intl-probe.
+#  9. Dates (plans/11 A6, A11), over b12-dates-walk (the runtime walk with
+#     date/time arguments and the context's zone from the host), against
+#     b12-dates-base (that walk, the core registry):
+#     * b12-dates-semantics: the date semantics every backend needs (a
+#       backend writing one byte of the plan) — reported beside B4's
+#       3.5 KB gz note; b12-dates-neutral: with the neutral stub backend.
+#       Both B12-gated.
+#     * B4 datetime-icu: b12-dates-icu-{greg,any}-{nozones,zones} (ICU4X over
+#       the catalog's icu.blob): Gregorian with zone styles ≤ 95 KB gz, any
+#       calendar with zone styles ≤ 105 KB gz; the no-zone variants reported.
+#       B12 reported, not gated: ICU4X keeps its own core::fmt and panic
+#       paths, the feature's documented cost (06 B4).
+#     * B4 datetime-intl: b12-dates-intl (Intl.DateTimeFormat through
+#       mf2-host-web's INTL_HOST) − b12-dates-web-base (the same walk on
+#       mf2-host-web's HOST), both through wasm-bindgen: wasm ≤ 6 KB gz and
+#       JS glue ≤ 1 KB gz. mf2-host-web's own glue (js-sys) has a panic
+#       path, reported with the web base; b12-dates-intl must add no fmt or
+#       panic symbol, panic import or panic text to it.
+#     * B13: b12-dates-unused (fn-datetime linked with both backend
+#       features, unused), b12-dates-base and b12-runtime link no date
+#       symbol; b12-dates-semantics shows them (the grep can fail).
+#     * B1′: b12-dates-unused = b12-runtime, +0 B; and b12-dates-web-base,
+#       built with mf2-host-web's date features on, loads no date glue (its
+#       JS imports no snippet) and equals b12-dates-web-plain, its source
+#       built alone without them (wasm and JS).
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
 # target/b12/size.tsv (under bench/b12/).
 #
 # Tools: cargo (rust-toolchain.toml, with the wasm32-unknown-unknown target),
-# wasm-opt and wasm-dis (binaryen), twiggy, gzip.
+# wasm-opt and wasm-dis (binaryen), twiggy, gzip, and the wasm-bindgen CLI
+# of the version the harnesses resolve (0.2.128).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-for tool in cargo wasm-opt wasm-dis twiggy gzip; do
+for tool in cargo wasm-opt wasm-dis twiggy gzip wasm-bindgen; do
   command -v "$tool" >/dev/null 2>&1 || { echo "b12: $tool not found on PATH" >&2; exit 2; }
 done
 
@@ -72,7 +98,14 @@ TARGET=wasm32-unknown-unknown
 OUT=target/b12
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
-CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure control)
+CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure control
+  dates-base dates-semantics dates-neutral dates-unused
+  dates-icu-greg-nozones dates-icu-greg-zones dates-icu-any-nozones dates-icu-any-zones
+  dates-web-base dates-intl)
+# Reported, not gated for B12 (see 6. and 9. above).
+REPORTED=" runtime-fixed dates-icu-greg-nozones dates-icu-greg-zones dates-icu-any-nozones dates-icu-any-zones "
+# Built through wasm-bindgen (their imports are the JS glue's).
+WEB=" dates-web-base dates-web-plain dates-intl "
 # The `intl` harnesses: one cargo invocation of their own.
 INTL_CRATES=(runtime-intl runtime-fn-number-intl runtime-intl-unused)
 PANIC_IMPORT='b12::b12_panic_reachable'
@@ -92,6 +125,9 @@ cargo build -q --target "$TARGET" --profile wasm-syms -p b12-runtime-fixed
 intl_pkgs=(); for c in "${INTL_CRATES[@]}"; do intl_pkgs+=(-p "b12-$c"); done
 cargo build -q --target "$TARGET" --profile wasm-release "${intl_pkgs[@]}"
 cargo build -q --target "$TARGET" --profile wasm-syms "${intl_pkgs[@]}"
+# B1′ for mf2-host-web's date features: the web base without them, alone.
+cargo build -q --target "$TARGET" --profile wasm-release -p b12-dates-web-plain
+cargo build -q --target "$TARGET" --profile wasm-syms -p b12-dates-web-plain
 mkdir -p "$OUT"
 
 REPORT="$OUT/b12.txt"
@@ -103,11 +139,27 @@ bad() { say "  FAIL: $*"; fail=1; }
 say "B12 — catalog reader and runtime (mf2-catalog and mf2-runtime, no features), $(rustc --version)"
 say "wasm-opt: $(wasm-opt --version); twiggy: $(twiggy --version)"
 
-declare -A RAW GZ
-for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
+declare -A RAW GZ JS TEXT
+for c in "${CRATES[@]}" runtime-fixed dates-web-plain "${INTL_CRATES[@]}"; do
   file="b12_${c//-/_}"
   rel="target/$TARGET/wasm-release/$file.wasm"
   syms="target/$TARGET/wasm-syms/$file.wasm"
+  if [[ "$WEB" == *" $c "* ]]; then
+    # What ships is wasm-bindgen's output: the module and its JS glue.
+    # One output name for all (`h`), so that no harness's name is in the
+    # bytes compared (the glue's module name is in every import).
+    rm -rf "$OUT/web/$c" "$OUT/web-syms/$c"
+    wasm-bindgen --target web --out-name h --out-dir "$OUT/web/$c" "$rel"
+    wasm-bindgen --target web --out-name h --out-dir "$OUT/web-syms/$c" "$syms"
+    rel="$OUT/web/$c/h_bg.wasm"
+    syms="$OUT/web-syms/$c/h_bg.wasm"
+    # The JS a page loads: the glue, and each snippet the glue imports.
+    js=$(gzip -9 -n -c "$OUT/web/$c/h.js" | wc -c)
+    for snippet in $(sed -nE "s/^import .* from '\.\/(snippets\/[^']*)';$/\1/p" "$OUT/web/$c/h.js"); do
+      js=$((js + $(gzip -9 -n -c "$OUT/web/$c/$snippet" | wc -c)))
+    done
+    JS[$c]=$js
+  fi
   opt="$OUT/$c.opt.wasm"
   syms_opt="$OUT/$c.syms.opt.wasm"
   wasm-opt -Oz "${FEATURES[@]}" "$rel" -o "$opt"
@@ -122,7 +174,10 @@ for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
   has_panic=no
   grep -qxF "$PANIC_IMPORT" "$OUT/$c.imports" && has_panic=yes
   say "  panic import $PANIC_IMPORT present after LTO + wasm-opt -Oz: $has_panic"
-  foreign=$(grep -v '^b12::' "$OUT/$c.imports" || true)
+  foreign=$(grep -vE "^b12::|^\./h_bg\.js::" "$OUT/$c.imports" || true)
+  if [[ "$WEB" != *" $c "* ]]; then
+    foreign=$(grep -v '^b12::' "$OUT/$c.imports" || true)
+  fi
   if [ -n "$foreign" ]; then
     bad "imports outside module b12 (undefined symbols): $(tr '\n' ' ' <<< "$foreign")"
   fi
@@ -130,6 +185,14 @@ for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
     [ "$has_panic" = yes ] || bad "the control's deliberate panic path left no import: the check is broken"
   elif [ "$c" = runtime-fixed ]; then
     say "  (the A/B baseline: reported, not gated)"
+  elif [[ "$REPORTED" == *" $c "* ]]; then
+    say "  (ICU4X: reported, not gated)"
+  elif [ "$c" = dates-web-base ] || [ "$c" = dates-web-plain ]; then
+    say "  (mf2-host-web's own glue: reported; b12-dates-intl may add nothing to it)"
+  elif [ "$c" = dates-intl ]; then
+    base_panic=no
+    grep -qxF "$PANIC_IMPORT" "$OUT/dates-web-base.imports" && base_panic=yes
+    [ "$has_panic" = "$base_panic" ] || bad "b12-dates-intl adds a panic path to the web base"
   else
     [ "$has_panic" = no ] || bad "a panic path survives in b12-$c"
   fi
@@ -137,6 +200,9 @@ for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
   # 2. Symbols of the non-stripped build, before and after wasm-opt.
   for w in "$syms" "$syms_opt"; do
     csv="$OUT/$(basename "$w" .wasm).csv"
+    if [[ "$WEB" == *" $c "* ]] && [ "$w" = "$syms" ]; then
+      csv="$OUT/$c.syms.csv"
+    fi
     twiggy top -n 1000000 --format csv "$w" > "$csv"
     names="$csv.names"
     # Name = the line without its four numeric columns (names may hold
@@ -147,11 +213,18 @@ for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
     say "  $(basename "$w"): $(wc -l < "$names") items, fmt symbols $n_fmt, panic/alloc-failure symbols $n_panic"
     { grep -E "$FMT_RE" "$names"; grep -iE "$PANIC_RE" "$names"; } | sort -u | head -n 20 \
       | sed 's/^/      /' | tee -a "$REPORT" || true
+    { grep -E "$FMT_RE" "$names"; grep -iE "$PANIC_RE" "$names"; } | sort -u > "$names.bad" || true
     if [ "$c" = control ]; then
       [ "$n_fmt" -gt 0 ] && [ "$n_panic" -gt 0 ] \
         || bad "the control's deliberate fmt and panic code left no symbols: the check is broken"
-    elif [ "$c" = runtime-fixed ]; then
+    elif [ "$c" = runtime-fixed ] || [[ "$REPORTED" == *" $c "* ]] || [ "$c" = dates-web-base ] \
+      || [ "$c" = dates-web-plain ]; then
       :
+    elif [ "$c" = dates-intl ]; then
+      # Against the web base's list of the same stage (built alike).
+      base_list="${csv/dates-intl/dates-web-base}.names.bad"
+      extra=$(comm -23 "$names.bad" "$base_list" || true)
+      [ -z "$extra" ] || bad "fmt or panic symbols b12-dates-intl adds to the web base: $(head -n 5 <<< "$extra" | tr '\n' ' ')"
     elif [ "$((n_fmt + n_panic))" -ne 0 ]; then
       bad "fmt or panic symbols in b12-$c ($(basename "$w"))"
     fi
@@ -159,8 +232,12 @@ for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
 
   # 3. Panic message text in the shipped module.
   n_text=$( { LC_ALL=C grep -a -o -iE "$PANIC_TEXT_RE" "$opt" || true; } | wc -l)
+  TEXT[$c]=$n_text
   say "  panic message strings in the stripped optimised module: $n_text"
-  if [ "$c" != control ] && [ "$c" != runtime-fixed ] && [ "$n_text" -ne 0 ]; then
+  if [ "$c" = dates-intl ]; then
+    [ "$n_text" -le "${TEXT[dates-web-base]}" ] || bad "panic message text b12-dates-intl adds to the web base"
+  elif [ "$c" != control ] && [ "$c" != runtime-fixed ] && [[ "$REPORTED" != *" $c "* ]] \
+    && [ "$c" != dates-web-base ] && [ "$c" != dates-web-plain ] && [ "$n_text" -ne 0 ]; then
     bad "panic message text in b12-$c"
   fi
 done
@@ -192,6 +269,31 @@ for c in runtime runtime-intl; do
     [ "$n_rust" -eq 0 ] || bad "b12-runtime-intl links the Rust rounding, display or plural evaluator"
   fi
 done
+# 9. B13 for dates: no date code where no date function is used.
+DATE_RE='mf2_fn_datetime|icu_datetime|icu_calendar|icu_time|icu_provider|icu_decimal'
+say "== B13 (closed world): date symbols"
+for c in runtime dates-base dates-unused dates-semantics; do
+  names="$OUT/$c.syms.opt.csv.names"
+  n_date=$(grep -cE "$DATE_RE" "$names" || true)
+  say "  b12-$c: $n_date"
+  if [ "$c" = dates-semantics ]; then
+    [ "$n_date" -gt 0 ] || bad "b12-dates-semantics shows no date symbol: the B13 grep is broken"
+  else
+    [ "$n_date" -eq 0 ] || bad "b12-$c links date code (B13)"
+  fi
+done
+# B1′ for mf2-host-web's date features: the web base (HOST) loads no snippet,
+# and is the size it is without them.
+if grep -qE "^import .* from '\./snippets/" "$OUT/web/dates-web-base/h.js"; then
+  bad "B1': mf2-host-web's HOST loads date glue with its date features on"
+else
+  say "  b12-dates-web-base (HOST, date features on): its JS imports no snippet"
+fi
+if [ "${RAW[dates-web-base]}" -eq "${RAW[dates-web-plain]}" ] && [ "${JS[dates-web-base]}" -eq "${JS[dates-web-plain]}" ]; then
+  say "  b12-dates-web-base = b12-dates-web-plain (without the features): ${RAW[dates-web-base]} B wasm, ${JS[dates-web-base]} B gz JS"
+else
+  bad "B1': mf2-host-web's date features cost HOST $((RAW[dates-web-base] - RAW[dates-web-plain])) B wasm, $((JS[dates-web-base] - JS[dates-web-plain])) B gz JS"
+fi
 
 # 4. Size: each harness as a delta against the base.
 {
@@ -211,6 +313,25 @@ done
     $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((GZ[runtime-fn-number-unused] - GZ[runtime]))
   printf 'B3: + :currency, :unit (runtime-fn-number-measure - runtime-fn-number)\t-\t-\t%d\t%d\n' \
     $((RAW[runtime-fn-number-measure] - RAW[runtime-fn-number])) $((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
+  for c in dates-base dates-semantics dates-neutral dates-unused dates-icu-greg-nozones dates-icu-greg-zones \
+    dates-icu-any-nozones dates-icu-any-zones dates-web-base dates-web-plain dates-intl; do
+    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
+      $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
+  done
+  printf 'date semantics (dates-semantics - dates-base)\t-\t-\t%d\t%d\n' \
+    $((RAW[dates-semantics] - RAW[dates-base])) $((GZ[dates-semantics] - GZ[dates-base]))
+  printf 'semantics + neutral backend (dates-neutral - dates-base)\t-\t-\t%d\t%d\n' \
+    $((RAW[dates-neutral] - RAW[dates-base])) $((GZ[dates-neutral] - GZ[dates-base]))
+  for c in dates-icu-greg-nozones dates-icu-greg-zones dates-icu-any-nozones dates-icu-any-zones; do
+    printf 'B4 datetime-icu: %s - dates-base\t-\t-\t%d\t%d\n' "${c#dates-icu-}" \
+      $((RAW[$c] - RAW[dates-base])) $((GZ[$c] - GZ[dates-base]))
+  done
+  printf 'B4 datetime-intl: wasm (dates-intl - dates-web-base)\t-\t-\t%d\t%d\n' \
+    $((RAW[dates-intl] - RAW[dates-web-base])) $((GZ[dates-intl] - GZ[dates-web-base]))
+  printf 'B4 datetime-intl: JS glue gz (dates-intl %d - dates-web-base %d)\t-\t-\t-\t%d\n' \
+    "${JS[dates-intl]}" "${JS[dates-web-base]}" $((JS[dates-intl] - JS[dates-web-base]))
+  printf "B1': fn-datetime on, unused (dates-unused - runtime)\t-\t-\t%d\t%d\n" \
+    $((RAW[dates-unused] - RAW[runtime])) $((GZ[dates-unused] - GZ[runtime]))
   printf 'intl core, stub formatter (runtime-intl - runtime)\t-\t-\t%d\t%d\n' \
     $((RAW[runtime-intl] - RAW[runtime])) $((GZ[runtime-intl] - GZ[runtime]))
   printf 'intl + fn-number (runtime-fn-number-intl - runtime-fn-number-measure)\t-\t-\t%d\t%d\n' \
@@ -218,6 +339,19 @@ done
   printf "B1': intl on, unused (runtime-intl-unused - runtime-nonum)\t-\t-\t%d\t%d\n" \
     $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((GZ[runtime-intl-unused] - GZ[runtime-nonum]))
 } > "$OUT/size.tsv"
+# B4 (plans/06-size-and-perf.md §3): datetime-intl ≤ 6 KB gz wasm + ≤ 1 KB gz
+# JS; datetime-icu ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar (with zone
+# styles, the widest of each); B1′ = +0 B for fn-datetime on but unused.
+b4_intl=$((GZ[dates-intl] - GZ[dates-web-base]))
+[ "$b4_intl" -le 6144 ] || bad "B4: datetime-intl costs $b4_intl B gz of wasm (> 6,144)"
+b4_js=$((JS[dates-intl] - JS[dates-web-base]))
+[ "$b4_js" -le 1024 ] || bad "B4: datetime-intl costs $b4_js B gz of JS (> 1,024)"
+b4_greg=$((GZ[dates-icu-greg-zones] - GZ[dates-base]))
+[ "$b4_greg" -le 97280 ] || bad "B4: datetime-icu, Gregorian, costs $b4_greg B gz (> 97,280)"
+b4_any=$((GZ[dates-icu-any-zones] - GZ[dates-base]))
+[ "$b4_any" -le 107520 ] || bad "B4: datetime-icu, any calendar, costs $b4_any B gz (> 107,520)"
+[ "${RAW[dates-unused]}" -eq "${RAW[runtime]}" ] \
+  || bad "B1': fn-datetime on but unused is not +0 B (raw ${RAW[dates-unused]} vs ${RAW[runtime]})"
 # B3 ≤ 5.5 KB gz more (plans/06-size-and-perf.md §3; restated 2026-09-22).
 b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
 [ "$b3" -le 5632 ] || bad "B3: :currency + :unit cost $b3 B gz (> 5,632)"
@@ -252,4 +386,4 @@ if [ "$fail" -ne 0 ]; then
   say "B12: FAILED"
   exit 1
 fi
-say "B12: clean (no panic path, no core::fmt in the reader or the runtime); B13: shown"
+say "B12: clean (no panic path, no core::fmt in the reader, the runtime, the numeric and the date functions); B13: shown"

@@ -762,8 +762,10 @@ build-time rejections) explicitly — never as silent skips.
   choice between exactness (`datetime-icu`) and size (`datetime-intl`); P0.6
   and P0.10 measured both (above) and showed that text differences never break
   hydration. Three consequences: (1) `mf2-build` links ICU4X's **no-zone field
-  set** whenever the corpus never uses `timeZoneStyle` — −29 KB gz of code and
-  ≈ −85 % of `icu.blob`, since zone names dominate it; (2) ICU4X 2.x has **no
+  set** whenever the corpus never uses `timeZoneStyle` — −29 KB gz of code
+  (P0.6; as built −26.8 KB Gregorian, −27.4 any calendar, below) and
+  ≈ −85 % of `icu.blob`, since zone data dominates it (as built a blob has
+  none unless a shape has a zone style, 02 §4.9); (2) ICU4X 2.x has **no
   time-zone transition rules**, so named zones (including the visitor's zone
   from the cookie, §6) need a tz database beside it on the server — **owner
   decision 1 (2026-09-21): `jiff` with its bundled IANA database**, compiled
@@ -812,6 +814,13 @@ options) is what a backend formats.
   catalog's (an Arabic date is right-to-left). ICU4X writes through
   `core::fmt::Write` and keeps its own `core::fmt` and panic paths: B12 holds
   for our crates, and this code is the feature's documented cost (06 B4).
+  **B4 as built** (`bench/b12/check.sh`; the date walk's registry with the
+  date functions over each variant, against the same walk without them):
+  Gregorian with zone styles **69,602 B gz** (≤ 95 KB; P0.6 93,025), without
+  42,809; any calendar with zone styles **82,909 B gz** (≤ 105 KB; P0.6
+  105,254), without 55,491. The date semantics every backend shares: 3,588 B
+  gz (7,590 raw; P0.6's probe 3,364) — 4 B over the ≤ 3.5 KB that 06 B4
+  names for it, an open point for the owner; the B4 limits themselves hold.
 * **Named zones.** Server: `mf2-host-std` answers `Host::zone_offset` from
   `jiff`'s bundled database (features `std`, `tzdb-bundle-always`: never the
   system's), the same natively and on `wasm32-wasip1` (owner decision 1).
@@ -836,7 +845,12 @@ options) is what a backend formats.
   neutral text; an instant outside ECMA-402's range (±8.64 × 10¹⁵ ms) is an
   *Unsupported Operation*. Off the browser `datetime-intl` formats with
   `Icu<AnyCalendar, WithZones, Compiled>`, and the catalog carries no
-  `icu.blob`.
+  `icu.blob`. **B4 as built** (`bench/b12/check.sh`, through `wasm-bindgen`,
+  against the same walk on `mf2_host_web::HOST`): **5,131 B gz** of wasm
+  (≤ 6 KB; the semantics included; P0.6 5,438) and **668 B gz** of JS glue
+  (≤ 1 KB; P0.6 628). `HOST`, built with the date features on, loads no date
+  glue (B1′), and a registry without date functions links no date code with
+  both backends' features on (B13; +0 B, B1′).
 * **`datetime-intl` against ICU4X** (`tools/e2e` check `datetime`: the
   panel's 11 locales × 60 messages, one-message catalogs, the server's ICU4X
   text beside the browser's, P0.10's tolerance: U+202F and U+00A0 read as

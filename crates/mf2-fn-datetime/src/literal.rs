@@ -43,13 +43,24 @@ pub fn parse_literal<'a>(s: &str) -> Option<DateTime<'a>> {
             .is_empty()
             .then(|| DateTime::floating(date, Time::MIDNIGHT));
     };
+    // One to three fraction digits, read as milliseconds.
     let (millisecond, tail) = match tail {
-        [b'.', f1, f2, f3, tail @ ..] if f2.is_ascii_digit() && f3.is_ascii_digit() => {
-            let ms = u16::from(two(*f1, *f2)?) * 10 + u16::from(*f3 - b'0');
-            (ms, tail)
+        [b'.', rest @ ..] => {
+            let n = rest
+                .iter()
+                .take(3)
+                .take_while(|b| b.is_ascii_digit())
+                .count();
+            if n == 0 {
+                return None;
+            }
+            let mut ms = 0u16;
+            for i in 0..3 {
+                let digit = rest.get(i).filter(|_| i < n).map_or(0, |b| b - b'0');
+                ms = ms * 10 + u16::from(digit);
+            }
+            (ms, rest.get(n..)?)
         }
-        [b'.', f1, f2, tail @ ..] if f2.is_ascii_digit() => (u16::from(two(*f1, *f2)?) * 10, tail),
-        [b'.', f1, tail @ ..] => (u16::from(two(*f1, b'0')?) * 10, tail),
         tail => (0, tail),
     };
     let time = Time::new(two(*h1, *h2)?, two(*n1, *n2)?, two(*s1, *s2)?, millisecond)?;

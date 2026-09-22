@@ -1,0 +1,18 @@
+[package]
+name = "b12-dates-semantics"
+description = "B12, B4: the date semantics every backend needs — :datetime, :date, :time and unannotated dates over a backend that writes one byte of the plan."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-dates-walk.workspace = true
+mf2-fn-datetime.workspace = true
+mf2-runtime = { workspace = true }
+
+[lints]
+workspace = true

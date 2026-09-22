@@ -100,3 +100,48 @@ its rounded digits, so every `Value` is smaller); with the stub formatter
 the core is +368 B raw / +110 B gz over `b12-runtime` and the whole family
 −12,157 / −5,731 over `b12-runtime-fn-number-measure` — without the
 browser's glue, which `bench/intl-probe` measures (the size of the option).
+## Dates (Phase 4, A11: B4, B12, B13, B1′ for `mf2-fn-datetime`)
+
+`check.sh` also builds the date harnesses (step 9 of its header). They share
+`b12-dates-walk`: `b12-runtime-walk`'s client path with date/time arguments
+(an instant, a floating value, an instant at an offset) and the formatting
+context's zone (UTC, an offset, a named zone) chosen by the host, over a host
+the harness passes — a stub whose `zone_offset` answers a host number for the
+native harnesses, `mf2-host-web`'s for the web ones.
+
+| Crate | Registry / host | Measures |
+|---|---|---|
+| `b12-dates-base` | the core functions; stub host | the base of the date deltas |
+| `b12-dates-semantics` | + `:datetime`, `:date`, `:time`, unannotated dates over a backend that writes one byte of the plan | the date semantics every backend needs; B12-gated |
+| `b12-dates-neutral` | the same over the neutral stub backend | B12-gated |
+| `b12-dates-icu-{greg,any}-{nozones,zones}` | over `Icu<GregorianOnly \| AnyCalendar, NoZones \| WithZones>` (ICU4X from the catalog's `icu.blob`) | B4 `datetime-icu`; B12 reported (ICU4X's own `core::fmt` and panic paths) |
+| `b12-dates-web-base` | the core functions; `mf2_host_web::HOST` with the date features on; through `wasm-bindgen` | the base of B4 `datetime-intl`; B1′ for `mf2-host-web` (its JS loads no date glue) |
+| `b12-dates-web-plain` | `b12-dates-web-base`'s source, built alone without `mf2-host-web`'s date features | B1′ for those features: the web base must be the same size, wasm and JS |
+| `b12-dates-intl` | + the date functions over `Intl`; `mf2_host_web::INTL_HOST`; through `wasm-bindgen` | B4 `datetime-intl`, wasm and JS; adds no fmt / panic symbol, import or text to the web base |
+| `b12-dates-unused` | `b12-runtime`'s registry and walk, `mf2-fn-datetime` linked with both backends' features | B1′ (= `b12-runtime`, +0 B), B13 |
+
+Measured 2026-09-22 (rustc 1.98.1, wasm-opt 120, twiggy 0.8.0, wasm-bindgen
+0.2.128, gzip 1.13; `bench/b12/check.sh`):
+
+| Figure | Δ raw | **Δ gz** | Limit |
+|---|---:|---:|---|
+| date semantics (`dates-semantics` − `dates-base`) | 7,590 | **3,588** | 06 B4's note: ≤ 3,584 |
+| + the neutral backend (`dates-neutral` − `dates-base`) | 8,572 | 4,045 | — |
+| B4 `datetime-icu`, Gregorian, zone styles (`dates-icu-greg-zones` − `dates-base`) | 155,154 | **69,602** | ≤ 97,280 |
+| … Gregorian, no zone styles | 93,615 | 42,809 | — |
+| B4 `datetime-icu`, any calendar, zone styles | 213,488 | **82,909** | ≤ 107,520 |
+| … any calendar, no zone styles | 151,133 | 55,491 | — |
+| B4 `datetime-intl`, wasm (`dates-intl` − `dates-web-base`) | 10,830 | **5,131** | ≤ 6,144 |
+| B4 `datetime-intl`, JS glue (3,132 − 2,464 B gz) | — | **668** | ≤ 1,024 |
+| B1′: `fn-datetime` on, unused (`dates-unused` − `runtime`) | 0 | **0** | +0 |
+| B1′: `mf2-host-web`'s date features on, `HOST` named (`dates-web-base` − `dates-web-plain`) | 0 | **0** (JS 0) | +0 |
+
+B12: `b12-dates-semantics`, `-neutral`, `-unused` and `-base` clean (no panic
+import, no fmt or panic symbol, no panic text); `b12-dates-intl` adds none to
+its web base. `mf2-host-web`'s own glue — in the web base too — keeps a panic
+path (`alloc::raw_vec::capacity_overflow`, `core::panicking::panic_nounwind_fmt`,
+retained through the function table by `wasm-bindgen`'s closure glue and
+`js-sys`'s futures, with or without the date features): reported here, for
+the Leptos layer's B12 (P6). The ICU4X harnesses show 7 fmt and 11–24 panic symbols, ICU4X's.
+B13: 0 date symbols in `b12-runtime`, `b12-dates-base` and `b12-dates-unused`;
+20 in `b12-dates-semantics`.

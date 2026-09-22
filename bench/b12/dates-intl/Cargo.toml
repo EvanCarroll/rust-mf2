@@ -1,0 +1,19 @@
+[package]
+name = "b12-dates-intl"
+description = "B12, B4 (datetime-intl): the date functions over Intl.DateTimeFormat through mf2-host-web's INTL_HOST, through wasm-bindgen — B4 = this − b12-dates-web-base, wasm and JS."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-dates-walk.workspace = true
+mf2-fn-datetime = { workspace = true, features = ["datetime-intl"] }
+mf2-host-web = { workspace = true, features = ["datetime-intl"] }
+mf2-runtime = { workspace = true }
+
+[lints]
+workspace = true
