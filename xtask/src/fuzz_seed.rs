@@ -24,7 +24,7 @@ use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{CldrVersion, Dir, Manifest};
 use mf2_conformance::abnf::Grammar;
 use mf2_conformance::spec::{ABNF, spec_path};
-use mf2_conformance::{SUITE_DIR, Suite, TestKind, l4gen};
+use mf2_conformance::{TestKind, l4gen};
 use mf2_l4_runner::{ArgSpec, Case};
 use mf2_runtime::BidiStrategy;
 
@@ -34,7 +34,7 @@ use crate::error::{Error, Result};
 const EN_CARDINAL: [u8; 5] = [0x21, 0x01, 0x05, 0x82, 0x01];
 
 pub(crate) fn run(root: &Path) -> Result<()> {
-    let suite = Suite::load(&root.join(SUITE_DIR))?;
+    let suite = mf2_conformance::load_suite(root)?;
     let workload_path = root.join("bench/corpora/workload-1600.json");
     let text = fs::read_to_string(&workload_path).map_err(|source| Error::IoAt {
         path: workload_path.clone(),

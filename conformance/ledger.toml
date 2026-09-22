@@ -774,6 +774,351 @@ L5d = { status = "xfail", until = "P5b" }
 L6d = { status = "xfail", until = "P6" }
 
 [[test]]
+file  = "extra/functions/unit.json"
+index = 0
+hash  = "b1c8a81b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 1
+hash  = "7f8e9ec4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 2
+hash  = "1c3c0aab"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 3
+hash  = "bd05a7b5"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 4
+hash  = "230ed89d"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 5
+hash  = "60a55d02"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 6
+hash  = "df783f96"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 7
+hash  = "b4faf189"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 8
+hash  = "1b6cd584"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 9
+hash  = "cb623b4e"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 10
+hash  = "03ef7521"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 11
+hash  = "4eba58ec"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 12
+hash  = "479980dd"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 13
+hash  = "dbb21281"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 14
+hash  = "d3293218"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 15
+hash  = "89ce8bda"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 16
+hash  = "15851fb7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 17
+hash  = "22b6f5be"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 18
+hash  = "c774ddf2"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 19
+hash  = "5e8c224e"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 20
+hash  = "f617da7f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 21
+hash  = "1d0256b0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
+file  = "extra/functions/unit.json"
+index = 22
+hash  = "bdf72bb6"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = { status = "xfail", until = "P4" }
+L5 = { status = "xfail", until = "P5b" }
+L6 = { status = "xfail", until = "P6" }
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "xfail", until = "P5b" }
+L6d = { status = "xfail", until = "P6" }
+
+[[test]]
 file  = "fallback.json"
 index = 0
 hash  = "d45e5d6d"

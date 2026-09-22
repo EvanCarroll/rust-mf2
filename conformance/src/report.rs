@@ -86,6 +86,19 @@ pub fn render(
         suite.files().len(),
         ledger.entries.len()
     );
+    let extra: Vec<&(String, usize)> = suite
+        .files()
+        .iter()
+        .filter(|(f, _)| f.starts_with("extra/"))
+        .collect();
+    if !extra.is_empty() {
+        let n: usize = extra.iter().map(|(_, n)| n).sum();
+        let _ = writeln!(
+            out,
+            "* Of them ours (`conformance/extra/`, WG schema, plans/01-conformance.md §5): {n} in {} file(s)",
+            extra.len()
+        );
+    }
     let harnessed: Vec<&str> = HARNESSED.iter().map(|c| c.as_str()).collect();
     let _ = writeln!(
         out,

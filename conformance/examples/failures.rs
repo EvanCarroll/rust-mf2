@@ -4,7 +4,7 @@
 use std::path::Path;
 use std::process::ExitCode;
 
-use mf2_conformance::{Column, Harness, SUITE_DIR, Suite};
+use mf2_conformance::{Column, Harness};
 
 fn main() -> ExitCode {
     let column = std::env::args().nth(1).unwrap_or_else(|| "L4".to_owned());
@@ -13,7 +13,7 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
-    let suite = match Suite::load(&root.join(SUITE_DIR)) {
+    let suite = match mf2_conformance::load_suite(&root) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("{e}");

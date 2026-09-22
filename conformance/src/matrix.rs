@@ -151,13 +151,16 @@ impl fmt::Display for Column {
     }
 }
 
-/// Suite files whose L4 (all features) turns green at P4 rather than P3.
+/// Suite files whose L4 (all features) turns green at P4 rather than P3 —
+/// and `extra/functions/unit.json`, our `:unit` tests (the suite has none),
+/// written in Phase 4 (plans/11 A4).
 pub const L4_FUNCTION_FILES_AT_P4: &[&str] = &[
     "functions/percent.json",
     "functions/currency.json",
     "functions/date.json",
     "functions/time.json",
     "functions/datetime.json",
+    "extra/functions/unit.json",
 ];
 
 /// Single tests (`file`, `hash`, `nth`) of the other files whose L4 turns

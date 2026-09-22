@@ -248,32 +248,55 @@ impl Ledger {
         out
     }
 
+    /// The entry `--init` generates for `t`: every applicable cell `xfail`
+    /// until the phase of the layer → phase table, every other cell `n/a`.
+    fn fresh_entry(t: &crate::suite::SuiteTest) -> Entry {
+        Entry {
+            key: t.key.clone(),
+            index: t.index,
+            cells: Column::ALL
+                .into_iter()
+                .map(|c| {
+                    let cell = if t.kind.applies(c) {
+                        Cell::Xfail {
+                            until: c.deadline(&t.key),
+                            reason: None,
+                            via: None,
+                        }
+                    } else {
+                        Cell::NotApplicable
+                    };
+                    (c, cell)
+                })
+                .collect(),
+        }
+    }
+
+    /// Adds an entry, as `--init` would write it, for every test of `suite`
+    /// the ledger lacks (a new file under `conformance/extra/`, or tests a
+    /// suite sync added), keeping the entries in suite order; returns how
+    /// many. Entries without a test stay (the checker reports them).
+    pub fn add_missing(&mut self, suite: &Suite) -> usize {
+        let mut old: Vec<Entry> = core::mem::take(&mut self.entries);
+        let mut added = 0;
+        let mut entries = Vec::with_capacity(old.len() + 8);
+        for t in suite.tests() {
+            if let Some(i) = old.iter().position(|e| e.key == t.key) {
+                entries.push(old.swap_remove(i));
+            } else {
+                entries.push(Self::fresh_entry(t));
+                added += 1;
+            }
+        }
+        entries.extend(old);
+        self.entries = entries;
+        added
+    }
+
     /// The ledger `--init` generates: every applicable cell `xfail` until the
     /// phase of the layer → phase table, every other cell `n/a`.
     pub fn init(suite: &Suite) -> Self {
-        let entries = suite
-            .tests()
-            .iter()
-            .map(|t| Entry {
-                key: t.key.clone(),
-                index: t.index,
-                cells: Column::ALL
-                    .into_iter()
-                    .map(|c| {
-                        let cell = if t.kind.applies(c) {
-                            Cell::Xfail {
-                                until: c.deadline(&t.key),
-                                reason: None,
-                                via: None,
-                            }
-                        } else {
-                            Cell::NotApplicable
-                        };
-                        (c, cell)
-                    })
-                    .collect(),
-            })
-            .collect();
+        let entries = suite.tests().iter().map(Self::fresh_entry).collect();
         Self {
             current_phase: Phase::P0,
             notes: vec![Note {

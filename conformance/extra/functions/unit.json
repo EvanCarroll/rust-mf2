@@ -1,0 +1,129 @@
+{
+  "$schema": "../../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Unit function",
+  "description": "The Draft :unit formatter (spec/functions/number.md, \"The :unit function\"), which the WG suite does not test yet: mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; plans/11-phase-4-work-order.md A4). The exp values are CLDR 48.2.1 en data.",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "No operand: Bad Operand.",
+      "src": "{:unit}",
+      "exp": "{:unit}",
+      "expErrors": [{ "type": "bad-operand" }]
+    },
+    {
+      "description": "A string that is not a number-literal: Bad Operand.",
+      "src": "{foo :unit unit=meter}",
+      "exp": "{|foo|}",
+      "expErrors": [{ "type": "bad-operand" }]
+    },
+    {
+      "description": "A numeric operand without a unit option: Bad Operand.",
+      "src": "{42 :unit}",
+      "exp": "{|42|}",
+      "expErrors": [{ "type": "bad-operand" }]
+    },
+    {
+      "description": "A :number value has no unit either.",
+      "src": ".local $n = {42 :number} {{{$n :unit}}}",
+      "exp": "{$n}",
+      "expErrors": [{ "type": "bad-operand" }]
+    },
+    {
+      "src": "{42 :unit unit=meter}",
+      "exp": "42 m"
+    },
+    {
+      "description": "unitDisplay=long, and the plural form of the formatted number.",
+      "src": "{42 :unit unit=meter unitDisplay=long}",
+      "exp": "42 meters"
+    },
+    {
+      "src": "{1 :unit unit=meter unitDisplay=long}",
+      "exp": "1 meter"
+    },
+    {
+      "description": "The plural form follows the displayed digits: 1.0 is not one.",
+      "src": "{1 :unit unit=meter unitDisplay=long minimumFractionDigits=1}",
+      "exp": "1.0 meters"
+    },
+    {
+      "src": "{42 :unit unit=kilometer-per-hour unitDisplay=narrow}",
+      "exp": "42km/h"
+    },
+    {
+      "src": "{-5 :unit unit=celsius}",
+      "exp": "-5°C"
+    },
+    {
+      "description": "The digit options of :unit.",
+      "src": "{42 :unit unit=meter minimumFractionDigits=2}",
+      "exp": "42.00 m"
+    },
+    {
+      "src": "{1234.5 :unit unit=meter maximumFractionDigits=0 useGrouping=never}",
+      "exp": "1235 m"
+    },
+    {
+      "src": "{$x :unit unit=meter}",
+      "params": [{ "name": "x", "value": 41 }],
+      "exp": "41 m"
+    },
+    {
+      "description": "A :number or :integer value is a numeric operand, with its options.",
+      "src": ".local $n = {42 :number minimumFractionDigits=1} {{{$n :unit unit=meter}}}",
+      "exp": "42.0 m"
+    },
+    {
+      "src": ".local $n = {42.7 :integer} {{{$n :unit unit=meter}}}",
+      "exp": "43 m"
+    },
+    {
+      "description": "A :unit value carries its unit and options into a later :unit.",
+      "src": ".local $n = {42 :unit unit=meter unitDisplay=long} {{{$n :unit}}}",
+      "exp": "42 meters"
+    },
+    {
+      "src": ".local $n = {42 :unit unit=meter} {{{$n :unit unitDisplay=long}}}",
+      "exp": "42 meters"
+    },
+    {
+      "description": "An implementation MUST NOT substitute the unit without performing the conversion: another unit on a :unit value is a Bad Option, ignored.",
+      "src": ".local $n = {42 :unit unit=meter} {{{$n :unit unit=foot}}}",
+      "exp": "42 m",
+      "expErrors": [{ "type": "bad-option" }]
+    },
+    {
+      "description": "An unknown unitDisplay value: Bad Option, ignored.",
+      "src": "{42 :unit unit=meter unitDisplay=wide}",
+      "exp": "42 m",
+      "expErrors": [{ "type": "bad-option" }]
+    },
+    {
+      "description": "A unit that is not a well-formed Unicode unit identifier: Bad Option, and then no unit.",
+      "src": "{42 :unit unit=Meter}",
+      "exp": "{|42|}",
+      "expErrors": [{ "type": "bad-option" }, { "type": "bad-operand" }]
+    },
+    {
+      "description": "usage asks for a conversion this implementation does not perform: Unsupported Operation; the value keeps its unit.",
+      "src": "{42 :unit unit=meter usage=road}",
+      "exp": "42 m",
+      "expErrors": [{ "type": "unsupported-operation" }]
+    },
+    {
+      "description": ":unit is a formatter, not a selector.",
+      "src": ".local $n = {42 :unit unit=meter} .match $n * {{other}}",
+      "exp": "other",
+      "expErrors": [{ "type": "bad-selector" }]
+    },
+    {
+      "description": "No select option: ignored.",
+      "src": "{42 :unit unit=meter select=exact}",
+      "exp": "42 m"
+    }
+  ]
+}

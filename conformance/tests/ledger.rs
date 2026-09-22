@@ -7,7 +7,8 @@ use std::path::{Path, PathBuf};
 
 use mf2_conformance::ledger::{Cell, Note};
 use mf2_conformance::{
-    Column, LEDGER_PATH, Ledger, Phase, SUITE_DIR, Suite, TestKey, TestKind, Violation, check,
+    Column, EXTRA_DIR, LEDGER_PATH, Ledger, Phase, SUITE_DIR, Suite, TestKey, TestKind, Violation,
+    check,
 };
 use serde_json::Value;
 
@@ -19,7 +20,7 @@ fn root() -> PathBuf {
 }
 
 fn suite() -> Suite {
-    Suite::load(&root().join(SUITE_DIR)).expect("vendored suite loads")
+    mf2_conformance::load_suite(&root()).expect("the suite loads")
 }
 
 fn committed_ledger() -> Ledger {
@@ -29,10 +30,17 @@ fn committed_ledger() -> Ledger {
 }
 
 /// The vendored suite as parsed JSON files, for building mutated suites.
+/// The suite's files as `(relative path, JSON)`: the vendored ones and
+/// ours under `extra/` (what `load_suite` loads).
 fn suite_files() -> Vec<(String, Value)> {
-    let dir = root().join(SUITE_DIR);
+    let mut out = files_below(&root().join(SUITE_DIR), "");
+    out.extend(files_below(&root().join(EXTRA_DIR), "extra"));
+    out
+}
+
+fn files_below(dir: &Path, prefix: &str) -> Vec<(String, Value)> {
     let mut out = Vec::new();
-    let mut stack = vec![(dir, String::new())];
+    let mut stack = vec![(dir.to_path_buf(), prefix.to_owned())];
     while let Some((path, rel)) = stack.pop() {
         for entry in fs::read_dir(&path).unwrap() {
             let entry = entry.unwrap();
@@ -78,8 +86,26 @@ fn committed_ledger_is_a_bijection_with_the_suite() {
 }
 
 #[test]
-fn suite_at_the_pin_has_462_tests_in_16_files() {
+fn suite_with_extra_has_485_tests_in_17_files() {
+    // The vendored 462 and conformance/extra/functions/unit.json's 23.
     let suite = suite();
+    assert_eq!(suite.files().len(), 17);
+    assert_eq!(suite.tests().len(), 485);
+    assert_eq!(
+        suite.files().last().map(|(f, n)| (f.as_str(), *n)),
+        Some(("u-options.json", 10))
+    );
+    assert!(
+        suite
+            .files()
+            .iter()
+            .any(|(f, n)| f == "extra/functions/unit.json" && *n == 23)
+    );
+}
+
+#[test]
+fn suite_at_the_pin_has_462_tests_in_16_files() {
+    let suite = Suite::load(&root().join(SUITE_DIR)).expect("the vendored suite loads");
     assert_eq!(suite.files().len(), 16);
     assert_eq!(suite.tests().len(), 462);
     let kinds = |k: TestKind| suite.tests().iter().filter(|t| t.kind == k).count();
@@ -194,7 +220,7 @@ fn duplicating_a_suite_test_is_red() {
     let copy = tests[5].clone();
     tests.push(copy);
     let mutated = Suite::from_values(files).unwrap();
-    assert_eq!(mutated.tests().len(), 463);
+    assert_eq!(mutated.tests().len(), 486);
     let v = check(&mutated, &committed_ledger());
     assert_eq!(v.len(), 1, "{v:?}");
     assert!(matches!(&v[0], Violation::MissingEntry { key, index: 114 } if key.nth == 1));
@@ -253,7 +279,8 @@ fn until_at_or_before_current_phase_is_red() {
             )
         }
     };
-    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 12);
+    // functions/currency.json's 12 and extra/functions/unit.json's 23.
+    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 35);
     assert!(!v.iter().any(is_overdue(Column::L4d)));
     assert!(v.iter().all(is_overdue(Column::L4)));
 }

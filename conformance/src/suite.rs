@@ -47,37 +47,20 @@ impl Suite {
     /// Loads every `*.json` file below `dir` (normally `…/test/tests`).
     pub fn load(dir: &Path) -> Result<Self> {
         let mut sources = Vec::new();
-        let mut stack = vec![(dir.to_path_buf(), String::new())];
-        while let Some((path, rel)) = stack.pop() {
-            let entries = fs::read_dir(&path).map_err(|source| Error::IoAt {
-                path: path.clone(),
-                source,
-            })?;
-            for entry in entries {
-                let entry = entry.map_err(|source| Error::IoAt {
-                    path: path.clone(),
-                    source,
-                })?;
-                let name = entry.file_name().to_string_lossy().into_owned();
-                let child_rel = if rel.is_empty() {
-                    name.clone()
-                } else {
-                    format!("{rel}/{name}")
-                };
-                let child = entry.path();
-                if child.is_dir() {
-                    stack.push((child, child_rel));
-                } else if Path::new(&name)
-                    .extension()
-                    .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
-                {
-                    let text = fs::read_to_string(&child).map_err(|source| Error::IoAt {
-                        path: child.clone(),
-                        source,
-                    })?;
-                    sources.push((child_rel, text));
-                }
-            }
+        collect(dir, "", &mut sources)?;
+        Self::from_sources(sources)
+    }
+
+    /// Loads the vendored suite below `suite_dir` and our own tests below
+    /// `extra_dir` (plans/01-conformance.md §5: gaps get tests written in the
+    /// WG schema under `conformance/extra/`, run through the same layers),
+    /// the latter under the relative path `extra/…`. A missing `extra_dir`
+    /// adds nothing.
+    pub fn load_with_extra(suite_dir: &Path, extra_dir: &Path) -> Result<Self> {
+        let mut sources = Vec::new();
+        collect(suite_dir, "", &mut sources)?;
+        if extra_dir.is_dir() {
+            collect(extra_dir, "extra", &mut sources)?;
         }
         Self::from_sources(sources)
     }
@@ -126,6 +109,44 @@ impl Suite {
     pub fn files(&self) -> &[(String, usize)] {
         &self.files
     }
+}
+
+/// Every `*.json` file below `dir`, as `(relative path, text)`; the path is
+/// prefixed with `prefix/` when `prefix` is not empty.
+fn collect(dir: &Path, prefix: &str, sources: &mut Vec<(String, String)>) -> Result<()> {
+    let mut stack = vec![(dir.to_path_buf(), prefix.to_owned())];
+    while let Some((path, rel)) = stack.pop() {
+        let entries = fs::read_dir(&path).map_err(|source| Error::IoAt {
+            path: path.clone(),
+            source,
+        })?;
+        for entry in entries {
+            let entry = entry.map_err(|source| Error::IoAt {
+                path: path.clone(),
+                source,
+            })?;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let child_rel = if rel.is_empty() {
+                name.clone()
+            } else {
+                format!("{rel}/{name}")
+            };
+            let child = entry.path();
+            if child.is_dir() {
+                stack.push((child, child_rel));
+            } else if Path::new(&name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
+            {
+                let text = fs::read_to_string(&child).map_err(|source| Error::IoAt {
+                    path: child.clone(),
+                    source,
+                })?;
+                sources.push((child_rel, text));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn bad(file: &str, index: usize, message: impl Into<String>) -> Error {

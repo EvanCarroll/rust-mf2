@@ -4,7 +4,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use mf2_conformance::{Harness, LEDGER_PATH, Ledger, REPORT_PATH, SUITE_DIR, Suite, report};
+use mf2_conformance::{Harness, LEDGER_PATH, Ledger, REPORT_PATH, report};
 
 use crate::error::{Error, Result};
 use crate::pin::Pin;
@@ -19,7 +19,7 @@ pub(crate) fn init(root: &Path, ledger: Option<&Path>, force: bool) -> Result<()
     if path.exists() && !force {
         return Err(Error::LedgerExists(path));
     }
-    let suite = Suite::load(&root.join(SUITE_DIR))?;
+    let suite = mf2_conformance::load_suite(root)?;
     let ledger = Ledger::init(&suite);
     fs::write(&path, ledger.to_toml()).map_err(|source| Error::IoAt {
         path: path.clone(),
@@ -34,16 +34,24 @@ pub(crate) fn init(root: &Path, ledger: Option<&Path>, force: bool) -> Result<()
     Ok(())
 }
 
-/// `--promote`: run the layer harnesses and turn every `xfail` cell they pass
-/// into `pass` (the ratchet's way up), rewriting the ledger.
+/// `--promote`: add entries for tests the ledger lacks, run the layer
+/// harnesses and turn every `xfail` cell they pass into `pass` (and every
+/// documented degradation into `degraded`) — the ratchet's way up —
+/// rewriting the ledger.
 pub(crate) fn promote(root: &Path, ledger: Option<&Path>) -> Result<()> {
     let ledger_path = resolve(root, ledger, LEDGER_PATH);
-    let suite = Suite::load(&root.join(SUITE_DIR))?;
+    let suite = mf2_conformance::load_suite(root)?;
     let text = fs::read_to_string(&ledger_path).map_err(|source| Error::IoAt {
         path: ledger_path.clone(),
         source,
     })?;
     let mut ledger = Ledger::parse(&text)?;
+    // Tests the ledger lacks (a new file under conformance/extra/) get
+    // entries first, then everything the harnesses pass is promoted.
+    let added = ledger.add_missing(&suite);
+    if added > 0 {
+        eprintln!("conformance-report: added {added} ledger entries for new tests");
+    }
     let results = Harness::load(root)?.run_all(&suite);
     let changed = mf2_conformance::promote(&mut ledger, &results);
     fs::write(&ledger_path, ledger.to_toml()).map_err(|source| Error::IoAt {
@@ -63,7 +71,7 @@ pub(crate) fn promote(root: &Path, ledger: Option<&Path>) -> Result<()> {
 pub(crate) fn check(root: &Path, ledger: Option<&Path>, report_path: Option<&Path>) -> Result<()> {
     let ledger_path = resolve(root, ledger, LEDGER_PATH);
     let report_path = resolve(root, report_path, REPORT_PATH);
-    let suite = Suite::load(&root.join(SUITE_DIR))?;
+    let suite = mf2_conformance::load_suite(root)?;
     let text = fs::read_to_string(&ledger_path).map_err(|source| Error::IoAt {
         path: ledger_path.clone(),
         source,

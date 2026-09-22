@@ -37,6 +37,14 @@ pub use suite::{Suite, SuiteDiff, SuiteTest, diff};
 
 /// The vendored suite's test directory, relative to the repository root.
 pub const SUITE_DIR: &str = "third_party/message-format-wg/test/tests";
+/// Our own tests in the WG schema (plans/01-conformance.md §5), relative to
+/// the repository root; they load as `extra/…`.
+pub const EXTRA_DIR: &str = "conformance/extra";
+
+/// The suite every layer runs: the vendored WG suite and [`EXTRA_DIR`].
+pub fn load_suite(root: &std::path::Path) -> Result<Suite> {
+    Suite::load_with_extra(&root.join(SUITE_DIR), &root.join(EXTRA_DIR))
+}
 /// The ledger, relative to the repository root.
 pub const LEDGER_PATH: &str = "conformance/ledger.toml";
 /// The report, relative to the repository root.

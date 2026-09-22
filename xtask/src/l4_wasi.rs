@@ -22,7 +22,7 @@ use std::process::{Command, Stdio};
 
 use mf2_conformance::abnf::Grammar;
 use mf2_conformance::spec::{ABNF, spec_path};
-use mf2_conformance::{SUITE_DIR, Suite, TestKind, l4gen};
+use mf2_conformance::{TestKind, l4gen};
 
 use crate::cmd;
 use crate::error::{Error, Result};
@@ -47,7 +47,7 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         });
     }
 
-    let suite = Suite::load(&root.join(SUITE_DIR))?;
+    let suite = mf2_conformance::load_suite(root)?;
     let mut cases = Vec::new();
     for test in suite.tests() {
         if test.kind != TestKind::Other {

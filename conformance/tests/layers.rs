@@ -8,8 +8,7 @@ use std::path::{Path, PathBuf};
 
 use mf2_conformance::ledger::Cell;
 use mf2_conformance::{
-    Column, Harness, LEDGER_PATH, Ledger, Phase, SUITE_DIR, Suite, TestKey, Violation, check,
-    verify,
+    Column, Harness, LEDGER_PATH, Ledger, Phase, TestKey, Violation, check, verify,
 };
 
 fn root() -> PathBuf {
@@ -21,7 +20,7 @@ fn root() -> PathBuf {
 
 #[test]
 fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
-    let suite = Suite::load(&root().join(SUITE_DIR)).expect("suite");
+    let suite = mf2_conformance::load_suite(&root()).expect("suite");
     let text = fs::read_to_string(root().join(LEDGER_PATH)).expect("ledger");
     let ledger = Ledger::parse(&text).expect("ledger parses");
     let xfail: BTreeSet<(TestKey, Column)> = ledger
@@ -54,22 +53,24 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
         failures.len(),
         failures.join("\n")
     );
-    assert_eq!(results.tally(Column::L1), (462, 462));
-    assert_eq!(results.tally(Column::L2), (326, 326));
-    assert_eq!(results.tally(Column::L3), (301, 301));
-    // L4: all but the 12 tests of functions/currency.json, due at P4 (the 20
-    // date/time tests pass since A5; functions/percent.json and syntax.json
-    // #90 since A3).
-    assert_eq!(results.tally(Column::L4), (450, 462));
-    // L4d (default features, A7): the 45 tests of the gated functions'
+    // The vendored suite's 462 tests and the 23 of conformance/extra/
+    // (functions/unit.json, A4) run through every layer.
+    assert_eq!(results.tally(Column::L1), (485, 485));
+    assert_eq!(results.tally(Column::L2), (349, 349));
+    assert_eq!(results.tally(Column::L3), (324, 324));
+    // L4: all but the 12 tests of functions/currency.json and the 23 of
+    // extra/functions/unit.json, due at P4 (the 20 date/time tests pass
+    // since A5; functions/percent.json and syntax.json #90 since A3).
+    assert_eq!(results.tally(Column::L4), (450, 485));
+    // L4d (default features, A7): the 68 tests of the gated functions'
     // files degrade to Unknown Function, syntax.json #90 to neutral digits.
-    assert_eq!(results.tally(Column::L4d), (416, 462));
-    assert_eq!(results.degradations(Column::L4d), 46);
+    assert_eq!(results.tally(Column::L4d), (416, 485));
+    assert_eq!(results.degradations(Column::L4d), 69);
 }
 
 #[test]
 fn committed_ledger_matches_the_harness() {
-    let suite = Suite::load(&root().join(SUITE_DIR)).expect("suite");
+    let suite = mf2_conformance::load_suite(&root()).expect("suite");
     let text = fs::read_to_string(root().join(LEDGER_PATH)).expect("ledger");
     let ledger = Ledger::parse(&text).expect("ledger parses");
     let harness = Harness::load(&root()).expect("harness");
@@ -91,7 +92,7 @@ fn committed_ledger_matches_the_harness() {
 
 #[test]
 fn the_ledger_is_held_to_l3_both_ways() {
-    let suite = Suite::load(&root().join(SUITE_DIR)).expect("suite");
+    let suite = mf2_conformance::load_suite(&root()).expect("suite");
     let text = fs::read_to_string(root().join(LEDGER_PATH)).expect("ledger");
     let mut ledger = Ledger::parse(&text).expect("ledger parses");
     let mut results = Harness::load(&root()).expect("harness").run_all(&suite);
@@ -138,7 +139,7 @@ fn the_ledger_is_held_to_l3_both_ways() {
 fn l3_exercises_stripping_both_ways_on_the_suite() {
     // Messages with COLD data (the stripped catalog drops something and says
     // so) and without (the stripped catalog decodes to the model itself).
-    let suite = Suite::load(&root().join(SUITE_DIR)).expect("suite");
+    let suite = mf2_conformance::load_suite(&root()).expect("suite");
     let (mut with, mut without) = (0, 0);
     for t in suite.tests().iter().filter(|t| t.kind.applies(Column::L3)) {
         let model = mf2_syntax::parse_model(&t.src)
@@ -151,6 +152,6 @@ fn l3_exercises_stripping_both_ways_on_the_suite() {
         }
     }
     eprintln!("L3 on the suite: {with} messages with COLD data, {without} without");
-    assert_eq!(with + without, 301);
+    assert_eq!(with + without, 324); // 301 of the vendored suite, 23 of extra/
     assert!(with > 0 && without > 0, "{with} with, {without} without");
 }
