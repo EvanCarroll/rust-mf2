@@ -79,7 +79,7 @@ strings and nothing else.
 |---|---|
 | The two loaders on the reference workload | 1,600 messages per locale, the same ids and sources, all four locales |
 | `@locale` of every file | equal to its directory, 72 files |
-| Translator context the container carries | 1,124 comments, 419 `@param` properties, each naming a variable its message uses |
+| Translator context the container carries | 1,140 comments and 336 `@param` properties in `en`, each `@param` naming a variable its message uses |
 | A locale exported to flat JSON and read back | equal; and byte-identical to the JSON `workload-gen` writes |
 
 `cargo test -p mf2-build --test loaders`.
@@ -124,8 +124,12 @@ writes, through L4's runner:
 
 | Configuration | Compared | Refused |
 |---|---|---|
-| every feature on (L4's registry) | 309 messages | 176, each of which `compile_str` also refuses |
-| the default configuration (L4d) | 187 messages | 68 gated functions, each a build rejection |
+| every feature on (L4's registry) | **324** messages | **161**, every one of which `compile_str` also refuses |
+| the default configuration (L4d) | **256** messages | **68**, each a gated function the build rejects |
+
+324 + 161 = 485, the whole suite. The 161 are the syntax and data-model
+tests: a message the spec refuses, which the build must refuse too — and does,
+with the same verdict `compile_str` reaches.
 
 Three lints are turned down for the differential and only there:
 `unknown-function`, `dynamic-select` and `bad-option-value`. The suite has

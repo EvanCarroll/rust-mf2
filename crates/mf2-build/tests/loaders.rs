@@ -107,6 +107,7 @@ fn the_container_carries_translator_context() {
         .count();
     assert!(with_comment > 800, "only {with_comment} comments");
     assert!(with_param > 100, "only {with_param} @param properties");
+    eprintln!("en: {with_comment} comments, {with_param} @param properties");
 
     // Every `@param` names a variable the message actually uses.
     for record in &loaded.records {

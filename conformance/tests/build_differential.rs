@@ -178,6 +178,11 @@ fn every_suite_message_formats_the_same_from_either_path() {
     );
     assert!(compared > 250, "only {compared} messages compared");
     assert!(rejected > 100, "only {rejected} messages rejected");
+    eprintln!(
+        "differential (every feature on): {compared} messages compared, \
+         {rejected} refused by both, of {} in the suite",
+        suite.tests().len()
+    );
 }
 
 #[test]
@@ -247,6 +252,10 @@ fn a_gated_function_is_a_build_rejection_in_the_default_configuration() {
     );
     assert!(rejected > 10, "only {rejected} gated messages rejected");
     assert!(compared > 150, "only {compared} messages compared");
+    eprintln!(
+        "differential (default configuration): {compared} messages compared, \
+         {rejected} refused for a gated function"
+    );
 }
 
 /// The ledger's L4d `degraded` cells and the build agree about what the
