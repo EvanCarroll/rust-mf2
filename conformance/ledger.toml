@@ -781,7 +781,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -796,7 +796,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -811,7 +811,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -826,7 +826,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -841,7 +841,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -856,7 +856,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -871,7 +871,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -886,7 +886,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -901,7 +901,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -916,7 +916,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -931,7 +931,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -946,7 +946,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -961,7 +961,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -976,7 +976,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -991,7 +991,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1006,7 +1006,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1021,7 +1021,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1036,7 +1036,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1051,7 +1051,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1066,7 +1066,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1081,7 +1081,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1096,7 +1096,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1111,7 +1111,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
@@ -1246,7 +1246,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1261,7 +1261,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1276,7 +1276,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1291,7 +1291,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1306,7 +1306,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1321,7 +1321,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1336,7 +1336,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1351,7 +1351,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1366,7 +1366,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1381,7 +1381,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1396,7 +1396,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
@@ -1411,7 +1411,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", reason = ":currency is fn-number (Phase 4)", until = "P4" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }

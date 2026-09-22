@@ -12,6 +12,7 @@
 //! |---|---|
 //! | [`NUMBER`], [`INTEGER`], [`OFFSET`] | `:number`, `:integer`, `:offset`, localized (the core's are neutral) |
 //! | [`PERCENT`] | `:percent` |
+//! | [`CURRENCY`], [`UNIT`] | `:currency`, `:unit` (Draft): a `Measure` with the catalog's `currency.data` / `unit.data` |
 //! | [`NUMBERS`] | unannotated numbers, localized: `Registry::with_numbers(&NUMBERS)` (`syntax.json` #90) |
 //!
 //! Closed world (B13): an application's registry names only the handlers
@@ -31,6 +32,9 @@
 )]
 
 mod localize;
+mod measure;
+
+pub use measure::{CURRENCY, CurrencyFunction, UNIT, UnitFunction};
 
 use mf2_runtime::{
     Dir, ErrorSink, FnContext, FormatError, Function, Number, NumberSpec, Options, Sink,

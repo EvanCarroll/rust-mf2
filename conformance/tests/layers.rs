@@ -58,10 +58,10 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     assert_eq!(results.tally(Column::L1), (485, 485));
     assert_eq!(results.tally(Column::L2), (349, 349));
     assert_eq!(results.tally(Column::L3), (324, 324));
-    // L4: all but the 12 tests of functions/currency.json and the 23 of
-    // extra/functions/unit.json, due at P4 (the 20 date/time tests pass
-    // since A5; functions/percent.json and syntax.json #90 since A3).
-    assert_eq!(results.tally(Column::L4), (450, 485));
+    // L4: every test — the date/time files since A5, functions/percent.json
+    // and syntax.json #90 since A3, functions/currency.json and
+    // extra/functions/unit.json since A4.
+    assert_eq!(results.tally(Column::L4), (485, 485));
     // L4d (default features, A7): the 68 tests of the gated functions'
     // files degrade to Unknown Function, syntax.json #90 to neutral digits.
     assert_eq!(results.tally(Column::L4d), (416, 485));

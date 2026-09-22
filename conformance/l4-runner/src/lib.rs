@@ -26,9 +26,10 @@ use mf2_runtime::{
 
 /// The handlers L4 formats with — the all-features configuration
 /// (`plans/01-conformance.md` §3): `:string`, the localized numeric
-/// functions (`fn-number`), the date/time functions (`fn-datetime`) and the
-/// test functions.
-pub static FUNCTIONS: [(&str, &dyn Function); 11] = [
+/// functions with `:percent`, `:currency` and `:unit` (`fn-number`), the
+/// date/time functions (`fn-datetime`) and the test functions.
+pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
+    ("currency", &mf2_fn_number::CURRENCY),
     ("date", &mf2_fn_datetime::DATE),
     ("datetime", &mf2_fn_datetime::DATETIME),
     ("integer", &mf2_fn_number::INTEGER),
@@ -40,6 +41,7 @@ pub static FUNCTIONS: [(&str, &dyn Function); 11] = [
     ("test:function", &test_functions::FUNCTION),
     ("test:select", &test_functions::SELECT),
     ("time", &mf2_fn_datetime::TIME),
+    ("unit", &mf2_fn_number::UNIT),
 ];
 
 /// The registry over [`FUNCTIONS`], formatting unannotated numbers with the

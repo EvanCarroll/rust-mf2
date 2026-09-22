@@ -235,9 +235,15 @@ impl NumberNeeds {
             "currency" => {
                 let c = self.currency.get_or_insert_with(CurrencyNeeds::default);
                 match option(f, "currency") {
-                    Opt::Literal(code) => c.codes.add(&code.to_ascii_uppercase()),
+                    // A code that is not well-formed is the runtime's Bad
+                    // Option, not the build's error: nothing to slice in.
+                    Opt::Literal(code)
+                        if code.len() == 3 && code.bytes().all(|b| b.is_ascii_alphabetic()) =>
+                    {
+                        c.codes.add(&code.to_ascii_uppercase());
+                    }
                     Opt::Variable => c.codes = Selection::All,
-                    Opt::Absent => {}
+                    Opt::Literal(_) | Opt::Absent => {}
                 }
                 if matches!(
                     option(f, "currencySign"),

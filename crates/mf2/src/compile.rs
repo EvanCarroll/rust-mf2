@@ -5,8 +5,8 @@ use alloc::vec::Vec;
 
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Catalog, Manifest, MsgId};
-use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
-use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
+use mf2_locale_data::number::NumberNeeds;
+use mf2_locale_data::{LocaleNeeds, direction, locale_entries};
 
 use crate::error::CompileError;
 
@@ -29,8 +29,10 @@ impl Compiled {
 /// kinds), analyze the variables (the slots), and write it with the
 /// locale's direction, plural rules (both kinds) and number data (CLDR
 /// 48.2.1): `number.symbols` always — any placeholder can receive a number,
-/// which `fn-number` localizes — and the patterns of the numeric functions
-/// the message names (`plans/02-catalog-format.md` §4.4, conservatively).
+/// which `fn-number` localizes — and what the message's numeric functions
+/// need by the slicing rule of `plans/02-catalog-format.md` §4.4: the
+/// patterns, and the currencies and units its literal options name (a
+/// variable option value: all of them).
 pub fn compile_str(source: &str, locale: &str) -> Result<Compiled, CompileError> {
     compile(source, locale, false)
 }
@@ -51,13 +53,14 @@ fn compile(source: &str, locale: &str, strip: bool) -> Result<Compiled, CompileE
     let slots: Vec<&str> = analysis.externals.iter().map(|n| &*n.nfc).collect();
     let mut options = Options::new(locale, direction(locale)?);
     options.cldr_version = Some(mf2_locale_data::CLDR_VERSION);
-    options.locale_entries =
-        plural_locale_entries(locale, &[PluralKind::Cardinal, PluralKind::Ordinal])?;
-    let mut needs = NumberNeeds::from_functions(analysis.functions.iter().map(|f| &*f.nfc));
-    needs.symbols = true;
-    options
-        .locale_entries
-        .extend(number_locale_entries(locale, &needs)?);
+    let mut numbers = NumberNeeds::default();
+    numbers.add_message(&model);
+    numbers.symbols = true;
+    let mut needs = LocaleNeeds::default();
+    needs.cardinal = true;
+    needs.ordinal = true;
+    needs.numbers = numbers;
+    options.locale_entries = locale_entries(locale, &needs)?;
     if strip {
         options = options.stripped();
     }

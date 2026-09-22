@@ -6,7 +6,9 @@
 //! resolved. Client path: no allocation, no panic, no `core::fmt`.
 
 use mf2_catalog::Catalog;
-use mf2_catalog::number::{AffixPart, Grouping as Sizes, Patterns, SignShown, Style, Symbols};
+use mf2_catalog::number::{
+    Affix, AffixPart, Grouping as Sizes, Pattern, Patterns, SignShown, Style, Symbols,
+};
 use mf2_runtime::{Digits, Grouping, Sign, Sink, SubPartSink};
 
 /// Where localized output goes: text, or `Intl`-style sub-parts.
@@ -16,7 +18,7 @@ pub(crate) enum Out<'o> {
 }
 
 impl Out<'_> {
-    fn put(&mut self, kind: &str, text: &str) {
+    pub(crate) fn put(&mut self, kind: &str, text: &str) {
         if text.is_empty() {
             return;
         }
@@ -99,67 +101,153 @@ pub(crate) fn write(
     out: &mut Out<'_>,
 ) {
     let Some(sym) = Symbols::of(catalog) else {
-        // No `number.symbols` (a catalog built without number data, or a
-        // malformed entry): the core's neutral output — the wasm holds no
-        // symbols of its own (B6).
-        match out {
-            Out::Text(s) => d.write_neutral(*s),
-            Out::Parts(p) => d.neutral_parts(*p),
-        }
+        neutral(d, out);
         if layout == Layout::Percent {
             out.put("percentSign", "%");
         }
         return;
     };
-    let shown = match d.sign() {
-        Sign::None => SignShown::None,
-        Sign::Minus => SignShown::Minus,
-        Sign::Plus => SignShown::Plus,
-    };
     let pattern = match layout {
         Layout::Decimal => None,
         Layout::Percent => Patterns::of(catalog).and_then(|p| p.resolve(Style::Percent)),
     };
+    let seps = Seps::of(&sym);
     let sizes = pattern.map_or(sym.grouping(), |p| p.grouping());
+    write_number(&sym, pattern, None, seps, sizes, d, grouping, out);
+    if pattern.is_none() && layout == Layout::Percent {
+        // No percent pattern in the catalog: the symbol after the digits
+        // (root's `#,##0%`).
+        out.put("percentSign", sym.percent());
+    }
+}
+
+/// No `number.symbols` (a catalog built without number data, or a
+/// malformed entry): the core's neutral output — the wasm holds no symbols
+/// of its own (B6).
+pub(crate) fn neutral(d: &Digits<'_>, out: &mut Out<'_>) {
+    match out {
+        Out::Text(s) => d.write_neutral(*s),
+        Out::Parts(p) => d.neutral_parts(*p),
+    }
+}
+
+/// The decimal and group separators (a currency may have its own).
+#[derive(Clone, Copy)]
+pub(crate) struct Seps<'c> {
+    pub(crate) decimal: &'c str,
+    pub(crate) group: &'c str,
+}
+
+impl<'c> Seps<'c> {
+    pub(crate) fn of(sym: &Symbols<'c>) -> Seps<'c> {
+        Seps {
+            decimal: sym.decimal(),
+            group: sym.group(),
+        }
+    }
+}
+
+/// What an affix's currency placeholder writes: the text, and whether CLDR's
+/// currency spacing applies — a U+00A0 between the symbol and the digits
+/// when the symbol's end that touches them is letter-like (UTS #35
+/// `currencySpacing`, the same in every CLDR locale; not with the
+/// `…alphaNextToNumber` patterns, which place the space themselves).
+#[derive(Clone, Copy)]
+pub(crate) struct Symbol<'c> {
+    pub(crate) text: &'c str,
+    /// The symbol's first and last characters are letter-like.
+    pub(crate) first: bool,
+    pub(crate) last: bool,
+    pub(crate) spacing: bool,
+}
+
+/// The sign shown, in the catalog views' terms.
+pub(crate) fn shown(d: &Digits<'_>) -> SignShown {
+    match d.sign() {
+        Sign::None => SignShown::None,
+        Sign::Minus => SignShown::Minus,
+        Sign::Plus => SignShown::Plus,
+    }
+}
+
+/// Writes `d` with `pattern`'s affixes (none: the sign before the digits),
+/// `currency` for the currency placeholder, the separators `seps` and the
+/// grouping sizes `sizes`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn write_number(
+    sym: &Symbols<'_>,
+    pattern: Option<Pattern<'_>>,
+    currency: Option<Symbol<'_>>,
+    seps: Seps<'_>,
+    sizes: Sizes,
+    d: &Digits<'_>,
+    grouping: Option<Grouping>,
+    out: &mut Out<'_>,
+) {
+    let shown = shown(d);
     let sign = |out: &mut Out<'_>| match shown {
         SignShown::None => {}
         SignShown::Minus => out.put("minusSign", sym.minus()),
         SignShown::Plus => out.put("plusSign", sym.plus()),
     };
-    let affix = |a: mf2_catalog::number::Affix<'_>, out: &mut Out<'_>| {
+    let affix = |a: Affix<'_>, out: &mut Out<'_>| {
         for part in a.parts() {
             match part {
                 AffixPart::Text(t) => out.put("literal", t),
                 AffixPart::Sign => sign(out),
                 AffixPart::Percent => out.put("percentSign", sym.percent()),
-                // No currency in these layouts.
-                AffixPart::Currency => {}
+                AffixPart::Currency => {
+                    if let Some(c) = currency {
+                        out.put("currency", c.text);
+                    }
+                }
             }
         }
     };
-    if let Some(p) = pattern {
-        let s = p.signed(shown);
-        if s.sign_first {
-            sign(out);
-        }
-        affix(s.prefix, out);
-        digits(&sym, sizes, d, grouping, out);
-        affix(s.suffix, out);
-    } else {
+    let Some(p) = pattern else {
         sign(out);
-        digits(&sym, sizes, d, grouping, out);
-        if layout == Layout::Percent {
-            // No percent pattern in the catalog: the symbol after the
-            // digits (root's `#,##0%`).
-            out.put("percentSign", sym.percent());
-        }
+        digits(sym, seps, sizes, d, grouping, out);
+        return;
+    };
+    let s = p.signed(shown);
+    if s.sign_first {
+        sign(out);
     }
+    affix(s.prefix, out);
+    if let Some(c) = currency
+        && c.spacing
+        && c.last
+        && ends_with_currency(s.prefix)
+    {
+        out.put("literal", "\u{a0}");
+    }
+    digits(sym, seps, sizes, d, grouping, out);
+    if let Some(c) = currency
+        && c.spacing
+        && c.first
+        && starts_with_currency(s.suffix)
+    {
+        out.put("literal", "\u{a0}");
+    }
+    affix(s.suffix, out);
+}
+
+/// Whether the currency placeholder is the last piece of `a` (it touches
+/// the digits after it).
+pub(crate) fn ends_with_currency(a: Affix<'_>) -> bool {
+    a.parts().last() == Some(AffixPart::Currency)
+}
+
+/// Whether the currency placeholder is the first piece of `a`.
+pub(crate) fn starts_with_currency(a: Affix<'_>) -> bool {
+    a.parts().next() == Some(AffixPart::Currency)
 }
 
 /// Writes the digits: integer digits grouped, the decimal separator, the
 /// fraction digits, in the catalog's numbering system.
 fn digits(
     sym: &Symbols<'_>,
+    seps: Seps<'_>,
     sizes: Sizes,
     d: &Digits<'_>,
     grouping: Option<Grouping>,
@@ -181,13 +269,13 @@ fn digits(
         run.push(native.digit(d.digit(mag)), "integer", out);
         if grouped && m > 0 && sizes.separator_after(u32::from(m)) {
             run.flush("integer", out);
-            out.put("group", sym.group());
+            out.put("group", seps.group);
         }
     }
     run.flush("integer", out);
     let f = d.fraction_count();
     if f > 0 {
-        out.put("decimal", sym.decimal());
+        out.put("decimal", seps.decimal);
         for k in 1..=f {
             let mag = i16::try_from(k).map_or(i16::MIN, |k| -k);
             run.push(native.digit(d.digit(mag)), "fraction", out);

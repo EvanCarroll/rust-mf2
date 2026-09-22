@@ -259,30 +259,30 @@ fn orphan_and_duplicate_entries_are_red() {
 fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 — but for
-    // the xfails due at P4 (functions/currency.json; the date/time files pass
-    // since P4's A5, functions/percent.json and syntax.json #90 since A3) —
-    // so the committed ledger is green at P1, P2 and P3; at P4 the L4 xfails
-    // are overdue. L4d has no xfail left (A7: every cell passes or records
-    // its degradation).
-    for phase in [Phase::P1, Phase::P2, Phase::P3] {
+    // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 (and the
+    // P4 files since A3-A5), L4d since A7: nothing in L1-L4d is xfail, so the
+    // committed ledger is green at P1, P2, P3 and P4; at P5b the L5 and L5d
+    // xfails are overdue.
+    for phase in [Phase::P1, Phase::P2, Phase::P3, Phase::P4] {
         ledger.current_phase = phase;
         assert_eq!(check(&suite, &ledger), [], "at {phase}");
     }
-    ledger.current_phase = Phase::P4;
+    ledger.current_phase = Phase::P5b;
     let v = check(&suite, &ledger);
     let is_overdue = |c: Column| {
         move |x: &Violation| {
             matches!(
                 x,
-                Violation::UntilNotInFuture { column, until: Phase::P4, .. } if *column == c
+                Violation::UntilNotInFuture { column, until: Phase::P5b, .. } if *column == c
             )
         }
     };
-    // functions/currency.json's 12 and extra/functions/unit.json's 23.
-    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 35);
-    assert!(!v.iter().any(is_overdue(Column::L4d)));
-    assert!(v.iter().all(is_overdue(Column::L4)));
+    assert_eq!(v.iter().filter(|x| is_overdue(Column::L5)(x)).count(), 485);
+    assert!(v.iter().any(is_overdue(Column::L5d)));
+    assert!(
+        v.iter()
+            .all(|x| is_overdue(Column::L5)(x) || is_overdue(Column::L5d)(x))
+    );
 }
 
 #[test]
