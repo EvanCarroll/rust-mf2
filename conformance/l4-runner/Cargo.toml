@@ -1,0 +1,20 @@
+[package]
+name = "mf2-l4-runner"
+description = "Conformance layer L4, the client side: the suite's :test:* functions (written against the public Function trait only), and one test case formatted into a canonical record — the same code natively and on wasm32-wasip1."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2-catalog.workspace = true
+mf2-host-std.workspace = true
+mf2-model = { workspace = true, features = ["suite-names"] }
+mf2-runtime.workspace = true
+
+[[bin]]
+name = "mf2-l4-wasi"
+path = "src/bin/mf2-l4-wasi.rs"
+
+[lints]
+workspace = true

@@ -144,7 +144,7 @@ fn init_is_green_and_round_trips() {
         for c in Column::ALL {
             let expected = if t.kind.applies(c) {
                 Cell::Xfail {
-                    until: c.deadline(&t.key.file),
+                    until: c.deadline(&t.key),
                     reason: None,
                     via: None,
                 }
@@ -233,62 +233,56 @@ fn orphan_and_duplicate_entries_are_red() {
 fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L1/L2 pass since Phase 1 and L3 since Phase 2, so the committed ledger
-    // is green at P1 and P2; the L4 xfails of the core files, and the open
-    // stripping note, say until = "P3".
-    for phase in [Phase::P1, Phase::P2] {
+    // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 — but for
+    // the xfails due at P4 (five function files and syntax.json #90) — so the
+    // committed ledger is green at P1, P2 and P3; at P4 the L4 and L4d xfails
+    // are overdue.
+    for phase in [Phase::P1, Phase::P2, Phase::P3] {
         ledger.current_phase = phase;
         assert_eq!(check(&suite, &ledger), [], "at {phase}");
     }
-    ledger.current_phase = Phase::P3;
+    ledger.current_phase = Phase::P4;
     let v = check(&suite, &ledger);
-    let is_l4 = |x: &Violation| {
-        matches!(
-            x,
-            Violation::UntilNotInFuture {
-                column: Column::L4,
-                until: Phase::P3,
-                ..
-            }
-        )
+    let is_overdue = |c: Column| {
+        move |x: &Violation| {
+            matches!(
+                x,
+                Violation::UntilNotInFuture { column, until: Phase::P4, .. } if *column == c
+            )
+        }
     };
-    let is_note = |x: &Violation| {
-        matches!(
-            x,
-            Violation::NoteOverdue { id, until: Phase::P3, .. } if id == "stripped-formats-identically"
-        )
-    };
-    assert!(v.iter().any(is_l4));
-    assert_eq!(v.iter().filter(|x| is_note(x)).count(), 1, "{v:?}");
-    assert!(v.iter().all(|x| is_l4(x) || is_note(x)));
+    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 46);
+    assert!(v.iter().any(is_overdue(Column::L4d)));
+    assert!(
+        v.iter()
+            .all(|x| is_overdue(Column::L4)(x) || is_overdue(Column::L4d)(x))
+    );
 }
 
 #[test]
 fn an_overdue_open_note_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    let note = ledger
+    let i = ledger
         .notes
-        .iter_mut()
-        .find(|n| n.id == "stripped-formats-identically")
+        .iter()
+        .position(|n| n.id == "stripped-formats-identically")
         .expect("the stripping note is in the ledger");
-    assert_eq!(
-        (note.status.as_str(), note.until),
-        ("open", Some(Phase::P3))
-    );
-    note.until = Some(ledger.current_phase);
+    // Closed at P3: L4 formats every test from both catalogs.
+    let note = &ledger.notes[i];
+    assert_eq!((note.status.as_str(), note.until), ("pass", None));
+    assert!(check(&suite, &ledger).is_empty());
+    // Reopened with a phase that has come: red.
+    let current = ledger.current_phase;
+    let note = &mut ledger.notes[i];
+    note.status = "open".to_owned();
+    note.until = Some(current);
     assert!(matches!(
         check(&suite, &ledger).as_slice(),
         [Violation::NoteOverdue { .. }]
     ));
-    // Closing the note (the obligation met) is green.
-    let note = ledger
-        .notes
-        .iter_mut()
-        .find(|n| n.id == "stripped-formats-identically")
-        .unwrap();
-    note.status = "pass".to_owned();
-    note.until = None;
+    // Open until a later phase: an obligation, green.
+    ledger.notes[i].until = Some(Phase::P9);
     assert!(check(&suite, &ledger).is_empty());
 }
 
@@ -409,16 +403,16 @@ fn missing_column_is_red_and_unknown_column_is_rejected() {
 fn unverifiable_claims_are_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L4 has no harness until Phase 3 (L3 has one since Phase 2).
+    // L5 has no harness until Phase 5b (L4 has one since Phase 3).
     assert_eq!(
-        ledger.entries[0].cells[&Column::L3],
+        ledger.entries[0].cells[&Column::L4],
         Cell::Pass { via: None }
     );
     ledger.entries[0]
         .cells
-        .insert(Column::L4, Cell::Pass { via: None });
+        .insert(Column::L5, Cell::Pass { via: None });
     ledger.entries[0].cells.insert(
-        Column::L5,
+        Column::L6,
         Cell::Degraded {
             kind: mf2_conformance::ledger::DegradedKind::UnknownFunction,
             detail: None,
@@ -429,7 +423,7 @@ fn unverifiable_claims_are_red() {
     assert!(v.iter().any(|x| matches!(
         x,
         Violation::UnverifiedClaim {
-            column: Column::L4,
+            column: Column::L5,
             status: "pass",
             ..
         }
@@ -437,7 +431,7 @@ fn unverifiable_claims_are_red() {
     assert!(v.iter().any(|x| matches!(
         x,
         Violation::UnverifiedClaim {
-            column: Column::L5,
+            column: Column::L6,
             status: "degraded",
             ..
         }

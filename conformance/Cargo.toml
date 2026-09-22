@@ -11,6 +11,11 @@ publish.workspace = true
 jsonschema.workspace = true
 # Layer L3: write each message as a catalog, decode it back (plans/09 A6).
 mf2-catalog = { workspace = true, features = ["writer", "decode"] }
+# Layer L4: the one-message compile (plans/10 A9) and the client side it runs,
+# natively and on wasm32-wasip1.
+mf2 = { workspace = true, features = ["compile"] }
+mf2-l4-runner.workspace = true
+mf2-runtime.workspace = true
 mf2-model = { workspace = true, features = ["serde", "suite-names"] }
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }

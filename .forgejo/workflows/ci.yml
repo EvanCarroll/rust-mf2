@@ -2,7 +2,7 @@
 #
 # Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
 # job checks (cargo fmt --check, clippy -D warnings, cargo test, the
-# conformance report, which runs layers L1-L3 over the suite), so "green
+# conformance report, which runs layers L1-L4 over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain and publish conformance/REPORT.md.
 #
@@ -25,6 +25,13 @@
 # bench/catalog-bench). Deterministic, ≈ 30 s of release build and 4 s of
 # work. B7 is stated on brotli 11 (plans/06 §3); the gzip figures are
 # reported, not gated, with GNU gzip when the runner has it (else flate2).
+#
+# Job `l4-wasi`: conformance layer L4 on wasm32-wasip1 (plans/01-conformance.md
+# §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
+# every L4 case natively, formats it natively and with the same runner built
+# for wasm32-wasip1 under wasmtime, and fails unless every record is
+# identical byte for byte. wasmtime is pinned (49.0.0) and installed into
+# target/tools with `cargo install --locked`, as locally.
 #
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
@@ -270,4 +277,62 @@ jobs:
           path: |
             bench/b12/target/b12/b12.txt
             bench/b12/target/b12/size.tsv
+          if-no-files-found: error
+
+  l4-wasi:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      WASMTIME_VERSION: "49.0.0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Install wasmtime (pinned, into target/tools)
+        run: |
+          set -eu
+          cargo install --root target/tools --locked wasmtime-cli --version "$WASMTIME_VERSION"
+          target/tools/bin/wasmtime --version
+
+      - name: L4 on wasm32-wasip1 (exit 1 unless byte-identical to native)
+        run: cargo xtask l4-wasi
+
+      - name: Upload the records
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: l4-wasi-records
+          path: |
+            target/l4-wasi/native.txt
+            target/l4-wasi/wasi.txt
           if-no-files-found: error

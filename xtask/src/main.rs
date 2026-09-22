@@ -10,6 +10,7 @@ mod error;
 mod fsx;
 mod fuzz_seed;
 mod git;
+mod l4_wasi;
 mod locale_data;
 mod pin;
 mod report;
@@ -70,6 +71,9 @@ enum Command {
         #[arg(long, value_name = "PATH", conflicts_with = "init")]
         report: Option<PathBuf>,
     },
+    /// Conformance L4 on wasm32-wasip1: format every L4 case under wasmtime and
+    /// require the native output byte for byte.
+    L4Wasi,
     /// Run locally exactly what CI runs: fmt, clippy, tests, conformance report.
     Ci,
     /// Size gate (Phase 5; not implemented yet).
@@ -128,6 +132,7 @@ fn run(command: Command) -> Result<()> {
             }
         }
         Command::Ci => ci::run(&root),
+        Command::L4Wasi => l4_wasi::run(&root),
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

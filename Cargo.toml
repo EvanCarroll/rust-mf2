@@ -11,6 +11,7 @@ members = [
     "crates/mf2",
     "xtask",
     "conformance",
+    "conformance/l4-runner",
     "bench/workload-gen",
     "bench/parser-gate",
     "bench/catalog-bench",
@@ -34,6 +35,7 @@ thiserror = { version = "2.0.20", default-features = false }
 mf2 = { path = "crates/mf2" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-conformance = { path = "conformance" }
+mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-host-std = { path = "crates/mf2-host-std" }
 mf2-host-web = { path = "crates/mf2-host-web" }
 mf2-locale-data = { path = "crates/mf2-locale-data" }

@@ -12,6 +12,18 @@ pub(crate) enum Error {
     #[error(transparent)]
     Conformance(#[from] mf2_conformance::Error),
 
+    #[error("L4: {0}")]
+    L4(String),
+
+    #[error(
+        "wasmtime {0} is not installed in target/tools; run \
+         `cargo install --root target/tools wasmtime-cli --version {0} --locked`"
+    )]
+    WasmtimeMissing(&'static str),
+
+    #[error("target/tools/bin/wasmtime is `{got}`, not the pinned {want}")]
+    WasmtimeVersion { want: &'static str, got: String },
+
     #[error("locale data: {0}")]
     LocaleData(#[from] mf2_locale_data::Error),
 

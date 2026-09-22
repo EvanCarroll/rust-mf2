@@ -4,6 +4,8 @@
 
 use std::fmt;
 
+use crate::key::TestKey;
+
 /// A project phase (plans/00-master-plan.md §9), in order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Phase {
@@ -120,13 +122,21 @@ impl Column {
         matches!(self, Self::L5 | Self::L5d)
     }
 
-    /// The phase at whose exit this column must be green for tests of `file`
+    /// The phase at whose exit this column must be green for the test `key`
     /// (plans/01-conformance.md §3). An `xfail` MUST NOT name a later phase.
-    pub fn deadline(self, file: &str) -> Phase {
+    pub fn deadline(self, key: &TestKey) -> Phase {
+        let file = key.file.as_str();
         match self {
             Self::L1 | Self::L2 => Phase::P1,
             Self::L3 => Phase::P2,
             Self::L4 if L4_FUNCTION_FILES_AT_P4.contains(&file) => Phase::P4,
+            Self::L4
+                if L4_TESTS_AT_P4
+                    .iter()
+                    .any(|&(f, h, n)| f == file && h == key.hash && n == key.nth) =>
+            {
+                Phase::P4
+            }
             Self::L4 => Phase::P3,
             Self::L4d => Phase::P4,
             Self::L5 | Self::L5d => Phase::P5b,
@@ -149,6 +159,13 @@ pub const L4_FUNCTION_FILES_AT_P4: &[&str] = &[
     "functions/time.json",
     "functions/datetime.json",
 ];
+
+/// Single tests (`file`, `hash`, `nth`) of the other files whose L4 turns
+/// green at P4 too, because they need Phase 4's locale data
+/// (plans/01-conformance.md §3; owner, 2026-09-21): `syntax.json` #90,
+/// `{$one} et {$two}` in `fr`, formats unannotated floats with the French
+/// decimal comma — the `number.symbols` entry and `fn-number`.
+pub const L4_TESTS_AT_P4: &[(&str, &str, u32)] = &[("syntax.json", "8a3aac3e", 0)];
 
 /// The error names of the six Data Model Errors (spec `errors.md`).
 pub const DATA_MODEL_ERRORS: &[&str] = &[
@@ -211,11 +228,12 @@ impl TestKind {
 /// verified, so `pass` and `degraded` are refused there (a pass that nothing
 /// checks is a silent skip). L1/L2 joined in Phase 1, L3 in Phase 2; L4 joins
 /// in Phase 3, and so on.
-pub const HARNESSED: &[Column] = &[Column::L1, Column::L2, Column::L3];
+pub const HARNESSED: &[Column] = &[Column::L1, Column::L2, Column::L3, Column::L4];
 
 #[cfg(test)]
 mod tests {
     use super::{Column, Phase, TestKind};
+    use crate::key::TestKey;
 
     #[test]
     fn phase_order() {
@@ -249,11 +267,25 @@ mod tests {
 
     #[test]
     fn deadlines() {
-        assert_eq!(Column::L4.deadline("functions/number.json"), Phase::P3);
-        assert_eq!(Column::L4.deadline("bidi.json"), Phase::P3);
-        assert_eq!(Column::L4.deadline("functions/currency.json"), Phase::P4);
-        assert_eq!(Column::L4d.deadline("syntax.json"), Phase::P4);
-        assert_eq!(Column::L5d.deadline("syntax.json"), Phase::P5b);
-        assert_eq!(Column::L6d.deadline("syntax.json"), Phase::P6);
+        let key = |file: &str, hash: &str| TestKey {
+            file: file.to_owned(),
+            hash: hash.to_owned(),
+            nth: 0,
+        };
+        let k = |file: &str| key(file, "00000000");
+        assert_eq!(Column::L4.deadline(&k("functions/number.json")), Phase::P3);
+        assert_eq!(Column::L4.deadline(&k("bidi.json")), Phase::P3);
+        assert_eq!(
+            Column::L4.deadline(&k("functions/currency.json")),
+            Phase::P4
+        );
+        assert_eq!(Column::L4.deadline(&k("syntax.json")), Phase::P3);
+        assert_eq!(
+            Column::L4.deadline(&key("syntax.json", "8a3aac3e")),
+            Phase::P4
+        );
+        assert_eq!(Column::L4d.deadline(&k("syntax.json")), Phase::P4);
+        assert_eq!(Column::L5d.deadline(&k("syntax.json")), Phase::P5b);
+        assert_eq!(Column::L6d.deadline(&k("syntax.json")), Phase::P6);
     }
 }

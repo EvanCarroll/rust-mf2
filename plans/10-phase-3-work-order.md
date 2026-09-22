@@ -50,6 +50,9 @@ Carried — **owner decisions**:
 2. Unchanged: the remote host (the CI `runs-on` label); the spec license
    (#1112); B5/B9 restatements (B7 was restated on brotli at the end of Phase
    2); whether the D1 gate runs on every push; the tz database (P4).
+3. **New, decided (owner, 2026-09-21):** `syntax.json` #90 needs French
+   number symbols (Phase 4), so its L4 cell is due at P4, not P3 — the one
+   exception outside the five function files (01 §3, master plan P3 exit).
 
 Seam kept for catalog text as JS strings
 ([stretch_goals_after_v1/prob_builtin_strings](stretch_goals_after_v1/prob_builtin_strings.md)

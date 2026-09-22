@@ -1,13 +1,15 @@
-//! Layers L1, L2 and L3 over the whole vendored suite, and the committed
-//! ledger held to their results (plans/08-phase-1-work-order.md A7,
-//! plans/09-phase-2-work-order.md A6).
+//! Layers L1–L4 over the whole vendored suite, and the committed ledger
+//! held to their results (plans/08-phase-1-work-order.md A7,
+//! plans/09-phase-2-work-order.md A6, plans/10-phase-3-work-order.md A9).
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use mf2_conformance::ledger::Cell;
 use mf2_conformance::{
-    Column, Harness, LEDGER_PATH, Ledger, Phase, SUITE_DIR, Suite, Violation, check, verify,
+    Column, Harness, LEDGER_PATH, Ledger, Phase, SUITE_DIR, Suite, TestKey, Violation, check,
+    verify,
 };
 
 fn root() -> PathBuf {
@@ -18,12 +20,25 @@ fn root() -> PathBuf {
 }
 
 #[test]
-fn l1_l2_and_l3_pass_on_every_applicable_test() {
+fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     let suite = Suite::load(&root().join(SUITE_DIR)).expect("suite");
+    let text = fs::read_to_string(root().join(LEDGER_PATH)).expect("ledger");
+    let ledger = Ledger::parse(&text).expect("ledger parses");
+    let xfail: BTreeSet<(TestKey, Column)> = ledger
+        .entries
+        .iter()
+        .flat_map(|e| {
+            e.cells
+                .iter()
+                .filter(|(_, cell)| matches!(cell, Cell::Xfail { .. }))
+                .map(|(c, _)| (e.key.clone(), *c))
+        })
+        .collect();
     let harness = Harness::load(&root()).expect("harness");
     let results = harness.run_all(&suite);
     let failures: Vec<String> = results
         .failures()
+        .filter(|(k, c, _)| !xfail.contains(&((*k).clone(), *c)))
         .map(|(k, c, e)| {
             let src = suite
                 .tests()
@@ -42,6 +57,9 @@ fn l1_l2_and_l3_pass_on_every_applicable_test() {
     assert_eq!(results.tally(Column::L1), (462, 462));
     assert_eq!(results.tally(Column::L2), (326, 326));
     assert_eq!(results.tally(Column::L3), (301, 301));
+    // L4: all but the 45 tests of functions/{percent,currency,date,time,
+    // datetime}.json and syntax.json #90, due at P4.
+    assert_eq!(results.tally(Column::L4), (416, 462));
 }
 
 #[test]

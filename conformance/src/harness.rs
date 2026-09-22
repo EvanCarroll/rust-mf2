@@ -19,7 +19,7 @@ use crate::ledger::{Cell, Ledger};
 use crate::matrix::{Column, HARNESSED};
 use crate::spec::{DATA_MODEL_SCHEMA, spec_path};
 use crate::suite::{Suite, SuiteTest};
-use crate::{l1, l2, l3};
+use crate::{l1, l2, l3, l4};
 
 /// What the harnesses need beyond the suite: the data model's JSON Schema.
 pub struct Harness {
@@ -82,6 +82,7 @@ impl Harness {
             Column::L1 => Some(l1::check(test)),
             Column::L2 => Some(l2::check(test, &self.schema)),
             Column::L3 => Some(l3::check(test)),
+            Column::L4 => Some(l4::check(test)),
             _ => None,
         };
         match catch_unwind(AssertUnwindSafe(run)) {

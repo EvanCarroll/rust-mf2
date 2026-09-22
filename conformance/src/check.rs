@@ -213,7 +213,7 @@ fn check_entry(
                         current,
                     });
                 }
-                let deadline = column.deadline(&t.key.file);
+                let deadline = column.deadline(&t.key);
                 if *until > deadline {
                     v.push(Violation::UntilAfterDeadline {
                         key: key(),

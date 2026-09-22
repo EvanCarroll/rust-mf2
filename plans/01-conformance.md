@@ -110,8 +110,14 @@ layer never excuses an earlier one:
 |---|---|
 | L1, L2 | P1 |
 | L3 | P2 |
-| L4, every file except `functions/{percent,currency,date,time,datetime}.json` | P3 (core numeric semantics are core — [03](03-runtime.md) §5.1 — so `number`, `integer`, `offset` and the `:number` uses inside `bidi`/`fallback` belong here) |
-| L4, the remaining function files; all default-features columns for L4 | P4 |
+| L4, every file except `functions/{percent,currency,date,time,datetime}.json` | P3 (core numeric semantics are core — [03](03-runtime.md) §5.1 — so `number`, `integer`, `offset` and the `:number` uses inside `bidi`/`fallback` belong here) — except `syntax.json` #90 |
+| L4, the remaining function files, and `syntax.json` #90; all default-features columns for L4 | P4 |
+
+`syntax.json` #90 (`{$one} et {$two}` in `fr`, 1.3 and 4.2) expects the
+French decimal comma on unannotated floats — locale number symbols, which are
+Phase 4's (`number.symbols`, `fn-number`); core output is neutral (`1.3 et
+4.2`). The owner moved that one test to P4 (2026-09-21); the ledger checker
+knows it by its key (`conformance/src/matrix.rs`, `L4_TESTS_AT_P4`).
 | L5 (both configurations) | P5b |
 | L6 (both configurations), SSR + hydrate | P6; other delivery modes P7 |
 

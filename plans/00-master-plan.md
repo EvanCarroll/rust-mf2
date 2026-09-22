@@ -302,7 +302,9 @@ everything before it).
 * `:test:*` functions in the harness via the public API.
 * **Exit**: L4 green for every suite file except
   `functions/{percent,currency,date,time,datetime}.json` — i.e. including
-  `functions/{string,number,integer,offset}.json` — on native **and** wasm
+  `functions/{string,number,integer,offset}.json` — and except `syntax.json`
+  #90, whose French decimal comma needs Phase 4's number symbols (owner,
+  2026-09-21; [01](01-conformance.md) §3); on native **and** wasm
   (`wasm32-wasip1`), byte-identical; budgets B1 (runtime part), B10, B12 met
   in a client-only probe; CLDR plural samples pass for every locale.
 

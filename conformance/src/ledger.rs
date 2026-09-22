@@ -252,7 +252,7 @@ impl Ledger {
                     .map(|c| {
                         let cell = if t.kind.applies(c) {
                             Cell::Xfail {
-                                until: c.deadline(&t.key.file),
+                                until: c.deadline(&t.key),
                                 reason: None,
                                 via: None,
                             }
