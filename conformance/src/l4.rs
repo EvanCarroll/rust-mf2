@@ -87,8 +87,10 @@ pub fn args(test: &SuiteTest) -> Vec<(String, ArgSpec)> {
                     Some(i) => ArgSpec::Int(i),
                     None => n.as_f64().map_or(ArgSpec::Other, ArgSpec::Float),
                 },
-                // Booleans, objects, typed (`datetime`) values: nothing a core
-                // function takes (dates are Phase 4).
+                // A typed date/time: the literal parsed into `Arg::DateTime`.
+                (Some("datetime"), Some(Value::String(s))) => ArgSpec::date_time(s),
+                // Booleans, objects, other typed values: nothing a function
+                // takes.
                 _ => ArgSpec::Other,
             };
             Some((name, arg))

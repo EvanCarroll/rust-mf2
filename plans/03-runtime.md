@@ -437,8 +437,8 @@ existing host compile unchanged):
 pub trait Host: Sync {
     …
     /// The UTC offset, in seconds, of the IANA zone `zone` at the instant `epoch_ms`;
-    /// `None`: no zone data, or no such zone (the default). A date/time function then
-    /// reports *Unsupported Operation* where it must convert to a named zone.
+    /// `None`: no zone data, or no such zone (the default). A date/time function that
+    /// must convert an instant to a named zone then reports *Bad Option* (§5.4).
     fn zone_offset(&self, zone: &str, epoch_ms: i64) -> Option<i32> { None }
     /// `datetime-intl`: formats `request` with the host's date formatter (the browser's
     /// `Intl.DateTimeFormat`) and returns `true`; `false` (the default) when it has none.
@@ -675,8 +675,11 @@ build-time rejections) explicitly — never as silent skips.
   set** whenever the corpus never uses `timeZoneStyle` — −29 KB gz of code and
   ≈ −85 % of `icu.blob`, since zone names dominate it; (2) ICU4X 2.x has **no
   time-zone transition rules**, so named zones (including the visitor's zone
-  from the cookie, §6) need a tz database beside it on the server — which one
-  is an open owner decision; (3) for `datetime-icu` byte identity the server
+  from the cookie, §6) need a tz database beside it on the server — **owner
+  decision 1 (2026-09-21): `jiff` with its bundled IANA database**, compiled
+  into `mf2-host-std` (deterministic, the same native and on `wasm32-wasip1`),
+  reached through `Host::zone_offset`; in the browser `mf2-host-web` answers
+  from the browser's own data; (3) for `datetime-icu` byte identity the server
   formats from the same per-locale data the catalog's `icu.blob` carries.
 
 Whatever is enabled, **the function semantics (options, operand rules, errors,
@@ -721,6 +724,58 @@ probe's numbers hold. The design it would follow:
   conformance for this option is per engine (Chromium, Firefox, WebKit),
   as good as each engine's `Intl`; every numeric placeholder crosses from wasm
   to JS.
+
+### 5.4 Dates: the semantics' open points (Phase 4, A5)
+
+`mf2-fn-datetime` decides what datetime.md leaves open as follows (its crate
+docs and tests hold the details):
+
+* **Operands**: a `Value::DateTime` (an argument, or an earlier date/time
+  value with its options), `CustomValue::as_date_time`, or a string — a
+  literal, a string argument, `CustomValue::as_str` — that matches the
+  spec's regular expression exactly, over the whole string, and names a real
+  day (2023-02-29 is rejected; the MAY to accept other ISO 8601 forms is not
+  taken). No time → 00:00:00; no offset → floating; `-00:00` is offset 0.
+  Anything else is *Bad Operand* with a fallback value. A `:date` value is
+  accepted as a `:time` operand and the reverse (the spec's MAY *Bad
+  Operand* is not taken): a resolved value keeps its operand's whole
+  date/time.
+* **Options**: each function takes exactly the options datetime.md lists for
+  it; any other is ignored without an error. Values compare
+  case-sensitively; an invalid value is *Bad Option* and ignored; a
+  non-override option set by a variable is *Bad Option* and ignored.
+  `calendar` accepts `3*8alphanum *("-" 3*8alphanum)` (UTS #35 also allows
+  `_`, which `Intl.DateTimeFormat` rejects); whether the calendar is known is
+  the backend's to report.
+* **Inheritance**: only the override options (`timeZone`, `hour12`,
+  `calendar`) travel from a date/time operand; the expression's own win. So
+  over `.local $d = {|…| :date length=long}`, `{$d}` formats `$d` as resolved
+  (long) and `{$d :date}` is a new `:date` (medium).
+* **Resolved value**: `Value::DateTime` whose `options` carry the parts,
+  styles and override options, with `time_zone` naming the zone the value is
+  now in — a resolved value is always in the zone its `time_zone` names, so
+  an inherited zone never converts twice.
+* **Time zones**: the default is the context's (`FnContext::time_zone`).
+  `timeZone=input` on a floating operand is *Bad Operand* and the context's
+  zone is used. A floating value takes the target zone without conversion; a
+  value with an offset or zone converts — to UTC or an offset by arithmetic,
+  to a named zone through `Host::zone_offset`. A floating wall time placed in
+  a named zone finds its offset from the zone's offsets a day before and
+  after: in an overlap the earlier instant, in a gap the wall time moves
+  forward by the gap (java.time's and Temporal's `compatible`), at most six
+  host calls. Without zone data, converting an instant to a named zone is
+  *Bad Option* and a fallback value (the alternative datetime.md allows) —
+  including to the context's zone when it is a named one, so a server whose
+  context names a zone needs `mf2-host-std`'s tz database (owner decision 1).
+* **Unannotated** date/time values format as `:datetime` with no options
+  (`DATES`, for `Registry::with_dates`), with the value's own override
+  options.
+* **The neutral stub backend** (no backend feature, and tests): the same text
+  in every locale — `2006-01-02`, `--01-02`, `---02`, `Mon`…`Sun`, `15` /
+  `15:04` / `15:04:06`, `03:04 PM` for `hour12=true`, `Z` / `±hh:mm` / the
+  zone name for `timeZoneStyle` — pieces joined by a space; no sub-parts.
+  A6's backends (`datetime-icu`, `datetime-intl`) plug into the same
+  `Backend` seam and show `Plan::zone`.
 
 ## 6. Formatting context and SSR parity
 

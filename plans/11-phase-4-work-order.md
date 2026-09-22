@@ -100,7 +100,9 @@ before anything is built.
 
 1. **The time-zone database on the server** (03 §5.2): ICU4X 2.x has no
    transition rules, so named zones (including the visitor's zone from the
-   cookie, 03 §6) need a tz database beside it. Needed before A6's zone work.
+   cookie, 03 §6) need a tz database beside it. **Decided (owner,
+   2026-09-21): `jiff` with its bundled IANA database**, in `mf2-host-std`
+   behind `Host::zone_offset` (03 §2.7).
 2. Unchanged: the remote host (the CI `runs-on` label); the spec license
    (#1112); B5/B9 restatements; whether the D1 gate runs on every push.
 3. **If A10 cannot bring select within 1.5× P0.8**, keep the figure as

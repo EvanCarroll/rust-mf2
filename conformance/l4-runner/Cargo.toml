@@ -8,6 +8,9 @@ publish.workspace = true
 
 [dependencies]
 mf2-catalog.workspace = true
+# :datetime, :date, :time and unannotated dates (Phase 4, A5), over the neutral
+# backend until A6 brings datetime-icu.
+mf2-fn-datetime.workspace = true
 mf2-host-std.workspace = true
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true

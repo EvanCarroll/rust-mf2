@@ -234,7 +234,8 @@ fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
     // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 — but for
-    // the xfails due at P4 (five function files and syntax.json #90) — so the
+    // the xfails due at P4 (functions/{percent,currency}.json and syntax.json
+    // #90; the date/time files pass since P4's A5) — so the
     // committed ledger is green at P1, P2 and P3; at P4 the L4 and L4d xfails
     // are overdue.
     for phase in [Phase::P1, Phase::P2, Phase::P3] {
@@ -251,7 +252,7 @@ fn until_at_or_before_current_phase_is_red() {
             )
         }
     };
-    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 46);
+    assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 26);
     assert!(v.iter().any(is_overdue(Column::L4d)));
     assert!(
         v.iter()

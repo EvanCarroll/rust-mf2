@@ -193,6 +193,14 @@ fn format_head(case: &Case, slots: &[String]) -> Vec<u8> {
                 push_text(&mut one, d);
             }
             Some(ArgSpec::Other) => one.push(4),
+            // The target has no date/time argument (yet, plans/11 A9): its
+            // literal text, which the date/time functions parse alike.
+            Some(ArgSpec::DateTime(d)) => {
+                one.push(0);
+                let mut iso = String::new();
+                d.write_iso(&mut iso);
+                push_text(&mut one, &iso);
+            }
             None => one.push(5),
         }
         if args.len() + one.len() > usize::from(u8::MAX) {

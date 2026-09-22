@@ -20,10 +20,11 @@ use crate::value::Value;
 /// asks the same handler, for that value, whether and how it formats, its
 /// direction, and whether and how it selects.
 pub trait Function: Sync {
-    /// Function resolution (formatting.md): `operand` resolved — never a
-    /// fallback value, which the runtime reports as *Bad Operand* itself —
-    /// and `options` resolved with `u:id`/`u:dir` removed. `None` makes the
-    /// expression a fallback value; the handler has reported why.
+    /// Function resolution (formatting.md): `operand` resolved — a
+    /// [`Value::Fallback`] when it failed to resolve, so the handler decides
+    /// (`plans/03-runtime.md` §2.6) — and `options` resolved with
+    /// `u:id`/`u:dir` removed. `None` makes the expression a fallback value;
+    /// the handler has reported why.
     fn resolve<'a>(
         &self,
         cx: &FnContext<'_>,

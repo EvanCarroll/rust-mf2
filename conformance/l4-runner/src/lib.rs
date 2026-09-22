@@ -20,12 +20,15 @@ use std::fmt::Write as _;
 use mf2_catalog::{Catalog, Entry};
 use mf2_runtime::functions::{INTEGER, NUMBER, OFFSET, STRING};
 use mf2_runtime::{
-    Arg, BidiStrategy, CustomValue, Dir, FormatContext, FormatError, Formatter, Function, Host,
-    MarkupKind, MsgId, Part, PartSink, Registry, SubPartSink, Value,
+    Arg, BidiStrategy, CustomValue, Date, DateTime, Dir, FormatContext, FormatError, Formatter,
+    Function, Host, MarkupKind, MsgId, Part, PartSink, Registry, SubPartSink, Time, Value,
 };
 
-/// The handlers L4 formats with: the core functions and the test functions.
-pub static FUNCTIONS: [(&str, &dyn Function); 7] = [
+/// The handlers L4 formats with: the core functions, the date/time
+/// functions and the test functions.
+pub static FUNCTIONS: [(&str, &dyn Function); 10] = [
+    ("date", &mf2_fn_datetime::DATE),
+    ("datetime", &mf2_fn_datetime::DATETIME),
     ("integer", &INTEGER),
     ("number", &NUMBER),
     ("offset", &OFFSET),
@@ -33,10 +36,12 @@ pub static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("test:format", &test_functions::FORMAT),
     ("test:function", &test_functions::FUNCTION),
     ("test:select", &test_functions::SELECT),
+    ("time", &mf2_fn_datetime::TIME),
 ];
 
-/// The registry over [`FUNCTIONS`].
-pub static REGISTRY: Registry = Registry::new(&FUNCTIONS);
+/// The registry over [`FUNCTIONS`], formatting unannotated date/time values
+/// as `:datetime`.
+pub static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
 
 static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::HOST);
 
@@ -61,6 +66,10 @@ pub enum ArgSpec {
     /// An exact decimal as text ([`Arg::Decimal`]; generated input only —
     /// the suite has none).
     Decimal(String),
+    /// A date/time ([`Arg::DateTime`]): the suite's `{"type": "datetime"}`
+    /// parameters ([`ArgSpec::date_time`]). No zone name (the bundle
+    /// carries none).
+    DateTime(DateTime<'static>),
     /// A value no core function takes (a boolean, an object, …).
     Other,
 }
@@ -73,12 +82,20 @@ impl CustomValue for Opaque {}
 static OPAQUE: Opaque = Opaque;
 
 impl ArgSpec {
+    /// A typed `datetime` parameter: its value parsed as a date/time literal
+    /// (`mf2_fn_datetime::parse_literal`); a value that is not one is
+    /// [`ArgSpec::Other`].
+    pub fn date_time(value: &str) -> ArgSpec {
+        mf2_fn_datetime::parse_literal(value).map_or(ArgSpec::Other, ArgSpec::DateTime)
+    }
+
     fn arg(&self) -> Arg<'_> {
         match self {
             ArgSpec::Str(s) => Arg::Str(s),
             ArgSpec::Int(n) => Arg::Int(*n),
             ArgSpec::Float(x) => Arg::Float(*x),
             ArgSpec::Decimal(d) => Arg::Decimal(d),
+            ArgSpec::DateTime(d) => Arg::DateTime(d),
             ArgSpec::Other => Arg::Custom(&OPAQUE),
         }
     }
@@ -401,10 +418,31 @@ pub fn encode_cases(cases: &[Case]) -> Vec<u8> {
                     out.push(4);
                     put_bytes(&mut out, d.as_bytes());
                 }
+                ArgSpec::DateTime(d) => {
+                    out.push(5);
+                    put_date_time(&mut out, d);
+                }
             }
         }
     }
     out
+}
+
+/// A date/time's fields: year, month, day, hour, minute, second,
+/// millisecond, then the offset (a flag and seconds). The zone is not
+/// carried.
+fn put_date_time(out: &mut Vec<u8>, d: &DateTime<'_>) {
+    out.extend_from_slice(&d.date.year().to_le_bytes());
+    out.extend_from_slice(&[
+        d.date.month(),
+        d.date.day(),
+        d.time.hour(),
+        d.time.minute(),
+        d.time.second(),
+    ]);
+    out.extend_from_slice(&d.time.millisecond().to_le_bytes());
+    out.push(u8::from(d.offset.is_some()));
+    out.extend_from_slice(&d.offset.unwrap_or(0).to_le_bytes());
 }
 
 struct Reader<'b> {
@@ -435,6 +473,28 @@ impl<'b> Reader<'b> {
         let mut a = [0u8; 8];
         a.copy_from_slice(b);
         Ok(u64::from_le_bytes(a))
+    }
+
+    fn i32(&mut self) -> Result<i32, String> {
+        Ok(i32::from_le_bytes(self.u32()?.to_le_bytes()))
+    }
+
+    fn date_time(&mut self) -> Result<DateTime<'static>, String> {
+        let bad = || String::from("bad date/time in bundle");
+        let year = self.i32()?;
+        let f = self.take(5)?;
+        let ms = self.take(2)?;
+        let has_offset = self.u8()? == 1;
+        let offset = self.i32()?;
+        let date = Date::new(year, f[0], f[1]).ok_or_else(bad)?;
+        let time =
+            Time::new(f[2], f[3], f[4], u16::from_le_bytes([ms[0], ms[1]])).ok_or_else(bad)?;
+        let d = DateTime::floating(date, time);
+        if has_offset {
+            d.with_offset(offset).ok_or_else(bad)
+        } else {
+            Ok(d)
+        }
     }
 
     fn bytes(&mut self) -> Result<&'b [u8], String> {
@@ -470,6 +530,7 @@ pub fn decode_cases(b: &[u8]) -> Result<Vec<Case>, String> {
                 1 => ArgSpec::Int(i64::from_le_bytes(r.u64()?.to_le_bytes())),
                 2 => ArgSpec::Float(f64::from_bits(r.u64()?)),
                 4 => ArgSpec::Decimal(r.string()?),
+                5 => ArgSpec::DateTime(r.date_time()?),
                 _ => ArgSpec::Other,
             };
             args.push((name, arg));
@@ -483,4 +544,41 @@ pub fn decode_cases(b: &[u8]) -> Result<Vec<Case>, String> {
         });
     }
     Ok(cases)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bundle_round_trip() {
+        let far = DateTime::floating(
+            mf2_runtime::Date::new(-44, 3, 15).unwrap(),
+            mf2_runtime::Time::new(9, 5, 0, 7).unwrap(),
+        )
+        .with_offset(-(5 * 3600 + 30 * 60))
+        .unwrap();
+        let cases = vec![Case {
+            id: "t#0".into(),
+            catalog: vec![1, 2, 3],
+            manifest_hash: 42,
+            bidi: BidiStrategy::None,
+            args: vec![
+                ("s".into(), ArgSpec::Str("x".into())),
+                ("i".into(), ArgSpec::Int(-7)),
+                ("f".into(), ArgSpec::Float(1.5)),
+                ("d".into(), ArgSpec::Decimal("1.50".into())),
+                (
+                    "a".into(),
+                    ArgSpec::date_time("2006-01-02T15:04:06.25+01:00"),
+                ),
+                ("b".into(), ArgSpec::date_time("2006-01-02")),
+                ("c".into(), ArgSpec::DateTime(far)),
+                ("o".into(), ArgSpec::Other),
+            ],
+        }];
+        assert!(matches!(cases[0].args[4].1, ArgSpec::DateTime(_)));
+        assert_eq!(ArgSpec::date_time("2006-02-30"), ArgSpec::Other);
+        assert_eq!(decode_cases(&encode_cases(&cases)).unwrap(), cases);
+    }
 }

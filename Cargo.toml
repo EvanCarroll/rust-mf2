@@ -5,6 +5,7 @@ members = [
     "crates/mf2-syntax",
     "crates/mf2-catalog",
     "crates/mf2-runtime",
+    "crates/mf2-fn-datetime",
     "crates/mf2-locale-data",
     "crates/mf2-host-std",
     "crates/mf2-host-web",
@@ -36,6 +37,7 @@ thiserror = { version = "2.0.20", default-features = false }
 mf2 = { path = "crates/mf2" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-conformance = { path = "conformance" }
+mf2-fn-datetime = { path = "crates/mf2-fn-datetime" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-host-std = { path = "crates/mf2-host-std" }
 mf2-host-web = { path = "crates/mf2-host-web" }

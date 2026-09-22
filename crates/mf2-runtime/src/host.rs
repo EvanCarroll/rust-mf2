@@ -25,8 +25,9 @@ pub trait Host: Sync {
     /// The UTC offset, in seconds east, of the IANA time zone `zone` at the
     /// instant `epoch_ms` (milliseconds since the epoch). `None`: the host
     /// has no zone data, or knows no such zone (the default) — a date/time
-    /// function then reports *Unsupported Operation* where it must convert
-    /// to a named zone.
+    /// function that must convert an instant to a named zone then reports
+    /// *Bad Option* and a fallback value (datetime.md allows it; a wall time
+    /// in the wrong zone would be worse).
     fn zone_offset(&self, zone: &str, epoch_ms: i64) -> Option<i32> {
         let _ = (zone, epoch_ms);
         None
