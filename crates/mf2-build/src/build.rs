@@ -13,6 +13,7 @@ use mf2_catalog::{Dir, Manifest};
 use mf2_model::Message;
 
 use crate::catalog::{self, Catalog, Filler};
+use crate::codegen;
 use crate::config::{Config, Layout};
 use crate::corpus::{self, LocaleSource};
 use crate::error::{Error, Result};
@@ -35,6 +36,7 @@ pub struct Build {
     config: Option<Config>,
     features: Option<Features>,
     source_locale: Option<String>,
+    facade: String,
     write: bool,
     emit_cargo: bool,
 }
@@ -72,6 +74,8 @@ pub struct Outcome {
     pub written: Vec<PathBuf>,
     /// Old catalogs removed.
     pub removed: Vec<PathBuf>,
+    /// The generated Rust module's source.
+    pub generated: String,
     /// Where the outputs went.
     pub out_dir: PathBuf,
 }
@@ -128,6 +132,7 @@ impl Build {
             config: None,
             features: None,
             source_locale: None,
+            facade: "::mf2".to_owned(),
             write: true,
             emit_cargo: false,
         }
@@ -151,6 +156,14 @@ impl Build {
     #[must_use]
     pub fn features(mut self, features: Features) -> Build {
         self.features = Some(features);
+        self
+    }
+
+    /// The crate path the generated module re-exports as `__mf2`
+    /// (`::mf2`). A test with a stub facade names its own.
+    #[must_use]
+    pub fn facade(mut self, path: impl Into<String>) -> Build {
+        self.facade = path.into();
         self
     }
 
@@ -308,6 +321,19 @@ impl Build {
             catalogs.push(catalog);
         }
 
+        let unannotated = catalogs.iter().any(|c| c.slice.unannotated);
+        let generated = codegen::write(&codegen::Module {
+            facade: &self.facade,
+            manifest_path: &self.out_dir.join(MANIFEST_FILE),
+            manifest_hash: built.manifest.hash(),
+            source_locale: &config.source_locale,
+            locales: &locales,
+            functions: &built.manifest.functions,
+            custom: &config.functions,
+            features,
+            unannotated,
+            messages: built.manifest.ids.len(),
+        });
         let mut outcome = Outcome {
             manifest_hash: built.manifest.hash(),
             manifest: built.manifest,
@@ -317,6 +343,7 @@ impl Build {
             source_locale: config.source_locale.clone(),
             written: Vec::new(),
             removed: Vec::new(),
+            generated,
             out_dir: self.out_dir.clone(),
         };
         // A corpus with errors comes back with its report, not as an
@@ -334,6 +361,10 @@ impl Build {
         let manifest_path = self.out_dir.join(MANIFEST_FILE);
         if catalog::write_if_changed(&manifest_path, &outcome.manifest.write())? {
             outcome.written.push(manifest_path);
+        }
+        let generated_path = self.out_dir.join(GENERATED_FILE);
+        if catalog::write_if_changed(&generated_path, outcome.generated.as_bytes())? {
+            outcome.written.push(generated_path);
         }
         let mut keep = Vec::new();
         for catalog in &outcome.catalogs {

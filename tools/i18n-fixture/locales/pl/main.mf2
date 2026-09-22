@@ -1,0 +1,22 @@
+@locale pl
+---
+
+plain = Zapisz
+greeting = Czesc, {$name}!
+received = Masz ich {$count}
+
+items =
+  .input {$count :integer}
+  .match $count
+  one  {{{$count} rzecz}}
+  few  {{{$count} rzeczy}}
+  many {{{$count} rzeczy}}
+  *    {{{$count} rzeczy}}
+
+help = Nacisnij {#kbd}Esc{/kbd}, aby zamknac
+
+[account]
+name = Nazwa
+
+[canary]
+text = ZQ7-FIXTURE-CANARY-PL

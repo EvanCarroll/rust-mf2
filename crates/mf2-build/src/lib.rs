@@ -33,6 +33,7 @@
 //! | [`check`] | the lints themselves |
 //! | [`slice`] | the locale data a corpus needs |
 //! | [`catalog`] | one catalog per locale: fallbacks, compression, content hashes |
+//! | [`codegen`] | the generated Rust module |
 //! | [`build`] | [`Build`], which runs all of it |
 
 #![forbid(unsafe_code)]
@@ -44,6 +45,7 @@
 pub mod build;
 pub mod catalog;
 pub mod check;
+pub mod codegen;
 pub mod config;
 pub mod corpus;
 mod error;

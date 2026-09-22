@@ -1,0 +1,31 @@
+# The fixture corpus: one message per shape the generated module has to
+# serve, using core functions only, so that every feature combination of the
+# facade builds from the same locales.
+@locale en
+---
+
+plain = Save
+greeting = Hello, {$name}!
+
+# An unannotated placeholder: at run time it can receive a number or a date,
+# which is what puts the unannotated hooks in the registry (#90).
+received = You have {$count} of them
+
+# `:integer` and a plural selector.
+items =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} item}}
+  *   {{{$count} items}}
+
+# Markup: the handler a call site has to supply.
+help = Press {#kbd}Esc{/kbd} to close
+
+[account]
+name = Name
+
+# The B6 canary: `cargo xtask codegen-matrix` greps the client build for this
+# text, for the catalog names and for their content hashes. Any hit means
+# message text reached the wasm.
+[canary]
+text = ZQ7-FIXTURE-CANARY-EN

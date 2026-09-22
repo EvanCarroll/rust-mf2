@@ -1,0 +1,33 @@
+# An i18n crate exactly as an application would write one (plans/05-tooling.md
+# §4), so that the module `mf2-build` generates is compiled — for the server
+# and for the client, in every feature combination of the facade — by an
+# ordinary `cargo check` of the workspace. `cargo xtask codegen-matrix` runs
+# the combinations, including `wasm32-unknown-unknown`.
+[package]
+name = "mf2-i18n-fixture"
+description = "A fixture i18n crate: the generated module, compiled for every feature combination of the facade."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# `ssr` by default so that a plain workspace build compiles the server side.
+default = ["ssr"]
+# What an application forwards from its own `ssr` / `hydrate` builds.
+ssr = ["mf2/host-std"]
+hydrate = ["mf2/host-web"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["mf2/datetime-icu", "mf2-build/icu-blob"]
+datetime-intl = ["mf2/datetime-intl"]
+intl = ["mf2/intl"]
+
+[dependencies]
+mf2.workspace = true
+
+[build-dependencies]
+mf2-build.workspace = true
+
+[lints]
+workspace = true

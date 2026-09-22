@@ -1,0 +1,7 @@
+# A right-to-left locale, so the generated locale table has both directions.
+# Only some messages are translated: the rest fall back to the source.
+@locale ar
+---
+
+plain = Save
+greeting = Hello, {$name}!

@@ -1,0 +1,18 @@
+source_locale = "en"
+
+[catalog]
+strip = ["cold", "ids"]
+missing = "fallback"
+
+[locale_data]
+currencies = "used"
+units = "used"
+
+[lints]
+# The fixture translates `ar` only in part on purpose, to exercise the
+# fallback path.
+missing-translation = "allow"
+# `ar` has six plural categories and this corpus does not spell them out.
+missing-plural-category = "allow"
+# The fixture is built with and without `fn-number` on purpose.
+neutral-numbers = "allow"

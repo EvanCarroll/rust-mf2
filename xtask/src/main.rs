@@ -6,6 +6,7 @@
 mod ci;
 mod cldr_sync;
 mod cmd;
+mod codegen_matrix;
 mod error;
 mod fsx;
 mod fuzz_seed;
@@ -98,6 +99,14 @@ enum Command {
     Goldens,
     /// Run locally exactly what CI runs: fmt, clippy, tests, conformance report.
     Ci,
+    /// Compile the module `mf2-build` generates (tools/i18n-fixture) in every
+    /// feature combination of the facade, for the server and for
+    /// wasm32-unknown-unknown (Phase 5a, A5).
+    CodegenMatrix {
+        /// Only the first two combinations of each side.
+        #[arg(long)]
+        quick: bool,
+    },
     /// Size gate (Phase 5; not implemented yet).
     Size,
     /// Write the seed corpora of the fuzz targets: `parse` (fuzz/corpus/parse/:
@@ -170,6 +179,7 @@ fn run(command: Command) -> Result<()> {
             }
             l4_web::run(&root, &engines, !no_run)
         }
+        Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

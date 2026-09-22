@@ -15,6 +15,9 @@ use crate::config::LocaleDataConfig;
 use crate::features::Features;
 
 /// What one locale's catalog must carry, and what `check` noticed on the way.
+// Each flag is an independent fact about the corpus, and each selects its own
+// part of the entries; grouping them would only hide that.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Default)]
 pub struct Slice {
     /// What the date functions need of ICU4X, when `datetime-icu` is on.
@@ -31,6 +34,10 @@ pub struct Slice {
     /// placeholder that can receive one. Without `fn-number` that is the
     /// `neutral-numbers` warning; with it, the reason for `number.symbols`.
     pub formats_numbers: bool,
+    /// The corpus has a placeholder with no function at all, which can
+    /// therefore receive a number or a date at run time. Only then do the
+    /// unannotated hooks belong in the registry (#90).
+    pub unannotated: bool,
 }
 
 /// What `messages` need of `locale`'s data.
@@ -149,7 +156,8 @@ pub(crate) fn selector_function<'m>(
     }
 }
 
-/// Notes a `:currency` or `:unit` whose set the build could not narrow.
+/// Notes a `:currency` or `:unit` whose set the build could not narrow, and
+/// a placeholder with no function at all.
 fn scan_dynamic(message: &Message<'_>, slice: &mut Slice) {
     let mut note = |function: Option<&FunctionRef<'_>>| {
         let Some(function) = function else { return };
@@ -178,6 +186,9 @@ fn scan_dynamic(message: &Message<'_>, slice: &mut Slice) {
         for part in pattern {
             if let mf2_model::PatternPart::Expression(e) = part {
                 note(e.function());
+                if e.function().is_none() && matches!(e, Expression::Variable(_)) {
+                    slice.unannotated = true;
+                }
             }
         }
     }
