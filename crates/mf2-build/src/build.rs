@@ -1,0 +1,453 @@
+//! The entry point: everything a `build.rs` (or `mf2-cli`) does, in order.
+//!
+//! ```no_run
+//! # fn main() -> Result<(), mf2_build::Error> {
+//! mf2_build::Build::new()?.source_locale("en").run()?;
+//! # Ok(()) }
+//! ```
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
+
+use mf2_catalog::{Dir, Manifest};
+use mf2_model::Message;
+
+use crate::catalog::{self, Catalog, Filler};
+use crate::config::{Config, Layout};
+use crate::corpus::{self, LocaleSource};
+use crate::error::{Error, Result};
+use crate::features::Features;
+use crate::lint::{Level, Lint};
+use crate::manifest;
+use crate::report::{Report, Sink};
+use crate::slice;
+
+/// The manifest's file name in `OUT_DIR` (`plans/02-catalog-format.md` §5).
+pub const MANIFEST_FILE: &str = "manifest.mf2m";
+/// The generated module's file name in `OUT_DIR`.
+pub const GENERATED_FILE: &str = "mf2_generated.rs";
+
+/// A build, configured.
+#[derive(Debug)]
+pub struct Build {
+    root: PathBuf,
+    out_dir: PathBuf,
+    config: Option<Config>,
+    features: Option<Features>,
+    source_locale: Option<String>,
+    write: bool,
+    emit_cargo: bool,
+}
+
+/// One locale in the built corpus.
+#[derive(Clone, Debug)]
+pub struct LocaleInfo {
+    /// The BCP 47 tag.
+    pub tag: String,
+    /// Its base direction.
+    pub dir: Dir,
+    /// The content hash of its catalog.
+    pub hash: String,
+    /// The file name the server publishes.
+    pub file_name: String,
+}
+
+/// What a build produced.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct Outcome {
+    /// The manifest, from the source locale.
+    pub manifest: Manifest,
+    /// Its hash — what the wasm and every catalog agree on.
+    pub manifest_hash: u64,
+    /// Everything the build has to say.
+    pub report: Report,
+    /// One catalog per locale, in tag order.
+    pub catalogs: Vec<Catalog>,
+    /// The locale table the generated module carries.
+    pub locales: Vec<LocaleInfo>,
+    /// The source locale.
+    pub source_locale: String,
+    /// The files whose bytes changed (and were written).
+    pub written: Vec<PathBuf>,
+    /// Old catalogs removed.
+    pub removed: Vec<PathBuf>,
+    /// Where the outputs went.
+    pub out_dir: PathBuf,
+}
+
+impl Outcome {
+    /// The catalog of `tag`.
+    pub fn catalog(&self, tag: &str) -> Option<&Catalog> {
+        self.catalogs.iter().find(|c| c.tag == tag)
+    }
+
+    /// Whether the corpus had no errors.
+    pub fn is_clean(&self) -> bool {
+        self.report.is_clean()
+    }
+
+    /// The outcome if the corpus was clean, else the error a build script
+    /// fails with — the report is printed before it, as warnings and errors.
+    pub fn into_result(self) -> Result<Outcome> {
+        if self.report.is_clean() {
+            return Ok(self);
+        }
+        Err(Error::Corpus {
+            errors: self.report.errors(),
+            locales: self.report.failing_locales().len(),
+        })
+    }
+}
+
+impl Build {
+    /// A build of the crate cargo is compiling: `CARGO_MANIFEST_DIR` for the
+    /// corpus, `OUT_DIR` for the outputs.
+    pub fn new() -> Result<Build> {
+        let root = std::env::var_os("CARGO_MANIFEST_DIR").ok_or_else(|| {
+            Error::Layout(
+                "CARGO_MANIFEST_DIR is not set: outside a build script, use \
+                 Build::at(root, out_dir)"
+                    .to_owned(),
+            )
+        })?;
+        let out_dir = std::env::var_os("OUT_DIR").ok_or_else(|| {
+            Error::Layout(
+                "OUT_DIR is not set: outside a build script, use Build::at(root, out_dir)"
+                    .to_owned(),
+            )
+        })?;
+        Ok(Build::at(root, out_dir))
+    }
+
+    /// A build of the corpus at `root`, writing to `out_dir`.
+    pub fn at(root: impl Into<PathBuf>, out_dir: impl Into<PathBuf>) -> Build {
+        Build {
+            root: root.into(),
+            out_dir: out_dir.into(),
+            config: None,
+            features: None,
+            source_locale: None,
+            write: true,
+            emit_cargo: false,
+        }
+    }
+
+    /// Overrides `mf2.toml`'s `source_locale`.
+    #[must_use]
+    pub fn source_locale(mut self, locale: impl Into<String>) -> Build {
+        self.source_locale = Some(locale.into());
+        self
+    }
+
+    /// Uses this configuration instead of reading `mf2.toml`.
+    #[must_use]
+    pub fn config(mut self, config: Config) -> Build {
+        self.config = Some(config);
+        self
+    }
+
+    /// Uses this feature set instead of reading `CARGO_FEATURE_*`.
+    #[must_use]
+    pub fn features(mut self, features: Features) -> Build {
+        self.features = Some(features);
+        self
+    }
+
+    /// Prints `cargo::rerun-if-changed` and `cargo::warning` lines.
+    #[must_use]
+    pub fn emit_cargo(mut self, emit: bool) -> Build {
+        self.emit_cargo = emit;
+        self
+    }
+
+    /// Runs the whole pipeline and writes the outputs.
+    pub fn run(self) -> Result<Outcome> {
+        self.go(true)
+    }
+
+    /// Runs everything but writes nothing — `mf2 check`.
+    pub fn check(self) -> Result<Outcome> {
+        self.go(false)
+    }
+
+    fn go(mut self, write: bool) -> Result<Outcome> {
+        self.write = write;
+        let layout = Layout::new(&self.root);
+        let mut config = match self.config.take() {
+            Some(config) => config,
+            None => Config::load(&self.root)?,
+        };
+        if let Some(locale) = &self.source_locale {
+            config.source_locale.clone_from(locale);
+        }
+        let features = match self.features.take() {
+            Some(features) => features,
+            None => Features::from_env(),
+        };
+        if self.emit_cargo {
+            println!("cargo::rerun-if-changed={}", layout.locales.display());
+            println!(
+                "cargo::rerun-if-changed={}",
+                self.root.join(crate::config::FILE_NAME).display()
+            );
+        }
+        let outcome = self.corpus(&layout, &config, &features)?;
+        if self.emit_cargo {
+            print!("{}", outcome.report.to_cargo_warnings());
+        }
+        Ok(outcome)
+    }
+
+    fn corpus(&self, layout: &Layout, config: &Config, features: &Features) -> Result<Outcome> {
+        let mut report = Report::new();
+        let tags = layout.locales()?;
+        if !tags.contains(&config.source_locale) {
+            return Err(Error::Layout(format!(
+                "the source locale {:?} is not among the locales in {} ({})",
+                config.source_locale,
+                layout.locales.display(),
+                tags.join(", ")
+            )));
+        }
+        let sources = corpus::load(&layout.locales, &tags, config, &mut report)?;
+        let models: Vec<Vec<Option<Message<'_>>>> = sources
+            .iter()
+            .map(|source| corpus::parse(source, &mut report))
+            .collect();
+        let indexes: Vec<BTreeMap<&str, usize>> = sources
+            .iter()
+            .map(|source| corpus::by_id(source, config, &mut report))
+            .collect();
+
+        let source_index = tags
+            .iter()
+            .position(|t| *t == config.source_locale)
+            .expect("checked above");
+        let mut functions = BTreeSet::new();
+        for locale_models in &models {
+            manifest::functions_of(locale_models, &mut functions);
+        }
+        let built = manifest::build(
+            &sources[source_index],
+            &models[source_index],
+            &indexes[source_index],
+            &functions,
+        );
+        ids_of_translations(
+            &sources,
+            &indexes,
+            source_index,
+            &built.manifest.ids,
+            config,
+            &mut report,
+        );
+        crate::check::corpus(
+            &crate::check::Corpus {
+                sources: &sources,
+                models: &models,
+                indexes: &indexes,
+                source_index,
+                manifest: &built,
+            },
+            config,
+            features,
+            &mut report,
+        );
+
+        // Per locale, the models in `MsgId` order, then the fallback chain.
+        let by_msg_id: Vec<Vec<Option<&Message<'_>>>> = (0..tags.len())
+            .map(|locale| {
+                built
+                    .manifest
+                    .ids
+                    .iter()
+                    .map(|id| {
+                        indexes[locale]
+                            .get(id.as_str())
+                            .and_then(|&record| models[locale].get(record))
+                            .and_then(Option::as_ref)
+                    })
+                    .collect()
+            })
+            .collect();
+
+        let filler = Filler::new(&built.manifest.ids, config.catalog.missing);
+        let mut catalogs = Vec::with_capacity(tags.len());
+        let mut locales = Vec::with_capacity(tags.len());
+        for (i, tag) in tags.iter().enumerate() {
+            let chain_tags = config.chain(tag);
+            let chain: Vec<&[Option<&Message<'_>>]> = chain_tags
+                .iter()
+                .filter_map(|t| tags.iter().position(|x| x == t))
+                .map(|j| by_msg_id[j].as_slice())
+                .collect();
+            let chain_tags: Vec<String> = chain_tags
+                .into_iter()
+                .filter(|t| tags.iter().any(|x| x == t))
+                .collect();
+            let resolved = catalog::resolve(
+                &built.manifest.ids,
+                &by_msg_id[i],
+                &chain,
+                config.catalog.missing,
+                &filler,
+            );
+            let flattened: Vec<&Message<'_>> =
+                resolved.messages.iter().flatten().copied().collect();
+            let slice = slice::of(&flattened, &config.locale_data, features);
+            report_slicing(tag, &slice, features, config, &sources[i], &mut report);
+            let catalog =
+                catalog::write(tag, &built.manifest, &resolved, &chain_tags, slice, config)?;
+            locales.push(LocaleInfo {
+                tag: tag.clone(),
+                dir: catalog::dir_of(tag)?,
+                hash: catalog.hash.clone(),
+                file_name: catalog.file_name(),
+            });
+            catalogs.push(catalog);
+        }
+
+        let mut outcome = Outcome {
+            manifest_hash: built.manifest.hash(),
+            manifest: built.manifest,
+            report,
+            catalogs,
+            locales,
+            source_locale: config.source_locale.clone(),
+            written: Vec::new(),
+            removed: Vec::new(),
+            out_dir: self.out_dir.clone(),
+        };
+        // A corpus with errors comes back with its report, not as an
+        // `Err`: the caller prints it. Nothing is written until it is clean.
+        if self.write && outcome.report.is_clean() {
+            self.emit(&mut outcome)?;
+        }
+        Ok(outcome)
+    }
+
+    /// Writes the manifest and the catalogs, each only when its bytes change.
+    fn emit(&self, outcome: &mut Outcome) -> Result<()> {
+        std::fs::create_dir_all(&self.out_dir)
+            .map_err(|source| Error::io(self.out_dir.clone(), source))?;
+        let manifest_path = self.out_dir.join(MANIFEST_FILE);
+        if catalog::write_if_changed(&manifest_path, &outcome.manifest.write())? {
+            outcome.written.push(manifest_path);
+        }
+        let mut keep = Vec::new();
+        for catalog in &outcome.catalogs {
+            let base = self.out_dir.join(catalog.file_name());
+            for (path, bytes) in [
+                (base.clone(), &catalog.bytes),
+                (with_suffix(&base, ".br"), &catalog.br),
+                (with_suffix(&base, ".gz"), &catalog.gz),
+            ] {
+                if catalog::write_if_changed(&path, bytes)? {
+                    outcome.written.push(path.clone());
+                }
+                keep.push(path);
+            }
+        }
+        outcome.removed = catalog::remove_stale(&self.out_dir, &keep)?;
+        Ok(())
+    }
+}
+
+fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
+    let mut name = path.as_os_str().to_os_string();
+    name.push(suffix);
+    PathBuf::from(name)
+}
+
+/// An id a translation has and the source locale does not would be dropped
+/// without a word, so it is an error (`plans/05-tooling.md` §5).
+fn ids_of_translations(
+    sources: &[LocaleSource],
+    indexes: &[BTreeMap<&str, usize>],
+    source_index: usize,
+    ids: &[String],
+    config: &Config,
+    report: &mut Report,
+) {
+    let known: BTreeSet<&str> = ids.iter().map(String::as_str).collect();
+    for (i, source) in sources.iter().enumerate() {
+        if i == source_index {
+            continue;
+        }
+        let mut sink = Sink::new(report, &source.tag);
+        for (id, &record) in &indexes[i] {
+            if known.contains(id) {
+                continue;
+            }
+            let record = &source.loaded.records[record];
+            let file = &source.loaded.files[record.file];
+            sink.add(
+                config.level(Lint::ExtraId),
+                Some(Lint::ExtraId),
+                &file.path,
+                file.position(record.id_span.start),
+                Some(id),
+                format!(
+                    "the source locale {:?} has no message with this id",
+                    sources[source_index].tag
+                ),
+            );
+        }
+    }
+}
+
+/// What slicing noticed: numbers without `fn-number`, and a currency or unit
+/// set the build could not narrow.
+fn report_slicing(
+    tag: &str,
+    slice: &slice::Slice,
+    features: &Features,
+    config: &Config,
+    source: &LocaleSource,
+    report: &mut Report,
+) {
+    let file = source
+        .loaded
+        .files
+        .first()
+        .map_or_else(|| source.path.clone(), |f| f.path.clone());
+    let at = mf2_resource::Position { line: 1, column: 1 };
+    let mut sink = Sink::new(report, tag);
+    if slice.formats_numbers && !features.fn_number() {
+        sink.add(
+            config.level(Lint::NeutralNumbers),
+            Some(Lint::NeutralNumbers),
+            &file,
+            at,
+            None,
+            "this locale formats numbers but `fn-number` is off, so digits \
+             render without the locale's symbols, grouping or numbering system",
+        );
+    }
+    if slice.dynamic_currency {
+        sink.add(
+            config.level(Lint::DynamicCurrency),
+            Some(Lint::DynamicCurrency),
+            &file,
+            at,
+            None,
+            "a `:currency` takes its currency from a variable, so the catalog \
+             carries every currency CLDR has; listing the ones this application \
+             uses under [locale_data] currencies would cost far less",
+        );
+    }
+    if slice.dynamic_unit {
+        sink.add(
+            config.level(Lint::DynamicUnit),
+            Some(Lint::DynamicUnit),
+            &file,
+            at,
+            None,
+            "a `:unit` takes its unit from a variable, so the catalog carries \
+             every unit CLDR has; listing the ones this application uses under \
+             [locale_data] units would cost far less",
+        );
+    }
+    let _ = Level::Warn;
+}

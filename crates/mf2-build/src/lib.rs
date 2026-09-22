@@ -28,17 +28,36 @@
 //! | [`features`] | the client feature set, from `CARGO_FEATURE_*` or `--features` |
 //! | [`loader`] | a locale's files to records: `.mf2` resources or flat JSON |
 //! | [`lint`] | the names and levels of `mf2 check`'s lints |
+//! | [`corpus`] | reading and parsing every locale, with errors placed in their files |
+//! | [`manifest`] | ids → `MsgId`, slots, markup, functions, the hash |
+//! | [`check`] | the lints themselves |
+//! | [`slice`] | the locale data a corpus needs |
+//! | [`catalog`] | one catalog per locale: fallbacks, compression, content hashes |
+//! | [`build`] | [`Build`], which runs all of it |
 
 #![forbid(unsafe_code)]
+// `Error` carries a path and the error it wraps, which makes it wide. A build
+// returns one of these at most once per run, never in a loop, so keeping the
+// variants readable is worth more than the bytes.
+#![allow(clippy::result_large_err)]
 
+pub mod build;
+pub mod catalog;
+pub mod check;
 pub mod config;
+pub mod corpus;
 mod error;
 pub mod features;
 pub mod lint;
 pub mod loader;
+pub mod manifest;
+pub mod report;
+pub mod slice;
 
+pub use build::{Build, LocaleInfo, Outcome};
 pub use config::{CatalogConfig, Config, DataSet, Layout, LocaleDataConfig, Missing, Strip};
 pub use error::{Error, Result};
 pub use features::Features;
 pub use lint::{Level, Lint};
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};
+pub use report::{Diagnostic, Report};

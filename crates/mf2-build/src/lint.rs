@@ -7,10 +7,10 @@
 
 use std::fmt;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// What a lint does when it fires.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Level {
     /// Say nothing.
@@ -37,7 +37,7 @@ macro_rules! lints {
         $variant:ident = ($name:literal, $default:ident, $floor:ident);
     )*) => {
         /// One check `mf2 check` makes.
-        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize, Serialize)]
         #[serde(rename_all = "kebab-case")]
         #[non_exhaustive]
         pub enum Lint {
@@ -84,18 +84,30 @@ lints! {
     UndeclaredVariable = ("undeclared-variable", Error, Error);
     /// A translation uses a markup name the source message does not.
     UndeclaredMarkup = ("undeclared-markup", Error, Error);
-    /// A `select` option is not a literal, so the build cannot know what it
-    /// selects.
-    DynamicSelect = ("dynamic-select", Error, Error);
-    /// A well-known option has a literal value it cannot take.
-    BadOptionValue = ("bad-option-value", Error, Error);
+    /// A `select` option is not a literal, so nothing can tell which rules a
+    /// message selects by until it runs. An error by default: the catalog
+    /// then has to carry both plural rule sets, and the message reports a Bad
+    /// Option anyway. A corpus that means it may turn it down.
+    DynamicSelect = ("dynamic-select", Error, Allow);
+    /// A well-known option has a literal value it cannot take. An error by
+    /// default, though the runtime would report Bad Option on its own — the
+    /// suite has messages that do exactly that on purpose.
+    BadOptionValue = ("bad-option-value", Error, Allow);
     /// A function whose client feature is off — `:percent`, `:currency` and
     /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
     /// `fn-datetime`. A translation can never silently add formatting code to
     /// the wasm (`plans/03-runtime.md` §5.1).
     GatedFunction = ("gated-function", Error, Error);
     /// An entry marked `@do-not-translate` differs from the source's.
-    DoNotTranslate = ("do-not-translate", Error, Error);
+    DoNotTranslate = ("do-not-translate", Error, Allow);
+    /// Two entries of one locale have the same id, so one of them would be
+    /// silently dropped.
+    DuplicateId = ("duplicate-id", Error, Error);
+    /// A file declares an `@locale` other than the directory it sits in.
+    /// An error by default — it is nearly always a copy that was never
+    /// finished — but a corpus that keeps one locale's files under another
+    /// tag on purpose may turn it down.
+    LocaleMismatch = ("locale-mismatch", Error, Allow);
     /// A function no registered crate provides. An error by default and
     /// configurable, since custom functions are legal.
     UnknownFunction = ("unknown-function", Error, Allow);

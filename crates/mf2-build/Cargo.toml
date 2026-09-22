@@ -10,6 +10,7 @@ publish.workspace = true
 # The per-locale `icu.blob` of the `datetime-icu` backend; pulls ICU4X's baked
 # data crates into the build (plans/12 "What Phase 4 changes here").
 icu-blob = ["mf2-locale-data/icu-blob"]
+# The `icu.blob` entry keys live in the catalog format module.
 
 [dependencies]
 brotli.workspace = true
@@ -21,11 +22,14 @@ mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }
 serde_json.workspace = true
+sha2.workspace = true
+unicode-normalization = { workspace = true, features = ["std"] }
 thiserror = { workspace = true, features = ["std"] }
 toml.workspace = true
 
 [dev-dependencies]
 mf2-resource.workspace = true
+mf2-syntax.workspace = true
 workload-gen.workspace = true
 
 [lints]

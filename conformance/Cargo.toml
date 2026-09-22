@@ -31,6 +31,10 @@ toml.workspace = true
 unicode-normalization = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
+# Phase 5a A4's differential: the catalogs `mf2-build` writes for a one-message
+# corpus against `compile_str`'s, through L4's runner. A dev-dependency, so
+# nothing in the conformance library depends on the build pipeline.
+mf2-build = { workspace = true, features = ["icu-blob"] }
 # The differential oracle (plans/05-tooling.md §1): expected ⊆ reported.
 ox_mf2_parser.workspace = true
 
