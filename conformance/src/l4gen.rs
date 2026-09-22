@@ -21,6 +21,7 @@
 //! does not), so the runtime must format those without panicking too.
 
 use std::borrow::Cow;
+use std::collections::BTreeSet;
 
 use mf2_catalog::format::locale_key::ICU_BLOB;
 use mf2_catalog::writer::{self, Options as WriterOptions};
@@ -103,6 +104,7 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
         BidiStrategy::Default
     };
     let analysis = mf2_syntax::analyze(&model);
+    let dated = date_operands(&model);
     let mut args: Vec<(String, ArgSpec)> = Vec::new();
     for n in &analysis.externals {
         // Some left unset; the caller may spell a name in any normalization
@@ -111,7 +113,13 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
             continue;
         }
         let name = if r.chance(1, 2) { n.spelling } else { &n.nfc };
-        args.push((name.to_owned(), arg(&mut r)));
+        // A variable a date/time function takes is mostly given a date.
+        let value = if dated.contains(n.spelling) && r.chance(3, 4) {
+            date_arg(&mut r)
+        } else {
+            arg(&mut r)
+        };
+        args.push((name.to_owned(), value));
     }
     let slots: Vec<&str> = analysis.externals.iter().map(|n| &*n.nfc).collect();
     let mut options = WriterOptions::new(locale, direction(locale).map_err(|e| e.to_string())?);
@@ -128,7 +136,7 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
         .extend(number_locale_entries(locale, &needs).map_err(|e| e.to_string())?);
     // And the date data of the `datetime-icu` backend, as `compile_str`
     // writes it: what the message formats (02 §4.4). The same catalog with
-    // every shape's data — and both of the steering's other calendars —
+    // every shape's data — and each of the steering's other calendars —
     // must format alike: the slicing rule misses nothing.
     let mut dates = DateNeeds::default();
     dates.add_message(&model);
@@ -136,7 +144,7 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
     if !dates.is_empty() {
         let mut every = options.clone();
         let mut all = DateNeeds::all();
-        all.calendars = Selection::Listed(["buddhist", "japanese"].map(String::from).into());
+        all.calendars = Selection::Listed(STEERED_CALENDARS.map(String::from).into());
         every.locale_entries.push((
             ICU_BLOB,
             icu_blob(locale, &IcuBlobSpec::every_variant(all)).map_err(|e| e.to_string())?,
@@ -232,10 +240,14 @@ const STRINGS: [&str; 14] = [
 ];
 
 /// Date/time literal text, well-formed or not (Phase 4: `:datetime`,
-/// `:date`, `:time` operands, string and typed arguments).
-const DATES: [&str; 14] = [
+/// `:date`, `:time` operands, string and typed arguments) — among them two
+/// floating wall times New York skips and repeats (2021's daylight-saving
+/// changes), for the zone search.
+const DATES: [&str; 16] = [
     "2006-01-02",
     "2006-01-02T15:04:06",
+    "2021-03-14T02:30:00",
+    "2021-11-07T01:30:00",
     "2006-01-02T15:04:06Z",
     "2006-01-02T15:04:06.789+05:30",
     "2006-01-02T15:04:06-14:00",
@@ -250,14 +262,60 @@ const DATES: [&str; 14] = [
     "",
 ];
 
+/// A date/time argument: typed, or as text.
+fn date_arg(r: &mut Rng) -> ArgSpec {
+    let d = pick(r, &DATES);
+    if r.chance(1, 2) {
+        ArgSpec::date_time(d)
+    } else {
+        ArgSpec::Str(d.to_owned())
+    }
+}
+
+/// The variables `model` hands to a date/time function as its operand
+/// (as written).
+fn date_operands(model: &Message<'_>) -> BTreeSet<String> {
+    fn expression(e: &Expression<'_>, out: &mut BTreeSet<String>) {
+        if let Expression::Variable(v) = e
+            && v.function
+                .as_ref()
+                .is_some_and(|f| is_date_function(&f.name))
+        {
+            out.insert(v.arg.name.to_string());
+        }
+    }
+    let mut out = BTreeSet::new();
+    for d in model.declarations() {
+        match d {
+            Declaration::Input(i) => {
+                if i.value
+                    .function
+                    .as_ref()
+                    .is_some_and(|f| is_date_function(&f.name))
+                {
+                    out.insert(i.value.arg.name.to_string());
+                }
+            }
+            Declaration::Local(l) => expression(&l.value, &mut out),
+        }
+    }
+    let patterns: Vec<&Pattern<'_>> = match model {
+        Message::Pattern(p) => vec![&p.pattern],
+        Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+    };
+    for p in patterns {
+        for part in p.parts() {
+            if let PatternPart::Expression(e) = part {
+                expression(e, &mut out);
+            }
+        }
+    }
+    out
+}
+
 fn arg(r: &mut Rng) -> ArgSpec {
     if r.chance(1, 8) {
-        let d = pick(r, &DATES);
-        return if r.chance(1, 2) {
-            ArgSpec::date_time(d)
-        } else {
-            ArgSpec::Str(d.to_owned())
-        };
+        return date_arg(r);
     }
     match r.below(6) {
         0 | 1 => ArgSpec::Str(pick(r, &STRINGS).to_owned()),
@@ -312,6 +370,10 @@ const FUNCTION_NAMES: [Option<&str>; 18] = [
     Some("test:format"),
     None,
 ];
+
+/// The calendars the steering names besides `gregory` (kept in step with
+/// `fuzz/fuzz_targets/format.rs`).
+pub const STEERED_CALENDARS: [&str; 3] = ["buddhist", "hebrew", "japanese"];
 
 /// Whether `function` takes a date/time operand.
 fn is_date_function(function: &str) -> bool {
@@ -435,13 +497,19 @@ fn options_of(function: &str) -> &'static [(&'static str, &'static [&'static str
                 "+05:30",
                 "-14:00",
                 "America/New_York",
+                "Europe/Paris",
+                "Asia/Kathmandu",
+                "Australia/Lord_Howe",
                 "Etc/Unknown",
                 "25:00",
                 "x/",
             ],
         ),
         ("hour12", &["true", "false", "x"]),
-        ("calendar", &["gregory", "japanese", "buddhist", "x_y", "x"]),
+        (
+            "calendar",
+            &["gregory", "japanese", "buddhist", "hebrew", "x_y", "x"],
+        ),
         ("u:dir", &["ltr", "rtl", "auto"]),
     ];
     match function {
@@ -600,7 +668,9 @@ impl Steer<'_> {
                 }
                 if let Some(f) = &mut l.function {
                     self.function(f);
-                    if self.r.chance(1, 2) {
+                    // A date/time function mostly gets date/time text.
+                    let odds = if is_date_function(&f.name) { 3 } else { 2 };
+                    if self.r.chance(odds - 1, odds) {
                         l.arg = Literal {
                             value: Cow::Borrowed(self.operand(&f.name)),
                         };

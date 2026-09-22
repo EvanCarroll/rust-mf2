@@ -220,12 +220,15 @@ fn values(mut b: &[u8]) -> Vec<Value> {
 // ── source mode ──────────────────────────────────────────────────────────────
 
 /// Each of [`LOCALES`]' `icu.blob` with every shape's data, every
-/// variant, and the calendars the steering names (`buddhist`, `japanese`).
+/// variant, and the calendars the steering names (`buddhist`, `hebrew`,
+/// `japanese`).
 fn blobs() -> &'static [Vec<u8>] {
     static BLOBS: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
     BLOBS.get_or_init(|| {
         let mut all = DateNeeds::all();
-        all.calendars = Selection::Listed(["buddhist", "japanese"].map(String::from).into());
+        // `mf2_conformance::l4gen::STEERED_CALENDARS`'s.
+        all.calendars =
+            Selection::Listed(["buddhist", "hebrew", "japanese"].map(String::from).into());
         let spec = IcuBlobSpec::every_variant(all);
         LOCALES
             .iter()
