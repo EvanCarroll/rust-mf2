@@ -248,3 +248,106 @@ fn a_gated_function_is_a_build_rejection_in_the_default_configuration() {
     assert!(rejected > 10, "only {rejected} gated messages rejected");
     assert!(compared > 150, "only {compared} messages compared");
 }
+
+/// The ledger's L4d `degraded` cells and the build agree about what the
+/// default configuration cannot do (Phase 5a, A7).
+///
+/// `plans/01-conformance.md` §3 says a test that degrades in the default
+/// configuration must name how. Two of those kinds are the build's business,
+/// and this is where the two documents are held together:
+///
+/// * `unknown-function` — the message names a function only a feature
+///   provides, so `mf2-build` must **refuse** it with `gated-function`;
+/// * `neutral-numbers` — the message formats numbers without `fn-number`, so
+///   `mf2 check` must **warn** `neutral-numbers` (and still build).
+#[test]
+fn the_ledger_and_the_build_agree_on_the_default_configuration() {
+    use mf2_build::{Level, Lint};
+    use mf2_conformance::ledger::{Cell, DegradedKind};
+    use mf2_conformance::{Column, LEDGER_PATH, Ledger};
+
+    let root = repo_root();
+    let suite = mf2_conformance::load_suite(&root).expect("the suite");
+    let text = std::fs::read_to_string(root.join(LEDGER_PATH)).expect("the ledger");
+    let ledger = Ledger::parse(&text).expect("it parses");
+    let corpus_dir = out_dir("ledger-corpus");
+    let out = out_dir("ledger-out");
+
+    let mut gated = 0usize;
+    let mut neutral = 0usize;
+    let mut problems: Vec<String> = Vec::new();
+
+    for entry in &ledger.entries {
+        let Some(Cell::Degraded { kind, .. }) = entry.cells.get(&Column::L4d) else {
+            continue;
+        };
+        let Some(test) = suite.tests().iter().find(|t| t.key == entry.key) else {
+            continue;
+        };
+        match kind {
+            DegradedKind::UnknownFunction => {
+                gated += 1;
+                match build_one(&corpus_dir, &out, test, Features::default()) {
+                    Ok(_) => problems.push(format!(
+                        "{}: the ledger says the default configuration cannot run \
+                         this message, and the build accepted it",
+                        entry.key
+                    )),
+                    Err(message) => {
+                        if !message.contains(Lint::GatedFunction.name()) {
+                            problems.push(format!(
+                                "{}: refused, but not as a gated function: {message}",
+                                entry.key
+                            ));
+                        }
+                    }
+                }
+            }
+            DegradedKind::NeutralNumbers => {
+                neutral += 1;
+                // The warning is on by default; the build still succeeds.
+                let mut config = Config::default();
+                config.source_locale.clone_from(&test.locale);
+                config.catalog.strip.clear();
+                for lint in [
+                    Lint::UnknownFunction,
+                    Lint::DynamicSelect,
+                    Lint::BadOptionValue,
+                ] {
+                    config.lints.insert(lint, Level::Allow);
+                }
+                corpus(&corpus_dir, &test.locale, &test.src);
+                let outcome = Build::at(&corpus_dir, &out)
+                    .config(config)
+                    .features(Features::default())
+                    .check()
+                    .expect("the corpus is readable");
+                let warned = outcome
+                    .report
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.lint == Some(Lint::NeutralNumbers));
+                if !warned {
+                    problems.push(format!(
+                        "{}: the ledger says numbers degrade to neutral symbols here, \
+                         and `check` did not warn:\n{}",
+                        entry.key,
+                        outcome.report.to_text()
+                    ));
+                }
+            }
+            // The other kinds are the runtime's, not the build's.
+            DegradedKind::UnsupportedOperation | DegradedKind::BuildReject => {}
+        }
+    }
+
+    assert!(
+        problems.is_empty(),
+        "{} problems:\n{}",
+        problems.len(),
+        problems.join("\n")
+    );
+    assert!(gated > 0, "the ledger has no L4d unknown-function cells");
+    assert!(neutral > 0, "the ledger has no L4d neutral-numbers cells");
+    eprintln!("ledger: {gated} gated-function and {neutral} neutral-numbers cells agreed");
+}

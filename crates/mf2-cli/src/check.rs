@@ -3,7 +3,7 @@
 use std::path::Path;
 
 use clap::Args as ClapArgs;
-use mf2_build::{Build, Config, Lint};
+use mf2_build::{Build, Config};
 
 use crate::error::{Error, Result};
 use crate::{FeatureArgs, Format};
@@ -56,57 +56,25 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     Ok(())
 }
 
-/// An id no `tr!` in the application's sources names.
-///
-/// A plain text scan, deliberately: a call site may build the id in a macro
-/// of its own, so this is a warning, not an error, and the scan errs towards
-/// saying nothing — an id that appears anywhere in the sources counts as
-/// used.
+/// The `unused-id` lint needs what the application's sources say, which only
+/// the command line knows; the check itself is `mf2-build`'s.
 fn unused_ids(
     outcome: &mut mf2_build::Outcome,
     config: &Config,
     src: &[std::path::PathBuf],
 ) -> Result<()> {
-    let level = config.level(Lint::UnusedId);
-    if level == mf2_build::Level::Allow {
-        return Ok(());
-    }
-    let mut haystack = String::new();
+    let mut sources = String::new();
     for dir in src {
-        collect_rust(dir, &mut haystack)?;
+        collect_rust(dir, &mut sources)?;
     }
-    let mut unused: Vec<&str> = outcome
-        .manifest
-        .ids
-        .iter()
-        .filter(|id| !haystack.contains(id.as_str()))
-        .map(String::as_str)
-        .collect();
-    unused.sort_unstable();
-    if unused.is_empty() {
-        return Ok(());
-    }
-    let shown: Vec<&str> = unused.iter().copied().take(10).collect();
-    let more = unused.len().saturating_sub(shown.len());
-    outcome.report.push(mf2_build::Diagnostic {
-        level,
-        locale: outcome.source_locale.clone(),
-        file: src[0].clone(),
-        line: 1,
-        column: 1,
-        id: None,
-        lint: Some(Lint::UnusedId),
-        message: format!(
-            "{} id(s) no source file names: {}{}",
-            unused.len(),
-            shown.join(", "),
-            if more > 0 {
-                format!(", and {more} more")
-            } else {
-                String::new()
-            }
-        ),
-    });
+    mf2_build::check::unused_ids(
+        &outcome.manifest.ids,
+        &sources,
+        &outcome.source_locale.clone(),
+        &src[0],
+        config,
+        &mut outcome.report,
+    );
     Ok(())
 }
 

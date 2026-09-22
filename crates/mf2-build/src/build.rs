@@ -268,6 +268,25 @@ impl Build {
             &mut report,
         );
 
+        // A corpus with errors is not written: the catalog writer would
+        // refuse half of what the lints just reported (a translation using a
+        // variable with no slot, say) and the reader would see the writer's
+        // words instead of the lint's.
+        if !report.is_clean() {
+            return Ok(Outcome {
+                manifest_hash: built.manifest.hash(),
+                manifest: built.manifest,
+                report,
+                catalogs: Vec::new(),
+                locales: Vec::new(),
+                source_locale: config.source_locale.clone(),
+                written: Vec::new(),
+                removed: Vec::new(),
+                generated: String::new(),
+                out_dir: self.out_dir.clone(),
+            });
+        }
+
         // Per locale, the models in `MsgId` order, then the fallback chain.
         let by_msg_id: Vec<Vec<Option<&Message<'_>>>> = (0..tags.len())
             .map(|locale| {
@@ -347,7 +366,7 @@ impl Build {
             out_dir: self.out_dir.clone(),
         };
         // A corpus with errors comes back with its report, not as an
-        // `Err`: the caller prints it. Nothing is written until it is clean.
+        // `Err`: the caller prints it.
         if self.write && outcome.report.is_clean() {
             self.emit(&mut outcome)?;
         }

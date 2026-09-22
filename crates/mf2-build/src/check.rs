@@ -54,6 +54,7 @@ pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report:
             options(&mut at, model);
             markup(&mut at, model, &analysis);
             bidi(&mut at, model);
+            normalization(&mut at, model);
             plural_categories(&mut at, model, &source.tag);
             if locale != corpus.source_index {
                 against_source(&mut at, corpus, model, &analysis);
@@ -298,6 +299,27 @@ fn bidi(at: &mut At<'_, '_>, model: &Message<'_>) {
     }
 }
 
+/// Text that is not in Unicode Normalization Form C. Selection compares keys
+/// under NFC and the catalog encodes names under NFC, so unnormalized text
+/// formats as itself but never matches what a translator typed.
+fn normalization(at: &mut At<'_, '_>, model: &Message<'_>) {
+    for pattern in patterns(model) {
+        for part in pattern {
+            let PatternPart::Text(text) = part else {
+                continue;
+            };
+            if non_nfc(text) {
+                at.say(
+                    Lint::NonNfcSource,
+                    at.offset_of(text),
+                    "this text is not in Unicode Normalization Form C",
+                );
+                return;
+            }
+        }
+    }
+}
+
 // ────────────────────────────── plural categories ────────────────────────
 
 /// A plural `.match` that does not mention every category the target locale
@@ -492,6 +514,55 @@ fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Co
     );
 }
 
+/// An id no `tr!` in the application's sources names
+/// (`plans/05-tooling.md` §5).
+///
+/// A plain text scan, deliberately: a call site may build its id in a macro
+/// of its own, so this errs towards saying nothing — an id that appears
+/// anywhere in the sources counts as used.
+pub fn unused_ids(
+    ids: &[String],
+    sources: &str,
+    locale: &str,
+    where_looked: &std::path::Path,
+    config: &Config,
+    report: &mut Report,
+) {
+    let level = config.level(Lint::UnusedId);
+    if level == Level::Allow {
+        return;
+    }
+    let mut unused: Vec<&str> = ids
+        .iter()
+        .filter(|id| !sources.contains(id.as_str()))
+        .map(String::as_str)
+        .collect();
+    unused.sort_unstable();
+    if unused.is_empty() {
+        return;
+    }
+    let shown: Vec<&str> = unused.iter().copied().take(10).collect();
+    let more = unused.len().saturating_sub(shown.len());
+    let mut sink = Sink::new(report, locale);
+    sink.add(
+        level,
+        Some(Lint::UnusedId),
+        where_looked,
+        mf2_resource::Position { line: 1, column: 1 },
+        None,
+        format!(
+            "{} id(s) no source file names: {}{}",
+            unused.len(),
+            shown.join(", "),
+            if more > 0 {
+                format!(", and {more} more")
+            } else {
+                String::new()
+            }
+        ),
+    );
+}
+
 fn patterns<'m>(message: &'m Message<'_>) -> Vec<&'m Pattern<'m>> {
     match message {
         Message::Pattern(p) => vec![&p.pattern],
@@ -499,9 +570,7 @@ fn patterns<'m>(message: &'m Message<'_>) -> Vec<&'m Pattern<'m>> {
     }
 }
 
-/// Text that is not in Unicode Normalization Form C: the runtime compares
-/// selection keys under NFC, so unnormalized source text never matches what a
-/// translator typed.
+/// Whether `source` is not in Unicode Normalization Form C.
 pub fn non_nfc(source: &str) -> bool {
     use unicode_normalization::{IsNormalized, UnicodeNormalization, is_nfc_quick};
     match is_nfc_quick(source.chars()) {
