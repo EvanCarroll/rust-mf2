@@ -1,8 +1,10 @@
 # CI for mf2-two (plans/07-phase-0-work-order.md, task A6; plans/08, A9).
 #
 # Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
-# job checks (cargo fmt --check, clippy -D warnings, cargo test, the
-# conformance report, which runs layers L1-L4 over the suite), so "green
+# job checks (cargo fmt --check, clippy -D warnings — natively, and for
+# wasm32-unknown-unknown with the `intl` client option, whose code compiles
+# only there — cargo test, the conformance report, which runs layers L1-L4
+# over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain and publish conformance/REPORT.md.
 #

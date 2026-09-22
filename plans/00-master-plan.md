@@ -133,7 +133,9 @@ mf2-two/
 │   ├── leptos-mf2/             Tr types, glue/tachys_*, context, hydrate entrypoints, switcher
 │   └── mf2/                    facade: re-exports + feature flags apps actually touch
 ├── conformance/                crate mf2-conformance: L1–L6 harnesses, ledger.toml,
-│                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md
+│                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md;
+│                               l4-runner/ (L4's client side, also wasm32-wasip1),
+│                               l4-web/ (L4 in the browser for the `intl` build)
 ├── bench/
 │   ├── workload-gen/           deterministic reference-workload generator
 │   ├── corpora/                committed inputs: suite.json, workload-1600.json
@@ -147,7 +149,7 @@ mf2-two/
 ├── tools/e2e/                  Playwright harness (project-local npm install)
 ├── tools/oracle/               optional JS reference-implementation differ (dev only)
 ├── probes/                     Phase 0 throwaway experiments (deleted in Phase 2, C5; in the first commit)
-├── xtask/                      spec-sync, cldr-sync, resource-sync, conformance-report, size, gen-workload
+├── xtask/                      spec-sync, cldr-sync, resource-sync, conformance-report, l4-wasi, l4-web, size, gen-workload
 └── .forgejo/workflows/         CI
 ```
 

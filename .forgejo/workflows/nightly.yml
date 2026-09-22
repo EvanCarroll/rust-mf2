@@ -24,6 +24,9 @@
 #   load and lookup against P0.8's figures, 0 allocations and 0 copies at load
 #   (bench/catalog-bench). Here rather than on every push because its timing
 #   rules are load-sensitive.
+# * `l4-web` (a job of its own; owner decision 4): the `intl` client option's
+#   L4 run in Chromium, Firefox and WebKit, every engine difference the
+#   ledger's (`cargo xtask l4-web`; plans/01-conformance.md §3).
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -146,4 +149,73 @@ jobs:
             fuzz/artifacts/
             target/catalog-bench/
             target/runtime-bench/
+          if-no-files-found: ignore
+
+  l4-web:
+    # The `intl` client option's L4 run in Chromium, Firefox and WebKit
+    # (plans/01-conformance.md §3, "The intl build"; owner decision 4):
+    # `cargo xtask l4-web` builds conformance/l4-web for wasm32-unknown-unknown,
+    # runs tools/e2e's `l4-intl` check in the three engines and fails unless
+    # every suite test passes there or the ledger says otherwise, and every
+    # difference from the Rust path is the ledger's. Nightly rather than on
+    # every push: it needs the three browsers (Playwright's builds, WebKit's
+    # system libraries through `install-deps`, which needs root).
+    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
+    # (≥ 20) and npm.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      # Equal to the wasm-bindgen library conformance/l4-web pins.
+      WASM_BINDGEN_VERSION: "0.2.128"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+
+      - name: Install the browser harness and the three engines
+        run: |
+          set -eu
+          cd tools/e2e
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+
+      - name: L4 in the three engines, the intl build (exit 1 on an unrecorded difference)
+        run: cargo xtask l4-web
+
+      - name: Upload the report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: l4-web
+          path: |
+            target/l4-web/report.md
+            target/l4-web/*.json
           if-no-files-found: ignore

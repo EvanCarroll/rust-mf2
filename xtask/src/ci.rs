@@ -20,6 +20,24 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // The `intl` client option's code compiles only for wasm32-unknown-unknown
+    // (plans/03-runtime.md §5.3): lint it there, or nothing does.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "mf2-runtime",
+        "-p",
+        "mf2-fn-number",
+        "-p",
+        "mf2-host-web",
+        "--features",
+        "mf2-fn-number/intl,mf2-host-web/intl",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
 ];
 
