@@ -16,6 +16,7 @@ mod l4_web;
 mod locale_data;
 mod pin;
 mod report;
+mod scenarios;
 mod spec_sync;
 
 use std::ffi::OsString;
@@ -107,6 +108,14 @@ enum Command {
         #[arg(long)]
         quick: bool,
     },
+    /// The incremental-rebuild scenarios of P0.9 on the real pipeline
+    /// (Phase 5a, A9): what each kind of edit rewrites, and whether the
+    /// client wasm moves.
+    Scenarios {
+        /// Leave the fixture edited, for looking at what happened.
+        #[arg(long)]
+        keep: bool,
+    },
     /// Size gate (Phase 5; not implemented yet).
     Size,
     /// Write the seed corpora of the fuzz targets: `parse` (fuzz/corpus/parse/:
@@ -180,6 +189,7 @@ fn run(command: Command) -> Result<()> {
             l4_web::run(&root, &engines, !no_run)
         }
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
+        Command::Scenarios { keep } => scenarios::run(&root, keep),
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

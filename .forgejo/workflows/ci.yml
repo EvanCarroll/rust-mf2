@@ -28,6 +28,13 @@
 # work. B7 is stated on brotli 11 (plans/06 §3); the gzip figures are
 # reported, not gated, with GNU gzip when the runner has it (else flate2).
 #
+# Job `build-pipeline`: Phase 5a's two whole-pipeline checks (plans/12, A5 and
+# A9): `cargo xtask codegen-matrix` compiles the generated module in 13 feature
+# combinations of the facade (6 server, 7 client on wasm32-unknown-unknown) and
+# greps the client artifact for budget B6; `cargo xtask scenarios` runs the
+# incremental-rebuild scenarios of P0.9 on tools/i18n-fixture, where a
+# translation-only edit must leave the client wasm byte-identical.
+#
 # Job `l4-wasi`: conformance layer L4 on wasm32-wasip1 (plans/01-conformance.md
 # §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
 # every L4 case natively, formats it natively and with the same runner built
@@ -285,6 +292,57 @@ jobs:
             bench/b12/target/b12/b12.txt
             bench/b12/target/b12/size.tsv
           if-no-files-found: error
+
+  build-pipeline:
+    # PLACEHOLDER: see the `ci` job.
+    #
+    # Phase 5a (plans/12-phase-5a-work-order.md): the module `mf2-build`
+    # generates, compiled in every feature combination of the facade — for the
+    # server and for wasm32-unknown-unknown — with budget B6 grepped for in the
+    # client artifact; then the incremental-rebuild scenarios of P0.9 on the
+    # real pipeline, which is where "a translation-only edit leaves the client
+    # wasm byte-identical" is checked.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: The generated module in every feature combination, and B6
+        run: cargo xtask codegen-matrix
+
+      - name: The incremental-rebuild scenarios
+        run: cargo xtask scenarios
 
   l4-wasi:
     # PLACEHOLDER: see the `ci` job.

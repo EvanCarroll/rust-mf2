@@ -11,6 +11,14 @@ edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[lib]
+path = "src/lib.rs"
+
+# The client artifact the edit scenarios hash (`cargo xtask scenarios`).
+[[bin]]
+name = "mf2-i18n-client"
+path = "src/main.rs"
+
 [features]
 # `ssr` by default so that a plain workspace build compiles the server side.
 default = ["ssr"]
