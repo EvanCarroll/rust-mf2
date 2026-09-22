@@ -14,9 +14,14 @@ use crate::model::{Comment, Meta, Resource};
 /// How [`serialize_with`] lays a file out.
 #[derive(Clone, Copy, Debug)]
 pub struct Style {
-    /// Break a long value at a space outside `{…}` once the line is this many
-    /// bytes wide, with an escaped line break. `None` writes each line whole.
-    pub wrap: Option<usize>,
+    /// Wrap a value longer than this many bytes; `None` writes every value
+    /// whole, however long. A short value is left on one line even when it
+    /// passes [`Style::wrap_at`], so that wrapping marks the values that are
+    /// genuinely long.
+    pub wrap_over: Option<usize>,
+    /// Where to break a value that is wrapped: after the first space outside
+    /// `{…}` at or past this column, with an escaped line break.
+    pub wrap_at: usize,
     /// What a continuation line is indented with.
     pub indent: &'static str,
 }
@@ -24,17 +29,20 @@ pub struct Style {
 impl Default for Style {
     fn default() -> Self {
         Style {
-            wrap: None,
+            wrap_over: None,
+            wrap_at: 76,
             indent: "  ",
         }
     }
 }
 
 impl Style {
-    /// [`Style::default`], wrapping values at `columns` bytes.
-    pub fn wrapped(columns: usize) -> Self {
+    /// [`Style::default`], wrapping a value longer than `over` bytes at
+    /// column `at`.
+    pub fn wrapped(over: usize, at: usize) -> Self {
         Style {
-            wrap: Some(columns),
+            wrap_over: Some(over),
+            wrap_at: at,
             ..Style::default()
         }
     }
@@ -75,7 +83,10 @@ pub fn serialize_with<V: AsRef<str>>(
                 write_comment(&mut out, Some(&detached.comment))?;
                 out.push('\n');
             }
-            if entry.comment.is_some() || !entry.meta.is_empty() {
+            // A blank line sets a comment off from what came before it; an
+            // entry that only carries properties follows straight on, since
+            // the properties are part of it.
+            if entry.comment.is_some() {
                 blank_line(&mut out);
             }
             write_comment(&mut out, entry.comment.as_ref())?;
@@ -86,6 +97,16 @@ pub fn serialize_with<V: AsRef<str>>(
             let value = entry.value.as_ref();
             if value.is_empty() {
                 out.push_str(" =\n");
+            } else if starts_on_its_own_line(value) {
+                // A value with line breaks in it reads better with every
+                // line at the same indent, so it starts below the `=`. The
+                // first line of such a value contributes nothing, which is
+                // why a value that *begins* with a line break cannot use
+                // this form.
+                out.push_str(" =\n");
+                out.push_str(style.indent);
+                write_value(&mut out, value, style)?;
+                out.push('\n');
             } else {
                 out.push_str(" = ");
                 write_value(&mut out, value, style)?;
@@ -100,6 +121,11 @@ pub fn serialize_with<V: AsRef<str>>(
         }
     }
     Ok(out)
+}
+
+/// Whether a value is laid out under its `=` rather than beside it.
+fn starts_on_its_own_line(value: &str) -> bool {
+    value.contains('\n') && !value.starts_with('\n')
 }
 
 /// A blank line, unless the output is empty or already ends in one.
@@ -160,25 +186,42 @@ fn write_meta(out: &mut String, meta: &Meta<'_>, style: &Style) -> Result<(), Er
 /// Writes a value, escaping what the container would otherwise read as
 /// structure and breaking it into continuation lines.
 fn write_value(out: &mut String, value: &str, style: &Style) -> Result<(), Error> {
-    let start_col = out.len() - out.rfind('\n').map_or(0, |i| i + 1);
-    let mut col = start_col;
-    let mut line_has_content = false;
+    // Only a long value is wrapped, and only one that is a single line: the
+    // threshold is on the value, not on the line, so that adding a character
+    // to an id never rewraps a paragraph — and a value that already has line
+    // breaks has a structure of its own (a `.match` and its variants), which
+    // wrapping would cut across.
+    let wrap = style
+        .wrap_over
+        .filter(|over| value.len() > *over && !value.contains('\n'))
+        .map(|_| style.wrap_at);
+    let mut lines = Lines {
+        col: out.len() - out.rfind('\n').map_or(0, |i| i + 1),
+        line_has_content: false,
+        indent: style.indent,
+        wrap,
+        out,
+    };
+    // Text is emitted a word at a time — everything up to and including a
+    // space outside `{…}` — so that a word is never split and a line breaks
+    // before the word that would pass the width, as a filled paragraph does.
+    let mut word = String::new();
     let mut depth = 0usize;
     let mut chars = value.chars().peekable();
     while let Some(c) = chars.next() {
+        // Leading whitespace is stripped with a continuation's indentation,
+        // so the first character of a line escapes itself.
+        let at_line_start = !lines.line_has_content && word.is_empty();
         match c {
             '\n' => {
                 // An empty continuation line would end the value, so a line
                 // break with nothing on either side is written as an escape.
-                if !line_has_content || matches!(chars.peek(), None | Some('\n')) {
-                    out.push_str("\\n");
-                    col += 2;
-                    line_has_content = true;
+                if at_line_start || matches!(chars.peek(), None | Some('\n')) {
+                    word.push_str("\\n");
                 } else {
-                    out.push('\n');
-                    out.push_str(style.indent);
-                    col = style.indent.len();
-                    line_has_content = false;
+                    lines.word(&word);
+                    word.clear();
+                    lines.hard_break();
                 }
             }
             '\\' => {
@@ -190,62 +233,73 @@ fn write_value(out: &mut String, value: &str, style: &Style) -> Result<(), Error
                 if !matches!(next, '\\' | '{' | '|' | '}') {
                     return Err(Error::LoneBackslash(next));
                 }
-                out.push('\\');
-                out.push(next);
-                col += 2;
-                line_has_content = true;
+                word.push('\\');
+                word.push(next);
             }
-            ' ' | '\t' if !line_has_content => {
-                // Leading whitespace would be stripped with the indentation.
-                out.push('\\');
-                out.push(if c == ' ' { ' ' } else { 't' });
-                col += 2;
-                line_has_content = true;
-            }
-            '\t' => {
-                out.push_str("\\t");
-                col += 2;
-                line_has_content = true;
-            }
-            '\r' => {
-                out.push_str("\\r");
-                col += 2;
-                line_has_content = true;
-            }
-            '\u{2028}' | '\u{2029}' => {
-                push_hex(out, c);
-                col += 6;
-                line_has_content = true;
-            }
-            c if c.is_control() => {
-                push_hex(out, c);
-                col += 4;
-                line_has_content = true;
-            }
+            ' ' if at_line_start => word.push_str("\\ "),
+            '\t' if at_line_start => word.push_str("\\t"),
+            '\t' => word.push_str("\\t"),
+            '\r' => word.push_str("\\r"),
+            '\u{2028}' | '\u{2029}' => push_hex(&mut word, c),
+            c if c.is_control() => push_hex(&mut word, c),
             c => {
                 if c == '{' {
                     depth += 1;
                 } else if c == '}' {
                     depth = depth.saturating_sub(1);
                 }
-                out.push(c);
-                col += c.len_utf8();
-                line_has_content = true;
-                if c == ' '
-                    && depth == 0
-                    && chars.peek().is_some()
-                    && let Some(wrap) = style.wrap
-                    && col >= wrap
-                {
-                    out.push_str("\\\n");
-                    out.push_str(style.indent);
-                    col = style.indent.len();
-                    line_has_content = false;
+                word.push(c);
+                // A space outside a placeholder ends a word — unless the next
+                // character is one too, which would leave a continuation
+                // line starting with whitespace.
+                if c == ' ' && depth == 0 && !matches!(chars.peek(), None | Some(' ')) {
+                    lines.word(&word);
+                    word.clear();
                 }
             }
         }
     }
+    lines.word(&word);
     Ok(())
+}
+
+/// Lays escaped words out in lines, breaking with `\` before a word that
+/// would pass the width.
+struct Lines<'o> {
+    out: &'o mut String,
+    col: usize,
+    line_has_content: bool,
+    indent: &'static str,
+    wrap: Option<usize>,
+}
+
+impl Lines<'_> {
+    /// Emits one word, breaking the line first if it would not fit.
+    fn word(&mut self, word: &str) {
+        if word.is_empty() {
+            return;
+        }
+        if let Some(wrap) = self.wrap
+            && self.line_has_content
+            && self.col + word.len() > wrap
+        {
+            self.out.push_str("\\\n");
+            self.out.push_str(self.indent);
+            self.col = self.indent.len();
+        }
+        self.out.push_str(word);
+        self.col += word.len();
+        self.line_has_content = true;
+    }
+
+    /// A line break that is part of the value: a real one, which reads back
+    /// as one LF.
+    fn hard_break(&mut self) {
+        self.out.push('\n');
+        self.out.push_str(self.indent);
+        self.col = self.indent.len();
+        self.line_has_content = false;
+    }
 }
 
 /// `\xHH` for a control character, `\uHHHH` for U+2028 and U+2029.

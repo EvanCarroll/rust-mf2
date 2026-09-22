@@ -34,6 +34,7 @@
 //! | [`slice`] | the locale data a corpus needs |
 //! | [`catalog`] | one catalog per locale: fallbacks, compression, content hashes |
 //! | [`codegen`] | the generated Rust module |
+//! | [`pseudo`] | the pseudo-locales `en-XA` and `ar-XB` |
 //! | [`build`] | [`Build`], which runs all of it |
 
 #![forbid(unsafe_code)]
@@ -53,6 +54,7 @@ pub mod features;
 pub mod lint;
 pub mod loader;
 pub mod manifest;
+pub mod pseudo;
 pub mod report;
 pub mod slice;
 

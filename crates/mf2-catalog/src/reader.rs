@@ -414,6 +414,45 @@ impl Catalog {
         }
     }
 
+    /// The name of message `id` (IDS); `None` when IDS is stripped or the
+    /// index is past the last message.
+    ///
+    /// Build side (feature `decode`): a client formats by `MsgId` and never
+    /// needs an id back, so this is not on its path. `mf2 dump` and the
+    /// tooling that reports on a catalog do.
+    #[cfg(feature = "decode")]
+    pub fn id_of(&self, id: MsgId) -> Option<alloc::string::String> {
+        let index = id.index() as usize;
+        let count = self.count as usize;
+        if index >= count {
+            return None;
+        }
+        let ids = self.ids?.of(&self.bytes);
+        let blocks = count.div_ceil(IDS_RESTART);
+        let table_len = blocks.checked_mul(4)?;
+        let entries = ids.get(table_len..)?;
+        let block = index / IDS_RESTART;
+        let at = u32_at(ids, block.checked_mul(4)?)? as usize;
+        let mut c = Cur::new(entries, at);
+        // Ids are prefix-compressed against the one before them, so the id
+        // is rebuilt from the start of its restart block.
+        let mut current: alloc::vec::Vec<u8> = alloc::vec::Vec::new();
+        for i in (block * IDS_RESTART)..=index {
+            let shared = c.len()?;
+            let len = c.len()?;
+            let suffix = c.take(len)?;
+            if shared > current.len() {
+                return None;
+            }
+            current.truncate(shared);
+            current.extend_from_slice(suffix);
+            if i == index {
+                return alloc::string::String::from_utf8(current).ok();
+            }
+        }
+        None
+    }
+
     /// Looks a message id up by name (IDS); `None` when IDS is stripped or
     /// the id is unknown. O(log n).
     pub fn lookup(&self, id: &str) -> Option<MsgId> {

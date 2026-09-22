@@ -285,7 +285,7 @@ fn generated_resources_round_trip() {
 #[test]
 fn generated_resources_round_trip_wrapped() {
     for seed in 0..2_000 {
-        round_trip(seed, &Style::wrapped(40));
+        round_trip(seed, &Style::wrapped(0, 40));
     }
 }
 

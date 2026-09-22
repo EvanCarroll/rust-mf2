@@ -256,7 +256,7 @@ fn resource_file(locale: &str, entries: &BTreeMap<String, String>) -> String {
             .retain(|e| mf2_resource::serialize(&one_entry(e)).is_ok());
     }
     resource.sections.retain(|s| !s.entries.is_empty());
-    mf2_resource::serialize_with(&resource, &Style::wrapped(76))
+    mf2_resource::serialize_with(&resource, &Style::wrapped(100, 76))
         .expect("every unwritable entry was dropped")
 }
 

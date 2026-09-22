@@ -1,0 +1,32 @@
+[package]
+name = "mf2-cli"
+description = "The `mf2` command: check, compile, fmt, stats, dump, pseudo, export/import and watch a MessageFormat 2 corpus."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "mf2"
+path = "src/main.rs"
+
+[features]
+# The per-locale `icu.blob` of the `datetime-icu` backend.
+icu-blob = ["mf2-build/icu-blob"]
+
+[dependencies]
+clap.workspace = true
+mf2-build.workspace = true
+mf2-catalog = { workspace = true, features = ["decode", "manifest"] }
+mf2-locale-data.workspace = true
+mf2-model = { workspace = true, features = ["serde"] }
+mf2-resource.workspace = true
+mf2-syntax.workspace = true
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+
+[dev-dependencies]
+workload-gen.workspace = true
+
+[lints]
+workspace = true

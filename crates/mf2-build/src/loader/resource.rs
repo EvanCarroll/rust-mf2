@@ -11,10 +11,12 @@ use crate::loader::{Loaded, Loader, Problem, Property, Record, SourceFile};
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Resources;
 
-/// How `mf2 fmt` writes a resource: values wrapped at 76 bytes, which is
-/// what `bench/workload-gen` emits and what keeps a long message reviewable.
+/// How `mf2 fmt` writes a resource: a value longer than 100 bytes wrapped at
+/// column 76 — what `bench/workload-gen` writes, and what keeps a long
+/// message reviewable without rewrapping every short one.
 pub const FMT_STYLE: Style = Style {
-    wrap: Some(76),
+    wrap_over: Some(100),
+    wrap_at: 76,
     indent: "  ",
 };
 

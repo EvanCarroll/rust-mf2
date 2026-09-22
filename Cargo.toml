@@ -6,6 +6,7 @@ members = [
     "crates/mf2-catalog",
     "crates/mf2-resource",
     "crates/mf2-build",
+    "crates/mf2-cli",
     "crates/mf2-runtime",
     "crates/mf2-fn-number",
     "crates/mf2-fn-datetime",
@@ -44,6 +45,7 @@ thiserror = { version = "2.0.20", default-features = false }
 mf2 = { path = "crates/mf2" }
 mf2-build = { path = "crates/mf2-build" }
 mf2-catalog = { path = "crates/mf2-catalog" }
+mf2-cli = { path = "crates/mf2-cli" }
 mf2-conformance = { path = "conformance" }
 mf2-fn-number = { path = "crates/mf2-fn-number" }
 mf2-fn-datetime = { path = "crates/mf2-fn-datetime" }

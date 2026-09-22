@@ -80,7 +80,7 @@ fuzz_target!(|data: &[u8]| {
     check_spans(src, &resource);
 
     if diags.is_empty() {
-        for style in [Style::default(), Style::wrapped(40)] {
+        for style in [Style::default(), Style::wrapped(0, 40)] {
             let text = serialize_with(&resource, &style).expect("a clean parse writes back");
             let (again, d2) = parse(&text);
             assert!(d2.is_empty(), "what the serializer wrote does not parse");

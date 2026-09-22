@@ -37,6 +37,9 @@ pub struct Catalog {
     pub missing: usize,
     /// Of those, how many took another locale's text (D5).
     pub fallbacks: usize,
+    /// The LOCALE entries it carries: `(key, bytes)`, ascending by key —
+    /// what `mf2 stats` breaks down.
+    pub locale_entries: Vec<(u32, usize)>,
     /// What its locale data covers.
     pub slice: Slice,
 }
@@ -61,6 +64,7 @@ impl core::fmt::Debug for Catalog {
             .field("gz", &self.gz.len())
             .field("missing", &self.missing)
             .field("fallbacks", &self.fallbacks)
+            .field("locale_entries", &self.locale_entries)
             .field("slice", &self.slice)
             .finish()
     }
@@ -224,6 +228,12 @@ pub fn write(
     let br = brotli(&bytes);
     let gz = gzip(&bytes);
     let hash = content_hash(&bytes);
+    let mut locale_entries: Vec<(u32, usize)> = options
+        .locale_entries
+        .iter()
+        .map(|(key, payload)| (*key, payload.len()))
+        .collect();
+    locale_entries.sort_unstable();
     Ok(Catalog {
         tag: tag.to_owned(),
         bytes,
@@ -232,6 +242,7 @@ pub fn write(
         hash,
         missing,
         fallbacks,
+        locale_entries,
         slice,
     })
 }
