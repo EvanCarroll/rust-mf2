@@ -4,6 +4,7 @@ members = [
     "crates/mf2-model",
     "crates/mf2-syntax",
     "crates/mf2-catalog",
+    "crates/mf2-resource",
     "crates/mf2-runtime",
     "crates/mf2-fn-number",
     "crates/mf2-fn-datetime",
@@ -48,6 +49,7 @@ mf2-host-std = { path = "crates/mf2-host-std" }
 mf2-host-web = { path = "crates/mf2-host-web" }
 mf2-locale-data = { path = "crates/mf2-locale-data" }
 mf2-model = { path = "crates/mf2-model" }
+mf2-resource = { path = "crates/mf2-resource" }
 mf2-runtime = { path = "crates/mf2-runtime" }
 mf2-syntax = { path = "crates/mf2-syntax" }
 # `default-features = false` so that no_std crates (mf2-model's `serde` feature)

@@ -234,6 +234,29 @@ wins and this text is corrected):
   CR never appears in a value; control characters and U+2028/2029 are not allowed
   raw.
 
+**What the working grammar leaves open, and how `mf2-resource` reads it**
+(Phase 5a, A1). Each is a reading of the draft, not a departure from it; when
+the draft can be vendored, each is re-checked against its ABNF:
+
+* A line of nothing but spaces and tabs is an **empty line**, so it ends a
+  value and detaches a comment. A value therefore cannot contain an empty
+  line; `\n` writes one.
+* A continuation line loses **all** of its leading whitespace, not a common
+  prefix — which is why the grammar says to escape the first character to keep
+  it (`\ `, `\t`).
+* Trailing whitespace on a value line is **kept**: it is part of the message.
+  (Leading whitespace after `=` is not, per the entry production.)
+* Control characters and U+2028/2029 are rejected in a **comment** as well as
+  in a value: a comment is text like any other, and nothing could write one
+  back.
+* An element carries one comment. Two comment blocks that properties separate
+  (`# a` `@p` `# b` `entry`) both describe the entry, so they are read as one
+  comment of two lines.
+* A property with an empty value and one with no value are the same property:
+  `@name` is what both write.
+* In an id, `\` escapes any character (`\.` is a dot inside a part); a
+  control character cannot appear in an id at all, escaped or not.
+
 Until `mf2-resource` exists (P5a), anything that needs messages — probes, the
 parser gate, the catalog-size budget — reads the **flat JSON** (`id → source`)
 that `workload-gen` emits alongside the `.mf2` files.

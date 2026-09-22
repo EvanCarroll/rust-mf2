@@ -14,7 +14,9 @@
 //!   [n argument bytes] [payload]`): every L4 case of the suite, its catalog
 //!   (for its locale, unstripped and stripped) and its source (source mode),
 //!   with its `params` as positional arguments; the workload catalogs with a
-//!   few arguments; and 400 generated L4 cases (`mf2_conformance::l4gen`).
+//!   few arguments; and 400 generated L4 cases (`mf2_conformance::l4gen`);
+//! * `fuzz/corpus/resource/` — the reference workload and the suite's
+//!   messages, each written as one resource file.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -164,7 +166,111 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         n += 1;
     }
     eprintln!("fuzz-seed: wrote {n} files to {}", dir.display());
+
+    let dir = create(root, "fuzz/corpus/resource")?;
+    let mut n = 0usize;
+    write(
+        &dir,
+        "workload.mf2",
+        resource_file("en", &workload).as_bytes(),
+    )?;
+    n += 1;
+    // The suite's messages as one resource: MF2 escapes, every placeholder
+    // shape and the malformed sources, inside a container.
+    let suite_entries: BTreeMap<String, String> = suite
+        .tests()
+        .iter()
+        .enumerate()
+        .map(|(i, t)| (format!("suite.t{i:04}"), t.src.clone()))
+        .collect();
+    write(
+        &dir,
+        "suite.mf2",
+        resource_file("en", &suite_entries).as_bytes(),
+    )?;
+    n += 1;
+    eprintln!("fuzz-seed: wrote {n} files to {}", dir.display());
     Ok(())
+}
+
+/// The entries as one resource file, sectioned by the first part of each id.
+///
+/// A source the container cannot write — a lone `\`, which only a malformed
+/// message has — is left out.
+fn resource_file(locale: &str, entries: &BTreeMap<String, String>) -> String {
+    use mf2_resource::{Comment, Entry, Head, Id, Meta, Resource, Section, Span, Style, ValueMap};
+    const NO_SPAN: Span = Span { start: 0, end: 0 };
+
+    let mut resource = Resource::<&str>::default();
+    resource.meta.push(Meta {
+        name: "locale".into(),
+        value: Some(locale.into()),
+        span: NO_SPAN,
+        value_span: None,
+    });
+    resource.comment = Some(Comment {
+        text: "Seed for the `resource` fuzz target (cargo xtask fuzz-seed).".into(),
+        span: NO_SPAN,
+    });
+    for (id, source) in entries {
+        let Ok(full) = Id::read(id) else { continue };
+        let (head, own) = match full.parts().split_first() {
+            Some((first, rest)) if !rest.is_empty() => {
+                (Id::new(vec![first.clone()]), Id::new(rest.to_vec()))
+            }
+            _ => (Id::default(), full.clone()),
+        };
+        let section = match resource.sections.last() {
+            Some(last) if last.head.as_ref().map(|h| &h.id) == Some(&head) => {
+                resource.sections.last_mut().expect("just matched")
+            }
+            _ => {
+                resource.sections.push(Section {
+                    head: (!head.is_empty()).then(|| Head {
+                        id: head,
+                        comment: None,
+                        meta: Vec::new(),
+                        span: NO_SPAN,
+                    }),
+                    entries: Vec::new(),
+                    detached: Vec::new(),
+                });
+                resource.sections.last_mut().expect("just pushed")
+            }
+        };
+        section.entries.push(Entry {
+            id: own,
+            value: source.as_str(),
+            comment: None,
+            meta: Vec::new(),
+            span: NO_SPAN,
+            id_span: NO_SPAN,
+            value_span: NO_SPAN,
+            map: ValueMap::Empty,
+        });
+    }
+    // Drop what the container cannot write, then write the rest.
+    for section in &mut resource.sections {
+        section
+            .entries
+            .retain(|e| mf2_resource::serialize(&one_entry(e)).is_ok());
+    }
+    resource.sections.retain(|s| !s.entries.is_empty());
+    mf2_resource::serialize_with(&resource, &Style::wrapped(76))
+        .expect("every unwritable entry was dropped")
+}
+
+/// One entry on its own, to test whether it can be written.
+fn one_entry<'a>(entry: &mf2_resource::Entry<'a, &'a str>) -> mf2_resource::Resource<'a, &'a str> {
+    mf2_resource::Resource {
+        comment: None,
+        meta: Vec::new(),
+        sections: vec![mf2_resource::Section {
+            head: None,
+            entries: vec![entry.clone()],
+            detached: Vec::new(),
+        }],
+    }
 }
 
 /// The `format` target's source-mode locales (`fuzz/fuzz_targets/format.rs`).

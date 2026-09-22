@@ -1,0 +1,22 @@
+[package]
+name = "mf2-resource"
+description = "The W3C Message Resource container for MessageFormat 2: parser, serializer and data model, generic over the message type (no_std)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# (De)serialization as JSON in the draft's data-model shape (src/json.rs).
+serde = ["dep:serde"]
+
+[dependencies]
+mf2-model.workspace = true
+serde = { workspace = true, optional = true }
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

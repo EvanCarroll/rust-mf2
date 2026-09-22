@@ -9,6 +9,8 @@
 //! that document in the same commit.
 //!
 //! * [`MsgId`], [`Dir`] — identities shared with the catalog and the runtime.
+//! * [`is_name_start`], [`is_name_char`] — the ABNF's name classes, shared by
+//!   the two frontends.
 //! * [`ErrorKind`], [`ErrorClass`], [`Span`], [`Diagnostic`], [`Diagnostics`] —
 //!   the 13 error kinds of the WG test suite plus two, and how a frontend
 //!   reports them.
@@ -33,6 +35,7 @@
 
 extern crate alloc;
 
+mod chars;
 mod diagnostic;
 mod expression;
 mod frontend;
@@ -44,6 +47,7 @@ mod pattern;
 
 pub use alloc::borrow::Cow;
 
+pub use chars::{is_name_char, is_name_start};
 pub use diagnostic::{Diagnostic, Diagnostics, ErrorClass, ErrorKind, Span};
 pub use expression::{
     Attributes, Expression, FunctionExpression, FunctionRef, Literal, LiteralExpression, Markup,

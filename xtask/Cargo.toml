@@ -13,6 +13,7 @@ mf2-conformance.workspace = true
 mf2-l4-runner.workspace = true
 mf2-runtime.workspace = true
 mf2-locale-data = { workspace = true, features = ["extract"] }
+mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde_json.workspace = true
 thiserror = { workspace = true, features = ["std"] }
