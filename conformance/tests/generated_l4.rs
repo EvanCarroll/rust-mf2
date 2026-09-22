@@ -1,0 +1,132 @@
+//! Layer L4 on grammar-driven input (plans/01-conformance.md §5;
+//! plans/10-phase-3-work-order.md A10): random messages generated from the
+//! vendored `message.abnf`, steered towards the runtime's functions and
+//! options, compiled for a random locale with generated arguments
+//! ([`mf2_conformance::l4gen`]), formatted by `mf2-l4-runner` — the code
+//! `cargo xtask l4-wasi --generated` runs on `wasm32-wasip1`:
+//!
+//! * formatting never panics — valid messages and messages with data-model
+//!   errors alike (the writer accepts both);
+//! * named and positional arguments give the same output, and the parts
+//!   concatenate to the string (checked inside `mf2_l4_runner::run`);
+//! * the output is deterministic (a second run gives the same record);
+//! * the stripped catalog formats exactly as the unstripped one.
+//!
+//! `cargo test` runs a bounded number of cases; set `MF2_GEN_CASES` (and
+//! optionally `MF2_GEN_SEED`) for longer runs, e.g.
+//! `MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l4`.
+//! The seed is `generated.rs`'s, so case `n` starts from the same message.
+
+use std::collections::BTreeSet;
+use std::fs;
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::path::{Path, PathBuf};
+
+use mf2_conformance::abnf::Grammar;
+use mf2_conformance::l4gen;
+use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_l4_runner::{Case, Record};
+
+fn root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("conformance/ has a parent")
+        .to_path_buf()
+}
+
+fn grammar() -> Grammar {
+    let text = fs::read_to_string(spec_path(&root(), ABNF)).expect("message.abnf");
+    Grammar::parse(&text).expect("the spec's ABNF parses")
+}
+
+fn env_u64(name: &str, default: u64) -> u64 {
+    std::env::var(name)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
+fn cases() -> u64 {
+    env_u64("MF2_GEN_CASES", 3000)
+}
+
+fn seed() -> u64 {
+    env_u64("MF2_GEN_SEED", 0x6d66_3274_776f)
+}
+
+/// Runs `case`, turning a panic or a runner error into a report naming the
+/// case and its message.
+fn run(case: &Case, n: u64, source: &str) -> Record {
+    match catch_unwind(AssertUnwindSafe(|| mf2_l4_runner::run(case))) {
+        Ok(Ok(record)) => record,
+        Ok(Err(e)) => panic!("case {n} ({}): {e}\n  message {source:?}", case.id),
+        Err(payload) => {
+            let why = payload
+                .downcast_ref::<String>()
+                .map(String::as_str)
+                .or_else(|| payload.downcast_ref::<&str>().copied())
+                .unwrap_or("(no message)");
+            panic!(
+                "case {n} ({}): formatting panicked: {why}\n  message {source:?}",
+                case.id
+            )
+        }
+    }
+}
+
+#[test]
+fn generated_messages_format_from_a_catalog() {
+    let g = grammar();
+    let base = seed();
+    let n = cases();
+    let (mut valid, mut clean, mut numeric, mut selects, mut formatted) = (0u64, 0, 0, 0, 0);
+    let mut kinds = BTreeSet::new();
+    for case in 0..n {
+        let generated = match l4gen::case(&g, base.wrapping_add(case)) {
+            Ok(x) => x,
+            Err(e) => panic!("case {case}: {e}"),
+        };
+        let src = &generated.source;
+        let first = run(&generated.unstripped, case, src);
+        let again = run(&generated.unstripped, case, src);
+        assert_eq!(
+            first.line(),
+            again.line(),
+            "case {case}: formatting is not deterministic on {src:?}"
+        );
+        let stripped = run(&generated.stripped, case, src);
+        assert_eq!(
+            first.line(),
+            stripped.line(),
+            "case {case}: the stripped catalog formats differently on {src:?}"
+        );
+        valid += u64::from(generated.valid);
+        clean += u64::from(first.errors.is_empty());
+        numeric += u64::from(src.contains(":number") || src.contains(":integer"));
+        selects += u64::from(src.starts_with('.') && src.contains(".match"));
+        // A number or a selection that went through a core handler.
+        formatted += u64::from(first.parts.contains("\"type\":\"number\""));
+        kinds.extend(first.errors);
+    }
+    eprintln!(
+        "generated_l4: {n} cases: {valid} valid, {clean} formatted without errors, \
+         {numeric} calling :number or :integer, {formatted} with a formatted number, \
+         {selects} selections; errors reached: {kinds:?}"
+    );
+    // The steering reaches the handlers: valid messages, messages formatted
+    // without errors, numbers formatted, selections.
+    assert!(valid * 4 > n, "only {valid} valid messages");
+    assert!(clean * 10 > n, "only {clean} messages without errors");
+    assert!(numeric * 4 > n, "only {numeric} messages call :number");
+    assert!(formatted * 20 > n, "only {formatted} numbers formatted");
+    assert!(selects * 10 > n, "only {selects} selection messages");
+    for kind in [
+        "bad-operand",
+        "bad-option",
+        "bad-selector",
+        "unknown-function",
+        "unresolved-variable",
+    ] {
+        assert!(kinds.contains(kind), "no {kind} error reached");
+    }
+}

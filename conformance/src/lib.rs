@@ -19,6 +19,7 @@ pub mod l1;
 pub mod l2;
 pub mod l3;
 pub mod l4;
+pub mod l4gen;
 pub mod ledger;
 pub mod matrix;
 pub mod report;

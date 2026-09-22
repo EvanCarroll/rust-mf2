@@ -44,6 +44,11 @@ pub(crate) fn read_tree(base: &Path, sub: &str) -> Result<BTreeMap<String, Vec<u
     Ok(out)
 }
 
+/// Reads `path` as UTF-8.
+pub(crate) fn read_to_string(path: &Path) -> Result<String> {
+    fs::read_to_string(path).map_err(at(path))
+}
+
 /// Writes `bytes` to `path`, creating parent directories.
 pub(crate) fn write(path: &Path, bytes: &[u8]) -> Result<()> {
     if let Some(parent) = path.parent() {

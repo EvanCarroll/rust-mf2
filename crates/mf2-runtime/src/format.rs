@@ -183,12 +183,22 @@ impl<'c> Formatter<'c> {
                 }
             }
             Entry::Pattern(m) | Entry::Select(m) => {
+                let names = m.names();
+                // Positional arguments are the message's slots: past the
+                // last slot there is none, as with named arguments (only a
+                // damaged catalog refers past it).
+                let args = match args {
+                    Args::Positional(a) => {
+                        Args::Positional(a.get(..names.external_count() as usize).unwrap_or(a))
+                    }
+                    named @ Args::Named(..) => named,
+                };
                 let env = Env {
                     catalog: self.catalog,
                     registry: self.registry,
                     host: self.cx.host,
                     bidi: self.cx.bidi,
-                    names: m.names(),
+                    names,
                     args,
                 };
                 eval::run(&env, m, out, errs);

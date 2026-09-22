@@ -15,6 +15,8 @@ mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 # natively and on wasm32-wasip1.
 mf2 = { workspace = true, features = ["compile"] }
 mf2-l4-runner.workspace = true
+# Generated L4 cases (plans/10 A10): the catalog's direction and plural rules.
+mf2-locale-data.workspace = true
 mf2-runtime.workspace = true
 mf2-model = { workspace = true, features = ["serde", "suite-names"] }
 mf2-syntax.workspace = true

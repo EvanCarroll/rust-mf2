@@ -58,6 +58,9 @@ pub enum ArgSpec {
     Str(String),
     Int(i64),
     Float(f64),
+    /// An exact decimal as text ([`Arg::Decimal`]; generated input only —
+    /// the suite has none).
+    Decimal(String),
     /// A value no core function takes (a boolean, an object, …).
     Other,
 }
@@ -75,6 +78,7 @@ impl ArgSpec {
             ArgSpec::Str(s) => Arg::Str(s),
             ArgSpec::Int(n) => Arg::Int(*n),
             ArgSpec::Float(x) => Arg::Float(*x),
+            ArgSpec::Decimal(d) => Arg::Decimal(d),
             ArgSpec::Other => Arg::Custom(&OPAQUE),
         }
     }
@@ -393,6 +397,10 @@ pub fn encode_cases(cases: &[Case]) -> Vec<u8> {
                     out.extend_from_slice(&x.to_bits().to_le_bytes());
                 }
                 ArgSpec::Other => out.push(3),
+                ArgSpec::Decimal(d) => {
+                    out.push(4);
+                    put_bytes(&mut out, d.as_bytes());
+                }
             }
         }
     }
@@ -461,6 +469,7 @@ pub fn decode_cases(b: &[u8]) -> Result<Vec<Case>, String> {
                 0 => ArgSpec::Str(r.string()?),
                 1 => ArgSpec::Int(i64::from_le_bytes(r.u64()?.to_le_bytes())),
                 2 => ArgSpec::Float(f64::from_bits(r.u64()?)),
+                4 => ArgSpec::Decimal(r.string()?),
                 _ => ArgSpec::Other,
             };
             args.push((name, arg));

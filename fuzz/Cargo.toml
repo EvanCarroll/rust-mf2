@@ -15,7 +15,11 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4.13"
 mf2-catalog = { path = "../crates/mf2-catalog", features = ["writer", "decode"] }
+mf2-host-std = { path = "../crates/mf2-host-std" }
+mf2-l4-runner = { path = "../conformance/l4-runner" }
+mf2-locale-data = { path = "../crates/mf2-locale-data" }
 mf2-model = { path = "../crates/mf2-model" }
+mf2-runtime = { path = "../crates/mf2-runtime" }
 mf2-syntax = { path = "../crates/mf2-syntax" }
 
 [workspace]
@@ -31,6 +35,13 @@ bench = false
 [[bin]]
 name = "catalog"
 path = "fuzz_targets/catalog.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "format"
+path = "fuzz_targets/format.rs"
 test = false
 doc = false
 bench = false

@@ -345,3 +345,34 @@ fn parts_output() {
     assert_eq!(e, [FormatError::UnresolvedVariable]);
     assert_eq!(p, "[bidi Fsi][fallback $x][bidi Pdi]");
 }
+
+/// A damaged catalog (a markup name that is not UTF-8) stops string and
+/// parts output at the same place, with the same errors: the parts still
+/// concatenate to the string (found by the `format` fuzz target).
+#[test]
+fn malformed_markup_name() {
+    let cat = catalog("a{#zqzq}b{/zqzq}c", Dir::Ltr);
+    let mut bytes = cat.as_bytes().to_vec();
+    let mut damaged = 0;
+    for i in 0..bytes.len().saturating_sub(3) {
+        if &bytes[i..i + 4] == b"zqzq" {
+            bytes[i] = 0xFF;
+            damaged += 1;
+        }
+    }
+    assert!(damaged > 0);
+    let hash = cat.manifest_hash();
+    let cat = Catalog::new(bytes, hash).expect("still loads");
+    let cx = FormatContext::new(&HOST);
+    let f = Formatter::new(&cat, &REGISTRY, &cx);
+    let mut text = String::new();
+    let mut errs = Vec::new();
+    f.write(MsgId::from_raw(0), &[], &mut text, &mut errs);
+    assert_eq!(text, "a\u{2068}{\u{FFFD}}\u{2069}");
+    assert_eq!(errs, [FormatError::Malformed]);
+    let mut p = Parts(String::new());
+    let mut perrs = Vec::new();
+    f.parts(MsgId::from_raw(0), &[], &mut p, &mut perrs);
+    assert_eq!(p.0, "[text \"a\"][bidi Fsi][fallback \u{FFFD}][bidi Pdi]");
+    assert_eq!(perrs, errs);
+}

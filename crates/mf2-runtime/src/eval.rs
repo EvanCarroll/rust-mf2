@@ -697,7 +697,9 @@ fn placeholder<'a>(
 }
 
 /// Formats (for parts: builds) one markup placeholder. Its options resolve
-/// in both modes, so their errors are reported either way.
+/// in both modes, so their errors are reported either way; so is its name,
+/// so a damaged catalog stops string and parts output at the same place
+/// (the parts concatenate to the string).
 fn markup<'a>(
     env: &Env<'_, 'a>,
     table: &mut Table<'a>,
@@ -708,8 +710,8 @@ fn markup<'a>(
     force_refs(env, table, |f| each_option_ref(m.options(), f), errs);
     let p = table.len();
     let res = resolve_options(env, table, m.options(), p, true, errs)?;
+    let name = env.text(m.name()).ok_or(Stop::Malformed)?;
     if out.wants_markup() {
-        let name = env.text(m.name()).ok_or(Stop::Malformed)?;
         let list = option_list(table, &res)?;
         out.markup(MarkupPart {
             kind: m.kind(),

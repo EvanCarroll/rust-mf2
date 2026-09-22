@@ -11,6 +11,7 @@ clap.workspace = true
 mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-conformance.workspace = true
 mf2-l4-runner.workspace = true
+mf2-runtime.workspace = true
 mf2-locale-data = { workspace = true, features = ["extract"] }
 mf2-syntax.workspace = true
 serde_json.workspace = true

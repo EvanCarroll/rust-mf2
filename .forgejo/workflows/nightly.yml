@@ -7,11 +7,19 @@
 # * `generated_l3` (plans/09-phase-2-work-order.md, A6): the same 1,000,000
 #   messages through a one-message catalog — the unstripped catalog decodes to
 #   the model, the stripped one to its formatting-relevant model (≈ 45 s).
+# * `generated_l4` (plans/10-phase-3-work-order.md, A10): the same 1,000,000
+#   messages steered towards the runtime's functions, compiled for a random
+#   locale with generated arguments, formatted from the catalog — no panic,
+#   deterministic, named = positional, parts = string, stripped = unstripped
+#   (≈ 1 minute); and a sample of 200,000 of them (every fifth) on
+#   wasm32-wasip1 under the pinned wasmtime, byte-identical to native
+#   (`cargo xtask l4-wasi --generated`, ≈ 80 s; the bundle is held in memory,
+#   so not all million).
 # * `differential`: mf2-syntax vs ox_mf2_parser on 90,000 generated and mutated
 #   messages. ox hangs on some inputs and then allocates without bound, so it
 #   runs in a child process with a timeout, under a memory limit.
-# * `fuzz`: 30 minutes of the `parse` fuzz target and 30 of the `catalog`
-#   target (cargo-fuzz, nightly toolchain; see fuzz/README.md).
+# * `fuzz`: 30 minutes each of the `parse`, `catalog` and `format` fuzz
+#   targets (cargo-fuzz, nightly toolchain; see fuzz/README.md).
 # * `reader bench` (plans/09-phase-2-work-order.md, A9): the catalog reader's
 #   load and lookup against P0.8's figures, 0 allocations and 0 copies at load
 #   (bench/catalog-bench). Here rather than on every push because its timing
@@ -72,6 +80,15 @@ jobs:
       - name: Generated input through the catalog (L3), 1,000,000 messages
         run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l3
 
+      - name: Generated input formatted from the catalog (L4), 1,000,000 messages
+        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l4
+
+      - name: Generated input on wasm32-wasip1 (L4), 200,000 of the million
+        run: |
+          set -eu
+          cargo install --root target/tools --locked wasmtime-cli --version 49.0.0
+          cargo xtask l4-wasi --generated 200000
+
       - name: Differential against ox (90,000 messages)
         run: |
           set -eu
@@ -95,6 +112,13 @@ jobs:
           set -eu
           cd fuzz
           cargo +nightly fuzz run catalog -- -dict=mf2.dict -max_len=131072 -timeout=10 \
+            -rss_limit_mb=2048 -max_total_time=1800
+
+      - name: Fuzz the formatter (30 minutes)
+        run: |
+          set -eu
+          cd fuzz
+          cargo +nightly fuzz run format -- -dict=mf2.dict -max_len=131072 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Reader bench (median of 31, exit 1 on failure)

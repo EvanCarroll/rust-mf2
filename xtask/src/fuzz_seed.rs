@@ -9,7 +9,12 @@
 //!   mutation instructions after a NUL (the target's source mode);
 //!   and the reference workload as one catalog, its manifest built the way
 //!   `mf2-build` will — unstripped with a plural entry and fallbacks (every
-//!   section), and stripped.
+//!   section), and stripped;
+//! * `fuzz/corpus/format/` — the `format` target's input (`[flags] [n]
+//!   [n argument bytes] [payload]`): every L4 case of the suite, its catalog
+//!   (for its locale, unstripped and stripped) and its source (source mode),
+//!   with its `params` as positional arguments; the workload catalogs with a
+//!   few arguments; and 400 generated L4 cases (`mf2_conformance::l4gen`).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -17,7 +22,11 @@ use std::path::{Path, PathBuf};
 
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{CldrVersion, Dir, Manifest};
-use mf2_conformance::{SUITE_DIR, Suite};
+use mf2_conformance::abnf::Grammar;
+use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::{SUITE_DIR, Suite, TestKind, l4gen};
+use mf2_l4_runner::{ArgSpec, Case};
+use mf2_runtime::BidiStrategy;
 
 use crate::error::{Error, Result};
 
@@ -81,7 +90,130 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         full.len(),
         stripped.len()
     );
+
+    let dir = create(root, "fuzz/corpus/format")?;
+    let mut n = 0usize;
+    for (i, t) in suite.tests().iter().enumerate() {
+        if t.kind != TestKind::Other {
+            continue;
+        }
+        let (unstripped, stripped) = mf2_conformance::l4::cases(t).map_err(Error::L4)?;
+        let slots = slot_names(&t.src);
+        let head = format_head(&unstripped, &slots);
+        write(
+            &dir,
+            &format!("suite-{i:04}.bin"),
+            &[&head[..], &unstripped.catalog].concat(),
+        )?;
+        write(
+            &dir,
+            &format!("suite-{i:04}-stripped.bin"),
+            &[&head[..], &stripped.catalog].concat(),
+        )?;
+        let locale = FORMAT_LOCALES
+            .iter()
+            .position(|l| *l == t.locale)
+            .unwrap_or(0);
+        let locale = u8::try_from(locale).unwrap_or(0);
+        write(
+            &dir,
+            &format!("suite-{i:04}-source.bin"),
+            &[&head[..], t.src.as_bytes(), &[0, locale, 0]].concat(),
+        )?;
+        n += 3;
+    }
+    // A few arguments of every kind for the workload's first slots.
+    let args = [
+        5, 0, 3, b'a', b'b', b'c', 1, 42, 0, 0, 0, 0, 0, 0, 0, 3, 4, b'1', b'.', b'5', b'0', 2, 0,
+        0, 0, 0, 0, 0, 0xf8, 0x3f, 4,
+    ];
+    for (name, catalog) in [("workload", &full), ("workload-stripped", &stripped)] {
+        let len = u8::try_from(args.len()).unwrap_or(0);
+        write(
+            &dir,
+            &format!("{name}.bin"),
+            &[&[0, len][..], &args, catalog].concat(),
+        )?;
+        n += 1;
+    }
+    let text = crate::fsx::read_to_string(&spec_path(root, ABNF))?;
+    let grammar = Grammar::parse(&text).map_err(|e| Error::L4(e.to_string()))?;
+    for i in 0..400u64 {
+        let g = l4gen::case(&grammar, 0x6d66_3274_776f + i).map_err(Error::L4)?;
+        let head = format_head(&g.unstripped, &slot_names(&g.source));
+        write(
+            &dir,
+            &format!("gen-{i:03}.bin"),
+            &[&head[..], &g.unstripped.catalog].concat(),
+        )?;
+        n += 1;
+    }
+    eprintln!("fuzz-seed: wrote {n} files to {}", dir.display());
     Ok(())
+}
+
+/// The `format` target's source-mode locales (`fuzz/fuzz_targets/format.rs`).
+const FORMAT_LOCALES: [&str; 8] = ["en", "pl", "ar", "he", "cy", "ja", "fr-CA", "und"];
+
+/// The slot (external variable) names of `src`, in slot order.
+fn slot_names(src: &str) -> Vec<String> {
+    mf2_syntax::parse_model(src)
+        .message
+        .map_or_else(Vec::new, |m| {
+            mf2_syntax::analyze(&m)
+                .externals
+                .iter()
+                .map(|n| n.nfc.to_string())
+                .collect()
+        })
+}
+
+/// The `format` target's head for `case`: `[flags] [n] [n argument bytes]`,
+/// its named arguments put in slot order (unset where a slot has none).
+fn format_head(case: &Case, slots: &[String]) -> Vec<u8> {
+    let mut args = Vec::new();
+    for slot in slots {
+        let arg = case.args.iter().find(|(n, _)| n == slot).map(|(_, a)| a);
+        let mut one = Vec::new();
+        match arg {
+            Some(ArgSpec::Str(s)) => {
+                one.push(0);
+                push_text(&mut one, s);
+            }
+            Some(ArgSpec::Int(v)) => {
+                one.push(1);
+                one.extend_from_slice(&v.to_le_bytes());
+            }
+            Some(ArgSpec::Float(x)) => {
+                one.push(2);
+                one.extend_from_slice(&x.to_bits().to_le_bytes());
+            }
+            Some(ArgSpec::Decimal(d)) => {
+                one.push(3);
+                push_text(&mut one, d);
+            }
+            Some(ArgSpec::Other) => one.push(4),
+            None => one.push(5),
+        }
+        if args.len() + one.len() > usize::from(u8::MAX) {
+            break;
+        }
+        args.extend_from_slice(&one);
+    }
+    let flags = u8::from(case.bidi == BidiStrategy::None);
+    let mut head = vec![flags, u8::try_from(args.len()).unwrap_or(0)];
+    head.extend_from_slice(&args);
+    head
+}
+
+/// `[len] bytes`, cut to 255 bytes on a char boundary.
+fn push_text(out: &mut Vec<u8>, s: &str) {
+    let mut end = s.len().min(255);
+    while !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    out.push(u8::try_from(end).unwrap_or(0));
+    out.extend_from_slice(&s.as_bytes()[..end]);
 }
 
 /// The reference workload as one catalog (ids ascending; slots and markup

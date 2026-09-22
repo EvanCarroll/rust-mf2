@@ -30,8 +30,10 @@
 # §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
 # every L4 case natively, formats it natively and with the same runner built
 # for wasm32-wasip1 under wasmtime, and fails unless every record is
-# identical byte for byte. wasmtime is pinned (49.0.0) and installed into
-# target/tools with `cargo install --locked`, as locally.
+# identical byte for byte — and the same for 20,000 generated cases
+# (`--generated`, A10: messages from message.abnf steered towards the
+# runtime's functions, with generated arguments). wasmtime is pinned (49.0.0)
+# and installed into target/tools with `cargo install --locked`, as locally.
 #
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
@@ -325,7 +327,7 @@ jobs:
           target/tools/bin/wasmtime --version
 
       - name: L4 on wasm32-wasip1 (exit 1 unless byte-identical to native)
-        run: cargo xtask l4-wasi
+        run: cargo xtask l4-wasi --generated 20000
 
       - name: Upload the records
         if: always()

@@ -5,6 +5,11 @@
 //! formatted by `mf2-l4-runner` natively and by its `mf2-l4-wasi` binary
 //! under wasmtime; the two outputs must be identical byte for byte.
 //!
+//! `--generated N` adds N generated cases (plans/10-phase-3-work-order.md
+//! A10; `mf2_conformance::l4gen`), unstripped and stripped: the seeds of
+//! `generated_l4`'s nightly million, evenly spaced — the sampled
+//! native = wasip1 run over generated input.
+//!
 //! wasmtime is pinned ([`WASMTIME`]) and installed into `target/tools` by
 //! cargo (`cargo install --root target/tools wasmtime-cli --version …
 //! --locked`), never globally.
@@ -14,7 +19,9 @@ use std::io::Write as _;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-use mf2_conformance::{SUITE_DIR, Suite, TestKind};
+use mf2_conformance::abnf::Grammar;
+use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::{SUITE_DIR, Suite, TestKind, l4gen};
 
 use crate::cmd;
 use crate::error::{Error, Result};
@@ -23,7 +30,11 @@ use crate::fsx;
 /// The pinned wasmtime release.
 pub(crate) const WASMTIME: &str = "49.0.0";
 
-pub(crate) fn run(root: &Path) -> Result<()> {
+/// `generated_l4`'s default seed and its nightly case count.
+const GEN_SEED: u64 = 0x6d66_3274_776f;
+const GEN_NIGHTLY: u64 = 1_000_000;
+
+pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
     let wasmtime = root.join("target/tools/bin/wasmtime");
     let version = cmd::run_capture(wasmtime.as_os_str(), &[OsStr::new("--version")], root, &[])
         .map_err(|_| Error::WasmtimeMissing(WASMTIME))?;
@@ -46,6 +57,17 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         stripped.id.push_str("/stripped");
         cases.push(unstripped);
         cases.push(stripped);
+    }
+    let suite_cases = cases.len();
+    if let Some(n) = generated.filter(|&n| n > 0) {
+        let text = fsx::read_to_string(&spec_path(root, ABNF))?;
+        let grammar = Grammar::parse(&text).map_err(|e| Error::L4(e.to_string()))?;
+        let step = (GEN_NIGHTLY / n).max(1);
+        for i in 0..n {
+            let g = l4gen::case(&grammar, GEN_SEED.wrapping_add(i * step)).map_err(Error::L4)?;
+            cases.push(g.unstripped);
+            cases.push(g.stripped);
+        }
     }
     let native: Vec<String> = cases
         .iter()
@@ -142,9 +164,11 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         )));
     }
     eprintln!(
-        "l4-wasi: {} records identical on native and wasm32-wasip1 ({} tests, unstripped and stripped)",
+        "l4-wasi: {} records identical on native and wasm32-wasip1 ({} suite tests and {} generated \
+         cases, unstripped and stripped)",
         native.len(),
-        native.len() / 2
+        suite_cases / 2,
+        (native.len() - suite_cases) / 2
     );
     Ok(())
 }
