@@ -22,7 +22,8 @@
 //!   one-message catalog for that locale (direction, plural rules and number
 //!   data from `mf2-locale-data`, as `mf2::compile_str` writes them, and —
 //!   when the message formats a date or can receive one — the locale's
-//!   `icu.blob` with every shape's data), which must load.
+//!   `icu.blob` with every shape's data, built once per locale, off the
+//!   clock), which must load.
 //!
 //! Every message of a catalog that loads is formatted with the arguments as
 //! positional (slot) arguments — to a string, again to a string, and to
@@ -30,7 +31,8 @@
 //! The functions are the L4 registry's — all features (`:string`, the
 //! localized numeric functions, `:percent`, `:currency`, `:unit`, the
 //! date/time functions over ICU4X from the catalog's `icu.blob`
-//! (`datetime-icu`, whose blob parsing a damaged catalog reaches too), the
+//! (`datetime-icu`) — in catalog mode over the neutral backend, since ICU4X
+//! does not promise to survive a damaged blob (`CATALOG_REGISTRY`) — the
 //! unannotated hooks, the suite's `:test:*`) or the default configuration's
 //! (flags bit 1) — the host `mf2-host-std`'s, with `jiff`'s zone data.
 //! Checked:
@@ -41,8 +43,10 @@
 //! * named arguments format as positional ones, when the message's slot
 //!   names are distinct and in NFC (a damaged catalog may break either);
 //! * an id past the last message formats as a Missing Message;
-//! * **linear time**: the whole run takes at most 50 ms + 50 µs per input
-//!   byte + 100 ns per byte of text written. Text is charged because one
+//! * **linear time**: the run — a catalog's load and every format, not
+//!   source mode's compile, which is build side (the `parse` and `catalog`
+//!   targets hold it) — takes at most 50 ms + 50 µs per input byte + 100 ns
+//!   per byte of text written. Text is charged because one
 //!   catalog string may be referenced from many places, so a message's
 //!   output can be quadratic in the catalog's size; for the same reason a
 //!   string sink stops resolving catalog text past 16 MiB (it still counts
@@ -58,12 +62,13 @@ use libfuzzer_sys::fuzz_target;
 use mf2_catalog::format::locale_key::ICU_BLOB;
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Catalog, Entry, MsgId, StrRef};
+use mf2_fn_datetime::{DateTimeFunction, Neutral};
 use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, icu_blob};
 use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
 use mf2_locale_data::{PluralKind, Selection, direction, plural_locale_entries};
 use mf2_runtime::{
-    Arg, BidiStrategy, CustomValue, DateTime, FormatContext, FormatError, Formatter, Host, Part,
-    PartSink, Registry, Sink, SubPartSink,
+    Arg, BidiStrategy, CustomValue, DateTime, FormatContext, FormatError, Formatter, Function,
+    Host, Part, PartSink, Registry, Sink, SubPartSink,
 };
 
 /// A string sink resolves catalog text up to this much output.
@@ -94,11 +99,25 @@ const LOCALES: [&str; 17] = [
 ];
 
 fuzz_target!(|data: &[u8]| {
-    // Build side, once, off the clock.
-    blobs();
+    let [flags, n, rest @ ..] = data else {
+        return;
+    };
+    let (arg_bytes, payload) = rest.split_at(usize::from(*n).min(rest.len()));
+    // Source mode is the build side — parse, write, locale data (cached per
+    // process, a locale's blob built on first use) — off the clock: the
+    // `parse` and `catalog` targets hold the parser and the writer to
+    // linear time. A catalog's load is the client's, on the clock.
+    let compiled = if payload.starts_with(b"MF2B") {
+        None
+    } else {
+        match compile(payload) {
+            Some(c) => Some(c),
+            None => return,
+        }
+    };
     let start = Instant::now();
     let mut work = 0usize;
-    run(data, &mut work);
+    run(*flags, arg_bytes, payload, compiled, &mut work);
     let budget = Duration::from_millis(50)
         + Duration::from_micros(50) * u32::try_from(data.len()).unwrap_or(u32::MAX)
         + Duration::from_nanos(
@@ -114,11 +133,7 @@ fuzz_target!(|data: &[u8]| {
     );
 });
 
-fn run(data: &[u8], work: &mut usize) {
-    let [flags, n, rest @ ..] = data else {
-        return;
-    };
-    let (arg_bytes, payload) = rest.split_at(usize::from(*n).min(rest.len()));
+fn run(flags: u8, arg_bytes: &[u8], payload: &[u8], compiled: Option<Catalog>, work: &mut usize) {
     let values = values(arg_bytes);
     let bidi = if flags & 1 != 0 {
         BidiStrategy::None
@@ -127,26 +142,61 @@ fn run(data: &[u8], work: &mut usize) {
     };
     let registry = if flags & 2 != 0 {
         &mf2_l4_runner::DEFAULT_REGISTRY
+    } else if compiled.is_none() {
+        // A damaged catalog's `icu.blob` is not handed to ICU4X (see
+        // `CATALOG_REGISTRY`).
+        &CATALOG_REGISTRY
     } else {
         &mf2_l4_runner::REGISTRY
     };
-    let catalog = if payload.starts_with(b"MF2B") {
-        let hash = payload
-            .get(8..16)
-            .and_then(|h| h.try_into().ok())
-            .map_or(0, u64::from_le_bytes);
-        match Catalog::new(payload.to_vec(), hash) {
-            Ok(c) => c,
-            Err(_) => return,
-        }
-    } else {
-        match compile(payload) {
-            Some(c) => c,
-            None => return,
+    let catalog = match compiled {
+        Some(c) => c,
+        None => {
+            let hash = payload
+                .get(8..16)
+                .and_then(|h| h.try_into().ok())
+                .map_or(0, u64::from_le_bytes);
+            match Catalog::new(payload.to_vec(), hash) {
+                Ok(c) => c,
+                Err(_) => return,
+            }
         }
     };
     format_all(&catalog, registry, &values, bidi, work);
 }
+
+// ── registries ───────────────────────────────────────────────────────────────
+
+static N_DATE: DateTimeFunction<Neutral> = DateTimeFunction::date(Neutral);
+static N_DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
+static N_TIME: DateTimeFunction<Neutral> = DateTimeFunction::time(Neutral);
+static N_DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
+
+/// The L4 registry with the date functions over the neutral backend, for
+/// catalog mode: ICU4X does not promise to survive a damaged `icu.blob` —
+/// a smoke run found `DecimalFormatter::try_new` panicking on a damaged
+/// numbering-system name (`DataMarkerAttributes::from_str_or_panic`), in
+/// release builds too — so only the pristine blobs of source mode reach
+/// it. The date semantics, and every other function, still meet the
+/// damaged catalog.
+static CATALOG_FUNCTIONS: [(&str, &dyn Function); 13] = [
+    ("currency", &mf2_fn_number::CURRENCY),
+    ("date", &N_DATE),
+    ("datetime", &N_DATETIME),
+    ("integer", &mf2_fn_number::INTEGER),
+    ("number", &mf2_fn_number::NUMBER),
+    ("offset", &mf2_fn_number::OFFSET),
+    ("percent", &mf2_fn_number::PERCENT),
+    ("string", &mf2_runtime::functions::STRING),
+    ("test:format", &mf2_l4_runner::test_functions::FORMAT),
+    ("test:function", &mf2_l4_runner::test_functions::FUNCTION),
+    ("test:select", &mf2_l4_runner::test_functions::SELECT),
+    ("time", &N_TIME),
+    ("unit", &mf2_fn_number::UNIT),
+];
+static CATALOG_REGISTRY: Registry = Registry::new(&CATALOG_FUNCTIONS)
+    .with_numbers(&mf2_fn_number::NUMBERS)
+    .with_dates(&N_DATES);
 
 // ── arguments ────────────────────────────────────────────────────────────────
 
@@ -219,21 +269,18 @@ fn values(mut b: &[u8]) -> Vec<Value> {
 
 // ── source mode ──────────────────────────────────────────────────────────────
 
-/// Each of [`LOCALES`]' `icu.blob` with every shape's data, every
+/// The `icu.blob` of `LOCALES[locale]` with every shape's data, every
 /// variant, and the calendars the steering names (`buddhist`, `hebrew`,
-/// `japanese`).
-fn blobs() -> &'static [Vec<u8>] {
-    static BLOBS: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
-    BLOBS.get_or_init(|| {
+/// `japanese`) — built on first use (off the clock, as all of `compile`).
+fn blob(locale: usize) -> &'static [u8] {
+    static BLOBS: [OnceLock<Vec<u8>>; LOCALES.len()] = [const { OnceLock::new() }; LOCALES.len()];
+    BLOBS[locale].get_or_init(|| {
         let mut all = DateNeeds::all();
         // `mf2_conformance::l4gen::STEERED_CALENDARS`'s.
         all.calendars =
             Selection::Listed(["buddhist", "hebrew", "japanese"].map(String::from).into());
-        let spec = IcuBlobSpec::every_variant(all);
-        LOCALES
-            .iter()
-            .map(|l| icu_blob(l, &spec).expect("icu.blob of a known locale"))
-            .collect()
+        icu_blob(LOCALES[locale], &IcuBlobSpec::every_variant(all))
+            .expect("icu.blob of a known locale")
     })
 }
 
@@ -259,16 +306,16 @@ fn compile(data: &[u8]) -> Option<Catalog> {
         .extend(number_locale_entries(locale, &needs).expect("number data of a known locale"));
     // The `datetime-icu` data when the message formats a date or can
     // receive one (02 §4.4): the locale's blob for every shape, the
-    // steering's calendars too (built once per locale, before the clock
-    // starts: `blobs`), which the sliced blob `mf2::compile_str` writes is
-    // a subset of (`generated_l4` checks the slicing).
+    // steering's calendars too (built once per locale: `blob`), which the
+    // sliced blob `mf2::compile_str` writes is a subset of (`generated_l4`
+    // checks the slicing).
     let mut dates = DateNeeds::default();
     dates.add_message(&model);
     if !dates.is_empty() {
-        let blob = blobs()
-            .get(usize::from(tail.first().copied().unwrap_or(0)) % LOCALES.len())
-            .expect("a blob per locale");
-        options.locale_entries.push((ICU_BLOB, blob.clone()));
+        let locale = usize::from(tail.first().copied().unwrap_or(0)) % LOCALES.len();
+        options
+            .locale_entries
+            .push((ICU_BLOB, blob(locale).to_vec()));
     }
     if tail.get(1).is_some_and(|b| b & 1 != 0) {
         options = options.stripped();

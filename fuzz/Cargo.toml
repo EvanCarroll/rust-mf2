@@ -16,6 +16,8 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4.13"
 mf2-catalog = { path = "../crates/mf2-catalog", features = ["writer", "decode"] }
 mf2-fn-datetime = { path = "../crates/mf2-fn-datetime" }
+# The catalog-mode registry (dates over the neutral backend).
+mf2-fn-number = { path = "../crates/mf2-fn-number" }
 mf2-host-std = { path = "../crates/mf2-host-std" }
 mf2-l4-runner = { path = "../conformance/l4-runner" }
 mf2-locale-data = { path = "../crates/mf2-locale-data", features = ["icu-blob"] }

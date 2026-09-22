@@ -1037,6 +1037,15 @@ entry := blob   ; an ICU4X `BlobDataProvider` blob, format v3: the postcard enco
   corpus did not name) is an *Unsupported Operation* and a fallback value —
   never a panic in our code, never compiled data in the client. The server
   formats from the same entry, so its text is the client's, byte for byte.
+  Unlike the other entries, **a damaged `icu.blob` is not survivable by
+  construction**: ICU4X parses it and does not promise to survive damage —
+  the `format` fuzz target found `DecimalFormatter::try_new` panicking on a
+  damaged numbering-system name (`DataMarkerAttributes::from_str_or_panic`,
+  in release builds too), and `icu_provider_blob` checks the blob's
+  invariants with `debug_assert!`. A catalog is the build's output,
+  content-hashed and served immutable (§3), so a damaged blob means a
+  damaged deployment; the fuzz target formats damaged catalogs' dates with
+  the neutral backend and hands ICU4X only the blobs the build wrote.
 * **Test vectors** (`mf2-locale-data` `tests/icu_blob.rs`, `vectors`; `en`,
   Gregorian-only variant; FNV-1a 64 of the whole entry):
 
