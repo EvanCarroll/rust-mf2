@@ -69,28 +69,79 @@ fn number_values() -> Vec<ArgSpec> {
     ]
 }
 
-/// The families with goldens so far: numbers (Phase 4, A3). Currency, unit
-/// and date/time goldens join with A4 and A6.
-pub const FAMILIES: &[Family] = &[Family {
-    name: "numbers",
-    about: "the decimal family (fn-number): unannotated numbers, :number with digit, grouping \
+fn measure_values() -> Vec<ArgSpec> {
+    vec![
+        ArgSpec::Int(0),
+        ArgSpec::Int(1),
+        ArgSpec::Int(-1),
+        ArgSpec::Int(2),
+        ArgSpec::Int(5),
+        ArgSpec::Int(21),
+        ArgSpec::Float(1.5),
+        ArgSpec::Decimal("1234.5".to_owned()),
+        ArgSpec::Decimal("-1234567.891".to_owned()),
+    ]
+}
+
+/// The families with goldens so far: numbers (Phase 4, A3), currencies and
+/// units (A4). Date/time goldens join with A6.
+pub const FAMILIES: &[Family] = &[
+    Family {
+        name: "numbers",
+        about: "the decimal family (fn-number): unannotated numbers, :number with digit, grouping \
             and sign options, :integer, :percent, plural and ordinal selection",
-    messages: &[
-        "{$n}",
-        "{$n :number}",
-        "{$n :number minimumFractionDigits=2}",
-        "{$n :number maximumSignificantDigits=3}",
-        "{$n :number useGrouping=always}",
-        "{$n :number useGrouping=never}",
-        "{$n :number signDisplay=always}",
-        "{$n :integer}",
-        "{$n :percent}",
-        "{$n :percent maximumFractionDigits=1}",
-        ".input {$n :number} .match $n PLURAL",
-        ".input {$n :number select=ordinal} .match $n PLURAL",
-    ],
-    values: number_values,
-}];
+        messages: &[
+            "{$n}",
+            "{$n :number}",
+            "{$n :number minimumFractionDigits=2}",
+            "{$n :number maximumSignificantDigits=3}",
+            "{$n :number useGrouping=always}",
+            "{$n :number useGrouping=never}",
+            "{$n :number signDisplay=always}",
+            "{$n :integer}",
+            "{$n :percent}",
+            "{$n :percent maximumFractionDigits=1}",
+            ".input {$n :number} .match $n PLURAL",
+            ".input {$n :number select=ordinal} .match $n PLURAL",
+        ],
+        values: number_values,
+    },
+    Family {
+        name: "currency",
+        about: "the currency family (fn-number): symbols, narrow symbols, codes, names by the \
+                formatted number's plural category, accounting, no symbol, fraction digits",
+        messages: &[
+            "{$n :currency currency=EUR}",
+            "{$n :currency currency=USD}",
+            "{$n :currency currency=JPY}",
+            "{$n :currency currency=CHF}",
+            "{$n :currency currency=EUR currencyDisplay=code}",
+            "{$n :currency currency=EUR currencyDisplay=name}",
+            "{$n :currency currency=USD currencyDisplay=narrowSymbol}",
+            "{$n :currency currency=USD currencySign=accounting}",
+            "{$n :currency currency=EUR currencyDisplay=never}",
+            "{$n :currency currency=EUR fractionDigits=0}",
+        ],
+        values: measure_values,
+    },
+    Family {
+        name: "units",
+        about: "the unit family (fn-number): short, narrow and long patterns by the formatted \
+                number's plural category, compound units, one composed X-per-Y",
+        messages: &[
+            "{$n :unit unit=meter}",
+            "{$n :unit unit=meter unitDisplay=long}",
+            "{$n :unit unit=meter unitDisplay=narrow}",
+            "{$n :unit unit=kilometer-per-hour}",
+            "{$n :unit unit=kilometer-per-hour unitDisplay=long}",
+            "{$n :unit unit=celsius}",
+            "{$n :unit unit=kilogram unitDisplay=long}",
+            "{$n :unit unit=liter-per-kilometer}",
+            "{$n :unit unit=hour unitDisplay=long}",
+        ],
+        values: measure_values,
+    },
+];
 
 /// A message with its `PLURAL` placeholder expanded.
 fn source(message: &str) -> String {

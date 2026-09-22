@@ -172,7 +172,7 @@ fn unit_like_intl() {
             "{5 :unit unit=kilometer unitDisplay=long}",
             "5 Kilometer",
         ),
-        // CLDR 48 writes U+202F here; node's CLDR 46 U+00A0.
+        // U+202F (narrow no-break space) in CLDR 46 and 48 alike.
         ("fr", "{-5 :unit unit=celsius}", "-5\u{202f}°C"),
         (
             "pl",
