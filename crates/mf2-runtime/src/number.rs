@@ -22,8 +22,10 @@ use crate::value::Value;
 use decimal::{Decimal, Increment, ParseError, split_literal};
 use options::{
     CUR, DigitPlan, FracDefaults, INT, Kind, NUM, NumOpts, OPTIONS, PCT, RoundingType, Select,
-    SignDisplay, UNIT, apply, digit_plan, digit_size, select_named,
+    SignDisplay, UNIT, apply, digit_plan, select_named,
 };
+
+pub(crate) use options::digit_size;
 
 pub use measure::{Measure, MeasureUnit};
 pub use options::Grouping;

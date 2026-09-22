@@ -184,6 +184,14 @@ impl<'a> Value<'a> {
         }
     }
 
+    /// Its value as a *digit size option* (`number.md`): an integer 0–99 —
+    /// an integer, an integral float, a number, or a string of one or two
+    /// digits without a leading zero. For the function crates' own options
+    /// of that type (`fractionDigits`).
+    pub fn digit_size(&self) -> Option<u8> {
+        crate::number::digit_size(self)
+    }
+
     /// The concrete value, when it is a `T`: a [`Value::Boxed`], or an
     /// application value whose `as_any` gives one.
     pub fn downcast_ref<T: Any>(&self) -> Option<&T> {

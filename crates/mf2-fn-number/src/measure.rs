@@ -56,19 +56,16 @@ enum Display {
     Never = 5,
 }
 
-const DISPLAYS: [(&str, Display); 5] = [
-    ("narrowSymbol", Display::NarrowSymbol),
-    ("symbol", Display::Symbol),
-    ("name", Display::Name),
-    ("code", Display::Code),
-    ("never", Display::Never),
+/// The keyword options' values and their codes in the flags.
+const DISPLAYS: [(&str, u32); 5] = [
+    ("narrowSymbol", Display::NarrowSymbol as u32),
+    ("symbol", Display::Symbol as u32),
+    ("name", Display::Name as u32),
+    ("code", Display::Code as u32),
+    ("never", Display::Never as u32),
 ];
-
-const WIDTHS: [(&str, Width); 3] = [
-    ("short", Width::Short),
-    ("narrow", Width::Narrow),
-    ("long", Width::Long),
-];
+const SIGNS: [(&str, u32); 2] = [("standard", 1), ("accounting", 2)];
+const WIDTHS: [(&str, u32); 3] = [("short", 1), ("narrow", 2), ("long", 3)];
 
 fn field(flags: u32, shift: u32, bits: u32) -> u32 {
     (flags >> shift) & ((1 << bits) - 1)
@@ -98,14 +95,6 @@ fn width_of(flags: u32) -> Width {
         2 => Width::Narrow,
         3 => Width::Long,
         _ => Width::Short,
-    }
-}
-
-fn width_code(w: Width) -> u32 {
-    match w {
-        Width::Short => 1,
-        Width::Narrow => 2,
-        Width::Long => 3,
     }
 }
 
@@ -157,22 +146,6 @@ fn is_unit_id(s: &str) -> bool {
     true
 }
 
-/// A *digit size option* value (`"0"`, `"1"`–`"99"`, or an integer).
-fn digit_size(v: &Value<'_>) -> Option<u8> {
-    match v {
-        Value::Int(n) => u8::try_from(*n).ok().filter(|n| *n <= 99),
-        Value::Number(n) => n
-            .to_i64()
-            .and_then(|n| u8::try_from(n).ok())
-            .filter(|n| *n <= 99),
-        _ => match *str_of(v)?.as_bytes() {
-            [d @ b'0'..=b'9'] => Some(d - b'0'),
-            [a @ b'1'..=b'9', b @ b'0'..=b'9'] => Some((a - b'0') * 10 + (b - b'0')),
-            _ => None,
-        },
-    }
-}
-
 /// The plural category of `d` as shown, by the catalog's cardinal rules.
 fn category(catalog: &Catalog, d: &Digits<'_>) -> Category {
     let rules = catalog
@@ -181,16 +154,98 @@ fn category(catalog: &Catalog, d: &Digits<'_>) -> Category {
     plural_category(rules, &d.operands())
 }
 
-/// The operand's measure, when it is one (a previous `:currency` / `:unit`,
-/// or an application value).
-fn operand_measure<'a>(operand: Option<&Value<'a>>) -> Option<Measure<'a>> {
+/// The operand's currency or unit and flags, when it is a measure (a
+/// previous `:currency` / `:unit`, or an application value); its number is
+/// `Number::resolve`'s.
+fn operand_measure<'a>(operand: Option<&Value<'a>>) -> Option<(MeasureUnit<'a>, u32)> {
     match operand? {
-        Value::Measure(m) => Some(m.clone()),
-        Value::Custom(c) => c
-            .as_measure()
-            .map(|m| Measure::new(m.number, m.unit, m.flags)),
+        Value::Measure(m) => Some((m.unit, m.flags)),
+        Value::Custom(c) => c.as_measure().map(|m| (m.unit, m.flags)),
         _ => None,
     }
+}
+
+/// Sets the `bits`-wide field at `shift` to the code of the keyword `text`
+/// in `table`; *Bad Option* when it is not one.
+fn keyword(
+    text: Option<&str>,
+    table: &[(&str, u32)],
+    shift: u32,
+    bits: u32,
+    flags: &mut u32,
+    errs: &mut dyn ErrorSink,
+) {
+    match text.and_then(|t| table.iter().find(|(k, _)| *k == t)) {
+        Some(&(_, code)) => set(flags, shift, bits, code),
+        None => errs.error(FormatError::BadOption),
+    }
+}
+
+/// `:currency` (`unit` false) and `:unit` (`unit` true): the currency or
+/// unit — the operand's, or the option's — and the options only these
+/// functions have, then the number (`Number::resolve`).
+fn resolve_measure<'a>(
+    unit: bool,
+    cx: &FnContext<'_>,
+    operand: Option<&Value<'a>>,
+    options: Options<'_, 'a>,
+    errs: &mut dyn ErrorSink,
+) -> Option<Value<'a>> {
+    let inherited =
+        operand_measure(operand).filter(|(u, _)| matches!(u, MeasureUnit::Unit(_)) == unit);
+    let mut what = inherited.map(|(u, _)| u);
+    let mut flags = inherited.map_or(0, |(_, f)| f);
+    for (name, v) in options.iter() {
+        let text = str_of(v.value);
+        match (unit, name) {
+            (false, "currency") => match text.and_then(currency_code) {
+                // MUST NOT override the currency of a value that has one.
+                Some(_) if inherited.is_some() => errs.error(FormatError::BadOption),
+                Some(c) => what = Some(MeasureUnit::Currency(c)),
+                None => errs.error(FormatError::BadOption),
+            },
+            (true, "unit") => match text.filter(|u| is_unit_id(u)).map(MeasureUnit::Unit) {
+                // No other unit without converting (number.md).
+                Some(u) if inherited.is_some_and(|(i, _)| i != u) => {
+                    errs.error(FormatError::BadOption);
+                }
+                Some(u) => what = Some(u),
+                None => errs.error(FormatError::BadOption),
+            },
+            (false, "currencyDisplay") => {
+                keyword(text, &DISPLAYS, DISPLAY_SHIFT, 3, &mut flags, errs);
+            }
+            (false, "currencySign") => keyword(text, &SIGNS, SIGN_SHIFT, 2, &mut flags, errs),
+            (true, "unitDisplay") => keyword(text, &WIDTHS, WIDTH_SHIFT, 2, &mut flags, errs),
+            (false, "fractionDigits") => {
+                if text == Some("auto") {
+                    set(&mut flags, DIGITS_SHIFT, 7, 1);
+                } else if let Some(n) = v.value.digit_size() {
+                    set(&mut flags, DIGITS_SHIFT, 7, 2 + u32::from(n));
+                } else {
+                    errs.error(FormatError::BadOption);
+                }
+            }
+            // Conversion is optional and not implemented (number.md,
+            // "Unit Conversion"): the value keeps its unit.
+            (true, "usage") => errs.error(FormatError::UnsupportedOperation),
+            _ => {}
+        }
+    }
+    let Some(what) = what else {
+        // A numeric operand without a currency or unit (number.md).
+        errs.error(FormatError::BadOperand);
+        return None;
+    };
+    let spec = match what {
+        MeasureUnit::Currency(code) => NumberSpec::currency(match field(flags, DIGITS_SHIFT, 7) {
+            n if n >= 2 => u8::try_from(n - 2).unwrap_or(2),
+            _ => auto_digits(cx.catalog(), code),
+        }),
+        MeasureUnit::Unit(_) => NumberSpec::UNIT,
+    };
+    let number = Number::resolve(spec, cx, operand, &options, errs)?;
+    Some(Value::Measure(Measure::new(number, what, flags)))
 }
 
 // ────────────────────────────────────────────────────── :currency ──
@@ -210,58 +265,7 @@ impl Function for CurrencyFunction {
         options: &Options<'_, 'a>,
         errs: &mut dyn ErrorSink,
     ) -> Option<Value<'a>> {
-        let inherited = operand_measure(operand).and_then(|m| match m.unit {
-            MeasureUnit::Currency(c) => Some((c, m.flags)),
-            MeasureUnit::Unit(_) => None,
-        });
-        let mut code = inherited.map(|(c, _)| c);
-        let mut flags = inherited.map_or(0, |(_, f)| f);
-        for (name, v) in options.iter() {
-            match name {
-                "currency" => match str_of(v.value).and_then(currency_code) {
-                    // MUST NOT override the currency of a value that has one.
-                    Some(_) if inherited.is_some() => errs.error(FormatError::BadOption),
-                    Some(c) => code = Some(c),
-                    None => errs.error(FormatError::BadOption),
-                },
-                "currencyDisplay" => {
-                    match str_of(v.value).and_then(|t| DISPLAYS.iter().find(|(k, _)| *k == t)) {
-                        Some(&(_, d)) => set(&mut flags, DISPLAY_SHIFT, 3, d as u32),
-                        None => errs.error(FormatError::BadOption),
-                    }
-                }
-                "currencySign" => match str_of(v.value) {
-                    Some("standard") => set(&mut flags, SIGN_SHIFT, 2, 1),
-                    Some("accounting") => set(&mut flags, SIGN_SHIFT, 2, 2),
-                    _ => errs.error(FormatError::BadOption),
-                },
-                "fractionDigits" => {
-                    if str_of(v.value) == Some("auto") {
-                        set(&mut flags, DIGITS_SHIFT, 7, 1);
-                    } else if let Some(n) = digit_size(v.value) {
-                        set(&mut flags, DIGITS_SHIFT, 7, 2 + u32::from(n));
-                    } else {
-                        errs.error(FormatError::BadOption);
-                    }
-                }
-                _ => {}
-            }
-        }
-        let Some(code) = code else {
-            // A numeric operand without a currency (number.md).
-            errs.error(FormatError::BadOperand);
-            return None;
-        };
-        let digits = match field(flags, DIGITS_SHIFT, 7) {
-            n if n >= 2 => u8::try_from(n - 2).unwrap_or(2),
-            _ => auto_digits(cx.catalog(), code),
-        };
-        let number = Number::resolve(NumberSpec::currency(digits), cx, operand, options, errs)?;
-        Some(Value::Measure(Measure::new(
-            number,
-            MeasureUnit::Currency(code),
-            flags,
-        )))
+        resolve_measure(false, cx, operand, *options, errs)
     }
 
     fn formattable(&self, _cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {
@@ -351,36 +355,37 @@ fn write_currency(catalog: &Catalog, m: &Measure<'_>, out: &mut Out<'_>) {
     };
     let patterns = Patterns::of(catalog);
     // The currency's own standard pattern replaces the locale's.
-    let own = if base == Style::Currency {
-        cur.and_then(|c| c.pattern())
-    } else {
-        None
-    };
-    let mut spacing = true;
-    let pattern = own.or_else(|| {
-        let p = patterns.and_then(|p| p.resolve(base))?;
-        // A letter-like end next to the digits takes the
-        // `…alphaNextToNumber` pattern when the locale has one.
+    let own = cur
+        .and_then(|c| c.pattern())
+        .filter(|_| base == Style::Currency);
+    let mut pattern = own.or_else(|| patterns.and_then(|p| p.resolve(base)));
+    // Where a letter-like end of the symbol touches the digits, CLDR's
+    // currency spacing puts a U+00A0 between them — or, when the locale has
+    // one, the `…alphaNextToNumber` pattern places the space itself. No
+    // currency pattern in the catalog: the symbol goes before the number.
+    let (mut before, mut after) = pattern.map_or((last, false), |p| {
         let s = p.signed(localize::shown(&d));
-        let touching =
-            (last && ends_with_currency(s.prefix)) || (first && starts_with_currency(s.suffix));
-        if touching && let Some(a) = alpha.and_then(|a| patterns.and_then(|p| p.get(a))) {
-            spacing = false;
-            return Some(a);
-        }
-        Some(p)
+        (
+            last && ends_with_currency(s.prefix),
+            first && starts_with_currency(s.suffix),
+        )
     });
+    if own.is_none()
+        && (before || after)
+        && let Some(a) = alpha.and_then(|a| patterns.and_then(|p| p.get(a)))
+    {
+        pattern = Some(a);
+        (before, after) = (false, false);
+    }
     let sizes = pattern.map_or(sym.grouping(), |p| p.grouping());
     let symbol = Symbol {
         text,
-        first,
-        last,
-        spacing,
+        before,
+        after,
     };
     if pattern.is_none() {
-        // No currency pattern in the catalog: the symbol before the number.
         out.put("currency", text);
-        if !text.is_empty() && last {
+        if before {
             out.put("literal", "\u{a0}");
         }
     }
@@ -413,7 +418,7 @@ fn write_currency_name(
     let cat = category(catalog, d) as u8;
     let name = cur.and_then(|c| c.name_for(cat)).unwrap_or(code);
     let template = Currencies::of(catalog).and_then(|c| c.name_pattern(cat));
-    let number = |out: &mut Out<'_>| {
+    let mut number = |out: &mut Out<'_>| {
         localize::write_number(
             sym,
             None,
@@ -426,7 +431,7 @@ fn write_currency_name(
         );
     };
     if let Some(t) = template {
-        fill(t, out, number, |out| out.put("currency", name));
+        fill(t, out, &mut number, &mut |out| out.put("currency", name));
     } else {
         number(out);
         out.put("literal", " ");
@@ -434,25 +439,47 @@ fn write_currency_name(
     }
 }
 
-/// Writes `t` with `arg0` for `{0}` and `arg1` for `{1}`; literal text is a
-/// `literal` part when blank, else `unit` (Intl's parts for unit and
+/// Writes `t` with `arg0` for `{0}` and `arg1` for `{1}`; a text's blank
+/// ends are `literal` parts, the rest `unit` (Intl's parts for unit and
 /// currency-name patterns).
 fn fill(
     t: Template<'_>,
     out: &mut Out<'_>,
-    mut arg0: impl FnMut(&mut Out<'_>),
-    mut arg1: impl FnMut(&mut Out<'_>),
+    arg0: &mut dyn FnMut(&mut Out<'_>),
+    arg1: &mut dyn FnMut(&mut Out<'_>),
 ) {
     for p in t.parts() {
         match p {
             TemplatePart::Arg0 => arg0(out),
             TemplatePart::Arg1 => arg1(out),
             TemplatePart::Text(s) => {
-                let blank = s.chars().all(char::is_whitespace);
-                out.put(if blank { "literal" } else { "unit" }, s);
+                let (lead, text, trail) = split_blank(s);
+                out.put("literal", lead);
+                out.put("unit", text);
+                out.put("literal", trail);
             }
         }
     }
+}
+
+/// The spaces of CLDR's unit and name patterns: U+0020, U+00A0, U+2009,
+/// U+202F.
+const BLANKS: [&str; 4] = [" ", "\u{a0}", "\u{2009}", "\u{202f}"];
+
+/// `text` as its leading blanks, the text between, and its trailing blanks.
+fn split_blank(text: &str) -> (&str, &str, &str) {
+    let mut rest = text;
+    while let Some(r) = BLANKS.iter().find_map(|b| rest.strip_prefix(b)) {
+        rest = r;
+    }
+    let (head, mut mid) = text
+        .split_at_checked(text.len() - rest.len())
+        .unwrap_or(("", text));
+    while let Some(r) = BLANKS.iter().find_map(|b| mid.strip_suffix(b)) {
+        mid = r;
+    }
+    let tail = rest.get(mid.len()..).unwrap_or("");
+    (head, mid, tail)
 }
 
 // ────────────────────────────────────────────────────────── :unit ──
@@ -472,45 +499,7 @@ impl Function for UnitFunction {
         options: &Options<'_, 'a>,
         errs: &mut dyn ErrorSink,
     ) -> Option<Value<'a>> {
-        let inherited = operand_measure(operand).and_then(|m| match m.unit {
-            MeasureUnit::Unit(u) => Some((u, m.flags)),
-            MeasureUnit::Currency(_) => None,
-        });
-        let mut unit = inherited.map(|(u, _)| u);
-        let mut flags = inherited.map_or(0, |(_, f)| f);
-        for (name, v) in options.iter() {
-            match name {
-                "unit" => match str_of(v.value).filter(|u| is_unit_id(u)) {
-                    // No other unit without converting (number.md).
-                    Some(u) if inherited.is_some_and(|(i, _)| i != u) => {
-                        errs.error(FormatError::BadOption);
-                    }
-                    Some(u) => unit = Some(u),
-                    None => errs.error(FormatError::BadOption),
-                },
-                "unitDisplay" => {
-                    match str_of(v.value).and_then(|t| WIDTHS.iter().find(|(k, _)| *k == t)) {
-                        Some(&(_, w)) => set(&mut flags, WIDTH_SHIFT, 2, width_code(w)),
-                        None => errs.error(FormatError::BadOption),
-                    }
-                }
-                // Conversion is optional and not implemented (number.md,
-                // "Unit Conversion"): the value keeps its unit.
-                "usage" => errs.error(FormatError::UnsupportedOperation),
-                _ => {}
-            }
-        }
-        let Some(unit) = unit else {
-            // A numeric operand without a unit (number.md).
-            errs.error(FormatError::BadOperand);
-            return None;
-        };
-        let number = Number::resolve(NumberSpec::UNIT, cx, operand, options, errs)?;
-        Some(Value::Measure(Measure::new(
-            number,
-            MeasureUnit::Unit(unit),
-            flags,
-        )))
+        resolve_measure(true, cx, operand, *options, errs)
     }
 
     fn formattable(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {
@@ -605,10 +594,16 @@ fn write_unit(catalog: &Catalog, measure: &Measure<'_>, out: &mut Out<'_>) {
         out.put("unit", id);
         return;
     };
+    // Not formattable (`formattable` said so): nothing.
+    let (unit, per) = match resolve_unit(&units, id) {
+        Some(Resolved::One(u)) => (u, None),
+        Some(Resolved::Per(x, y)) => (x, Some(y)),
+        None => return,
+    };
     let seps = Seps::of(&sym);
     let grouping = measure.number.grouping();
     let cat = category(catalog, &digits) as u8;
-    let number = |out: &mut Out<'_>| {
+    let mut number = |out: &mut Out<'_>| {
         localize::write_number(
             &sym,
             None,
@@ -620,42 +615,28 @@ fn write_unit(catalog: &Catalog, measure: &Measure<'_>, out: &mut Out<'_>) {
             out,
         );
     };
-    let want = width_of(measure.flags);
-    match resolve_unit(&units, id) {
-        Some(Resolved::One(unit)) => {
-            let w = width_for(&unit, want);
-            match unit.pattern(w, cat) {
-                Some(t) => fill(t, out, number, |_| {}),
-                None => number(out),
-            }
-        }
-        Some(Resolved::Per(num, den)) => {
-            let w = width_for(&num, want);
-            let numerator = |out: &mut Out<'_>| match num.pattern(w, cat) {
-                Some(t) => fill(t, out, number, |_| {}),
-                None => number(out),
-            };
-            if let Some(per) = den.per_unit_pattern(w) {
-                fill(per, out, numerator, |_| {});
-            } else {
-                // The locale's `per` pattern (`{0}/{1}`) with the
-                // denominator's singular form without its number.
-                let denominator = den.pattern(w, Category::One as u8);
-                match units.per_pattern(w) {
-                    Some(per) => fill(per, out, numerator, |out| {
-                        if let Some(t) = denominator {
-                            for p in t.parts() {
-                                if let TemplatePart::Text(s) = p {
-                                    out.put("unit", s.trim());
-                                }
-                            }
-                        }
-                    }),
-                    None => numerator(out),
-                }
-            }
-        }
-        // Not formattable (`formattable` said so): nothing.
-        None => {}
+    let w = width_for(&unit, width_of(measure.flags));
+    let mut numerator = |out: &mut Out<'_>| match unit.pattern(w, cat) {
+        Some(t) => fill(t, out, &mut number, &mut |_| {}),
+        None => number(out),
+    };
+    let Some(den) = per else {
+        return numerator(out);
+    };
+    if let Some(p) = den.per_unit_pattern(w) {
+        return fill(p, out, &mut numerator, &mut |_| {});
     }
+    // Else the locale's `per` pattern (`{0}/{1}`) with the denominator's
+    // singular form without its number.
+    let Some(p) = units.per_pattern(w) else {
+        return numerator(out);
+    };
+    let denominator = den.pattern(w, Category::One as u8);
+    fill(p, out, &mut numerator, &mut |out| {
+        for part in denominator.iter().flat_map(Template::parts) {
+            if let TemplatePart::Text(s) = part {
+                out.put("unit", split_blank(s).1);
+            }
+        }
+    });
 }

@@ -147,18 +147,18 @@ impl<'c> Seps<'c> {
     }
 }
 
-/// What an affix's currency placeholder writes: the text, and whether CLDR's
-/// currency spacing applies — a U+00A0 between the symbol and the digits
-/// when the symbol's end that touches them is letter-like (UTS #35
-/// `currencySpacing`, the same in every CLDR locale; not with the
-/// `…alphaNextToNumber` patterns, which place the space themselves).
+/// What an affix's currency placeholder writes, and where CLDR's currency
+/// spacing puts a U+00A0 between the symbol and the digits (UTS #35
+/// `currencySpacing`: where a letter-like end of the symbol touches them;
+/// never with the `…alphaNextToNumber` patterns, which place the space
+/// themselves).
 #[derive(Clone, Copy)]
 pub(crate) struct Symbol<'c> {
     pub(crate) text: &'c str,
-    /// The symbol's first and last characters are letter-like.
-    pub(crate) first: bool,
-    pub(crate) last: bool,
-    pub(crate) spacing: bool,
+    /// A space before the digits (the symbol precedes them).
+    pub(crate) before: bool,
+    /// A space after the digits (the symbol follows them).
+    pub(crate) after: bool,
 }
 
 /// The sign shown, in the catalog views' terms.
@@ -214,19 +214,11 @@ pub(crate) fn write_number(
         sign(out);
     }
     affix(s.prefix, out);
-    if let Some(c) = currency
-        && c.spacing
-        && c.last
-        && ends_with_currency(s.prefix)
-    {
+    if currency.is_some_and(|c| c.before) {
         out.put("literal", "\u{a0}");
     }
     digits(sym, seps, sizes, d, grouping, out);
-    if let Some(c) = currency
-        && c.spacing
-        && c.first
-        && starts_with_currency(s.suffix)
-    {
+    if currency.is_some_and(|c| c.after) {
         out.put("literal", "\u{a0}");
     }
     affix(s.suffix, out);

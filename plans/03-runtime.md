@@ -502,6 +502,7 @@ pub struct Measure<'a> { pub number: Number, pub unit: MeasureUnit<'a>, pub flag
 impl<'a> Measure<'a> { pub fn new(number: Number, unit: MeasureUnit<'a>, flags: u32) -> Self; }
 pub enum MeasureUnit<'a> { Currency([u8; 3]), Unit(&'a str) }   // currency code upper-cased
 pub enum Value<'a> { …, Measure(Measure<'a>) }
+impl Value<'_> { pub fn digit_size(&self) -> Option<u8>; }   // a digit size option's value (number.md): `fractionDigits`
 pub trait CustomValue { …, fn as_measure(&self) -> Option<Measure<'_>> { None } }
 ```
 
