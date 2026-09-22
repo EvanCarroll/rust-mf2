@@ -69,6 +69,13 @@ pub enum Error {
     /// extractor checks each one, so a CLDR update that changes them is
     /// noticed, not silently mis-encoded).
     #[cfg(feature = "extract")]
-    #[error("CLDR number data: {0}")]
+    #[error("CLDR data: {0}")]
     Assumption(String),
+    #[cfg(feature = "extract")]
+    #[error("{path}: {source}")]
+    Io {
+        path: std::path::PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
 }

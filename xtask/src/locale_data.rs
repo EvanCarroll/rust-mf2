@@ -91,9 +91,23 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         locales.len(),
         main.display()
     );
+    let numbers = mf2_locale_data::extract::numbers_table(&inputs, &tag)?;
+    write("numbers.txt", &numbers)?;
+
+    // Currencies and units: one file at a time (units.json is ~143 KB a
+    // locale), deduplicated through the parents of numbers.txt.
+    let names: Vec<String> = locales.into_iter().map(|(name, _)| name).collect();
+    let currency_data = read(&supplemental.join("currencyData.json"))?;
+    eprintln!("locale-data: currencies of {} locales", names.len());
     write(
-        "numbers.txt",
-        &mf2_locale_data::extract::numbers_table(&inputs, &tag)?,
+        "currencies.txt",
+        &mf2_locale_data::extract::currencies_table(&main, &names, &currency_data, &numbers, &tag)?,
+    )?;
+    let units_main = full.join("cldr-units-full").join("main");
+    eprintln!("locale-data: units of {} locales", names.len());
+    write(
+        "units.txt",
+        &mf2_locale_data::extract::units_table(&units_main, &names, &numbers, &tag)?,
     )
 }
 

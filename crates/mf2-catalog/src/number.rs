@@ -141,7 +141,7 @@ impl<'a> Digits<'a> {
 }
 
 /// Reads `u8 len · UTF-8{len}`.
-fn str8<'a>(c: &mut Cur<'a>) -> Option<&'a str> {
+pub(crate) fn str8<'a>(c: &mut Cur<'a>) -> Option<&'a str> {
     let n = c.u8()?;
     core::str::from_utf8(c.take(usize::from(n))?).ok()
 }
@@ -424,7 +424,7 @@ pub struct Signed<'a> {
 
 impl<'a> Pattern<'a> {
     /// A record body: `u8 grouping · affix · affix · [affix · affix]`.
-    fn parse(body: &'a [u8]) -> Option<Pattern<'a>> {
+    pub(crate) fn parse(body: &'a [u8]) -> Option<Pattern<'a>> {
         let mut c = Cur::new(body, 0);
         let grouping = Grouping::from_byte(c.u8()?);
         let positive = Affixes {
@@ -591,6 +591,155 @@ impl<'a> Iterator for AffixParts<'a> {
         let text = self.rest.get(..end).unwrap_or("");
         self.rest = self.rest.get(end..).unwrap_or("");
         Some(AffixPart::Text(text))
+    }
+}
+
+/// Template placeholder byte: `{0}` (the formatted number).
+pub(crate) const T_ARG0: u8 = 0x01;
+/// Template placeholder byte: `{1}` (a name: the currency's, a unit's).
+pub(crate) const T_ARG1: u8 = 0x02;
+
+/// A CLDR message-like pattern (`{0} km`, `{0} {1}`, `{0}/{1}`), stored as
+/// UTF-8 in which the byte 0x01 stands for `{0}` and 0x02 for `{1}`; no other
+/// byte below 0x20 occurs (`plans/02-catalog-format.md` §4.6). A template may
+/// have no placeholder at all: CLDR writes some `one`/`two` unit forms with
+/// the number in the word (`ar` `دورتان`, two revolutions).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Template<'a>(&'a str);
+
+/// One piece of a [`Template`].
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum TemplatePart<'a> {
+    /// Literal text.
+    Text(&'a str),
+    /// `{0}`: the formatted number (or, in `per`, the formatted numerator).
+    Arg0,
+    /// `{1}`: the name (the currency's display name; in `per`, the
+    /// denominator unit).
+    Arg1,
+}
+
+impl<'a> Template<'a> {
+    /// Reads `u8 len · UTF-8{len}` and checks the bytes below 0x20.
+    pub(crate) fn read(c: &mut Cur<'a>) -> Option<Template<'a>> {
+        let text = str8(c)?;
+        if text.bytes().any(|b| b < 0x20 && b != T_ARG0 && b != T_ARG1) {
+            return None;
+        }
+        Some(Template(text))
+    }
+
+    /// A string [`Template::read`] (or [`Forms::read`]) has checked.
+    pub(crate) const fn trusted(s: &'a str) -> Template<'a> {
+        Template(s)
+    }
+
+    /// The encoded form (text with placeholder bytes), for tests and dumps.
+    pub const fn encoded(&self) -> &'a str {
+        self.0
+    }
+
+    /// The pieces, in order.
+    pub fn parts(&self) -> TemplateParts<'a> {
+        TemplateParts { rest: self.0 }
+    }
+}
+
+/// The pieces of a [`Template`], from [`Template::parts`].
+#[derive(Clone, Debug)]
+pub struct TemplateParts<'a> {
+    rest: &'a str,
+}
+
+impl<'a> Iterator for TemplateParts<'a> {
+    type Item = TemplatePart<'a>;
+
+    fn next(&mut self) -> Option<TemplatePart<'a>> {
+        let b = self.rest.as_bytes();
+        let first = *b.first()?;
+        let arg = match first {
+            T_ARG0 => Some(TemplatePart::Arg0),
+            T_ARG1 => Some(TemplatePart::Arg1),
+            _ => None,
+        };
+        if let Some(a) = arg {
+            self.rest = self.rest.get(1..).unwrap_or("");
+            return Some(a);
+        }
+        let mut end = 1;
+        while let Some(&x) = b.get(end) {
+            if x < 0x20 {
+                break;
+            }
+            end += 1;
+        }
+        let text = self.rest.get(..end).unwrap_or("");
+        self.rest = self.rest.get(end..).unwrap_or("");
+        Some(TemplatePart::Text(text))
+    }
+}
+
+/// The plural category code of a form: 0 zero, 1 one, 2 two, 3 few, 4
+/// many, 5 other — `mf2_runtime::Category as u8`.
+pub const OTHER: u8 = 5;
+
+/// A list of plural forms, `u8 k · (u8 category · str8){k}`, categories
+/// strictly ascending (0–5). Canonically a form equal to `other` is omitted,
+/// so a lookup falls back to `other` (CLDR's rule).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) struct Forms<'a> {
+    body: &'a [u8],
+    k: u8,
+}
+
+impl<'a> Forms<'a> {
+    pub(crate) const EMPTY: Forms<'static> = Forms { body: &[], k: 0 };
+
+    /// Reads the list and checks it (categories, order, strings); `templates`
+    /// also checks each string's placeholder bytes. Linear in its length.
+    pub(crate) fn read(c: &mut Cur<'a>, templates: bool) -> Option<Forms<'a>> {
+        let k = c.u8()?;
+        let start = c.pos();
+        let mut prev: Option<u8> = None;
+        for _ in 0..k {
+            let cat = c.u8()?;
+            if cat > OTHER || prev.is_some_and(|p| cat <= p) {
+                return None;
+            }
+            prev = Some(cat);
+            if templates {
+                Template::read(c)?;
+            } else {
+                let s = str8(c)?;
+                if s.bytes().any(|b| b < 0x20) {
+                    return None;
+                }
+            }
+        }
+        let body = c.bytes().get(start..c.pos())?;
+        Some(Forms { body, k })
+    }
+
+    /// The form of `category`, else `other`'s; `None` when neither is there.
+    pub(crate) fn get(&self, category: u8) -> Option<&'a str> {
+        let mut c = Cur::new(self.body, 0);
+        let mut other = None;
+        for _ in 0..self.k {
+            let cat = c.u8()?;
+            let s = str8(&mut c)?;
+            if cat == category {
+                return Some(s);
+            }
+            if cat == OTHER {
+                other = Some(s);
+            }
+        }
+        other
+    }
+
+    /// Whether there is no form.
+    pub(crate) const fn is_empty(&self) -> bool {
+        self.k == 0
     }
 }
 

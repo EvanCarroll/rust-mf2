@@ -8,7 +8,10 @@ use alloc::vec::Vec;
 
 use crate::error::WriteError;
 use crate::format::locale_key;
-use crate::number::{AffixPart, Grouping, PH_CURRENCY, PH_PERCENT, PH_SIGN, Style};
+use crate::number::{
+    AffixPart, Grouping, OTHER, PH_CURRENCY, PH_PERCENT, PH_SIGN, Style, T_ARG0, T_ARG1,
+    TemplatePart,
+};
 
 /// The content of a `number.symbols` entry.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -41,10 +44,66 @@ pub struct PatternSpec<'s> {
 const SYMBOLS: WriteError = WriteError::LocaleEntry(locale_key::NUMBER_SYMBOLS);
 const PATTERNS: WriteError = WriteError::LocaleEntry(locale_key::NUMBER_PATTERNS);
 
-fn str8(s: &str, out: &mut Vec<u8>, err: &WriteError) -> Result<(), WriteError> {
+fn str8_any(s: &str, out: &mut Vec<u8>, err: &WriteError) -> Result<(), WriteError> {
     let n = u8::try_from(s.len()).map_err(|_| err.clone())?;
     out.push(n);
     out.extend_from_slice(s.as_bytes());
+    Ok(())
+}
+
+/// `u8 len · UTF-8{len}` of text without bytes below 0x20.
+pub(crate) fn str8(s: &str, out: &mut Vec<u8>, err: &WriteError) -> Result<(), WriteError> {
+    if s.bytes().any(|b| b < 0x20) {
+        return Err(err.clone());
+    }
+    str8_any(s, out, err)
+}
+
+/// A template (§4.6): `str8` with `{0}` as 0x01 and `{1}` as 0x02,
+/// adjacent text merged.
+pub(crate) fn template(
+    parts: &[TemplatePart<'_>],
+    out: &mut Vec<u8>,
+    err: &WriteError,
+) -> Result<(), WriteError> {
+    let mut bytes = Vec::new();
+    for p in parts {
+        match *p {
+            TemplatePart::Text(t) => {
+                if t.bytes().any(|b| b < 0x20) {
+                    return Err(err.clone());
+                }
+                bytes.extend_from_slice(t.as_bytes());
+            }
+            TemplatePart::Arg0 => bytes.push(T_ARG0),
+            TemplatePart::Arg1 => bytes.push(T_ARG1),
+        }
+    }
+    out.push(u8::try_from(bytes.len()).map_err(|_| err.clone())?);
+    out.extend_from_slice(&bytes);
+    Ok(())
+}
+
+/// Plural forms (§4.6): `u8 k · (u8 category · value){k}`, categories
+/// (0–5) sorted; a category twice is refused.
+pub(crate) fn forms<T>(
+    list: &[(u8, T)],
+    out: &mut Vec<u8>,
+    err: &WriteError,
+    mut value: impl FnMut(&T, &mut Vec<u8>) -> Result<(), WriteError>,
+) -> Result<(), WriteError> {
+    let mut sorted: Vec<&(u8, T)> = list.iter().collect();
+    sorted.sort_by_key(|(c, _)| *c);
+    if sorted.windows(2).any(|w| matches!(w, [a, b] if a.0 == b.0))
+        || sorted.iter().any(|(c, _)| *c > OTHER)
+    {
+        return Err(err.clone());
+    }
+    out.push(u8::try_from(sorted.len()).map_err(|_| err.clone())?);
+    for (c, v) in sorted {
+        out.push(*c);
+        value(v, out)?;
+    }
     Ok(())
 }
 
@@ -60,7 +119,7 @@ pub fn symbols(s: &SymbolsSpec<'_>) -> Result<Vec<u8>, WriteError> {
     out.push(grouping);
     out.push(s.minimum_grouping_digits);
     for text in [s.decimal, s.group, s.minus, s.plus, s.percent] {
-        str8(text, &mut out, &SYMBOLS)?;
+        str8_any(text, &mut out, &SYMBOLS)?;
     }
     match s.digits {
         None | Some("0123456789") => {}
@@ -98,7 +157,7 @@ fn affix(parts: &[AffixPart<'_>], out: &mut Vec<u8>) -> Result<(), WriteError> {
 }
 
 /// One record body: `u8 grouping · affix · affix · [affix · affix]`.
-fn body(p: &PatternSpec<'_>) -> Result<Vec<u8>, WriteError> {
+pub(crate) fn body(p: &PatternSpec<'_>) -> Result<Vec<u8>, WriteError> {
     let mut out = Vec::new();
     out.push(p.grouping.to_byte().ok_or(PATTERNS)?);
     affix(&p.positive.0, &mut out)?;

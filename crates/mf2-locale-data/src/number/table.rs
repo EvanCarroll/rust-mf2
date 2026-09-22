@@ -42,6 +42,12 @@ pub const SYSTEM_FIELDS: &[&str] = &[
     "accounting",
     "accounting-alpha",
     "accounting-none",
+    "currency-name-zero",
+    "currency-name-one",
+    "currency-name-two",
+    "currency-name-few",
+    "currency-name-many",
+    "currency-name-other",
 ];
 
 /// The root locale.
@@ -64,9 +70,20 @@ fn escaped(c: char) -> bool {
 
 /// The table form of a value.
 pub fn escape(s: &str) -> String {
+    escape_with(s, false)
+}
+
+/// The table form of a value in a TAB-separated table (`data/currencies.txt`,
+/// `data/units.txt`): as [`escape`], but U+0020 stays itself (and TAB is
+/// escaped as whitespace).
+pub fn escape_tab(s: &str) -> String {
+    escape_with(s, true)
+}
+
+fn escape_with(s: &str, keep_space: bool) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
-        if escaped(c) {
+        if escaped(c) && !(keep_space && c == ' ') {
             let _ = write!(out, "\\u{{{:x}}}", u32::from(c));
         } else {
             out.push(c);

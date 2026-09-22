@@ -55,6 +55,9 @@ sha2 = "0.11.0"
 toml = "1.1.6"
 # no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.
 unicode-normalization = { version = "0.1.25", default-features = false }
+# mf2-locale-data (build side): General_Category for CLDR's currency-spacing
+# test on currency symbols (plans/02-catalog-format.md §4.6).
+unicode-properties = { version = "0.1.4", default-features = false, features = ["general-category"] }
 # mf2-conformance: validates model JSON against spec/data-model/message.json.
 jsonschema = { version = "0.56.0", default-features = false }
 # The one exact pin (the audited alpha, plans/05-tooling.md §1): a dependency of

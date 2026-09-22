@@ -15,26 +15,40 @@
 //!   `cargo xtask cldr-sync` cache: symbols, grouping, numbering systems and
 //!   their digits, the percent and currency patterns, deduplicated against
 //!   CLDR's parent locales (`data/numbers.txt`), and the `number.symbols` /
-//!   `number.patterns` entries built from them ([`number`]).
+//!   `number.patterns` entries built from them ([`number`]);
+//! * **currencies and units** (Phase 4, A4), from every locale's
+//!   `currencies.json` and `units.json` in the cache
+//!   (`data/currencies.txt`, `data/units.txt`, deduplicated against the
+//!   parents and CLDR's fallbacks), and the `currency.data` / `unit.data`
+//!   entries for the configured sets ([`currency`], [`unit`](mod@unit)).
 //!
-//! Currency and unit display data follow in Phase 4 (A4).
+//! A corpus's needs — which entries, which currencies and units — are
+//! [`LocaleNeeds`] / [`NumberNeeds`] (`NumberNeeds::add_message` reads them
+//! off the data model); [`locale_entries`] writes the entries.
 
+pub mod blocks;
+pub mod currency;
 mod direction;
 pub mod error;
 #[cfg(feature = "extract")]
 pub mod extract;
 pub mod number;
 pub mod plural;
+pub mod template;
+pub mod unit;
 
+pub use currency::CurrencyData;
 pub use direction::direction;
 pub use error::{Error, ParseError};
 pub use mf2_catalog::CldrVersion;
 pub use number::{
-    CurrencyNeeds, NumberData, NumberNeeds, number_data, number_locale_entries, number_locales,
+    CurrencyNeeds, NumberData, NumberNeeds, Selection, UnitNeeds, number_data,
+    number_locale_entries, number_locales,
 };
 pub use plural::{
     LocaleRules, PluralKind, plural_entry, plural_locale_entries, plural_locales, plural_rules,
 };
+pub use unit::{UnitData, composition, unit_ids};
 
 /// The CLDR release the shipped data comes from (`third_party/cldr-json/PIN`).
 pub const CLDR_VERSION: CldrVersion = CldrVersion {
@@ -47,7 +61,7 @@ pub const CLDR_VERSION: CldrVersion = CldrVersion {
 /// kind it selects on, and number data ([`NumberNeeds`]). The slicing rule
 /// is `plans/02-catalog-format.md` §4.4. Build one with `default()` and set
 /// fields.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct LocaleNeeds {
     /// Some selector uses `select=plural` (the default) → `plural.cardinal`.
@@ -59,10 +73,11 @@ pub struct LocaleNeeds {
 }
 
 /// The LOCALE entries a catalog for `locale` carries under `needs`, sorted by
-/// key, as `mf2_catalog::writer::Options::locale_entries` takes them.
+/// key, as `mf2_catalog::writer::Options::locale_entries` takes them;
+/// `plural.cardinal` also when units or currency names need it.
 pub fn locale_entries(locale: &str, needs: &LocaleNeeds) -> Result<Vec<(u32, Vec<u8>)>, Error> {
     let mut kinds = Vec::new();
-    if needs.cardinal {
+    if needs.cardinal || needs.numbers.needs_cardinal() {
         kinds.push(PluralKind::Cardinal);
     }
     if needs.ordinal {

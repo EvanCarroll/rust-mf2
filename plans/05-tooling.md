@@ -467,8 +467,9 @@ xtask locale-data` reads the cache (it must be at the PIN's commit) for the
 all-locale number table and the vendored files for everything else; the drift
 test (`tests/table.rs`, feature `extract`) holds the committed tables to
 `third_party/` offline where the vendored files reach — the digits, and every
-panel locale resolving to its vendored record — and regenerates the whole
-number table from the cache in an `#[ignore]`d test.
+panel locale resolving to its vendored record, for numbers, currencies and
+units — and regenerates the whole number, currency and unit tables from the
+cache in `#[ignore]`d tests.
 
 **The `-full` locale files are resolved.** At 48.2.1 every locale's
 `numbers.json` spells out everything it inherits (`en-AU` carries all of
@@ -478,7 +479,7 @@ has only `latn`. `locale-data` checks all of it: a child lacking a field its
 parent has, a default-content locale with files, `availableLocales` differing
 from the files — each fails the extraction.
 
-**Number table** (`data/numbers.txt`, 88.7 KB, 1,805 lines; format in
+**Number table** (`data/numbers.txt`, 93.2 KB, 1,812 lines; format in
 `src/number/table.rs`): the digits of the 77 numeric numbering systems other
 than `latn` (from the vendored `numberingSystems.json`); the languages' likely
 scripts and the 37 regions that imply another script with a locale behind it
@@ -486,7 +487,8 @@ scripts and the 37 regions that imply another script with a locale behind it
 explicit parents; then one `locale` line per CLDR locale (default and native
 numbering system, minimum grouping digits) and `system` lines with its
 symbols (decimal, group, minus, plus, percent) and patterns (decimal,
-percent, the six currency patterns) per numbering system — each only where
+percent, the six currency patterns, the `currencyDisplay=name` patterns)
+per numbering system — each only where
 it differs from its CLDR parent's, so `en-AU` is one line and root carries
 the full set. Values escape invisible characters (`\u{202f}`, `\u{200e}`) so
 review sees them. Writing the table re-resolves every locale through the
@@ -496,6 +498,31 @@ extractor also checks what the entry formats rest on — every locale's systems
 are `latn`, its default and its native one; its traditional and finance
 systems are algorithmic; digit sets have one UTF-8 width; currency spacing is
 the same everywhere (02 §4.2–§4.3).
+
+**Currency and unit tables** (Phase 4, A4; `data/currencies.txt` 3.1 MB,
+36,814 lines, 0.65 MB gz; `data/units.txt` 4.2 MB, 60,021 lines, 0.63 MB gz;
+formats in `src/currency.rs`, `src/unit.rs`), from every locale's
+`currencies.json` / `units.json` in the cache and the vendored
+`currencyData.json`: CLDR's fraction digits and rounding per code; per
+locale and currency the symbol, narrow symbol, the currency's own pattern
+and separators, display name and its plural forms; the unit-identifier map
+(232 identifiers, CLDR's keys without their category, checked unique); per
+locale and width the `per` compound pattern, and per unit the display name,
+per-unit pattern and plural patterns (case and gender forms left out: MF2 has
+no case option). The lines are TAB-separated so that ordinary spaces stay
+readable, and a locale stores a field only where it differs from what its
+parents (those of `numbers.txt`) and CLDR's own fallback give — a plural form
+equal to `other`, a `name-other` equal to the name, a narrow symbol equal to
+the symbol cost nothing — a third and a quarter smaller than a parent-only
+deduplication (4.8 → 3.1 MB and 5.8 → 4.2 MB, the TABs included). As for numbers,
+writing re-resolves every locale through the text and requires CLDR's
+record, every field of every key, exactly; the extractor also checks that
+every field is one it knows (a new CLDR field fails the extraction), that
+every pattern and template parses, and that the records are resolved. A
+lookup indexes the table once by locale and parses only the blocks of the
+locale's chain, cached per process. `cargo xtask locale-data` takes 35 s
+(debug build) at a 259 MB peak: the records are interned and read one file
+at a time.
 
 ## 8. Repository conventions
 

@@ -52,5 +52,9 @@ required-features = ["writer", "decode"]
 name = "number"
 required-features = ["writer"]
 
+[[test]]
+name = "measure"
+required-features = ["writer"]
+
 [lints]
 workspace = true

@@ -147,8 +147,14 @@ pub mod locale_key {
     pub const NUMBER_PATTERNS: u32 = 4;
     /// First key reserved for the `currency.*` entries (A4).
     pub const CURRENCY_FIRST: u32 = 16;
+    /// `currency.data`, encoding v1 (§4.6): the configured currencies'
+    /// symbols, names, fraction digits, and the name patterns.
+    pub const CURRENCY_DATA: u32 = 16;
     /// First key reserved for the `unit.*` entries (A4).
     pub const UNIT_FIRST: u32 = 32;
+    /// `unit.data`, encoding v1 (§4.7): the configured units' patterns per
+    /// width and plural category, and the `per` compound pattern.
+    pub const UNIT_DATA: u32 = 32;
     /// First key reserved for the date entries (`icu.blob`, A6).
     pub const DATE_FIRST: u32 = 48;
 }

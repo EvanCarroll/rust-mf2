@@ -661,7 +661,7 @@ system an latn currency-alpha=#,##0.00\u{a0}¤ accounting-alpha=¤\u{a0}#,##0.00
 locale ann
 locale apc
 locale ar native=arab
-system ar arab decimal=٫ group=٬ minus=\u{61c}- plus=\u{61c}+ percent=٪\u{61c} decimal-pattern=#,##0.### percent-pattern=#,##0% currency=\u{200f}#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=\u{200f}#,##0.00\u{a0}¤ accounting-none=#,##0.00
+system ar arab decimal=٫ group=٬ minus=\u{61c}- plus=\u{61c}+ percent=٪\u{61c} decimal-pattern=#,##0.### percent-pattern=#,##0% currency=\u{200f}#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=\u{200f}#,##0.00\u{a0}¤ accounting-none=#,##0.00 currency-name-zero={0}\u{20}{1} currency-name-one={0}\u{20}{1} currency-name-two={0}\u{20}{1} currency-name-few={0}\u{20}{1} currency-name-many={0}\u{20}{1} currency-name-other={0}\u{20}{1}
 system ar latn minus=\u{200e}- plus=\u{200e}+ percent=\u{200e}%\u{200e} currency=\u{200f}#,##0.00\u{a0}¤;\u{200f}-#,##0.00\u{a0}¤ currency-alpha=\u{200f}#,##0.00\u{a0}¤;\u{200f}-#,##0.00\u{a0}¤ currency-none=\u{200f}#,##0.00;\u{200f}-#,##0.00 accounting=\u{61c}#,##0.00¤;(\u{61c}#,##0.00¤) accounting-alpha=\u{61c}#,##0.00\u{a0}¤;(\u{61c}#,##0.00\u{a0}¤) accounting-none=\u{61c}#,##0.00;(\u{61c}#,##0.00)
 locale ar-AE
 locale ar-BH default=arab
@@ -700,16 +700,16 @@ system ar-TN latn decimal=, group=.
 locale ar-YE default=arab
 locale arn
 locale as default=beng native=beng
-system as beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system as beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system as latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale asa
 system asa latn currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ast
-system ast latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system ast latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1}
 locale az
 system az latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale az-Arab default=arabext native=arabext
-system az-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system az-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale az-Arab-IQ
 locale az-Arab-TR
 locale az-Cyrl
@@ -733,40 +733,40 @@ system bez latn currency=#,##0.00¤ accounting=#,##0.00¤
 locale bg min-grouping=2
 system bg latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
 locale bgc default=deva
-system bgc deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system bgc deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale bgn default=arabext native=arabext
-system bgn arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system bgn arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system bgn latn decimal=٫ group=، percent=٪
 locale bgn-AE
 locale bgn-AF
 locale bgn-IR
 locale bgn-OM
 locale bho default=deva
-system bho deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system bho deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system bho latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale blo
-system blo latn decimal=, group=\u{a0} percent-pattern=%\u{a0}#,#0;%\u{a0}-#,#0 currency=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 currency-alpha=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 accounting=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00
+system blo latn decimal=, group=\u{a0} percent-pattern=%\u{a0}#,#0;%\u{a0}-#,#0 currency=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 currency-alpha=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 accounting=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;¤\u{a0}-#,##0.00 currency-name-zero={1}\u{20}{0} currency-name-one={1}\u{20}{0} currency-name-other={1}\u{20}{0}
 locale blt
 locale bm
 system bm latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale bm-Nkoo native=nkoo
 system bm-Nkoo latn accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system bm-Nkoo nkoo decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system bm-Nkoo nkoo decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale bn default=beng native=beng
-system bn beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=#,##,##0.00¤ currency-alpha=#,##,##0.00\u{a0}¤ currency-none=#,##,##0.00 accounting=#,##,##0.00¤;(#,##,##0.00¤) accounting-alpha=#,##,##0.00\u{a0}¤;(#,##,##0.00\u{a0}¤) accounting-none=#,##,##0.00;(#,##,##0.00)
+system bn beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=#,##,##0.00¤ currency-alpha=#,##,##0.00\u{a0}¤ currency-none=#,##,##0.00 accounting=#,##,##0.00¤;(#,##,##0.00¤) accounting-alpha=#,##,##0.00\u{a0}¤;(#,##,##0.00\u{a0}¤) accounting-none=#,##,##0.00;(#,##,##0.00) currency-name-other={0}\u{20}{1}
 system bn latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=#,##,##0.00¤ currency-alpha=#,##,##0.00\u{a0}¤ currency-none=#,##,##0.00 accounting=#,##,##0.00¤;(#,##,##0.00¤) accounting-alpha=#,##,##0.00\u{a0}¤;(#,##,##0.00\u{a0}¤) accounting-none=#,##,##0.00;(#,##,##0.00)
 locale bn-IN
 system bn-IN beng currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 accounting=¤#,##,##0.00;(¤#,##,##0.00) accounting-alpha=¤\u{a0}#,##,##0.00;(¤\u{a0}#,##,##0.00)
 system bn-IN latn currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 accounting=¤#,##,##0.00;(¤#,##,##0.00) accounting-alpha=¤\u{a0}#,##,##0.00;(¤\u{a0}#,##,##0.00)
 locale bo native=tibt
-system bo tibt decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system bo tibt decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale bo-IN
 locale bqi
 system bqi latn currency-alpha=\u{200e}¤\u{a0}#,##0.00 currency-none=\u{200e}#,##0.00 accounting-alpha=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-none=\u{200e}#,##0.00;\u{200e}(#,##0.00)
 locale br
-system br latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
+system br latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00) currency-name-one={0}\u{20}{1} currency-name-two={0}\u{20}{1} currency-name-few={0}\u{20}{1} currency-name-many={0}\u{20}{1}
 locale brx native=deva
-system brx deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system brx deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system brx latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale bs
 system bs latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -786,13 +786,13 @@ locale ca-IT
 locale cad
 locale cch
 locale ccp default=cakm native=cakm
-system ccp cakm decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=#,##,##0.00¤ currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=#,##,##0.00¤;(#,##,##0.00¤) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
-system ccp latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=#,##,##0.00¤ accounting=#,##,##0.00¤;(#,##,##0.00¤)
+system ccp cakm decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=#,##,##0.00¤ currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=#,##,##0.00¤;(#,##,##0.00¤) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-one={0}\u{20}{1} currency-name-other={0}\u{20}{1}
+system ccp latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=#,##,##0.00¤ accounting=#,##,##0.00¤;(#,##,##0.00¤) currency-name-one={0}\u{20}{1}
 locale ccp-IN
 locale ce
-system ce latn percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system ce latn percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1}
 locale ceb
-system ceb latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ceb latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-one={0}\u{20}{1} currency-name-other={1}\u{20}{0}
 locale cgg
 system cgg latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale cho
@@ -801,7 +801,7 @@ system chr latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accountin
 locale cic
 locale ckb default=arab native=arab
 system ckb arab decimal=٫ group=٬ minus=\u{200f}- plus=\u{200f}+ percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=#,##0.00\u{a0}¤ accounting-none=#,##0.00
-system ckb latn plus=\u{200e}+
+system ckb latn plus=\u{200e}+ currency-name-one={0}\u{20}{1}
 locale ckb-IR
 locale co
 system co latn currency-alpha=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00)\u{a0}¤
@@ -834,7 +834,7 @@ locale de-LU
 locale dje
 system dje latn group=\u{a0} currency=#,##0.00¤ accounting=#,##0.00¤
 locale doi native=deva
-system doi deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system doi deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system doi latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale dsb
 system dsb latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -847,18 +847,18 @@ locale dyo
 system dyo latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale dz default=tibt native=tibt
 system dz latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0\u{a0}% currency=¤#,##,##0.00 accounting=¤#,##,##0.00
-system dz tibt decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0\u{a0}% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system dz tibt decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0\u{a0}% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale ebu
 system ebu latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale ee min-grouping=3
-system ee latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
+system ee latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) currency-name-one={0}\u{20}{1} currency-name-other={1}\u{20}{0}
 locale ee-TG
 locale el
 system el latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale el-CY
 locale el-polyton
 locale en
-system en latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system en latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-one={0}\u{20}{1}
 locale en-001
 locale en-150
 system en-150 latn currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -1064,7 +1064,7 @@ system eu latn decimal=, group=. minus=− percent-pattern=%\u{a0}#,##0 currency
 locale ewo
 system ewo latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale fa default=arabext native=arabext
-system fa arabext decimal=٫ group=٬ minus=\u{200e}− plus=\u{200e}+ percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=\u{200e}¤#,##0.00 currency-alpha=\u{200e}¤\u{a0}#,##0.00 currency-none=\u{200e}#,##0.00 accounting=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-alpha=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-none=\u{200e}#,##0.00;\u{200e}(#,##0.00)
+system fa arabext decimal=٫ group=٬ minus=\u{200e}− plus=\u{200e}+ percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=\u{200e}¤#,##0.00 currency-alpha=\u{200e}¤\u{a0}#,##0.00 currency-none=\u{200e}#,##0.00 accounting=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-alpha=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-none=\u{200e}#,##0.00;\u{200e}(#,##0.00) currency-name-other={0}\u{20}{1}
 system fa latn minus=\u{200e}− plus=\u{200e}+ currency=\u{200e}¤\u{a0}#,##0.00 currency-alpha=\u{200e}¤\u{a0}#,##0.00 currency-none=\u{200e}#,##0.00 accounting=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-alpha=\u{200e}¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-none=\u{200e}#,##0.00;\u{200e}(#,##0.00)
 locale fa-AF
 system fa-AF arabext currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;\u{200e}(¤\u{a0}#,##0.00) accounting-none=#,##0.00;\u{200e}(#,##0.00)
@@ -1072,8 +1072,8 @@ system fa-AF latn currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 curr
 locale ff
 system ff latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ff-Adlm default=adlm native=adlm
-system ff-Adlm adlm decimal=. group=⹁ minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
-system ff-Adlm latn group=⹁
+system ff-Adlm adlm decimal=. group=⹁ minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-one={0}\u{20}{1} currency-name-other={0}\u{20}{1}
+system ff-Adlm latn group=⹁ currency-name-one={0}\u{20}{1}
 locale ff-Adlm-BF
 locale ff-Adlm-CM
 locale ff-Adlm-GH
@@ -1112,7 +1112,7 @@ locale fr-BI
 locale fr-BJ
 locale fr-BL
 locale fr-CA
-system fr-CA latn group=\u{a0}
+system fr-CA latn group=\u{a0} currency-name-one={0}\u{a0}{1} currency-name-other={0}\u{a0}{1}
 locale fr-CD
 locale fr-CF
 locale fr-CG
@@ -1157,9 +1157,9 @@ locale fr-WF
 locale fr-YT
 locale frr
 locale fur
-system fur latn decimal=, group=.
+system fur latn decimal=, group=. currency-name-one={0}\u{20}{1}
 locale fy
-system fy latn decimal=, group=. currency=¤\u{a0}#,##0.00;¤\u{a0}#,##0.00- currency-alpha=¤\u{a0}#,##0.00;¤\u{a0}#,##0.00- currency-none=#,##0.00;#,##0.00- accounting=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;#,##0.00-
+system fy latn decimal=, group=. currency=¤\u{a0}#,##0.00;¤\u{a0}#,##0.00- currency-alpha=¤\u{a0}#,##0.00;¤\u{a0}#,##0.00- currency-none=#,##0.00;#,##0.00- accounting=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;#,##0.00- currency-name-one={0}\u{20}{1}
 locale ga
 system ga latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ga-GB
@@ -1173,11 +1173,11 @@ locale gl
 system gl latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
 locale gn
 locale gsw
-system gsw latn group=' minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system gsw latn group=' minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1}
 locale gsw-FR
 locale gsw-LI
 locale gu native=gujr
-system gu gujr decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##,##0.00;(¤#,##,##0.00) accounting-alpha=¤\u{a0}#,##,##0.00;(¤\u{a0}#,##,##0.00) accounting-none=#,##,##0.00;(#,##,##0.00)
+system gu gujr decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##,##0.00;(¤#,##,##0.00) accounting-alpha=¤\u{a0}#,##,##0.00;(¤\u{a0}#,##,##0.00) accounting-none=#,##,##0.00;(#,##,##0.00) currency-name-other={0}\u{20}{1}
 system gu latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00;(¤#,##,##0.00) accounting-alpha=¤\u{a0}#,##,##0.00;(¤\u{a0}#,##,##0.00) accounting-none=#,##,##0.00;(#,##,##0.00)
 locale guz
 system guz latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
@@ -1190,16 +1190,16 @@ locale ha-Arab-SD
 locale ha-GH
 locale ha-NE
 locale haw
-system haw latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
+system haw latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) currency-name-one={0}\u{20}{1}
 locale he
 system he latn minus=\u{200e}- plus=\u{200e}+ currency=\u{200f}#,##0.00\u{a0}\u{200f}¤;\u{200f}-#,##0.00\u{a0}\u{200f}¤ currency-alpha=\u{200f}#,##0.00\u{a0}\u{200f}¤;\u{200f}-#,##0.00\u{a0}\u{200f}¤ currency-none=\u{200f}#,##0.00\u{a0}\u{200f};\u{200f}-#,##0.00\u{a0}\u{200f} accounting=\u{200f}#,##0.00\u{a0}\u{200f}¤;\u{200f}-#,##0.00\u{a0}\u{200f}¤ accounting-alpha=\u{200f}#,##0.00\u{a0}\u{200f}¤;\u{200f}-#,##0.00\u{a0}\u{200f}¤ accounting-none=\u{200f}#,##0.00\u{a0}\u{200f};\u{200f}-#,##0.00\u{a0}\u{200f}
 locale hi native=deva
-system hi deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system hi deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 system hi latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale hi-Latn
 system hi-Latn latn accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale hnj default=hmnp
-system hnj hmnp decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system hnj hmnp decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale hnj-Hmnp
 locale hr
 system hr latn decimal=, group=. minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -1233,14 +1233,14 @@ locale it-VA
 locale iu
 locale iu-Latn
 locale ja
-system ja latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ja latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}{1}
 locale jbo
 locale jgo
 system jgo latn decimal=, group=.
 locale jmc
 system jmc latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale jv native=java
-system jv java decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system jv java decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system jv latn decimal=, group=.
 locale ka min-grouping=2
 system ka latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -1260,7 +1260,7 @@ system kea latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=
 locale kek
 locale ken
 locale kgp
-system kgp latn decimal=, group=.
+system kgp latn decimal=, group=. currency-name-one={0}\u{20}{1}
 locale khq
 system khq latn group=\u{a0} currency=#,##0.00¤ accounting=#,##0.00¤
 locale ki
@@ -1277,17 +1277,17 @@ system kl latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=¤#,##0.0
 locale kln
 system kln latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale km native=khmr
-system km khmr decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=#,##0.00¤ currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=#,##0.00¤;(#,##0.00¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
+system km khmr decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=#,##0.00¤ currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=#,##0.00¤;(#,##0.00¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system km latn currency=#,##0.00¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00¤;(#,##0.00¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
 locale kn native=knda
-system kn knda decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system kn knda decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system kn latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ko
 system ko latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ko-CN
 locale ko-KP
 locale kok native=deva
-system kok deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system kok deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 system kok latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale kok-Deva
 locale kok-Latn
@@ -1295,16 +1295,17 @@ system kok-Latn latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currenc
 locale kpe
 locale kpe-GN
 locale ks default=arabext native=arabext
-system ks arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
-system ks latn group=، currency=¤#,##0.00 accounting=¤#,##0.00
+system ks arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-one={0}\u{20}{1} currency-name-other={0}\u{20}{1}
+system ks latn group=، currency=¤#,##0.00 accounting=¤#,##0.00 currency-name-one={0}\u{20}{1}
 locale ks-Arab
 locale ks-Deva
+system ks-Deva latn currency-name-one={0}\u{20}{1}
 locale ksb
 system ksb latn currency=#,##0.00¤ accounting=#,##0.00¤
 locale ksf
 system ksf latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ksh
-system ksh latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system ksh latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-zero={0}\u{20}{1} currency-name-one={0}\u{20}{1}
 locale ku
 system ku latn decimal=, group=. percent-pattern=%#,##0 currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
 locale ku-Arab
@@ -1318,21 +1319,21 @@ system kw latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale kxv
 system kxv latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale kxv-Deva native=deva
-system kxv-Deva deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system kxv-Deva deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 system kxv-Deva latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale kxv-Latn
 locale kxv-Orya native=orya
 system kxv-Orya latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
-system kxv-Orya orya decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system kxv-Orya orya decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 locale kxv-Telu native=telu
 system kxv-Telu latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
-system kxv-Telu telu decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system kxv-Telu telu decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 locale ky
 system ky latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale la
 locale lag
 locale lb
-system lb latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system lb latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1}
 locale lg
 system lg latn currency=#,##0.00¤ accounting=#,##0.00¤
 locale lij
@@ -1348,10 +1349,10 @@ locale ln-AO
 locale ln-CF
 locale ln-CG
 locale lo native=laoo
-system lo laoo decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00;¤-#,##0.00 currency-alpha=¤\u{a0}#,##0.00;¤-#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;¤-#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;¤-#,##0.00 accounting-none=#,##0.00
+system lo laoo decimal=, group=. minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00;¤-#,##0.00 currency-alpha=¤\u{a0}#,##0.00;¤-#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;¤-#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;¤-#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system lo latn decimal=, group=. currency=¤#,##0.00;¤-#,##0.00 currency-alpha=¤\u{a0}#,##0.00;¤-#,##0.00 accounting=¤#,##0.00;¤-#,##0.00 accounting-alpha=¤\u{a0}#,##0.00;¤-#,##0.00
 locale lrc default=arabext native=arabext
-system lrc arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system lrc arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale lrc-IQ
 locale lt
 system lt latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -1366,7 +1367,7 @@ locale lv min-grouping=2
 system lv latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale lzz
 locale mai native=deva
-system mai deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mai deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale mas
 system mas latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale mas-TZ
@@ -1376,10 +1377,11 @@ system mer latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale mfe
 system mfe latn group=\u{a0}
 locale mg
-system mg latn accounting=¤#,##0.00
+system mg latn accounting=¤#,##0.00 currency-name-one={0}\u{20}{1}
 locale mgh
 system mgh latn decimal=, group=.
 locale mgo
+system mgo latn currency-name-one={0}\u{20}{1}
 locale mhn
 locale mi
 locale mic
@@ -1387,21 +1389,21 @@ locale mk
 system mk latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ml native=mlym
 system ml latn decimal-pattern=#,##,##0.### currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system ml mlym decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ml mlym decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale mn
 locale mn-Mong native=mong
-system mn-Mong mong decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mn-Mong mong decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale mn-Mong-MN
 system mn-Mong-MN latn currency=¤#,##0.00 accounting=¤#,##0.00
 system mn-Mong-MN mong currency=¤#,##0.00 accounting=¤#,##0.00
 locale mni default=beng
-system mni beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mni beng decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale mni-Beng
 locale mni-Mtei default=mtei
-system mni-Mtei mtei decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mni-Mtei mtei decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale moh
 locale mr default=deva native=deva
-system mr deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system mr deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system mr latn decimal-pattern=#,##,##0.### currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ms
 system ms latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
@@ -1415,19 +1417,19 @@ locale ms-ID
 system ms-ID latn decimal=, group=. accounting=¤#,##0.00
 locale ms-SG
 locale mt
-system mt latn currency=¤#,##0.00 accounting=¤#,##0.00
+system mt latn currency=¤#,##0.00 accounting=¤#,##0.00 currency-name-one={0}\u{20}{1} currency-name-two={0}\u{20}{1} currency-name-few={0}\u{20}{1} currency-name-many={0}\u{20}{1}
 locale mua
 system mua latn decimal=, group=. currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale mus
 locale mww default=hmnp
-system mww hmnp decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mww hmnp decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale mww-Hmnp
 locale my default=mymr native=mymr
-system my latn currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤
-system my mymr decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system my latn currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ currency-name-other={1}\u{20}{0}
+system my mymr decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={1}\u{20}{0}
 locale myv
 locale mzn default=arabext native=arabext
-system mzn arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system mzn arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale naq
 system naq latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale nb
@@ -1438,7 +1440,7 @@ locale nds
 system nds latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale nds-NL
 locale ne default=deva native=deva
-system ne deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤\u{a0}#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system ne deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤\u{a0}#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 system ne latn decimal-pattern=#,##,##0.### currency=¤\u{a0}#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤\u{a0}#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale ne-IN
 locale nl
@@ -1458,11 +1460,11 @@ locale no
 system no latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤;-#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale nqo default=nkoo native=nkoo
 system nqo latn group=،
-system nqo nkoo decimal=. group=، minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system nqo nkoo decimal=. group=، minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale nr
 system nr latn decimal=, group=\u{a0} currency=¤#,##0.00 accounting=¤#,##0.00
 locale nso
-system nso latn accounting=¤#,##0.00
+system nso latn accounting=¤#,##0.00 currency-name-one={0}\u{20}{1}
 locale nus
 system nus latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale nv
@@ -1480,16 +1482,16 @@ system om latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale om-KE
 locale or native=orya
 system or latn decimal-pattern=#,##,##0.### currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system or orya decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system or orya decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale os
-system os latn decimal=, group=\u{a0}
+system os latn decimal=, group=\u{a0} currency-name-one={0}\u{20}{1}
 locale os-RU
 locale osa
 locale pa native=guru
-system pa guru decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system pa guru decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system pa latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00
 locale pa-Arab default=arabext native=arabext
-system pa-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system pa-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system pa-Arab latn minus=\u{200e}- plus=\u{200e}+
 locale pa-Guru
 locale pap
@@ -1506,7 +1508,7 @@ system pms latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0
 locale prg
 system prg latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ps default=arabext native=arabext
-system ps arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ps arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system ps latn decimal=, group=. minus=\u{200e}− plus=\u{200e}+ accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ps-PK
 locale pt
@@ -1530,7 +1532,7 @@ system qu-BO latn decimal=, group=.
 locale qu-EC
 locale quc
 locale raj default=deva
-system raj deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system raj deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale rhg
 locale rhg-Rohg
 locale rhg-Rohg-BD
@@ -1541,7 +1543,7 @@ system rm latn decimal=, group=\u{202f} currency=¤#,##0.00 accounting=¤#,##0.0
 locale rn
 system rn latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00¤ accounting=#,##0.00¤
 locale ro
-system ro latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
+system ro latn decimal=, group=. percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00) currency-name-one={0}\u{20}{1} currency-name-few={0}\u{20}{1} currency-name-other={0}\u{20}de\u{20}{1}
 locale ro-MD
 locale rof
 system rof latn currency=¤#,##0.00 accounting=¤#,##0.00
@@ -1557,16 +1559,16 @@ system rw latn decimal=, group=.
 locale rwk
 system rwk latn currency=#,##0.00¤ accounting=#,##0.00¤
 locale sa default=deva native=deva
-system sa deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system sa deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system sa latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00
 locale sah
 system sah latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale saq
 system saq latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale sat default=olck
-system sat olck decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system sat olck decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale sat-Deva default=deva
-system sat-Deva deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system sat-Deva deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale sat-Olck
 locale sbp
 system sbp latn currency=#,##0.00¤ accounting=#,##0.00¤
@@ -1583,7 +1585,7 @@ locale sdh default=arab native=arab
 system sdh arab decimal=٫ group=٬ minus=\u{61c}- plus=\u{61c}+ percent=٪\u{61c} decimal-pattern=#,##0.### percent-pattern=#,##0% currency=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=#,##0.00\u{a0}¤ accounting-none=#,##0.00
 locale sdh-IQ
 locale se
-system se latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system se latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1} currency-name-two={0}\u{20}{1}
 locale se-FI
 locale se-SE
 locale seh
@@ -1601,7 +1603,7 @@ locale shi-Tfng
 locale shn
 locale shn-TH
 locale si
-system si latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system si latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-one={1}{0} currency-name-other={1}{0}
 locale sid
 locale sk
 system sk latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-alpha=#,##0.00\u{a0}¤;(#,##0.00\u{a0}¤) accounting-none=#,##0.00;(#,##0.00)
@@ -1613,12 +1615,12 @@ locale sma-NO
 locale smj
 locale smj-NO
 locale smn
-system smn latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system smn latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1} currency-name-two={0}\u{20}{1}
 locale sms
 locale sn
-system sn latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
+system sn latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) currency-name-one={0}\u{20}{1}
 locale so
-system so latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system so latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-one={0}\u{20}{1}
 locale so-DJ
 locale so-ET
 locale so-KE
@@ -1642,7 +1644,7 @@ system ss latn decimal=, group=\u{a0} currency=¤#,##0.00 accounting=¤#,##0.00
 locale ss-SZ
 locale ssy
 locale st
-system st latn currency=¤#,##0.00 accounting=¤#,##0.00
+system st latn currency=¤#,##0.00 accounting=¤#,##0.00 currency-name-one={0}\u{20}{1}
 locale st-LS
 locale su
 system su latn decimal=, group=. currency=¤#,##0.00 accounting=¤#,##0.00
@@ -1655,6 +1657,7 @@ system sv latn decimal=, group=\u{a0} minus=− percent-pattern=#,##0\u{a0}% cur
 locale sv-AX
 locale sv-FI
 locale sw
+system sw latn currency-name-one={0}\u{20}{1} currency-name-other={1}\u{20}{0}
 locale sw-CD
 system sw-CD latn decimal=, group=.
 locale sw-KE
@@ -1665,7 +1668,7 @@ locale szl
 system szl latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤
 locale ta native=tamldec
 system ta latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system ta tamldec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ta tamldec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale ta-LK
 locale ta-MY
 system ta-MY latn decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00
@@ -1675,7 +1678,7 @@ system ta-SG latn decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u
 system ta-SG tamldec decimal-pattern=#,##0.### percent-pattern=#,##0%
 locale te native=telu
 system te latn decimal-pattern=#,##,##0.### currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system te telu decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system te telu decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale teo
 system teo latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
 locale teo-KE
@@ -1683,7 +1686,7 @@ locale tg
 system tg latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale th native=thai
 system th latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system th thai decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system th thai decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 locale ti
 system ti latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale ti-ER
@@ -1691,9 +1694,10 @@ locale tig
 locale tk
 system tk latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale tn
-system tn latn group=' currency=¤#,##0.00 accounting=¤#,##0.00
+system tn latn group=' currency=¤#,##0.00 accounting=¤#,##0.00 currency-name-one={0}\u{20}{1}
 locale tn-BW
 locale to
+system to latn currency-name-other={1}\u{20}{0}
 locale tok
 system tok latn decimal=, group=\u{a0} decimal-pattern=#,#0.### currency=¤#,#0.00 currency-alpha=¤\u{a0}#,#0.00 currency-none=#,#0.00 accounting=¤#,#0.00 accounting-alpha=¤\u{a0}#,#0.00 accounting-none=#,#0.00
 locale tpi
@@ -1704,7 +1708,7 @@ locale tr-CY
 locale trv
 locale trw
 locale ts
-system ts latn decimal=, group=\u{a0}
+system ts latn decimal=, group=\u{a0} currency-name-one={0}\u{20}{1}
 locale tt
 system tt latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale twq
@@ -1714,35 +1718,35 @@ system tyv latn group=\u{a0}
 locale tzm
 system tzm latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale ug native=arabext
-system ug arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
-system ug latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
+system ug arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-one={0}\u{20}{1} currency-name-other={0}\u{20}{1}
+system ug latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) currency-name-one={0}\u{20}{1}
 locale uk
 system uk latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale und default=latn native=latn min-grouping=1
-system und latn decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system und latn decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale ur native=arabext
-system ur arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system ur arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system ur latn minus=\u{200e}- plus=\u{200e}+ currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale ur-IN default=arabext
 locale uz
 system uz latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale uz-Arab default=arabext native=arabext
-system uz-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=#,##0.00\u{a0}¤ accounting-none=#,##0.00
+system uz-Arab arabext decimal=٫ group=٬ minus=\u{200e}-\u{200e} plus=\u{200e}+\u{200e} percent=٪ decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤\u{a0}#,##0.00 currency-alpha=#,##0.00\u{a0}¤ currency-none=#,##0.00 accounting=¤\u{a0}#,##0.00 accounting-alpha=#,##0.00\u{a0}¤ accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 system uz-Arab latn decimal=, group=. minus=\u{200e}− plus=\u{200e}+ currency-alpha=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale uz-Cyrl
-system uz-Cyrl latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
+system uz-Cyrl latn decimal=, group=\u{a0} currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤ currency-name-one={0}\u{20}{1}
 locale uz-Latn
 locale vai native=vaii
 system vai latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
-system vai vaii decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system vai vaii decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale vai-Latn native=vaii
 system vai-Latn latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00)
-system vai-Latn vaii decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00
+system vai-Latn vaii decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00 accounting-none=#,##0.00 currency-name-other={0}\u{20}{1}
 locale vai-Vaii
 locale ve
 system ve latn decimal=, group=\u{a0} currency=¤#,##0.00 accounting=¤#,##0.00
 locale vec
-system vec latn decimal=, group=\u{202f} currency=#,##0.00\u{202f}¤ currency-alpha=#,##0.00\u{202f}¤ accounting=#,##0.00\u{202f}¤ accounting-alpha=#,##0.00\u{202f}¤
+system vec latn decimal=, group=\u{202f} currency=#,##0.00\u{202f}¤ currency-alpha=#,##0.00\u{202f}¤ accounting=#,##0.00\u{202f}¤ accounting-alpha=#,##0.00\u{202f}¤ currency-name-one={0}\u{202f}{1} currency-name-other={0}\u{202f}{1}
 locale vi
 system vi latn decimal=, group=. currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
 locale vmw
@@ -1752,7 +1756,7 @@ locale vun
 system vun latn currency=¤#,##0.00 accounting=¤#,##0.00
 locale wa
 locale wae
-system wae latn decimal=, group='
+system wae latn decimal=, group=' currency-name-one={0}\u{20}{1}
 locale wal
 locale wbp
 locale wo
@@ -1760,7 +1764,7 @@ system wo latn decimal=, group=.
 locale xh
 system xh latn group=\u{a0} currency=¤#,##0.00 accounting=¤#,##0.00
 locale xnr native=deva
-system xnr deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
+system xnr deva decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00 currency-name-other={0}\u{20}{1}
 system xnr latn decimal-pattern=#,##,##0.### percent-pattern=#,##,##0% currency=¤#,##,##0.00 currency-alpha=¤\u{a0}#,##,##0.00 currency-none=#,##,##0.00 accounting=¤#,##,##0.00 accounting-alpha=¤\u{a0}#,##,##0.00 accounting-none=#,##,##0.00
 locale xog
 system xog latn currency=#,##0.00\u{a0}¤ currency-alpha=#,##0.00\u{a0}¤ accounting=#,##0.00\u{a0}¤ accounting-alpha=#,##0.00\u{a0}¤
@@ -1771,14 +1775,14 @@ locale yo
 system yo latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale yo-BJ
 locale yrl
-system yrl latn decimal=, group=.
+system yrl latn decimal=, group=. currency-name-one={0}\u{20}{1}
 locale yrl-CO
 locale yrl-VE
 locale yue native=hanidec
-system yue hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system yue hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system yue latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale yue-Hans native=hanidec
-system yue-Hans hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system yue-Hans hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system yue-Hans latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale yue-Hant
 locale yue-Hant-CN
@@ -1787,15 +1791,18 @@ locale za
 locale zgh
 system zgh latn decimal=, group=\u{a0} percent-pattern=#,##0\u{a0}% currency=#,##0.00¤ accounting=#,##0.00¤
 locale zh native=hanidec
-system zh hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
-system zh latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system zh hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
+system zh latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}{1}
 locale zh-Hans
 locale zh-Hans-HK
+system zh-Hans-HK latn currency-name-other={0}\u{20}{1}
 locale zh-Hans-MO
+system zh-Hans-MO latn currency-name-other={0}\u{20}{1}
 locale zh-Hans-MY
 locale zh-Hans-SG
+system zh-Hans-SG latn currency-name-other={0}\u{20}{1}
 locale zh-Hant native=hanidec
-system zh-Hant hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
+system zh-Hant hanidec decimal=. group=, minus=- plus=+ percent=% decimal-pattern=#,##0.### percent-pattern=#,##0% currency=¤#,##0.00 currency-alpha=¤\u{a0}#,##0.00 currency-none=#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00) currency-name-other={0}\u{20}{1}
 system zh-Hant latn currency=¤#,##0.00 accounting=¤#,##0.00;(¤#,##0.00) accounting-alpha=¤\u{a0}#,##0.00;(¤\u{a0}#,##0.00) accounting-none=#,##0.00;(#,##0.00)
 locale zh-Hant-HK
 locale zh-Hant-MO

@@ -326,8 +326,9 @@ LOCALE     := varint n · (varint key · varint len · u8{len}){n}   ; keys stri
 The key names the entry kind **and its version**; unknown keys are skipped by
 length. Version 1 defines key 1 `plural.cardinal` and key 2 `plural.ordinal`
 (§4.1), which `Catalog::new` walks for structure; Phase 4 adds key 3
-`number.symbols` and key 4 `number.patterns` (§4.2, §4.3), which it does not
-walk (their views check what they read); §4 lists the keys and their ranges.
+`number.symbols`, key 4 `number.patterns`, key 16 `currency.data` and key 32
+`unit.data` (§4.2, §4.3, §4.6, §4.7), which it does not walk (their views
+check what they read); §4 lists the keys and their ranges.
 
 ### 2.8 IDS — lookup by name
 
@@ -511,13 +512,13 @@ option values actually used — the rule is §4.4).
 | 2 | `plural.ordinal` | any `select=ordinal` | same encoding (§4.1) |
 | 3 | `number.symbols` | `fn-number` on and a number is formatted | decimal, group, minus, plus and percent signs; the decimal pattern's grouping sizes; minimum grouping digits; the digits of the catalog's numbering system, absent for ASCII (§4.2) |
 | 4 | `number.patterns` | `:percent`, `:currency` | the percent and currency patterns of the styles the corpus uses: grouping and affixes with the sign, percent and currency positions (§4.3) |
-| 16–31 | `currency.*` | `:currency` | symbols / narrow symbols / display names / fraction digits for the **configured currency set** (default: literal codes found in the corpus; `currencies = "all"` opts into the full table) — Phase 4, A4 |
-| 32–47 | `unit.*` | `:unit` | patterns for the configured unit set, same policy — A4 |
+| 16 | `currency.data` | `:currency` | for the **configured currency set** (default: the literal codes of the corpus; `currencies = "all"` opts into every code): fraction digits and rounding increment, symbol, narrow symbol, display names by plural category, the currency's own pattern and separators, the edges of its symbols for currency spacing; the locale's name patterns (§4.6) |
+| 32 | `unit.data` | `:unit` | for the configured unit set, same policy, and the widths used: the patterns by plural category, the per-unit pattern, optionally the display name; the locale's `per` compound pattern (§4.7) |
 | 48–63 | `icu.blob` | feature `datetime-icu` and the corpus formats dates | an ICU4X data blob for this locale, restricted to the markers the corpus needs. The ICU4X *code* is in the wasm (that is the feature's cost); the *data* is here, lazy, like everything else — A6 |
 
 Keys are `mf2_catalog::format::locale_key`; all are below 128, one varint
 byte. A new version of an entry takes a new key in its kind's range (3–15 for
-`number.*`).
+`number.*`, 16–31 `currency.*`, 32–47 `unit.*`).
 
 **Departures from the Phase 2 plan (Phase 4, A2).** (1) There is no
 `number.systems` entry: the pinned spec (`spec/functions/number.md`) has **no
@@ -530,6 +531,23 @@ no MF2 function at the pin produces them (`:percent` is ×100 and there is no
 per-mille style; there is no `notation` option; numeric operands are finite).
 (3) `:unit` needs no `number.patterns` record: its unit patterns (`{0} km`)
 wrap a plain decimal and live in `unit.*`.
+
+**Departures (Phase 4, A4).** (4) One entry per family, `currency.data` and
+`unit.data`, rather than several `currency.*` / `unit.*` entries: a handler
+needs a currency's symbol, digits and names together, and one keyed record per
+code (or unit) with an index is one lookup; the key ranges stay reserved for
+new versions. (5) `currency.data` also carries what CLDR attaches to a
+currency and ICU applies: its own standard pattern (`en-DE` and the other
+English-in-Europe locales put `€` first: `¤#,##0.00`; `tr` TRY) and decimal
+and group separators (`pt-CV` CVE: `1$50`). (6) Currency spacing needs, per
+symbol, whether its first and last characters are in CLDR's
+`[[:^S:]&[:^Z:]]` — General_Category data the client does not have — so the
+build computes two bits per symbol (§4.6). (7) `X-per-Y` units CLDR lacks are
+composed from `X`, `Y` and the `per` pattern (UTS #35 Part 2, compound units;
+ECMA-402 composes the same); `times`, powers and prefixes on arbitrary units
+are not, since they need names inflected for plural, gender and case — CLDR's
+common compounds (`square-kilometer`, `kilowatt-hour`, `meter-per-second`)
+are units of their own.
 
 The CLDR version used is recorded in the header flags/metadata and printed by
 `mf2 stats`. CLDR JSON is a build-time input only, pinned like the spec.
@@ -545,8 +563,10 @@ additive entry kinds, which by the skip rule need no format-version bump. Unlike
 the plural entries, `Catalog::new` does **not** walk the number entries: their
 client views (`mf2_catalog::number`) are panic-free and read only what they are
 asked for, answering `None` on malformed bytes, so a bad entry costs only the
-numbers that read it (F4) and loading stays linear in nothing more than it was.
-The writer refuses a malformed entry under a known key (`WriteError::LocaleEntry`).
+numbers that read it (F4) and loading stays linear in nothing more than it was;
+the same holds for `currency.data` and `unit.data` (`mf2_catalog::currency`,
+`mf2_catalog::unit`). The writer refuses a malformed entry under a known key
+(`WriteError::LocaleEntry`).
 
 ### 4.1 `plural.cardinal` / `plural.ordinal` entry, v1 (from P0.4)
 
@@ -716,6 +736,28 @@ alone). An option given by a variable counts as every value it could take.
 | style 4 | `:currency` with `currencyDisplay=never` (or a variable value) |
 | styles 5, 6 | `:currency` with `currencySign=accounting` (or a variable value) |
 | style 7 | both of the above |
+| `currency.data` | `:currency`: the currencies of the configured set; narrow symbols when `currencyDisplay=narrowSymbol` can occur, display names and name patterns when `currencyDisplay=name` can |
+| `unit.data` | `:unit`: the units of the configured set (an `X-per-Y` CLDR lacks brings `X` and `Y`), in the widths `unitDisplay` can take (`short` when an expression gives none); display names only on request |
+| `plural.cardinal`, also | `:unit`, or `:currency` with names: the pattern (`{0} kilometers`, `{0} {1}` with `euros`) is chosen by the formatted number's plural category, so these carry the cardinal rules even without a selector (`locale_entries` adds them) |
+
+**The configured sets** (`mf2.toml`, 05 §3.1):
+
+```toml
+[locale_data]
+currencies = "used"   # default: the literal `currency=` codes of the corpus
+                      # | "all": every code CLDR has (and every code of currencyData)
+                      # | ["USD", "EUR"]: these, plus the literal ones
+units = "used"        # the same for `unit=` identifiers
+```
+
+With `"used"`, a non-literal `currency=$c` or `unit=$u` in the corpus makes the
+set `"all"` — correct output over size — and `mf2 check` notes that a list
+would do. A code or unit that only arguments carry at run time (a currency
+value from the application) is not in the corpus: list it. A code outside the
+set still formats, with its code as symbol and name and CLDR's default
+fraction digits (UTS #35's fallback); a unit outside it is unsupported.
+`mf2_locale_data::NumberNeeds::add_message` implements the literal rule on the
+data model; `Selection::{Listed, All}` is the set.
 
 With `fn-number` off no number entry is written (numbers format neutrally,
 `mf2 check` warns `neutral-numbers`). The numbering system is the catalog tag's
@@ -765,6 +807,171 @@ percent record), standalone `gzip -9 -n`: 39–72 B gz (47–80 B with `:percent
 on the panel `en es de fr ar he ja hi ru pl cy`, raw 19–54 B (27–62 B);
 `cargo test -p mf2-locale-data --test numbers b8 -- --nocapture` prints the
 table and asserts ≤ 512 B (flate2 at level 9, within 5 B of GNU gzip).
+
+### 4.6 `currency.data` entry, v1 (key 16; Phase 4, A4)
+
+The configured currencies, one record each, found by binary search over a
+fixed-width index.
+
+```text
+entry    := u8 flags · u8 default_digits · [forms name_patterns (flags bit 1)]
+            · u16 n · (u8{3} code · u32 offset){n} · records
+flags    := bit 0 narrow symbols carried · bit 1 display names (and name patterns) carried
+index    : codes upper-case ASCII, strictly ascending; offsets into `records`, the first 0,
+           each record ending where the next begins
+record   := u8 head · [varint rounding (head bit 4)] · u8 edges
+            · [str8 symbol (bit 5)] · [str8 narrow (bit 6)] · [u8 len · pattern (edges bit 4)]
+            · [str8 decimal (edges bit 5)] · [str8 group (edges bit 6)]
+            · [str8 name (bit 7)] · [forms names (flags bit 1)]
+head     := bits 0–3 fraction digits · bit 4 a rounding increment follows · bit 5 symbol stored
+            (else the ISO code) · bit 6 narrow stored (else the symbol) · bit 7 name stored
+            (else the ISO code)
+edges    := bits 0, 1: the symbol's first, last scalar is in [[:^S:]&[:^Z:]]; bits 2, 3: the
+            narrow symbol's; bits 4–6: the currency's own pattern, decimal, group follow
+pattern  := a `number.patterns` record body (§4.3): the currency's own standard pattern
+forms    := u8 k · (u8 category · str8){k}   ; categories 0 zero … 5 other, strictly ascending
+template := str8, UTF-8 in which 0x01 is `{0}` and 0x02 is `{1}`; no other byte < 0x20
+```
+
+`name_patterns` are forms of templates: the locale's `currencyFormats`
+`unitPattern-count-*` of the catalog's numbering system (else `latn`'s — `ckb`'s
+`arab` has none), `{0}` the formatted number, `{1}` the display name. `names`
+are forms of plain strings: `displayName-count-*`.
+
+* **Fallbacks** (CLDR's, applied by the view): a name form falls back to
+  `other`'s, then to the display name; a missing symbol and name are the
+  code; a missing narrow symbol is the symbol. `Currency::name_for(category)`,
+  `Currencies::name_pattern(category)` apply them.
+* **Canonical writer** (`mf2_catalog::writer::currency::currencies`):
+  records by code; a symbol equal to the code, a narrow symbol equal to the
+  symbol, a name equal to the code not stored; a form equal to what its
+  fallback gives dropped (`en` JPY: `one` = `other` = `Japanese yen`); the
+  rounding increment only when non-zero (CLDR 48.2.1: never, outside cash);
+  narrow symbols and names only when the flags carry them.
+* **Reader** (`mf2_catalog::currency::Currencies::parse` / `of(catalog)`):
+  O(1) header and index bounds; `get(*b"USD")` binary-searches and parses one
+  record → `Currency`: `symbol()`, `narrow_symbol()`, `name()`,
+  `name_for(cat)`, `fraction_digits()`, `rounding_increment()`,
+  `pattern()` (a `number::Pattern`), `decimal()`, `group()`,
+  `symbol_edges()` / `narrow_edges()`; `None` when absent or malformed.
+  `is_valid()` checks everything (the writer, tests).
+* **Use** (`:currency`, A4 handlers): digits from `fraction_digits()` for
+  `fractionDigits=auto`; the pattern: the currency's own `pattern()` for the
+  standard sign, else `number.patterns` `Currency`, or its `…Alpha` style
+  when the symbol touches the number with a letter-like edge (`last` for a
+  prefix symbol, `first` for a suffix one), else CLDR's constant currency
+  spacing (§4.3: insert U+00A0) — the edges decide both; `decimal()` /
+  `group()` replace the locale's separators; `currencyDisplay=code` writes the
+  code, `name` the name pattern with `name_for(category)` (the category of the
+  formatted number, `plural.cardinal`).
+* **Sizes** (CLDR 48.2.1, panel): USD EUR JPY GBP with every display 113–561 B
+  raw, 136–252 B gz; every code 9.6–37.9 KB raw, 3.9–9.1 KB gz (§4.8).
+
+### 4.7 `unit.data` entry, v1 (key 32; Phase 4, A4)
+
+The configured units in the carried widths, by identifier.
+
+```text
+entry    := u8 flags · template per{w} · u16 n · u32 offset{n} · records
+flags    := bits 0–2 the widths carried (long, short, narrow; w of them) · bit 3 display names
+per      : the `per` compound pattern of each carried width, in that order ({0} numerator,
+           {1} denominator)
+index    : offsets into `records`, the first 0, each record ending where the next begins;
+           records strictly ascending by identifier, bytewise
+record   := str8 id · block{w}
+block    := u8 head · [str8 name (bit 1)] · [template per_unit (bit 2)] · forms patterns
+          | u8 0x01                          ; the previous width's block, again
+head     := bit 0 same as the previous width · bit 1 display name · bit 2 per-unit pattern
+patterns : forms of templates ({0} the number): unitPattern-count-*; `other` present when
+           any is; empty when CLDR has none for the unit in this width
+```
+
+* **Identifiers** are CLDR's unit keys without their category
+  (`length-kilometer` → `kilometer`, `consumption-liter-per-100-kilometer` →
+  `liter-per-100-kilometer`): 232 at CLDR 48.2.1, unique (the extractor
+  checks it; `data/units.txt` lists the map).
+* **Fallback**: a missing plural form is `other`'s (`Unit::pattern`). A
+  pattern may have no `{0}`: CLDR writes some forms with the number in the
+  word (`ar` dual `دورتان`).
+* **Canonical writer** (`mf2_catalog::writer::unit::units`): widths in the
+  order long, short, narrow; units by identifier; a form equal to `other`'s
+  dropped; a block equal to the previous width's as `0x01`; display names only
+  when flagged.
+* **Reader** (`mf2_catalog::unit::Units::parse` / `of(catalog)`):
+  `get("kilometer")` binary-searches the records by identifier → `Unit`:
+  `pattern(width, category)`, `per_unit_pattern(width)`,
+  `display_name(width)`, `has_patterns(width)`; `Units::per_pattern(width)`.
+* **Use** (`:unit`): `unitDisplay` picks the width, the formatted number's
+  plural category the pattern, `{0}` the localized number. `X-per-Y` that
+  CLDR has as a unit is a unit; one it lacks (`kilometer-per-second`) is
+  composed: when `Y` has a per-unit pattern, the formatted `X` goes into its
+  `{0}`; else `per_pattern` with `{0}` the formatted `X` and `{1}` `Y`'s `one`
+  pattern with its `{0}` and the space next to it removed (UTS #35 Part 2).
+  `mf2_locale_data::composition(id)` gives `(X, Y)`.
+* **Sizes** (panel, all three widths): five units 294–626 B raw, 200–310 B
+  gz; every unit 11.5–24.7 KB raw, 5.0–7.4 KB gz (§4.8).
+
+### 4.8 Test vectors and sizes (A4)
+
+Byte-exact, as `number_locale_entries` writes them from the shipped tables;
+tests of the encoders (`mf2-catalog` `tests/measure.rs`, the same bytes from
+hand-written input), the extraction (`mf2-locale-data` `tests/measure.rs`) and
+the views.
+
+`en`, USD and JPY with names (flags `02`), no narrow symbols:
+
+```text
+02 02                                               flags: names; default digits 2
+01 05 03 01 20 02                                   name patterns: other `{0} {1}` (one = other: dropped)
+02 00 4A 50 59 00 00 00 00 55 53 44 21 00 00 00     2 codes: JPY @0, USD @33
+A0 00 02 C2 A5 0C 4A 61 …  01 05 0C 4A 61 … 6E      JPY: digits 0, ¥, "Japanese Yen", other "Japanese yen"
+A2 00 01 24 09 55 53 20 44 6F 6C 6C 61 72           USD: digits 2, $, "US Dollar",
+   02 01 09 55 53 20 64 … 05 0A 55 53 20 64 … 73      one "US dollar", other "US dollars"
+```
+
+EUR, symbols only: `00 02 01 00 45 55 52 00 00 00 00 22 00 03 E2 82 AC` in
+`en`, `fr`, `ar`, `hi`, `pl`; in `en-DE` its own pattern `¤#,##0.00`
+follows (edges `10`): `… 22 10 03 E2 82 AC 04 33 01 03 00`.
+
+`kilometer` and `hour`, short width only (flags `02`), `en`:
+
+```text
+02 03 01 2F 02                                      short; per `{0}/{1}`
+02 00 00 00 00 00 11 00 00 00                       2 units: hour @0, kilometer @17
+04 68 6F 75 72 04 03 01 2F 68 01 05 04 01 20 68 72  hour: per-unit `{0}/h`; other `{0} hr`
+09 6B 69 6C … 72 04 04 01 2F 6B 6D 01 05 04 01 20 6B 6D
+                                                    kilometer: `{0}/km`; other `{0} km`
+```
+
+(`fr`: `{0} h` and `{0} km` with U+202F; `ar`, `pl`: in `tests/measure.rs`.)
+
+Sizes per panel locale, raw / `gzip -9` bytes of the entry (flate2 level 9);
+P0.5's figures (its own layout) beside them. "Used": USD EUR JPY GBP with every
+display; `kilometer kilogram celsius hour megabyte` in all three widths.
+"All": every code with every display; every unit in all widths, no display
+names.
+
+| locale | currencies used | P0.5 | all | P0.5 all | units used | P0.5 | all | P0.5 all |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| en | 185 / 163 | 190 / 163 | 22,328 / 7,742 | 23,620 / 8,084 | 359 / 211 | 362 / 205 | 14,395 / 5,459 | 18,913 / 5,895 |
+| es | 251 / 185 | 242 / 186 | 18,936 / 6,871 | 20,431 / 7,235 | 370 / 224 | 333 / 215 | 14,361 / 5,703 | 16,968 / 5,651 |
+| de | 178 / 154 | 186 / 151 | 19,852 / 6,744 | 23,414 / 7,343 | 294 / 200 | 327 / 195 | 11,487 / 4,966 | 16,227 / 5,073 |
+| fr | 251 / 186 | 238 / 181 | 21,630 / 7,482 | 22,322 / 7,672 | 402 / 245 | 404 / 238 | 14,752 / 5,730 | 19,122 / 5,912 |
+| ar | 145 / 154 | 223 / 169 | 11,640 / 4,675 | 21,350 / 5,989 | 416 / 279 | 1,273 / 363 | 15,849 / 5,615 | 70,012 / 9,193 |
+| he | 133 / 143 | 199 / 155 | 9,552 / 3,995 | 16,547 / 4,974 | 451 / 279 | 763 / 305 | 12,936 / 5,284 | 29,884 / 6,661 |
+| ja | 113 / 136 | 145 / 145 | 12,412 / 5,072 | 22,373 / 6,514 | 310 / 235 | 234 / 201 | 11,703 / 4,988 | 11,705 / 4,363 |
+| hi | 201 / 179 | 327 / 201 | 11,497 / 3,933 | 20,317 / 4,683 | 626 / 310 | 707 / 286 | 16,461 / 5,480 | 29,370 / 5,956 |
+| ru | 561 / 252 | 585 / 260 | 37,875 / 9,057 | 44,281 / 9,639 | 550 / 287 | 921 / 321 | 24,670 / 7,373 | 46,414 / 9,002 |
+| pl | 351 / 216 | 352 / 224 | 24,739 / 8,163 | 27,992 / 8,836 | 492 / 263 | 583 / 270 | 19,751 / 7,221 | 27,690 / 7,162 |
+| cy | 191 / 161 | 348 / 204 | 14,245 / 5,847 | 39,517 / 9,164 | 441 / 235 | 697 / 255 | 16,490 / 6,756 | 32,798 / 8,427 |
+
+(`cargo test -p mf2-locale-data --test measure sizes -- --nocapture`.) The
+"used" sets stay within 0.3 KB gz a locale; "all" is 4–9 KB gz each, so the
+default stays "used" (P0.5's recommendation). "All" is smaller than P0.5's
+because forms equal to `other` and widths equal to the previous one are not
+stored and placeholders take one byte (`ar` units: 15.8 against 70.0 KB raw);
+it is larger where the per-unit patterns that composition needs dominate
+(`ja` units).
 
 ## 5. Reader API sketch (`mf2-catalog`, `no_std`)
 

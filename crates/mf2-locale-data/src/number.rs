@@ -11,12 +11,13 @@ pub mod pattern;
 pub mod table;
 pub mod tag;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use mf2_catalog::format::locale_key;
 use mf2_catalog::number::Style;
 use mf2_catalog::writer::number::{SymbolsSpec, patterns, symbols};
+use mf2_model::{Declaration, Expression, FunctionRef, Message, OptionValue, Pattern, PatternPart};
 
 pub use self::table::{Record, Table};
 pub use self::tag::Tag;
@@ -38,11 +39,37 @@ fn table() -> Result<&'static Table<'static>, Error> {
     }
 }
 
+/// A configured set of currency codes or unit identifiers (`mf2.toml`
+/// `[locale_data] currencies` / `units`, `plans/02-catalog-format.md` §4.4).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Selection {
+    /// These (the corpus's literal values by default, plus any listed in
+    /// `mf2.toml`).
+    Listed(BTreeSet<String>),
+    /// Every one CLDR has (`"all"`, or a non-literal value in the corpus).
+    All,
+}
+
+impl Default for Selection {
+    fn default() -> Selection {
+        Selection::Listed(BTreeSet::new())
+    }
+}
+
+impl Selection {
+    /// Adds `v` (nothing to add to `All`).
+    pub fn add(&mut self, v: &str) {
+        if let Selection::Listed(set) = self {
+            set.insert(v.to_owned());
+        }
+    }
+}
+
 /// What a corpus needs of its locale's number data: the slicing rule of
 /// `plans/02-catalog-format.md` §4.4, decided by the build from the functions
-/// and literal options the corpus uses. Build one with `default()` and set
-/// fields (the currency and unit sets join in Phase 4, A4).
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// and literal options the corpus uses ([`NumberNeeds::add_message`]). Build
+/// one with `default()` and set fields.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct NumberNeeds {
     /// Numbers are formatted with the locale's symbols: `fn-number` is on
@@ -51,13 +78,19 @@ pub struct NumberNeeds {
     pub symbols: bool,
     /// `:percent` is used → `number.symbols` and the percent pattern.
     pub percent: bool,
-    /// `:currency` is used → `number.symbols` and its patterns.
+    /// `:currency` is used → `number.symbols`, its patterns and
+    /// `currency.data`.
     pub currency: Option<CurrencyNeeds>,
+    /// `:unit` is used → `number.symbols` and `unit.data`.
+    pub unit: Option<UnitNeeds>,
 }
 
-/// Which currency patterns a corpus's `:currency` may need.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// What a corpus's `:currency` may need.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
+// Four independent facts about the corpus's option values, each selecting
+// its own part of the entries: flags are the plain reading.
+#[allow(clippy::struct_excessive_bools)]
 pub struct CurrencyNeeds {
     /// `currencySign=accounting` may occur (a literal `accounting`, or a
     /// variable value) → the accounting patterns.
@@ -65,37 +98,198 @@ pub struct CurrencyNeeds {
     /// `currencyDisplay=never` may occur (literal or variable) → the
     /// no-symbol patterns.
     pub hidden: bool,
+    /// `currencyDisplay=narrowSymbol` may occur → the narrow symbols.
+    pub narrow: bool,
+    /// `currencyDisplay=name` may occur → the display names and name
+    /// patterns (and `plural.cardinal`).
+    pub names: bool,
+    /// The currencies (`currency=` codes).
+    pub codes: Selection,
 }
 
 impl CurrencyNeeds {
-    /// Every currency pattern (the option values are unknown).
+    /// Everything, for every currency (the options unknown).
     pub const ALL: CurrencyNeeds = CurrencyNeeds {
         accounting: true,
         hidden: true,
+        narrow: true,
+        names: true,
+        codes: Selection::All,
     };
+}
+
+/// What a corpus's `:unit` may need.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct UnitNeeds {
+    /// The units (`unit=` identifiers; an `X-per-Y` CLDR lacks brings `X`
+    /// and `Y`).
+    pub ids: Selection,
+    /// The widths, indexed by `mf2_catalog::unit::Width` (long, short,
+    /// narrow): the literal `unitDisplay` values, `short` (the default) when
+    /// an expression has none, all three for a variable value.
+    pub widths: [bool; 3],
+    /// Carry the display names (no MF2 formatting path reads them).
+    pub names: bool,
+}
+
+impl Default for UnitNeeds {
+    /// No unit yet; the default width.
+    fn default() -> UnitNeeds {
+        UnitNeeds {
+            ids: Selection::default(),
+            widths: [false, true, false],
+            names: false,
+        }
+    }
+}
+
+impl UnitNeeds {
+    /// Every unit, every width, without display names.
+    pub const ALL: UnitNeeds = UnitNeeds {
+        ids: Selection::All,
+        widths: [true; 3],
+        names: false,
+    };
+}
+
+/// An option of an expression, as far as the build can know it.
+enum Opt<'m> {
+    /// Not given.
+    Absent,
+    /// A literal value.
+    Literal(&'m str),
+    /// A variable: any value.
+    Variable,
+}
+
+fn option<'m>(f: &'m FunctionRef<'_>, name: &str) -> Opt<'m> {
+    match f.options.get(name) {
+        None => Opt::Absent,
+        Some(OptionValue::Literal(l)) => Opt::Literal(l.value.as_ref()),
+        Some(OptionValue::Variable(_)) => Opt::Variable,
+    }
 }
 
 impl NumberNeeds {
     /// The conservative needs of a corpus known only by its function set
     /// (`ns:name` identifiers, as FUNCS lists them): every numeric function
-    /// formats with symbols, `:percent` needs its pattern, `:currency` every
-    /// currency pattern (its option values being unknown).
+    /// formats with symbols, `:percent` needs its pattern, `:currency` and
+    /// `:unit` everything (their option values being unknown).
     pub fn from_functions<'a>(functions: impl IntoIterator<Item = &'a str>) -> NumberNeeds {
         let mut n = NumberNeeds::default();
         for f in functions {
             match f {
-                "number" | "integer" | "offset" | "unit" => n.symbols = true,
+                "number" | "integer" | "offset" => n.symbols = true,
                 "percent" => n.percent = true,
                 "currency" => n.currency = Some(CurrencyNeeds::ALL),
+                "unit" => n.unit = Some(UnitNeeds::ALL),
                 _ => {}
             }
         }
         n
     }
 
+    /// Adds what `message` needs (§4.4): its numeric functions, the literal
+    /// `currency=` codes and `unit=` identifiers, the `currencySign`,
+    /// `currencyDisplay` and `unitDisplay` values (a variable value counts
+    /// as every value), and `symbols` for a placeholder whose variable has
+    /// no function (it can receive a number) — call it only with `fn-number`
+    /// on. Codes and units that only arguments carry at run time are not in
+    /// the corpus: configure them (`mf2.toml`).
+    pub fn add_message(&mut self, message: &Message<'_>) {
+        for d in message.declarations() {
+            match d {
+                Declaration::Input(i) => self.add_function(i.value.function.as_ref()),
+                Declaration::Local(l) => {
+                    if l.value.function().is_none() && matches!(l.value, Expression::Variable(_)) {
+                        self.symbols = true;
+                    }
+                    self.add_function(l.value.function());
+                }
+            }
+        }
+        let patterns: Vec<&Pattern<'_>> = match message {
+            Message::Pattern(p) => vec![&p.pattern],
+            Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        };
+        for p in patterns {
+            for part in p {
+                if let PatternPart::Expression(e) = part {
+                    if e.function().is_none() && matches!(e, Expression::Variable(_)) {
+                        self.symbols = true;
+                    }
+                    self.add_function(e.function());
+                }
+            }
+        }
+    }
+
+    fn add_function(&mut self, f: Option<&FunctionRef<'_>>) {
+        let Some(f) = f else {
+            return;
+        };
+        match f.name.as_ref() {
+            "number" | "integer" | "offset" => self.symbols = true,
+            "percent" => self.percent = true,
+            "currency" => {
+                let c = self.currency.get_or_insert_with(CurrencyNeeds::default);
+                match option(f, "currency") {
+                    Opt::Literal(code) => c.codes.add(&code.to_ascii_uppercase()),
+                    Opt::Variable => c.codes = Selection::All,
+                    Opt::Absent => {}
+                }
+                if matches!(
+                    option(f, "currencySign"),
+                    Opt::Literal("accounting") | Opt::Variable
+                ) {
+                    c.accounting = true;
+                }
+                match option(f, "currencyDisplay") {
+                    Opt::Literal("never") => c.hidden = true,
+                    Opt::Literal("name") => c.names = true,
+                    Opt::Literal("narrowSymbol") => c.narrow = true,
+                    Opt::Variable => {
+                        c.hidden = true;
+                        c.names = true;
+                        c.narrow = true;
+                    }
+                    Opt::Literal(_) | Opt::Absent => {}
+                }
+            }
+            "unit" => {
+                let u = self.unit.get_or_insert_with(|| UnitNeeds {
+                    widths: [false; 3],
+                    ..UnitNeeds::default()
+                });
+                match option(f, "unit") {
+                    Opt::Literal(id) => u.ids.add(id),
+                    Opt::Variable => u.ids = Selection::All,
+                    Opt::Absent => {}
+                }
+                match option(f, "unitDisplay") {
+                    Opt::Literal("long") => u.widths[0] = true,
+                    Opt::Literal("narrow") => u.widths[2] = true,
+                    Opt::Variable => u.widths = [true; 3],
+                    // `short`, the default, and an invalid value (which
+                    // formats with the default after *Bad Option*).
+                    Opt::Literal(_) | Opt::Absent => u.widths[1] = true,
+                }
+            }
+            _ => {}
+        }
+    }
+
     /// Whether any number entry is needed.
     pub const fn any(&self) -> bool {
-        self.symbols || self.percent || self.currency.is_some()
+        self.symbols || self.percent || self.currency.is_some() || self.unit.is_some()
+    }
+
+    /// Whether the entries need `plural.cardinal`: a unit pattern, or a
+    /// currency's display name, is chosen by the formatted number's plural
+    /// category.
+    pub fn needs_cardinal(&self) -> bool {
+        self.unit.is_some() || self.currency.as_ref().is_some_and(|c| c.names)
     }
 
     /// The `number.patterns` styles these needs select.
@@ -104,7 +298,7 @@ impl NumberNeeds {
         if self.percent {
             out.push(Style::Percent);
         }
-        if let Some(c) = self.currency {
+        if let Some(c) = &self.currency {
             out.extend([Style::Currency, Style::CurrencyAlpha]);
             if c.hidden {
                 out.push(Style::CurrencyNoSymbol);
@@ -160,6 +354,13 @@ pub struct NumberData {
     pub decimal_pattern: &'static str,
     /// The percent and currency patterns CLDR has, by style.
     pub patterns: BTreeMap<Style, &'static str>,
+    /// The `currencyDisplay=name` patterns (`{0}` the number, `{1}` the
+    /// name) by plural category code (0 zero … 5 other), of the symbols'
+    /// system, else `latn`'s (`ckb`'s `arab` has none).
+    pub currency_name_patterns: Vec<(u8, &'static str)>,
+    /// The CLDR locale chain the data resolves through: `locale`, its
+    /// ancestors, root.
+    pub chain: Vec<&'static str>,
 }
 
 /// Resolves `tag` to a CLDR locale of the table: a region that implies a
@@ -233,7 +434,27 @@ pub fn number_data(tag: &str) -> Result<NumberData, Error> {
             pats.insert(style, p);
         }
     }
+    let names_system = if t
+        .system_field(locale, system, "currency-name-other")
+        .is_some()
+    {
+        system
+    } else {
+        "latn"
+    };
+    let currency_name_patterns = crate::unit::CATEGORIES
+        .iter()
+        .zip(0u8..)
+        .filter_map(|(c, k)| {
+            Some((
+                k,
+                t.system_field(locale, names_system, &format!("currency-name-{c}"))?,
+            ))
+        })
+        .collect();
     Ok(NumberData {
+        currency_name_patterns,
+        chain: t.chain(locale),
         locale,
         numbering_system: nu,
         symbols_system: system,
@@ -282,8 +503,10 @@ impl NumberData {
 
 /// The number LOCALE entries for `tag` and `needs`, as
 /// `mf2_catalog::writer::Options::locale_entries` takes them: `number.symbols`
-/// when any number is formatted, `number.patterns` when a style is needed;
-/// nothing when `needs` needs nothing.
+/// when any number is formatted, `number.patterns` when a style is needed,
+/// `currency.data` for `:currency`, `unit.data` for `:unit`; nothing when
+/// `needs` needs nothing. (`plural.cardinal`, which units and currency names
+/// need too — [`NumberNeeds::needs_cardinal`] — is `crate::locale_entries`'.)
 pub fn number_locale_entries(tag: &str, needs: &NumberNeeds) -> Result<Vec<(u32, Vec<u8>)>, Error> {
     if !needs.any() {
         return Ok(Vec::new());
@@ -293,6 +516,20 @@ pub fn number_locale_entries(tag: &str, needs: &NumberNeeds) -> Result<Vec<(u32,
     let styles = needs.styles();
     if !styles.is_empty() {
         out.push((locale_key::NUMBER_PATTERNS, data.patterns_entry(&styles)?));
+    }
+    if let Some(c) = &needs.currency {
+        let list = crate::currency::currency_data(&data.chain, &c.codes)?;
+        out.push((
+            locale_key::CURRENCY_DATA,
+            crate::currency::currency_entry(&data, &list, c)?,
+        ));
+    }
+    if let Some(u) = &needs.unit {
+        let (per, list) = crate::unit::unit_data(&data.chain, &u.ids)?;
+        out.push((
+            locale_key::UNIT_DATA,
+            crate::unit::unit_entry(&per, &list, u)?,
+        ));
     }
     Ok(out)
 }

@@ -5,7 +5,7 @@
 //! | Part | Feature | Side |
 //! |---|---|---|
 //! | [`Catalog`] and its views ([`MsgView`], …) — the reader | *(always)* | client: `no_std`, no allocation, no panics, no `core::fmt` |
-//! | [`number`] — views of the `number.*` LOCALE entries (`mf2-fn-number` reads them) | *(always)* | client, same rules |
+//! | [`number`], [`currency`], [`unit`](mod@unit) — views of the `number.*`, `currency.data` and `unit.data` LOCALE entries (`mf2-fn-number` reads them) | *(always)* | client, same rules |
 //! | [`Manifest`] — `manifest.mf2m` and `manifest_hash` | `manifest` | build |
 //! | [`writer`] — `writer::catalog`, `writer::single` | `writer` | build |
 //! | [`decode()`] — the model-rebuilding decoder (layer L3) | `decode` | build |
@@ -31,6 +31,7 @@
 extern crate alloc;
 
 mod bytes;
+pub mod currency;
 #[cfg(feature = "decode")]
 mod decode;
 mod error;
@@ -40,6 +41,7 @@ mod manifest;
 pub mod number;
 mod plural;
 mod reader;
+pub mod unit;
 mod view;
 #[cfg(feature = "writer")]
 pub mod writer;

@@ -10,7 +10,11 @@ use serde_json::Value;
 
 use crate::error::Error;
 use crate::number::Record;
+
+mod measure;
+
 use crate::plural::{Category, PluralKind};
+pub use measure::{Raw, currencies_table, currency_raw, effective, unit_raw, units_table};
 
 /// The text of `data/plurals.txt` from `plurals.json` and `ordinals.json`
 /// (`cldr-core/supplemental`), for CLDR release `cldr` (e.g. `48.2.1`):
@@ -154,40 +158,90 @@ pub struct NumberInputs<'a> {
 }
 
 /// Where each per-system table field lives in `numbers.json`: the object
-/// (before `-numberSystem-<nu>`), the key, and whether CLDR must have it.
-const SYSTEM_SOURCES: &[(&str, &str, &str, bool)] = &[
-    ("decimal", "symbols", "decimal", true),
-    ("group", "symbols", "group", true),
-    ("minus", "symbols", "minusSign", true),
-    ("plus", "symbols", "plusSign", true),
-    ("percent", "symbols", "percentSign", true),
-    ("decimal-pattern", "decimalFormats", "standard", true),
-    ("percent-pattern", "percentFormats", "standard", true),
-    ("currency", "currencyFormats", "standard", true),
+/// (before `-numberSystem-<nu>`), the key, whether CLDR must have it, and
+/// whether it is a number pattern (checked by `number::pattern`).
+const SYSTEM_SOURCES: &[(&str, &str, &str, bool, bool)] = &[
+    ("decimal", "symbols", "decimal", true, false),
+    ("group", "symbols", "group", true, false),
+    ("minus", "symbols", "minusSign", true, false),
+    ("plus", "symbols", "plusSign", true, false),
+    ("percent", "symbols", "percentSign", true, false),
+    ("decimal-pattern", "decimalFormats", "standard", true, true),
+    ("percent-pattern", "percentFormats", "standard", true, true),
+    ("currency", "currencyFormats", "standard", true, true),
     (
         "currency-alpha",
         "currencyFormats",
         "standard-alphaNextToNumber",
         false,
+        true,
     ),
     (
         "currency-none",
         "currencyFormats",
         "standard-noCurrency",
         true,
+        true,
     ),
-    ("accounting", "currencyFormats", "accounting", true),
+    ("accounting", "currencyFormats", "accounting", true, true),
     (
         "accounting-alpha",
         "currencyFormats",
         "accounting-alphaNextToNumber",
         false,
+        true,
     ),
     (
         "accounting-none",
         "currencyFormats",
         "accounting-noCurrency",
         true,
+        true,
+    ),
+    // `currencyDisplay=name`: `{0}` the number, `{1}` the display name.
+    (
+        "currency-name-zero",
+        "currencyFormats",
+        "unitPattern-count-zero",
+        false,
+        false,
+    ),
+    (
+        "currency-name-one",
+        "currencyFormats",
+        "unitPattern-count-one",
+        false,
+        false,
+    ),
+    (
+        "currency-name-two",
+        "currencyFormats",
+        "unitPattern-count-two",
+        false,
+        false,
+    ),
+    (
+        "currency-name-few",
+        "currencyFormats",
+        "unitPattern-count-few",
+        false,
+        false,
+    ),
+    (
+        "currency-name-many",
+        "currencyFormats",
+        "unitPattern-count-many",
+        false,
+        false,
+    ),
+    // Optional: `ckb`'s `arab` system has none; the lookup then takes
+    // `latn`'s (CLDR's per-field fallback to `latn`).
+    (
+        "currency-name-other",
+        "currencyFormats",
+        "unitPattern-count-other",
+        false,
+        false,
     ),
 ];
 
@@ -293,15 +347,17 @@ pub fn locale_record(
             return Err(assumption(format!("{locale}: system {nu} is not numeric")));
         }
         let mut s = BTreeMap::new();
-        for (name, object, key, required) in SYSTEM_SOURCES {
+        for (name, object, key, required, number_pattern) in SYSTEM_SOURCES {
             let value = n
                 .get(&format!("{object}-numberSystem-{nu}"))
                 .and_then(|o| o.get(*key))
                 .and_then(Value::as_str);
             match value {
                 Some(value) => {
-                    if name.ends_with("pattern") || object == &"currencyFormats" {
+                    if *number_pattern {
                         crate::number::pattern::parse(value)?;
+                    } else if name.starts_with("currency-name-") {
+                        crate::template::parse(value, 2)?;
                     }
                     s.insert((*name).to_owned(), value.to_owned());
                 }

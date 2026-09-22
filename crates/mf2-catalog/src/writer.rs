@@ -6,9 +6,11 @@
 //! Output is deterministic (F8): it depends only on the inputs. The byte
 //! format and the writer policies are `plans/02-catalog-format.md` §2.
 
+pub mod currency;
 mod encode;
 pub mod number;
 mod pool;
+pub mod unit;
 
 use alloc::borrow::Cow;
 use alloc::collections::{BTreeMap, BTreeSet};
@@ -454,7 +456,7 @@ fn planes(entries: &[u32]) -> Vec<u8> {
 }
 
 /// LOCALE: entries sorted by key; the entries of known kinds checked
-/// (plural §4.1, number §4.2–§4.3).
+/// (plural §4.1, number §4.2–§4.3, currency §4.6, unit §4.7).
 fn locale_section(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {
     let mut sorted: Vec<&(u32, Vec<u8>)> = entries.iter().collect();
     sorted.sort_by_key(|e| e.0);
@@ -470,6 +472,12 @@ fn locale_section(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {
             locale_key::PLURAL_CARDINAL | locale_key::PLURAL_ORDINAL => plural::valid(payload),
             locale_key::NUMBER_SYMBOLS => crate::number::Symbols::parse(payload).is_some(),
             locale_key::NUMBER_PATTERNS => crate::number::Patterns::new(payload).is_valid(),
+            locale_key::CURRENCY_DATA => {
+                crate::currency::Currencies::parse(payload).is_some_and(|c| c.is_valid())
+            }
+            locale_key::UNIT_DATA => {
+                crate::unit::Units::parse(payload).is_some_and(|u| u.is_valid())
+            }
             _ => true,
         };
         if !valid {

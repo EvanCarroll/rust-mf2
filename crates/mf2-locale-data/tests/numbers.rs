@@ -224,13 +224,18 @@ fn every_locale_encodes() {
     let mut needs = NumberNeeds::from_functions(["percent", "currency"]);
     assert!(needs.percent && needs.currency == Some(CurrencyNeeds::ALL));
     needs.symbols = true;
+    // Every pattern style, no currency codes (their data: tests/measure.rs).
+    let mut currency = CurrencyNeeds::ALL;
+    currency.codes = mf2_locale_data::Selection::default();
+    needs.currency = Some(currency);
     let mut systems = std::collections::BTreeSet::new();
     for locale in &locales {
         for tag in [(*locale).to_owned(), format!("{locale}-u-nu-native")] {
             let entries = number_locale_entries(&tag, &needs).expect("entries");
-            let [(k1, symbols), (k2, patterns)] = entries.as_slice() else {
-                panic!("{tag}: two entries");
+            let [(k1, symbols), (k2, patterns), (k3, _)] = entries.as_slice() else {
+                panic!("{tag}: three entries");
             };
+            assert_eq!(*k3, locale_key::CURRENCY_DATA);
             assert_eq!(
                 (*k1, *k2),
                 (locale_key::NUMBER_SYMBOLS, locale_key::NUMBER_PATTERNS)
