@@ -142,15 +142,15 @@ Checked at the close of the phase; the figures behind each are in
       leaves the client wasm byte-identical (§A9)
 - [x] the `mf2-build` ≡ `compile_str` differential green on the whole suite in
       both configurations — 485/485 (§A4)
-- [x] B7 and B8 measured on `mf2-build`'s output and met; **B1′ and B13 held
-      by construction and by test, not yet as a size delta on a wasm harness
-      built from the generated module** (§A10); build cost reported (§A11)
+- [x] B7 and B8 measured on `mf2-build`'s output and met; B1′ = **+0 B** and
+      B13 = **13,599 B avoided**, as byte deltas on the client wasm the
+      generated module produces (§A10); build cost reported (§A11)
 - [x] owner questions 1 and 2 answered and recorded, both with measurements
       and a recommendation
 - [x] fuzz targets clean for ≥ 1 h each on the final code (§A12)
 - [x] `plans/phase-5a-results.md` written
 
-**What Phase 5b inherits**: the `b12-generated` harness pair that would turn
-B1′ and B13 from "the generated registry is the same registry Phase 4
-measured" into a size delta; and cargo-leptos, whose double build P6 brings
-into the tree.
+**What Phase 5b inherits**: a `b12-generated` harness pair, so that B1′ and
+B13 on the generated module are a gate CI runs rather than the hand-edited
+one-off §A10 reports; and cargo-leptos, whose double build P6 brings into the
+tree.

@@ -287,11 +287,21 @@ Built *without* `fn-number` the same corpus gives exactly Phase 2's brotli
 figures (18,072 / 24,137 / 21,537 / 18,423), which is what says the
 difference above is the number data and nothing else.
 
-**B1′ and B13 on the generated module** are held by construction and by test
-— the generated registry names the handlers the corpus uses and no others,
-and takes the unannotated hooks only when a placeholder can reach them — but
-not yet as a size delta: the `bench/b12` harnesses take a hand-written
-registry. A `b12-generated` pair is Phase 5b's to add.
+**B1′ and B13 on the generated module**, as byte deltas on the client wasm
+`tools/i18n-fixture` builds for `wasm32-unknown-unknown` under the
+`wasm-release` profile (§3's size method), the corpus edited and put back:
+
+| | Corpus | Features | `.wasm` |
+|---|---|---|---:|
+| **B13** | `:integer` and markup | `hydrate,fn-number` | 364,235 |
+| | plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | 377,834 → **+13,599 B** |
+| **B1′** | nothing unannotated, no numeric or date function | `hydrate` | 349,171 |
+| | the same | `hydrate,fn-number,fn-datetime` | **349,171 → +0 B** |
+
+So a corpus that uses none of `:currency`, `:unit`, `:percent` pays nothing
+for them (13.6 KB avoided), and two function crates linked but unreachable
+from the generated registry cost nothing at all. Both were taken by hand;
+a `b12-generated` harness pair that makes them a gate is Phase 5b's to add.
 
 ### Phase 4: the `intl` client option (2026-09-22)
 

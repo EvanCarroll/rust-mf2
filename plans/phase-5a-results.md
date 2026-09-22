@@ -16,7 +16,7 @@ timings do**, so timings are ranges and the two arrangements of owner question
 | `mf2 check` catches seeded drift of every lint class and is silent on the clean workload; gated functions are build errors with file and line | **met** | §A7 |
 | editing one message rebuilds only what it must; a translation-only edit leaves the client wasm byte-identical | **met** | §A9 |
 | the `mf2-build` ≡ `compile_str` differential green on the whole suite in both configurations | **met** — 485/485 | §A4 |
-| B7, B8, B1′, B13 measured on `mf2-build`'s output and met, or restated; build cost reported | **B7, B8 met**; **B1′, B13 held structurally, measured on the generated registry rather than on a wasm harness** (§A10) | §A10, §A11 |
+| B7, B8, B1′, B13 measured on `mf2-build`'s output and met, or restated; build cost reported | **met**: B7 and B8 on the catalogs the build writes, B1′ = +0 B and B13 = 13.6 KB avoided on the wasm the generated module produces | §A10, §A11 |
 | owner questions 1 and 2 answered and recorded | **answered**, both with measurements and a recommendation | §"Owner question 1", §"Owner question 2" |
 | fuzz targets clean for ≥ 1 h each on the final code | see §A12 | §A12 |
 | `plans/phase-5a-results.md` written | this document | — |
@@ -28,12 +28,11 @@ What Phase 5a leaves for later, with reasons:
   the tool, not the pipeline. What cargo-leptos changes — two builds, two
   `OUT_DIR`s, two baked paths — P0.9 measured, and §A9's scenarios cover the
   same edits under plain cargo for both a server and a client target.
-* **B1′ and B13** are *stated* on a wasm harness (`bench/b12`). Phase 4
-  measured both on hand-written registries; Phase 5a shows the generated
-  registry is that same registry — the same handlers, named the same way —
-  and checks it by construction and by test (§A10). A `bench/b12` harness
-  driven by the generated module would turn "the same registry" into "the
-  same bytes"; it is written up as the one open piece.
+* **B1′ and B13 are measured, but not gated.** §A10 has both as byte deltas
+  on the client wasm the generated module produces; they were taken by
+  editing the fixture's corpus by hand and putting it back. A `b12-generated`
+  harness pair would make a regression fail CI instead of waiting to be
+  re-measured.
 
 ## A1 — `mf2-resource`
 
@@ -314,24 +313,28 @@ B brotli**: for three of the four locales the catalog got *smaller* when
 
 **B8**: §A6.
 
-**B13** — an unused function is not linked. The generated registry names the
-handlers the corpus uses and no others; a corpus using `:integer` alone
-produces a one-entry `FUNCTIONS` table, and neither `STRING` nor any
-`mf2-fn-number` handler appears in the module at all
-(`cargo test -p mf2-build --lib codegen`).
+**B13 and B1′ on the generated module**, measured on the client binary
+`tools/i18n-fixture` builds for `wasm32-unknown-unknown` under the
+`wasm-release` profile (opt-level z, fat LTO, one codegen unit, panic abort,
+stripped — 06 §3's size method), the corpus edited and put back:
 
-**B1′** — a feature on but unused costs nothing. The generated module takes
-`with_numbers` / `with_dates` only when some placeholder has no function, and
-names one browser host per configuration, so a corpus that formats no dates
-never mentions `INTL_HOST` or `ZONES_HOST`. Phase 4 measured B1′ = +0 B on
-hand-written registries of exactly this shape (06 §3); what Phase 5a adds is
-that the generator produces that shape rather than a wider one.
+| Build | Corpus | Features | `.wasm` |
+|---|---|---|---:|
+| A | `:integer` and markup | `hydrate,fn-number` | 364,235 |
+| B | A plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | 377,834 |
+| E | nothing unannotated, no numeric or date function | `hydrate` | 349,171 |
+| F | the same | `hydrate,fn-number,fn-datetime` | **349,171** |
 
-**Open**: neither B1′ nor B13 is yet measured *in bytes* on a module the
-generator wrote. The `bench/b12` harnesses take a hand-written registry; a
-`b12-generated` pair — the same corpus with and without a feature that the
-corpus does not use — would make the claim a size delta. It is the one piece
-of A10 this phase leaves behind.
+**B13**: B − A = **+13,599 B** — using `:currency`, `:unit` and `:percent`
+costs 13.6 KB, so a corpus that does not use them pays nothing for them.
+**B1′**: F − E = **+0 B**, byte-identical, with two whole function crates
+linked and neither reachable from the generated registry. A is reproducible:
+the third build of it came out at 364,235 B again.
+
+These are one-off measurements with the corpus edited by hand, not a gate.
+Turning them into one — a `b12-generated` harness pair beside the others, so
+that a regression fails CI rather than waiting to be re-measured — is what
+this phase leaves for the next.
 
 ## A11 — build cost
 
