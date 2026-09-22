@@ -15,6 +15,7 @@ members = [
     "bench/workload-gen",
     "bench/parser-gate",
     "bench/catalog-bench",
+    "bench/runtime-bench",
 ]
 # Standalone workspaces: the Phase 0 experiments, the cargo-fuzz targets
 # (nightly only), and the B12 wasm harnesses (no_std cdylibs with their own
@@ -62,6 +63,7 @@ brotli = "9.0.0"
 flate2 = "1.1.10"
 zlib-rs = "0.6.8"
 workload-gen = { path = "bench/workload-gen" }
+catalog-bench = { path = "bench/catalog-bench" }
 # mf2-runtime's numeric semantics: `fixed_decimal` only as the A/B baseline of
 # the own digit buffer (plans/10 A5b, owner decision 1); `ryu` for float text
 # in mf2-host-std (plans/03 §2.5).

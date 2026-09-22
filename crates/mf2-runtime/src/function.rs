@@ -127,7 +127,7 @@ pub struct OptionValue<'o, 'a> {
 }
 
 /// The resolved options of an expression, in source order.
-pub(crate) type OptionList<'o, 'a> = Scratch<(&'a str, OptionValue<'o, 'a>), 8>;
+pub(crate) type OptionList<'o, 'a> = Scratch<(&'a str, OptionValue<'o, 'a>)>;
 
 /// A view of an [`OptionList`] (possibly empty).
 #[derive(Clone, Copy)]

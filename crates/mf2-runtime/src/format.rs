@@ -144,7 +144,7 @@ impl<'c> Formatter<'c> {
     }
 
     /// Per slot of message `id`, the index of its argument in `args`.
-    fn slot_map(&self, id: MsgId, args: &[(&str, Arg<'_>)]) -> Scratch<u32, 8> {
+    fn slot_map(&self, id: MsgId, args: &[(&str, Arg<'_>)]) -> Scratch<u32> {
         let names = match self.catalog.get(id) {
             Entry::Pattern(m) | Entry::Select(m) => m.names(),
             _ => Names::EMPTY,

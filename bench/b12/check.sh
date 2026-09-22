@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# B12 check for the catalog reader (plans/09-phase-2-work-order.md, A9;
-# plans/06-size-and-perf.md §3 "How B6, B12, B13 are checked"; 05 §8).
+# B12 check for the catalog reader (plans/09-phase-2-work-order.md, A9) and
+# the runtime (plans/10-phase-3-work-order.md, A11), with B13 and the size of
+# B1's runtime part (plans/06-size-and-perf.md §3 "How B6, B12, B13 are
+# checked"; 05 §8).
 #
-# Builds the three no_std harnesses of this workspace for
+# Builds the no_std harnesses of this workspace for
 # wasm32-unknown-unknown, twice: profile `wasm-release` (the 06 §3 size
 # method: opt-level z, fat LTO, 1 CGU, panic=abort, strip) and `wasm-syms`
 # (the same, keeping symbol names). Each goes through `wasm-opt -Oz`. Then:
@@ -19,9 +21,18 @@
 #     symbols, no panic / bounds / overflow / capacity / alloc-error symbols.
 #     b12-control (a deliberate `write!`) must show both kinds.
 #  3. Data. No panic message text in the stripped optimised module.
-#  4. Size. The reader's cost as the delta b12-reader − b12-base (same
-#     scaffolding, an allocation kept alive), raw and gzip -9 — the reader's
-#     share of B1 (plus the harness's walk, which a runtime has in its own form).
+#  4. Size. Each harness as a delta against b12-base (same scaffolding, an
+#     allocation kept alive), raw and gzip -9: the reader (plus its walk), the
+#     runtime with every core function (B1's runtime part), the runtime with
+#     :string only; the difference of the last two is the core numeric
+#     semantics' share of B1 (≤ 10 KB gz).
+#  5. B13. b12-runtime-nonum links no numeric handler: none of their symbols
+#     (resolution, digit options, rounding, the plural evaluator) — and
+#     b12-runtime, which uses them, shows them (the grep can fail).
+#  6. The D15 A/B (plans/10 A5b): b12-runtime-fixed, the runtime with the
+#     numeric code over fixed_decimal, built in its own cargo invocation (so
+#     its feature does not reach the others) and reported only: its panic
+#     paths are why the own buffer exists.
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
@@ -41,7 +52,7 @@ TARGET=wasm32-unknown-unknown
 OUT=target/b12
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
-CRATES=(base reader control)
+CRATES=(base reader runtime runtime-nonum control)
 PANIC_IMPORT='b12::b12_panic_reachable'
 # twiggy demangles v0 names as `core[1a2b…]::fmt::…`; the mangled spellings
 # (`4core3fmt`) are matched too in case a name is left mangled.
@@ -52,6 +63,10 @@ PANIC_TEXT_RE='panicked|out of bounds|called `|capacity overflow|attempt to |unw
 pkgs=(); for c in "${CRATES[@]}"; do pkgs+=(-p "b12-$c"); done
 cargo build -q --target "$TARGET" --profile wasm-release "${pkgs[@]}"
 cargo build -q --target "$TARGET" --profile wasm-syms "${pkgs[@]}"
+# The A/B baseline alone: its `fixed-decimal` feature must not unify into the
+# harnesses above.
+cargo build -q --target "$TARGET" --profile wasm-release -p b12-runtime-fixed
+cargo build -q --target "$TARGET" --profile wasm-syms -p b12-runtime-fixed
 mkdir -p "$OUT"
 
 REPORT="$OUT/b12.txt"
@@ -60,13 +75,14 @@ say() { printf '%s\n' "$*" | tee -a "$REPORT"; }
 fail=0
 bad() { say "  FAIL: $*"; fail=1; }
 
-say "B12 — catalog reader (mf2-catalog, no features), $(rustc --version)"
+say "B12 — catalog reader and runtime (mf2-catalog and mf2-runtime, no features), $(rustc --version)"
 say "wasm-opt: $(wasm-opt --version); twiggy: $(twiggy --version)"
 
 declare -A RAW GZ
-for c in "${CRATES[@]}"; do
-  rel="target/$TARGET/wasm-release/b12_$c.wasm"
-  syms="target/$TARGET/wasm-syms/b12_$c.wasm"
+for c in "${CRATES[@]}" runtime-fixed; do
+  file="b12_${c//-/_}"
+  rel="target/$TARGET/wasm-release/$file.wasm"
+  syms="target/$TARGET/wasm-syms/$file.wasm"
   opt="$OUT/$c.opt.wasm"
   syms_opt="$OUT/$c.syms.opt.wasm"
   wasm-opt -Oz "${FEATURES[@]}" "$rel" -o "$opt"
@@ -87,6 +103,8 @@ for c in "${CRATES[@]}"; do
   fi
   if [ "$c" = control ]; then
     [ "$has_panic" = yes ] || bad "the control's deliberate panic path left no import: the check is broken"
+  elif [ "$c" = runtime-fixed ]; then
+    say "  (the A/B baseline: reported, not gated)"
   else
     [ "$has_panic" = no ] || bad "a panic path survives in b12-$c"
   fi
@@ -107,6 +125,8 @@ for c in "${CRATES[@]}"; do
     if [ "$c" = control ]; then
       [ "$n_fmt" -gt 0 ] && [ "$n_panic" -gt 0 ] \
         || bad "the control's deliberate fmt and panic code left no symbols: the check is broken"
+    elif [ "$c" = runtime-fixed ]; then
+      :
     elif [ "$((n_fmt + n_panic))" -ne 0 ]; then
       bad "fmt or panic symbols in b12-$c ($(basename "$w"))"
     fi
@@ -115,20 +135,40 @@ for c in "${CRATES[@]}"; do
   # 3. Panic message text in the shipped module.
   n_text=$( { LC_ALL=C grep -a -o -iE "$PANIC_TEXT_RE" "$opt" || true; } | wc -l)
   say "  panic message strings in the stripped optimised module: $n_text"
-  if [ "$c" != control ] && [ "$n_text" -ne 0 ]; then
+  if [ "$c" != control ] && [ "$c" != runtime-fixed ] && [ "$n_text" -ne 0 ]; then
     bad "panic message text in b12-$c"
   fi
 done
 
-# 4. Size: the reader as a delta against the base.
+# 5. B13: no numeric handler in the runtime built without one.
+NUM_RE='NumberFunction|number::(resolve|display|raw_fixed|raw_precision|matches|exact_matches|operands|options::)|mf2_runtime(\[[0-9a-f]+\])?::plural::|Decimal>::(round|add)'
+say "== B13 (closed world): numeric-handler symbols"
+for c in runtime runtime-nonum; do
+  names="$OUT/$c.syms.opt.csv.names"
+  n_num=$(grep -cE "$NUM_RE" "$names" || true)
+  say "  b12-$c: $n_num"
+  if [ "$c" = runtime ]; then
+    [ "$n_num" -gt 0 ] || bad "b12-runtime shows no numeric-handler symbol: the B13 grep is broken"
+  else
+    [ "$n_num" -eq 0 ] || bad "b12-runtime-nonum links numeric handlers (B13)"
+  fi
+done
+
+# 4. Size: each harness as a delta against the base.
 {
   printf 'harness\traw\tgz\tdelta_raw\tdelta_gz\n'
   printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${GZ[base]}"
-  printf 'reader\t%d\t%d\t%d\t%d\n' "${RAW[reader]}" "${GZ[reader]}" \
-    $((RAW[reader] - RAW[base])) $((GZ[reader] - GZ[base]))
+  for c in reader runtime runtime-nonum runtime-fixed; do
+    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
+      $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
+  done
+  printf 'numbers (runtime - runtime-nonum)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime] - RAW[runtime-nonum])) $((GZ[runtime] - GZ[runtime-nonum]))
+  printf 'numbers over fixed_decimal (runtime-fixed - runtime-nonum)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime-fixed] - RAW[runtime-nonum])) $((GZ[runtime-fixed] - GZ[runtime-nonum]))
 } > "$OUT/size.tsv"
 say "== size (wasm-release, wasm-opt -Oz, gzip -9 -n; delta against b12-base)"
-awk -F '\t' '{ printf "  %-8s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
+awk -F '\t' '{ printf "  %-58s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
 # Where the reader's bytes are (shallow code bytes after wasm-opt, by crate).
 csv="$OUT/reader.syms.opt.csv"
 awk -F, 'NR > 1 {
@@ -151,4 +191,4 @@ if [ "$fail" -ne 0 ]; then
   say "B12: FAILED"
   exit 1
 fi
-say "B12: clean (no panic path, no core::fmt in the reader)"
+say "B12: clean (no panic path, no core::fmt in the reader or the runtime); B13: shown"

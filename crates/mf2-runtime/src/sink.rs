@@ -32,7 +32,10 @@ pub trait Sink {
 
 impl Sink for String {
     fn push_str(&mut self, s: &str) {
-        if self.try_reserve(s.len()).is_ok() {
+        // `try_reserve`, then the append behind the test the append makes,
+        // so its infallible-growth branch is dead (see `scratch::try_push`).
+        let room = |t: &String| t.capacity().wrapping_sub(t.len()) >= s.len();
+        if (room(self) || self.try_reserve(s.len()).is_ok()) && room(self) {
             String::push_str(self, s);
         }
     }
@@ -46,9 +49,7 @@ pub trait ErrorSink {
 
 impl ErrorSink for Vec<FormatError> {
     fn error(&mut self, e: FormatError) {
-        if self.try_reserve(1).is_ok() {
-            self.push(e);
-        }
+        crate::scratch::try_push(self, e);
     }
 }
 

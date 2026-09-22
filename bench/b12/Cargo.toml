@@ -7,7 +7,16 @@
 # host builds must never see. `check.sh` builds them and runs the check.
 [workspace]
 resolver = "3"
-members = ["harness", "base", "reader", "control"]
+members = [
+    "harness",
+    "base",
+    "reader",
+    "control",
+    "runtime-walk",
+    "runtime",
+    "runtime-nonum",
+    "runtime-fixed",
+]
 
 [workspace.package]
 version = "0.0.0"
@@ -19,6 +28,8 @@ publish = false
 b12-harness = { path = "harness" }
 # The client path: no features (the writer, decoder and manifest are build side).
 mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
+b12-runtime-walk = { path = "runtime-walk" }
+mf2-runtime = { path = "../../crates/mf2-runtime", default-features = false }
 
 [workspace.lints.rust]
 unreachable_pub = "warn"

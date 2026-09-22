@@ -1,96 +1,62 @@
-//! Per-call working lists: inline up to `N` items (no allocation for the
-//! messages real corpora have), on the heap beyond. Growth only ever goes
-//! through `try_reserve` followed by `push` — std then knows the capacity
-//! is there, so no infallible-growth or abort path is linked (B12); a failed
-//! reservation is reported to the caller, never an abort.
+//! Per-call working lists on the heap, grown only fallibly: every growth
+//! goes through [`try_push`] — `try_reserve`, then `push` behind the very
+//! test `push` makes (`len < capacity`) — so `push`'s infallible-growth
+//! branch, and the capacity-overflow / allocation-failure panic behind it,
+//! is provably dead and not linked (B12). That needs `Vec::push` inlined
+//! next to the test, which at `opt-level = "z"` LLVM does only for a function
+//! with a single caller: so each `Vec<T>::push` has exactly one call site,
+//! inside [`Scratch::push`], which is kept out of line (one copy per `T`).
+//! A failed reservation is reported to the caller, never an abort.
+//!
+//! A list that stays empty allocates nothing, so a message without
+//! declarations, options or selectors formats without allocating.
 
 use alloc::vec::Vec;
 
-/// A list of `T`: inline up to `N`, then on the heap.
-pub(crate) enum Scratch<T, const N: usize> {
-    Inline { items: [Option<T>; N], len: usize },
-    Heap(Vec<T>),
+/// Appends `t` to `v` with fallible growth; `false` (and `t` dropped) if the
+/// memory could not be reserved. Always inlined: the test must sit next to
+/// `push` for the growth branch to be dead (the module docs).
+#[allow(clippy::inline_always)]
+#[inline(always)]
+pub(crate) fn try_push<T>(v: &mut Vec<T>, t: T) -> bool {
+    if v.len() == v.capacity() && v.try_reserve(1).is_err() {
+        return false;
+    }
+    if v.len() < v.capacity() {
+        v.push(t);
+        true
+    } else {
+        false
+    }
 }
 
-impl<T, const N: usize> Scratch<T, N> {
+/// A list of `T` (see the module documentation).
+pub(crate) struct Scratch<T>(Vec<T>);
+
+impl<T> Scratch<T> {
     pub(crate) const fn new() -> Self {
-        Scratch::Inline {
-            items: [const { None }; N],
-            len: 0,
-        }
+        Scratch(Vec::new())
     }
 
     pub(crate) fn len(&self) -> usize {
-        match self {
-            Scratch::Inline { len, .. } => *len,
-            Scratch::Heap(v) => v.len(),
-        }
+        self.0.len()
     }
 
     /// Appends `t`; `false` if the memory for it could not be reserved.
+    #[inline(never)]
     pub(crate) fn push(&mut self, t: T) -> bool {
-        match self {
-            Scratch::Inline { items, len } => {
-                if let Some(slot) = items.get_mut(*len) {
-                    *slot = Some(t);
-                    *len += 1;
-                    return true;
-                }
-                let mut v = Vec::new();
-                if v.try_reserve(N.saturating_mul(2).max(8)).is_err() {
-                    return false;
-                }
-                for slot in items.iter_mut() {
-                    if let Some(x) = slot.take()
-                        && v.try_reserve(1).is_ok()
-                    {
-                        v.push(x);
-                    }
-                }
-                if v.try_reserve(1).is_err() {
-                    return false;
-                }
-                v.push(t);
-                *self = Scratch::Heap(v);
-                true
-            }
-            Scratch::Heap(v) => {
-                if v.try_reserve(1).is_err() {
-                    return false;
-                }
-                v.push(t);
-                true
-            }
-        }
+        try_push(&mut self.0, t)
     }
 
     pub(crate) fn get(&self, i: usize) -> Option<&T> {
-        match self {
-            Scratch::Inline { items, len } => {
-                if i < *len {
-                    items.get(i)?.as_ref()
-                } else {
-                    None
-                }
-            }
-            Scratch::Heap(v) => v.get(i),
-        }
+        self.0.get(i)
     }
 
     pub(crate) fn get_mut(&mut self, i: usize) -> Option<&mut T> {
-        match self {
-            Scratch::Inline { items, len } => {
-                if i < *len {
-                    items.get_mut(i)?.as_mut()
-                } else {
-                    None
-                }
-            }
-            Scratch::Heap(v) => v.get_mut(i),
-        }
+        self.0.get_mut(i)
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
-        (0..self.len()).filter_map(move |i| self.get(i))
+    pub(crate) fn iter(&self) -> core::slice::Iter<'_, T> {
+        self.0.iter()
     }
 }

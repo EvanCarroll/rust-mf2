@@ -1,0 +1,17 @@
+[package]
+name = "b12-runtime-fixed"
+description = "A5b baseline: b12-runtime with the numeric code over fixed_decimal (feature fixed-decimal; built in its own cargo invocation)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-runtime-walk.workspace = true
+mf2-runtime = { workspace = true, features = ["fixed-decimal"] }
+
+[lints]
+workspace = true

@@ -449,7 +449,11 @@ build-time rejections) explicitly — never as silent skips.
   same internal interface (feature `fixed-decimal`, never a client's) as the
   baseline of an A/B — the suite, a differential on the same random corpus,
   size, allocations, B12 and speed (10 A5b) — and as the fallback if the own
-  buffer does not pass.
+  buffer does not pass. **A5b (2026-09-21): it passes every row** — identical
+  output on P0.5's 100,000-case corpus, the same ECMA-402 result (95,675
+  identical, 0 different), 5,142 vs 7,305 B gz for the numeric share, B12
+  clean vs a surviving panic import, 0 vs 0.5 allocations per format, speed
+  equal within noise (`bench/runtime-bench/NUMBER-AB-P3.md`).
 * **Dates (`fn-datetime`)**: the server always formats with ICU4X — so on a
   server build `fn-datetime` pulls in `icu_datetime` whichever client backend was
   chosen. The client backend is the app's

@@ -1,0 +1,25 @@
+[package]
+name = "runtime-bench"
+description = "Phase 3 A5/A5b/A11: the numeric A/B (own digit buffer vs fixed_decimal), the ECMA-402 differential corpus, and the native runtime bench (B10)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# The A/B baseline: the numeric code over `fixed_decimal` (plans/10 A5b).
+fixed-decimal = ["mf2-runtime/fixed-decimal"]
+
+[dependencies]
+catalog-bench.workspace = true
+clap.workspace = true
+mf2 = { workspace = true, features = ["compile", "host-std"] }
+mf2-catalog.workspace = true
+mf2-model = { workspace = true, features = ["suite-names"] }
+mf2-runtime.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+
+[lints]
+workspace = true

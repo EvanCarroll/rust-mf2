@@ -28,6 +28,15 @@ pub(crate) struct Decimal {
     neg: bool,
 }
 
+/// The first `width` digits of the little-endian `w`, reversed.
+fn most_significant_first(w: &[u8; WORK], width: usize) -> [u8; WORK] {
+    let mut out = [0u8; WORK];
+    for (slot, d) in out.iter_mut().zip(w.iter().take(width).rev()) {
+        *slot = *d;
+    }
+    out
+}
+
 impl Decimal {
     const ZERO: Decimal = Decimal {
         digits: [0; CAP],
@@ -36,29 +45,32 @@ impl Decimal {
         neg: false,
     };
 
-    /// A canonical decimal from digit values `seq` (most significant first,
-    /// zeros anywhere) whose last element sits at magnitude `last`. `Err`
-    /// past `limit` significant digits or the magnitude range.
+    /// A canonical decimal from the digits of `a` then `b` (most significant
+    /// first, zeros anywhere; each byte minus `zero` is the digit, so ASCII
+    /// and digit values both work), whose last digit sits at magnitude
+    /// `last`. `Err` past `limit` significant digits or the magnitude range.
+    /// One non-generic function for every caller (B1: code size).
+    #[allow(clippy::many_single_char_names)]
     fn canonical(
         neg: bool,
-        seq: impl Iterator<Item = u8> + Clone,
-        count: usize,
+        a: &[u8],
+        b: &[u8],
+        zero: u8,
         last: i64,
         limit: usize,
     ) -> Result<Decimal, ParseError> {
-        let first_nz = seq.clone().position(|d| d != 0);
-        let Some(first_nz) = first_nz else {
+        let count = a.len() + b.len();
+        let at = |k: usize| -> u8 {
+            a.get(k)
+                .or_else(|| b.get(k.wrapping_sub(a.len())))
+                .map_or(0, |c| c.wrapping_sub(zero))
+        };
+        let Some(first_nz) = (0..count).find(|&k| at(k) != 0) else {
             let mut z = Decimal::ZERO;
             z.neg = neg;
             return Ok(z);
         };
-        let last_nz = seq
-            .clone()
-            .enumerate()
-            .filter(|&(_, d)| d != 0)
-            .map(|(i, _)| i)
-            .last()
-            .unwrap_or(first_nz);
+        let last_nz = (0..count).rev().find(|&k| at(k) != 0).unwrap_or(first_nz);
         let n = last_nz - first_nz + 1;
         if n > limit || n > CAP {
             return Err(ParseError::Limit);
@@ -72,8 +84,8 @@ impl Decimal {
         }
         let mut d = Decimal::ZERO;
         d.neg = neg;
-        for (slot, digit) in d.digits.iter_mut().zip(seq.skip(first_nz).take(n)) {
-            *slot = digit;
+        for (i, slot) in d.digits.iter_mut().take(n).enumerate() {
+            *slot = at(first_nz + i);
         }
         d.len = u8::try_from(n).map_err(|_| ParseError::Limit)?;
         d.low = i16::try_from(low).map_err(|_| ParseError::Limit)?;
@@ -96,21 +108,21 @@ impl Decimal {
             n /= 10;
         }
         let digits = buf.get(at..).unwrap_or(&[]);
-        Decimal::canonical(false, digits.iter().copied(), digits.len(), 0, CAP)
-            .unwrap_or(Decimal::ZERO)
+        Decimal::canonical(false, digits, &[], 0, 0, CAP).unwrap_or(Decimal::ZERO)
     }
 
     /// A `number-literal`.
     pub(crate) fn parse(s: &[u8]) -> Result<Decimal, ParseError> {
         let lit = split_literal(s)?;
-        let seq = lit
-            .int
-            .iter()
-            .chain(lit.frac.iter())
-            .map(|c| c.wrapping_sub(b'0'));
-        let count = lit.int.len() + lit.frac.len();
         let frac = i64::try_from(lit.frac.len()).map_err(|_| ParseError::Limit)?;
-        Decimal::canonical(lit.neg, seq, count, i64::from(lit.exp) - frac, INPUT_DIGITS)
+        Decimal::canonical(
+            lit.neg,
+            lit.int,
+            lit.frac,
+            b'0',
+            i64::from(lit.exp) - frac,
+            INPUT_DIGITS,
+        )
     }
 
     pub(crate) fn is_zero(&self) -> bool {
@@ -303,8 +315,15 @@ impl Decimal {
                 carry = s / 10;
             }
         }
-        let seq = w.iter().take(width).rev().copied();
-        if let Ok(d) = Decimal::canonical(self.neg, seq, width, i64::from(pos), CAP) {
+        let msd = most_significant_first(&w, width);
+        if let Ok(d) = Decimal::canonical(
+            self.neg,
+            msd.get(..width).unwrap_or(&[]),
+            &[],
+            0,
+            i64::from(pos),
+            CAP,
+        ) {
             *self = d;
         }
     }
@@ -373,8 +392,16 @@ impl Decimal {
             }
             neg
         };
-        let seq = r.iter().take(width).rev().copied();
-        Decimal::canonical(neg, seq, width, i64::from(lo), INPUT_DIGITS).ok()
+        let msd = most_significant_first(&r, width);
+        Decimal::canonical(
+            neg,
+            msd.get(..width).unwrap_or(&[]),
+            &[],
+            0,
+            i64::from(lo),
+            INPUT_DIGITS,
+        )
+        .ok()
     }
 
     /// Writes the digits of magnitudes `hi` down to `lo` (inclusive), with a

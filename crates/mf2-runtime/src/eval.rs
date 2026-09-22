@@ -40,7 +40,7 @@ pub(crate) enum Args<'e, 'a> {
     Positional(&'e [Arg<'a>]),
     /// The named arguments and, per slot, the index of its argument
     /// (`u32::MAX`: none).
-    Named(&'e [(&'e str, Arg<'a>)], &'e Scratch<u32, 8>),
+    Named(&'e [(&'e str, Arg<'a>)], &'e Scratch<u32>),
 }
 
 impl<'a> Args<'_, 'a> {
@@ -135,11 +135,11 @@ const NONE: u32 = u32::MAX;
 
 /// A message's declarations and how references reach them.
 struct Table<'a> {
-    decls: Scratch<Decl<'a>, 8>,
+    decls: Scratch<Decl<'a>>,
     /// `.local` index → declaration index.
-    locals: Scratch<u32, 8>,
+    locals: Scratch<u32>,
     /// Slot → the first `.input` of that slot, or [`NONE`].
-    inputs: Scratch<u32, 8>,
+    inputs: Scratch<u32>,
 }
 
 /// Why a walk stopped: a malformed record, or no memory for a table.
@@ -164,7 +164,7 @@ impl From<mf2_catalog::Malformed> for Stop {
     }
 }
 
-fn push<T, const N: usize>(s: &mut Scratch<T, N>, t: T) -> Result<(), Stop> {
+fn push<T>(s: &mut Scratch<T>, t: T) -> Result<(), Stop> {
     if s.push(t) { Ok(()) } else { Err(Stop::Memory) }
 }
 
@@ -302,7 +302,7 @@ fn force<'a>(env: &Env<'_, 'a>, table: &mut Table<'a>, d: u32, errs: &mut dyn Er
             outstanding -= 1;
             lowest = j;
             if let Some(expr) = table.decls.get(j as usize).map(|x| x.expr) {
-                let mut marks: Scratch<u32, 8> = Scratch::new();
+                let mut marks: Scratch<u32> = Scratch::new();
                 each_ref(expr, |r| {
                     if let Some(Target::Decl(t)) = table.target(r, j)
                         && table.is(t, true)
@@ -345,7 +345,7 @@ fn force_refs<'a>(
     errs: &mut dyn ErrorSink,
 ) {
     let p = table.len();
-    let mut targets: Scratch<u32, 8> = Scratch::new();
+    let mut targets: Scratch<u32> = Scratch::new();
     refs(&mut |r| {
         if let Some(Target::Decl(d)) = table.target(r, p) {
             let _ = targets.push(d);
@@ -413,7 +413,7 @@ enum OptSrc<'a> {
 
 /// Resolved options: the values, `u:id` and `u:dir`.
 struct Resolution<'a> {
-    list: Scratch<(&'a str, OptSrc<'a>, bool), 8>,
+    list: Scratch<(&'a str, OptSrc<'a>, bool)>,
     id: Option<&'a str>,
     udir: Option<Dir>,
 }
@@ -756,7 +756,7 @@ fn selectors<'a>(
     table: &mut Table<'a>,
     sv: SelectView<'a>,
     errs: &mut dyn ErrorSink,
-) -> Result<Scratch<Sel, 4>, Stop> {
+) -> Result<Scratch<Sel>, Stop> {
     let p = table.len();
     let mut sels = Scratch::new();
     for r in sv.selectors() {
@@ -801,7 +801,7 @@ fn selectors<'a>(
 fn selectors_match<'a>(
     env: &Env<'_, 'a>,
     table: &Table<'a>,
-    sels: &Scratch<Sel, 4>,
+    sels: &Scratch<Sel>,
     keys: Keys<'a>,
     errs: &mut dyn ErrorSink,
 ) -> Result<bool, Stop> {
@@ -830,7 +830,7 @@ fn selectors_match<'a>(
 fn selectors_compare<'a>(
     env: &Env<'_, 'a>,
     table: &Table<'a>,
-    sels: &Scratch<Sel, 4>,
+    sels: &Scratch<Sel>,
     keys1: Keys<'a>,
     keys2: Keys<'a>,
 ) -> Result<bool, Stop> {
