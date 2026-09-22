@@ -80,6 +80,8 @@ fn generated_messages_format_from_a_catalog() {
     let base = seed();
     let n = cases();
     let (mut valid, mut clean, mut numeric, mut selects, mut formatted) = (0u64, 0, 0, 0, 0);
+    // Phase 4 (A9): the localized and date/time families.
+    let (mut percent, mut measure, mut dates, mut dated) = (0u64, 0, 0, 0);
     let mut kinds = BTreeSet::new();
     for case in 0..n {
         let generated = match l4gen::case(&g, base.wrapping_add(case)) {
@@ -106,12 +108,18 @@ fn generated_messages_format_from_a_catalog() {
         selects += u64::from(src.starts_with('.') && src.contains(".match"));
         // A number or a selection that went through a core handler.
         formatted += u64::from(first.parts.contains("\"type\":\"number\""));
+        percent += u64::from(src.contains(":percent"));
+        measure += u64::from(src.contains(":currency") || src.contains(":unit"));
+        dates += u64::from(src.contains(":date") || src.contains(":time"));
+        dated += u64::from(first.parts.contains("\"type\":\"datetime\""));
         kinds.extend(first.errors);
     }
     eprintln!(
         "generated_l4: {n} cases: {valid} valid, {clean} formatted without errors, \
          {numeric} calling :number or :integer, {formatted} with a formatted number, \
-         {selects} selections; errors reached: {kinds:?}"
+         {selects} selections, {percent} calling :percent, {measure} :currency or :unit, \
+         {dates} a date/time function, {dated} with a formatted date/time; errors reached: \
+         {kinds:?}"
     );
     // The steering reaches the handlers: valid messages, messages formatted
     // without errors, numbers formatted, selections.
@@ -120,6 +128,12 @@ fn generated_messages_format_from_a_catalog() {
     assert!(numeric * 4 > n, "only {numeric} messages call :number");
     assert!(formatted * 20 > n, "only {formatted} numbers formatted");
     assert!(selects * 10 > n, "only {selects} selection messages");
+    assert!(percent * 50 > n, "only {percent} messages call :percent");
+    assert!(
+        dates * 20 > n,
+        "only {dates} messages call a date/time function"
+    );
+    assert!(dated * 100 > n, "only {dated} dates formatted");
     for kind in [
         "bad-operand",
         "bad-option",

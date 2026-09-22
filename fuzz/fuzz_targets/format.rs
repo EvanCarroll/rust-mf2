@@ -4,25 +4,32 @@
 //!
 //! The input is `[flags] [n] [n argument bytes] [payload]`:
 //!
-//! * **flags** — bit 0: the bidi strategy `None` (else `Default`);
-//! * **arguments** — a sequence of `[tag] …`: `tag % 6` = 0 a string
+//! * **flags** — bit 0: the bidi strategy `None` (else `Default`); bit 1:
+//!   the default configuration's registry (`fn-number` and `fn-datetime`
+//!   off: layer L4d) instead of the all-features one;
+//! * **arguments** — a sequence of `[tag] …`: `tag % 8` = 0 a string
 //!   (`[len]` bytes, lossy UTF-8), 1 an `i64` (8 bytes LE), 2 an `f64`
 //!   (8 bytes LE bits), 3 a decimal as text (`[len]` bytes), 4 an
-//!   application value with no conversions, 5 unset; a truncated argument
-//!   takes what is there;
+//!   application value with no conversions, 5 a date/time from literal text
+//!   (`[len]` bytes; unset when it is not one), 6 a date/time instant (an
+//!   `i64` of epoch milliseconds, 8 bytes LE; unset past the range), 7
+//!   unset; a truncated argument takes what is there;
 //! * **payload** — starting with the magic `MF2B`: a catalog, loaded with
 //!   the manifest hash its own header carries (as in `catalog`), so a damaged
 //!   catalog gets past the skew check to the formatter. Otherwise MF2 source
 //!   up to the first NUL and a locale byte: a source that parses — valid or
 //!   not (the writer accepts models with data-model errors) — is written as a
-//!   one-message catalog for that locale (direction and plural rules from
-//!   `mf2-locale-data`), which must load.
+//!   one-message catalog for that locale (direction, plural rules and number
+//!   data from `mf2-locale-data`, as `mf2::compile_str` writes them), which
+//!   must load.
 //!
 //! Every message of a catalog that loads is formatted with the arguments as
 //! positional (slot) arguments — to a string, again to a string, and to
 //! parts — and as named arguments, under the message's own slot names.
-//! The functions are the L4 registry's (`:string`, `:number`, `:integer`,
-//! `:offset` and the suite's `:test:*`), the host `mf2-host-std`'s. Checked:
+//! The functions are the L4 registry's — all features (`:string`, the
+//! localized numeric functions, `:percent`, the date/time functions, the
+//! unannotated hooks, the suite's `:test:*`) or the default configuration's
+//! (flags bit 1) — the host `mf2-host-std`'s. Checked:
 //!
 //! * no panic, no out-of-bounds access (the address sanitizer);
 //! * the output is deterministic (the second run is the first);
@@ -45,18 +52,39 @@ use std::time::{Duration, Instant};
 use libfuzzer_sys::fuzz_target;
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Catalog, Entry, MsgId, StrRef};
+use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
 use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
 use mf2_runtime::{
-    Arg, BidiStrategy, CustomValue, FormatContext, FormatError, Formatter, Host, Part, PartSink,
-    Sink, SubPartSink,
+    Arg, BidiStrategy, CustomValue, DateTime, FormatContext, FormatError, Formatter, Host, Part,
+    PartSink, Registry, Sink, SubPartSink,
 };
 
 /// A string sink resolves catalog text up to this much output.
 const TEXT_CAP: usize = 16 << 20;
 /// Time charged per byte of output.
 const NANOS_PER_TEXT_BYTE: u64 = 100;
-/// Source mode's locales, by `locale byte % len`.
-const LOCALES: [&str; 8] = ["en", "pl", "ar", "he", "cy", "ja", "fr-CA", "und"];
+/// Source mode's locales, by `locale byte % len`: those of Phase 3, the
+/// locale panel and two non-Latin numbering systems (Phase 4, A9). Kept in
+/// step with `xtask/src/fuzz_seed.rs`.
+const LOCALES: [&str; 17] = [
+    "en",
+    "pl",
+    "ar",
+    "he",
+    "cy",
+    "ja",
+    "fr-CA",
+    "und",
+    "es",
+    "de",
+    "fr",
+    "hi",
+    "ru",
+    "ar-EG",
+    "hi-u-nu-deva",
+    "en-US",
+    "sr-Latn",
+];
 
 fuzz_target!(|data: &[u8]| {
     let start = Instant::now();
@@ -88,6 +116,11 @@ fn run(data: &[u8], work: &mut usize) {
     } else {
         BidiStrategy::Default
     };
+    let registry = if flags & 2 != 0 {
+        &mf2_l4_runner::DEFAULT_REGISTRY
+    } else {
+        &mf2_l4_runner::REGISTRY
+    };
     let catalog = if payload.starts_with(b"MF2B") {
         let hash = payload
             .get(8..16)
@@ -103,7 +136,7 @@ fn run(data: &[u8], work: &mut usize) {
             None => return,
         }
     };
-    format_all(&catalog, &values, bidi, work);
+    format_all(&catalog, registry, &values, bidi, work);
 }
 
 // ── arguments ────────────────────────────────────────────────────────────────
@@ -115,6 +148,7 @@ enum Value {
     Float(f64),
     Decimal(String),
     Opaque,
+    DateTime(DateTime<'static>),
     Unset,
 }
 
@@ -132,6 +166,7 @@ impl Value {
             Value::Float(x) => Arg::Float(*x),
             Value::Decimal(d) => Arg::Decimal(d),
             Value::Opaque => Arg::Custom(&OPAQUE),
+            Value::DateTime(d) => Arg::DateTime(d),
             Value::Unset => Arg::Unset,
         }
     }
@@ -156,12 +191,17 @@ fn values(mut b: &[u8]) -> Vec<Value> {
     let mut out = Vec::new();
     while let Some((&tag, rest)) = b.split_first() {
         b = rest;
-        out.push(match tag % 6 {
+        out.push(match tag % 8 {
             0 => Value::Str(text(&mut b)),
             1 => Value::Int(i64::from_le_bytes(eight(&mut b))),
             2 => Value::Float(f64::from_bits(u64::from_le_bytes(eight(&mut b)))),
             3 => Value::Decimal(text(&mut b)),
             4 => Value::Opaque,
+            5 => {
+                mf2_fn_datetime::parse_literal(&text(&mut b)).map_or(Value::Unset, Value::DateTime)
+            }
+            6 => DateTime::from_epoch_ms(i64::from_le_bytes(eight(&mut b)))
+                .map_or(Value::Unset, Value::DateTime),
             _ => Value::Unset,
         });
     }
@@ -185,6 +225,11 @@ fn compile(data: &[u8]) -> Option<Catalog> {
     options.locale_entries =
         plural_locale_entries(locale, &[PluralKind::Cardinal, PluralKind::Ordinal])
             .expect("plural rules of a known locale");
+    let mut needs = NumberNeeds::from_functions(analysis.functions.iter().map(|f| &*f.nfc));
+    needs.symbols = true;
+    options
+        .locale_entries
+        .extend(number_locale_entries(locale, &needs).expect("number data of a known locale"));
     if tail.get(1).is_some_and(|b| b & 1 != 0) {
         options = options.stripped();
     }
@@ -278,9 +323,15 @@ fn context(bidi: BidiStrategy) -> FormatContext {
     cx
 }
 
-fn format_all(catalog: &Catalog, values: &[Value], bidi: BidiStrategy, work: &mut usize) {
+fn format_all(
+    catalog: &Catalog,
+    registry: &Registry,
+    values: &[Value],
+    bidi: BidiStrategy,
+    work: &mut usize,
+) {
     let cx = context(bidi);
-    let f = Formatter::new(catalog, &mf2_l4_runner::REGISTRY, &cx);
+    let f = Formatter::new(catalog, registry, &cx);
     let args: Vec<Arg<'_>> = values.iter().map(Value::arg).collect();
     let count = catalog.message_count();
     for i in 0..count {

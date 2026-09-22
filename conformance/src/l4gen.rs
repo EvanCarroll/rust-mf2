@@ -24,6 +24,7 @@ use std::borrow::Cow;
 
 use mf2_catalog::writer::{self, Options as WriterOptions};
 use mf2_l4_runner::{ArgSpec, Case, Config};
+use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
 use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
 use mf2_model::{
     Attributes, CatchAllKey, Declaration, Expression, FunctionRef, Key, Literal, LiteralExpression,
@@ -50,9 +51,28 @@ pub struct Generated {
 }
 
 /// The locales generated messages are compiled for: Latin and non-Latin,
-/// both directions, simple and complex plural rules, and `und` (root).
-pub const LOCALES: [&str; 10] = [
-    "en", "en", "en", "pl", "ar", "he", "cy", "ja", "fr-CA", "und",
+/// both directions, simple and complex plural rules, `und` (root), the
+/// locale panel of plans/01-conformance.md §5, and two non-Latin numbering
+/// systems (Phase 4, A9).
+pub const LOCALES: [&str; 18] = [
+    "en",
+    "en",
+    "en",
+    "pl",
+    "ar",
+    "he",
+    "cy",
+    "ja",
+    "fr-CA",
+    "und",
+    "es",
+    "de",
+    "fr",
+    "hi",
+    "ru",
+    "ar-EG",
+    "hi-u-nu-deva",
+    "en-US",
 ];
 
 /// The case for `seed`: the message is `Generator::new(grammar,
@@ -93,6 +113,13 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
     options.locale_entries =
         plural_locale_entries(locale, &[PluralKind::Cardinal, PluralKind::Ordinal])
             .map_err(|e| e.to_string())?;
+    // The locale's number data, as `mf2::compile_str` writes it: symbols
+    // always, the patterns of the numeric functions the message names.
+    let mut needs = NumberNeeds::from_functions(analysis.functions.iter().map(|f| &*f.nfc));
+    needs.symbols = true;
+    options
+        .locale_entries
+        .extend(number_locale_entries(locale, &needs).map_err(|e| e.to_string())?);
     let make = |options: &WriterOptions, id: String| -> Result<Case, String> {
         let (catalog, manifest) =
             writer::single(&model, &slots, options).map_err(|e| format!("writer::single: {e}"))?;
@@ -174,7 +201,34 @@ const STRINGS: [&str; 14] = [
     "*",
 ];
 
+/// Date/time literal text, well-formed or not (Phase 4: `:datetime`,
+/// `:date`, `:time` operands, string and typed arguments).
+const DATES: [&str; 14] = [
+    "2006-01-02",
+    "2006-01-02T15:04:06",
+    "2006-01-02T15:04:06Z",
+    "2006-01-02T15:04:06.789+05:30",
+    "2006-01-02T15:04:06-14:00",
+    "1970-01-01T00:00:00Z",
+    "0001-01-01",
+    "9999-12-31T23:59:59.999Z",
+    "2024-02-29",
+    "2023-02-29",
+    "2006-1-2",
+    "2006-01-02T24:00:00",
+    "horse",
+    "",
+];
+
 fn arg(r: &mut Rng) -> ArgSpec {
+    if r.chance(1, 8) {
+        let d = pick(r, &DATES);
+        return if r.chance(1, 2) {
+            ArgSpec::date_time(d)
+        } else {
+            ArgSpec::Str(d.to_owned())
+        };
+    }
     match r.below(6) {
         0 | 1 => ArgSpec::Str(pick(r, &STRINGS).to_owned()),
         2 if r.chance(1, 2) => ArgSpec::Str(pick(r, &NUMBERS).to_owned()),
@@ -207,13 +261,20 @@ fn arg(r: &mut Rng) -> ArgSpec {
 
 /// The functions a steered annotation names (weighted by repetition), and
 /// `None`: keep the generated name (almost always an unknown function).
-const FUNCTION_NAMES: [Option<&str>; 12] = [
+/// Phase 4 adds the percent, currency, unit and date/time functions (A9).
+const FUNCTION_NAMES: [Option<&str>; 18] = [
     Some("number"),
     Some("number"),
     Some("number"),
     Some("integer"),
     Some("integer"),
     Some("offset"),
+    Some("percent"),
+    Some("currency"),
+    Some("unit"),
+    Some("datetime"),
+    Some("date"),
+    Some("time"),
     Some("string"),
     Some("string"),
     Some("test:function"),
@@ -221,6 +282,11 @@ const FUNCTION_NAMES: [Option<&str>; 12] = [
     Some("test:format"),
     None,
 ];
+
+/// Whether `function` takes a date/time operand.
+fn is_date_function(function: &str) -> bool {
+    matches!(function, "datetime" | "date" | "time")
+}
 
 const DIGITS: &[&str] = &["0", "1", "2", "3", "5", "20", "21", "100", "-1", "1.5", "x"];
 
@@ -282,10 +348,79 @@ fn options_of(function: &str) -> &'static [(&'static str, &'static [&'static str
         ("fails", &["never", "format", "select", "always", "x"]),
         ("u:dir", &["ltr", "rtl"]),
     ];
+    const CURRENCY: &[(&str, &[&str])] = &[
+        (
+            "currency",
+            &["EUR", "USD", "JPY", "GBP", "eur", "XXX", "EURO", "x"],
+        ),
+        (
+            "currencyDisplay",
+            &["narrowSymbol", "symbol", "name", "code", "never", "x"],
+        ),
+        ("currencySign", &["accounting", "standard", "x"]),
+        ("fractionDigits", &["auto", "0", "2", "3", "x"]),
+        ("useGrouping", &["auto", "always", "min2", "never"]),
+        ("minimumIntegerDigits", DIGITS),
+        ("maximumSignificantDigits", DIGITS),
+        ("trailingZeroDisplay", &["auto", "stripIfInteger"]),
+        ("roundingMode", &["halfEven", "ceil", "x"]),
+        ("select", &["plural", "x"]),
+    ];
+    const UNIT: &[(&str, &[&str])] = &[
+        (
+            "unit",
+            &[
+                "kilometer",
+                "meter-per-second",
+                "celsius",
+                "liter-per-100-kilometer",
+                "furlong",
+                "x-y",
+                "Meter",
+                "",
+            ],
+        ),
+        ("unitDisplay", &["short", "narrow", "long", "x"]),
+        ("usage", &["road", "x"]),
+        ("signDisplay", &["always", "never"]),
+        ("maximumFractionDigits", DIGITS),
+        ("useGrouping", &["auto", "never"]),
+    ];
+    const DATE_TIME: &[(&str, &[&str])] = &[
+        (
+            "dateFields",
+            &["weekday", "month-day", "year-month-day-weekday", "x"],
+        ),
+        ("dateLength", &["long", "medium", "short", "x"]),
+        ("timePrecision", &["hour", "minute", "second", "x"]),
+        ("fields", &["day-weekday", "year-month-day", "x"]),
+        ("length", &["long", "short", "x"]),
+        ("precision", &["hour", "second", "x"]),
+        ("timeZoneStyle", &["long", "short", "x"]),
+        (
+            "timeZone",
+            &[
+                "UTC",
+                "input",
+                "+05:30",
+                "-14:00",
+                "America/New_York",
+                "Etc/Unknown",
+                "25:00",
+                "x/",
+            ],
+        ),
+        ("hour12", &["true", "false", "x"]),
+        ("calendar", &["gregory", "japanese", "buddhist", "x_y", "x"]),
+        ("u:dir", &["ltr", "rtl", "auto"]),
+    ];
     match function {
-        "number" | "integer" => NUMBER,
+        "number" | "integer" | "percent" => NUMBER,
         "offset" => OFFSET,
         "string" => STRING,
+        "currency" => CURRENCY,
+        "unit" => UNIT,
+        "datetime" | "date" | "time" => DATE_TIME,
         _ => TEST,
     }
 }
@@ -434,12 +569,12 @@ impl Steer<'_> {
                     l.function = Some(new_function());
                 }
                 if let Some(f) = &mut l.function {
+                    self.function(f);
                     if self.r.chance(1, 2) {
                         l.arg = Literal {
-                            value: Cow::Borrowed(pick(self.r, &NUMBERS)),
+                            value: Cow::Borrowed(self.operand(&f.name)),
                         };
                     }
-                    self.function(f);
                 }
             }
             Expression::Variable(v) => {
@@ -469,7 +604,7 @@ impl Steer<'_> {
                         }),
                         None => Expression::Literal(LiteralExpression {
                             arg: Literal {
-                                value: Cow::Borrowed(pick(self.r, &NUMBERS)),
+                                value: Cow::Borrowed(self.operand(&f.function.name)),
                             },
                             function,
                             attributes,
@@ -478,6 +613,16 @@ impl Steer<'_> {
                 }
             }
             _ => {}
+        }
+    }
+
+    /// A literal operand for `function`: date/time text for the date/time
+    /// functions (sometimes a number), number text for the others.
+    fn operand(&mut self, function: &str) -> &'static str {
+        if is_date_function(function) && self.r.chance(4, 5) {
+            pick(self.r, &DATES)
+        } else {
+            pick(self.r, &NUMBERS)
         }
     }
 

@@ -120,13 +120,28 @@ pub(crate) fn run(root: &Path) -> Result<()> {
             &format!("suite-{i:04}-source.bin"),
             &[&head[..], t.src.as_bytes(), &[0, locale, 0]].concat(),
         )?;
-        n += 3;
+        // The same in the default configuration (flags bit 1: layer L4d).
+        let mut default_head = head.clone();
+        if let Some(flags) = default_head.first_mut() {
+            *flags |= 2;
+        }
+        write(
+            &dir,
+            &format!("suite-{i:04}-default.bin"),
+            &[&default_head[..], t.src.as_bytes(), &[0, locale, 0]].concat(),
+        )?;
+        n += 4;
     }
-    // A few arguments of every kind for the workload's first slots.
-    let args = [
-        5, 0, 3, b'a', b'b', b'c', 1, 42, 0, 0, 0, 0, 0, 0, 0, 3, 4, b'1', b'.', b'5', b'0', 2, 0,
-        0, 0, 0, 0, 0, 0xf8, 0x3f, 4,
+    // A few arguments of every kind for the workload's first slots: unset,
+    // a string, an i64, a decimal, an f64, an opaque value, a date/time
+    // literal and an epoch instant.
+    let mut args = vec![
+        7, 0, 3, b'a', b'b', b'c', 1, 42, 0, 0, 0, 0, 0, 0, 0, 3, 4, b'1', b'.', b'5', b'0', 2, 0,
+        0, 0, 0, 0, 0, 0xf8, 0x3f, 4, 5, 20,
     ];
+    args.extend_from_slice(b"2006-01-02T15:04:06Z");
+    args.push(6);
+    args.extend_from_slice(&1_136_214_246_000_i64.to_le_bytes());
     for (name, catalog) in [("workload", &full), ("workload-stripped", &stripped)] {
         let len = u8::try_from(args.len()).unwrap_or(0);
         write(
@@ -153,7 +168,25 @@ pub(crate) fn run(root: &Path) -> Result<()> {
 }
 
 /// The `format` target's source-mode locales (`fuzz/fuzz_targets/format.rs`).
-const FORMAT_LOCALES: [&str; 8] = ["en", "pl", "ar", "he", "cy", "ja", "fr-CA", "und"];
+const FORMAT_LOCALES: [&str; 17] = [
+    "en",
+    "pl",
+    "ar",
+    "he",
+    "cy",
+    "ja",
+    "fr-CA",
+    "und",
+    "es",
+    "de",
+    "fr",
+    "hi",
+    "ru",
+    "ar-EG",
+    "hi-u-nu-deva",
+    "en-US",
+    "sr-Latn",
+];
 
 /// The slot (external variable) names of `src`, in slot order.
 fn slot_names(src: &str) -> Vec<String> {
@@ -193,22 +226,22 @@ fn format_head(case: &Case, slots: &[String]) -> Vec<u8> {
                 push_text(&mut one, d);
             }
             Some(ArgSpec::Other) => one.push(4),
-            // The target has no date/time argument (yet, plans/11 A9): its
-            // literal text, which the date/time functions parse alike.
+            // A date/time argument, as its literal text.
             Some(ArgSpec::DateTime(d)) => {
-                one.push(0);
+                one.push(5);
                 let mut iso = String::new();
                 d.write_iso(&mut iso);
                 push_text(&mut one, &iso);
             }
-            None => one.push(5),
+            None => one.push(7),
         }
         if args.len() + one.len() > usize::from(u8::MAX) {
             break;
         }
         args.extend_from_slice(&one);
     }
-    let flags = u8::from(case.bidi == BidiStrategy::None);
+    let flags = u8::from(case.bidi == BidiStrategy::None)
+        | u8::from(case.config == mf2_l4_runner::Config::Default) << 1;
     let mut head = vec![flags, u8::try_from(args.len()).unwrap_or(0)];
     head.extend_from_slice(&args);
     head
