@@ -16,7 +16,10 @@ symbols, grouping, numbering systems; `:percent`, `:currency`, `:unit`);
 `mf2-fn-datetime` with the `datetime-icu` and `datetime-intl` backends and the
 time-zone context; locale-output goldens. It turns every L4 cell green in the
 **all-features** configuration, records the **default** configuration's
-degradations test by test (L4d), and meets B2–B4, B8 and B13.
+degradations test by test (L4d), and meets B2–B4, B8 and B13. First, it
+probes the owner's `intl` client option (A0) — numbers, plural selection and
+dates through the browser's `Intl`, Rust on the server — whose outcome decides
+whether A3, A4 and A6 build a second backend.
 
 ## State at the start
 
@@ -77,6 +80,22 @@ degradations test by test (L4d), and meets B2–B4, B8 and B13.
   both MUST be extended to every new function and option, with the locales of
   the panel.
 
+## The `intl` client option (owner request, 2026-09-21)
+
+The owner asked for an option that uses the browser's `Intl` wherever it can
+do the work, so that the client wasm need not carry number and date code;
+servers keep the Rust path. The design is in [03](03-runtime.md) §5.3: Rust
+keeps MF2's semantics (option validation and errors, operand rules,
+exact-match keys, `:offset`, the evaluator); on the client, `Intl.NumberFormat`
+does rounding and digit output, `Intl.PluralRules` the plural category and
+`Intl.DateTimeFormat` the dates, reached through new `Host` methods with
+defaults. Estimated gain 3–6 KB gz of wasm (about 10–20 % of B1) plus each
+catalog's number, currency, unit and plural entries; known costs: server and
+client text can differ (harmless to hydration, P0.10), a browser floor of
+`Intl.NumberFormat` v3, JS-number precision in `Intl.PluralRules`, per-engine
+conformance, a wasm → JS call per numeric placeholder. A0 measures all of it
+before anything is built.
+
 ## Carried — owner decisions
 
 1. **The time-zone database on the server** (03 §5.2): ICU4X 2.x has no
@@ -86,24 +105,29 @@ degradations test by test (L4d), and meets B2–B4, B8 and B13.
    (#1112); B5/B9 restatements; whether the D1 gate runs on every push.
 3. **If A10 cannot bring select within 1.5× P0.8**, keep the figure as
    reported, or restate it.
+4. **After A0: adopt the `intl` client option or not** (the D4 amendment),
+   and if so its browser floor (require `Intl.NumberFormat` v3, or ship a
+   fallback).
 
-## Part A — tasks (A1 first; A2–A5 in order; A6–A11 as their inputs exist)
+## Part A — tasks (A0 and A1 first; A2–A5 in order; A6–A11 as their inputs exist)
 
 | Task | Deliverable | Done when |
 |---|---|---|
+| **A0** `intl` probe | `bench/intl-probe/` (kept: it is the A/B baseline if the option is adopted; results in `phase-4-results`) plus a check in `tools/e2e` (Playwright; WebKit's build fetched like the others): the runtime built for `wasm32-unknown-unknown` with `Intl`-backed `Host` methods for numeric formatting and plural category, against today's Rust path. Measure: (1) wasm Δ gz and JS glue gz, core numbers alone and with symbols, `:percent`, `:currency`, `:unit`; (2) time per numeric placeholder and per select in Chromium, Firefox and WebKit, unthrottled and at 4× CPU throttle, formatters cached; (3) agreement: P0.5's 100,000 cases (neutral output, as node gave 95,675 / 0) and the panel's 11 locales with locale symbols, Rust vs each engine, differences classified (space characters, symbols, digits, plural category); (4) the 15,041 CLDR plural samples through each engine's `Intl.PluralRules` against our evaluator; (5) the browser floor by feature detection; (6) the L4 number files formatted in each engine. | the report committed; owner decision 4 recorded in D4 |
 | **A1** API additions | Into 03 §2 before code, all additive: `Arg::DateTime(DateTimeValue)` (instant or floating date/time, optional zone); the time zone on `FormatContext`; the numeric core's public surface for `mf2-fn-number` (read access to the resolved digits and options; resolving under a function's option set and scale); `Host` methods with defaults for the `Intl` date backend; how a function crate reads its LOCALE entries (`FnContext::catalog` → `locale_entry`). | 03 §2 has the additions; the frozen items unchanged |
 | **A2** Locale data, numbers | `mf2-locale-data`: `number.symbols`, `number.systems`, `number.patterns` for every CLDR locale into `data/` (from the `cldr-sync` cache, 05 §7), their entry encodings in 02 §4 (additive kinds, v1 each, with test vectors), and the slicing rule (which entries a catalog carries, from the functions and literal options the corpus uses). | tables held to `third_party` by a test; B8 ≤ 0.5 KB gz per locale on the panel |
-| **A3** `mf2-fn-number` | The localization layer over the core digits: locale symbols, grouping (`useGrouping` `auto` / `always` / `min2` / `never`), numbering systems; `:percent`; unannotated numbers localized when the feature is on (#90). P0.5's node differential extended to the panel's locales (`Intl.NumberFormat`, node as a local tool). | `functions/percent.json` and `syntax.json` #90 green at L4; the differential's disagreements explained or zero |
+| **A3** `mf2-fn-number` | The localization layer over the core digits: locale symbols, grouping (`useGrouping` `auto` / `always` / `min2` / `never`), numbering systems; `:percent`; unannotated numbers localized when the feature is on (#90). P0.5's node differential extended to the panel's locales (`Intl.NumberFormat`, node as a local tool). If A0 adopts `intl`: the same through `Intl.NumberFormat` and `Intl.PluralRules` in `mf2-host-web`. | `functions/percent.json` and `syntax.json` #90 green at L4; the differential's disagreements explained or zero |
 | **A4** `:currency`, `:unit` | `currency.*` and `unit.*` data (configured set: literal codes in the corpus by default, `"all"` on request), both functions; `conformance/extra/functions/unit.json` written from the spec (the suite has no `:unit` tests), in the ledger like the suite's. | `functions/currency.json` and `extra/functions/unit.json` green at L4 |
 | **A5** `mf2-fn-datetime`, semantics | `:datetime` / `:date` / `:time`: operand rules (instant, floating), every option, errors, P0.6's semantics ported; the time-zone context (03 §6). | the date semantics' errors and options pass at L4 (`functions/{date,time,datetime}.json`) with a stub backend |
-| **A6** Date backends | `datetime-icu`: ICU4X code in the wasm, the per-locale `icu.blob` restricted to the markers used, the no-zone field set unless the corpus uses `timeZoneStyle`; the server always formats with ICU4X, from the same data. `datetime-intl`: `Intl.DateTimeFormat` through `mf2-host-web`, compared to ICU4X with P0.10's tolerance (U+202F ↔ U+0020). Named zones per owner decision 1. | the date files green at L4 with `datetime-icu`, native and `wasm32-wasip1` byte-identical; `datetime-intl` within the tolerance in a headless browser |
+| **A6** Date backends | (If A0 adopts `intl`, `datetime-intl` becomes part of it.) `datetime-icu`: ICU4X code in the wasm, the per-locale `icu.blob` restricted to the markers used, the no-zone field set unless the corpus uses `timeZoneStyle`; the server always formats with ICU4X, from the same data. `datetime-intl`: `Intl.DateTimeFormat` through `mf2-host-web`, compared to ICU4X with P0.10's tolerance (U+202F ↔ U+0020). Named zones per owner decision 1. | the date files green at L4 with `datetime-icu`, native and `wasm32-wasip1` byte-identical; `datetime-intl` within the tolerance in a headless browser |
 | **A7** L4d | The default configuration: a registry without the gated handlers; every L4d cell `pass` or `degraded` with its kind (`unknown-function` for a gated function, `unsupported-operation` for a locale-only option) and a detail. | no L4d cell `xfail`; `cargo xtask conformance-report` green |
 | **A8** Goldens | Locale-output goldens for the panel: a fixed message × argument set per function family, per locale; identical on native and `wasm32-wasip1` for the Rust backends. | goldens committed and checked in CI |
 | **A9** Generated input and fuzzing | `l4gen` and the `format` target extended to every new function, option and panel locale; `generated_l4` and a sampled wasip1 run nightly. | 1,000,000 generated cases clean; a ≥ 1 h `format` run clean on the final code |
 | **A10** Numeric speed | The two candidates of §"What Phase 3 changes here" (the plural category once per selector; an integer path), each A/B-measured by alternating binaries on `runtime-bench b10` and `examples/select_cost.rs`, kept only if faster and no larger than it is worth (report the bytes). | select within 1.5× P0.8 on `en`, or the figure restated with the owner (decision 3) |
 | **A11** Budgets and ledger | **B2** (`fn-number` on and used ≤ 3 KB gz), **B3** (`:currency` + `:unit` ≤ 4 KB gz more), **B4** (`datetime-intl` ≤ 6 KB gz + ≤ 1 KB gz JS; `datetime-icu` ≤ 95 KB gz Gregorian, ≤ 105 any calendar; `icu.blob` ≤ 3 KB gz per locale without zone names), **B8**, **B13** (an app using none of a family links none of its code), **B1′** (+0 for a feature on but unused), B12 for every new client crate — harnesses in `bench/b12`; the ledger at `current_phase = "P4"` in the exit commit. | every budget met or restated with the owner; `conformance-report` green at P4 |
 
-Order: A1 first; A2 → A3 → A4 are the numeric family; A5 → A6 the dates
+Order: A0 first (its decision shapes A3, A4 and A6), then A1; A2 → A3 → A4
+are the numeric family; A5 → A6 the dates
 (A6 needs owner decision 1 for named zones); A7–A9 grow with them; A10 once
 A3 exists; A11 alongside.
 
@@ -120,6 +144,9 @@ A3 exists; A11 alongside.
 - [ ] locale-output goldens identical on both targets for the Rust backends
 - [ ] L4 on generated input (1,000,000) and a ≥ 1 h `format` fuzz run clean
 - [ ] the API additions in 03 §2
+- [ ] the `intl` probe reported and owner decision 4 recorded; if adopted, the
+      option's L4 run in Chromium, Firefox and WebKit, with every engine
+      difference in the ledger
 - [ ] the next work orders written from Phase 4's findings: Phase 5a (the
       build pipeline, which needs only P1 + P2 and may start alongside this
       phase) and Phase 5b (macros, which needs P3, P4 and P5a)

@@ -394,7 +394,7 @@ Measured by Phase 0 probes P0.4–P0.6 (deltas against a fair base,
 
 | Family | Own Rust, data in catalog | ICU4X in the browser | Browser `Intl` glue |
 |---|---|---|---|
-| Plural rules | **0.43 KB gz** evaluator, correct on all 15,041 CLDR 48 samples. Data per locale 0–84 B | 14.5 KB gz (runtime blob) – 17.9 KB gz (compiled data, which also lacks 75 CLDR locales) | not used: selection never uses the host |
+| Plural rules | **0.43 KB gz** evaluator, correct on all 15,041 CLDR 48 samples. Data per locale 0–84 B | 14.5 KB gz (runtime blob) – 17.9 KB gz (compiled data, which also lacks 75 CLDR locales) | not used by default: selection never uses the host (the proposed `intl` option, §5.3, would take the category from `Intl.PluralRules`) |
 | Decimal numbers | core semantics over `fixed_decimal` **10.2 KB gz** (always needed for MF2 semantics, whatever the backend) + localization **1.7 KB gz** incl. `:percent`; symbols ≤ 0.2 KB gz per locale | `icu_decimal` + blob +15.9 KB gz over the core, and cannot express `useGrouping=always` | +1.6 KB gz wasm + 0.6 KB gz JS over the core |
 | Currency / unit | +2.9 KB gz; data for the codes used 0.2–0.6 KB per locale (all codes: 4–10 KB gz each) | only in `icu_experimental` (unstable) | ≈ glue only |
 | Date / time | semantics 3.4 KB gz (needed by both backends); formatting itself not realistic (calendars, zones, skeleton matching) | `icu_datetime` + blob **93 KB gz** Gregorian (64 without zone styles, 105 any calendar); blob 2.2–2.6 KB gz per locale without zone names, 17–23 with | **5.4 KB gz** incl. the semantics + 0.6 KB gz JS |
@@ -489,6 +489,44 @@ Whatever is enabled, **the function semantics (options, operand rules, errors,
 selection) are implemented once in Rust** in `mf2-fn-*`; a backend only supplies
 the final "digits + symbols → text" or "instant + skeleton → text" step. Option
 validation, inheritance, `select` handling and error emission never fork.
+
+### 5.3 Owner request (2026-09-21): an `intl` client option — Phase 4 probe
+
+The owner asked to use the browser's `Intl` wherever it can do the work,
+with Rust kept for server rendering, so that the client wasm need not carry
+number and date code. Phase 4 probes it first ([11](11-phase-4-work-order.md)
+A0); it becomes an opt-in client feature (`intl`, off by default) only if the
+probe's numbers hold. The design it would follow:
+
+* **The split stays "semantics in Rust, final step from a backend"** (§5.2).
+  Rust keeps what `Intl` does not do MF2's way: option validation and MF2's
+  errors (`Intl` throws where MF2 reports *Bad Option* and continues), the
+  operand rules, exact-match keys, `:offset`'s exact decimal addition, and the
+  whole evaluator. On the client, `Intl.NumberFormat` (`formatToParts`, with
+  the digit options, `useGrouping: false` and `numberingSystem: latn` for
+  neutral output) replaces the digit plan, rounding and digit output;
+  `Intl.PluralRules` with the same digit options gives the plural category;
+  `Intl.DateTimeFormat` the dates (`datetime-intl` folds into the option).
+* **Through the `Host`** (03 §2.5): new methods with default bodies (the
+  frozen API allows them) that `mf2-host-web` implements with `Intl`, caching
+  one formatter per locale and option set; `mf2-host-std` keeps the Rust path,
+  so a server renders with the same Rust code as today.
+* **Expected gain** (estimates from measured pieces; the probe measures it):
+  about 3 of the core numbers' 5.1 KB gz and the 0.43 KB plural evaluator,
+  less ~1 KB gz of JS glue; about 2–3 KB more when `fn-number`, `:currency`
+  and `:unit` are used (P0.5: 1.7 + 2.9 KB gz of Rust against 1.6 KB wasm +
+  0.6 KB JS of `Intl` glue); and each catalog drops its number, currency, unit
+  and plural entries (0.2–0.7 KB a locale).
+* **Known costs**: server and client text differ where the browser's CLDR
+  version or engine conventions differ from our pinned CLDR (P0.10: harmless
+  to hydration — the server's text stays until the node's next update);
+  MF2's options need `Intl.NumberFormat` v3 (2022–23 in all three engines),
+  and supporting older browsers would mean shipping the Rust fallback anyway;
+  `Intl.PluralRules.select` takes a JS number, so decimals past ~15
+  significant digits can select differently from the exact value;
+  conformance for this option is per engine (Chromium, Firefox, WebKit),
+  as good as each engine's `Intl`; every numeric placeholder crosses from wasm
+  to JS.
 
 ## 6. Formatting context and SSR parity
 
