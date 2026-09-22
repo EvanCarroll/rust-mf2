@@ -16,7 +16,7 @@
 use std::fmt::Write as _;
 
 use mf2_l4_runner::{ArgSpec, Case, Config};
-use mf2_runtime::BidiStrategy;
+use mf2_runtime::{BidiStrategy, Date, DateTime, Time};
 
 /// The locale panel of plans/01-conformance.md §5, and two tags with a
 /// non-Latin numbering system.
@@ -83,8 +83,26 @@ fn measure_values() -> Vec<ArgSpec> {
     ]
 }
 
-/// The families with goldens so far: numbers (Phase 4, A3), currencies and
-/// units (A4). Date/time goldens join with A6.
+fn date_values() -> Vec<ArgSpec> {
+    let bce = Date::new(-44, 3, 15).map(|d| DateTime::floating(d, Time::MIDNIGHT));
+    vec![
+        // Instants (UTC): a winter afternoon, a summer night that is the
+        // next day east of UTC, the epoch.
+        ArgSpec::date_time("2006-01-02T15:04:06Z"),
+        ArgSpec::date_time("2024-07-15T23:59:59Z"),
+        ArgSpec::date_time("1970-01-01T00:00:00Z"),
+        // An instant with its own offset.
+        ArgSpec::date_time("2006-01-02T15:04:06+05:30"),
+        // Floating values: a wall time, a leap day at midnight, and a day
+        // before the common era.
+        ArgSpec::date_time("2006-01-02T15:04:06"),
+        ArgSpec::date_time("2000-02-29T00:00:00"),
+        bce.map_or(ArgSpec::Other, ArgSpec::DateTime),
+    ]
+}
+
+/// The families with goldens: numbers (Phase 4, A3), currencies and units
+/// (A4), dates and times (A6).
 pub const FAMILIES: &[Family] = &[
     Family {
         name: "numbers",
@@ -140,6 +158,36 @@ pub const FAMILIES: &[Family] = &[
             "{$n :unit unit=hour unitDisplay=long}",
         ],
         values: measure_values,
+    },
+    Family {
+        name: "dates",
+        about: "the date/time family (fn-datetime, datetime-icu: ICU4X from the catalog's \
+                icu.blob): :datetime, :date, :time with every length, the field sets, \
+                precisions, hour12, zone styles in UTC, a named zone and an offset, two other \
+                calendars; unannotated values; instants and floating values, in UTC",
+        messages: &[
+            "{$n}",
+            "{$n :datetime}",
+            "{$n :datetime dateLength=long timePrecision=second}",
+            "{$n :datetime dateLength=short timePrecision=hour}",
+            "{$n :date}",
+            "{$n :date length=long}",
+            "{$n :date length=short}",
+            "{$n :date fields=year-month-day-weekday length=long}",
+            "{$n :date fields=month-day}",
+            "{$n :date fields=weekday length=long}",
+            "{$n :time}",
+            "{$n :time precision=second}",
+            "{$n :time hour12=true}",
+            "{$n :time hour12=false}",
+            "{$n :datetime timeZone=UTC timeZoneStyle=short}",
+            "{$n :datetime timeZone=|America/New_York| timeZoneStyle=long}",
+            "{$n :time timeZone=|Asia/Kolkata| timeZoneStyle=short}",
+            "{$n :datetime timeZone=|+05:45|}",
+            "{$n :date calendar=japanese length=long}",
+            "{$n :date calendar=hebrew}",
+        ],
+        values: date_values,
     },
 ];
 
