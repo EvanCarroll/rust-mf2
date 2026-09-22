@@ -88,71 +88,28 @@ impl NumberFormatter for Intl {
     }
 }
 
+// The JavaScript, minified by hand (it ships as written; A0 measured its
+// size, bench/intl-probe). `g(cache, key, plural)`: the cached
+// `Intl.PluralRules` or `Intl.NumberFormat` for a key `locale U+0001 JSON
+// options` (one string across the boundary, parsed only on a miss; FIFO, 256
+// per cache; `null` when the engine rejects the set), with
+// `currencyDisplay: "never"` mapped to `code` and `h` set. `mf2_nf`: the text,
+// or the parts as `type U+001F value` records separated by U+001E, dropping
+// for `h` the currency and a blank literal next to it; `undefined` when
+// rejected. `mf2_pr`: the category's code (0 zero … 5 other; 6 rejected).
+// `mf2_nf_v3`: `Intl.NumberFormat` v3 by behaviour, not `resolvedOptions()`
+// (Chromium 143 resolves `roundingPriority` to "auto" yet honours it) — each
+// test fails on an engine that ignores the option.
 #[wasm_bindgen(inline_js = r#"
-const C = new Map();
-const K = { zero: 0, one: 1, two: 2, few: 3, many: 4, other: 5 };
-function get(kind, locale, options) {
-  const key = kind + locale + '\u0000' + options;
-  let f = C.get(key);
-  if (f === undefined) {
-    const o = JSON.parse(options);
-    const hide = o.currencyDisplay === 'never';
-    if (hide) o.currencyDisplay = 'code';
-    try {
-      f = { i: kind === 'p' ? new Intl.PluralRules(locale, o) : new Intl.NumberFormat(locale, o), hide };
-    } catch (e) { f = null; }
-    if (C.size > 255) C.delete(C.keys().next().value);
-    C.set(key, f);
-  }
-  return f;
-}
-function drop(p, i) {
-  const t = p[i];
-  return t.type === 'currency' || (t.type === 'literal' && t.value.trim() === '' &&
-    (p[i - 1]?.type === 'currency' || p[i + 1]?.type === 'currency'));
-}
-export function mf2_nf(locale, options, value, parts) {
-  const f = get('n', locale, options);
-  if (f === null) return undefined;
-  if (!parts && !f.hide) return f.i.format(value);
-  const p = f.i.formatToParts(value);
-  let s = '';
-  for (let i = 0; i < p.length; i++) {
-    if (f.hide && drop(p, i)) continue;
-    s += parts ? (s === '' ? '' : '\u001e') + p[i].type + '\u001f' + p[i].value : p[i].value;
-  }
-  return s;
-}
-export function mf2_pr(locale, options, value) {
-  const f = get('p', locale, options);
-  return f === null ? 6 : K[f.i.select(Number(value))];
-}
-export function mf2_nf_v3() {
-  // Behaviour, not resolvedOptions() (Chromium 143 resolves roundingPriority
-  // to 'auto' yet honours it): each line fails on an engine that ignores
-  // the option.
-  try {
-    const f = (o, v) => new Intl.NumberFormat('en', o).format(v);
-    return f({ maximumFractionDigits: 1, maximumSignificantDigits: 1, roundingPriority: 'morePrecision' }, 1.25) === '1.3' &&
-      f({ maximumFractionDigits: 0, roundingMode: 'halfEven' }, 2.5) === '2' &&
-      f({ minimumFractionDigits: 2, maximumFractionDigits: 2, roundingIncrement: 5 }, '1.23') === '1.25' &&
-      f({ minimumFractionDigits: 2, trailingZeroDisplay: 'stripIfInteger' }, 1) === '1' &&
-      f({ useGrouping: 'min2' }, 1000) === '1000' &&
-      f({ signDisplay: 'negative' }, -0) === '0' &&
-      f({ useGrouping: false, maximumFractionDigits: 20 }, '9007199254740993.5') === '9007199254740993.5' &&
-      new Intl.PluralRules('en', { maximumFractionDigits: 0, roundingMode: 'floor' }).select(1.9) === 'one' &&
-      typeof Intl.NumberFormat.prototype.formatToParts === 'function';
-  } catch (e) { return false; }
-}
+const N=new Map,P=new Map,K={zero:0,one:1,two:2,few:3,many:4,other:5};
+function g(c,y,k){let f=c.get(y);if(f===void 0){const i=y.indexOf('\x01'),l=y.slice(0,i),o=JSON.parse(y.slice(i+1)),h=o.currencyDisplay=='never';h&&(o.currencyDisplay='code');try{f={i:k?new Intl.PluralRules(l,o):new Intl.NumberFormat(l,o),h}}catch{f=null}c.size>255&&c.delete(c.keys().next().value);c.set(y,f)}return f}
+export function mf2_nf(y,v,p){const f=g(N,y,0);if(f===null)return;if(!p&&!f.h)return f.i.format(v);const q=f.i.formatToParts(v);let r='';for(let i=0;i<q.length;i++){const t=q[i];if(f.h&&(t.type=='currency'||t.type=='literal'&&!t.value.trim()&&(q[i-1]?.type=='currency'||q[i+1]?.type=='currency')))continue;r+=p?(r?'\x1e':'')+t.type+'\x1f'+t.value:t.value}return r}
+export function mf2_pr(y,v){const f=g(P,y,1);return f===null?6:K[f.i.select(+v)]}
+export function mf2_nf_v3(){try{const f=(o,v)=>new Intl.NumberFormat('en',o).format(v);return f({maximumFractionDigits:1,maximumSignificantDigits:1,roundingPriority:'morePrecision'},1.25)=='1.3'&&f({maximumFractionDigits:0,roundingMode:'halfEven'},2.5)=='2'&&f({minimumFractionDigits:2,maximumFractionDigits:2,roundingIncrement:5},'1.23')=='1.25'&&f({minimumFractionDigits:2,trailingZeroDisplay:'stripIfInteger'},1)=='1'&&f({useGrouping:'min2'},1e3)=='1000'&&f({signDisplay:'negative'},-0)=='0'&&f({useGrouping:!1,maximumFractionDigits:20},'9007199254740993.5')=='9007199254740993.5'&&new Intl.PluralRules('en',{maximumFractionDigits:0,roundingMode:'floor'}).select(1.9)=='one'}catch{return!1}}
 "#)]
 extern "C" {
-    fn mf2_nf(
-        locale: &str,
-        options: &str,
-        value: &str,
-        parts: bool,
-    ) -> Option<alloc::string::String>;
-    fn mf2_pr(locale: &str, options: &str, value: &str) -> u32;
+    fn mf2_nf(key: &str, value: &str, parts: bool) -> Option<alloc::string::String>;
+    fn mf2_pr(key: &str, value: &str) -> u32;
     fn mf2_nf_v3() -> bool;
 }
 
@@ -172,24 +129,28 @@ fn available() -> bool {
     }
 }
 
-/// A JSON object written into a fixed buffer; too long → `None`. The
-/// longest option set, a 64-byte unit identifier with every option at its
-/// longest value, is 451 bytes.
+/// A formatter's key — the locale, U+0001, and its options as a JSON
+/// object — written into a fixed buffer; too long → `None`. The longest
+/// option set, a 64-byte unit identifier with every option at its longest
+/// value, is 451 bytes; the rest holds the locale tag.
 struct Json {
-    buf: [u8; 512],
+    buf: [u8; 640],
     len: usize,
     ok: bool,
     fields: u8,
 }
 
 impl Json {
-    fn new() -> Json {
-        Json {
-            buf: [0; 512],
+    fn new(locale: &str) -> Json {
+        let mut j = Json {
+            buf: [0; 640],
             len: 0,
             ok: true,
             fields: 0,
-        }
+        };
+        j.raw(locale);
+        j.raw("\u{1}");
+        j
     }
 
     fn raw(&mut self, s: &str) {
@@ -370,14 +331,13 @@ fn format_options(r: &NumberRequest<'_>, j: &mut Json) {
 /// Formats `r` for `locale` with `Intl.NumberFormat`; `false` when the
 /// engine rejects the option set (a unit it does not sanction).
 fn format(locale: &str, r: &NumberRequest<'_>, out: NumberOut<'_>) -> bool {
-    let mut j = Json::new();
+    let mut j = Json::new(if r.neutral { "en" } else { locale });
     format_options(r, &mut j);
-    let Some(options) = j.finish() else {
+    let Some(key) = j.finish() else {
         return false;
     };
-    let locale = if r.neutral { "en" } else { locale };
     let parts = matches!(out, NumberOut::Parts(_));
-    let Some(text) = mf2_nf(locale, options, r.value, parts) else {
+    let Some(text) = mf2_nf(key, r.value, parts) else {
         return false;
     };
     match out {
@@ -406,13 +366,13 @@ fn format(locale: &str, r: &NumberRequest<'_>, out: NumberOut<'_>) -> bool {
 /// (the request's digit options and type); `None` when the engine rejects
 /// them.
 fn plural(locale: &str, r: &NumberRequest<'_>) -> Option<Category> {
-    let mut j = Json::new();
+    let mut j = Json::new(locale);
     if r.ordinal {
         j.text("type", "ordinal");
     }
     digits(&r.digits, Some((0, 3)), &mut j);
-    let options = j.finish()?;
-    let c = mf2_pr(locale, options, r.value);
+    let key = j.finish()?;
+    let c = mf2_pr(key, r.value);
     // 0..=5 fit a u8.
     #[allow(clippy::cast_possible_truncation)]
     (c < 6).then(|| Category::from_code(c as u8))

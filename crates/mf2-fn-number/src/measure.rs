@@ -246,6 +246,10 @@ fn resolve_measure<'a>(
     let spec = match what {
         MeasureUnit::Currency(code) => NumberSpec::currency(match field(flags, DIGITS_SHIFT, 7) {
             n if n >= 2 => u8::try_from(n - 2).unwrap_or(2),
+            // `intl`: the currency's own digits are the formatter's
+            // (`NumberStyle::Currency::own_digits`); the catalog's currency
+            // data is not read.
+            _ if INTL_NUMBERS => 2,
             _ => auto_digits(cx.catalog(), code),
         }),
         MeasureUnit::Unit(_) => NumberSpec::UNIT,

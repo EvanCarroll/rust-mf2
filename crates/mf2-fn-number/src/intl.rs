@@ -13,6 +13,7 @@
 //! path writes them without data.
 
 use mf2_catalog::unit::Width;
+use mf2_catalog::{Catalog, StrRef};
 use mf2_runtime::{
     CurrencyDisplay, FnContext, FormatError, Measure, MeasureUnit, Number, NumberOut, NumberStyle,
     Sink, UnitDisplay, Value,
@@ -106,11 +107,16 @@ pub(crate) fn measure(cx: &FnContext<'_>, m: &Measure<'_>, out: NumberOut<'_>) {
     host_or_exact(&m.number, cx, style(m), Some(suffix), out);
 }
 
-/// Writes nothing.
+/// Writes nothing (and reads no catalog text: the trait's default
+/// `push_catalog_text` would link the reader's text access).
 struct Discard;
 
 impl Sink for Discard {
     fn push_str(&mut self, _s: &str) {}
+
+    fn push_catalog_text(&mut self, _catalog: &Catalog, _r: StrRef) -> bool {
+        true
+    }
 }
 
 /// Whether a `:unit` value formats: its unit is one the host's formatter

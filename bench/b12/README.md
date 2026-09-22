@@ -98,5 +98,5 @@ them, so the grep can fail); B1′ for `intl`: `b12-runtime-intl-unused` ≤
 **−34 B raw / −69 B gz** (a resolved number keeps its digit plan instead of
 its rounded digits, so every `Value` is smaller); with the stub formatter
 the core is +368 B raw / +110 B gz over `b12-runtime` and the whole family
-−9,891 / −4,688 over `b12-runtime-fn-number-measure` — without the
+−12,157 / −5,731 over `b12-runtime-fn-number-measure` — without the
 browser's glue, which `bench/intl-probe` measures (the size of the option).
