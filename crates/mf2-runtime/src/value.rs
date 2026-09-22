@@ -10,8 +10,9 @@ use crate::parts::FallbackSource;
 
 /// A positional argument: slot `i` of the call site is `args[i]` (the
 /// manifest's slot order). Small on purpose: every variant is a code path in
-/// the wasm.
+/// the wasm. Non-exhaustive: Phase 4 adds `DateTime`.
 #[derive(Clone, Copy)]
+#[non_exhaustive]
 pub enum Arg<'a> {
     /// A string.
     Str(&'a str),

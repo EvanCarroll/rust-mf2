@@ -228,6 +228,25 @@ Details and commands: [phase-2-results](phase-2-results.md).
 | B12, reader: panic import after LTO + `wasm-opt -Oz`; `core::fmt` | **absent**; none | `bench/b12/check.sh` |
 | Reader + a walk over its whole API (part of B1), Δ against the base | 13,613 B raw / **6,787 B gz** (`Catalog::new` 3.4 KB raw) | same |
 
+### Phase 3 measurements (2026-09-21)
+
+Details and commands: [phase-3-results](phase-3-results.md). Timings on the
+Phase 0 machine, whose clock drifts (1.8–2.3 GHz): ranges are over the day's
+runs, and builds are compared by alternating their binaries.
+
+| Item | Figure | Harness |
+|---|---|---|
+| B1, runtime part: reader + evaluator + `:string` + core numbers + plural + bidi + parts, Δ against the base | 37,126 B raw / **18,428 B gz** — with P0.1's call-site library (7.5 KB gz) 25.9 of B1's 30 KB, 4.1 KB left for fetch/boot (P6) | `bench/b12/check.sh` (`b12-runtime`) |
+| The same without the numeric handlers | 26,899 B raw / 13,291 B gz (P0.3's skeleton, without `u:` options, decimals, the registry, NFC, named arguments or the frozen reader's validation: 7.0 KB gz) | same (`b12-runtime-nonum`) |
+| B1's numeric share (≤ 10 KB gz) | **5,137 B gz** (10,227 raw); over `fixed_decimal` 0.7.2 7,311 B gz | same, and `NUMBER-AB-P3.md` |
+| B12, runtime: panic import after LTO + `wasm-opt -Oz`; `core::fmt` | **absent**; none (over `fixed_decimal`: 8 panic / alloc-failure symbols) | same |
+| B13: without the numeric handlers | **0** numeric symbols linked (14 with them) | same |
+| B10 simple, `write`: en / pl / en-XA / ar-XB | **20.1–34.5** / 69.6–81.3 / 83.3–93.2 / 33.6–43.6 ns, 0 allocations (`Formatter::simple`: 13.0–22.3 ns on `en`; P0.8 20.7) | `runtime-bench b10` |
+| B10 1-argument pattern, reused `String` | **118–137** / 133–149 / 155–175 / 130–150 ns, 0 allocations; a new `String::with_capacity(128)`: 1.02 allocations (P0.8 `en`: 93.5 / 106.3) | same |
+| Select (not a B10 row), `en` | 433–514 ns, 4 allocations (P0.8: 317 ns on P0.3's integer-only `:integer`; the full numeric semantics cost ~110 ns over an unannotated integer) | same; `examples/select_cost.rs` |
+| Function resolution per call / from a load-time table | 12.6 / 2.8 ns — stays per call | same |
+| `:number` differential against ECMA-402 (P0.5's 100,000 cases) | 95,675 identical, **0 different**; the 4,325 sets `Intl` rejects are all *Bad Option* | `runtime-bench numbers ecma` |
+
 ## 4. Techniques, ordered by expected effect
 
 1. **No parser in the client.** Parse at build time; ship binary catalogs.

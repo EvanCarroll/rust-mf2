@@ -171,17 +171,80 @@ soon as A2 exists; A9 grows with A2–A6; A10–A11 alongside.
 
 ## Exit (master plan §9, P3)
 
-- [ ] L4 green for every suite file except
+- [x] L4 green for every suite file except
       `functions/{percent,currency,date,time,datetime}.json` — including
       `functions/{string,number,integer,offset}.json` — native and
       `wasm32-wasip1`, byte-identical; `current_phase = "P3"` bumped in the exit
       commit and the harness green
-- [ ] stripped and unstripped catalogs format identically on the whole suite;
+- [x] stripped and unstripped catalogs format identically on the whole suite;
       the `stripped-formats-identically` note closed
-- [ ] CLDR plural samples pass for every locale (cardinal and ordinal)
-- [ ] B1 (runtime part), B10, B12 met in a client-only harness (B12 with owner
+- [x] CLDR plural samples pass for every locale (cardinal and ordinal)
+- [x] B1 (runtime part), B10, B12 met in a client-only harness (B12 with owner
       decision 1 settled); B13 shown
-- [ ] L4 on generated input (1,000,000) and a ≥ 1 h `format` fuzz run clean
-- [ ] the `mf2-runtime` API frozen in 03 §2 (or this document changed in the
+- [x] L4 on generated input (1,000,000) and a ≥ 1 h `format` fuzz run clean
+- [x] the `mf2-runtime` API frozen in 03 §2 (or this document changed in the
       same commit, with the reason)
-- [ ] the Phase 4 work order written from Phase 3's findings
+- [x] the Phase 4 work order written from Phase 3's findings
+
+## Status at exit
+
+Measurements and commands: [phase-3-results](phase-3-results.md).
+
+**The API as built** is [03](03-runtime.md) §2, frozen at this exit. Against
+the shape above, additions (which this document allows) and changes made
+before the freeze:
+
+* `Formatter`: `new` is `const`; `catalog()`; **`parts_named`** beside
+  `write_named` (the conformance `dyn` cases need named parts).
+* `FormatContext` is `#[non_exhaustive]` with public fields and
+  `FormatContext::new(host)` (`const`), so P4's time zone is an added field.
+* `Sink::push_catalog_text` **returns `bool`**: `false` when the string is not
+  valid UTF-8 (F4), and the evaluator then stops that message with
+  *Malformed*. `impl Sink for String` and `impl ErrorSink for
+  Vec<FormatError>` grow through `try_reserve`; `NoErrors` is the release
+  sink.
+* `FormatError` (`#[non_exhaustive]`): the suite's kinds plus `MissingMessage`
+  and `Malformed`; `kind() -> Option<ErrorKind>` maps to the suite's names.
+* Parts: `Part::{Text, BidiIsolation(Isolation), Expression(ExpressionPart),
+  Markup(MarkupPart), Fallback(FallbackSource)}` and `SubPartSink` for a
+  number's sub-parts.
+* `Arg` is **`#[non_exhaustive]`** (the sketch's "DateTime: P4, additive"
+  needs it), with `From` conversions for strings, integers and floats.
+  `Value` (`#[non_exhaustive]`) adds `Boxed` (a custom handler's own data) and
+  **`Fallback`**: a fallback operand reaches the handler (03 §2.6, fixed by
+  the suite). `CustomValue` converts an application's type; `Number` is
+  opaque over the digit backend.
+* `Host` has **`f64_to_text`** beside `nfc`: float text from the host keeps
+  `ryu` out of the client wasm.
+* `Function`: `resolve` → `Option<Value>`, then `formattable`, `format`,
+  `format_parts`, `part_kind`, `dir`, `selectable`, `matches`, `better_than`
+  on the resolved value — the "ResolvedValue" of the sketch is the pair (value,
+  handler) the evaluator keeps; `FnContext`, `Options`, `OptionValue`.
+  `Registry::{EMPTY, new, get}`; `functions::{STRING, NUMBER, INTEGER, OFFSET}`.
+
+**Departures from the tasks as written:**
+
+* **A5** — the core numeric semantics run over an **own digit buffer** (owner
+  decision 1 → D15), not `fixed_decimal`; **A5b** measured it no worse on
+  every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12
+  clean, 0 allocations), so it stays and `fixed_decimal` is the feature-gated
+  baseline and fallback.
+* **A9** — `syntax.json` #90 is due at P4 (owner, 2026-09-21), so the ledger's
+  L4 deadline is per test key (`L4_TESTS_AT_P4`), not only per file.
+* **A10** — the `format` fuzz target changed two behaviours on damaged
+  catalogs (a markup name is checked in string output too; positional
+  arguments are cut to the message's slots), recorded in 03 §2.1 and §2.6.
+  The wasip1 comparison of generated input is a sample (20,000 in CI, 200,000
+  nightly): the bundle is held in memory, so not the whole million.
+* **A11** — B1's runtime part is 18,428 B gz, which with the call-site library
+  leaves 4.1 KB of B1 for fetch and boot (P6); the growth over P0.3's 7.0 KB
+  skeleton is attributed module by module (results §A11). Function
+  resolution stays per call (12.6 vs 2.8 ns). The per-call lists stay on the
+  heap: three inline variants were measured and each was slower or larger.
+  **Select is 1.37–1.62× P0.8's 317 ns** — reported, not gated (B10 has no
+  select row); the cost is the full numeric semantics over P0.3's
+  integer-only `:integer`, and it is carried into Phase 4, which rebuilds the
+  numeric layer. The B12/B13 harnesses extend `bench/b12/check.sh`.
+
+**Findings for later phases** are in [11](11-phase-4-work-order.md)
+§"What Phase 3 changes here".

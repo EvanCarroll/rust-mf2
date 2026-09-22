@@ -231,7 +231,7 @@ ledger; a phase cannot exit with its layer red.
 | D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
 | D13 | Spec and CLDR inputs vendored and pinned, synced by xtask | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
-| D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **decided by owner** (2026-09-21); the A/B gate is Phase 3's A5b |
+| D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **settled: own buffer** — decided by owner (2026-09-21); the A5b gate holds on every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12 clean vs a panic import, 0 vs 0.5 allocations; [phase-3-results](phase-3-results.md) §A5b) |
 
 ## 9. Phases
 
@@ -290,11 +290,11 @@ everything before it).
   committed reference corpus (`bench/corpora/workload-1600.json` — flat JSON, so
   no resource parser is needed yet).
 
-### P3 — Runtime core · layer **L4** (core files)
+### P3 — Runtime core · layer **L4** (core files) — *done* ([phase-3-results](phase-3-results.md))
 * `mf2-runtime`: resolution, declarations, selection, fallback, Default Bidi
   Strategy, parts, markup, `u:` options, registry, custom-function API,
   `:string`, the **core numeric semantics** (`:number` / `:integer` / `:offset`
-  over `fixed_decimal`, neutral symbols), plural/ordinal evaluator, `Host` trait;
+  over the own digit buffer, D15, neutral symbols), plural/ordinal evaluator, `Host` trait;
   `mf2-host-std`, minimal `mf2-host-web`.
 * `mf2-locale-data`, **plural part only**: UTS #35 rule parser, encoder into the
   `plural.*` entries, all-locale rule tables, CLDR samples as tests.
@@ -408,7 +408,8 @@ catalog's NAMES section, up to 1.1 % of a catalog's brotli size
   because each phase's findings change the next one's tasks. Written so far:
   [07-phase-0-work-order](07-phase-0-work-order.md) (done),
   [08-phase-1-work-order](08-phase-1-work-order.md) (done),
-  [09-phase-2-work-order](09-phase-2-work-order.md) (done) and
-  [10-phase-3-work-order](10-phase-3-work-order.md) (next).
+  [09-phase-2-work-order](09-phase-2-work-order.md) (done),
+  [10-phase-3-work-order](10-phase-3-work-order.md) (done) and
+  [11-phase-4-work-order](11-phase-4-work-order.md) (next).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.

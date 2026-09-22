@@ -290,10 +290,11 @@ fn an_overdue_open_note_is_red() {
 fn until_after_the_layer_deadline_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
+    // P9: after L1's deadline, and after any current phase (so not overdue).
     ledger.entries[0].cells.insert(
         Column::L1,
         Cell::Xfail {
-            until: Phase::P3,
+            until: Phase::P9,
             reason: None,
             via: None,
         },

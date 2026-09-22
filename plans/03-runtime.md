@@ -26,11 +26,20 @@ The evaluator and the function handlers are written here.
   error sink.
 * **Byte-identical on native and wasm32** for every deterministic function
   (conformance L4 runs on both).
+* **Allocation**: the per-call lists — declarations, `.input` slots,
+  `.local`s, option lists, selectors — are heap `Vec`s grown only through
+  `try_reserve`, so a list that stays empty allocates nothing: a simple or
+  declaration-free message formats without allocating, a select with one
+  `.input` allocates 4 times (B10-P3). Measured alternatives (10 A11:
+  alternating builds): an inline tier of four items gives 0 allocations but
+  +811 B gz and a 1-argument pattern 35–45 ns slower; inline index lists
+  only give 1 allocation and no faster select. A formatter-owned arena
+  reused across calls is the remaining candidate (P6).
 
 ## 2. The API of `mf2-runtime`
 
 Written in Phase 3 (task A1) before the code and **frozen at the exit of
-Phase 3**; Phases 4 (functions), 5b (macros) and 6 (Leptos) are written
+Phase 3** (2026-09-21, as below); Phases 4 (functions), 5b (macros) and 6 (Leptos) are written
 against it. Methods, trait methods with a default, enum variants of the
 `#[non_exhaustive]` enums and fields of the `#[non_exhaustive]` structs may be
 added; changing a signature after the exit needs the current work order changed
@@ -70,7 +79,10 @@ impl<'c> Formatter<'c> {
 ```
 
 * `args` are **positional slots** assigned by the manifest ([05](05-tooling.md)
-  §3): `args[slot]`, a missing slot is `Arg::Unset`. Names exist only in the
+  §3): `args[slot]`, a missing slot is `Arg::Unset`, and arguments past the
+  message's last slot are ignored — a reference past it (only a damaged
+  catalog has one) is unresolved, as with named arguments (found by the
+  `format` fuzz target, 10 A10). Names exist only in the
   catalog's NAMES section, used by `*_named` and by fallback output (`{$name}`).
 * Every method takes `dyn` sinks: one copy of the walker in the wasm (B1).
   Formatting never fails (§1): output and errors always both arrive.
@@ -159,6 +171,7 @@ builds elements from `Markup` parts ([04](04-leptos-integration.md) §7).
 
 ```rust
 #[derive(Clone, Copy)]
+#[non_exhaustive]                       // so P4's `DateTime` is additive (frozen at P3's exit)
 pub enum Arg<'a> {
     Str(&'a str), Int(i64), Float(f64),
     Decimal(&'a str),                   // number-literal text, exact
@@ -262,9 +275,11 @@ pub mod functions { pub static STRING; pub static NUMBER; pub static INTEGER; pu
 `mf2-build` (P5a) generates `static REGISTRY: Registry = Registry::new(&[("integer",
 &mf2::functions::INTEGER)]);` — handlers are statics referenced only from that
 table, so an unused one is never linked. Function names are looked up per call
-(`catalog.function(index)` → `Registry::get`, a few short compares); A11
-measures whether a load-time table pays. A name the registry lacks is *Unknown
-Function* and a fallback value.
+(`catalog.function(index)` → `Registry::get`, a few short compares). A11
+measured it: 12.6 ns per resolution against 2.8 ns from a load-time table,
+next to a 433 ns select — so it **stays per call**, and a `Formatter` needs no
+per-catalog setup. A name the registry lacks is *Unknown Function* and a
+fallback value.
 
 ### 2.5 The host
 
@@ -324,7 +339,10 @@ Where the spec leaves a choice, or the suite asserts more than the spec text:
   whose key count differs from the selector count never matches; if no variant
   matches, `{�}` and `MissingFallbackVariant`.
 * **Markup** writes nothing to a `Sink`; its options resolve like an
-  expression's; pairing is never checked.
+  expression's, and its name is checked in both modes, so a damaged catalog
+  stops string and parts output at the same place (the parts concatenate to
+  the string; found by the `format` fuzz target, 10 A10); pairing is never
+  checked.
 * **Malformed data** (a view's `Err`, a string that is not UTF-8): `{�}` in its
   place, `Malformed`, and the message stops there — output before it stays.
 

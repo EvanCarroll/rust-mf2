@@ -18,7 +18,9 @@ source of truth and links to everything else.
 | — | [phase-1-results.md](phase-1-results.md) | the Phase 1 measurements: L1/L2, the D1 gate, generated input, the ox differential, fuzzing |
 | 9 | [09-phase-2-work-order.md](09-phase-2-work-order.md) | Phase 2 tasks (done), the frozen `mf2-catalog` API, status at exit |
 | — | [phase-2-results.md](phase-2-results.md) | the Phase 2 measurements: format v1, L3, B7 sizes, reader cost and B12, fuzzing, the linear-time test |
-| 10 | [10-phase-3-work-order.md](10-phase-3-work-order.md) | **doing the work next** — Phase 3 tasks: `mf2-runtime`, layer L4 (core files) |
+| 10 | [10-phase-3-work-order.md](10-phase-3-work-order.md) | Phase 3 tasks (done), the frozen `mf2-runtime` API, status at exit |
+| — | [phase-3-results.md](phase-3-results.md) | the Phase 3 measurements: L4, the numeric A/B (D15), plural samples, generated input, fuzzing, B1/B10/B12/B13 |
+| 11 | [11-phase-4-work-order.md](11-phase-4-work-order.md) | **doing the work next** — Phase 4 tasks: function families, locale data, layer L4 (all files) |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans

@@ -9,10 +9,11 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    feature flags, decisions D1–D14, phases, risks).
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
-3. Find your task in the current work order. **Current phase: Phase 3** (the
-   runtime core) → `plans/10-phase-3-work-order.md`. Phases 1 and 2 are done
-   (`crates/mf2-model`, `crates/mf2-syntax`, `crates/mf2-catalog`;
-   `plans/phase-1-results.md`, `plans/phase-2-results.md`).
+3. Find your task in the current work order. **Current phase: Phase 4**
+   (functions and locale data) → `plans/11-phase-4-work-order.md`. Phases 1–3
+   are done (`crates/mf2-model`, `crates/mf2-syntax`, `crates/mf2-catalog`,
+   `crates/mf2-runtime` and its hosts, `mf2-locale-data`'s plural part, the
+   `mf2` facade; `plans/phase-1-results.md` … `plans/phase-3-results.md`).
 
 ## Boundary — this repository is self-contained
 
