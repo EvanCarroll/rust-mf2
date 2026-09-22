@@ -16,6 +16,8 @@ members = [
     "runtime",
     "runtime-nonum",
     "runtime-fixed",
+    "runtime-fn-number",
+    "runtime-fn-number-unused",
 ]
 
 [workspace.package]
@@ -30,6 +32,7 @@ b12-harness = { path = "harness" }
 mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
 b12-runtime-walk = { path = "runtime-walk" }
 mf2-runtime = { path = "../../crates/mf2-runtime", default-features = false }
+mf2-fn-number = { path = "../../crates/mf2-fn-number", default-features = false }
 
 [workspace.lints.rust]
 unreachable_pub = "warn"

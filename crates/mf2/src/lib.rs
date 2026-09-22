@@ -8,11 +8,11 @@
 //! |---|---|
 //! | *(core)* | [`mf2_runtime`]: the formatter, `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
+//! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
 //! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
 //!
-//! Phase 4 adds `fn-number`, Phase 5b the `tr!` macro, Phase 6 the Leptos
-//! and Axum layers.
+//! Phase 5b adds the `tr!` macro, Phase 6 the Leptos and Axum layers.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -61,6 +61,10 @@ pub use mf2_runtime::{
 pub use compile::{Compiled, compile_str, compile_str_stripped};
 #[cfg(feature = "compile")]
 pub use error::CompileError;
+
+/// The localized numeric functions (`mf2-fn-number`, feature `fn-number`).
+#[cfg(feature = "fn-number")]
+pub use mf2_fn_number as fn_number;
 
 /// The date/time functions (`mf2-fn-datetime`, feature `fn-datetime`).
 #[cfg(feature = "fn-datetime")]

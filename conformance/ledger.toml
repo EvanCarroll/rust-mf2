@@ -2341,7 +2341,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2356,7 +2356,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2371,7 +2371,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2386,7 +2386,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2401,7 +2401,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2416,7 +2416,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2431,7 +2431,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2446,7 +2446,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2461,7 +2461,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2476,7 +2476,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2491,7 +2491,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2506,7 +2506,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -2521,7 +2521,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = ":percent is fn-number (Phase 4)" }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }
@@ -6451,7 +6451,7 @@ nth   = 0
 L1 = "pass"
 L2 = "pass"
 L3 = "pass"
-L4 = { status = "xfail", until = "P4", reason = "fr formats unannotated floats with the decimal comma (1,3): number.symbols and fn-number are Phase 4; core output is neutral (1.3). The one L4 test outside the five function files due at P4 (owner, 2026-09-21)." }
+L4 = "pass"
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
 L4d = { status = "xfail", until = "P4" }

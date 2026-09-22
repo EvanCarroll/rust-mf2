@@ -134,6 +134,19 @@ impl Digits<'_> {
     pub fn neutral_parts(&self, out: &mut dyn SubPartSink) {
         write_parts(self.dec, self.sign, self.hi, self.lo, out);
     }
+
+    /// The CLDR plural operands of these digits as shown (`1.0` has `v = 1`):
+    /// what a unit or currency name's plural form is chosen by
+    /// ([`crate::plural_category`]).
+    pub fn operands(&self) -> plural::Operands {
+        let mut b = OperandsBuilder::default();
+        let mut m = self.hi;
+        while m >= self.lo {
+            b.digit(self.dec.digit_at(m), m >= 0);
+            m -= 1;
+        }
+        b.finish()
+    }
 }
 
 impl Display {
@@ -726,13 +739,7 @@ fn exact_matches(n: &Number, r: &Resolved, key: &str) -> bool {
 
 /// The plural operands of the display form.
 fn operands(d: &Display) -> plural::Operands {
-    let mut b = OperandsBuilder::default();
-    let mut m = d.hi;
-    while m >= d.lo {
-        b.digit(d.dec.digit_at(m), m >= 0);
-        m -= 1;
-    }
-    b.finish()
+    d.digits().operands()
 }
 
 /// Match(`n`, `key`) for numeric selectors (number.md, "Number Selection").

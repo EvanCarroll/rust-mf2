@@ -491,6 +491,7 @@ impl Digits<'_> {
     pub fn is_zero(&self) -> bool;
     pub fn write_neutral(&self, out: &mut dyn Sink);         // the core's output
     pub fn neutral_parts(&self, out: &mut dyn SubPartSink);
+    pub fn operands(&self) -> Operands;           // CLDR operands as shown: a unit's plural form
 }
 pub enum Sign { None, Minus, Plus }
 pub enum Grouping { Auto, Always, Never, Min2 }
@@ -615,7 +616,7 @@ the server has to use ICU4X because there is no `Intl` on the server.
 | Client feature | Off (default) | On |
 |---|---|---|
 | *(core, always)* | `:string`; `:number` / `:integer` / `:offset` with their **complete semantics** — operand rules, all digit-size options, `roundingMode` / `roundingIncrement` / `roundingPriority`, `trailingZeroDisplay`, `signDisplay`, `minimumIntegerDigits`, option inheritance, and `select` = `exact` / `plural` / `ordinal` (rules from the catalog) — rendered with **neutral symbols**: ASCII digits, `.`, `-`/`+`, no grouping | — |
-| `fn-number` | the two options that are *only* about locale — `numberingSystem`, and `useGrouping` other than `auto`/`never` — emit *Unsupported Operation* and render neutrally. Any numeric formatting at all is a `check` **warning** (`neutral-numbers`, configurable to allow/deny). `:percent` / `:currency` / `:unit` in the corpus are a **build error** | locale symbols, grouping, numbering systems, `:percent`, `:currency`, `:unit`; data arrives lazily in the catalog. Measured 1.7 KB gz (+2.9 with `:currency` + `:unit`; P0.5) |
+| `fn-number` | the option values that are *only* about locale — `useGrouping` other than `auto`/`never` — emit *Unsupported Operation* and render neutrally, and the locale's numbering system (a non-Latin default such as `ar-EG`'s, or a `-u-nu-` tag) is not applied: ASCII digits. (The pinned spec has no `numberingSystem` option; a catalog's system comes from its locale, 02 §4.) Any numeric formatting at all is a `check` **warning** (`neutral-numbers`, configurable to allow/deny). `:percent` / `:currency` / `:unit` in the corpus are a **build error** | locale symbols, grouping, numbering systems, `:percent`, `:currency`, `:unit`; data arrives lazily in the catalog. Measured 1.7 KB gz (+2.9 with `:currency` + `:unit`; P0.5) |
 | `fn-datetime` + one backend | `:datetime` / `:date` / `:time` in the corpus are a **build error** | `datetime-icu`: ICU4X **code** in the wasm, its **data** in the catalog (`icu.blob`) — identical to server output, 93 KB gz of code (Gregorian; P0.6). `datetime-intl`: the browser's built-in API — 5.4 KB gz incl. the shared date semantics + 0.6 KB gz JS; output differs cosmetically from the server's (at least U+202F vs U+0020, and zone-styled layouts) |
 
 Two mechanisms, two jobs:

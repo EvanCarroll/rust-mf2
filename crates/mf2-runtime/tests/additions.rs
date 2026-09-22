@@ -586,3 +586,50 @@ fn exact_digits() {
     assert_eq!(m0.exact_digits().sign(), Sign::Minus);
     assert!(m0.exact_digits().is_zero());
 }
+
+#[test]
+fn digits_operands() {
+    // `1.0` is `other` in English, `1` is `one`: operands as shown.
+    struct Cat;
+    impl Function for Cat {
+        fn resolve<'a>(
+            &self,
+            cx: &FnContext<'_>,
+            operand: Option<&Value<'a>>,
+            options: &Options<'_, 'a>,
+            errs: &mut dyn ErrorSink,
+        ) -> Option<Value<'a>> {
+            Number::resolve(NumberSpec::UNIT, cx, operand, options, errs).map(Value::Number)
+        }
+        fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+            if let Value::Number(n) = value
+                && let Some(d) = n.digits()
+            {
+                let rules = cx
+                    .catalog()
+                    .locale_entry(mf2_catalog::format::locale_key::PLURAL_CARDINAL)
+                    .unwrap_or(&[]);
+                let c = mf2_runtime::plural_category(rules, &d.operands());
+                out.push_str(if c == mf2_runtime::Category::One {
+                    "one"
+                } else {
+                    "other"
+                });
+            }
+        }
+    }
+    static CAT: [(&str, &dyn Function); 1] = [("cat", &Cat)];
+    static R: Registry = Registry::new(&CAT);
+    assert_eq!(ok(&R, "{1 :cat}", &[]), "one");
+    assert_eq!(ok(&R, "{1 :cat minimumFractionDigits=1}", &[]), "other");
+    assert_eq!(ok(&R, "{1.04 :cat maximumFractionDigits=1}", &[]), "one"); // shows 1
+    assert_eq!(
+        ok(
+            &R,
+            "{1.04 :cat minimumFractionDigits=1 maximumFractionDigits=1}",
+            &[]
+        ),
+        "other"
+    ); // shows 1.0
+    assert_eq!(ok(&R, "{1.04 :cat maximumFractionDigits=0}", &[]), "one");
+}

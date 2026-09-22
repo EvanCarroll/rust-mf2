@@ -33,6 +33,11 @@
 #     numeric code over fixed_decimal, built in its own cargo invocation (so
 #     its feature does not reach the others) and reported only: its panic
 #     paths are why the own buffer exists.
+#  7. Phase 4 (plans/11 A11): B2 = b12-runtime-fn-number − b12-runtime
+#     (mf2-fn-number on and used: the localized :number, :integer, :offset,
+#     :percent and unannotated numbers) ≤ 3 KB gz; B1′ = b12-runtime-fn-number-
+#     unused − b12-runtime (the crate linked, the registry the core's) = +0 B.
+#     Both are B12-checked like the runtime.
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
@@ -52,7 +57,7 @@ TARGET=wasm32-unknown-unknown
 OUT=target/b12
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
-CRATES=(base reader runtime runtime-nonum control)
+CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused control)
 PANIC_IMPORT='b12::b12_panic_reachable'
 # twiggy demangles v0 names as `core[1a2b…]::fmt::…`; the mangled spellings
 # (`4core3fmt`) are matched too in case a name is left mangled.
@@ -158,7 +163,7 @@ done
 {
   printf 'harness\traw\tgz\tdelta_raw\tdelta_gz\n'
   printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${GZ[base]}"
-  for c in reader runtime runtime-nonum runtime-fixed; do
+  for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused; do
     printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
       $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
   done
@@ -166,7 +171,16 @@ done
     $((RAW[runtime] - RAW[runtime-nonum])) $((GZ[runtime] - GZ[runtime-nonum]))
   printf 'numbers over fixed_decimal (runtime-fixed - runtime-nonum)\t-\t-\t%d\t%d\n' \
     $((RAW[runtime-fixed] - RAW[runtime-nonum])) $((GZ[runtime-fixed] - GZ[runtime-nonum]))
+  printf 'B2: fn-number on and used (runtime-fn-number - runtime)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime-fn-number] - RAW[runtime])) $((GZ[runtime-fn-number] - GZ[runtime]))
+  printf "B1': fn-number on, unused (runtime-fn-number-unused - runtime)\t-\t-\t%d\t%d\n" \
+    $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((GZ[runtime-fn-number-unused] - GZ[runtime]))
 } > "$OUT/size.tsv"
+# B2 ≤ 3 KB gz; B1′ = +0 B (plans/06-size-and-perf.md §3).
+b2=$((GZ[runtime-fn-number] - GZ[runtime]))
+[ "$b2" -le 3072 ] || bad "B2: fn-number on and used costs $b2 B gz (> 3,072)"
+[ "${RAW[runtime-fn-number-unused]}" -eq "${RAW[runtime]}" ] \
+  || bad "B1': fn-number on but unused is not +0 B (raw ${RAW[runtime-fn-number-unused]} vs ${RAW[runtime]})"
 say "== size (wasm-release, wasm-opt -Oz, gzip -9 -n; delta against b12-base)"
 awk -F '\t' '{ printf "  %-58s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
 # Where the reader's bytes are (shallow code bytes after wasm-opt, by crate).

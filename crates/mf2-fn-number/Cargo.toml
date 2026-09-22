@@ -1,0 +1,20 @@
+[package]
+name = "mf2-fn-number"
+description = "The localized numeric functions of mf2-two (feature fn-number): locale symbols, grouping and numbering systems over the runtime's numeric core, and :percent, :currency, :unit (no_std, fmt-free, panic-free)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2-catalog.workspace = true
+mf2-runtime.workspace = true
+
+[dev-dependencies]
+mf2 = { workspace = true, features = ["compile", "host-std"] }
+mf2-catalog = { workspace = true, features = ["writer"] }
+mf2-locale-data.workspace = true
+mf2-syntax.workspace = true
+
+[lints]
+workspace = true

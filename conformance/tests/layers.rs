@@ -57,9 +57,10 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     assert_eq!(results.tally(Column::L1), (462, 462));
     assert_eq!(results.tally(Column::L2), (326, 326));
     assert_eq!(results.tally(Column::L3), (301, 301));
-    // L4: all but the 25 tests of functions/{percent,currency}.json and
-    // syntax.json #90, due at P4 (the 20 date/time tests pass since A5).
-    assert_eq!(results.tally(Column::L4), (436, 462));
+    // L4: all but the 12 tests of functions/currency.json, due at P4 (the 20
+    // date/time tests pass since A5; functions/percent.json and syntax.json
+    // #90 since A3).
+    assert_eq!(results.tally(Column::L4), (450, 462));
 }
 
 #[test]

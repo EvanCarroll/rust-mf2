@@ -11,6 +11,9 @@ default = []
 # `compile_str`: parse, validate, analyze and write a one-message catalog
 # (std, server and tests; never in a client).
 compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
+# Locale-aware numbers (plans/00-master-plan.md §5): symbols, grouping,
+# numbering systems, :percent (and :currency, :unit) — mf2-fn-number.
+fn-number = ["dep:mf2-fn-number"]
 # Dates and times (plans/03-runtime.md §5.1): :datetime, :date, :time and
 # unannotated date/time values — mf2-fn-datetime.
 fn-datetime = ["dep:mf2-fn-datetime"]
@@ -20,6 +23,7 @@ host-web = ["dep:mf2-host-web"]
 
 [dependencies]
 mf2-catalog.workspace = true
+mf2-fn-number = { workspace = true, optional = true }
 mf2-fn-datetime = { workspace = true, optional = true }
 mf2-host-std = { workspace = true, optional = true }
 mf2-host-web = { workspace = true, optional = true }

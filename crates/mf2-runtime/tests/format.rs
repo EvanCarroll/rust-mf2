@@ -376,3 +376,24 @@ fn malformed_markup_name() {
     assert_eq!(p.0, "[text \"a\"][bidi Fsi][fallback \u{FFFD}][bidi Pdi]");
     assert_eq!(perrs, errs);
 }
+
+#[test]
+fn neutral_grouping_is_unsupported() {
+    // plans/03-runtime.md §5.1: the locale-only grouping values.
+    for (src, want) in [
+        (
+            "{12345 :number useGrouping=always}",
+            vec![FormatError::UnsupportedOperation],
+        ),
+        (
+            "{12345 :integer useGrouping=min2}",
+            vec![FormatError::UnsupportedOperation],
+        ),
+        ("{12345 :number useGrouping=auto}", vec![]),
+        ("{12345 :number useGrouping=never}", vec![]),
+    ] {
+        let (s, e) = format(src, &[]);
+        assert_eq!(s, "12345", "{src}");
+        assert_eq!(e, want, "{src}");
+    }
+}

@@ -18,20 +18,23 @@ pub mod test_functions;
 use std::fmt::Write as _;
 
 use mf2_catalog::{Catalog, Entry};
-use mf2_runtime::functions::{INTEGER, NUMBER, OFFSET, STRING};
+use mf2_runtime::functions::STRING;
 use mf2_runtime::{
     Arg, BidiStrategy, CustomValue, Date, DateTime, Dir, FormatContext, FormatError, Formatter,
     Function, Host, MarkupKind, MsgId, Part, PartSink, Registry, SubPartSink, Time, Value,
 };
 
-/// The handlers L4 formats with: the core functions, the date/time
-/// functions and the test functions.
-pub static FUNCTIONS: [(&str, &dyn Function); 10] = [
+/// The handlers L4 formats with — the all-features configuration
+/// (`plans/01-conformance.md` §3): `:string`, the localized numeric
+/// functions (`fn-number`), the date/time functions (`fn-datetime`) and the
+/// test functions.
+pub static FUNCTIONS: [(&str, &dyn Function); 11] = [
     ("date", &mf2_fn_datetime::DATE),
     ("datetime", &mf2_fn_datetime::DATETIME),
-    ("integer", &INTEGER),
-    ("number", &NUMBER),
-    ("offset", &OFFSET),
+    ("integer", &mf2_fn_number::INTEGER),
+    ("number", &mf2_fn_number::NUMBER),
+    ("offset", &mf2_fn_number::OFFSET),
+    ("percent", &mf2_fn_number::PERCENT),
     ("string", &STRING),
     ("test:format", &test_functions::FORMAT),
     ("test:function", &test_functions::FUNCTION),
@@ -39,9 +42,11 @@ pub static FUNCTIONS: [(&str, &dyn Function); 10] = [
     ("time", &mf2_fn_datetime::TIME),
 ];
 
-/// The registry over [`FUNCTIONS`], formatting unannotated date/time values
-/// as `:datetime`.
-pub static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
+/// The registry over [`FUNCTIONS`], formatting unannotated numbers with the
+/// locale's symbols and unannotated date/time values as `:datetime`.
+pub static REGISTRY: Registry = Registry::new(&FUNCTIONS)
+    .with_numbers(&mf2_fn_number::NUMBERS)
+    .with_dates(&mf2_fn_datetime::DATES);
 
 static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::HOST);
 

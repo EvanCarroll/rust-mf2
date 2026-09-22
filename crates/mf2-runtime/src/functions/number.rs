@@ -1,12 +1,14 @@
 //! `:number`, `:integer`, `:offset` (`functions/number.md`): the core
-//! numeric semantics of [`crate::number`], with neutral symbols. P4's
-//! `fn-number` supplies the localized handlers under the same names.
+//! numeric semantics of [`crate::number`], with neutral symbols —
+//! `useGrouping=always` / `min2` report *Unsupported Operation* and format
+//! neutrally (`plans/03-runtime.md` §5.1). `mf2-fn-number` supplies the
+//! localized handlers under the same names.
 
 use mf2_model::Dir;
 
 use crate::error::FormatError;
 use crate::function::{FnContext, Function, Options};
-use crate::number::{self, NumberSpec};
+use crate::number::{self, Grouping, NumberSpec};
 use crate::sink::{ErrorSink, Sink, SubPartSink};
 use crate::value::Value;
 
@@ -36,7 +38,14 @@ impl Function for NumberFunction {
         options: &Options<'_, 'a>,
         errs: &mut dyn ErrorSink,
     ) -> Option<Value<'a>> {
-        number::resolve(self.spec, cx, operand, *options, errs).map(Value::Number)
+        let n = number::resolve(self.spec, cx, operand, *options, errs)?;
+        // Grouping other than `auto`/`never` is only about the locale: the
+        // neutral handlers cannot honour it (plans/03-runtime.md §5.1;
+        // `fn-number` does).
+        if matches!(n.grouping(), Some(Grouping::Always | Grouping::Min2)) {
+            errs.error(FormatError::UnsupportedOperation);
+        }
+        Some(Value::Number(n))
     }
 
     fn formattable(&self, _cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {

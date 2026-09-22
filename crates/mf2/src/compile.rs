@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Catalog, Manifest, MsgId};
+use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
 use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
 
 use crate::error::CompileError;
@@ -26,7 +27,10 @@ impl Compiled {
 /// Compiles MF2 `source` for `locale` into a one-message catalog: parse,
 /// validate (syntax and data-model errors refuse the message, with their
 /// kinds), analyze the variables (the slots), and write it with the
-/// locale's direction and plural rules (both kinds, CLDR 48.2.1).
+/// locale's direction, plural rules (both kinds) and number data (CLDR
+/// 48.2.1): `number.symbols` always — any placeholder can receive a number,
+/// which `fn-number` localizes — and the patterns of the numeric functions
+/// the message names (`plans/02-catalog-format.md` §4.4, conservatively).
 pub fn compile_str(source: &str, locale: &str) -> Result<Compiled, CompileError> {
     compile(source, locale, false)
 }
@@ -49,6 +53,11 @@ fn compile(source: &str, locale: &str, strip: bool) -> Result<Compiled, CompileE
     options.cldr_version = Some(mf2_locale_data::CLDR_VERSION);
     options.locale_entries =
         plural_locale_entries(locale, &[PluralKind::Cardinal, PluralKind::Ordinal])?;
+    let mut needs = NumberNeeds::from_functions(analysis.functions.iter().map(|f| &*f.nfc));
+    needs.symbols = true;
+    options
+        .locale_entries
+        .extend(number_locale_entries(locale, &needs)?);
     if strip {
         options = options.stripped();
     }

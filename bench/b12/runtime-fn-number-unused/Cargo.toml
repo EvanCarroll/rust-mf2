@@ -1,0 +1,18 @@
+[package]
+name = "b12-runtime-fn-number-unused"
+description = "B1′: the runtime with fn-number on but unused — mf2-fn-number linked, the registry the core's (the corpus uses no localized number). Must equal b12-runtime."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-runtime-walk.workspace = true
+mf2-fn-number.workspace = true
+mf2-runtime = { workspace = true }
+
+[lints]
+workspace = true
