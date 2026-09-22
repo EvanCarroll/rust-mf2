@@ -284,7 +284,8 @@ one sample each (ns per format): text only 29, `{$n}` unannotated 162,
 placeholder 511, select + placeholder 657, an exact key 606, `pl` select +
 placeholder 780.
 
-**Against P0.8's 317 ns** (measured on P0.3's integer-only runtime, itself
+**Against P0.8's 317 ns** — **owner decision 3 (2026-09-22): the figure is
+kept as reported**, not gated. (measured on P0.3's integer-only runtime, itself
 under load 2–5): `en` select is 1.45× at this machine's best clock and 1.8×
 at its worst — the 1.5× criterion straddles the clock, and the figure is
 reported, not gated, in `bench/runtime-bench` and the B10 gate. Owner

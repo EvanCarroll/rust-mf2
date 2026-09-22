@@ -106,7 +106,11 @@ before anything is built.
 2. Unchanged: the remote host (the CI `runs-on` label); the spec license
    (#1112); B5/B9 restatements; whether the D1 gate runs on every push.
 3. **If A10 cannot bring select within 1.5× P0.8**, keep the figure as
-   reported, or restate it.
+   reported, or restate it. **Decided (owner, 2026-09-22): keep it as
+   reported** — A10 kept the plural-category cache and select measures
+   1.45× at this machine's best clock and 1.8× at its worst, inside the
+   clock's own drift, and P0.8's 317 ns came from Phase 0's integer-only
+   runtime. Not gated; P6 measures the browser figures on real pages.
 4. **After A0: adopt the `intl` client option or not** (the D4 amendment),
    and if so its browser floor (require `Intl.NumberFormat` v3, or ship a
    fallback). **Decided (owner, 2026-09-22): adopted as an opt-in client
