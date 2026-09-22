@@ -2,15 +2,17 @@
 // mf2-two browser checks. One script per check under checks/; the app under
 // test must already be running at --base-url.
 //
-//   node run.mjs <check> [--base-url URL] [--browser chromium|firefox|all]
+//   node run.mjs <check> [--base-url URL] [--browser chromium|firefox|webkit|all]
 //                        [--throttle] [--label TEXT] [--json FILE]
 //
-// Exit code 0 when every assertion passed, 1 otherwise.
+// `all` is Chromium, Firefox, and WebKit when a WebKit build is found; a
+// browser `all` includes that cannot start is reported and skipped (named
+// explicitly, it fails). Exit code 0 when every assertion passed, 1 otherwise.
 
 import { parseArgs } from 'node:util';
 import { writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { launch } from './lib/browser.mjs';
+import { available, launch } from './lib/browser.mjs';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -25,17 +27,32 @@ const { values, positionals } = parseArgs({
 
 const [checkName] = positionals;
 if (!checkName) {
-  console.error('usage: node run.mjs <check> [--base-url URL] [--browser chromium|firefox|all] [--throttle] [--json FILE]');
+  console.error('usage: node run.mjs <check> [--base-url URL] [--browser chromium|firefox|webkit|all] [--throttle] [--json FILE]');
   process.exit(2);
 }
 const check = await import(`./checks/${checkName}.mjs`);
-const browsers = values.browser === 'all' ? ['chromium', 'firefox'] : values.browser.split(',');
+const all = values.browser === 'all';
+const browsers = all
+  ? ['chromium', 'firefox', ...(available('webkit') ? ['webkit'] : [])]
+  : values.browser.split(',');
 
-const report = { check: checkName, label: values.label, baseUrl: values['base-url'], runs: [] };
+const report = { check: checkName, label: values.label, baseUrl: values['base-url'], runs: [], skipped: [] };
 let failed = 0;
 
 for (const name of browsers) {
-  const { browser, executablePath } = await launch(name);
+  let launched;
+  try {
+    launched = await launch(name);
+  } catch (e) {
+    const error = String(e?.message ?? e).split('\n').filter((l) => l.trim()).slice(0, 8).join(' | ');
+    if (all) {
+      console.log(`[${name}] SKIP cannot start: ${error}`);
+      report.skipped.push({ browser: name, error });
+      continue;
+    }
+    throw e;
+  }
+  const { browser, executablePath } = launched;
   const run = { browser: name, version: browser.version(), executablePath, assertions: [], data: {} };
   const ctx = {
     baseUrl: values['base-url'].replace(/\/$/, ''),

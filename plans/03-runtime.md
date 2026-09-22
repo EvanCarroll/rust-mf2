@@ -688,7 +688,7 @@ selection) are implemented once in Rust** in `mf2-fn-*`; a backend only supplies
 the final "digits + symbols → text" or "instant + skeleton → text" step. Option
 validation, inheritance, `select` handling and error emission never fork.
 
-### 5.3 Owner request (2026-09-21): an `intl` client option — Phase 4 probe
+### 5.3 Owner request (2026-09-21): an `intl` client option — adopted after the Phase 4 probe
 
 The owner asked to use the browser's `Intl` wherever it can do the work,
 with Rust kept for server rendering, so that the client wasm need not carry
@@ -725,6 +725,24 @@ probe's numbers hold. The design it would follow:
   conformance for this option is per engine (Chromium, Firefox, WebKit),
   as good as each engine's `Intl`; every numeric placeholder crosses from wasm
   to JS.
+
+**The probe (11 A0; `bench/intl-probe/RESULTS.md`) and the decision.**
+Measured in Chromium 143 and Firefox 155 (WebKit could not start then), B gz
+of wasm + JS against the same harness without numbers: the core numeric
+functions cost 5,382 on the Rust path and **7,541** through `Intl` (774 of it
+JS) — the option is *larger*, because MF2's option validation, operand
+rules, `:offset` and inheritance stay in Rust and the glue outweighs the
+rounding, digit output and plural code it replaces; with locale symbols and
+`:percent` the two are 7,103 and 7,557; only `:currency` + `:unit` may favour
+it (≈ −1.8 KB, an estimate until A4 lands). Every numeric placeholder is
+2–6× slower (+2–10 µs; +10–40 µs at 4× CPU throttle). Where the engines have
+the data they agree with the Rust path — P0.5's 100,000 cases 95,675 / 0,
+the panel's 4,004 localized cases all identical — but `Intl.PluralRules`
+answers with en-US rules for a locale it lacks (Firefox lacks 30 of CLDR's,
+Chromium 5), silently. **Owner decision 4 (2026-09-22): adopted as an opt-in
+client feature, off by default, requiring `Intl.NumberFormat` v3** — no Rust
+fallback in the client; an engine without it formats numbers neutrally and
+reports *Unsupported Operation*. The probe stays as the A/B baseline.
 
 ### 5.4 Dates: the semantics' open points (Phase 4, A5)
 

@@ -1,0 +1,19 @@
+[package]
+name = "intl-probe-fn"
+description = "Phase 4 A0: :number, :integer, :offset, :percent, :currency, :unit over the browser's Intl — MF2 semantics in Rust, rounding, digits and plural categories from Intl.NumberFormat / Intl.PluralRules (plans/03-runtime.md §5.3)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# Design A of the key (`src/host.rs`): one-character codes, Intl's option
+# names in the JavaScript. Default: design B, `name=value` pairs.
+key-codes = []
+
+[dependencies]
+mf2-runtime.workspace = true
+wasm-bindgen.workspace = true
+
+[lints]
+workspace = true

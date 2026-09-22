@@ -22,7 +22,7 @@ members = [
 # Standalone workspaces: the Phase 0 experiments, the cargo-fuzz targets
 # (nightly only), and the B12 wasm harnesses (no_std cdylibs with their own
 # panic handler and allocator; bench/b12/check.sh).
-exclude = ["probes", "fuzz", "bench/b12"]
+exclude = ["probes", "fuzz", "bench/b12", "bench/intl-probe"]
 
 [workspace.package]
 version = "0.0.0"

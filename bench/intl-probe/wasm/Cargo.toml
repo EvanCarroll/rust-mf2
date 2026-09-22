@@ -1,0 +1,43 @@
+[package]
+name = "intl-probe-wasm"
+description = "Phase 4 A0: the wasm harness — the runtime with one registry per variant (cargo feature), the same wasm-bindgen exports in every variant (load, format, parts, errors, bench)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+# Exactly one per build (scripts/build.sh builds each in its own cargo
+# invocation, so nothing unifies):
+[features]
+# The runtime with `:string` only: the size base.
+base = []
+# + mf2_runtime::functions::{NUMBER, INTEGER, OFFSET}: today's Rust path.
+rust = []
+# + the probe's Intl :number / :integer / :offset, neutral output.
+intl = ["dep:intl-probe-fn"]
+# + locale symbols (the catalog's locale) and :percent.
+intl-loc = ["dep:intl-probe-fn"]
+# + :currency and :unit.
+intl-cu = ["dep:intl-probe-fn"]
+# `intl` with design A of the Intl key (`fn/src/host.rs`): one-character
+# codes, Intl's option names in the JavaScript (the default is design B).
+intl-codes = ["dep:intl-probe-fn", "intl-probe-fn/key-codes"]
+# + mf2-fn-number's localized :number / :integer / :offset and :percent:
+# the Rust localization layer (its :currency and :unit follow in A4; add
+# them to the registry in src/lib.rs when they exist).
+rust-loc = ["dep:mf2-fn-number"]
+
+[dependencies]
+intl-probe-fn = { workspace = true, optional = true }
+mf2-fn-number = { workspace = true, optional = true }
+mf2-catalog.workspace = true
+mf2-host-web.workspace = true
+mf2-model = { workspace = true, features = ["suite-names"] }
+mf2-runtime.workspace = true
+wasm-bindgen = { workspace = true, features = ["std"] }
+
+[lints]
+workspace = true

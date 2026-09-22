@@ -1,12 +1,18 @@
 // Shared helpers for mf2-two browser checks: browser launch with executable
 // discovery, console capture, network + Resource Timing collection.
 
-import { chromium, firefox } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 import { existsSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const TYPES = { chromium, firefox };
+const TYPES = { chromium, firefox, webkit };
+
+// The repository's own browsers directory: WebKit is installed there (README,
+// "WebKit"), so that `playwright install` never garbage-collects the
+// Chromium and Firefox builds of ~/.cache/ms-playwright.
+const REPO_BROWSERS = fileURLToPath(new URL('../../../target/ms-playwright', import.meta.url));
 
 // Relative executable paths inside a Playwright browser directory (Linux).
 const LAYOUT = {
@@ -15,33 +21,52 @@ const LAYOUT = {
     ['chromium-', 'chrome-linux64/chrome'],
   ],
   firefox: [['firefox-', 'firefox/firefox']],
+  webkit: [['webkit-', 'pw_run.sh']],
 };
 
-function cacheDir() {
-  return process.env.PLAYWRIGHT_BROWSERS_PATH || join(homedir(), '.cache', 'ms-playwright');
+function cacheDirs() {
+  const dirs = [process.env.PLAYWRIGHT_BROWSERS_PATH || join(homedir(), '.cache', 'ms-playwright'), REPO_BROWSERS];
+  return [...new Set(dirs)];
 }
 
-// Newest cached build that has an executable, e.g. chromium_headless_shell-1200.
+// Newest cached build that has an executable, e.g. chromium_headless_shell-1200,
+// in the Playwright cache, then in the repository's target/ms-playwright.
 function newestCached(name) {
-  const dir = cacheDir();
-  if (!existsSync(dir)) return undefined;
-  const entries = readdirSync(dir);
-  for (const [prefix, rel] of LAYOUT[name] ?? []) {
-    const builds = entries
-      .filter((e) => e.startsWith(prefix) && /^\d+$/.test(e.slice(prefix.length)))
-      .sort((a, b) => Number(b.slice(prefix.length)) - Number(a.slice(prefix.length)));
-    for (const b of builds) {
-      const exe = join(dir, b, rel);
-      if (existsSync(exe)) return exe;
+  for (const dir of cacheDirs()) {
+    if (!existsSync(dir)) continue;
+    const entries = readdirSync(dir);
+    for (const [prefix, rel] of LAYOUT[name] ?? []) {
+      const builds = entries
+        .filter((e) => e.startsWith(prefix) && /^\d+$/.test(e.slice(prefix.length)))
+        .sort((a, b) => Number(b.slice(prefix.length)) - Number(a.slice(prefix.length)));
+      for (const b of builds) {
+        const exe = join(dir, b, rel);
+        if (existsSync(exe)) return exe;
+      }
     }
   }
   return undefined;
 }
 
 /**
- * Launches `name` ("chromium" | "firefox"). Executable, in order:
- * MF2_E2E_CHROMIUM / MF2_E2E_FIREFOX → the build this Playwright version
- * expects (if installed) → the newest cached Playwright build of that browser.
+ * Whether a build of `name` can be found (override, the expected build, or a
+ * cached one) — `--browser all` runs WebKit only then.
+ */
+export function available(name) {
+  const type = TYPES[name];
+  if (!type) return false;
+  const override = process.env[`MF2_E2E_${name.toUpperCase()}`];
+  if (override) return existsSync(override);
+  const own = type.executablePath();
+  return Boolean((own && existsSync(own)) || newestCached(name));
+}
+
+/**
+ * Launches `name` ("chromium" | "firefox" | "webkit"). Executable, in order:
+ * MF2_E2E_CHROMIUM / MF2_E2E_FIREFOX / MF2_E2E_WEBKIT → the build this
+ * Playwright version expects (if installed) → the newest cached Playwright
+ * build of that browser (~/.cache/ms-playwright or $PLAYWRIGHT_BROWSERS_PATH,
+ * then target/ms-playwright). WebKit's executable is its `pw_run.sh`.
  */
 export async function launch(name) {
   const type = TYPES[name];

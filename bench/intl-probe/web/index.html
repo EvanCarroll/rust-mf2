@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mf2-two intl probe</title>
+  <style>
+    body { display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem; font: 1rem/1.5 system-ui, sans-serif; color: #111; background: #fff; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Phase 4 A0: the <code>intl</code> probe</h1>
+    <p>Driven by <code>tools/e2e/checks/intl.mjs</code> through <code>window.mf2probe</code>.</p>
+    <p id="status" role="status" aria-live="polite">loading…</p>
+  </main>
+  <script type="module" src="probe.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+# Phase 4 task A0 (plans/11-phase-4-work-order.md): the `intl` client-option
+# probe. A standalone workspace (the root workspace excludes
+# `bench/intl-probe`): the wasm harness is a cdylib for
+# wasm32-unknown-unknown built once per variant (cargo features), and the
+# Intl-backed handlers must never unify features with anything else.
+[workspace]
+resolver = "3"
+members = ["fn", "wasm", "native"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+intl-probe-fn = { path = "fn" }
+# The client path: no features.
+mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
+mf2-host-web = { path = "../../crates/mf2-host-web" }
+mf2-runtime = { path = "../../crates/mf2-runtime", default-features = false }
+# The Rust localization layer (Phase 4 A3, commit d56e089 on): the `rust-loc`
+# variant and the Rust side of the locale-symbol cases. scripts/snapshot.sh
+# puts a stub in snapshots of older commits, where only the other variants
+# build.
+mf2-fn-number = { path = "../../crates/mf2-fn-number" }
+# Build side (the native bin): catalogs, the suite, the CLDR samples.
+mf2 = { path = "../../crates/mf2" }
+mf2-locale-data = { path = "../../crates/mf2-locale-data" }
+mf2-model = { path = "../../crates/mf2-model" }
+mf2-syntax = { path = "../../crates/mf2-syntax" }
+# Exact: the wasm-bindgen CLI that post-processes the module must be the same
+# version (the installed CLI is 0.2.128, the root lockfile's too).
+wasm-bindgen = { version = "=0.2.128", default-features = false }
+clap = { version = "4.6.7", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.20"
+
+[workspace.lints.rust]
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+similar_names = "allow"
+too_many_lines = "allow"
+
+# Native tools.
+[profile.release]
+lto = "fat"
+
+# The 06 §3 size method, identical to the root workspace's `wasm-release`:
+# opt-level z, fat LTO, one CGU, abort, strip; then `wasm-opt -Oz`, gzip -9.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+# The same, keeping the name section (twiggy attribution).
+[profile.wasm-syms]
+inherits = "wasm-release"
+strip = false
+
+# Speed runs: the same code at opt-level 3 is *not* what ships, so the
+# timings use `wasm-release` too (what a client downloads and runs).

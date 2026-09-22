@@ -1,0 +1,31 @@
+[package]
+name = "intl-probe-native"
+description = "Phase 4 A0, build side: compiles the probe's catalogs natively (mf2::compile_str and multi-message catalogs), the CLDR plural samples, the L4 bundles and the locale-symbol cases; formats the cases through the Rust registry."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# `catalog-data`: the LOCALE bytes the option would drop per locale; needs
+# mf2-locale-data's number entries (Phase 4 A2, commit ef65951 or later), so
+# it is off for builds against 3fc4735.
+number-data = []
+# `loc-format` through mf2-fn-number's localized handlers (Phase 4 A3, commit
+# d56e089 or later): the Rust side of the locale-symbol cases.
+fn-number = ["dep:mf2-fn-number"]
+
+[dependencies]
+clap.workspace = true
+mf2 = { workspace = true, features = ["compile", "host-std"] }
+mf2-catalog = { workspace = true, features = ["writer"] }
+mf2-fn-number = { workspace = true, optional = true }
+mf2-locale-data.workspace = true
+mf2-model = { workspace = true, features = ["suite-names"] }
+mf2-runtime.workspace = true
+mf2-syntax.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

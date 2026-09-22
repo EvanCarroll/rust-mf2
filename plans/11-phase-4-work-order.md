@@ -109,7 +109,11 @@ before anything is built.
    reported, or restate it.
 4. **After A0: adopt the `intl` client option or not** (the D4 amendment),
    and if so its browser floor (require `Intl.NumberFormat` v3, or ship a
-   fallback).
+   fallback). **Decided (owner, 2026-09-22): adopted as an opt-in client
+   feature, off by default, requiring `Intl.NumberFormat` v3** (no Rust
+   fallback in the client), with the probe's figures in view — the L4 run in
+   Chromium, Firefox and WebKit is part of the exit (WebKit runs here since
+   2026-09-22).
 
 ## Part A — tasks (A0 and A1 first; A2–A5 in order; A6–A11 as their inputs exist)
 
