@@ -3,7 +3,14 @@
 //! includes (plans/05-tooling.md §4).
 
 fn main() {
-    let outcome = match mf2_build::Build::new().and_then(|b| b.emit_cargo(true).run()) {
+    // With `split-catalogs`, this crate emits only the module: the catalogs
+    // belong to a crate the server binary alone depends on (owner question 1).
+    let emit = if std::env::var_os("CARGO_FEATURE_SPLIT_CATALOGS").is_some() {
+        mf2_build::Emit::Module
+    } else {
+        mf2_build::Emit::Both
+    };
+    let outcome = match mf2_build::Build::new().and_then(|b| b.emit_cargo(true).emit(emit).run()) {
         Ok(outcome) => outcome,
         Err(e) => {
             println!("cargo::error={e}");

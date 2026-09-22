@@ -14,6 +14,7 @@ use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
 
 use crate::cmd;
 use crate::error::{Error, Result};
@@ -65,8 +66,12 @@ struct Scenario {
     manifest_moves: bool,
     /// Whether the client artifact is expected to differ.
     wasm_moves: bool,
-    /// Which outputs must change, by suffix; empty means "none".
+    /// Which of the i18n crate's outputs must change, by suffix; empty means
+    /// "none".
     changes: &'static [&'static str],
+    /// The same with the catalogs emitted apart: the i18n crate then writes
+    /// no catalog at all, so only what the manifest covers can move.
+    split_changes: &'static [&'static str],
 }
 
 fn locale(root: &Path, tag: &str) -> PathBuf {
@@ -94,6 +99,7 @@ fn scenarios() -> Vec<Scenario> {
             manifest_moves: false,
             wasm_moves: false,
             changes: &[],
+            split_changes: &[],
         },
         Scenario {
             name: "S2 mtime only",
@@ -106,6 +112,7 @@ fn scenarios() -> Vec<Scenario> {
             manifest_moves: false,
             wasm_moves: false,
             changes: &[],
+            split_changes: &[],
         },
         Scenario {
             name: "S3 translation only",
@@ -114,6 +121,7 @@ fn scenarios() -> Vec<Scenario> {
             manifest_moves: false,
             wasm_moves: false,
             changes: &["pl"],
+            split_changes: &[],
         },
         Scenario {
             name: "S4 source text",
@@ -124,6 +132,7 @@ fn scenarios() -> Vec<Scenario> {
             // Only the source locale's: `ar` has this message of its own, so
             // it does not take the new text.
             changes: &["en"],
+            split_changes: &[],
         },
         Scenario {
             name: "S5 new id",
@@ -136,6 +145,7 @@ fn scenarios() -> Vec<Scenario> {
             manifest_moves: true,
             wasm_moves: true,
             changes: &["en", "ar", "pl", "manifest.mf2m", "mf2_generated.rs"],
+            split_changes: &["manifest.mf2m", "mf2_generated.rs"],
         },
         Scenario {
             name: "S6 new input",
@@ -150,33 +160,48 @@ fn scenarios() -> Vec<Scenario> {
             manifest_moves: true,
             wasm_moves: true,
             changes: &["en", "ar", "manifest.mf2m", "mf2_generated.rs"],
+            split_changes: &["manifest.mf2m", "mf2_generated.rs"],
         },
     ]
 }
 
-pub(crate) fn run(root: &Path, keep: bool) -> Result<()> {
+pub(crate) fn run(root: &Path, keep: bool, split: bool) -> Result<()> {
     let cargo = cmd::cargo();
     let fixture = root.join("tools").join("i18n-fixture");
     let saved = save(&fixture)?;
-    let result = go(&cargo, root, &fixture);
+    let features = if split {
+        "hydrate,split-catalogs"
+    } else {
+        "hydrate"
+    };
+    eprintln!(
+        "scenarios: {} arrangement ({features})",
+        if split {
+            "the catalogs apart"
+        } else {
+            "one crate"
+        }
+    );
+    let result = go(&cargo, root, &fixture, features);
     if !keep {
         restore(&saved)?;
         // Leave the tree as it was found, artifacts included.
-        build(&cargo, root)?;
+        build(&cargo, root, features)?;
     }
     result
 }
 
-fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
+fn go(cargo: &OsStr, root: &Path, fixture: &Path, features: &str) -> Result<()> {
+    let split = features.contains("split-catalogs");
     let mut report = String::new();
     let _ = writeln!(
         report,
-        "| scenario | outputs rewritten | manifest hash | client wasm |"
+        "| scenario | outputs rewritten | manifest hash | client wasm | rebuild |"
     );
-    let _ = writeln!(report, "|---|---|---|---|");
+    let _ = writeln!(report, "|---|---|---|---|---:|");
 
-    build(cargo, root)?;
-    let mut previous = snapshot(root)?;
+    let out = build(cargo, root, features)?;
+    let mut previous = snapshot(root, &out)?;
     eprintln!(
         "scenarios: baseline — manifest {}, wasm {}",
         previous.manifest_hash, previous.wasm
@@ -185,8 +210,10 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
     let mut problems: Vec<String> = Vec::new();
     for scenario in scenarios() {
         (scenario.edit)(fixture)?;
-        build(cargo, root)?;
-        let now = snapshot(root)?;
+        let started = Instant::now();
+        let out = build(cargo, root, features)?;
+        let rebuild = started.elapsed();
+        let now = snapshot(root, &out)?;
         let changed = now.changed(&previous);
 
         let manifest_moved = now.manifest_hash != previous.manifest_hash;
@@ -215,7 +242,12 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
                 }
             ));
         }
-        for expected in scenario.changes {
+        let expected_changes = if split {
+            scenario.split_changes
+        } else {
+            scenario.changes
+        };
+        for expected in expected_changes {
             if !changed.iter().any(|name| name.contains(expected)) {
                 problems.push(format!(
                     "{}: nothing matching {expected:?} was rewritten (got {changed:?})",
@@ -223,7 +255,7 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
                 ));
             }
         }
-        if scenario.changes.is_empty() && !changed.is_empty() {
+        if expected_changes.is_empty() && !changed.is_empty() {
             problems.push(format!(
                 "{}: rewrote {changed:?} though nothing should have changed",
                 scenario.name
@@ -231,7 +263,7 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
         }
         let _ = writeln!(
             report,
-            "| {} — {} | {} | {} | {} |",
+            "| {} — {} | {} | {} | {} | {} |",
             scenario.name,
             scenario.what,
             if changed.is_empty() {
@@ -244,10 +276,11 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
                 "rebuilt"
             } else {
                 "**identical**"
-            }
+            },
+            format_duration(rebuild)
         );
         eprintln!(
-            "scenarios: {:<22} outputs {:<40} manifest {} wasm {}",
+            "scenarios: {:<22} outputs {:<40} manifest {} wasm {} rebuild {}",
             scenario.name,
             if changed.is_empty() {
                 "none".to_owned()
@@ -255,7 +288,8 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
                 changed.join(", ")
             },
             if manifest_moved { "moved" } else { "same " },
-            if wasm_moved { "rebuilt" } else { "identical" }
+            if wasm_moved { "rebuilt" } else { "identical" },
+            format_duration(rebuild)
         );
         previous = now;
     }
@@ -272,27 +306,60 @@ fn go(cargo: &OsStr, root: &Path, fixture: &Path) -> Result<()> {
     }
 }
 
-/// Builds the client artifact, which runs the fixture's build script.
-fn build(cargo: &OsStr, root: &Path) -> Result<()> {
+/// A duration for a table a person reads.
+fn format_duration(d: Duration) -> String {
+    format!("{:.2} s", d.as_secs_f64())
+}
+
+/// Builds the client artifact, which runs the fixture's build script, and
+/// gives the `OUT_DIR` cargo used for it.
+///
+/// The directory is read from cargo's own JSON rather than guessed from the
+/// newest file under `target/`: one feature set has one build directory, and
+/// a run that compares two arrangements would otherwise look at the other
+/// one's outputs.
+fn build(cargo: &OsStr, root: &Path, features: &str) -> Result<PathBuf> {
     let args: Vec<&OsStr> = vec![
         OsStr::new("build"),
+        OsStr::new("--message-format"),
+        OsStr::new("json-render-diagnostics"),
         OsStr::new("-p"),
         OsStr::new(FIXTURE),
         OsStr::new("--bin"),
         OsStr::new(CLIENT_BIN),
         OsStr::new("--no-default-features"),
         OsStr::new("--features"),
-        OsStr::new("hydrate"),
+        OsStr::new(features),
         OsStr::new("--target"),
         OsStr::new(WASM),
         OsStr::new("--release"),
     ];
-    cmd::run_inherit(cargo, &args, root)
+    let stdout = cmd::run_capture(cargo, &args, root, &[])?;
+    let text = String::from_utf8_lossy(&stdout);
+    let mut out_dir = None;
+    for line in text.lines() {
+        let Ok(value) = serde_json::from_str::<serde_json::Value>(line) else {
+            continue;
+        };
+        if value["reason"] == "build-script-executed"
+            && value["package_id"]
+                .as_str()
+                .is_some_and(|id| id.contains(FIXTURE))
+            && let Some(dir) = value["out_dir"].as_str()
+        {
+            out_dir = Some(PathBuf::from(dir));
+        }
+    }
+    out_dir.ok_or_else(|| Error::CommandFailed {
+        command: format!("cargo build -p {FIXTURE} --features {features}"),
+        status: "no build script output".to_owned(),
+        stderr: "cargo did not report an out_dir for the fixture".to_owned(),
+    })
 }
 
 /// What the build wrote, and what the client carries.
-fn snapshot(root: &Path) -> Result<Snapshot> {
-    let out = out_dir(root)?;
+fn snapshot(root: &Path, out: &Path) -> Result<Snapshot> {
+    let out = out.to_path_buf();
     let mut outputs = BTreeMap::new();
     let entries = std::fs::read_dir(&out).map_err(|source| Error::IoAt {
         path: out.clone(),
@@ -329,34 +396,6 @@ fn snapshot(root: &Path) -> Result<Snapshot> {
         manifest_hash,
         wasm: digest(&bytes),
     })
-}
-
-/// The fixture's `OUT_DIR` for the client build: the one holding a generated
-/// module, most recently written.
-fn out_dir(root: &Path) -> Result<PathBuf> {
-    let build = root.join("target").join(WASM).join("release").join("build");
-    let mut best: Option<(std::time::SystemTime, PathBuf)> = None;
-    let entries = std::fs::read_dir(&build).map_err(|source| Error::IoAt {
-        path: build.clone(),
-        source,
-    })?;
-    for entry in entries.flatten() {
-        let dir = entry.path().join("out");
-        let generated = dir.join("mf2_generated.rs");
-        let Ok(meta) = std::fs::metadata(&generated) else {
-            continue;
-        };
-        let Ok(time) = meta.modified() else { continue };
-        if best.as_ref().is_none_or(|(t, _)| time > *t) {
-            best = Some((time, dir));
-        }
-    }
-    best.map(|(_, dir)| dir)
-        .ok_or_else(|| Error::CommandFailed {
-            command: "cargo xtask scenarios".to_owned(),
-            status: "no OUT_DIR".to_owned(),
-            stderr: format!("no build script output under {}", build.display()),
-        })
 }
 
 /// A short content hash, for a report a person reads. FNV-1a 64: two files

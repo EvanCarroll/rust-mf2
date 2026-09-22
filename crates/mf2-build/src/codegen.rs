@@ -27,7 +27,7 @@ use std::path::Path;
 
 use mf2_catalog::Dir;
 
-use crate::build::LocaleInfo;
+use crate::build::{Emit, LocaleInfo};
 use crate::features::Features;
 
 /// What the module is generated from.
@@ -54,6 +54,9 @@ pub struct Module<'a> {
     pub unannotated: bool,
     /// How many messages, for the header comment.
     pub messages: usize,
+    /// What this build writes: with [`Emit::Module`] the catalogs are
+    /// another crate's, and nothing here names one.
+    pub emit: Emit,
 }
 
 /// The module's source.
@@ -62,10 +65,33 @@ pub fn write(module: &Module<'_>) -> String {
     header(&mut s, module);
     identity(&mut s, module);
     locales(&mut s, module);
-    catalogs(&mut s, module);
+    if module.emit == Emit::Both {
+        catalogs(&mut s, module, true);
+    }
     registry(&mut s, module);
     host(&mut s, module);
     tr(&mut s, module);
+    s
+}
+
+/// The catalog table on its own, for a crate only the server binary depends
+/// on ([`Emit::Catalogs`]).
+///
+/// The whole file is server-side by construction, so nothing in it is behind
+/// `ssr`; the crate that includes it is the gate.
+pub fn write_catalogs(module: &Module<'_>) -> String {
+    let mut s = String::with_capacity(512);
+    header(&mut s, module);
+    let _ = write!(
+        s,
+        "
+/// The facade the embedded catalogs are read through.
+#[doc(hidden)]
+pub use {facade} as __mf2;
+",
+        facade = module.facade
+    );
+    catalogs(&mut s, module, false);
     s
 }
 
@@ -160,15 +186,19 @@ pub fn has_locale(tag: &str) -> bool {{
     );
 }
 
-fn catalogs(s: &mut String, m: &Module<'_>) {
+fn catalogs(s: &mut String, m: &Module<'_>, gated: bool) {
+    let gate = if gated {
+        "#[cfg(feature = \"ssr\")]\n"
+    } else {
+        ""
+    };
     let _ = write!(
         s,
         "
 /// The catalogs, embedded for the **server** only: `(tag, file name,
 /// bytes)`. The client fetches its one locale instead, so its wasm holds no
 /// message text, no id and no catalog name (B6).
-#[cfg(feature = \"ssr\")]
-pub static CATALOGS: &[(&str, &str, &[u8])] = &[
+{gate}pub static CATALOGS: &[(&str, &str, &[u8])] = &[
 "
     );
     for locale in m.locales {
@@ -184,15 +214,13 @@ pub static CATALOGS: &[(&str, &str, &[u8])] = &[
         "];
 
 /// The embedded catalog of `tag`, for a server that serves it from memory.
-#[cfg(feature = \"ssr\")]
-pub fn catalog(tag: &str) -> Option<&'static [u8]> {{
+{gate}pub fn catalog(tag: &str) -> Option<&'static [u8]> {{
     CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, _, b)| *b)
 }}
 
 /// The file name `tag`'s catalog is published under, content-hashed and
 /// served immutable.
-#[cfg(feature = \"ssr\")]
-pub fn catalog_name(tag: &str) -> Option<&'static str> {{
+{gate}pub fn catalog_name(tag: &str) -> Option<&'static str> {{
     CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, n, _)| *n)
 }}
 "
@@ -340,7 +368,7 @@ macro_rules! tr {{
 #[cfg(test)]
 mod tests {
     use super::{Module, write};
-    use crate::build::LocaleInfo;
+    use crate::build::{Emit, LocaleInfo};
     use crate::features::Features;
     use mf2_catalog::Dir;
     use std::collections::BTreeMap;
@@ -381,6 +409,7 @@ mod tests {
             features,
             unannotated,
             messages: 3,
+            emit: Emit::Both,
         }
     }
 

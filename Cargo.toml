@@ -17,6 +17,7 @@ members = [
     "xtask",
     "conformance",
     "conformance/l4-runner",
+    "bench/build-cost",
     "bench/workload-gen",
     "bench/parser-gate",
     "bench/catalog-bench",

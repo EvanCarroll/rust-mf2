@@ -29,8 +29,9 @@ mod tests {
         assert!(super::registry().get("percent").is_none());
     }
 
-    /// Under `ssr` the catalogs are embedded, content-hashed and loadable.
-    #[cfg(feature = "ssr")]
+    /// Under `ssr` the catalogs are embedded, content-hashed and loadable —
+    /// unless they were emitted apart, in which case this crate names none.
+    #[cfg(all(feature = "ssr", not(feature = "split-catalogs")))]
     #[test]
     fn the_server_carries_every_catalog() {
         for (tag, name, bytes) in super::CATALOGS {

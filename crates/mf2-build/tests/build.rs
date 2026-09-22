@@ -300,3 +300,86 @@ fn the_manifest_hash_ignores_a_translation_edit() {
         "the old pl catalog was left behind"
     );
 }
+
+#[test]
+fn the_catalogs_can_be_emitted_apart_from_the_module() {
+    // Owner question 1 of plans/12: with the two apart, a translation edit
+    // leaves the i18n crate's generated module byte for byte the same, so
+    // cargo has nothing to recompile in the client build.
+    let root = corpus(
+        "split",
+        "source_locale = \"en\"\n",
+        &[
+            ("en", SOURCE),
+            ("pl", "@locale pl\n---\ngreeting = Czesc\n"),
+        ],
+    );
+    let module_out = out_dir("split-module");
+    let catalogs_out = out_dir("split-catalogs");
+    let build = || {
+        (
+            Build::at(&root, &module_out)
+                .features(Features::default())
+                .emit(mf2_build::Emit::Module)
+                .run()
+                .expect("the module"),
+            Build::at(&root, &catalogs_out)
+                .features(Features::default())
+                .emit(mf2_build::Emit::Catalogs)
+                .run()
+                .expect("the catalogs"),
+        )
+    };
+    let (module, catalogs) = build();
+
+    // The module knows the locales and the manifest, and names no catalog.
+    assert!(module.generated.contains("MANIFEST_HASH"));
+    assert!(!module.generated.contains(".mf2b"), "{}", module.generated);
+    assert!(
+        !module.generated.contains("CATALOGS"),
+        "{}",
+        module.generated
+    );
+    assert!(module_out.join("manifest.mf2m").is_file());
+    assert!(!module_out.join("en.mf2b").exists());
+    assert_eq!(
+        std::fs::read_dir(&module_out)
+            .expect("read_dir")
+            .flatten()
+            .filter(|e| e.path().extension().is_some_and(|x| x == "mf2b"))
+            .count(),
+        0,
+        "the module build wrote a catalog"
+    );
+
+    // The catalogs crate's file embeds them, unguarded: the crate is the gate.
+    assert!(catalogs.catalogs_module.contains("include_bytes!"));
+    assert!(
+        !catalogs
+            .catalogs_module
+            .contains("#[cfg(feature = \"ssr\")]")
+    );
+    assert!(catalogs_out.join("mf2_catalogs.rs").is_file());
+    assert!(!catalogs_out.join("mf2_generated.rs").exists());
+
+    // Now edit a translation and build again.
+    std::fs::write(
+        root.join("locales").join("pl").join("main.mf2"),
+        "@locale pl\n---\ngreeting = Dzien dobry\n",
+    )
+    .expect("edit");
+    let (module_again, catalogs_again) = build();
+    assert_eq!(
+        module_again.generated, module.generated,
+        "a translation edit changed the i18n crate's module"
+    );
+    assert!(
+        module_again.written.is_empty(),
+        "a translation edit rewrote {:?}",
+        module_again.written
+    );
+    assert!(
+        !catalogs_again.written.is_empty(),
+        "the catalogs crate did not notice the edit"
+    );
+}

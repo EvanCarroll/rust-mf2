@@ -27,6 +27,31 @@ use crate::slice;
 pub const MANIFEST_FILE: &str = "manifest.mf2m";
 /// The generated module's file name in `OUT_DIR`.
 pub const GENERATED_FILE: &str = "mf2_generated.rs";
+/// The catalog table's file name, when the two are emitted apart.
+pub const CATALOGS_FILE: &str = "mf2_catalogs.rs";
+
+/// What a build writes (`plans/05-tooling.md` §4; owner question 1 of
+/// `plans/12-phase-5a-work-order.md`).
+///
+/// Every locale change rewrites a catalog, and a catalog is named by its
+/// content hash, so a build that writes both puts a new name in the
+/// generated module — and cargo recompiles the i18n crate and everything
+/// that depends on it, in both of cargo-leptos' builds.
+///
+/// Splitting the two takes that cost away from the client: the i18n crate
+/// emits [`Emit::Module`], which a translation never changes, and a crate
+/// only the server binary depends on emits [`Emit::Catalogs`].
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum Emit {
+    /// The manifest, the catalogs and a module that names them (the
+    /// default: one crate, one build script).
+    #[default]
+    Both,
+    /// The manifest and a module with no catalog name, hash or byte in it.
+    Module,
+    /// The catalogs and the table that embeds them, for a server-only crate.
+    Catalogs,
+}
 
 /// A build, configured.
 #[derive(Debug)]
@@ -37,6 +62,7 @@ pub struct Build {
     features: Option<Features>,
     source_locale: Option<String>,
     facade: String,
+    emit: Emit,
     write: bool,
     emit_cargo: bool,
 }
@@ -76,6 +102,9 @@ pub struct Outcome {
     pub removed: Vec<PathBuf>,
     /// The generated Rust module's source.
     pub generated: String,
+    /// The catalog table's source, when the build emits it apart
+    /// ([`Emit::Catalogs`]); empty otherwise.
+    pub catalogs_module: String,
     /// Where the outputs went.
     pub out_dir: PathBuf,
 }
@@ -133,6 +162,7 @@ impl Build {
             features: None,
             source_locale: None,
             facade: "::mf2".to_owned(),
+            emit: Emit::Both,
             write: true,
             emit_cargo: false,
         }
@@ -164,6 +194,13 @@ impl Build {
     #[must_use]
     pub fn facade(mut self, path: impl Into<String>) -> Build {
         self.facade = path.into();
+        self
+    }
+
+    /// What to write (the default is [`Emit::Both`]).
+    #[must_use]
+    pub fn emit(mut self, emit: Emit) -> Build {
+        self.emit = emit;
         self
     }
 
@@ -283,6 +320,7 @@ impl Build {
                 written: Vec::new(),
                 removed: Vec::new(),
                 generated: String::new(),
+                catalogs_module: String::new(),
                 out_dir: self.out_dir.clone(),
             });
         }
@@ -341,7 +379,7 @@ impl Build {
         }
 
         let unannotated = catalogs.iter().any(|c| c.slice.unannotated);
-        let generated = codegen::write(&codegen::Module {
+        let module = codegen::Module {
             facade: &self.facade,
             manifest_path: &self.out_dir.join(MANIFEST_FILE),
             manifest_hash: built.manifest.hash(),
@@ -352,7 +390,14 @@ impl Build {
             features,
             unannotated,
             messages: built.manifest.ids.len(),
-        });
+            emit: self.emit,
+        };
+        let generated = codegen::write(&module);
+        let catalogs_module = if self.emit == Emit::Catalogs {
+            codegen::write_catalogs(&module)
+        } else {
+            String::new()
+        };
         let mut outcome = Outcome {
             manifest_hash: built.manifest.hash(),
             manifest: built.manifest,
@@ -363,27 +408,41 @@ impl Build {
             written: Vec::new(),
             removed: Vec::new(),
             generated,
+            catalogs_module,
             out_dir: self.out_dir.clone(),
         };
         // A corpus with errors comes back with its report, not as an
         // `Err`: the caller prints it.
         if self.write && outcome.report.is_clean() {
-            self.emit(&mut outcome)?;
+            self.write_outputs(&mut outcome)?;
         }
         Ok(outcome)
     }
 
     /// Writes the manifest and the catalogs, each only when its bytes change.
-    fn emit(&self, outcome: &mut Outcome) -> Result<()> {
+    fn write_outputs(&self, outcome: &mut Outcome) -> Result<()> {
         std::fs::create_dir_all(&self.out_dir)
             .map_err(|source| Error::io(self.out_dir.clone(), source))?;
-        let manifest_path = self.out_dir.join(MANIFEST_FILE);
-        if catalog::write_if_changed(&manifest_path, &outcome.manifest.write())? {
-            outcome.written.push(manifest_path);
+        if self.emit != Emit::Catalogs {
+            let manifest_path = self.out_dir.join(MANIFEST_FILE);
+            if catalog::write_if_changed(&manifest_path, &outcome.manifest.write())? {
+                outcome.written.push(manifest_path);
+            }
+            let generated_path = self.out_dir.join(GENERATED_FILE);
+            if catalog::write_if_changed(&generated_path, outcome.generated.as_bytes())? {
+                outcome.written.push(generated_path);
+            }
         }
-        let generated_path = self.out_dir.join(GENERATED_FILE);
-        if catalog::write_if_changed(&generated_path, outcome.generated.as_bytes())? {
-            outcome.written.push(generated_path);
+        if self.emit == Emit::Module {
+            // The catalogs are another crate's; nothing here writes one, so
+            // a translation never touches this crate's outputs.
+            return Ok(());
+        }
+        if self.emit == Emit::Catalogs {
+            let path = self.out_dir.join(CATALOGS_FILE);
+            if catalog::write_if_changed(&path, outcome.catalogs_module.as_bytes())? {
+                outcome.written.push(path);
+            }
         }
         let mut keep = Vec::new();
         for catalog in &outcome.catalogs {

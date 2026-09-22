@@ -115,6 +115,10 @@ enum Command {
         /// Leave the fixture edited, for looking at what happened.
         #[arg(long)]
         keep: bool,
+        /// The arrangement of owner question 1: the catalogs emitted apart,
+        /// in a crate only the server binary depends on.
+        #[arg(long)]
+        split: bool,
     },
     /// Size gate (Phase 5; not implemented yet).
     Size,
@@ -189,7 +193,7 @@ fn run(command: Command) -> Result<()> {
             l4_web::run(&root, &engines, !no_run)
         }
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
-        Command::Scenarios { keep } => scenarios::run(&root, keep),
+        Command::Scenarios { keep, split } => scenarios::run(&root, keep, split),
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

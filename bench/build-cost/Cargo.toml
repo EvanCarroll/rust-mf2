@@ -1,0 +1,19 @@
+[package]
+name = "build-cost"
+description = "What the build costs: the time and the peak memory of one mf2-build pass over a corpus (plans/12-phase-5a-work-order.md, A11)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# The per-locale `icu.blob`: pulls ICU4X's baked data crates into this
+# binary, exactly as `datetime-icu` pulls them into an application's build.
+icu-blob = ["mf2-build/icu-blob"]
+
+[dependencies]
+clap.workspace = true
+mf2-build.workspace = true
+
+[lints]
+workspace = true

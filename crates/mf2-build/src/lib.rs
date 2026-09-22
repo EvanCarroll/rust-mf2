@@ -58,7 +58,7 @@ pub mod pseudo;
 pub mod report;
 pub mod slice;
 
-pub use build::{Build, LocaleInfo, Outcome};
+pub use build::{Build, Emit, LocaleInfo, Outcome};
 pub use config::{CatalogConfig, Config, DataSet, Layout, LocaleDataConfig, Missing, Strip};
 pub use error::{Error, Result};
 pub use features::Features;
