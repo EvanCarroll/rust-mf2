@@ -95,7 +95,7 @@ then, for comparability).
 |---|---|---|---|
 | B1 | Fixed client cost: catalog reader + evaluator + `:string` + selection + plural + bidi + parts/markup + Leptos glue + fetch/boot. Of it, the **core numeric semantics** (`:number`/`:integer`/`:offset`, linked only when the corpus uses them) ≤ 10 KB gz | ≤ 30 KB gz | 20 KB gz |
 | B2 | Feature `fn-number` on **and** used: locale-aware numeric family incl. `:percent` | ≤ 3 KB gz | — |
-| B3 | …plus `:currency` + `:unit`, when used | ≤ 4 KB gz more | — |
+| B3 | …plus `:currency` + `:unit`, when used | ≤ 5.5 KB gz more *(restated in Phase 4; was ≤ 4)* | — |
 | B4 | Feature `fn-datetime` on **and** used | `datetime-intl`: ≤ 6 KB gz wasm + ≤ 1 KB gz JS glue (of which ≤ 3.5 KB gz date semantics every backend needs); `datetime-icu`: ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar, `icu.blob` ≤ 3 KB gz per locale without zone names, ≤ 25 KB gz with | — |
 | B1′ | Any feature on but **unused** by the corpus | +0 B over B1 | — |
 | B5 | Per call site, marginal, weighted by §2's mix (the reference workload) | ≤ 40 B gz (P0.1: 24.5; 35.7 against the `dummy` bound) | 25 B gz |
@@ -227,6 +227,21 @@ Details and commands: [phase-2-results](phase-2-results.md).
 | Simple `get` + `text`, native: en / pl / en-XA / ar-XB | **19.3** / 65.6 / 77.8 / 28.6 ns (P0.8 en: 20.7) — UTF-8 per access is 80–85 % on non-Latin text | same |
 | B12, reader: panic import after LTO + `wasm-opt -Oz`; `core::fmt` | **absent**; none | `bench/b12/check.sh` |
 | Reader + a walk over its whole API (part of B1), Δ against the base | 13,613 B raw / **6,787 B gz** (`Catalog::new` 3.4 KB raw) | same |
+
+**Budget moved by Phase 4** (owner, 2026-09-22; evidence in
+[phase-4-results](phase-4-results.md)): **B3 is ≤ 5.5 KB gz** (was ≤ 4). The
+built `:currency` + `:unit` measured 6,048 B gz over `fn-number`'s registry,
+5,432 after taking out what was duplicated (one options loop for both, one
+`fill`, byte-level blanks, the currency spacing decided once, the runtime's
+digit-size parser; B2 fell 2,151 → 2,069 with it) — `bench/b12/check.sh`,
+harness `b12-runtime-fn-number-measure`. P0.5's 2.9 KB probe had a plural stub
+and `en-US` data only; the functions as built carry what CLDR and ECMA-402
+do and it did not: plural-form currency and unit names, the
+`…alphaNextToNumber` patterns and currency spacing, currency-specific
+patterns and separators, accounting and narrow symbols, unit-width fallback
+and `X-per-Y` composition. Moving the currency presentation and the unit
+composition into the catalog writer was estimated at −0.9 to −1.4 KB gz for
+a larger catalog and literal-only compound units; not taken.
 
 ### Phase 3 measurements (2026-09-21)
 

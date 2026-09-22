@@ -114,6 +114,10 @@ before anything is built.
    fallback in the client), with the probe's figures in view — the L4 run in
    Chromium, Firefox and WebKit is part of the exit (WebKit runs here since
    2026-09-22).
+5. **B3** (`:currency` + `:unit`, ≤ 4 KB gz more) measured 5,432 B gz after
+   optimization (6,048 as first built). **Decided (owner, 2026-09-22):
+   restated to ≤ 5.5 KB gz** — the functions carry CLDR behaviour P0.5's
+   probe did not (06 §3, "Budget moved by Phase 4").
 
 ## Part A — tasks (A0 and A1 first; A2–A5 in order; A6–A11 as their inputs exist)
 
@@ -130,7 +134,7 @@ before anything is built.
 | **A8** Goldens | Locale-output goldens for the panel: a fixed message × argument set per function family, per locale; identical on native and `wasm32-wasip1` for the Rust backends. | goldens committed and checked in CI |
 | **A9** Generated input and fuzzing | `l4gen` and the `format` target extended to every new function, option and panel locale; `generated_l4` and a sampled wasip1 run nightly. | 1,000,000 generated cases clean; a ≥ 1 h `format` run clean on the final code |
 | **A10** Numeric speed | The two candidates of §"What Phase 3 changes here" (the plural category once per selector; an integer path), each A/B-measured by alternating binaries on `runtime-bench b10` and `examples/select_cost.rs`, kept only if faster and no larger than it is worth (report the bytes). | select within 1.5× P0.8 on `en`, or the figure restated with the owner (decision 3) |
-| **A11** Budgets and ledger | **B2** (`fn-number` on and used ≤ 3 KB gz), **B3** (`:currency` + `:unit` ≤ 4 KB gz more), **B4** (`datetime-intl` ≤ 6 KB gz + ≤ 1 KB gz JS; `datetime-icu` ≤ 95 KB gz Gregorian, ≤ 105 any calendar; `icu.blob` ≤ 3 KB gz per locale without zone names), **B8**, **B13** (an app using none of a family links none of its code), **B1′** (+0 for a feature on but unused), B12 for every new client crate — harnesses in `bench/b12`; the ledger at `current_phase = "P4"` in the exit commit. | every budget met or restated with the owner; `conformance-report` green at P4 |
+| **A11** Budgets and ledger | **B2** (`fn-number` on and used ≤ 3 KB gz), **B3** (`:currency` + `:unit` ≤ 5.5 KB gz more — restated, decision 5), **B4** (`datetime-intl` ≤ 6 KB gz + ≤ 1 KB gz JS; `datetime-icu` ≤ 95 KB gz Gregorian, ≤ 105 any calendar; `icu.blob` ≤ 3 KB gz per locale without zone names), **B8**, **B13** (an app using none of a family links none of its code), **B1′** (+0 for a feature on but unused), B12 for every new client crate — harnesses in `bench/b12`; the ledger at `current_phase = "P4"` in the exit commit. | every budget met or restated with the owner; `conformance-report` green at P4 |
 
 Order: A0 first (its decision shapes A3, A4 and A6), then A1; A2 → A3 → A4
 are the numeric family; A5 → A6 the dates

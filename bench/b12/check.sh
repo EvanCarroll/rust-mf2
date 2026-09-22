@@ -37,7 +37,9 @@
 #     (mf2-fn-number on and used: the localized :number, :integer, :offset,
 #     :percent and unannotated numbers) ≤ 3 KB gz; B1′ = b12-runtime-fn-number-
 #     unused − b12-runtime (the crate linked, the registry the core's) = +0 B.
-#     Both are B12-checked like the runtime.
+#     B3 = b12-runtime-fn-number-measure − b12-runtime-fn-number (:currency
+#     and :unit too) ≤ 5.5 KB gz (restated by the owner, 2026-09-22). All are
+#     B12-checked like the runtime.
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
@@ -57,7 +59,7 @@ TARGET=wasm32-unknown-unknown
 OUT=target/b12
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
-CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused control)
+CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure control)
 PANIC_IMPORT='b12::b12_panic_reachable'
 # twiggy demangles v0 names as `core[1a2b…]::fmt::…`; the mangled spellings
 # (`4core3fmt`) are matched too in case a name is left mangled.
@@ -163,7 +165,7 @@ done
 {
   printf 'harness\traw\tgz\tdelta_raw\tdelta_gz\n'
   printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${GZ[base]}"
-  for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused; do
+  for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure; do
     printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
       $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
   done
@@ -175,7 +177,12 @@ done
     $((RAW[runtime-fn-number] - RAW[runtime])) $((GZ[runtime-fn-number] - GZ[runtime]))
   printf "B1': fn-number on, unused (runtime-fn-number-unused - runtime)\t-\t-\t%d\t%d\n" \
     $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((GZ[runtime-fn-number-unused] - GZ[runtime]))
+  printf 'B3: + :currency, :unit (runtime-fn-number-measure - runtime-fn-number)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime-fn-number-measure] - RAW[runtime-fn-number])) $((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
 } > "$OUT/size.tsv"
+# B3 ≤ 5.5 KB gz more (plans/06-size-and-perf.md §3; restated 2026-09-22).
+b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
+[ "$b3" -le 5632 ] || bad "B3: :currency + :unit cost $b3 B gz (> 5,632)"
 # B2 ≤ 3 KB gz; B1′ = +0 B (plans/06-size-and-perf.md §3).
 b2=$((GZ[runtime-fn-number] - GZ[runtime]))
 [ "$b2" -le 3072 ] || bad "B2: fn-number on and used costs $b2 B gz (> 3,072)"
