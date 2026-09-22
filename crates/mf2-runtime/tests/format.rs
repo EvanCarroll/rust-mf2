@@ -397,3 +397,23 @@ fn neutral_grouping_is_unsupported() {
         assert_eq!(e, want, "{src}");
     }
 }
+
+#[test]
+fn offset_keeps_the_sign_of_a_nonzero_side() {
+    // Found by the Phase 4 intl probe (A0): a zero addend took the sign of
+    // zero + zero. `-0` + `-0` alone stays `-0`.
+    for (src, want) in [
+        ("{0 :offset subtract=5}", "-5"),
+        ("{-5 :offset add=0}", "-5"),
+        ("{-5 :offset subtract=0}", "-5"),
+        ("{0 :offset add=5}", "5"),
+        ("{-0 :offset subtract=5}", "-5"),
+        ("{-0 :offset add=5}", "5"),
+        ("{5 :offset subtract=5}", "0"),
+        ("{-0 :offset add=0}", "0"),
+        ("{-0 :offset subtract=0}", "-0"),
+        ("{-0.5 :offset add=0}", "-0.5"),
+    ] {
+        assert_eq!(ok(src, &[]), want, "{src}");
+    }
+}

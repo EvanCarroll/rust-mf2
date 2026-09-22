@@ -332,15 +332,18 @@ impl Decimal {
     /// digits (Unsupported Operation, `number.md` `:offset`).
     #[allow(clippy::many_single_char_names)]
     pub(crate) fn add(&self, other: &Decimal) -> Option<Decimal> {
+        // A zero addend leaves the other's value and sign; only zero + zero
+        // decides the sign of zero (-0 + -0 = -0, else +0), as IEEE 754 and
+        // the `fixed_decimal` baseline do.
         if other.len == 0 {
             let mut r = self.clone();
-            r.neg = self.neg && other.neg;
+            if self.len == 0 {
+                r.neg = self.neg && other.neg;
+            }
             return Some(r);
         }
         if self.len == 0 {
-            let mut r = other.clone();
-            r.neg = self.neg && other.neg;
-            return Some(r);
+            return Some(other.clone());
         }
         let lo = i32::from(self.low.min(other.low));
         let hi = i32::from(self.high().max(other.high())) + 1;
