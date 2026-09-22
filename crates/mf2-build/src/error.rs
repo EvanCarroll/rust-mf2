@@ -1,0 +1,109 @@
+//! Everything that can stop a build.
+//!
+//! A *diagnostic* — a syntax error in a locale file, a lint — is not one of
+//! these: it is a [`Report`](crate::Report) entry with a file, a line and a
+//! column, and a build fails on the count of them. This type is for what
+//! stops the build before it can report anything: I/O, a malformed
+//! `mf2.toml`, a catalog the writer refuses.
+
+use std::io;
+use std::path::PathBuf;
+
+/// The result of a build step.
+pub type Result<T> = std::result::Result<T, Error>;
+
+/// What stops a build.
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum Error {
+    /// A file could not be read or written.
+    #[error("{path}: {source}")]
+    Io {
+        /// The file.
+        path: PathBuf,
+        /// What the operating system said.
+        #[source]
+        source: io::Error,
+    },
+
+    /// `mf2.toml` is not valid TOML, or a key in it is wrong.
+    #[error("{path}: {message}")]
+    Config {
+        /// The configuration file.
+        path: PathBuf,
+        /// Which key, and what is wrong with it.
+        message: String,
+    },
+
+    /// A flat JSON corpus is not an object of strings.
+    #[error("{path}:{line}:{column}: {message}")]
+    Json {
+        /// The file.
+        path: PathBuf,
+        /// One-based line.
+        line: u32,
+        /// One-based column.
+        column: u32,
+        /// What is wrong.
+        message: String,
+    },
+
+    /// The locale directory names a tag the catalog format cannot write.
+    #[error("locale {locale:?}: {source}")]
+    Locale {
+        /// The tag.
+        locale: String,
+        /// What the locale data said.
+        #[source]
+        source: mf2_locale_data::Error,
+    },
+
+    /// The catalog writer refused a locale's messages.
+    #[error("catalog for {locale}: {source}")]
+    Write {
+        /// The tag.
+        locale: String,
+        /// What the writer said.
+        #[source]
+        source: mf2_catalog::WriteError,
+    },
+
+    /// The locale data could not be sliced.
+    #[error(transparent)]
+    LocaleData(#[from] mf2_locale_data::Error),
+
+    /// The manifest could not be written or read back.
+    #[error(transparent)]
+    Manifest(#[from] mf2_catalog::ManifestError),
+
+    /// A catalog could not be written.
+    #[error(transparent)]
+    Catalog(#[from] mf2_catalog::WriteError),
+
+    /// The layout on disk is not what a build needs.
+    #[error("{0}")]
+    Layout(String),
+
+    /// The build found errors in the corpus; they are in the report.
+    #[error("{errors} error{} in {locales} locale{}", plural(*errors), plural(*locales))]
+    Corpus {
+        /// How many errors.
+        errors: usize,
+        /// In how many locales.
+        locales: usize,
+    },
+}
+
+fn plural(n: usize) -> &'static str {
+    if n == 1 { "" } else { "s" }
+}
+
+impl Error {
+    /// An I/O error that names its file.
+    pub fn io(path: impl Into<PathBuf>, source: io::Error) -> Error {
+        Error::Io {
+            path: path.into(),
+            source,
+        }
+    }
+}

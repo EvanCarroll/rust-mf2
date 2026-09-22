@@ -1,0 +1,176 @@
+//! The lints of `mf2 check` (`plans/05-tooling.md` §5): their names, their
+//! default levels, and how low `mf2.toml` may set each one.
+//!
+//! The checks themselves are in [`crate::check`]; this module is what
+//! [`Config`](crate::Config) parses `[lints]` against, so a name in a
+//! configuration and a name in a report are the same string.
+
+use std::fmt;
+
+use serde::Deserialize;
+
+/// What a lint does when it fires.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Level {
+    /// Say nothing.
+    Allow,
+    /// Report it; the build goes on.
+    Warn,
+    /// Report it; the build fails.
+    Error,
+}
+
+impl fmt::Display for Level {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Level::Allow => "allow",
+            Level::Warn => "warn",
+            Level::Error => "error",
+        })
+    }
+}
+
+macro_rules! lints {
+    ($(
+        $(#[$meta:meta])*
+        $variant:ident = ($name:literal, $default:ident, $floor:ident);
+    )*) => {
+        /// One check `mf2 check` makes.
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+        #[serde(rename_all = "kebab-case")]
+        #[non_exhaustive]
+        pub enum Lint {
+            $( $(#[$meta])* $variant, )*
+        }
+
+        impl Lint {
+            /// Every lint, in declaration order.
+            pub const ALL: &'static [Lint] = &[$( Lint::$variant, )*];
+
+            /// The name `mf2.toml` and a report use.
+            pub fn name(self) -> &'static str {
+                match self { $( Lint::$variant => $name, )* }
+            }
+
+            /// What it does when `mf2.toml` says nothing.
+            pub fn default_level(self) -> Level {
+                match self { $( Lint::$variant => Level::$default, )* }
+            }
+
+            /// The lowest level `mf2.toml` may set it to. A lint whose floor
+            /// is [`Level::Error`] states a rule the rest of the pipeline
+            /// relies on — a build that ignored it could not produce a
+            /// correct catalog — so it cannot be turned down.
+            pub fn floor(self) -> Level {
+                match self { $( Lint::$variant => Level::$floor, )* }
+            }
+
+            /// The lint named `name`.
+            pub fn from_name(name: &str) -> Option<Lint> {
+                Lint::ALL.iter().copied().find(|l| l.name() == name)
+            }
+        }
+    };
+}
+
+lints! {
+    /// A translation has an id the source locale does not.
+    ExtraId = ("extra-id", Error, Error);
+    /// A translation uses a variable the source message does not declare.
+    /// A language that needs more input (grammatical gender, say) gets it by
+    /// the *source* declaring it with `.input`, even where its own pattern
+    /// ignores it.
+    UndeclaredVariable = ("undeclared-variable", Error, Error);
+    /// A translation uses a markup name the source message does not.
+    UndeclaredMarkup = ("undeclared-markup", Error, Error);
+    /// A `select` option is not a literal, so the build cannot know what it
+    /// selects.
+    DynamicSelect = ("dynamic-select", Error, Error);
+    /// A well-known option has a literal value it cannot take.
+    BadOptionValue = ("bad-option-value", Error, Error);
+    /// A function whose client feature is off — `:percent`, `:currency` and
+    /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
+    /// `fn-datetime`. A translation can never silently add formatting code to
+    /// the wasm (`plans/03-runtime.md` §5.1).
+    GatedFunction = ("gated-function", Error, Error);
+    /// An entry marked `@do-not-translate` differs from the source's.
+    DoNotTranslate = ("do-not-translate", Error, Error);
+    /// A function no registered crate provides. An error by default and
+    /// configurable, since custom functions are legal.
+    UnknownFunction = ("unknown-function", Error, Allow);
+
+    /// An id the source locale has and a translation does not: it falls back.
+    MissingTranslation = ("missing-translation", Warn, Allow);
+    /// The corpus formats numbers but `fn-number` is off, so digits render
+    /// without the locale's symbols.
+    NeutralNumbers = ("neutral-numbers", Warn, Allow);
+    /// Markup opened and not closed, or closed and not opened.
+    UnpairedMarkup = ("unpaired-markup", Warn, Allow);
+    /// A plural `.match` that does not mention every category the *target*
+    /// locale has.
+    MissingPluralCategory = ("missing-plural-category", Warn, Allow);
+    /// Source text that is not in NFC.
+    NonNfcSource = ("non-nfc-source", Warn, Allow);
+    /// A placeholder the source has and a translation dropped.
+    DroppedPlaceholder = ("dropped-placeholder", Warn, Allow);
+    /// An id no `tr!` in the workspace names.
+    UnusedId = ("unused-id", Warn, Allow);
+    /// Unpaired bidi isolates in literal text.
+    SuspiciousBidi = ("suspicious-bidi", Warn, Allow);
+    /// A `:currency` whose `currency` option is not a literal, so the catalog
+    /// must carry every currency CLDR has; listing them in `mf2.toml`
+    /// `[locale_data]` would cost far less (`plans/02-catalog-format.md`
+    /// §4.4).
+    DynamicCurrency = ("dynamic-currency", Warn, Allow);
+    /// The same for `:unit`.
+    DynamicUnit = ("dynamic-unit", Warn, Allow);
+}
+
+impl fmt::Display for Lint {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.name())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Level, Lint};
+
+    #[test]
+    fn names_are_unique_and_kebab_case() {
+        let mut names: Vec<&str> = Lint::ALL.iter().map(|l| l.name()).collect();
+        names.sort_unstable();
+        let mut unique = names.clone();
+        unique.dedup();
+        assert_eq!(names, unique, "two lints share a name");
+        for name in names {
+            assert!(
+                name.bytes().all(|b| b.is_ascii_lowercase() || b == b'-')
+                    && !name.starts_with('-')
+                    && !name.ends_with('-'),
+                "{name} is not kebab-case"
+            );
+            assert_eq!(Lint::from_name(name).map(Lint::name), Some(name));
+        }
+    }
+
+    #[test]
+    fn a_default_is_never_below_its_floor() {
+        for &lint in Lint::ALL {
+            assert!(
+                lint.default_level() >= lint.floor(),
+                "{lint} defaults below its floor"
+            );
+        }
+    }
+
+    #[test]
+    fn a_lint_that_cannot_be_turned_down_is_an_error() {
+        for &lint in Lint::ALL {
+            if lint.floor() == Level::Error {
+                assert_eq!(lint.default_level(), Level::Error, "{lint}");
+            }
+        }
+    }
+}

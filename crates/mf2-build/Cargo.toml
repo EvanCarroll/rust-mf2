@@ -1,0 +1,32 @@
+[package]
+name = "mf2-build"
+description = "The MessageFormat 2 build pipeline: loaders, mf2.toml, the manifest, lints, per-locale catalogs and the generated Rust module."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# The per-locale `icu.blob` of the `datetime-icu` backend; pulls ICU4X's baked
+# data crates into the build (plans/12 "What Phase 4 changes here").
+icu-blob = ["mf2-locale-data/icu-blob"]
+
+[dependencies]
+brotli.workspace = true
+flate2.workspace = true
+mf2-catalog = { workspace = true, features = ["decode", "manifest", "writer"] }
+mf2-locale-data.workspace = true
+mf2-model.workspace = true
+mf2-resource.workspace = true
+mf2-syntax.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+toml.workspace = true
+
+[dev-dependencies]
+mf2-resource.workspace = true
+workload-gen.workspace = true
+
+[lints]
+workspace = true

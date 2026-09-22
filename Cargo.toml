@@ -5,6 +5,7 @@ members = [
     "crates/mf2-syntax",
     "crates/mf2-catalog",
     "crates/mf2-resource",
+    "crates/mf2-build",
     "crates/mf2-runtime",
     "crates/mf2-fn-number",
     "crates/mf2-fn-datetime",
@@ -40,6 +41,7 @@ clap = { version = "4.6.7", features = ["derive"] }
 # `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
 thiserror = { version = "2.0.20", default-features = false }
 mf2 = { path = "crates/mf2" }
+mf2-build = { path = "crates/mf2-build" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-conformance = { path = "conformance" }
 mf2-fn-number = { path = "crates/mf2-fn-number" }
