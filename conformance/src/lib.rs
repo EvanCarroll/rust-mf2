@@ -13,6 +13,7 @@
 pub mod abnf;
 pub mod check;
 mod error;
+pub mod goldens;
 pub mod harness;
 pub mod key;
 pub mod l1;

@@ -68,6 +68,14 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         cases.push(stripped);
     }
     let suite_cases = cases.len();
+    // The locale-output goldens (plans/11 A8): the Rust backends' output,
+    // identical on both targets.
+    for family in mf2_conformance::goldens::FAMILIES {
+        for g in mf2_conformance::goldens::cases(family).map_err(Error::L4)? {
+            cases.push(g.case);
+        }
+    }
+    let golden_cases = cases.len() - suite_cases;
     if let Some(n) = generated.filter(|&n| n > 0) {
         let text = fsx::read_to_string(&spec_path(root, ABNF))?;
         let grammar = Grammar::parse(&text).map_err(|e| Error::L4(e.to_string()))?;
@@ -174,10 +182,11 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
     }
     eprintln!(
         "l4-wasi: {} records identical on native and wasm32-wasip1 ({} suite tests, unstripped and \
-         stripped, in both configurations; {} generated cases, unstripped and stripped)",
+         stripped, in both configurations; {golden_cases} golden cases; {} generated cases, \
+         unstripped and stripped)",
         native.len(),
         suite_cases / 4,
-        (native.len() - suite_cases) / 2
+        (native.len() - suite_cases - golden_cases) / 2
     );
     Ok(())
 }

@@ -80,6 +80,9 @@ enum Command {
         #[arg(long, value_name = "N")]
         generated: Option<u64>,
     },
+    /// Rewrite the locale-output goldens (conformance/goldens/*.tsv) from a
+    /// fresh render; review the diff before committing.
+    Goldens,
     /// Run locally exactly what CI runs: fmt, clippy, tests, conformance report.
     Ci,
     /// Size gate (Phase 5; not implemented yet).
@@ -138,6 +141,7 @@ fn run(command: Command) -> Result<()> {
             }
         }
         Command::Ci => ci::run(&root),
+        Command::Goldens => goldens(&root),
         Command::L4Wasi { generated } => l4_wasi::run(&root, generated),
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
@@ -171,4 +175,19 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// `cargo xtask goldens`: writes every family's golden file.
+fn goldens(root: &std::path::Path) -> Result<()> {
+    for family in mf2_conformance::goldens::FAMILIES {
+        let text = mf2_conformance::goldens::render(family).map_err(Error::L4)?;
+        let path = root.join(mf2_conformance::goldens::path(family));
+        fsx::write(&path, text.as_bytes())?;
+        eprintln!(
+            "goldens: {} ({} cases)",
+            path.display(),
+            text.lines().filter(|l| !l.starts_with('#')).count()
+        );
+    }
+    Ok(())
 }
