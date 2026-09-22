@@ -1,8 +1,10 @@
 //! The `datetime-intl` browser comparison, native side (plans/11 A6): for
-//! every panel locale and message, the one-message catalog (`compile_str`,
-//! with its `icu.blob`) and the text ICU4X gives for it — what the server
-//! renders — written as JSON for `tools/e2e/checks/datetime.mjs`, which
-//! formats the same catalogs in the browser through `Intl.DateTimeFormat`.
+//! the suite's date files (functions/{date,time,datetime}.json, with their
+//! params and expected errors) and every panel locale × message, the
+//! one-message catalog (`compile_str`, with its `icu.blob`) and the text
+//! ICU4X gives for it — what the server renders — written as JSON for
+//! `tools/e2e/checks/datetime.mjs`, which formats the same catalogs in the
+//! browser through `Intl.DateTimeFormat`.
 //!
 //!   e2e-datetime-cases <out.json>
 
@@ -10,7 +12,12 @@ mod error;
 
 use std::fmt::Write as _;
 
-use mf2::{BidiStrategy, FormatContext, Formatter, Function, Registry, TimeZone};
+use std::path::Path;
+
+use mf2::{
+    Arg, BidiStrategy, CustomValue, FormatContext, FormatError, Formatter, Function, Registry,
+    TimeZone,
+};
 use serde_json::json;
 
 use crate::error::Error;
@@ -22,7 +29,7 @@ static FUNCTIONS: [(&str, &dyn Function); 3] = [
     ("datetime", &mf2_fn_datetime::DATETIME),
     ("time", &mf2_fn_datetime::TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
 
 /// The locale panel (plans/01-conformance.md §5).
 const PANEL: [&str; 11] = [
@@ -113,14 +120,118 @@ fn hex(b: &[u8]) -> String {
     s
 }
 
+/// An error's suite name (`BadOperand` → `bad-operand`).
+fn suite_name(e: FormatError) -> String {
+    let mut s = String::new();
+    for (i, c) in format!("{e:?}").chars().enumerate() {
+        if c.is_ascii_uppercase() {
+            if i > 0 {
+                s.push('-');
+            }
+            s.push(c.to_ascii_lowercase());
+        } else {
+            s.push(c);
+        }
+    }
+    s
+}
+
+/// An application value with no conversions (the suite's `true`).
+struct Opaque;
+
+impl CustomValue for Opaque {}
+
+static OPAQUE: Opaque = Opaque;
+
+/// The suite's date files (functions/{date,time,datetime}.json): each test
+/// as a case with its params, its expected errors and text, and ICU4X's
+/// output — layer L4 of the `datetime-intl` backend, run in the browsers.
+fn suite(repo: &Path, cx: &FormatContext, cases: &mut Vec<serde_json::Value>) -> Result<(), Error> {
+    for file in ["date", "time", "datetime"] {
+        let path = repo.join(format!(
+            "third_party/message-format-wg/test/tests/functions/{file}.json"
+        ));
+        let data: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path)?)?;
+        let defaults = &data["defaultTestProperties"];
+        let Some(tests) = data["tests"].as_array() else {
+            continue;
+        };
+        for (index, t) in tests.iter().enumerate() {
+            let src = t["src"].as_str().unwrap_or_default();
+            let locale = t["locale"]
+                .as_str()
+                .or_else(|| defaults["locale"].as_str())
+                .unwrap_or("en-US");
+            let params: Vec<serde_json::Value> =
+                t["params"].as_array().cloned().unwrap_or_default();
+            let m = mf2::compile_str(src, locale).map_err(|source| Error::Compile {
+                src: src.to_owned(),
+                locale: locale.to_owned(),
+                source,
+            })?;
+            let dates: Vec<Option<mf2::DateTime<'static>>> = params
+                .iter()
+                .map(|p| {
+                    (p["type"] == "datetime")
+                        .then(|| p["value"].as_str().and_then(mf2_fn_datetime::parse_literal))
+                        .flatten()
+                })
+                .collect();
+            let args: Vec<(&str, Arg<'_>)> = params
+                .iter()
+                .zip(&dates)
+                .map(|(p, d)| {
+                    let name = p["name"].as_str().unwrap_or_default();
+                    let arg = match (d, &p["value"]) {
+                        (Some(d), _) => Arg::DateTime(d),
+                        (None, serde_json::Value::String(s)) => Arg::Str(s),
+                        _ => Arg::Custom(&OPAQUE),
+                    };
+                    (name, arg)
+                })
+                .collect();
+            let f = Formatter::new(&m.catalog, &REGISTRY, cx);
+            let mut text = String::new();
+            let mut errors = Vec::new();
+            f.write_named(mf2::Compiled::ID, &args, &mut text, &mut errors);
+            let mut exp_errors: Vec<String> = t["expErrors"]
+                .as_array()
+                .or_else(|| defaults["expErrors"].as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|e| e["type"].as_str().map(str::to_owned))
+                        .collect()
+                })
+                .unwrap_or_default();
+            exp_errors.sort();
+            cases.push(json!({
+                "locale": locale,
+                "src": src,
+                "mapping": "suite",
+                "suite": format!("functions/{file}.json#{index}"),
+                "params": params,
+                "exp": t["exp"],
+                "expErrors": exp_errors,
+                "catalog": hex(m.catalog.as_bytes()),
+                "hash": m.manifest.hash().to_string(),
+                "icu": text,
+                "icuErrors": errors.iter().map(|e| suite_name(*e)).collect::<Vec<_>>(),
+            }));
+        }
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Error> {
     let out = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "cases.json".into());
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let mut cx = FormatContext::new(&mf2::host_std::HOST);
     cx.bidi = BidiStrategy::None;
     cx.time_zone = TimeZone::UTC;
     let mut cases = Vec::new();
+    suite(&repo, &cx, &mut cases)?;
     for locale in PANEL {
         for (src, mapping) in messages() {
             let m = mf2::compile_str(&src, locale).map_err(|source| Error::Compile {
@@ -139,7 +250,7 @@ fn main() -> Result<(), Error> {
                 "catalog": hex(m.catalog.as_bytes()),
                 "hash": m.manifest.hash().to_string(),
                 "icu": text,
-                "icuErrors": errors.iter().map(|e| format!("{e:?}")).collect::<Vec<_>>(),
+                "icuErrors": errors.iter().map(|e| suite_name(*e)).collect::<Vec<_>>(),
             }));
         }
     }

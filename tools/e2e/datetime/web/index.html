@@ -27,7 +27,7 @@ window.mf2dt = {
   async runAll() {
     const data = await (await fetch('/target/e2e-datetime/cases.json')).json();
     return data.cases.map((c) => {
-      const [text, errors] = format(bytes(c.catalog), c.hash).split('\t');
+      const [text, errors] = format(bytes(c.catalog), c.hash, JSON.stringify(c.params ?? [])).split('\t');
       return { text, errors: errors === '' ? [] : errors.split(',') };
     });
   },

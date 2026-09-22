@@ -13,7 +13,14 @@
 // (narrow no-break space) ↔ U+0020, and U+00A0 with them — engines write any
 // of the three where CLDR 48 has U+202F ("3:04 PM", "p. m.").
 //
-// Cases come in three mappings onto ECMA-402 (build.sh tags each):
+// Cases come in four kinds (build.sh tags each):
+//
+//   suite        the WG suite's date files (functions/{date,time,datetime}.json,
+//                en-US, with their params): layer L4 of the `Intl` backend in
+//                this engine — the errors must be the test's (and ICU4X's),
+//                the text the test's `exp` where it has one
+//
+// and three mappings onto ECMA-402 for the panel's locales:
 //
 //   styles       `dateStyle` / `timeStyle` — the mapping is exact: CLDR's
 //                standard formats, which the semantic skeletons resolve to
@@ -26,8 +33,9 @@
 //   zoned        components with `timeZoneName` (ECMA-402 does not mix it
 //                with styles)
 //
-// Asserted: the page runs the Intl backend; every case formats without
-// errors in both; every `styles` case is within the tolerance or one of the
+// Asserted: the page runs the Intl backend; every suite case passes; every
+// panel case formats without errors in both; every `styles` case is within
+// the tolerance or one of the
 // KNOWN divergences below (a new divergence fails; a known one that no
 // longer shows is logged, so the list can shrink). `components` and
 // `zoned` agreement is recorded, not asserted: cosmetic, and harmless to
@@ -121,12 +129,23 @@ export async function run(ctx) {
       };
     });
     const summary = {};
-    for (const mapping of ['styles', 'components', 'zoned']) {
+    for (const mapping of ['suite', 'styles', 'components', 'zoned']) {
       const list = rows.filter((r) => r.mapping === mapping);
       const n = (kind) => list.filter((r) => r.kind === kind).length;
       summary[mapping] = { total: list.length, identical: n('identical'), tolerated: n('tolerated'), different: n('different') };
     }
-    const errors = rows.filter((r) => r.intlErrors.length > 0 || r.icuErrors.length > 0);
+    // L4 on the suite's date files: the test's errors (and ICU4X's), and
+    // its text where it has one.
+    const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+    const suiteRows = rows.map((r, i) => [r, cases[i]]).filter(([r]) => r.mapping === 'suite');
+    const failing = suiteRows.filter(([r, c]) =>
+      !same(r.intlErrors, c.expErrors) || !same(r.icuErrors, c.expErrors)
+      || (typeof c.exp === 'string' && (r.intl !== c.exp || r.icu !== c.exp)));
+    ctx.assert('suite-date-files', suiteRows.length > 0 && failing.length === 0,
+      failing.length === 0
+        ? { ...summary.suite, tests: suiteRows.length }
+        : failing.slice(0, 5).map(([r, c]) => ({ suite: c.suite, src: r.src, intl: r.intl, intlErrors: r.intlErrors, exp: c.exp, expErrors: c.expErrors })));
+    const errors = rows.filter((r) => r.mapping !== 'suite' && (r.intlErrors.length > 0 || r.icuErrors.length > 0));
     ctx.assert('no-errors', errors.length === 0, errors.slice(0, 5));
     const styles = rows.filter((r) => r.mapping === 'styles');
     const unexplained = styles.filter((r) => r.kind === 'different' && r.known === undefined);
@@ -138,6 +157,7 @@ export async function run(ctx) {
       const shown = styles.some((r) => r.known === k.why);
       if (!shown) ctx.log(`known divergence no longer shows (the list can shrink): ${k.why}`);
     }
+    ctx.log('suite text against ICU4X (recorded):', JSON.stringify(summary.suite));
     ctx.log('components (recorded):', JSON.stringify(summary.components));
     ctx.log('zoned (recorded):', JSON.stringify(summary.zoned));
     ctx.assert('page-quiet', logs.length === 0, logs.slice(0, 5));

@@ -852,9 +852,13 @@ options) is what a backend formats.
   glue (B1′), and a registry without date functions links no date code with
   both backends' features on (B13; +0 B, B1′).
 * **`datetime-intl` against ICU4X** (`tools/e2e` check `datetime`: the
-  panel's 11 locales × 60 messages, one-message catalogs, the server's ICU4X
-  text beside the browser's, P0.10's tolerance: U+202F and U+00A0 read as
-  U+0020). Where the mapping is exact (styles, 187 cases per engine) every
+  suite's date files and the panel's 11 locales × 60 messages, one-message
+  catalogs, the server's ICU4X text beside the browser's, P0.10's tolerance:
+  U+202F and U+00A0 read as U+0020). The suite's `functions/{date,time,
+  datetime}.json` — L4 of the `Intl` backend — pass in all three engines
+  (20/20: the expected errors, the expected text where a test has one; the
+  other texts 12 identical to ICU4X's, 8 within the tolerance). Where the
+  panel's mapping is exact (styles, 187 cases per engine) every
   case is identical, tolerated or a named engine–CLDR divergence: Chromium
   143 — 143 identical, 20 tolerated, 24 known (Polish short dates, Spanish
   and Arabic date–time glue, no Welsh data in the headless shell); Firefox

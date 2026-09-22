@@ -12,6 +12,8 @@ crate-type = ["cdylib"]
 [dependencies]
 mf2 = { workspace = true, features = ["host-web", "datetime-intl"] }
 mf2-fn-datetime.workspace = true
+# The suite's params (a test harness: size is not what it measures).
+serde_json.workspace = true
 wasm-bindgen.workspace = true
 
 [lints]
