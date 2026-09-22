@@ -24,6 +24,10 @@
 #   load and lookup against P0.8's figures, 0 allocations and 0 copies at load
 #   (bench/catalog-bench). Here rather than on every push because its timing
 #   rules are load-sensitive.
+# * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
+#   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
+#   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
+#   (bench/runtime-bench); load-sensitive too.
 #
 # Actions: only Forgejo-maintained forks (see ci.yml). Sources are fetched
 # with plain git.
@@ -126,6 +130,12 @@ jobs:
           cargo run --release -p catalog-bench -- bench --gate \
             --md target/catalog-bench/READER.md --json target/catalog-bench/reader.json
 
+      - name: B10 formatting bench (median of 31, exit 1 on failure)
+        run: |
+          mkdir -p target/runtime-bench
+          cargo run --release -p runtime-bench -- b10 --gate \
+            --md target/runtime-bench/B10.md --json target/runtime-bench/b10.json
+
       - name: Upload fuzz artifacts and the differential summary
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
@@ -135,4 +145,5 @@ jobs:
             differential.txt
             fuzz/artifacts/
             target/catalog-bench/
+            target/runtime-bench/
           if-no-files-found: ignore

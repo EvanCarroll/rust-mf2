@@ -1,0 +1,564 @@
+{
+  "build": "rustc 1.98.1 (48a229cea 2026-09-01); profile `release`, opt-level 3",
+  "settings": {
+    "runs": 31,
+    "min_sample": 20,
+    "warmup": 200,
+    "only": null
+  },
+  "load_before": [
+    0.84,
+    1.05,
+    1.26
+  ],
+  "load_after": [
+    0.89,
+    1.05,
+    1.26
+  ],
+  "cpu_mhz": 1823.404125,
+  "functions": [
+    "integer"
+  ],
+  "classes": [
+    [
+      "en",
+      1256,
+      221,
+      14
+    ],
+    [
+      "pl",
+      1256,
+      221,
+      14
+    ],
+    [
+      "en-XA",
+      1256,
+      221,
+      14
+    ],
+    [
+      "ar-XB",
+      1256,
+      221,
+      14
+    ]
+  ],
+  "rows": [
+    {
+      "locale": "en",
+      "op": "simple-ref",
+      "per_pass": 1256,
+      "passes_per_sample": 782,
+      "ns": {
+        "min": 20.810789540130646,
+        "q1": 22.002441986902767,
+        "median": 22.33675391369508,
+        "q3": 22.598321407627022,
+        "max": 24.183807239317773
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 27402,
+      "p08_ns": 20.7
+    },
+    {
+      "locale": "en",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 472,
+      "ns": {
+        "min": 34.06014857497571,
+        "q1": 34.41642235911692,
+        "median": 34.539969164957355,
+        "q3": 34.90670459759257,
+        "max": 35.45426697614164
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 27402,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "pattern1",
+      "per_pass": 221,
+      "passes_per_sample": 674,
+      "ns": {
+        "min": 133.42661492809862,
+        "q1": 134.63394739315493,
+        "median": 136.21064892517154,
+        "q3": 137.1670784268969,
+        "max": 157.49545497267613
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 9578,
+      "p08_ns": 93.5
+    },
+    {
+      "locale": "en",
+      "op": "pattern1-owned",
+      "per_pass": 221,
+      "passes_per_sample": 597,
+      "ns": {
+        "min": 155.19270560949545,
+        "q1": 157.10996915194374,
+        "median": 158.57788944723617,
+        "q3": 159.7934203445584,
+        "max": 171.6572455035358
+      },
+      "allocs_per_op": 1.0180995475113122,
+      "bytes_per_op": 132.63348416289594,
+      "checksum": 9578,
+      "p08_ns": 106.3
+    },
+    {
+      "locale": "en",
+      "op": "select",
+      "per_pass": 14,
+      "passes_per_sample": 2925,
+      "ns": {
+        "min": 481.61115995115995,
+        "q1": 487.5869963369963,
+        "median": 490.92324786324787,
+        "q3": 497.84609279609276,
+        "max": 527.2922832722833
+      },
+      "allocs_per_op": 4.0,
+      "bytes_per_op": 928.0,
+      "checksum": 936,
+      "p08_ns": 317.0
+    },
+    {
+      "locale": "en",
+      "op": "resolve-fn",
+      "per_pass": 1,
+      "passes_per_sample": 652502,
+      "ns": {
+        "min": 13.830112398122917,
+        "q1": 14.005104198914331,
+        "median": 14.134981961741113,
+        "q3": 14.327822749968583,
+        "max": 15.480249868965918
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "en",
+      "op": "resolve-fn-table",
+      "per_pass": 1,
+      "passes_per_sample": 1007437,
+      "ns": {
+        "min": 3.107224570866466,
+        "q1": 3.1616001794653164,
+        "median": 3.1887671387888274,
+        "q3": 3.2290455879623243,
+        "max": 3.954657214297271
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "simple-ref",
+      "per_pass": 1256,
+      "passes_per_sample": 241,
+      "ns": {
+        "min": 70.53243518249333,
+        "q1": 71.05679130216456,
+        "median": 71.39063945344505,
+        "q3": 73.40466838015698,
+        "max": 75.82654544493485
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 36349,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 201,
+      "ns": {
+        "min": 80.11987435434294,
+        "q1": 80.89235153848591,
+        "median": 81.34182986342175,
+        "q3": 82.24655385492918,
+        "max": 86.15892274297303
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 36349,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "pattern1",
+      "per_pass": 221,
+      "passes_per_sample": 592,
+      "ns": {
+        "min": 146.35549406872937,
+        "q1": 148.38301027271615,
+        "median": 149.13612113244466,
+        "q3": 150.42657377400025,
+        "max": 172.31193438914028
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 11428,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "pattern1-owned",
+      "per_pass": 221,
+      "passes_per_sample": 531,
+      "ns": {
+        "min": 172.960963264054,
+        "q1": 176.07887022692606,
+        "median": 176.96135525048786,
+        "q3": 178.6293086552309,
+        "max": 201.7982548082249
+      },
+      "allocs_per_op": 1.0316742081447965,
+      "bytes_per_op": 136.10859728506787,
+      "checksum": 11428,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "select",
+      "per_pass": 14,
+      "passes_per_sample": 1740,
+      "ns": {
+        "min": 785.4042692939245,
+        "q1": 791.3060344827586,
+        "median": 802.2438834154351,
+        "q3": 807.3216954022989,
+        "max": 866.1742200328407
+      },
+      "allocs_per_op": 4.0,
+      "bytes_per_op": 928.0,
+      "checksum": 1181,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "resolve-fn",
+      "per_pass": 1,
+      "passes_per_sample": 661819,
+      "ns": {
+        "min": 13.22793845447169,
+        "q1": 13.430650978590823,
+        "median": 13.55498557762772,
+        "q3": 13.784333027610268,
+        "max": 18.32409616526573
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "pl",
+      "op": "resolve-fn-table",
+      "per_pass": 1,
+      "passes_per_sample": 992779,
+      "ns": {
+        "min": 3.1126826816441526,
+        "q1": 3.1464590810240747,
+        "median": 3.1802566331479616,
+        "q3": 3.2183915050580243,
+        "max": 4.088397317026247
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "simple-ref",
+      "per_pass": 1256,
+      "passes_per_sample": 188,
+      "ns": {
+        "min": 86.46994426751593,
+        "q1": 87.22407126643176,
+        "median": 87.74299532456972,
+        "q3": 88.7880026934544,
+        "max": 90.37901053665809
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 65396,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 170,
+      "ns": {
+        "min": 91.39366335706256,
+        "q1": 92.74586923941551,
+        "median": 93.21456538029224,
+        "q3": 93.67684057699512,
+        "max": 96.74861371300112
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 65396,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "pattern1",
+      "per_pass": 221,
+      "passes_per_sample": 511,
+      "ns": {
+        "min": 172.0419194021128,
+        "q1": 174.02058779254588,
+        "median": 174.64892722104648,
+        "q3": 176.55856673544022,
+        "max": 180.99275663900966
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 16914,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "pattern1-owned",
+      "per_pass": 221,
+      "passes_per_sample": 445,
+      "ns": {
+        "min": 202.32648329859168,
+        "q1": 205.40093548223092,
+        "median": 207.490019828156,
+        "q3": 209.15745081092075,
+        "max": 217.98687274391173
+      },
+      "allocs_per_op": 1.1493212669683257,
+      "bytes_per_op": 168.59728506787332,
+      "checksum": 16914,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "select",
+      "per_pass": 14,
+      "passes_per_sample": 2547,
+      "ns": {
+        "min": 563.6203937405351,
+        "q1": 569.0985613326602,
+        "median": 572.4685344102305,
+        "q3": 576.7048628638735,
+        "max": 637.5792248583768
+      },
+      "allocs_per_op": 4.0,
+      "bytes_per_op": 928.0,
+      "checksum": 2032,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "resolve-fn",
+      "per_pass": 1,
+      "passes_per_sample": 628337,
+      "ns": {
+        "min": 14.271185685388573,
+        "q1": 14.355439835629607,
+        "median": 14.586040611964599,
+        "q3": 14.702007043990724,
+        "max": 15.57937539887035
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "en-XA",
+      "op": "resolve-fn-table",
+      "per_pass": 1,
+      "passes_per_sample": 940825,
+      "ns": {
+        "min": 3.1088757207769775,
+        "q1": 3.1571392129248266,
+        "median": 3.2196178885552573,
+        "q3": 3.2308877846570825,
+        "max": 3.4685812983285946
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "simple-ref",
+      "per_pass": 1256,
+      "passes_per_sample": 501,
+      "ns": {
+        "min": 32.75907579744969,
+        "q1": 33.35884202931716,
+        "median": 33.61086584792199,
+        "q3": 33.82863016006204,
+        "max": 36.50513622436655
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 34938,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "simple",
+      "per_pass": 1256,
+      "passes_per_sample": 362,
+      "ns": {
+        "min": 42.88762668473097,
+        "q1": 43.348196062216275,
+        "median": 43.5940150262167,
+        "q3": 43.85536936516874,
+        "max": 47.71301289720942
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 34938,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "pattern1",
+      "per_pass": 221,
+      "passes_per_sample": 593,
+      "ns": {
+        "min": 146.43912005066653,
+        "q1": 148.85040403500875,
+        "median": 150.37271943412208,
+        "q3": 152.27580063027935,
+        "max": 167.62594522826643
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 11501,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "pattern1-owned",
+      "per_pass": 221,
+      "passes_per_sample": 532,
+      "ns": {
+        "min": 169.90090327629028,
+        "q1": 172.08402085530568,
+        "median": 172.6209471642908,
+        "q3": 174.45296073895145,
+        "max": 196.3164443915218
+      },
+      "allocs_per_op": 1.0226244343891402,
+      "bytes_per_op": 133.79185520361992,
+      "checksum": 11501,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "select",
+      "per_pass": 14,
+      "passes_per_sample": 2684,
+      "ns": {
+        "min": 522.7837981690441,
+        "q1": 529.0860522674047,
+        "median": 532.6931019799872,
+        "q3": 538.5623669363424,
+        "max": 792.0439376197573
+      },
+      "allocs_per_op": 4.0,
+      "bytes_per_op": 928.0,
+      "checksum": 1188,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "resolve-fn",
+      "per_pass": 1,
+      "passes_per_sample": 639229,
+      "ns": {
+        "min": 13.7270399184017,
+        "q1": 13.966455683331013,
+        "median": 14.047834187748053,
+        "q3": 14.272048045379668,
+        "max": 15.951105159496832
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    },
+    {
+      "locale": "ar-XB",
+      "op": "resolve-fn-table",
+      "per_pass": 1,
+      "passes_per_sample": 911110,
+      "ns": {
+        "min": 3.6818397339508953,
+        "q1": 3.8397268167400203,
+        "median": 3.904209151474575,
+        "q3": 3.9671356916288922,
+        "max": 4.166718617949534
+      },
+      "allocs_per_op": 0.0,
+      "bytes_per_op": 0.0,
+      "checksum": 1,
+      "p08_ns": null
+    }
+  ],
+  "checks": [
+    {
+      "rule": "B10 simple (`en`, `write`): 34.5 ns ≤ 100 ns, 0.000 allocations = 0",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "B10 1-argument pattern (`en`, reused `String`): 136.2 ns ≤ 500 ns, 0.000 allocations ≤ 1",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "B10 1-argument pattern (`en`, new `String`): 158.6 ns ≤ 500 ns, 1.018 allocations ≤ 1.05 (a result past 128 B grows)",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "P0.8 not lost (`en`, simple: `Formatter::simple` (`get` + `text`)): 22.3 ns ≤ 1.5 × 20.7 ns",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "P0.8 not lost (`en`, 1-argument pattern: `write`, reused `String`): 136.2 ns ≤ 1.5 × 93.5 ns",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "P0.8 not lost (`en`, 1-argument pattern: `write`, new `String::with_capacity(128)`): 158.6 ns ≤ 1.5 × 106.3 ns",
+      "pass": true,
+      "gated": true
+    },
+    {
+      "rule": "P0.8 not lost (`en`, select: `write`, reused `String`): 490.9 ns ≤ 1.5 × 317 ns",
+      "pass": false,
+      "gated": false
+    }
+  ]
+}
