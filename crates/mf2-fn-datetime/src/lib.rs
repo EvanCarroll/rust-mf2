@@ -3,15 +3,24 @@
 //! `:datetime`, `:date`, `:time`, and the handler that formats unannotated
 //! date/time values. The semantics — operands, options, errors, time zones
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into
-//! text. With no backend feature on, the handlers format through
-//! [`Neutral`], a deterministic locale-independent stub (ISO 8601 pieces).
+//! text:
+//!
+//! | Feature | [`DefaultBackend`] (the statics') |
+//! |---|---|
+//! | none | [`Neutral`], a deterministic locale-independent stub (ISO 8601 pieces) |
+//! | `datetime-icu` | `icu::Icu`: ICU4X over the catalog's `icu.blob` LOCALE entry, on client and server alike (narrower variants: `Icu<GregorianOnly, NoZones>` …) |
+//! | `datetime-intl` | `Intl` on `wasm32-unknown-unknown`: `Host::format_date_time` (the browser's `Intl.DateTimeFormat` through `mf2-host-web`'s `INTL_HOST`); elsewhere `Icu` over ICU4X's compiled data |
+//!
+//! (`plans/03-runtime.md` §5.2, "The date backends as built".)
 //!
 //! ```
 //! # use mf2::{FormatContext, Formatter, Registry};
-//! use mf2_fn_datetime::{DATE, DATES, DATETIME, TIME};
+//! use mf2_fn_datetime::{DateTimeFunction, Neutral};
 //!
-//! static FUNCTIONS: [(&str, &dyn mf2::Function); 3] =
-//!     [("date", &DATE), ("datetime", &DATETIME), ("time", &TIME)];
+//! // `DATETIME`, `DATE`, `TIME`, `DATES` are these over the default backend.
+//! static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
+//! static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
+//! static FUNCTIONS: [(&str, &dyn mf2::Function); 1] = [("datetime", &DATETIME)];
 //! static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
 //! static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
 //!
@@ -112,7 +121,10 @@
 //!   fallback value with that error.
 //!
 //! Client-path code: `no_std`, `forbid(unsafe_code)`, no `core::fmt` use,
-//! no panicking operation, no allocation (B12, `plans/05-tooling.md` §8).
+//! no panicking operation, no allocation (B12, `plans/05-tooling.md` §8) —
+//! the semantics, the neutral and the `Intl` backends. The ICU4X backend
+//! allocates (the blob's provider) and links ICU4X's own `core::fmt` and
+//! panic paths: that is `datetime-icu`'s documented cost (06 B4).
 //!
 //! [`Arg::DateTime`]: mf2_runtime::Arg::DateTime
 //! [`Value::DateTime`]: mf2_runtime::Value::DateTime
@@ -128,22 +140,77 @@
     clippy::panic
 )]
 
+#[cfg(any(feature = "datetime-icu", feature = "datetime-intl"))]
+extern crate alloc;
+
 mod function;
+#[cfg(any(
+    feature = "datetime-icu",
+    all(
+        feature = "datetime-intl",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
+))]
+pub mod icu;
+#[cfg(feature = "datetime-intl")]
+mod intl;
 mod literal;
 mod neutral;
 mod options;
 mod plan;
 mod zone;
 
-pub use function::{DateTimeFunction, operand};
+pub use function::{DateTimeFunction, literal_options, operand};
+#[cfg(feature = "datetime-intl")]
+pub use intl::Intl;
 pub use literal::parse_literal;
 pub use neutral::Neutral;
 pub use plan::{Backend, Plan};
 
-/// The backend the statics format with: [`Neutral`] while no backend
-/// feature is on (`plans/11` A6 adds `datetime-icu` and `datetime-intl`).
+/// The backend the statics format with: [`icu::Icu`] with `datetime-icu`
+/// (every calendar, zone styles, the catalog's `icu.blob`); with
+/// `datetime-intl` alone, [`Intl`] in the browser (`wasm32-unknown-unknown`)
+/// and `Icu` over compiled data elsewhere; [`Neutral`] with neither.
+#[cfg(feature = "datetime-icu")]
+pub type DefaultBackend = icu::Icu;
+
+/// The backend the statics format with (see the `datetime-icu` build).
+#[cfg(all(
+    not(feature = "datetime-icu"),
+    feature = "datetime-intl",
+    all(target_arch = "wasm32", target_os = "unknown")
+))]
+pub type DefaultBackend = Intl;
+
+/// The backend the statics format with (see the `datetime-icu` build).
+#[cfg(all(
+    not(feature = "datetime-icu"),
+    feature = "datetime-intl",
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
+pub type DefaultBackend = icu::Icu<icu::AnyCalendar, icu::WithZones, icu::Compiled>;
+
+/// The backend the statics format with (see the `datetime-icu` build).
+#[cfg(not(any(feature = "datetime-icu", feature = "datetime-intl")))]
 pub type DefaultBackend = Neutral;
 
+#[cfg(any(
+    feature = "datetime-icu",
+    all(
+        feature = "datetime-intl",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
+))]
+const DEFAULT_BACKEND: DefaultBackend = icu::Icu::NEW;
+
+#[cfg(all(
+    not(feature = "datetime-icu"),
+    feature = "datetime-intl",
+    all(target_arch = "wasm32", target_os = "unknown")
+))]
+const DEFAULT_BACKEND: DefaultBackend = Intl;
+
+#[cfg(not(any(feature = "datetime-icu", feature = "datetime-intl")))]
 const DEFAULT_BACKEND: DefaultBackend = Neutral;
 
 /// `:datetime`.

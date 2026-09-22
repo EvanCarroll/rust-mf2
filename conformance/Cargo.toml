@@ -13,10 +13,12 @@ jsonschema.workspace = true
 mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 # Layer L4: the one-message compile (plans/10 A9) and the client side it runs,
 # natively and on wasm32-wasip1.
-mf2 = { workspace = true, features = ["compile"] }
+# `datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
+mf2 = { workspace = true, features = ["compile", "datetime-icu"] }
 mf2-l4-runner.workspace = true
-# Generated L4 cases (plans/10 A10): the catalog's direction and plural rules.
-mf2-locale-data.workspace = true
+# Generated L4 cases (plans/10 A10): the catalog's direction and plural rules,
+# number data, and `icu.blob` (A6).
+mf2-locale-data = { workspace = true, features = ["icu-blob"] }
 mf2-runtime.workspace = true
 mf2-model = { workspace = true, features = ["serde", "suite-names"] }
 mf2-syntax.workspace = true

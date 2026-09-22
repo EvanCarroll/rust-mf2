@@ -20,16 +20,20 @@
 //!   up to the first NUL and a locale byte: a source that parses — valid or
 //!   not (the writer accepts models with data-model errors) — is written as a
 //!   one-message catalog for that locale (direction, plural rules and number
-//!   data from `mf2-locale-data`, as `mf2::compile_str` writes them), which
-//!   must load.
+//!   data from `mf2-locale-data`, as `mf2::compile_str` writes them, and —
+//!   when the message formats a date or can receive one — the locale's
+//!   `icu.blob` with every shape's data), which must load.
 //!
 //! Every message of a catalog that loads is formatted with the arguments as
 //! positional (slot) arguments — to a string, again to a string, and to
 //! parts — and as named arguments, under the message's own slot names.
 //! The functions are the L4 registry's — all features (`:string`, the
-//! localized numeric functions, `:percent`, the date/time functions, the
+//! localized numeric functions, `:percent`, `:currency`, `:unit`, the
+//! date/time functions over ICU4X from the catalog's `icu.blob`
+//! (`datetime-icu`, whose blob parsing a damaged catalog reaches too), the
 //! unannotated hooks, the suite's `:test:*`) or the default configuration's
-//! (flags bit 1) — the host `mf2-host-std`'s. Checked:
+//! (flags bit 1) — the host `mf2-host-std`'s, with `jiff`'s zone data.
+//! Checked:
 //!
 //! * no panic, no out-of-bounds access (the address sanitizer);
 //! * the output is deterministic (the second run is the first);
@@ -47,13 +51,16 @@
 
 #![no_main]
 
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 use libfuzzer_sys::fuzz_target;
+use mf2_catalog::format::locale_key::ICU_BLOB;
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Catalog, Entry, MsgId, StrRef};
+use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, icu_blob};
 use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
-use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
+use mf2_locale_data::{PluralKind, Selection, direction, plural_locale_entries};
 use mf2_runtime::{
     Arg, BidiStrategy, CustomValue, DateTime, FormatContext, FormatError, Formatter, Host, Part,
     PartSink, Registry, Sink, SubPartSink,
@@ -87,6 +94,8 @@ const LOCALES: [&str; 17] = [
 ];
 
 fuzz_target!(|data: &[u8]| {
+    // Build side, once, off the clock.
+    blobs();
     let start = Instant::now();
     let mut work = 0usize;
     run(data, &mut work);
@@ -210,6 +219,21 @@ fn values(mut b: &[u8]) -> Vec<Value> {
 
 // ── source mode ──────────────────────────────────────────────────────────────
 
+/// Each of [`LOCALES`]' `icu.blob` with every shape's data, every
+/// variant, and the calendars the steering names (`buddhist`, `japanese`).
+fn blobs() -> &'static [Vec<u8>] {
+    static BLOBS: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
+    BLOBS.get_or_init(|| {
+        let mut all = DateNeeds::all();
+        all.calendars = Selection::Listed(["buddhist", "japanese"].map(String::from).into());
+        let spec = IcuBlobSpec::every_variant(all);
+        LOCALES
+            .iter()
+            .map(|l| icu_blob(l, &spec).expect("icu.blob of a known locale"))
+            .collect()
+    })
+}
+
 fn compile(data: &[u8]) -> Option<Catalog> {
     let (src, tail) = match data.iter().position(|&b| b == 0) {
         Some(i) => (&data[..i], &data[i + 1..]),
@@ -230,6 +254,19 @@ fn compile(data: &[u8]) -> Option<Catalog> {
     options
         .locale_entries
         .extend(number_locale_entries(locale, &needs).expect("number data of a known locale"));
+    // The `datetime-icu` data when the message formats a date or can
+    // receive one (02 §4.4): the locale's blob for every shape, the
+    // steering's calendars too (built once per locale, before the clock
+    // starts: `blobs`), which the sliced blob `mf2::compile_str` writes is
+    // a subset of (`generated_l4` checks the slicing).
+    let mut dates = DateNeeds::default();
+    dates.add_message(&model);
+    if !dates.is_empty() {
+        let blob = blobs()
+            .get(usize::from(tail.first().copied().unwrap_or(0)) % LOCALES.len())
+            .expect("a blob per locale");
+        options.locale_entries.push((ICU_BLOB, blob.clone()));
+    }
     if tail.get(1).is_some_and(|b| b & 1 != 0) {
         options = options.stripped();
     }

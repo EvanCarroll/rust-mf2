@@ -663,9 +663,9 @@ expression reads back with `downcast_ref`; `formattable` fails for
 |---|---|---|
 | `mf2-runtime` | evaluator, selection, fallback, bidi, parts, registry, the `Host` trait, `:string`, the plural-rule evaluator, and the **core numeric semantics**: `:number` / `:integer` / `:offset` — operand parsing, every digit and rounding option (over `fixed_decimal`), `signDisplay`, `select` with `exact` / `plural` / `ordinal`, and locale-neutral output. Depends on `mf2-model`, `mf2-catalog`, `fixed_decimal`. Numeric code is only linked when the corpus uses a numeric function (closed world) | yes |
 | `mf2-fn-number` | the *localization* of numbers — symbols, grouping, numbering systems — plus `:percent`, `:currency`, `:unit`. Depends on `mf2-runtime` | feature `fn-number`, when used |
-| `mf2-fn-datetime` | `:datetime :date :time`: semantics in Rust; text from ICU4X (`datetime-icu`, optional dependency `icu_datetime`) or from `Host` (`datetime-intl`). Depends on `mf2-runtime` only — it never names a host crate | feature `fn-datetime`, when used |
-| `mf2-host-web` | `Host` for the browser: `String.prototype.normalize`, `String(x)` for float text; `Intl.DateTimeFormat` glue behind `datetime-intl`. Depends on `mf2-runtime`, `js-sys`, `web-sys` | client only |
-| `mf2-host-std` | `Host` for native and for the `wasm32-wasip1` test run: a pure-Rust NFC normalizer (`unicode-normalization`) and float text (`ryu`). Depends on `mf2-runtime` | server / tests |
+| `mf2-fn-datetime` | `:datetime :date :time`: semantics in Rust; text from ICU4X (`datetime-icu`, optional dependency `icu_datetime`; data from the catalog's `icu.blob`) or from `Host` (`datetime-intl`; ICU4X with compiled data off the browser). Depends on `mf2-runtime` (and `mf2-catalog` for the entry's key) only — it never names a host crate | feature `fn-datetime`, when used |
+| `mf2-host-web` | `Host` for the browser: `String.prototype.normalize`, `String(x)` for float text (`HOST`); with feature `time-zones`, `ZONES_HOST` also answers `zone_offset` from the browser's zone data; with `datetime-intl`, `INTL_HOST` also formats dates with `Intl.DateTimeFormat` (one inline-JS module, `wasm-bindgen`). Separate statics, since a host method is linked whenever its host is (B1′). Depends on `mf2-runtime`, `js-sys` | client only |
+| `mf2-host-std` | `Host` for native and for the `wasm32-wasip1` test run: a pure-Rust NFC normalizer (`unicode-normalization`), float text (`ryu`) and zone offsets from `jiff`'s bundled IANA database (owner decision 1). Depends on `mf2-runtime` | server / tests |
 
 Function crates are split by **dependency weight**, not per function; within a
 crate, closed-world linking does the fine-grained pruning.
@@ -771,6 +771,87 @@ build-time rejections) explicitly — never as silent skips.
   reached through `Host::zone_offset`; in the browser `mf2-host-web` answers
   from the browser's own data; (3) for `datetime-icu` byte identity the server
   formats from the same per-locale data the catalog's `icu.blob` carries.
+
+**The date backends as built (Phase 4, A6).** Both plug into
+`mf2-fn-datetime`'s `Backend` seam: the semantics resolve a value, a `Plan`
+(the wall date and time in the zone shown, the offset, the zone, the resolved
+options) is what a backend formats.
+
+* **`datetime-icu`: `mf2_fn_datetime::icu::Icu<C, Z, D>`.** The type
+  parameters are what closed-world linking prunes by, chosen by the build
+  from the corpus (`mf2-build`, P5a): `C` = `AnyCalendar` (the
+  `DateTimeFormatter`: a locale's non-Gregorian default such as `th`'s
+  Buddhist, and `calendar=`) or `GregorianOnly` (the
+  `FixedCalendarDateTimeFormatter<Gregorian>`; another calendar is an
+  *Unsupported Operation*); `Z` = `WithZones` (the composite field set with
+  zone styles) or `NoZones` (`timeZoneStyle` is an *Unsupported Operation*);
+  `D` = `Blob` (the catalog's `icu.blob`, 02 §4.9 — client and server alike,
+  so the same bytes) or `Compiled` (ICU4X's compiled data, never in the
+  browser: the server side of `datetime-intl`). The statics `DATETIME`,
+  `DATE`, `TIME`, `DATES` are the widest, `Icu<AnyCalendar, WithZones,
+  Blob>`. A plan becomes a semantic skeleton at run time (`FieldSetBuilder`):
+  the date fields → `E` / `DE` / `MD` / `MDE` / `YMD` / `YMDE`, the length,
+  the time precision, `timeZoneStyle` long / short → the *specific* zone
+  names (`SpecificLong` / `SpecificShort`: what `Intl.DateTimeFormat`'s
+  `timeZoneName` long / short show); `hour12` → hour cycle `h12` / `h23`;
+  `calendar` → the calendar algorithm. The zone shown: UTC as ICU4X's `utc`,
+  an offset as an unknown zone with that offset ("GMT+05:30"), a named zone
+  as its BCP-47 id through ICU4X's IANA parser, with the plan's offset — the
+  conversion itself is the semantics', through `Host::zone_offset`, since
+  ICU4X has no transition rules. Per format the blob is copied into a
+  `BlobDataProvider` and the formatter built from it (no cache: the handlers
+  are `no_std` statics), twice (`formattable`, then `format`): **2.7–4.5 µs**
+  a date placeholder without zones, **38 µs** with a zone style (the zoned
+  blob is ~28 KB: its copy and the IANA parser), against 0.3–0.6 µs for the
+  neutral backend (`cargo run --release -p runtime-bench --example
+  date_cost`, native, 2026-09-22) — a per-catalog provider cache is the known
+  improvement, not needed by any budget. *Unsupported Operation* (and a
+  fallback value): no `icu.blob`, a calendar or shape the blob does not
+  carry, a date outside ICU4X's range, a zone style with `NoZones`, a calendar
+  other than `gregory` with `GregorianOnly`. The text's direction is the
+  catalog's (an Arabic date is right-to-left). ICU4X writes through
+  `core::fmt::Write` and keeps its own `core::fmt` and panic paths: B12 holds
+  for our crates, and this code is the feature's documented cost (06 B4).
+* **Named zones.** Server: `mf2-host-std` answers `Host::zone_offset` from
+  `jiff`'s bundled database (features `std`, `tzdb-bundle-always`: never the
+  system's), the same natively and on `wasm32-wasip1` (owner decision 1).
+  Browser: `mf2_host_web::ZONES_HOST` (`time-zones`, which `datetime-icu`
+  turns on with `host-web`) and `INTL_HOST` answer it from the browser's
+  data — the `longOffset` zone name of an `Intl.DateTimeFormat` for that
+  zone, parsed — so the client wasm carries no tz database. The plain `HOST`
+  has no zone data (a host method is linked with its host: B1′).
+* **`datetime-intl`: `mf2_fn_datetime::Intl`** hands `Plan::request` (the
+  instant, the zone, the options) to `Host::format_date_time`;
+  `mf2_host_web::INTL_HOST` formats it with one cached `Intl.DateTimeFormat`
+  per locale and option set (an inline-JS module; the options travel as a
+  JSON string built in a fixed buffer). The mapping onto ECMA-402: `dateStyle`
+  / `timeStyle` when the plan is expressible with styles (the date
+  `year-month-day` or none, the time to the minute or second or none, no zone
+  style, not a time alone with `hour12`: V8 and JavaScriptCore apply
+  `hour12` to a 24-hour locale's `timeStyle` pattern by swapping its hour
+  field, "03:04 PM"), otherwise components (`year`, `month` long / short /
+  numeric by length, `day`, `weekday`, `hour`, `minute`, `second`,
+  `timeZoneName`); `hour12`, `calendar` and the zone pass through. A host
+  without a formatter (`HOST`), or one that rejects the request, gives the
+  neutral text; an instant outside ECMA-402's range (±8.64 × 10¹⁵ ms) is an
+  *Unsupported Operation*. Off the browser `datetime-intl` formats with
+  `Icu<AnyCalendar, WithZones, Compiled>`, and the catalog carries no
+  `icu.blob`.
+* **`datetime-intl` against ICU4X** (`tools/e2e` check `datetime`: the
+  panel's 11 locales × 60 messages, one-message catalogs, the server's ICU4X
+  text beside the browser's, P0.10's tolerance: U+202F and U+00A0 read as
+  U+0020). Where the mapping is exact (styles, 187 cases per engine) every
+  case is identical, tolerated or a named engine–CLDR divergence: Chromium
+  143 — 143 identical, 20 tolerated, 24 known (Polish short dates, Spanish
+  and Arabic date–time glue, no Welsh data in the headless shell); Firefox
+  155 — 164, 20, 3 (Polish short dates); WebKit 26.6 — 162, 20, 5. Mapped to
+  components (253) and with zone styles (220) the engines differ more
+  (Chromium 46 and 60 different, Firefox 32 and 39, WebKit 35 and 40): a
+  locale's semantic skeleton picks, e.g., a numeric month where a component
+  asks for an abbreviated one (`de` medium month–day: ICU4X "02.01.",
+  `Intl` "2. Jan.") and no ECMA-402 option set reproduces CLDR's semantic
+  skeletons per locale; the zone names themselves agree. Cosmetic, and
+  harmless to hydration (P0.10) — the known cost of the option (§5.1).
 
 Whatever is enabled, **the function semantics (options, operand rules, errors,
 selection) are implemented once in Rust** in `mf2-fn-*`; a backend only supplies
@@ -939,7 +1020,16 @@ docs and tests hold the details):
   `15:04` / `15:04:06`, `03:04 PM` for `hour12=true`, `Z` / `±hh:mm` / the
   zone name for `timeZoneStyle` — pieces joined by a space; no sub-parts.
   A6's backends (`datetime-icu`, `datetime-intl`) plug into the same
-  `Backend` seam and show `Plan::zone`.
+  `Backend` seam and show `Plan::zone` (§5.2, "The date backends as
+  built"); a backend adds only its own *Unsupported Operation*s (data it
+  lacks, a range it cannot show), never a semantic error.
+* **Without a backend feature** (`fn-datetime` alone) the statics format
+  with the neutral backend; with `datetime-icu` the ICU4X backend over the
+  catalog's `icu.blob`, which `mf2::compile_str` (and `mf2-build`) writes
+  when the message formats a date or can receive one (02 §4.4); with
+  `datetime-intl` alone, `Intl.DateTimeFormat` in the browser and ICU4X
+  with compiled data elsewhere. With both, `datetime-icu` wins (the same
+  text on server and client).
 
 ## 6. Formatting context and SSR parity
 

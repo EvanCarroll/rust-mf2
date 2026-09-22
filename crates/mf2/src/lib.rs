@@ -9,7 +9,9 @@
 //! | *(core)* | [`mf2_runtime`]: the formatter, `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
-//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) |
+//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on |
+//! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
+//! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
 //! | `intl` | on `wasm32-unknown-unknown` ([`INTL_NUMBERS`]): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
@@ -47,7 +49,10 @@ mod compile;
 #[cfg(feature = "compile")]
 mod error;
 
-pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, Manifest, MsgId, StrRef};
+/// The manifest (build side: `mf2-catalog`'s `manifest` feature).
+#[cfg(feature = "compile")]
+pub use mf2_catalog::Manifest;
+pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, MsgId, StrRef};
 pub use mf2_model::{ErrorKind, MarkupKind};
 pub use mf2_runtime::{
     Arg, BidiStrategy, Category, CurrencyDisplay, CustomValue, Date, DateFields, DateLength,

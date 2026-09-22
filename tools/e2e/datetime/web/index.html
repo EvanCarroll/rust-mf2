@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>mf2-two: datetime-intl against ICU4X</title>
+</head>
+<body>
+<main>
+<h1>datetime-intl against ICU4X</h1>
+<p id="status">loading…</p>
+</main>
+<script type="module">
+import init, { format, backend } from '/target/e2e-datetime/pkg/e2e_datetime_wasm.js';
+
+const status = document.getElementById('status');
+await init();
+
+function bytes(hex) {
+  const b = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < b.length; i += 1) b[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return b;
+}
+
+window.mf2dt = {
+  backend,
+  // Every case of cases.json formatted in this browser: text and errors.
+  async runAll() {
+    const data = await (await fetch('/target/e2e-datetime/cases.json')).json();
+    return data.cases.map((c) => {
+      const [text, errors] = format(bytes(c.catalog), c.hash).split('\t');
+      return { text, errors: errors === '' ? [] : errors.split(',') };
+    });
+  },
+};
+status.textContent = `ready (${backend()})`;
+</script>
+</body>
+</html>

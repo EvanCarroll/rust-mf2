@@ -13,8 +13,10 @@ fixed-decimal = ["mf2-runtime/fixed-decimal"]
 [dependencies]
 catalog-bench.workspace = true
 clap.workspace = true
-mf2 = { workspace = true, features = ["compile", "host-std", "fn-number"] }
+# `datetime-icu`: the date example (`examples/date_cost.rs`).
+mf2 = { workspace = true, features = ["compile", "host-std", "fn-number", "datetime-icu"] }
 mf2-catalog.workspace = true
+mf2-fn-datetime = { workspace = true, features = ["datetime-icu"] }
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true
 serde = { workspace = true, features = ["std"] }

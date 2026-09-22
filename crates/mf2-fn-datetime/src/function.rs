@@ -98,6 +98,60 @@ pub fn operand<'a>(v: &Value<'a>) -> Option<DateTime<'a>> {
     }
 }
 
+/// The parts `kind` shows under its own options `own`, with their defaults:
+/// the date (`year-month-day`, `medium`) for `:datetime` and `:date`, the
+/// time (`minute`) for `:datetime` and `:time`, and their zone style.
+fn parts<'a>(kind: Kind, own: &Own<'a>) -> DateTimeOptions<'a> {
+    let date = DateStyle {
+        fields: own.fields.unwrap_or(DateFields::YearMonthDay),
+        length: own.length.unwrap_or(DateLength::Medium),
+    };
+    let time = own.precision.unwrap_or(TimePrecision::Minute);
+    let mut o = DateTimeOptions::default();
+    match kind {
+        Kind::DateTime => {
+            o.date = Some(date);
+            o.time = Some(time);
+            o.time_zone_style = own.zone_style;
+        }
+        Kind::Date => o.date = Some(date),
+        Kind::Time => {
+            o.time = Some(time);
+            o.time_zone_style = own.zone_style;
+        }
+    }
+    o
+}
+
+/// Build side (`mf2-locale-data`'s `icu.blob` slicing, `plans/02-catalog-format.md`
+/// §4.4): what an expression of `function` — `datetime`, `date` or `time`,
+/// or `None` for an unannotated date/time value, formatted as `:datetime`
+/// with no options — shows, from its literal options: `literal(name)` is
+/// the literal value of the option `name`, `None` when the expression has
+/// none or sets it by a variable. The result has the date and time parts
+/// with their defaults, the zone style, and `hour12` and `calendar` when a
+/// literal sets them — as the handler resolves them, since a non-override
+/// option set by a variable, or an invalid value, is ignored (*Bad Option*)
+/// and takes its default. Not the zone, nor what a date/time operand passes
+/// on. Another function name: `None`.
+pub fn literal_options<'s>(
+    function: Option<&str>,
+    literal: &dyn Fn(&str) -> Option<&'s str>,
+) -> Option<DateTimeOptions<'s>> {
+    let kind = match function {
+        None => Kind::DateTime,
+        Some(name) => options::kind(name)?,
+    };
+    let own = match function {
+        None => Own::default(),
+        Some(_) => options::read_literals(kind, literal),
+    };
+    let mut o = parts(kind, &own);
+    o.hour12 = own.hour12;
+    o.calendar = own.calendar;
+    Some(o)
+}
+
 /// Function resolution for `kind` with the options `own`: the operand's
 /// value (else *Bad Operand*, fallback), the options with their defaults,
 /// the override options inherited from the operand where the expression
@@ -117,24 +171,7 @@ fn resolve<'a>(
     // "Any operand options not matching the date/time override options are
     // ignored").
     let inherited = d.options;
-    let date = DateStyle {
-        fields: own.fields.unwrap_or(DateFields::YearMonthDay),
-        length: own.length.unwrap_or(DateLength::Medium),
-    };
-    let time = own.precision.unwrap_or(TimePrecision::Minute);
-    let mut o = DateTimeOptions::default();
-    match kind {
-        Kind::DateTime => {
-            o.date = Some(date);
-            o.time = Some(time);
-            o.time_zone_style = own.zone_style;
-        }
-        Kind::Date => o.date = Some(date),
-        Kind::Time => {
-            o.time = Some(time);
-            o.time_zone_style = own.zone_style;
-        }
-    }
+    let mut o = parts(kind, own);
     o.hour12 = own.hour12.or(inherited.hour12);
     o.calendar = own.calendar.or(inherited.calendar);
     match zone::place(cx, &mut d, own.time_zone.or(inherited.time_zone), errs) {

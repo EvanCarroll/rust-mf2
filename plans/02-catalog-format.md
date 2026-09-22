@@ -326,9 +326,10 @@ LOCALE     := varint n · (varint key · varint len · u8{len}){n}   ; keys stri
 The key names the entry kind **and its version**; unknown keys are skipped by
 length. Version 1 defines key 1 `plural.cardinal` and key 2 `plural.ordinal`
 (§4.1), which `Catalog::new` walks for structure; Phase 4 adds key 3
-`number.symbols`, key 4 `number.patterns`, key 16 `currency.data` and key 32
-`unit.data` (§4.2, §4.3, §4.6, §4.7), which it does not walk (their views
-check what they read); §4 lists the keys and their ranges.
+`number.symbols`, key 4 `number.patterns`, key 16 `currency.data`, key 32
+`unit.data` and key 48 `icu.blob` (§4.2, §4.3, §4.6, §4.7, §4.9), which it
+does not walk (their views check what they read; ICU4X checks the blob);
+§4 lists the keys and their ranges.
 
 ### 2.8 IDS — lookup by name
 
@@ -514,11 +515,11 @@ option values actually used — the rule is §4.4).
 | 4 | `number.patterns` | `:percent`, `:currency` | the percent and currency patterns of the styles the corpus uses: grouping and affixes with the sign, percent and currency positions (§4.3) |
 | 16 | `currency.data` | `:currency` | for the **configured currency set** (default: the literal codes of the corpus; `currencies = "all"` opts into every code): fraction digits and rounding increment, symbol, narrow symbol, display names by plural category, the currency's own pattern and separators, the edges of its symbols for currency spacing; the locale's name patterns (§4.6) |
 | 32 | `unit.data` | `:unit` | for the configured unit set, same policy, and the widths used: the patterns by plural category, the per-unit pattern, optionally the display name; the locale's `per` compound pattern (§4.7) |
-| 48–63 | `icu.blob` | feature `datetime-icu` and the corpus formats dates | an ICU4X data blob for this locale, restricted to the markers the corpus needs. The ICU4X *code* is in the wasm (that is the feature's cost); the *data* is here, lazy, like everything else — A6 |
+| 48 | `icu.blob` | feature `datetime-icu` and the corpus formats a date: a date function, or a placeholder that can receive a date/time argument (§4.4) | an ICU4X data blob for this locale holding exactly what the ICU4X backend requests for the shapes (parts, lengths, precisions, zone styles, hour cycles, calendars) the corpus can format. The ICU4X *code* is in the wasm (that is the feature's cost); the *data* is here, lazy, like everything else (§4.9) |
 
 Keys are `mf2_catalog::format::locale_key`; all are below 128, one varint
 byte. A new version of an entry takes a new key in its kind's range (3–15 for
-`number.*`, 16–31 `currency.*`, 32–47 `unit.*`).
+`number.*`, 16–31 `currency.*`, 32–47 `unit.*`, 48–63 the date entries).
 
 **Departures from the Phase 2 plan (Phase 4, A2).** (1) There is no
 `number.systems` entry: the pinned spec (`spec/functions/number.md`) has **no
@@ -553,7 +554,7 @@ The CLDR version used is recorded in the header flags/metadata and printed by
 `mf2 stats`. CLDR JSON is a build-time input only, pinned like the spec.
 
 With `datetime-intl` the client needs no date data at all, so no `icu.blob` is
-emitted.
+emitted (the server formats from ICU4X's compiled data, 03 §5.2).
 
 **Container first, entries later.** Phase 2 freezes the LOCALE *container* (a
 keyed table of versioned, opaque entries; unknown keys are skipped) and the two
@@ -739,6 +740,7 @@ alone). An option given by a variable counts as every value it could take.
 | `currency.data` | `:currency`: the currencies of the configured set; narrow symbols when `currencyDisplay=narrowSymbol` can occur, display names and name patterns when `currencyDisplay=name` can |
 | `unit.data` | `:unit`: the units of the configured set (an `X-per-Y` CLDR lacks brings `X` and `Y`), in the widths `unitDisplay` can take (`short` when an expression gives none); display names only on request |
 | `plural.cardinal`, also | `:unit`, or `:currency` with names: the pattern (`{0} kilometers`, `{0} {1}` with `euros`) is chosen by the formatted number's plural category, so these carry the cardinal rules even without a selector (`locale_entries` adds them) |
+| `icu.blob` | `datetime-icu` is on and a date is formatted (§4.9): per `:datetime`, `:date` or `:time` expression, its *shape* — the date part (fields × length), the time part (precision), the zone style — from its literal options (a non-override option set by a variable, or an invalid value, takes its default, as at run time: *Bad Option*); `:datetime`'s default shape for a placeholder or declaration whose variable has no function and is not declared with one (it can receive a date/time argument, which the unannotated handler formats — as `number.symbols` for #90); in each shape the locale's hour cycle and each `hour12` value the message may set (a variable: both), in the locale's default calendar, `gregory` and each literal `calendar=` value. Zone names, metazone periods and zone ids only for a shape with a zone style. A calendar only a variable or an argument names is not in the corpus: formatting it is an *Unsupported Operation* until it is listed (as a currency outside the set) |
 
 **The configured sets** (`mf2.toml`, 05 §3.1):
 
@@ -748,6 +750,9 @@ currencies = "used"   # default: the literal `currency=` codes of the corpus
                       # | "all": every code CLDR has (and every code of currencyData)
                       # | ["USD", "EUR"]: these, plus the literal ones
 units = "used"        # the same for `unit=` identifiers
+calendars = []        # `datetime-icu`: calendars besides each locale's default, `gregory`
+                      # and the literal `calendar=` values (`DateNeeds::calendars`), for
+                      # values only a variable or an argument carries
 ```
 
 With `"used"`, a non-literal `currency=$c` or `unit=$u` in the corpus makes the
@@ -972,6 +977,99 @@ because forms equal to `other` and widths equal to the previous one are not
 stored and placeholders take one byte (`ar` units: 15.8 against 70.0 KB raw);
 it is larger where the per-unit patterns that composition needs dominate
 (`ja` units).
+
+### 4.9 `icu.blob` entry, v1 (key 48; Phase 4, A6)
+
+The date data of `datetime-icu`: what `mf2-fn-datetime`'s ICU4X backend
+(`icu::Icu`, 03 §5.2) requests to format the shapes the corpus can produce
+(§4.4) in this catalog's locale — and nothing else.
+
+```text
+entry := blob   ; an ICU4X `BlobDataProvider` blob, format v3: the postcard encoding of
+                ; `BlobSchema::V003` (first byte 03) — per data marker, a ZeroTrie from
+                ; data identifier (locale · marker attributes) to a payload index, and the
+                ; payloads' postcard bytes (icu_provider_blob 2.3, written by
+                ; icu_provider_export's `BlobExporter`)
+```
+
+* **Why ICU4X's own format.** The backend hands the entry to
+  `BlobDataProvider::try_new_from_blob` (over a copy: the provider owns its
+  blob) and builds its formatter with `try_new_with_buffer_provider`. An own
+  encoding would need a data provider per marker re-implementing ICU4X's
+  (de)serialization for no size gain: the blob holds only the identifiers
+  requested — no fallback chain, no `und` copies, one numbering system's
+  digits. Its compatibility is ICU4X's: a v3 blob loads in ICU4X 2.x. The
+  entry is rebuilt with the catalog, so a catalog always carries the blob its
+  build's ICU4X wrote; the `icu_*_data` crates are the CLDR input (48, as
+  ICU4X 2.3 bakes it), and a change of them shows in the vectors below and in
+  the date goldens.
+* **Built by recording** (`mf2_locale_data::icu_blob`, feature `icu-blob`,
+  build side only): `mf2_fn_datetime::icu::prime` — the backend's own
+  construction code — builds the formatter of every option set the corpus can
+  produce (`DateNeeds`: each shape × the locale's hour cycle and each `hour12`
+  value that may occur × the locale's default calendar, `gregory` and the
+  extra calendars) through a provider that answers each request from ICU4X's
+  baked data (the `icu_*_data` crates; nothing downloaded) and remembers it;
+  the blob is exactly the requests seen, under the identifiers requested.
+  Building requests everything formatting does but the IANA zone parser,
+  which a shape with a zone style builds too. For the widest backend variant
+  (`Icu<AnyCalendar, WithZones>`) the narrower ones are primed too, so one
+  blob serves each of them (`IcuBlobSpec`). A calendar ICU4X does not build
+  (`calendar=abcd`) records nothing; formatting it is an *Unsupported
+  Operation*. Deterministic (a `BTreeMap` of requests; the exporter sorts).
+* **Contents**, by ICU4X marker: the date patterns of each calendar carried
+  (`DatetimePatternsDate<Calendar>V1`, attributes = field set and options,
+  e.g. `ym0d`), the time patterns (`DatetimePatternsTimeV1`, e.g. `j`), the
+  date–time glue (`DatetimePatternsGlueV1`, e.g. `mdt`, `mtz`), the names
+  the patterns use (`DatetimeNamesMonth<Calendar>V1`,
+  `DatetimeNamesYear<Calendar>V1`, `DatetimeNamesWeekdayV1`,
+  `DatetimeNamesDayperiodV1`, by width), the decimal symbols and the digits
+  of the locale's numbering system (`DecimalSymbolsV1`, `DecimalDigitsV1`),
+  the Japanese eras for `japanese`; and only with a zone style: zone names
+  (`TimezoneNamesEssentialsV1`, `TimezoneNamesSpecificLongV1` /
+  `…ShortV1`), the metazone periods (`TimezonePeriodsV1`, 6.8 KB raw) and
+  the IANA → BCP-47 zone ids (`TimezoneIdentifiersIanaCoreV1`, 9.5 KB raw)
+  — locale-independent, and most of a zoned blob.
+* **Reader / use** (`mf2-fn-datetime`, `datetime-icu`): per format, the
+  entry becomes a provider and the formatter is built from it (no cache: the
+  handlers are `no_std` statics without interior mutability). No entry, a
+  malformed one, or a request it cannot answer (a calendar or shape the
+  corpus did not name) is an *Unsupported Operation* and a fallback value —
+  never a panic in our code, never compiled data in the client. The server
+  formats from the same entry, so its text is the client's, byte for byte.
+* **Test vectors** (`mf2-locale-data` `tests/icu_blob.rs`, `vectors`; `en`,
+  Gregorian-only variant; FNV-1a 64 of the whole entry):
+
+  | Message | Variant | Size | FNV-1a 64 | First bytes |
+  |---|---|---:|---|---|
+  | `{$x}` (`:datetime`'s defaults) | no zones | 499 B (371 gz) | `c726446f5289ecf2` | `03 20 06 1C 28 2D 09 FF` |
+  | `{$d :date length=long}` | no zones | 394 B (302 gz) | `ad77c5d1446f33b3` | `03 14 06 1C 28 2D 11 34` |
+  | `{$d :time timeZoneStyle=short}` | zones | 16,755 B (12,171 gz) | `a4f9f2e0acca5b75` | `03 24 09 FF 7E EC 1D 18` |
+
+* **Sizes** (B4: ≤ 3 KB gz per locale without zone names, ≤ 25 KB gz
+  with; `cargo test -p mf2-locale-data --features icu-blob --test icu_blob
+  sizes -- --nocapture`), raw / gzip -9 B, per locale: `:datetime`'s defaults
+  only (Gregorian); every shape — Gregorian, any calendar (+ `th`'s Buddhist
+  default), Gregorian with zone styles, every variant:
+
+  | locale | defaults | every shape | any calendar | + zones | every variant |
+  |---|---:|---:|---:|---:|---:|
+  | en | 499 / 371 | 1,391 / 758 | 1,407 / 771 | 29,234 / 18,264 | 29,249 / 18,276 |
+  | es | 472 / 335 | 1,473 / 783 | 1,489 / 801 | 35,459 / 20,559 | 35,474 / 20,571 |
+  | de | 353 / 277 | 1,312 / 766 | 1,328 / 779 | 34,348 / 20,344 | 34,363 / 20,354 |
+  | fr | 444 / 349 | 1,313 / 749 | 1,329 / 759 | 36,707 / 20,907 | 36,722 / 20,919 |
+  | ar | 413 / 321 | 1,333 / 724 | 1,348 / 735 | 34,293 / 18,982 | 34,308 / 18,995 |
+  | he | 505 / 374 | 1,589 / 818 | 1,605 / 835 | 33,245 / 18,840 | 33,260 / 18,851 |
+  | ja | 318 / 284 | 1,016 / 613 | 1,031 / 627 | 31,680 / 18,648 | 31,695 / 18,661 |
+  | hi | 647 / 451 | 1,793 / 877 | 1,809 / 890 | 41,363 / 19,985 | 41,378 / 19,996 |
+  | ru | 516 / 370 | 1,587 / 844 | 1,603 / 861 | 35,302 / 19,569 | 35,317 / 19,583 |
+  | pl | 418 / 326 | 1,351 / 788 | 1,367 / 802 | 34,352 / 20,398 | 34,367 / 20,409 |
+  | cy | 437 / 337 | 1,441 / 799 | 1,458 / 810 | 32,473 / 19,665 | 32,488 / 19,677 |
+  | th | 502 / 349 | 1,847 / 909 | 2,451 / 1,054 | 42,092 / 20,086 | 42,696 / 20,241 |
+
+  Every shape without zones: 0.61–0.91 KB gz (P0.6's blobs, built another
+  way: 2.2–2.6); with zone styles 18.3–20.9 KB gz (P0.6: 16.8–23.0). Every calendar (a variable `calendar=`) adds little: `en`
+  `{$d :date calendar=$c}` is 2,180 B / 1,382 B gz.
 
 ## 5. Reader API sketch (`mf2-catalog`, `no_std`)
 

@@ -22,10 +22,12 @@
 
 use std::borrow::Cow;
 
+use mf2_catalog::format::locale_key::ICU_BLOB;
 use mf2_catalog::writer::{self, Options as WriterOptions};
 use mf2_l4_runner::{ArgSpec, Case, Config};
+use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, icu_blob};
 use mf2_locale_data::number::{NumberNeeds, number_locale_entries};
-use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
+use mf2_locale_data::{PluralKind, Selection, direction, plural_locale_entries};
 use mf2_model::{
     Attributes, CatchAllKey, Declaration, Expression, FunctionRef, Key, Literal, LiteralExpression,
     Message, OptionValue, Options, Pattern, PatternPart, VariableExpression, VariableRef, Variant,
@@ -48,6 +50,10 @@ pub struct Generated {
     pub unstripped: Case,
     /// The same case from the stripped catalog.
     pub stripped: Case,
+    /// When the catalog carries `icu.blob`: the same case from a catalog
+    /// whose blob has the data of every shape (`DateNeeds::all`), which
+    /// must format as the sliced one.
+    pub all_dates: Option<Case>,
 }
 
 /// The locales generated messages are compiled for: Latin and non-Latin,
@@ -120,6 +126,27 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
     options
         .locale_entries
         .extend(number_locale_entries(locale, &needs).map_err(|e| e.to_string())?);
+    // And the date data of the `datetime-icu` backend, as `compile_str`
+    // writes it: what the message formats (02 §4.4). The same catalog with
+    // every shape's data — and both of the steering's other calendars —
+    // must format alike: the slicing rule misses nothing.
+    let mut dates = DateNeeds::default();
+    dates.add_message(&model);
+    let mut full_options = None;
+    if !dates.is_empty() {
+        let mut every = options.clone();
+        let mut all = DateNeeds::all();
+        all.calendars = Selection::Listed(["buddhist", "japanese"].map(String::from).into());
+        every.locale_entries.push((
+            ICU_BLOB,
+            icu_blob(locale, &IcuBlobSpec::every_variant(all)).map_err(|e| e.to_string())?,
+        ));
+        full_options = Some(every);
+        options.locale_entries.push((
+            ICU_BLOB,
+            icu_blob(locale, &IcuBlobSpec::every_variant(dates)).map_err(|e| e.to_string())?,
+        ));
+    }
     let make = |options: &WriterOptions, id: String| -> Result<Case, String> {
         let (catalog, manifest) =
             writer::single(&model, &slots, options).map_err(|e| format!("writer::single: {e}"))?;
@@ -133,6 +160,9 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
         })
     };
     Ok(Generated {
+        all_dates: full_options
+            .map(|o| make(&o, format!("gen#{seed:x}/all-dates")))
+            .transpose()?,
         unstripped: make(&options, format!("gen#{seed:x}/unstripped"))?,
         stripped: make(
             &options.clone().stripped(),

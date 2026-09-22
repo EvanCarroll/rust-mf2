@@ -17,6 +17,20 @@ fn-number = ["dep:mf2-fn-number"]
 # Dates and times (plans/03-runtime.md §5.1): :datetime, :date, :time and
 # unannotated date/time values — mf2-fn-datetime.
 fn-datetime = ["dep:mf2-fn-datetime"]
+# The date backends (plans/03-runtime.md §5.1–§5.2), each implying
+# `fn-datetime`: `datetime-icu` — ICU4X on client and server, data from the
+# catalog's `icu.blob` (which `compile_str` then emits); `datetime-intl` — the
+# browser's `Intl.DateTimeFormat` on wasm32-unknown-unknown, ICU4X with
+# compiled data elsewhere.
+# With `host-web`, each also gives the browser host its date methods: named
+# zones from the browser's data (both), `Intl.DateTimeFormat` (`datetime-intl`).
+datetime-icu = [
+    "fn-datetime",
+    "mf2-fn-datetime/datetime-icu",
+    "mf2-host-web?/time-zones",
+    "mf2-locale-data?/icu-blob",
+]
+datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/datetime-intl"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]

@@ -8,9 +8,9 @@ publish.workspace = true
 
 [dependencies]
 mf2-catalog.workspace = true
-# :datetime, :date, :time and unannotated dates (Phase 4, A5), over the neutral
-# backend until A6 brings datetime-icu.
-mf2-fn-datetime.workspace = true
+# :datetime, :date, :time and unannotated dates (Phase 4, A5), formatting with
+# ICU4X from the catalogs' `icu.blob` (the all-features configuration, A6).
+mf2-fn-datetime = { workspace = true, features = ["datetime-icu"] }
 # The localized numeric functions and :percent (Phase 4, A3).
 mf2-fn-number.workspace = true
 mf2-host-std.workspace = true

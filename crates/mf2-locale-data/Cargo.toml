@@ -11,14 +11,68 @@ publish.workspace = true
 # all-locale number, currency and unit tables, the `cargo xtask cldr-sync`
 # cache (`cargo xtask locale-data`; the drift tests).
 extract = ["dep:serde_json"]
+# `icu-blob`: the `icu.blob` LOCALE entry of `datetime-icu` (plans/11 A6),
+# recorded from mf2-fn-datetime's own ICU4X backend over ICU4X's baked CLDR
+# data (the `icu_*_data` crates; nothing downloaded).
+icu-blob = [
+    "dep:icu",
+    "dep:icu_pattern",
+    "dep:zerotrie",
+    "dep:zerovec",
+    "dep:icu_calendar",
+    "dep:icu_calendar_data",
+    "dep:icu_datetime",
+    "dep:icu_datetime_data",
+    "dep:icu_decimal",
+    "dep:icu_decimal_data",
+    "dep:icu_locale",
+    "dep:icu_provider",
+    "dep:icu_provider_export",
+    "dep:icu_time",
+    "dep:icu_time_data",
+    "dep:mf2-fn-datetime",
+    "dep:mf2-runtime",
+    "dep:postcard",
+    "icu_calendar/datagen",
+    "icu_datetime/datagen",
+    "icu_decimal/datagen",
+    "icu_locale/compiled_data",
+    "icu_provider/export",
+    "icu_provider_export/blob_exporter",
+    "icu_time/datagen",
+    "mf2-fn-datetime/datetime-icu",
+    "postcard/alloc",
+]
 
 [dependencies]
+# The baked-data macros of `icu-blob` name `icu`, `icu_pattern`, `zerotrie`,
+# `zerovec`.
+icu = { workspace = true, optional = true }
+icu_calendar = { workspace = true, optional = true }
+icu_calendar_data = { workspace = true, optional = true }
+icu_datetime = { workspace = true, optional = true }
+icu_datetime_data = { workspace = true, optional = true }
+icu_decimal = { workspace = true, optional = true }
+icu_decimal_data = { workspace = true, optional = true }
+icu_locale = { workspace = true, optional = true }
+icu_pattern = { workspace = true, optional = true }
+icu_provider = { workspace = true, optional = true }
+icu_provider_export = { workspace = true, optional = true }
+icu_time = { workspace = true, optional = true }
+icu_time_data = { workspace = true, optional = true }
 # `writer`: the LOCALE entry encoders (plans/02-catalog-format.md §4).
 mf2-catalog = { workspace = true, features = ["writer"] }
+# `icu-blob`: the backend whose requests the blob records.
+mf2-fn-datetime = { workspace = true, optional = true }
 mf2-model.workspace = true
+# `icu-blob`: the date option types the slicing rule reads.
+mf2-runtime = { workspace = true, optional = true }
+postcard = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true, features = ["std"] }
 unicode-properties.workspace = true
+zerotrie = { workspace = true, optional = true }
+zerovec = { workspace = true, optional = true }
 
 [dev-dependencies]
 # The client evaluator the CLDR samples test (plans/10 A6).

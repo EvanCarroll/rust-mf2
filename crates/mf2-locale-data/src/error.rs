@@ -78,4 +78,17 @@ pub enum Error {
         #[source]
         source: std::io::Error,
     },
+    /// ICU4X data for `icu.blob` (`icu-blob`).
+    #[cfg(feature = "icu-blob")]
+    #[error("icu.blob: {0}")]
+    IcuData(#[from] icu_provider::DataError),
+    /// Some formatter of the `datetime-icu` backend does not build from
+    /// ICU4X's data for the locale (`icu-blob`).
+    #[cfg(feature = "icu-blob")]
+    #[error("icu.blob for {locale}: {count} formatter(s) do not build, e.g. {first}")]
+    IcuBlobBuild {
+        locale: String,
+        count: usize,
+        first: String,
+    },
 }

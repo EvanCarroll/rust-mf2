@@ -150,6 +150,32 @@ pub(crate) fn read<'a>(kind: Kind, options: Options<'_, 'a>, errs: &mut dyn Erro
     own
 }
 
+/// The kind of the function `name` (`datetime`, `date`, `time`).
+pub(crate) fn kind(name: &str) -> Option<Kind> {
+    match name {
+        "datetime" => Some(Kind::DateTime),
+        "date" => Some(Kind::Date),
+        "time" => Some(Kind::Time),
+        _ => None,
+    }
+}
+
+/// What `kind`'s literal options set: `literal(name)` is the literal value
+/// of the option `name`, `None` when the expression has none (or sets it by
+/// a variable). An invalid value is ignored, as at run time.
+pub(crate) fn read_literals<'s>(kind: Kind, literal: &dyn Fn(&str) -> Option<&'s str>) -> Own<'s> {
+    let mut own = Own::default();
+    for &(name, mask, opt) in &NAMES {
+        if mask & kind.bit() == 0 {
+            continue;
+        }
+        if let Some(s) = literal(name) {
+            let _ = set_text(&mut own, opt, s);
+        }
+    }
+    own
+}
+
 /// Sets `opt` from `value`; `false`: a Bad Option.
 fn set<'a>(own: &mut Own<'a>, opt: Opt, value: OptionValue<'_, 'a>) -> bool {
     let override_option = matches!(opt, Opt::TimeZone | Opt::Hour12 | Opt::Calendar);
@@ -159,6 +185,11 @@ fn set<'a>(own: &mut Own<'a>, opt: Opt, value: OptionValue<'_, 'a>) -> bool {
     if !value.literal && !override_option {
         return false;
     }
+    set_text(own, opt, s)
+}
+
+/// Sets `opt` from its text `s`; `false`: not a value it takes.
+fn set_text<'a>(own: &mut Own<'a>, opt: Opt, s: &'a str) -> bool {
     let ok = match opt {
         Opt::Fields => lookup(&FIELDS, s).map(|v| own.fields = Some(v)),
         Opt::Length => lookup(&LENGTHS, s).map(|v| own.length = Some(v)),

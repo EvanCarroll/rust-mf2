@@ -10,7 +10,9 @@
 //! * named and positional arguments give the same output, and the parts
 //!   concatenate to the string (checked inside `mf2_l4_runner::run`);
 //! * the output is deterministic (a second run gives the same record);
-//! * the stripped catalog formats exactly as the unstripped one.
+//! * the stripped catalog formats exactly as the unstripped one;
+//! * a catalog whose `icu.blob` is sliced to the message (02 §4.4) formats
+//!   exactly as one whose blob has every shape's data.
 //!
 //! `cargo test` runs a bounded number of cases; set `MF2_GEN_CASES` (and
 //! optionally `MF2_GEN_SEED`) for longer runs, e.g.
@@ -81,7 +83,7 @@ fn generated_messages_format_from_a_catalog() {
     let n = cases();
     let (mut valid, mut clean, mut numeric, mut selects, mut formatted) = (0u64, 0, 0, 0, 0);
     // Phase 4 (A9): the localized and date/time families.
-    let (mut percent, mut measure, mut dates, mut dated) = (0u64, 0, 0, 0);
+    let (mut percent, mut measure, mut dates, mut dated, mut sliced) = (0u64, 0, 0, 0, 0);
     let mut kinds = BTreeSet::new();
     for case in 0..n {
         let generated = match l4gen::case(&g, base.wrapping_add(case)) {
@@ -102,6 +104,16 @@ fn generated_messages_format_from_a_catalog() {
             stripped.line(),
             "case {case}: the stripped catalog formats differently on {src:?}"
         );
+        if let Some(all) = &generated.all_dates {
+            let every = run(all, case, src);
+            assert_eq!(
+                first.line(),
+                every.line(),
+                "case {case}: icu.blob sliced to the message formats differently from one with \
+                 every shape's data on {src:?}"
+            );
+            sliced += 1;
+        }
         valid += u64::from(generated.valid);
         clean += u64::from(first.errors.is_empty());
         numeric += u64::from(src.contains(":number") || src.contains(":integer"));
@@ -118,8 +130,8 @@ fn generated_messages_format_from_a_catalog() {
         "generated_l4: {n} cases: {valid} valid, {clean} formatted without errors, \
          {numeric} calling :number or :integer, {formatted} with a formatted number, \
          {selects} selections, {percent} calling :percent, {measure} :currency or :unit, \
-         {dates} a date/time function, {dated} with a formatted date/time; errors reached: \
-         {kinds:?}"
+         {dates} a date/time function, {dated} with a formatted date/time, {sliced} with \
+         icu.blob (sliced = every shape); errors reached: {kinds:?}"
     );
     // The steering reaches the handlers: valid messages, messages formatted
     // without errors, numbers formatted, selections.

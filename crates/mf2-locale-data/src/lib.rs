@@ -32,6 +32,8 @@ mod direction;
 pub mod error;
 #[cfg(feature = "extract")]
 pub mod extract;
+#[cfg(feature = "icu-blob")]
+pub mod icu_blob;
 pub mod number;
 pub mod plural;
 pub mod template;

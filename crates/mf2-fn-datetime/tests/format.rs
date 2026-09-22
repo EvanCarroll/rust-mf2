@@ -1,6 +1,7 @@
 //! `:datetime`, `:date`, `:time` and unannotated date/time values through
 //! the public path: `mf2::compile_str`, a `Formatter` over a registry of
-//! this crate's handlers, the neutral backend. Zones with a test host that
+//! this crate's handlers, the neutral backend (the semantics; `icu.rs`
+//! tests the ICU4X backend). Zones with a test host that
 //! knows a few (EU and US daylight-saving rules, a fixed offset, an offset
 //! with seconds).
 
@@ -19,9 +20,16 @@ use mf2::{
     DateTimeOptions, Dir, FormatContext, FormatError, Formatter, Function, Host, Part, PartSink,
     Registry, Time, TimePrecision, TimeZone, Value, ZoneOption, ZoneStyle,
 };
-use mf2_fn_datetime::{DATE, DATES, DATETIME, DateTimeFunction, Neutral, Plan, TIME};
+use mf2_fn_datetime::{DateTimeFunction, Neutral, Plan};
 
 use FormatError::{BadOperand, BadOption, BadSelector, UnresolvedVariable};
+
+// The neutral backend, named: the default backend depends on the features
+// a build unifies (`datetime-icu` is on in this crate's tests).
+static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
+static DATE: DateTimeFunction<Neutral> = DateTimeFunction::date(Neutral);
+static TIME: DateTimeFunction<Neutral> = DateTimeFunction::time(Neutral);
+static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
 
 static FUNCTIONS: [(&str, &dyn Function); 5] = [
     ("date", &DATE),
@@ -109,6 +117,26 @@ impl Host for Zones {
 }
 
 static ZONES: Zones = Zones;
+
+/// A host without zone data (`mf2-host-std` has jiff's).
+struct Bare;
+
+impl Host for Bare {
+    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
+        mf2::host_std::HOST.nfc(s, buf)
+    }
+
+    fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
+        mf2::host_std::HOST.f64_to_text(x, buf)
+    }
+}
+
+static BARE_HOST: Bare = Bare;
+
+/// The host without zone data, UTC.
+fn bare_utc() -> FormatContext {
+    context(&BARE_HOST, TimeZone::UTC)
+}
 
 fn context(host: &'static dyn Host, zone: TimeZone) -> FormatContext {
     let mut cx = FormatContext::new(host);
@@ -1268,10 +1296,14 @@ fn the_context_zone() {
 fn without_zone_data() {
     let instant = DateTime::from_epoch_ms(1_136_214_246_000).unwrap();
     let args = [("i", Arg::DateTime(&instant))];
-    let cx = std_utc();
+    let cx = bare_utc();
     // Converting an instant to a named zone: Bad Option and a fallback value.
     assert_eq!(
-        err("{|2006-01-02T15:04:06Z| :time timeZone=|Europe/Paris|}"),
+        run(
+            &cx,
+            "{|2006-01-02T15:04:06Z| :time timeZone=|Europe/Paris|}",
+            &[]
+        ),
         ("{|2006-01-02T15:04:06Z|}".into(), vec![BadOption])
     );
     let (s, e) = run(&cx, "{$i :datetime timeZone=|Asia/Kolkata|}", &args);
@@ -1279,12 +1311,18 @@ fn without_zone_data() {
     // A floating value placed in a named zone: no conversion, no error; the
     // offset is unknown, so the zone is named.
     assert_eq!(
-        ok("{|2006-01-02T15:04:06| :time timeZone=|Europe/Paris| timeZoneStyle=short}"),
+        ok_in(
+            &cx,
+            "{|2006-01-02T15:04:06| :time timeZone=|Europe/Paris| timeZoneStyle=short}",
+            &[]
+        ),
         "15:04 Europe/Paris"
     );
     // … but it cannot be converted onwards.
-    let (s, e) = err(
+    let (s, e) = run(
+        &cx,
         ".local $p = {|2006-01-02T15:04:06| :time timeZone=|Europe/Paris|} {{{$p} {$p :time timeZone=UTC}}}",
+        &[],
     );
     assert_eq!((s.as_str(), e.as_slice()), ("15:04 {$p}", &[BadOption][..]));
     // Already in the zone: nothing to convert.
@@ -1298,10 +1336,7 @@ fn without_zone_data() {
         "15:04 +01:00"
     );
     // The context in a named zone: instants cannot be placed in it …
-    let named = context(
-        &mf2::host_std::HOST,
-        TimeZone::named("Europe/Paris").unwrap(),
-    );
+    let named = context(&BARE_HOST, TimeZone::named("Europe/Paris").unwrap());
     let (s, e) = run(&named, "{$i :time}", &args);
     assert_eq!((s.as_str(), e.as_slice()), ("{$i}", &[BadOption][..]));
     let (s, e) = run(&named, "{$i}", &args);
@@ -1457,7 +1492,7 @@ fn another_backend() {
     // Without zone data: the wall time as UTC.
     let (s, _) = run_in(
         &R,
-        &std_utc(),
+        &bare_utc(),
         "{|2006-01-02T15:04:06| :datetime timeZone=|Europe/Paris|}",
         &[],
     );

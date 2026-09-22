@@ -39,9 +39,10 @@ fn table() -> Result<&'static Table<'static>, Error> {
     }
 }
 
-/// A configured set of currency codes or unit identifiers (`mf2.toml`
-/// `[locale_data] currencies` / `units`, `plans/02-catalog-format.md` §4.4).
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// A configured set of currency codes, unit identifiers or calendars
+/// (`mf2.toml` `[locale_data] currencies` / `units` / `calendars`,
+/// `plans/02-catalog-format.md` §4.4).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Selection {
     /// These (the corpus's literal values by default, plus any listed in
     /// `mf2.toml`).
