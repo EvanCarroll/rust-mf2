@@ -35,7 +35,9 @@ A standalone cargo workspace (the root workspace excludes
 | `intl-loc` | the same with the catalog locale's symbols, + `:percent` |
 | `intl-cu` | + `:currency`, `:unit` |
 | `intl-codes` | `intl` with design A of the key (below) |
-| `rust-loc` | `mf2-fn-number`'s localized `:number` / `:integer` / `:offset` and `:percent` (built when the tree has `mf2-fn-number`, Phase 4 A3, commit d56e089 on; its `:currency` / `:unit` join in A4) |
+| `rust-loc` | `mf2-fn-number`'s localized `:number` / `:integer` / `:offset` and `:percent` (built when the tree has `mf2-fn-number`, Phase 4 A3, commit d56e089 on) |
+| `rust-cu` | `rust-loc` + `mf2-fn-number`'s `:currency` and `:unit` (Phase 4 A4): the Rust path of the whole family |
+| `rt-intl`, `rt-intl-loc`, `rt-intl-cu` | **the option as built** (Phase 4, owner decision 4; `plans/03-runtime.md` §2.7, §5.3): the registries of `rust`, `rust-loc` and `rust-cu` with the runtime's own `intl` feature (and `mf2-fn-number`'s), over `mf2-host-web`'s `NUMBERS_HOST` — built when the tree has `INTL_NUMBERS`; the speed item alternates `rt-intl` with `rust` and `intl`, `rt-intl-loc` with `rust-loc` and `intl-loc` |
 
 ### Design points
 
@@ -83,7 +85,7 @@ against commit `<rev>`'s crates instead of the working tree (a snapshot under
 pins the runtime it measures while `crates/` moves):
 
 ```sh
-bench/intl-probe/scripts/build.sh      # item 1 (= 1-size.sh): every variant, sizes → target/intl-probe/size.md; the page's modules → target/intl-probe/pkg/
+bench/intl-probe/scripts/build.sh      # item 1 (= 1-size.sh): every variant, sizes → target/intl-probe/size.md; the page's modules → target/intl-probe/pkg/ (PROBE_VARIANTS="base rust …" builds only those)
 bench/intl-probe/scripts/data.sh       # the data every item reads → target/intl-probe/data/ (includes runtime-bench numbers ecma 100000)
 bench/intl-probe/scripts/5-floor.sh    # item 5: feature detection
 bench/intl-probe/scripts/6-l4.sh       # item 6: the L4 number files per engine

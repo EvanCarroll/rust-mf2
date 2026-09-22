@@ -82,10 +82,18 @@ function speed() {
       const ratioLoc = list.map((r) => r.rows[i].ratioLoc).filter((x) => x !== undefined);
       const rr = (xs) => (xs.length === 1 ? xs[0].toFixed(2) : `${Math.min(...xs).toFixed(2)}–${Math.max(...xs).toFixed(2)}`);
       const diff = range(list.map((r) => r.rows[i].intl.median - r.rows[i].rust.median));
-      return [`${row.locale} · \`${row.name}\``, ...cells, diff, rr(ratio), ...(ratioLoc.length ? [rr(ratioLoc)] : [])];
+      const ratioRt = list.map((r) => r.rows[i].ratioRt).filter((x) => x !== undefined);
+      const ratioRtLoc = list.map((r) => r.rows[i].ratioRtLoc).filter((x) => x !== undefined);
+      const diffRt = vs.includes('rt-intl') ? [range(list.map((r) => r.rows[i]['rt-intl'].median - r.rows[i].rust.median))] : [];
+      return [`${row.locale} · \`${row.name}\``, ...cells, diff, rr(ratio), ...(ratioLoc.length ? [rr(ratioLoc)] : []),
+        ...diffRt, ...(ratioRt.length ? [rr(ratioRt)] : []), ...(ratioRtLoc.length ? [rr(ratioRtLoc)] : [])];
     });
     const locHead = vs.includes('rust-loc') ? ['intl-loc / rust-loc'] : [];
-    table(['locale · message', ...vs.map((v) => `${v} ns`), 'intl − rust ns', 'intl / rust', ...locHead], rows);
+    const rtHead = [
+      ...(vs.includes('rt-intl') ? ['rt-intl − rust ns', 'rt-intl / rust'] : []),
+      ...(vs.includes('rt-intl-loc') ? ['rt-intl-loc / rust-loc'] : []),
+    ];
+    table(['locale · message', ...vs.map((v) => `${v} ns`), 'intl − rust ns', 'intl / rust', ...locHead, ...rtHead], rows);
     if (list[0].js?.length) {
       table(['Intl alone, from JS (formatter cached)', 'ns'], list[0].js.map((j, i) => [`${j.locale} · ${j.name}`, range(list.map((r) => r.js[i].median))]));
     }

@@ -31,7 +31,11 @@ use wasm_bindgen::prelude::wasm_bindgen;
     feature = "intl-loc",
     feature = "intl-cu",
     feature = "intl-codes",
-    feature = "rust-loc"
+    feature = "rust-loc",
+    feature = "rust-cu",
+    feature = "rt-intl",
+    feature = "rt-intl-loc",
+    feature = "rt-intl-cu"
 )))]
 compile_error!("build intl-probe-wasm with exactly one variant feature (scripts/build.sh)");
 
@@ -106,11 +110,54 @@ static FUNCTIONS: [(&str, &dyn Function); 5] = [
 #[cfg(feature = "rust-loc")]
 const VARIANT: &str = "rust-loc";
 
+#[cfg(any(feature = "rust-cu", feature = "rt-intl-cu"))]
+static FUNCTIONS: [(&str, &dyn Function); 7] = [
+    ("currency", &mf2_fn_number::CURRENCY),
+    ("integer", &mf2_fn_number::INTEGER),
+    ("number", &mf2_fn_number::NUMBER),
+    ("offset", &mf2_fn_number::OFFSET),
+    ("percent", &mf2_fn_number::PERCENT),
+    ("string", &functions::STRING),
+    ("unit", &mf2_fn_number::UNIT),
+];
+#[cfg(feature = "rust-cu")]
+const VARIANT: &str = "rust-cu";
+#[cfg(feature = "rt-intl-cu")]
+const VARIANT: &str = "rt-intl-cu";
+
+#[cfg(feature = "rt-intl")]
+static FUNCTIONS: [(&str, &dyn Function); 4] = [
+    ("integer", &functions::INTEGER),
+    ("number", &functions::NUMBER),
+    ("offset", &functions::OFFSET),
+    ("string", &functions::STRING),
+];
+#[cfg(feature = "rt-intl")]
+const VARIANT: &str = "rt-intl";
+
+#[cfg(feature = "rt-intl-loc")]
+static FUNCTIONS: [(&str, &dyn Function); 5] = [
+    ("integer", &mf2_fn_number::INTEGER),
+    ("number", &mf2_fn_number::NUMBER),
+    ("offset", &mf2_fn_number::OFFSET),
+    ("percent", &mf2_fn_number::PERCENT),
+    ("string", &functions::STRING),
+];
+#[cfg(feature = "rt-intl-loc")]
+const VARIANT: &str = "rt-intl-loc";
+
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
-static CX_DEFAULT: FormatContext = FormatContext::new(&mf2_host_web::HOST);
+/// The host: the browser's, and for the option as built (`rt-intl*`) the
+/// same with its number formatter (`Intl`).
+#[cfg(not(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu")))]
+const HOST: &dyn mf2_runtime::Host = &mf2_host_web::HOST;
+#[cfg(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu"))]
+const HOST: &dyn mf2_runtime::Host = &mf2_host_web::NUMBERS_HOST;
+
+static CX_DEFAULT: FormatContext = FormatContext::new(HOST);
 static CX_NONE: FormatContext = {
-    let mut cx = FormatContext::new(&mf2_host_web::HOST);
+    let mut cx = FormatContext::new(HOST);
     cx.bidi = BidiStrategy::None;
     cx
 };

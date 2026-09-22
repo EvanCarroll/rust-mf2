@@ -459,3 +459,69 @@ measured; A4 (`:currency`, `:unit` in Rust) gives the baseline to measure
 it against, with `scripts/build.sh` (`rust-loc` + A4 against `intl-cu`) and
 `scripts/3-agreement.sh`. Dates (`datetime-intl`, already a planned
 backend, B4) were outside this probe.
+
+## 8. The option as built (Phase 4, after owner decision 4)
+
+Owner decision 4 adopted the option; Phase 4 built it into the runtime
+(`plans/03-runtime.md` §2.7, §5.3: `mf2-runtime/intl`, `mf2-fn-number/intl`,
+`mf2-host-web/intl`, `NUMBERS_HOST`). The probe measures it as variants
+`rt-intl`, `rt-intl-loc`, `rt-intl-cu` — the registries of `rust`,
+`rust-loc` and the new `rust-cu` (`rust-loc` + A4's `:currency` / `:unit`)
+with the runtime's own `intl` — against the Rust path and A0's handlers in
+the same harness. Tree: 79c4d7f (`crates/` clean); Chromium 143.0.7499.4,
+Firefox 155.0 and now **WebKit 26.6** (Playwright 1.63.0; WebKit starts on the
+development machine since 2026-09-22).
+
+**Size** (`bench/intl-probe/scripts/build.sh`; B gz of wasm + JS over `base`,
+deterministic — the same bytes on rebuilding):
+
+| Function set | Rust path | A0's handlers | **as built** | built − Rust |
+|---|---:|---:|---:|---:|
+| core (`:number` `:integer` `:offset`, neutral) | 5,408 (`rust`) | 7,539 (`intl`) | **7,613** (`rt-intl`: 6,630 wasm + 983 JS) | **+2,205** |
+| + locale symbols, grouping, `:percent` | 7,215 (`rust-loc`) | 7,552 (`intl-loc`) | **7,604** (`rt-intl-loc`) | **+389** |
+| + `:currency`, `:unit` | 12,659 (`rust-cu`, measured; A0 estimated ≈ 10,038) | 8,275 (`intl-cu`) | **9,016** (`rt-intl-cu`: 8,033 + 983) | **−3,643** |
+
+The JavaScript is 983 B gz (the inline module 779 of it, hand-minified as
+A0's was, with the `Intl.NumberFormat` v3 detection A0 did separately). A0's
+reading holds: the option is larger for the core, about even with locale
+symbols, and smaller once `:currency` and `:unit` are used — by 3.6 KB gz
+rather than A0's estimated 1.8, because the Rust `:currency` / `:unit` as
+built (A4, B3) cost 5.4 KB gz where P0.5's probe measured 2.9. Each catalog
+of an `intl` client also needs none of its number, currency, unit and
+plural entries (§1's table; `mf2-build`'s slicing, P5a).
+
+**Speed** (`bench/intl-probe/scripts/2-speed.sh`, three runs at 03:58,
+04:01, 04:04; the variants alternated in one page; 1-minute load 1.6–2.5,
+CPU 1.5–4.1 GHz sampled; ranges over the runs of per-message medians):
+
+| Engine | `:number` ×3 | `:integer` | select (1, 3 keys) | select + placeholder | built − Rust, per format |
+|---|---:|---:|---:|---:|---:|
+| Chromium, `rt-intl` / `rust` | 2.24–2.65× | 3.98–4.24× | 1.65–2.43× | 3.40–3.76× | +1.1 to +5.5 µs |
+| Chromium at 4× throttle | 2.24–2.65× | 3.94–4.42× | 1.63–2.45× | 3.48–3.76× | +4 to +27 µs |
+| Firefox | 2.21–3.28× | 3.85–6.05× | 2.34–3.47× | 4.77–5.41× | +2.0 to +7.1 µs |
+| WebKit | 2.36–2.84× | 4.90–5.06× | 1.93–2.83× | 4.11–4.41× | +1.6 to +6.1 µs |
+| with symbols, `rt-intl-loc` / `rust-loc`, all engines | 1.67–2.87× | 2.72–4.23× | 1.60–3.43× | 2.80–4.48× | |
+
+In ns per format, `rt-intl`: a numeric placeholder 2,551–5,209 (Chromium),
+2,779–10,653 (Firefox), 2,975–5,906 (WebKit); a select 2,481–4,188,
+2,830–10,557, 3,174–4,678; the Rust path 472–4,826 for all of them; `Intl`'s
+own call from JavaScript with a cached formatter 321–779 ns (1.1–4.0 µs at
+4×). **The built option is faster than A0's handlers in nearly every row of
+every run** (e.g. Chromium `select` 2.35–2.43× against 2.65–2.72×): one
+string crosses for the key (`locale U+0001 options`) and one for the value,
+and a resolved number keeps its digit plan and its plural category instead
+of a boxed value. It stays 2–6× the Rust path: `Intl`'s own call is already
+about the Rust path's whole format.
+
+**WebKit 26.6** in items 4 and 5 (`engines.sh floor plural`): every row of
+the floor is `yes`, as in Chromium and Firefox. Its `Intl.PluralRules` lacks
+more CLDR locales than the other two — 11,952 / 12,396 cardinal and 2,595 /
+2,645 ordinal samples agree; it answers with en-US rules for 33 locales
+(among them `tl`, `sh`, `scn`, `sgs`, `ars`) and has older category sets for
+`cv`, `ie`, `kok`, `kok-Latn`. The runtime's own evaluator carries all 224.
+
+**L4 in the three engines** with the option as built (`cargo xtask l4-web`,
+`plans/01-conformance.md` §3): 324 / 324 runtime tests in each; no suite test
+formats otherwise than the Rust path; the goldens' differences (bidi-mark
+sub-parts in ar, ar-EG, he; ar-EG `currencyDisplay=never`; Chromium's Welsh
+currency and unit names) are in the ledger's `[[intl]]` tables.

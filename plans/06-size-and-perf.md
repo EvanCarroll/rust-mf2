@@ -243,6 +243,26 @@ and `X-per-Y` composition. Moving the currency presentation and the unit
 composition into the catalog writer was estimated at −0.9 to −1.4 KB gz for
 a larger catalog and literal-only compound units; not taken.
 
+### Phase 4: the `intl` client option (2026-09-22)
+
+Owner decision 4 ([03](03-runtime.md) §5.3). The option is opt-in and has no
+budget of its own; what it costs is measured against the Rust path in the
+same harness, and B1′ and B12 hold for it. Tree 79c4d7f.
+
+| Item | Figure | Command |
+|---|---|---|
+| B1′: `intl` on, no number in the corpus | **−34 B raw / −69 B gz** against `b12-runtime-nonum` (a resolved number keeps its digit plan, not its rounded digits: every `Value` is smaller); gated ≤ +0 | `bench/b12/check.sh` (`b12-runtime-intl-unused`) |
+| B1 moved by `Host::numbers` (one vtable slot, every client) | +17 B raw / **+15 B gz** of the runtime part (18,849 → 18,864 B gz Δ) — the price of B1′ = +0 | same (`b12-runtime`) |
+| B12 for the `intl` path; the Rust rounding, display and plural evaluator not linked | **absent**; none linked (`b12-runtime`: 4 such symbols) | same (`b12-runtime-intl`, `b12-runtime-fn-number-intl`) |
+| Size of the option, B gz of wasm + JS over the harness's base: core numbers | **7,613** (6,630 + 983 JS) against the Rust path's 5,408: **+2,205** | `bench/intl-probe/scripts/build.sh` (`rt-intl` vs `rust`) |
+| … with `fn-number` (symbols, grouping, `:percent`) | **7,604** against 7,215: **+389** | same (`rt-intl-loc` vs `rust-loc`) |
+| … with `:currency`, `:unit` too | **9,016** against 12,659: **−3,643** | same (`rt-intl-cu` vs `rust-cu`) |
+| JS glue | **983 B gz** (the inline module 779) | same |
+| Per numeric placeholder, `intl` / Rust path | 2.2–2.7× `:number`, 4.0–4.2× `:integer` (Chromium 143); 2.2–3.3×, 3.9–6.1× (Firefox 155); 2.4–2.8×, 4.9–5.1× (WebKit 26.6); +1.1 to +7.1 µs a format, +4 to +27 µs at 4× (Chromium) | `bench/intl-probe/scripts/2-speed.sh`, three runs, variants alternated |
+| Per select (1 and 3 keys) | 1.7–2.4× (Chromium), 2.3–3.5× (Firefox), 1.9–2.8× (WebKit); a select that also formats its number 3.4–5.4× | same |
+| Against A0's probe handlers, same runs | faster in nearly every row (e.g. Chromium select 2.35–2.43× against 2.65–2.72×) | same (`rt-intl` vs `intl`) |
+| L4 in the engines | **324 / 324** runtime tests in Chromium, Firefox and WebKit; no suite test differs from the Rust path | `cargo xtask l4-web` |
+
 ### Phase 3 measurements (2026-09-21)
 
 Details and commands: [phase-3-results](phase-3-results.md). Timings on the

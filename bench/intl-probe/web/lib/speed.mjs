@@ -1,6 +1,7 @@
 // Item 2: time per numeric placeholder and per select, `rust` against
 // `intl` (neutral output) and, when the build has it, `rust-loc` against
-// `intl-loc` (locale symbols), alternated in the same page run (clock drift
+// `intl-loc` (locale symbols) — and the option as built (Phase 4:
+// `rt-intl`, `rt-intl-loc`) against the same — alternated in the same page run (clock drift
 // and tiering hit all alike): for each message of `speed.json` and each
 // locale (`en`, `pl`), `rounds` samples per variant, the order rotated every
 // round,
@@ -42,6 +43,13 @@ export async function speed(env, { rounds = 9, sampleMs = 60, only } = {}) {
     for (const v of ['rust-loc', 'intl-loc']) loaded[v] = await catalogs(env, await variant(env, v), 'speed');
     variants.push('rust-loc', 'intl-loc');
   } catch (e) { /* a build without mf2-fn-number */ }
+  // The option as built (the runtime's `intl` feature, Phase 4).
+  for (const v of ['rt-intl', 'rt-intl-loc']) {
+    try {
+      loaded[v] = await catalogs(env, await variant(env, v), 'speed');
+      variants.push(v);
+    } catch (e) { /* a build before it */ }
+  }
   const { idx } = loaded.rust;
   const rows = [];
   for (let cat = 0; cat < idx.catalogs.length; cat++) {
@@ -69,6 +77,8 @@ export async function speed(env, { rounds = 9, sampleMs = 60, only } = {}) {
       }
       row.ratio = row.intl.median / row.rust.median;
       if (row['rust-loc']) row.ratioLoc = row['intl-loc'].median / row['rust-loc'].median;
+      if (row['rt-intl']) row.ratioRt = row['rt-intl'].median / row.rust.median;
+      if (row['rt-intl-loc'] && row['rust-loc']) row.ratioRtLoc = row['rt-intl-loc'].median / row['rust-loc'].median;
       rows.push(row);
     }
   }

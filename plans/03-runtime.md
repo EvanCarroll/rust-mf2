@@ -876,6 +876,13 @@ runtime's `INTL_NUMBERS` (the feature *and* `wasm32-unknown-unknown`), which
   engines); negative numbers in ar, ar-EG and he split the minus sign's bidi
   mark into its own sub-part (all engines). All of it is in the ledger's
   `[[intl]]` tables.
+* **Cost** ([06](06-size-and-perf.md) §3, "Phase 4: the `intl` client
+  option"; `bench/intl-probe/RESULTS.md` §8): B gz of wasm + JS against the
+  Rust path, core numbers +2,205, with `fn-number` +389, with `:currency`
+  and `:unit` **−3,643** (JS 983 of it); per numeric placeholder or select
+  1.7–6× the Rust path (+1 to +7 µs; +4 to +27 µs at 4× throttle) in all three
+  engines, and faster than A0's probe handlers; B1′ −69 B gz; one `Host`
+  vtable slot (+15 B gz) for every client.
 * **Catalogs.** An `intl` client reads no `number.*`, `currency.*`,
   `unit.*` or `plural.*` entry; leaving them out of the catalogs it
   downloads is `mf2-build`'s slicing (P5a), which then serves the client a

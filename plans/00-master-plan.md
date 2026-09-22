@@ -182,7 +182,7 @@ wasm32-unknown-unknown` on the demo app.
 | *(core)* | — | `:string`; `:number` / `:integer` / `:offset` with complete semantics (digit options, rounding, `select` = exact / plural / ordinal) and **neutral** symbols; markup; bidi; fallback |
 | `fn-number` | off | number *localization* (symbols, grouping, numbering systems) and `:percent`, `:currency`, `:unit` |
 | `fn-datetime` + `datetime-icu` \| `datetime-intl` | off | date/time family; exact-but-large vs. tiny-but-host-dependent |
-| `intl` *(adopted 2026-09-22)* | off | client only: numbers, plural selection and dates through the browser's `Intl` ([03](03-runtime.md) §5.3), requiring `Intl.NumberFormat` v3; the server keeps the Rust path. Measured larger and slower than the Rust path for core numbers (A0): a choice for apps that prefer the browser's data |
+| `intl` *(adopted 2026-09-22)* | off | client only: numbers, plural selection and dates through the browser's `Intl` ([03](03-runtime.md) §5.3), requiring `Intl.NumberFormat` v3; the server keeps the Rust path. As built (Phase 4): +2.2 KB gz for core numbers, +0.4 with `fn-number`, −3.6 with `:currency` + `:unit`, 1.7–6× slower per numeric placeholder; L4 green in Chromium, Firefox and WebKit ([06](06-size-and-perf.md) §3) |
 | `static-locale` | off | no live switching: switch = cookie + navigation; no per-node bookkeeping |
 | `mark-fallback-lang` | off | wrap fallback-language text in `<span lang>` |
 | `diagnostics` | off (on in dev) | readable errors, ids, spans |
