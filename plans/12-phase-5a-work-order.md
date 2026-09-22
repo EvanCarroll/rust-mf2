@@ -75,20 +75,36 @@ rebuilds only what it must.
   writes for the reference workload, with the corpus's real LOCALE entries
   (Phase 2 measured B7 without locale data, Phase 4 B8 on single messages).
 
-## Owner questions (open)
+## Owner questions (answered; the measurements are in the results)
 
 1. **Server-only catalog embedding** (05 §4): every locale change recompiles
    the i18n crate and all its dependents in both cargo-leptos builds (P0.9:
    8–23 s per debug build for 2,000 sites). Evaluate moving server-only
    embedding into a crate only the server binary depends on; report the
    measured rebuild times both ways and recommend.
+   → **Answered: adopt the split, as an option the application chooses.**
+   `Build::emit(Emit::Module | Emit::Catalogs)` is implemented, and the
+   scenarios run both ways: with the catalogs apart, a text edit in any
+   locale rewrites **nothing** in the i18n crate's `OUT_DIR`, so neither it
+   nor anything above it is recompiled. It costs one more crate and a second
+   parse of the corpus per build (+355 ms release, +2.1 s debug on the
+   reference workload). [phase-5a-results](phase-5a-results.md), "Owner
+   question 1".
 2. **One catalog or two for `intl` clients** (above): the measured bytes of
    the number / currency / unit / plural entries per locale on the reference
    workload, against the complexity of a second catalog variant (two content
    hashes per locale, preload headers, the server's choice).
+   → **Answered: one catalog.** On the reference workload a client-only
+   variant saves −80 to +75 B brotli — three of the four locales are
+   *smaller* with the data in them. On a corpus of nothing but numeric
+   functions it saves 0.24–0.36 KB per locale. [phase-5a-results](phase-5a-results.md),
+   "Owner question 2".
 3. Carried: the W3C Message Resource draft's license (05 §2) — until it is
    confirmed, nothing is vendored and `mf2-resource` is written from the
-   draft at the pin, citing it.
+   draft at the pin, citing it. **Still open**: `cargo xtask resource-sync`
+   remains blocked, and 05 §2 now records the seven readings of the working
+   grammar that A1 settled, each to be re-checked against the draft's ABNF
+   when vendoring is allowed.
 
 ## Part A — tasks (A1–A3 first; A4–A8 in order; A9–A12 as their inputs exist)
 
@@ -112,16 +128,29 @@ A4 needs A2 and A3; A5–A7 need A4; A8 wraps A4–A7; A9–A12 grow alongside.
 
 ## Exit (master plan §9, P5a)
 
-- [ ] the reference workload builds reproducibly (byte-identical outputs from
-      two directories), under plain cargo and cargo-leptos
-- [ ] `mf2 check` catches seeded drift of every lint class and is silent on
+Checked at the close of the phase; the figures behind each are in
+[phase-5a-results](phase-5a-results.md).
+
+- [x] the reference workload builds reproducibly (byte-identical outputs from
+      two directories), under plain cargo — **cargo-leptos is not exercised**:
+      there is no Leptos application in the tree before P6, and P0.9 measured
+      what the double build changes (results §A9)
+- [x] `mf2 check` catches seeded drift of every lint class and is silent on
       the clean workload; gated functions are build errors with file and line
-- [ ] editing one message rebuilds only what it must; a translation-only edit
-      leaves the client wasm byte-identical
-- [ ] the `mf2-build` ≡ `compile_str` differential green on the whole suite in
-      both configurations
-- [ ] B7, B8, B1′, B13 measured on `mf2-build`'s output and met, or restated
-      with the owner; build cost reported
-- [ ] owner questions 1 and 2 answered and recorded
-- [ ] fuzz targets clean for ≥ 1 h each on the final code
-- [ ] `plans/phase-5a-results.md` written
+      (§A7)
+- [x] editing one message rebuilds only what it must; a translation-only edit
+      leaves the client wasm byte-identical (§A9)
+- [x] the `mf2-build` ≡ `compile_str` differential green on the whole suite in
+      both configurations — 485/485 (§A4)
+- [x] B7 and B8 measured on `mf2-build`'s output and met; **B1′ and B13 held
+      by construction and by test, not yet as a size delta on a wasm harness
+      built from the generated module** (§A10); build cost reported (§A11)
+- [x] owner questions 1 and 2 answered and recorded, both with measurements
+      and a recommendation
+- [x] fuzz targets clean for ≥ 1 h each on the final code (§A12)
+- [x] `plans/phase-5a-results.md` written
+
+**What Phase 5b inherits**: the `b12-generated` harness pair that would turn
+B1′ and B13 from "the generated registry is the same registry Phase 4
+measured" into a size delta; and cargo-leptos, whose double build P6 brings
+into the tree.

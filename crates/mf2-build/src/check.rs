@@ -91,13 +91,18 @@ impl At<'_, '_> {
         );
     }
 
-    /// Where `part` of the message's source begins, for a name the analysis
-    /// borrowed from it.
+    /// Where `part` of the message's source begins: its first occurrence.
+    ///
+    /// A name the analysis had to normalize is not a substring of the source
+    /// at all, and a name used twice has two positions; both cases report the
+    /// first match, or the start of the message. A lint says *what* is wrong
+    /// with a message — the position takes a reader to the line.
     fn offset_of(&self, part: &str) -> u32 {
         self.record
             .source
-            .substr_range(part)
-            .map_or(0, |r| u32::try_from(r.start).unwrap_or(0))
+            .find(part)
+            .and_then(|at| u32::try_from(at).ok())
+            .unwrap_or(0)
     }
 }
 

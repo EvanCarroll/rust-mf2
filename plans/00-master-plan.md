@@ -20,7 +20,13 @@ companion documents elaborate it and MUST NOT contradict it.
 | [phase-1-results](phase-1-results.md) | Phase 1 measurements: L1/L2, the D1 gate, generated input, fuzzing |
 | [09-phase-2-work-order](09-phase-2-work-order.md) | Phase 2 work order (done); the frozen `mf2-catalog` API |
 | [phase-2-results](phase-2-results.md) | Phase 2 measurements: format v1, L3, B7, reader cost and B12, fuzzing |
-| [10-phase-3-work-order](10-phase-3-work-order.md) | task-level work order for the next phase: the runtime core |
+| [10-phase-3-work-order](10-phase-3-work-order.md) | Phase 3 work order (done) |
+| [phase-3-results](phase-3-results.md) | Phase 3 measurements: the runtime core, D15, L4 |
+| [11-phase-4-work-order](11-phase-4-work-order.md) | Phase 4 work order (done) |
+| [phase-4-results](phase-4-results.md) | Phase 4 measurements: the function families, the `intl` option |
+| [12-phase-5a-work-order](12-phase-5a-work-order.md) | Phase 5a work order (done) |
+| [phase-5a-results](phase-5a-results.md) | Phase 5a measurements: the build pipeline, the CLI, B7/B8, both owner questions |
+| [13-phase-5b-work-order](13-phase-5b-work-order.md) | task-level work order for the next phase: the macros |
 
 ---
 
@@ -325,7 +331,7 @@ everything before it).
   configuration's documented degradations recorded in the ledger; B2–B4, B8,
   B13 measured and met; goldens identical on both targets for Rust backends.
 
-### P5a — Build pipeline and CLI
+### P5a — Build pipeline and CLI — *done* ([phase-5a-results](phase-5a-results.md))
 * `mf2-resource` (W3C Message Resource draft: parser, serializer, data model,
   schema-validated JSON, ABNF-driven tests) + loader; JSON loader; metadata
   (`@param`, `@do-not-translate`, comments) carried to lints and exports;
@@ -334,6 +340,14 @@ everything before it).
   dump pseudo export import watch`).
 * **Exit**: reference workload builds reproducibly; `check` catches seeded drift
   of every lint class; edit-one-message rebuilds only what it must.
+* **Result**: met. The manifest the pipeline derives is P0.7's
+  (`0x43e0dc12eeb05ef1`); the `mf2-build` ≡ `compile_str` differential is green
+  on all 485 suite messages in both configurations; a translation-only edit
+  leaves the client wasm byte-identical; B7 and B8 hold on the catalogs the
+  build writes. Owner question 1 is answered with a supported split
+  (`Emit::Module` / `Emit::Catalogs`), owner question 2 with "one catalog".
+  cargo-leptos is not exercised — there is no Leptos application before P6 —
+  and B1′/B13 are held by construction rather than by a wasm size delta.
 
 ### P5b — Macros · layer **L5**
 * `mf2-macros`: `tr!` forms, diagnostics with did-you-mean, manifest cache;

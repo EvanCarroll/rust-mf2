@@ -394,9 +394,18 @@ Measured behaviour and costs:
 * **Every locale change recompiles the i18n crate and all its dependents** in
   both builds — even a translation-only edit or an mtime-only touch (cargo has
   no early cut-off); 8–23 s per debug `cargo leptos build` for a 2,000-site app.
-  Outputs stay deterministic. Accepted until P7's dev hot reload; a mitigation
-  to evaluate in P5a is moving server-only catalog embedding into a crate only
-  the server binary depends on (owner question).
+  Outputs stay deterministic. Accepted until P7's dev hot reload.
+
+  **The mitigation is implemented (P5a, owner question 1):
+  `Build::emit(Emit::Module | Emit::Catalogs)`.** The i18n crate emits the
+  manifest and the module; a crate only the server binary depends on emits the
+  catalogs and the table that embeds them. Nothing in the module then names a
+  catalog, so a text edit in any locale rewrites **nothing** in the i18n
+  crate's `OUT_DIR` and cargo recompiles neither it nor anything above it.
+  It costs one more crate and a second parse of the corpus per build (+355 ms
+  release, +2.1 s debug for the reference workload), which is why it is the
+  application's choice rather than the default. An mtime-only touch rewrites
+  nothing either way: every output is written only when its bytes change.
 * **`cargo leptos watch` does not watch `locales/`**: `mf2 init` writes
   `watch-additional-files = ["<i18n crate>/locales"]` into
   `[package.metadata.leptos]`, and the docs say why.
@@ -451,6 +460,25 @@ for `tr!` invocations); suspicious bidi (unpaired isolates in literal text).
 | `mf2 export` / `import` | flat JSON now; XLIFF 2 later |
 | `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map |
 | `mf2 watch` | recompile on change; with `mf2-axum`'s dev mode, pushes the new catalog to open pages |
+
+Every command but `convert` ships in P5a. Three details the implementation
+settled:
+
+* **`fmt`'s canonical form is the one `bench/workload-gen` writes**, so
+  `mf2 fmt --check` reports no change on a generated corpus: a value longer
+  than 100 bytes wraps at column 76, filling greedily so a line breaks
+  *before* the word that would pass the width; a value with line breaks starts
+  under its `=` with every line at one indent and is never wrapped, since its
+  line structure is the message's; and a blank line sets a comment off, not a
+  bare property.
+* **`watch` polls modification times** (300 ms by default) rather than
+  subscribing to the operating system's file events: a corpus is a few hundred
+  files, and nothing then has to know about inotify, kqueue or the editors
+  that write through a temporary file.
+* **`import` writes a translation back into the container it came from**,
+  keeping every section, comment and property; an id the locale does not have
+  is reported, not invented, because which section it belongs in is the
+  translator's decision.
 
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 

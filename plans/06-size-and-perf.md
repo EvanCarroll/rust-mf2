@@ -266,6 +266,33 @@ registry or host).
 | **B12** | clean for the reader, the runtime, the numeric and date functions and the `intl` path; reported, not gated, for the ICU4X harnesses (7 fmt / 11–24 panic symbols, ICU4X's) and `mf2-host-web`'s own `wasm-bindgen` / `js-sys` glue (a panic path, with or without the date features) | `bench/b12/check.sh` |
 | **B13** | 0 numeric symbols without the numeric handlers, 0 date symbols without a date function | same |
 
+### Phase 5a measurements (2026-09-22)
+
+Details and commands: [phase-5a-results](phase-5a-results.md). These are the
+catalogs an application actually serves — the manifest built from the source
+locale, fallbacks flattened, COLD and IDS stripped, and the LOCALE entries the
+corpus needs — rather than catalogs written straight from a corpus file.
+
+| Item | Figure | Harness |
+|---|---|---|
+| **B7**, the build's own catalogs, brotli 11: en / pl / en-XA / ar-XB | **17,992** / 24,109 / 21,502 / 18,498 B br (same limits as Phase 2) | `cargo test -p mf2-build --test sizes -- --nocapture` |
+| The same, raw | 51,516 / 67,945 / 101,170 / 61,444 B (limits 66,862 / 85,947 / 131,647 / 80,913) | same |
+| What the locale data costs on the wire | **−80 / −28 / −35 / +75 B br** — three of the four locales are *smaller* with 12–24 B of number symbols in them | same |
+| **B8** plural + `number.symbols`, the build's catalogs | reference workload 17–45 B; a corpus using every numeric function, over the 11-locale panel, 12–47 B (≤ 512) | `cargo test -p mf2-build --test slicing -- --nocapture` |
+| **B6** on the generated module | clean: no canary text and no catalog name in the client artifact | `cargo xtask codegen-matrix` |
+| One `build.rs` pass, reference workload (1,600 × 4) | **369 ms** cold / 358 ms warm release, 2.15 s debug; peak 21.9 / 26.5 MB | `cargo run --release -p build-cost` |
+| `icu.blob` at build time | +0 (315 ms with, 350 ms without, on a corpus with 160 `:datetime` messages); ≈500 B per catalog | same, `--features datetime-icu` |
+
+Built *without* `fn-number` the same corpus gives exactly Phase 2's brotli
+figures (18,072 / 24,137 / 21,537 / 18,423), which is what says the
+difference above is the number data and nothing else.
+
+**B1′ and B13 on the generated module** are held by construction and by test
+— the generated registry names the handlers the corpus uses and no others,
+and takes the unannotated hooks only when a placeholder can reach them — but
+not yet as a size delta: the `bench/b12` harnesses take a hand-written
+registry. A `b12-generated` pair is Phase 5b's to add.
+
 ### Phase 4: the `intl` client option (2026-09-22)
 
 Owner decision 4 ([03](03-runtime.md) §5.3). The option is opt-in and has no

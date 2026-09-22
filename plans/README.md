@@ -22,8 +22,9 @@ source of truth and links to everything else.
 | — | [phase-3-results.md](phase-3-results.md) | the Phase 3 measurements: L4, the numeric A/B (D15), plural samples, generated input, fuzzing, B1/B10/B12/B13 |
 | 11 | [11-phase-4-work-order.md](11-phase-4-work-order.md) | Phase 4 tasks (done): function families, locale data, layer L4 (all files), the `intl` client option; status at exit |
 | — | [phase-4-results.md](phase-4-results.md) | the Phase 4 measurements: the `intl` probe and the option as built, the number and date data, `:currency` / `:unit`, the date backends, L4d, goldens, generated input and fuzzing, numeric speed, B2–B4, B8, B12, B13, B1′ |
-| 12 | [12-phase-5a-work-order.md](12-phase-5a-work-order.md) | **doing the work next** — Phase 5a tasks: `mf2-resource`, `mf2-build`, the generated module, `mf2 check`, `mf2-cli` |
-| 13 | [13-phase-5b-work-order.md](13-phase-5b-work-order.md) | Phase 5b tasks: `mf2-macros`, the call-site types, layer L5 (needs 5a, and P3 + P4) |
+| 12 | [12-phase-5a-work-order.md](12-phase-5a-work-order.md) | Phase 5a tasks (done): `mf2-resource`, `mf2-build`, the generated module, `mf2 check`, `mf2-cli`; status at exit |
+| — | [phase-5a-results.md](phase-5a-results.md) | the Phase 5a measurements: the pipeline on the reference workload, the `compile_str` differential, the seeded-drift corpus, the edit scenarios, B7 and B8 on the build's own catalogs, build cost, and both owner questions answered |
+| 13 | [13-phase-5b-work-order.md](13-phase-5b-work-order.md) | **doing the work next** — Phase 5b tasks: `mf2-macros`, the call-site types, layer L5 (needs 5a, and P3 + P4) |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans

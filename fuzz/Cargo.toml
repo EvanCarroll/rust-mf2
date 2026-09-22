@@ -14,6 +14,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4.13"
+mf2-build = { path = "../crates/mf2-build" }
 mf2-catalog = { path = "../crates/mf2-catalog", features = ["writer", "decode"] }
 mf2-fn-datetime = { path = "../crates/mf2-fn-datetime" }
 # The catalog-mode registry (dates over the neutral backend).
@@ -39,6 +40,13 @@ bench = false
 [[bin]]
 name = "catalog"
 path = "fuzz_targets/catalog.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pipeline"
+path = "fuzz_targets/pipeline.rs"
 test = false
 doc = false
 bench = false

@@ -15,8 +15,8 @@
 //!   (for its locale, unstripped and stripped) and its source (source mode),
 //!   with its `params` as positional arguments; the workload catalogs with a
 //!   few arguments; and 400 generated L4 cases (`mf2_conformance::l4gen`);
-//! * `fuzz/corpus/resource/` — the reference workload and the suite's
-//!   messages, each written as one resource file.
+//! * `fuzz/corpus/resource/` and `fuzz/corpus/pipeline/` — the reference
+//!   workload and the suite's messages, each written as one resource file.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
