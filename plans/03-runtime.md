@@ -833,6 +833,55 @@ client feature, off by default, requiring `Intl.NumberFormat` v3** — no Rust
 fallback in the client; an engine without it formats numbers neutrally and
 reports *Unsupported Operation*. The probe stays as the A/B baseline.
 
+**What is built (Phase 4).** Features `intl` on `mf2-runtime`,
+`mf2-fn-number`, `mf2-host-web` and the `mf2` facade; the switch is the
+runtime's `INTL_NUMBERS` (the feature *and* `wasm32-unknown-unknown`), which
+`mf2-fn-number` reads too, so the two crates cannot disagree; the API is
+§2.7's.
+
+* **The runtime** has two backends behind one internal interface
+  (`number/display.rs`, the Rust one; `number/intl.rs`): what a resolved
+  number keeps, `:integer`'s rounding, the neutral display, the display an
+  exact key compares with, the plural category. Everything else —
+  `number.rs`'s resolution, the option tables and errors, `:offset`, the
+  exact-key rules — is shared, so the two builds report the same errors
+  (except the digit-size limit of 21, §2.7).
+* **`mf2-fn-number`** writes `:number`, `:integer`, `:offset`, `:percent`,
+  unannotated numbers, `:currency` and `:unit` through
+  `Number::format_by_host` with the style (`intl.rs`; hooks in `lib.rs` and
+  `measure.rs`). `measure.rs` still resolves the currency or unit and its
+  options; `fractionDigits` unset or `auto` asks for the currency's own
+  digits (the engine's), `currencyDisplay=never` — which `Intl` lacks — is
+  formatted with `code`, the code and the blank next to it dropped; a unit
+  `Intl` does not sanction (it sanctions 45 and their `-per-` compounds) is
+  *Unsupported Operation* at `formattable`, as the Rust path says for a
+  unit the catalog lacks.
+* **`mf2-host-web`** (`numbers.rs`): `NUMBERS_HOST` = `IntlNumbers(&HOST)`,
+  whose `numbers()` is `Intl` once `Intl.NumberFormat` v3 is detected (by
+  behaviour: `roundingPriority`, `roundingMode`, `roundingIncrement`,
+  `trailingZeroDisplay`, `useGrouping: "min2"`, `signDisplay: "negative"`,
+  exact decimal strings, `PluralRules` with `roundingMode`, `formatToParts`
+  — Chromium 143 resolves `roundingPriority` to `"auto"` in
+  `resolvedOptions()` while honouring it). One inline-JS module caches one
+  `NumberFormat` / `PluralRules` per kind, locale and option set (FIFO,
+  256); the options cross as JSON built in a fixed 512-byte buffer (no
+  allocation, no `core::fmt`), the value as its exact decimal text, parts
+  back as `type U+001F value` records separated by U+001E.
+* **Conformance** ([01](01-conformance.md) §3–§4, `cargo xtask l4-web`):
+  L4 **324 / 324** runtime tests in Chromium 143, Firefox 155 and WebKit
+  26.6, and no suite test formats otherwise than the Rust path, in either
+  configuration. Over the goldens the text is the Rust path's except
+  Chromium's Welsh currency and unit names (English; 72 cases) and ar-EG's
+  `currencyDisplay=never` (a U+200F left of the number, 9 cases, all
+  engines); negative numbers in ar, ar-EG and he split the minus sign's bidi
+  mark into its own sub-part (all engines). All of it is in the ledger's
+  `[[intl]]` tables.
+* **Catalogs.** An `intl` client reads no `number.*`, `currency.*`,
+  `unit.*` or `plural.*` entry; leaving them out of the catalogs it
+  downloads is `mf2-build`'s slicing (P5a), which then serves the client a
+  catalog without them and keeps the server's (which renders with the Rust
+  path) whole.
+
 ### 5.4 Dates: the semantics' open points (Phase 4, A5)
 
 `mf2-fn-datetime` decides what datetime.md leaves open as follows (its crate

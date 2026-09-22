@@ -248,6 +248,13 @@ pub fn cases(test: &SuiteTest) -> Result<(Case, Case), String> {
     Ok((make(false)?, make(true)?))
 }
 
+/// Checks a record formatted elsewhere — the `intl` build in a browser
+/// (`cargo xtask l4-web`) — against `test`'s expectations, as L4 checks its
+/// own: the string, the errors of both runs, the parts.
+pub fn judge(test: &SuiteTest, got: &Record) -> Result<(), String> {
+    compare(test, got)
+}
+
 fn compare(test: &SuiteTest, got: &Record) -> Result<(), String> {
     let mut problems = Vec::new();
     if let Some(exp) = &test.exp

@@ -11,6 +11,7 @@ mod fsx;
 mod fuzz_seed;
 mod git;
 mod l4_wasi;
+mod l4_web;
 mod locale_data;
 mod pin;
 mod report;
@@ -80,6 +81,18 @@ enum Command {
         #[arg(long, value_name = "N")]
         generated: Option<u64>,
     },
+    /// Conformance L4 in the browser for the `intl` build: format every L4
+    /// case in Chromium, Firefox and `WebKit` (tools/e2e) and require the
+    /// suite's expectations, or the ledger's `intl` entries, and every
+    /// difference from the Rust path recorded there.
+    L4Web {
+        /// Engines: `all` or a comma-separated list of chromium, firefox, webkit.
+        #[arg(long, default_value = "all", value_name = "ENGINES")]
+        browser: String,
+        /// Judge the records already in target/l4-web/ (no build, no browser run).
+        #[arg(long)]
+        no_run: bool,
+    },
     /// Rewrite the locale-output goldens (conformance/goldens/*.tsv) from a
     /// fresh render; review the diff before committing.
     Goldens,
@@ -143,6 +156,20 @@ fn run(command: Command) -> Result<()> {
         Command::Ci => ci::run(&root),
         Command::Goldens => goldens(&root),
         Command::L4Wasi { generated } => l4_wasi::run(&root, generated),
+        Command::L4Web { browser, no_run } => {
+            let engines: Vec<String> = if browser == "all" {
+                l4_web::ENGINES.iter().map(|e| (*e).to_owned()).collect()
+            } else {
+                browser.split(',').map(str::to_owned).collect()
+            };
+            if let Some(bad) = engines
+                .iter()
+                .find(|e| !l4_web::ENGINES.contains(&e.as_str()))
+            {
+                return Err(Error::L4(format!("unknown engine {bad:?}")));
+            }
+            l4_web::run(&root, &engines, !no_run)
+        }
         Command::Size => Err(Error::SizeNotImplemented),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

@@ -20,9 +20,11 @@ members = [
     "bench/runtime-bench",
 ]
 # Standalone workspaces: the Phase 0 experiments, the cargo-fuzz targets
-# (nightly only), and the B12 wasm harnesses (no_std cdylibs with their own
-# panic handler and allocator; bench/b12/check.sh).
-exclude = ["probes", "fuzz", "bench/b12", "bench/intl-probe"]
+# (nightly only), the B12 wasm harnesses (no_std cdylibs with their own
+# panic handler and allocator; bench/b12/check.sh), the `intl` probe, and L4
+# in the browser for the `intl` build (`cargo xtask l4-web`), whose `intl`
+# features must not unify into this workspace's builds.
+exclude = ["probes", "fuzz", "bench/b12", "bench/intl-probe", "conformance/l4-web"]
 
 [workspace.package]
 version = "0.0.0"

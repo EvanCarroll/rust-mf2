@@ -13,7 +13,11 @@
 //!    ([`crate::matrix::HARNESSED`]) — rules 2 and 3 run there;
 //! 7. the unpaired-surrogates note is present;
 //! 8. no `open` note whose `until` is `current_phase` or earlier (rule 4, for
-//!    an obligation recorded once rather than per test).
+//!    an obligation recorded once rather than per test);
+//! 9. `intl` entries (the `intl` build's engine differences, §4) only on
+//!    tests that run at L4, each engine at most once per test — whether they
+//!    are the observed ones is `cargo xtask l4-web`'s to check, in the
+//!    engines.
 //!
 //! Rules 2 and 3 themselves — a `pass` must pass, an `xfail` must not — need
 //! the layers to run: [`crate::harness::verify`].
@@ -136,6 +140,14 @@ pub enum Violation {
         detail: String,
     },
 
+    #[error(
+        "{key}: an `intl` entry on a {kind} test, which never formats (only runtime tests run in the engines)"
+    )]
+    IntlOnCompileTest { key: TestKey, kind: &'static str },
+
+    #[error("{key}: engine {engine} is in more than one `intl` entry")]
+    IntlEngineTwice { key: TestKey, engine: String },
+
     #[error("{key}: {column} is degraded ({want}) in the ledger, but the harness {got}")]
     DegradationMismatch {
         key: TestKey,
@@ -161,7 +173,10 @@ pub fn check(suite: &Suite, ledger: &Ledger) -> Vec<Violation> {
                 key: e.key.clone(),
                 index: e.index,
             }),
-            Some(t) => check_entry(t, &e.cells, ledger.current_phase, &mut v),
+            Some(t) => {
+                check_entry(t, &e.cells, ledger.current_phase, &mut v);
+                check_intl(t, e, &mut v);
+            }
         }
     }
     for t in suite.tests() {
@@ -286,6 +301,29 @@ fn check_entry(
                 }
             }
             Cell::NotApplicable => {}
+        }
+    }
+}
+
+fn check_intl(t: &SuiteTest, e: &crate::ledger::Entry, v: &mut Vec<Violation>) {
+    if e.intl.is_empty() {
+        return;
+    }
+    if t.kind != crate::matrix::TestKind::Other {
+        v.push(Violation::IntlOnCompileTest {
+            key: t.key.clone(),
+            kind: t.kind.as_str(),
+        });
+    }
+    let mut engines = HashSet::new();
+    for d in &e.intl {
+        for engine in &d.engines {
+            if !engines.insert(engine.as_str()) {
+                v.push(Violation::IntlEngineTwice {
+                    key: t.key.clone(),
+                    engine: engine.clone(),
+                });
+            }
         }
     }
 }

@@ -99,7 +99,7 @@ catalog test, whatever file it came from.
 | **L1 syntax** | `mf2-syntax` | Parse `src`. A Syntax Error is reported **iff** `expErrors` contains `syntax-error`. | CST is lossless: `cst.to_string() == src` byte-for-byte. Never panics. Every diagnostic span is in bounds and on a char boundary. |
 | **L2 data model** | `mf2-syntax` → `mf2-model` | Lower to the spec's interchange data model; run validation. The set of Data Model Errors equals the data-model subset of `expErrors`. | Model → JSON validates against the vendored `spec/data-model/message.json`. `parse(serialize(m)) == m`. `serialize(m)` is itself L1-clean. |
 | **L3 catalog** | `mf2-catalog` | Compile every L2-clean message into a binary catalog, decode it, and rebuild a data model. It MUST equal the L2 model — **the binary format is lossless over the full data model**, which is what proves it is not a subset. | Decoder never panics or reads out of bounds on truncated / bit-flipped input (fuzzed). Reader is `forbid(unsafe_code)`, without exception ([02](02-catalog-format.md) F5). |
-| **L4 runtime** | `mf2-runtime` + function crates | Compile `src` to a one-message catalog, format it **from the catalog** with `params`, `locale`, `bidiIsolation`. Assert `exp`, `expParts`, `expErrors` (absent/empty ⇒ no errors allowed). | Runs on **native and wasm** with byte-identical results. The wasm run is `wasm32-wasip1` under wasmtime: suite catalogs are compiled natively beforehand and embedded, so the wasm executes only the client path (reader + runtime + functions) with a pure-Rust `Host`. (The browser target, `wasm32-unknown-unknown` with `mf2-host-web`, is exercised by L6.) There is no "format from AST" code path anywhere — the shipped path is the only path, so it is the tested path. |
+| **L4 runtime** | `mf2-runtime` + function crates | Compile `src` to a one-message catalog, format it **from the catalog** with `params`, `locale`, `bidiIsolation`. Assert `exp`, `expParts`, `expErrors` (absent/empty ⇒ no errors allowed). | Runs on **native and wasm** with byte-identical results. The wasm run is `wasm32-wasip1` under wasmtime: suite catalogs are compiled natively beforehand and embedded, so the wasm executes only the client path (reader + runtime + functions) with a pure-Rust `Host`. (The browser target, `wasm32-unknown-unknown` with `mf2-host-web`, is exercised by L6 — and, for the `intl` build, by `cargo xtask l4-web` in three engines, below.) There is no "format from AST" code path anywhere — the shipped path is the only path, so it is the tested path. |
 | **L5 macros** | `mf2-build` + `mf2-macros` | The suite becomes generated i18n crates — one per locale the suite uses (`en-US`, `und`, `fr`, `ar`), each single-locale. Message id = `suite.<file-stem>.t<index>` (e.g. `suite.syntax.t078`). Each test → a `#[test]` that calls `tr!` with `params` and asserts **the same `exp` / `expParts` / `expErrors` as L4**. For syntax- and data-model-error tests the assertion is that `mf2-build` rejects the message with the expected kind. | Proves compile-time variable extraction and slot lowering for every syntax form (`.input`, `.local` shadowing, variables used only in options / selectors / markup options). `trybuild` compile-fail cases: unknown id, missing arg, extra arg, unknown markup handler. Tests whose `params` deliberately mismatch the message (e.g. `unresolved-variable`) go through the dynamic named-args API and are marked `dyn` in the ledger. |
 | **L6 Leptos** | `leptos-mf2` | (a) **SSR**: render each message through the view type to HTML; text content equals `exp`; markup is rendered with the **flat recorder handler** ([04](04-leptos-integration.md) §7), one empty marker element per markup part, whose order, kind, name and options MUST equal `expParts` (the suite contains unpaired markup, so nesting cannot be the assertion). (b) **Hydrate**: a generated page holding every runtime-valid suite message is server-rendered, hydrated in a headless browser, and MUST log zero hydration warnings with identical `innerText` before/after. Then the page switches to a **twin locale** (identical messages under another tag), which forces every node to be re-formatted *in the browser*; `innerText` MUST still equal `exp`; then back. Per-test `bidiIsolation` is applied through the provider's bidi-strategy setting. | SSR+hydrate in P6; CSR and islands in P7. |
 
@@ -140,6 +140,29 @@ passes or degrades otherwise is red, and so is an `xfail` whose run degrades
 as documented (`--promote` records it); at L5 the same tests
 assert that **`mf2-build` rejects the corpus** (gated function) or warns (neutral
 numbers). A degradation that is not written down is a failure.
+
+**The `intl` build** (owner decision 4; [03](03-runtime.md) §5.3). The
+`intl` client option is a third configuration, and only in a browser: on
+`wasm32-unknown-unknown` the numeric functions take their display, their
+rounding and the plural category from the engine's `Intl.NumberFormat` and
+`Intl.PluralRules`, so its conformance is per engine. `cargo xtask l4-web`
+runs it: every case `l4-wasi` runs — the suite in both configurations,
+unstripped and stripped, and the locale-output goldens (§5) — compiled
+natively into a bundle, formatted by `conformance/l4-web` (the L4 runner
+built for `wasm32-unknown-unknown` with the `intl` features and
+`mf2-host-web`'s `NUMBERS_HOST`) in Chromium, Firefox and WebKit through
+`tools/e2e/checks/l4-intl.mjs`, and judged natively: each suite test against
+its expectations exactly as L4 judges the native run (the stripped catalog
+formats as the unstripped one), and each record against the native one —
+the Rust path. Every difference is classified — `space` (only space
+characters differ), `digits` (other digits: rounding, precision, numbering
+system), `symbols` (the same digits with other signs, separators,
+currency or unit text), `plural` (another variant: another plural
+category), `errors`, `parts` (the same text in other sub-parts) — and MUST
+be the ledger's (§4, `intl`): an unrecorded difference fails the run, and
+so does a recorded one that no longer occurs. The L4 columns stay the Rust
+path's; the engine runs are not in CI (they need the three browsers) but
+are part of Phase 4's exit and of any change to the option.
 
 ## 4. The ledger — no silent skips
 
@@ -189,6 +212,28 @@ testable and MUST carry `until` (the phase that discharges it); only an open
 note may. Since P2: `stripped-formats-identically`, `until = "P3"` —
 stripped and unstripped catalogs format identically, checked once L4 exists
 (L3 already checks they decode to the same formatting-relevant model).
+
+**The `intl` build's differences** (§3) are recorded where they occur, not
+as statuses: a `[[test]]` entry MAY carry `intl = [{ engines, kind, fails,
+detail }, …]` — the engines it occurs in (`chromium`, `firefox`, `webkit`,
+in that order), its kind (`space` | `digits` | `symbols` | `plural` |
+`errors` | `parts`), whether the test's expectations then fail there
+(`fails = true`; absent = they pass) and what differs and why; each engine
+at most once per test, and only on a test that runs at L4. The goldens are
+not suite tests, so their differences are top-level `[[intl]]` tables:
+`cases = "golden/<family>/<locale>"`, `engines`, `kind`, `count` (how many
+of the group's cases differ so, in each of those engines), `detail`.
+`cargo xtask conformance-report` checks their form; `cargo xtask l4-web`
+checks, in the engines, that they are exactly what occurs.
+
+```toml
+[[intl]]
+cases   = "golden/units/cy"
+engines = ["chromium"]
+kind    = "symbols"
+count   = 36
+detail  = "Chromium 143 has no Welsh unit names and writes the English ones: …"
+```
 
 **Statuses**: `pass`; `xfail` (known failure; `until` names the phase that fixes
 it); `degraded` (default-features columns only: `kind` is `unsupported-operation`,

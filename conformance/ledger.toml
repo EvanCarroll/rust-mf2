@@ -8,6 +8,10 @@
 # Statuses: "pass" | "n/a" | { status = "xfail", until = "<phase>", reason? }
 #           | { status = "degraded", kind, detail? } (L4d/L5d/L6d) | { status = "skip", reason }
 # L5/L5d cells may add via = "dyn". Tags are never a skip reason.
+# intl = [{ engines, kind, fails?, detail }]: where the `intl` build differs from the Rust
+# path in a browser engine (cargo xtask l4-web); kind = space | digits | symbols | plural |
+# errors | parts. [[intl]] (cases = "golden/<family>/<locale>", engines, kind, count,
+# detail): the same over the locale-output goldens.
 # [[note]]: a fact recorded once (id, status, reason); an "open" note is an obligation
 # not yet met and names the phase whose exit closes it (until).
 
@@ -22,6 +26,90 @@ reason = "test/README.md asks implementations whose strings can hold unpaired su
 id     = "stripped-formats-identically"
 status = "pass"
 reason = "Production catalogs are stripped of COLD and IDS (plans/02-catalog-format.md §2.3), which must not change formatting. L3 checks that the stripped catalog decodes to the formatting-relevant model of the unstripped one (conformance/src/l3.rs); since Phase 3, L4 formats every L4-applicable test from both catalogs and requires identical string output, parts and errors (conformance/src/l4.rs), so a difference fails that test's L4 cell."
+
+[[intl]]
+cases   = "golden/numbers/ar"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 50
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/numbers/ar-EG"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 50
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/numbers/he"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 30
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/currency/ar"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 18
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/currency/ar-EG"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 18
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/currency/he"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 20
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/units/ar"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 15
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/units/ar-EG"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 15
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/units/he"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "parts"
+count   = 18
+detail  = "The same text; only the sub-parts differ, where the minus sign of a negative number carries a bidi mark (CLDR's minusSign: ar U+200E U+002D, ar-EG U+061C U+002D, he U+200E U+002D): the Rust path writes the mark inside the `minusSign` part, Intl.NumberFormat.formatToParts as a `literal` part before it."
+
+[[intl]]
+cases   = "golden/currency/ar-EG"
+engines = ["chromium", "firefox", "webkit"]
+kind    = "symbols"
+count   = 9
+detail  = "`currencyDisplay=never`: Intl.NumberFormat has no such display, so the host formats with `code` and drops the code and the blank next to it, which leaves the U+200F that ar-EG's currency pattern puts before the number (U+200F ٠٫٠٠); the Rust path writes CLDR's no-currency pattern (٠٫٠٠)."
+
+[[intl]]
+cases   = "golden/currency/cy"
+engines = ["chromium"]
+kind    = "symbols"
+count   = 36
+detail  = "Chromium 143 has no Welsh currency data and writes the English: symbols `$`, `¥` for CLDR 48.2.1's `US$`, `JP¥` (and in accounting), the name `euros` for `ewro`. Firefox 155 and WebKit 26.6 agree with the Rust path (A0 saw the same)."
+
+[[intl]]
+cases   = "golden/units/cy"
+engines = ["chromium"]
+kind    = "symbols"
+count   = 36
+detail  = "Chromium 143 has no Welsh unit names and writes the English ones: `1 meter` for `1 metr`, `0 meters` for `0 m`, `2 kilometers per hour` for `2 gilometr yr awr`, `1 hour` for `1 awr`. Firefox 155 and WebKit 26.6 agree with the Rust path (A0 saw the same)."
 
 [[test]]
 file  = "bidi.json"

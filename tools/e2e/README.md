@@ -37,18 +37,22 @@ cd tools/e2e
 PLAYWRIGHT_BROWSERS_PATH=../../target/ms-playwright npx playwright install webkit
 ```
 
-`lib/browser.mjs` finds it there. WebKit needs system libraries that
-Chromium and Firefox do not (Playwright's `install-deps` installs them with
-`sudo apt-get`). On the development machine (Debian 13, no sudo) Playwright
-1.63.0's WebKit (build 2359) does not start:
+`lib/browser.mjs` finds it there (in a git worktree under `target/`, link
+the main tree's `target/ms-playwright` into the worktree's `target/`).
+WebKit needs system libraries that Chromium and Firefox do not
+(Playwright's `install-deps` installs them with `sudo apt-get`). Since
+2026-09-22 WebKit 26.6 (build 2359) starts on the development machine and
+runs headless (`cargo xtask l4-web`, Phase 4). Before, on Debian 13 without
+them, Playwright 1.63.0's WebKit did not start:
 
 ```
 MiniBrowser: error while loading shared libraries: libgstcodecparsers-1.0.so.0: cannot open shared object file
 ```
 
 and Playwright's host check also lists `libsoup-3.0.so.0` (Debian packages
-`libgstreamer-plugins-bad1.0-0` and `libsoup-3.0-0`). `--browser all` then
-reports `SKIP` for WebKit and runs the other two; `--browser webkit` fails.
+`libgstreamer-plugins-bad1.0-0` and `libsoup-3.0-0`). On such a machine
+`--browser all` reports `SKIP` for WebKit and runs the other two;
+`--browser webkit` fails.
 
 So when the Playwright CDN is unreachable, cached builds are used instead. In
 September 2026, Playwright 1.63.0 drove the cached Chromium 143 (build 1200)
@@ -80,6 +84,7 @@ One script per check in `checks/`. Each exports `run(ctx)`, where `ctx` holds
 
 | Check | App | What it asserts |
 |---|---|---|
+| `l4-intl` | `conformance/l4-web` (its own static server over `target/l4-web/`) | Conformance L4 for the `intl` build (plans/01-conformance.md §3): formats the bundle `cargo xtask l4-web` compiled natively (`target/l4-web/cases.bin`) with `conformance/l4-web` built for `wasm32-unknown-unknown` with the `intl` features, and writes `target/l4-web/<browser>.txt` (one record per case) and `<browser>.json` (the engine). Asserts that the build is the `intl` one with `Intl.NumberFormat` v3 in the engine, one record per case, no console error; `cargo xtask l4-web` builds, runs this check (`--browser chromium,firefox,webkit`) and judges the records |
 | `intl` | `bench/intl-probe` (its own static server: the check serves the repository's `bench/intl-probe/web/` and `target/intl-probe/`, with COOP/COEP) | Phase 4 A0, the `intl` client option: runs the probe's items in each browser — feature detection (floor), the L4 number files, the CLDR plural samples, P0.5's 100,000 ECMA-402 cases, edge cases, the panel's locale-symbol cases, speed (Chromium also at 4× CPU throttle) — and writes `target/intl-probe/results/<browser>.json`. Asserts only the harness's self-checks (the `rust` variant 70/70 on the neutral files; `rust` in wasm = native on all 100,000 cases) and that every item ran; the measurements are data, summarized by `bench/intl-probe/scripts/report.mjs`. `MF2_INTL_ITEMS=a,b` selects items. Prerequisites: `bench/intl-probe/scripts/build.sh` and `data.sh` (see `bench/intl-probe/README.md`) |
 
 The two checks below ran against the Phase 0 probe app

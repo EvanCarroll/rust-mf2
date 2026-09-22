@@ -1,0 +1,46 @@
+# Conformance layer L4 in the browser, for the `intl` client option
+# (plans/01-conformance.md §3, "The intl build"; plans/11-phase-4-work-order.md,
+# owner decision 4): mf2-l4-runner built for wasm32-unknown-unknown with the
+# `intl` features and mf2-host-web's NUMBERS_HOST, run by
+# tools/e2e/checks/l4-intl.mjs in Chromium, Firefox and WebKit, driven and
+# judged by `cargo xtask l4-web`.
+#
+# A standalone workspace (the root workspace excludes `conformance/l4-web`):
+# its `intl` features must never unify into the root workspace's builds, which
+# keep the Rust path.
+[workspace]
+resolver = "3"
+
+[package]
+name = "mf2-l4-web"
+description = "Conformance layer L4 in the browser: the suite's cases formatted by the intl build (Intl.NumberFormat, Intl.PluralRules), one record per case, for cargo xtask l4-web."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+mf2-l4-runner = { path = "../l4-runner" }
+# The intl build: the runtime's numeric functions and mf2-fn-number's through
+# the host's Intl (their `intl` features turn on mf2-runtime's).
+mf2-fn-number = { path = "../../crates/mf2-fn-number", features = ["intl"] }
+mf2-host-web = { path = "../../crates/mf2-host-web", features = ["intl"] }
+mf2-runtime = { path = "../../crates/mf2-runtime", features = ["intl"] }
+# Exact: the wasm-bindgen CLI that post-processes the module must be the same
+# version (0.2.128, as bench/intl-probe).
+wasm-bindgen = "=0.2.128"
+
+[lints.rust]
+unsafe_code = "deny"
+unreachable_pub = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+
+[profile.release]
+# The suite runs once per engine: build time matters more than speed.
+opt-level = 1

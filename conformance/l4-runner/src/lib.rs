@@ -190,6 +190,60 @@ impl Record {
     }
 }
 
+impl Record {
+    /// Reads a line written by [`Record::line`] (the record part, after the
+    /// id): `None` if it is not one.
+    pub fn from_line(line: &str) -> Option<Record> {
+        let mut fields = line.split('\t');
+        let text = json_unstring(fields.next()?)?;
+        let list = |f: &str| -> Vec<String> {
+            if f.is_empty() {
+                Vec::new()
+            } else {
+                f.split(',').map(str::to_owned).collect()
+            }
+        };
+        let errors = list(fields.next()?);
+        let parts = fields.next()?.to_owned();
+        let parts_errors = list(fields.next()?);
+        if fields.next().is_some() {
+            return None;
+        }
+        Some(Record {
+            text,
+            errors,
+            parts,
+            parts_errors,
+        })
+    }
+}
+
+/// The inverse of [`json_string`] (its escapes only).
+fn json_unstring(s: &str) -> Option<String> {
+    let inner = s.strip_prefix('"')?.strip_suffix('"')?;
+    let mut out = String::new();
+    let mut chars = inner.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next()? {
+            '"' => out.push('"'),
+            '\\' => out.push('\\'),
+            'n' => out.push('\n'),
+            'r' => out.push('\r'),
+            't' => out.push('\t'),
+            'u' => {
+                let hex: String = chars.by_ref().take(4).collect();
+                out.push(char::from_u32(u32::from_str_radix(&hex, 16).ok()?)?);
+            }
+            _ => return None,
+        }
+    }
+    Some(out)
+}
+
 /// The message of a one-message catalog.
 const ID: MsgId = MsgId::from_raw(0);
 
@@ -208,9 +262,21 @@ fn names(errors: &[FormatError]) -> Vec<String> {
 /// Formats `case`: named arguments (string and parts) and positional
 /// arguments (string), which must agree.
 pub fn run(case: &Case) -> Result<Record, String> {
+    run_in(case, context(case.bidi))
+}
+
+/// [`run`] with another host: the browser's, for the `intl` build's L4 run
+/// in the engines (`conformance/l4-web`; `plans/01-conformance.md` §3).
+pub fn run_with(case: &Case, host: &'static dyn Host) -> Result<Record, String> {
+    let mut cx = FormatContext::new(host);
+    cx.bidi = case.bidi;
+    run_in(case, &cx)
+}
+
+fn run_in(case: &Case, cx: &FormatContext) -> Result<Record, String> {
     let catalog = Catalog::new(case.catalog.clone(), case.manifest_hash)
         .map_err(|e| format!("Catalog::new: {e:?}"))?;
-    let f = Formatter::new(&catalog, case.config.registry(), context(case.bidi));
+    let f = Formatter::new(&catalog, case.config.registry(), cx);
     let named: Vec<(&str, Arg<'_>)> = case
         .args
         .iter()
@@ -636,6 +702,13 @@ mod tests {
             ],
             config: Config::Default,
         }];
+        let r = Record {
+            text: "a\"b\\c\n\u{1}\u{a0}é\t".into(),
+            errors: vec!["bad-operand".into(), "bad-option".into()],
+            parts: "[{\"type\":\"text\",\"value\":\"x\"}]".into(),
+            parts_errors: vec![],
+        };
+        assert_eq!(Record::from_line(&r.line()), Some(r));
         assert!(matches!(cases[0].args[4].1, ArgSpec::DateTime(_)));
         assert_eq!(ArgSpec::date_time("2006-02-30"), ArgSpec::Other);
         assert_eq!(decode_cases(&encode_cases(&cases)).unwrap(), cases);

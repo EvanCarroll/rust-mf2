@@ -203,6 +203,44 @@ pub fn render(
         }
     }
 
+    let tests_intl: Vec<_> = ledger
+        .entries
+        .iter()
+        .flat_map(|e| e.intl.iter().map(move |d| (e, d)))
+        .collect();
+    out.push_str(
+        "\n## The `intl` build in the engines\n\nWhere the `intl` client option \
+         (plans/03-runtime.md §5.3) formats otherwise than the Rust path in a browser engine, \
+         as `cargo xtask l4-web` observes it (plans/01-conformance.md §3–§4): per suite test \
+         (`intl` of a `[[test]]`) and per group of the locale-output goldens (`[[intl]]`).\n\n",
+    );
+    if tests_intl.is_empty() {
+        out.push_str("* Suite tests: none differ.\n");
+    }
+    for (e, d) in &tests_intl {
+        let _ = writeln!(
+            out,
+            "* `{}` #{} — {}, {}{}: {}",
+            e.key.file,
+            e.index,
+            d.engines.join(", "),
+            d.kind.as_str(),
+            if d.fails { " (fails L4 there)" } else { "" },
+            d.detail
+        );
+    }
+    for g in &ledger.intl {
+        let _ = writeln!(
+            out,
+            "* `{}` — {}, {}, {} case(s): {}",
+            g.cases,
+            g.engines.join(", "),
+            g.kind.as_str(),
+            g.count,
+            g.detail
+        );
+    }
+
     if !violations.is_empty() {
         out.push_str("\n## Violations\n\n");
         for v in violations {

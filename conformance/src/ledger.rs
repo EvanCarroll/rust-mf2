@@ -108,6 +108,89 @@ pub struct Entry {
     pub index: usize,
     /// Missing columns are kept missing here and reported by the checker.
     pub cells: BTreeMap<Column, Cell>,
+    /// Where the `intl` build differs from the Rust path in a browser
+    /// engine (plans/01-conformance.md §4, "The `intl` build"): what
+    /// `cargo xtask l4-web` observed, one entry per kind of difference.
+    pub intl: Vec<IntlDiff>,
+}
+
+/// The engines the `intl` build's L4 runs in (`cargo xtask l4-web`).
+pub const INTL_ENGINES: [&str; 3] = ["chromium", "firefox", "webkit"];
+
+/// A difference of the `intl` build from the Rust path in some engines: the
+/// test's record there (string, errors or parts) is not the native one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IntlDiff {
+    /// The engines it occurs in (of [`INTL_ENGINES`], in that order).
+    pub engines: Vec<String>,
+    /// How the output differs.
+    pub kind: IntlKind,
+    /// Whether the test's L4 expectations then fail in those engines.
+    pub fails: bool,
+    /// What differs and why: the two outputs, the engine's data.
+    pub detail: String,
+}
+
+/// A difference of the `intl` build from the Rust path over a group of the
+/// locale-output goldens (`[[intl]]`; plans/01-conformance.md §4): the
+/// goldens are not suite tests, so their differences are recorded per
+/// family and locale, with how many cases differ.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IntlGroup {
+    /// The goldens' case ids it covers: `golden/<family>/<locale>`.
+    pub cases: String,
+    /// The engines it occurs in (of [`INTL_ENGINES`], in that order).
+    pub engines: Vec<String>,
+    /// How the output differs.
+    pub kind: IntlKind,
+    /// How many of the group's cases differ so, in each of the engines.
+    pub count: usize,
+    /// What differs and why.
+    pub detail: String,
+}
+
+/// How the `intl` build's output differs from the Rust path's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum IntlKind {
+    /// Only space characters (U+0020, U+00A0, U+202F, …).
+    Space,
+    /// Other digits: rounding, precision, numbering system.
+    Digits,
+    /// The same digits with other symbols (signs, separators, currency or
+    /// unit text, patterns).
+    Symbols,
+    /// Another variant selected: another plural category.
+    Plural,
+    /// Other errors.
+    Errors,
+    /// The same text in other sub-parts.
+    Parts,
+}
+
+impl IntlKind {
+    pub const ALL: [IntlKind; 6] = [
+        Self::Space,
+        Self::Digits,
+        Self::Symbols,
+        Self::Plural,
+        Self::Errors,
+        Self::Parts,
+    ];
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Space => "space",
+            Self::Digits => "digits",
+            Self::Symbols => "symbols",
+            Self::Plural => "plural",
+            Self::Errors => "errors",
+            Self::Parts => "parts",
+        }
+    }
+
+    pub fn parse(s: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|k| k.as_str() == s)
+    }
 }
 
 /// One `[[note]]`: a fact recorded once rather than per test.
@@ -133,6 +216,8 @@ pub const SURROGATES_NOTE_ID: &str = "unpaired-surrogates";
 pub struct Ledger {
     pub current_phase: Phase,
     pub notes: Vec<Note>,
+    /// The `intl` build's differences over the goldens (`[[intl]]`).
+    pub intl: Vec<IntlGroup>,
     pub entries: Vec<Entry>,
 }
 
@@ -167,7 +252,7 @@ impl Ledger {
     pub fn parse(text: &str) -> Result<Self> {
         let root: Table = toml::from_str(text)?;
         for k in root.keys() {
-            if !matches!(k.as_str(), "current_phase" | "note" | "test") {
+            if !matches!(k.as_str(), "current_phase" | "note" | "intl" | "test") {
                 return Err(err("top level", format!("unknown key `{k}`")));
             }
         }
@@ -206,6 +291,10 @@ impl Ledger {
             });
         }
 
+        let mut intl = Vec::new();
+        for (i, v) in array_of_tables(&root, "intl")?.into_iter().enumerate() {
+            intl.push(parse_intl_group(v).map_err(|m| err(format!("[[intl]] #{i}"), m))?);
+        }
         let mut entries = Vec::new();
         for (i, v) in array_of_tables(&root, "test")?.into_iter().enumerate() {
             entries.push(parse_entry(i, v)?);
@@ -213,6 +302,7 @@ impl Ledger {
         Ok(Self {
             current_phase,
             notes,
+            intl,
             entries,
         })
     }
@@ -235,6 +325,15 @@ impl Ledger {
             }
             let _ = writeln!(out, "reason = {}", toml_str(&n.reason));
         }
+        for g in &self.intl {
+            out.push_str("\n[[intl]]\n");
+            let _ = writeln!(out, "cases   = {}", toml_str(&g.cases));
+            let engines: Vec<String> = g.engines.iter().map(|e| toml_str(e)).collect();
+            let _ = writeln!(out, "engines = [{}]", engines.join(", "));
+            let _ = writeln!(out, "kind    = {}", toml_str(g.kind.as_str()));
+            let _ = writeln!(out, "count   = {}", g.count);
+            let _ = writeln!(out, "detail  = {}", toml_str(&g.detail));
+        }
         for e in &self.entries {
             out.push_str("\n[[test]]\n");
             let _ = writeln!(out, "file  = {}", toml_str(&e.key.file));
@@ -243,6 +342,13 @@ impl Ledger {
             let _ = writeln!(out, "nth   = {}", e.key.nth);
             for (col, cell) in &e.cells {
                 let _ = writeln!(out, "{col} = {}", render_cell(cell));
+            }
+            if !e.intl.is_empty() {
+                out.push_str("intl = [\n");
+                for d in &e.intl {
+                    let _ = writeln!(out, "  {},", render_intl(d));
+                }
+                out.push_str("]\n");
             }
         }
         out
@@ -269,6 +375,7 @@ impl Ledger {
                     (c, cell)
                 })
                 .collect(),
+            intl: Vec::new(),
         }
     }
 
@@ -305,6 +412,7 @@ impl Ledger {
                 reason: SURROGATES_REASON.to_owned(),
                 until: None,
             }],
+            intl: Vec::new(),
             entries,
         }
     }
@@ -321,6 +429,10 @@ const HEADER: &str = "\
 # Statuses: \"pass\" | \"n/a\" | { status = \"xfail\", until = \"<phase>\", reason? }
 #           | { status = \"degraded\", kind, detail? } (L4d/L5d/L6d) | { status = \"skip\", reason }
 # L5/L5d cells may add via = \"dyn\". Tags are never a skip reason.
+# intl = [{ engines, kind, fails?, detail }]: where the `intl` build differs from the Rust
+# path in a browser engine (cargo xtask l4-web); kind = space | digits | symbols | plural |
+# errors | parts. [[intl]] (cases = \"golden/<family>/<locale>\", engines, kind, count,
+# detail): the same over the locale-output goldens.
 # [[note]]: a fact recorded once (id, status, reason); an \"open\" note is an obligation
 # not yet met and names the phase whose exit closes it (until).
 
@@ -362,15 +474,133 @@ fn parse_entry(i: usize, t: &Table) -> Result<Entry> {
     let key = TestKey { file, hash, nth };
     let ctx = format!("{ctx} ({key})");
     let mut cells = BTreeMap::new();
+    let mut intl = Vec::new();
     for (k, v) in t {
         if matches!(k.as_str(), "file" | "hash" | "nth" | "index") {
+            continue;
+        }
+        if k == "intl" {
+            let Value::Array(items) = v else {
+                return Err(err(&ctx, "`intl` must be an array of inline tables"));
+            };
+            for (j, item) in items.iter().enumerate() {
+                intl.push(parse_intl(item).map_err(|m| err(format!("{ctx} intl #{j}"), m))?);
+            }
             continue;
         }
         let col = Column::parse(k).ok_or_else(|| err(&ctx, format!("unknown column `{k}`")))?;
         let cell = parse_cell(v).map_err(|m| err(format!("{ctx} {col}"), m))?;
         cells.insert(col, cell);
     }
-    Ok(Entry { key, index, cells })
+    Ok(Entry {
+        key,
+        index,
+        cells,
+        intl,
+    })
+}
+
+fn parse_intl(v: &Value) -> std::result::Result<IntlDiff, String> {
+    let Value::Table(t) = v else {
+        return Err("an `intl` entry must be an inline table".to_owned());
+    };
+    if let Some(k) = t
+        .keys()
+        .find(|k| !matches!(k.as_str(), "engines" | "kind" | "fails" | "detail"))
+    {
+        return Err(format!("unknown key `{k}`"));
+    }
+    let (engines, kind, detail) = intl_common(t)?;
+    let fails = match t.get("fails") {
+        None => false,
+        Some(Value::Boolean(b)) => *b,
+        Some(_) => return Err("`fails` must be a boolean".to_owned()),
+    };
+    Ok(IntlDiff {
+        engines,
+        kind,
+        fails,
+        detail,
+    })
+}
+
+fn parse_intl_group(t: &Table) -> std::result::Result<IntlGroup, String> {
+    if let Some(k) = t.keys().find(|k| {
+        !matches!(
+            k.as_str(),
+            "cases" | "engines" | "kind" | "count" | "detail"
+        )
+    }) {
+        return Err(format!("unknown key `{k}`"));
+    }
+    let cases = match t.get("cases") {
+        Some(Value::String(c))
+            if c.split('/').count() == 3 && c.starts_with("golden/") && !c.ends_with('/') =>
+        {
+            c.clone()
+        }
+        _ => return Err("`cases` must be `golden/<family>/<locale>`".to_owned()),
+    };
+    let (engines, kind, detail) = intl_common(t)?;
+    let count = match t.get("count") {
+        Some(Value::Integer(n)) if *n >= 1 => {
+            usize::try_from(*n).map_err(|_| "`count` is too large".to_owned())?
+        }
+        _ => return Err("`count` must be a positive integer".to_owned()),
+    };
+    Ok(IntlGroup {
+        cases,
+        engines,
+        kind,
+        count,
+        detail,
+    })
+}
+
+/// The `engines`, `kind` and `detail` of an `intl` entry or group.
+fn intl_common(t: &Table) -> std::result::Result<(Vec<String>, IntlKind, String), String> {
+    let engines = match t.get("engines") {
+        Some(Value::Array(a)) if !a.is_empty() => a
+            .iter()
+            .map(|e| match e.as_str() {
+                Some(s) if INTL_ENGINES.contains(&s) => Ok(s.to_owned()),
+                _ => Err(format!("`engines`: {e} is not one of {INTL_ENGINES:?}")),
+            })
+            .collect::<std::result::Result<Vec<_>, _>>()?,
+        _ => return Err("`engines` must be a non-empty array of engine names".to_owned()),
+    };
+    let order: Vec<usize> = engines
+        .iter()
+        .filter_map(|e| INTL_ENGINES.iter().position(|x| x == e))
+        .collect();
+    if order.windows(2).any(|w| w[0] >= w[1]) {
+        return Err(format!(
+            "`engines` must be distinct and in the order {INTL_ENGINES:?}"
+        ));
+    }
+    let kind = match t.get("kind") {
+        Some(Value::String(k)) => IntlKind::parse(k).ok_or_else(|| {
+            let all: Vec<&str> = IntlKind::ALL.iter().map(|k| k.as_str()).collect();
+            format!("unknown kind {k:?} ({})", all.join(" | "))
+        })?,
+        _ => return Err("`kind` is missing".to_owned()),
+    };
+    let detail = match t.get("detail") {
+        Some(Value::String(d)) if !d.trim().is_empty() => d.clone(),
+        _ => return Err("`detail` must be a non-empty string".to_owned()),
+    };
+    Ok((engines, kind, detail))
+}
+
+fn render_intl(d: &IntlDiff) -> String {
+    let engines: Vec<String> = d.engines.iter().map(|e| toml_str(e)).collect();
+    let fails = if d.fails { ", fails = true" } else { "" };
+    format!(
+        "{{ engines = [{}], kind = {}{fails}, detail = {} }}",
+        engines.join(", "),
+        toml_str(d.kind.as_str()),
+        toml_str(&d.detail)
+    )
 }
 
 fn parse_cell(v: &Value) -> std::result::Result<Cell, String> {
@@ -592,6 +822,52 @@ reason = "an obligation"
             let text =
                 format!("current_phase = \"P1\"\n[[note]]\nid = \"x\"\nreason = \"r\"\n{bad}\n");
             assert!(Ledger::parse(&text).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn intl_entries_round_trip_and_are_checked() {
+        let base = "current_phase = \"P4\"\n[[test]]\nfile = \"f.json\"\nindex = 0\nhash = \"0123abcd\"\nnth = 0\n";
+        let text = format!(
+            "{base}intl = [\n  {{ engines = [\"chromium\", \"webkit\"], kind = \"space\", detail = \"U+202F\" }},\n  {{ engines = [\"firefox\"], kind = \"plural\", fails = true, detail = \"sgs\" }},\n]\n"
+        );
+        let ledger = Ledger::parse(&text).unwrap();
+        let intl = &ledger.entries[0].intl;
+        assert_eq!(intl.len(), 2);
+        assert_eq!(intl[0].kind, super::IntlKind::Space);
+        assert!(intl[1].fails);
+        assert_eq!(Ledger::parse(&ledger.to_toml()).unwrap(), ledger);
+        for bad in [
+            "intl = [{ engines = [\"opera\"], kind = \"space\", detail = \"x\" }]",
+            "intl = [{ engines = [\"webkit\", \"chromium\"], kind = \"space\", detail = \"x\" }]",
+            "intl = [{ engines = [], kind = \"space\", detail = \"x\" }]",
+            "intl = [{ engines = [\"webkit\"], kind = \"shape\", detail = \"x\" }]",
+            "intl = [{ engines = [\"webkit\"], kind = \"space\" }]",
+            "intl = [{ engines = [\"webkit\"], kind = \"space\", detail = \"x\", why = \"y\" }]",
+            "intl = [{ engines = [\"webkit\"], kind = \"space\", detail = \"x\", fails = \"yes\" }]",
+            "intl = \"space\"",
+        ] {
+            assert!(Ledger::parse(&format!("{base}{bad}\n")).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn intl_groups_round_trip_and_are_checked() {
+        let text = "current_phase = \"P4\"\n\n[[intl]]\ncases = \"golden/units/cy\"\nengines = [\"chromium\"]\nkind = \"symbols\"\ncount = 36\ndetail = \"no Welsh unit names\"\n";
+        let ledger = Ledger::parse(text).unwrap();
+        assert_eq!(ledger.intl.len(), 1);
+        assert_eq!(ledger.intl[0].count, 36);
+        assert_eq!(Ledger::parse(&ledger.to_toml()).unwrap(), ledger);
+        for bad in [
+            "cases = \"units/cy\"\nengines = [\"chromium\"]\nkind = \"symbols\"\ncount = 1\ndetail = \"x\"",
+            "cases = \"golden/units/cy\"\nengines = [\"chromium\"]\nkind = \"symbols\"\ncount = 0\ndetail = \"x\"",
+            "cases = \"golden/units/cy\"\nengines = [\"chromium\"]\nkind = \"symbols\"\ndetail = \"x\"",
+            "cases = \"golden/units/cy\"\nengines = [\"chromium\"]\nkind = \"symbols\"\ncount = 1\ndetail = \"x\"\nfails = true",
+        ] {
+            assert!(
+                Ledger::parse(&format!("current_phase = \"P4\"\n[[intl]]\n{bad}\n")).is_err(),
+                "{bad}"
+            );
         }
     }
 
