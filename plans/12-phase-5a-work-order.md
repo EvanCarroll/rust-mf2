@@ -87,9 +87,10 @@ rebuilds only what it must.
    scenarios run both ways: with the catalogs apart, a text edit in any
    locale rewrites **nothing** in the i18n crate's `OUT_DIR`, so neither it
    nor anything above it is recompiled. It costs one more crate and a second
-   parse of the corpus per build (+355 ms release, +2.1 s debug on the
-   reference workload). [phase-5a-results](phase-5a-results.md), "Owner
-   question 1".
+   parse of the corpus per build — a cheap one: the i18n crate's half writes
+   no catalog and compresses nothing, so its build script drops from 363 ms
+   to **20.8 ms** on the reference workload.
+   [phase-5a-results](phase-5a-results.md), "Owner question 1".
 2. **One catalog or two for `intl` clients** (above): the measured bytes of
    the number / currency / unit / plural entries per locale on the reference
    workload, against the complexity of a second catalog variant (two content

@@ -281,6 +281,7 @@ corpus needs — rather than catalogs written straight from a corpus file.
 | **B8** plural + `number.symbols`, the build's catalogs | reference workload 17–45 B; a corpus using every numeric function, over the 11-locale panel, 12–47 B (≤ 512) | `cargo test -p mf2-build --test slicing -- --nocapture` |
 | **B6** on the generated module | clean: no canary text and no catalog name in the client artifact | `cargo xtask codegen-matrix` |
 | One `build.rs` pass, reference workload (1,600 × 4) | **369 ms** cold / 358 ms warm release, 2.15 s debug; peak 21.9 / 26.5 MB | `cargo run --release -p build-cost` |
+| the same, emitting only the module (the split's i18n half) | **22.2 ms** cold / 20.8 ms warm, peak 13.2 MB — against 367.4 / 363.2 ms for `both` in the same sitting | same, `--emit module` |
 | `icu.blob` at build time | +0 (315 ms with, 350 ms without, on a corpus with 160 `:datetime` messages); ≈500 B per catalog | same, `--features datetime-icu` |
 
 Built *without* `fn-number` the same corpus gives exactly Phase 2's brotli

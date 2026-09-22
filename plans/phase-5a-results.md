@@ -348,6 +348,23 @@ it: read, parse, validate, lint, flatten, slice, write.
 | after one message changed, 14 files written | **355 ms** | 2,160 ms |
 | peak resident memory | 21.9 MB | 26.5 MB |
 
+Split apart (owner question 1), the two halves cost very different amounts,
+because brotli 11 at a 22-bit window is nearly all of it — measured in one
+sitting on a quiet machine, `cargo run --release -p build-cost -- <corpus>
+--emit <both|module>`:
+
+| Pass, `--emit` | `both` | `module` |
+|---|---:|---:|
+| cold (empty `OUT_DIR`) | 367.4 ms, 14 files | **22.2 ms**, 2 files |
+| warm (nothing changed) | 363.2 ms | **20.8 ms** |
+| after one message changed | 359.5 ms | 22.0 ms |
+| peak resident memory | 22.2 MB | **13.2 MB** |
+
+So the i18n crate's half of the split is **17× cheaper**, not the same price
+twice: it parses and validates the corpus but writes no catalog and
+compresses nothing. (Until the review at the end of this phase it *did*
+compress, and discarded the result — see §"Review of `mf2-build`".)
+
 Cargo compiles a build script at `opt-level = 0` by default, so the debug
 column is what an application actually pays; `[profile.dev.build-override]
 opt-level = 2` in the application's manifest buys back 1.8 s per build.
@@ -383,18 +400,21 @@ it is recompiled — in either of cargo-leptos' builds. That is the 8–23 s per
 debug build P0.9 measured for a 2,000-site application, avoided for every
 translation change.
 
-What it costs: the corpus is parsed twice per build, once by each crate
-(+355 ms release, +2.1 s debug for the reference workload), and an
-application has one more crate in its tree. The wall-clock *saving* is not
-visible on `tools/i18n-fixture` — one small crate has nothing above it to
-recompile — so the evidence here is the mechanism, not a stopwatch; the
-saving is P0.9's figure, and it scales with the application, not with the
-corpus.
+What it costs: the corpus is parsed twice per build, once by each crate, and
+an application has one more crate in its tree. That second parse is cheap —
+the i18n crate's half is **20.8 ms** warm against 363.2 ms for a combined
+build, because it writes no catalog and compresses nothing (§A11) — so the
+split *lowers* the i18n crate's build-script time by an order of magnitude
+and adds a server-side crate that pays the full 363 ms once. The wall-clock
+*saving* on the downstream recompile is not visible on `tools/i18n-fixture`
+— one small crate has nothing above it to recompile — so the evidence for
+that half is the mechanism, not a stopwatch; the figure is P0.9's, and it
+scales with the application, not with the corpus.
 
-Hence "an option the application chooses": a small application pays 2.1 s of
-parsing to save a recompile it would hardly notice, while one with hundreds of
-call sites saves seconds on every translation edit. `mf2 init` should scaffold
-the single-crate layout and say, in the file it writes, what the second crate
+Hence "an option the application chooses" — though the cost side of that
+choice is now small enough that the reason to stay with one crate is the
+simpler tree, not the build time. `mf2 init` should scaffold the
+single-crate layout and say, in the file it writes, what the second crate
 buys.
 
 ## Owner question 2 — one catalog or two for `intl` clients
