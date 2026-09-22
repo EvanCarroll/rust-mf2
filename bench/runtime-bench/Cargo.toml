@@ -13,7 +13,7 @@ fixed-decimal = ["mf2-runtime/fixed-decimal"]
 [dependencies]
 catalog-bench.workspace = true
 clap.workspace = true
-mf2 = { workspace = true, features = ["compile", "host-std"] }
+mf2 = { workspace = true, features = ["compile", "host-std", "fn-number"] }
 mf2-catalog.workspace = true
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true

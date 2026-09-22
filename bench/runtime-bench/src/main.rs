@@ -3,6 +3,7 @@
 //! ```sh
 //! cargo run --release -p runtime-bench -- numbers corpus 100000   # A5b: one line per case
 //! cargo run --release -p runtime-bench -- numbers ecma 100000 | node bench/runtime-bench/ecma-diff.cjs
+//! cargo run --release -p runtime-bench -- numbers locale 100000 | node bench/runtime-bench/loc-diff.cjs
 //! cargo run --release -p runtime-bench -- numbers speed           # A5b: ns and allocations per format
 //! bash bench/runtime-bench/number-ab.sh                           # A5b: both backends, compared
 //! cargo run --release -p runtime-bench -- b10 --gate --md bench/runtime-bench/B10-P3.md \
@@ -75,6 +76,13 @@ enum Numbers {
         #[arg(default_value_t = 100_000)]
         n: usize,
     },
+    /// The same corpus localized (`fn-number`) over the locale panel, for
+    /// `loc-diff.cjs` (Phase 4, A3): `:number` and `:percent`, a
+    /// `useGrouping` value per case.
+    Locale {
+        #[arg(default_value_t = 100_000)]
+        n: usize,
+    },
     /// Nanoseconds, allocations and bytes per format of the first N cases.
     Speed {
         #[arg(default_value_t = 10_000)]
@@ -128,6 +136,10 @@ fn main() -> ExitCode {
         Numbers::Ecma { n } => numbers::corpus(n)
             .iter()
             .all(|c| writeln!(out, "{}", numbers::ecma_json(c)).is_ok()),
+        Numbers::Locale { n } => numbers::corpus(n)
+            .iter()
+            .enumerate()
+            .all(|(i, c)| writeln!(out, "{}", numbers::locale_json(i, c)).is_ok()),
         Numbers::Speed { n, runs } => {
             let cases = numbers::corpus(n);
             let (ns, allocs, bytes) = numbers::speed(&cases, runs);

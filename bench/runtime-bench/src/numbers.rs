@@ -21,6 +21,31 @@ use serde_json::{Map, Value, json};
 
 static FUNCTIONS: [(&str, &dyn Function); 1] = [("number", &functions::NUMBER)];
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
+
+/// The localized registry (`fn-number`) of the panel differential.
+static LOCALIZED_FUNCTIONS: [(&str, &dyn Function); 2] = [
+    ("number", &mf2::fn_number::NUMBER),
+    ("percent", &mf2::fn_number::PERCENT),
+];
+static LOCALIZED: Registry = Registry::new(&LOCALIZED_FUNCTIONS);
+
+/// The locale panel of plans/01-conformance.md §5, and two tags with a
+/// non-Latin numbering system.
+const PANEL: [&str; 13] = [
+    "en",
+    "es",
+    "de",
+    "fr",
+    "ar",
+    "he",
+    "ja",
+    "hi",
+    "ru",
+    "pl",
+    "cy",
+    "ar-EG",
+    "hi-u-nu-deva",
+];
 static CX: FormatContext = {
     let mut cx = FormatContext::new(&mf2::host_std::HOST);
     cx.bidi = mf2::BidiStrategy::None;
@@ -298,4 +323,43 @@ pub(crate) fn speed(cases: &[Case], runs: usize) -> (f64, f64, f64) {
     let median = samples.get(samples.len() / 2).copied().unwrap_or(0.0);
     let n = formatters.len() as f64;
     (median, counts.allocs as f64 / n, counts.bytes as f64 / n)
+}
+
+/// Case `i` localized: its locale from the panel (in turn), `:percent` for
+/// every fourth case (without the options `:percent` does not take), a
+/// `useGrouping` value in turn; the JSON line for `loc-diff.cjs`.
+pub(crate) fn locale_json(i: usize, c: &Case) -> String {
+    const GROUPING: [&str; 4] = ["auto", "always", "min2", "never"];
+    let locale = PANEL[i % PANEL.len()];
+    let percent = i % 4 == 3;
+    let mut options: Vec<(String, String)> = c
+        .options
+        .iter()
+        .filter(|(k, _)| !(percent && (k == "minimumIntegerDigits" || k == "roundingIncrement")))
+        .cloned()
+        .collect();
+    options.push(("useGrouping".to_owned(), GROUPING[(i / 13) % 4].to_owned()));
+    let function = if percent { "percent" } else { "number" };
+    let src = format!(
+        "{{{} :{function}{}}}",
+        quoted(&c.value),
+        options_src(&options)
+    );
+    let compiled = match mf2::compile_str(&src, locale) {
+        Ok(m) => m,
+        Err(e) => panic!("{src}: {e} {:?}", e.kinds()),
+    };
+    let f = Formatter::new(&compiled.catalog, &LOCALIZED, &CX);
+    let mut out = String::new();
+    let mut errs = Vec::new();
+    f.write(Compiled::ID, &[] as &[Arg<'_>], &mut out, &mut errs);
+    let obj: Map<String, Value> = options
+        .iter()
+        .map(|(k, v)| {
+            let jv = v.parse::<u64>().map_or_else(|_| json!(v), |n| json!(n));
+            (k.clone(), jv)
+        })
+        .collect();
+    json!({"l": locale, "f": function, "v": c.value, "o": obj, "out": out, "errs": errs.len()})
+        .to_string()
 }
