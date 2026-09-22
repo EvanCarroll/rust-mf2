@@ -57,6 +57,34 @@ impl Repo {
         Ok(repo)
     }
 
+    /// Opens the cache repository at `dir` without creating or configuring
+    /// anything; `None` when there is none.
+    pub(crate) fn open(dir: &Path) -> Option<Self> {
+        dir.join(".git").is_dir().then(|| Self {
+            dir: dir.to_path_buf(),
+        })
+    }
+
+    /// The directory of the working tree.
+    pub(crate) fn dir(&self) -> &Path {
+        &self.dir
+    }
+
+    /// The object names of the working-tree files `paths` (relative to the
+    /// repository), hashed as blobs of their raw bytes (`git hash-object
+    /// --no-filters`): equal to the tree entries' names exactly when the files
+    /// are byte-for-byte the committed blobs.
+    pub(crate) fn hash_files(&self, paths: &[&str]) -> Result<Vec<String>> {
+        let mut out = Vec::with_capacity(paths.len());
+        for chunk in paths.chunks(256) {
+            let mut args = vec!["hash-object", "--no-filters", "--"];
+            args.extend_from_slice(chunk);
+            let text = self.git_text(&args)?;
+            out.extend(text.lines().map(str::to_owned));
+        }
+        Ok(out)
+    }
+
     /// Runs `git <args>` in the repository and returns stdout.
     pub(crate) fn git(&self, args: &[&str]) -> Result<Vec<u8>> {
         git_in(&self.dir, args)

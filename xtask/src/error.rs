@@ -73,6 +73,18 @@ pub(crate) enum Error {
         kind: String,
     },
 
+    #[error(
+        "the CLDR cache (target/xtask-cache/cldr-json) differs from the pinned blobs: {0}; \
+         run `cargo xtask cldr-sync`"
+    )]
+    CacheMismatch(String),
+
+    #[error(
+        "the CLDR cache (target/xtask-cache/cldr-json) is {0}; the all-locale number tables \
+         are generated from it: run `cargo xtask cldr-sync` first"
+    )]
+    CacheMissing(String),
+
     #[error("tag {tag} resolves to {actual}, but the PIN says commit {expected}")]
     TagMismatch {
         tag: String,

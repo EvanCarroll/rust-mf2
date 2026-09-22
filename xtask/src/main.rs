@@ -47,7 +47,8 @@ enum Command {
     },
     /// Vendor the CLDR JSON subset named in third_party/cldr-json/PIN.
     CldrSync,
-    /// Regenerate crates/mf2-locale-data/data/ from the vendored CLDR JSON (offline).
+    /// Regenerate crates/mf2-locale-data/data/ from the vendored CLDR JSON and the
+    /// cldr-sync cache (offline; the all-locale number table needs the cache).
     LocaleData,
     /// Vendor the W3C Message Resource draft (blocked until its license is confirmed).
     ResourceSync,

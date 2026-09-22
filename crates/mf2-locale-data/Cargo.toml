@@ -1,18 +1,20 @@
 [package]
 name = "mf2-locale-data"
-description = "CLDR locale data for mf2-two catalogs (build side): the UTS #35 plural-rule parser, the plural.* LOCALE entry encoder and all-locale rule tables."
+description = "CLDR locale data for mf2-two catalogs (build side): all-locale plural, direction and number tables and the LOCALE entries built from them."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
 [features]
-# `extract`: regenerate `data/` from the vendored CLDR JSON (`cargo xtask
-# locale-data`; the drift test).
+# `extract`: regenerate `data/` from the vendored CLDR JSON and, for the
+# all-locale number table, the `cargo xtask cldr-sync` cache (`cargo xtask
+# locale-data`; the drift tests).
 extract = ["dep:serde_json"]
 
 [dependencies]
-mf2-catalog.workspace = true
+# `writer`: the LOCALE entry encoders (plans/02-catalog-format.md §4).
+mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-model.workspace = true
 serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true, features = ["std"] }
@@ -21,6 +23,8 @@ thiserror = { workspace = true, features = ["std"] }
 # The client evaluator the CLDR samples test (plans/10 A6).
 mf2-runtime.workspace = true
 serde_json.workspace = true
+# B8 (plans/06-size-and-perf.md §3): gzip -9 of the LOCALE entries.
+flate2.workspace = true
 
 [[test]]
 name = "table"

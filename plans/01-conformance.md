@@ -151,7 +151,7 @@ L3 = "pass"
 L4 = { status = "xfail", reason = "roundingIncrement not implemented", until = "P3" }
 L5 = { status = "xfail", until = "P5b" }
 L6 = { status = "xfail", until = "P6" }
-L4d = { status = "degraded", kind = "unsupported-operation", detail = "numberingSystem needs fn-number" }
+L4d = { status = "degraded", kind = "unsupported-operation", detail = "useGrouping=always needs fn-number" }
 L5d = { status = "xfail", until = "P5b" }
 L6d = { status = "xfail", until = "P6" }
 ```

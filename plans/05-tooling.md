@@ -454,6 +454,49 @@ is feature-gated and explicitly unstable, `intl_pluralrules` is frozen at CLDR 3
 with every locale compiled in). The CLDR `@integer`/`@decimal` samples are
 turned into tests for the runtime evaluator automatically.
 
+**Two inputs** (Phase 4, A2). `third_party/cldr-json/` vendors the supplemental
+files and the 11-locale panel's `numbers.json`, `currencies.json` and
+`units.json` (unchanged); `cargo xtask cldr-sync` also materialises, in its
+cache `target/xtask-cache/cldr-json` and **never vendored**, those three files
+for **every** locale (766 at 48.2.1; 2,301 files, 143 MB) plus
+`availableLocales.json`, `defaultContent.json` and
+`supplemental/parentLocales.json`, each checked byte-for-byte against the
+pinned commit's blob (`git hash-object --no-filters`; the PIN's `cache`
+field). One sync serves A2's numbers and A4's currencies and units. `cargo
+xtask locale-data` reads the cache (it must be at the PIN's commit) for the
+all-locale number table and the vendored files for everything else; the drift
+test (`tests/table.rs`, feature `extract`) holds the committed tables to
+`third_party/` offline where the vendored files reach — the digits, and every
+panel locale resolving to its vendored record — and regenerates the whole
+number table from the cache in an `#[ignore]`d test.
+
+**The `-full` locale files are resolved.** At 48.2.1 every locale's
+`numbers.json` spells out everything it inherits (`en-AU` carries all of
+`en`'s fields); no default-content locale (`en-US`, `ar-001`, …) has its own
+files, so truncation reaches the data that stands for it; root is `und` and
+has only `latn`. `locale-data` checks all of it: a child lacking a field its
+parent has, a default-content locale with files, `availableLocales` differing
+from the files — each fails the extraction.
+
+**Number table** (`data/numbers.txt`, 88.7 KB, 1,805 lines; format in
+`src/number/table.rs`): the digits of the 77 numeric numbering systems other
+than `latn` (from the vendored `numberingSystems.json`); the languages' likely
+scripts and the 37 regions that imply another script with a locale behind it
+(`zh-TW` → `Hant`, from the vendored `likelySubtags.json`); CLDR's 199
+explicit parents; then one `locale` line per CLDR locale (default and native
+numbering system, minimum grouping digits) and `system` lines with its
+symbols (decimal, group, minus, plus, percent) and patterns (decimal,
+percent, the six currency patterns) per numbering system — each only where
+it differs from its CLDR parent's, so `en-AU` is one line and root carries
+the full set. Values escape invisible characters (`\u{202f}`, `\u{200e}`) so
+review sees them. Writing the table re-resolves every locale through the
+table's own parent chain and requires CLDR's record exactly. The CLDR
+patterns are parsed (UTS #35 §3.2) into the `number.patterns` records; the
+extractor also checks what the entry formats rest on — every locale's systems
+are `latn`, its default and its native one; its traditional and finance
+systems are algorithmic; digit sets have one UTF-8 width; currency spacing is
+the same everywhere (02 §4.2–§4.3).
+
 ## 8. Repository conventions
 
 Rust 2024 edition; no `mod.rs`; latest dependency versions, none pinned except

@@ -7,6 +7,7 @@
 //! format and the writer policies are `plans/02-catalog-format.md` §2.
 
 mod encode;
+pub mod number;
 mod pool;
 
 use alloc::borrow::Cow;
@@ -452,7 +453,8 @@ fn planes(entries: &[u32]) -> Vec<u8> {
     out
 }
 
-/// LOCALE: entries sorted by key; plural entries checked.
+/// LOCALE: entries sorted by key; the entries of known kinds checked
+/// (plural §4.1, number §4.2–§4.3).
 fn locale_section(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {
     let mut sorted: Vec<&(u32, Vec<u8>)> = entries.iter().collect();
     sorted.sort_by_key(|e| e.0);
@@ -464,11 +466,13 @@ fn locale_section(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {
             return Err(WriteError::LocaleEntry(*key));
         }
         prev = Some(*key);
-        if matches!(
-            *key,
-            locale_key::PLURAL_CARDINAL | locale_key::PLURAL_ORDINAL
-        ) && !plural::valid(payload)
-        {
+        let valid = match *key {
+            locale_key::PLURAL_CARDINAL | locale_key::PLURAL_ORDINAL => plural::valid(payload),
+            locale_key::NUMBER_SYMBOLS => crate::number::Symbols::parse(payload).is_some(),
+            locale_key::NUMBER_PATTERNS => crate::number::Patterns::new(payload).is_valid(),
+            _ => true,
+        };
+        if !valid {
             return Err(WriteError::LocaleEntry(*key));
         }
         varint(*key, &mut out);

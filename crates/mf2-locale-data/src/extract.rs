@@ -1,12 +1,15 @@
-//! Regenerates `data/` from the vendored CLDR JSON (feature `extract`;
-//! `cargo xtask locale-data` writes it, `tests/table.rs` checks the committed
-//! copy against it).
+//! Regenerates `data/` (feature `extract`; `cargo xtask locale-data` writes
+//! it, `tests/table.rs` checks the committed copy): the plural and direction
+//! tables from the vendored CLDR JSON, the number table from every locale's
+//! `numbers.json` in the `cargo xtask cldr-sync` cache.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use serde_json::Value;
 
 use crate::error::Error;
+use crate::number::Record;
 use crate::plural::{Category, PluralKind};
 
 /// The text of `data/plurals.txt` from `plurals.json` and `ordinals.json`
@@ -71,8 +74,6 @@ pub fn directions_table(
     scripts_json: &str,
     cldr: &str,
 ) -> Result<String, Error> {
-    use std::collections::{BTreeMap, BTreeSet};
-
     let scripts: Value = serde_json::from_str(scripts_json)?;
     let rtl_scripts: BTreeSet<&str> = scripts
         .pointer("/scriptMetadata")
@@ -129,6 +130,440 @@ pub fn directions_table(
     let _ = writeln!(out, "rtl-languages {}", join(&languages));
     for (rtl, tags) in &exceptions {
         let _ = writeln!(out, "{} {}", if *rtl { "rtl" } else { "ltr" }, join(tags));
+    }
+    Ok(out)
+}
+
+/// The inputs of `data/numbers.txt`: every locale's `numbers.json` (from the
+/// `cargo xtask cldr-sync` cache) and the core files that resolve locales.
+#[derive(Clone, Copy, Debug)]
+pub struct NumberInputs<'a> {
+    /// Every CLDR locale with the text of its
+    /// `cldr-numbers-full/main/<locale>/numbers.json`.
+    pub locales: &'a [(String, String)],
+    /// `cldr-core/supplemental/parentLocales.json` (cache).
+    pub parent_locales: &'a str,
+    /// `cldr-core/supplemental/likelySubtags.json` (vendored).
+    pub likely_subtags: &'a str,
+    /// `cldr-core/supplemental/numberingSystems.json` (vendored).
+    pub numbering_systems: &'a str,
+    /// `cldr-core/availableLocales.json` (cache).
+    pub available_locales: &'a str,
+    /// `cldr-core/defaultContent.json` (cache).
+    pub default_content: &'a str,
+}
+
+/// Where each per-system table field lives in `numbers.json`: the object
+/// (before `-numberSystem-<nu>`), the key, and whether CLDR must have it.
+const SYSTEM_SOURCES: &[(&str, &str, &str, bool)] = &[
+    ("decimal", "symbols", "decimal", true),
+    ("group", "symbols", "group", true),
+    ("minus", "symbols", "minusSign", true),
+    ("plus", "symbols", "plusSign", true),
+    ("percent", "symbols", "percentSign", true),
+    ("decimal-pattern", "decimalFormats", "standard", true),
+    ("percent-pattern", "percentFormats", "standard", true),
+    ("currency", "currencyFormats", "standard", true),
+    (
+        "currency-alpha",
+        "currencyFormats",
+        "standard-alphaNextToNumber",
+        false,
+    ),
+    (
+        "currency-none",
+        "currencyFormats",
+        "standard-noCurrency",
+        true,
+    ),
+    ("accounting", "currencyFormats", "accounting", true),
+    (
+        "accounting-alpha",
+        "currencyFormats",
+        "accounting-alphaNextToNumber",
+        false,
+    ),
+    (
+        "accounting-none",
+        "currencyFormats",
+        "accounting-noCurrency",
+        true,
+    ),
+];
+
+/// CLDR's currency spacing, the same for every locale and system in CLDR
+/// 48.2.1 — so `mf2-fn-number` applies it as a constant rule and no entry
+/// carries it (`plans/02-catalog-format.md` §4.3). Checked here.
+const CURRENCY_SPACING: (&str, &str, &str) = ("[[:^S:]&[:^Z:]]", "[:digit:]", "\u{a0}");
+
+fn assumption(message: String) -> Error {
+    Error::Assumption(message)
+}
+
+/// The numeric numbering systems but `latn`, with their digits.
+pub fn numeric_systems(numbering_systems_json: &str) -> Result<BTreeMap<String, String>, Error> {
+    let v: Value = serde_json::from_str(numbering_systems_json)?;
+    let systems = v
+        .pointer("/supplemental/numberingSystems")
+        .and_then(Value::as_object)
+        .ok_or_else(|| Error::Shape("numberingSystems".to_owned()))?;
+    let mut out = BTreeMap::new();
+    for (nu, s) in systems {
+        if s.get("_type").and_then(Value::as_str) != Some("numeric") {
+            continue;
+        }
+        let digits = s
+            .get("_digits")
+            .and_then(Value::as_str)
+            .ok_or_else(|| Error::Shape(format!("digits of {nu}")))?;
+        let mut widths = digits.chars().map(char::len_utf8);
+        let w = widths.next();
+        if digits.chars().count() != 10 || widths.any(|x| Some(x) != w) {
+            return Err(assumption(format!(
+                "{nu}: digits are not ten of one UTF-8 width"
+            )));
+        }
+        if nu == "latn" {
+            if digits != "0123456789" {
+                return Err(assumption("latn digits are not ASCII".to_owned()));
+            }
+            continue;
+        }
+        out.insert(nu.clone(), digits.to_owned());
+    }
+    Ok(out)
+}
+
+/// One locale's resolved number record from its `numbers.json`, with every
+/// assumption of the table format checked: its systems are `latn`, its
+/// default and its native one, all numeric; its traditional and finance
+/// systems are algorithmic; every pattern parses (`number::pattern`); the
+/// currency spacing is CLDR's constant one.
+pub fn locale_record(
+    locale: &str,
+    numbers_json: &str,
+    numeric: &BTreeMap<String, String>,
+) -> Result<Record, Error> {
+    let v: Value = serde_json::from_str(numbers_json)?;
+    let n = v
+        .pointer(&format!("/main/{locale}/numbers"))
+        .and_then(Value::as_object)
+        .ok_or_else(|| Error::Shape(format!("main/{locale}/numbers")))?;
+    let text = |k: &str| n.get(k).and_then(Value::as_str);
+    let mut r = Record::default();
+    let default = text("defaultNumberingSystem")
+        .ok_or_else(|| Error::Shape(format!("{locale}: defaultNumberingSystem")))?;
+    r.fields.insert("default".to_owned(), default.to_owned());
+    let others = n.get("otherNumberingSystems").and_then(Value::as_object);
+    let other = |k: &str| others.and_then(|o| o.get(k)).and_then(Value::as_str);
+    if let Some(native) = other("native") {
+        r.fields.insert("native".to_owned(), native.to_owned());
+    }
+    for k in ["traditional", "finance"] {
+        if let Some(nu) = other(k)
+            && (nu == "latn" || numeric.contains_key(nu))
+        {
+            return Err(assumption(format!(
+                "{locale}: {k} system {nu} is numeric (`-u-nu-traditio`/`finance` would need it)"
+            )));
+        }
+    }
+    let min = text("minimumGroupingDigits")
+        .ok_or_else(|| Error::Shape(format!("{locale}: minimumGroupingDigits")))?;
+    if !matches!(min.parse::<u8>(), Ok(1..=15)) {
+        return Err(assumption(format!("{locale}: minimumGroupingDigits {min}")));
+    }
+    r.fields.insert("min-grouping".to_owned(), min.to_owned());
+    let mut expect: Vec<&str> = vec!["latn", default];
+    expect.extend(other("native"));
+    expect.sort_unstable();
+    expect.dedup();
+    let mut found: Vec<&str> = n
+        .keys()
+        .filter_map(|k| k.strip_prefix("symbols-numberSystem-"))
+        .collect();
+    found.sort_unstable();
+    if found != expect {
+        return Err(assumption(format!(
+            "{locale}: symbols for {found:?}, expected latn, default and native {expect:?}"
+        )));
+    }
+    for nu in found {
+        if nu != "latn" && !numeric.contains_key(nu) {
+            return Err(assumption(format!("{locale}: system {nu} is not numeric")));
+        }
+        let mut s = BTreeMap::new();
+        for (name, object, key, required) in SYSTEM_SOURCES {
+            let value = n
+                .get(&format!("{object}-numberSystem-{nu}"))
+                .and_then(|o| o.get(*key))
+                .and_then(Value::as_str);
+            match value {
+                Some(value) => {
+                    if name.ends_with("pattern") || object == &"currencyFormats" {
+                        crate::number::pattern::parse(value)?;
+                    }
+                    s.insert((*name).to_owned(), value.to_owned());
+                }
+                None if *required => {
+                    return Err(assumption(format!("{locale} {nu}: no {object}/{key}")));
+                }
+                None => {}
+            }
+        }
+        let spacing = n
+            .get(&format!("currencyFormats-numberSystem-{nu}"))
+            .and_then(|o| o.get("currencySpacing"));
+        for side in ["beforeCurrency", "afterCurrency"] {
+            let get = |k: &str| {
+                spacing
+                    .and_then(|sp| sp.get(side))
+                    .and_then(|x| x.get(k))
+                    .and_then(Value::as_str)
+            };
+            let seen = (
+                get("currencyMatch"),
+                get("surroundingMatch"),
+                get("insertBetween"),
+            );
+            let want = (
+                Some(CURRENCY_SPACING.0),
+                Some(CURRENCY_SPACING.1),
+                Some(CURRENCY_SPACING.2),
+            );
+            if seen != want {
+                return Err(assumption(format!(
+                    "{locale} {nu}: currency spacing {side} {seen:?} is not CLDR's constant one"
+                )));
+            }
+        }
+        r.systems.insert(nu.to_owned(), s);
+    }
+    Ok(r)
+}
+
+/// The likely script of each language (`likely <lang> <Script>`), and of
+/// each `lang-REGION` whose likely script differs from its language's and
+/// names an existing `lang-Script` locale.
+fn likely_lines(
+    likely_json: &str,
+    locales: &BTreeSet<&str>,
+) -> Result<BTreeMap<String, String>, Error> {
+    let v: Value = serde_json::from_str(likely_json)?;
+    let likely = v
+        .pointer("/supplemental/likelySubtags")
+        .and_then(Value::as_object)
+        .ok_or_else(|| Error::Shape("likelySubtags".to_owned()))?;
+    let script_of = |key: &str| {
+        likely
+            .get(key)
+            .and_then(Value::as_str)
+            .and_then(|full| full.split('-').nth(1))
+            .filter(|s| s.len() == 4)
+    };
+    let mut out = BTreeMap::new();
+    let languages: BTreeSet<&str> = locales
+        .iter()
+        .filter_map(|l| l.split('-').next())
+        .filter(|l| *l != crate::number::table::ROOT)
+        .collect();
+    for lang in &languages {
+        if let Some(s) = script_of(lang) {
+            out.insert((*lang).to_owned(), s.to_owned());
+        }
+    }
+    for key in likely.keys() {
+        let Some((lang, region)) = key.split_once('-') else {
+            continue;
+        };
+        let is_region = (region.len() == 2 && region.bytes().all(|b| b.is_ascii_uppercase()))
+            || (region.len() == 3 && region.bytes().all(|b| b.is_ascii_digit()));
+        if !is_region || !languages.contains(lang) {
+            continue;
+        }
+        let (Some(here), Some(base)) = (script_of(key), script_of(lang)) else {
+            continue;
+        };
+        let prefix = format!("{lang}-{here}");
+        let exists = locales
+            .iter()
+            .any(|l| *l == prefix || l.starts_with(&format!("{prefix}-")));
+        if here != base && exists {
+            out.insert(key.clone(), here.to_owned());
+        }
+    }
+    Ok(out)
+}
+
+/// The text of `data/numbers.txt` (format: `number::table`), checked after
+/// writing: every locale resolves, through the table's parent chain, to
+/// exactly its record in CLDR's resolved JSON.
+pub fn numbers_table(inputs: &NumberInputs<'_>, cldr: &str) -> Result<String, Error> {
+    use crate::number::table::{LOCALE_FIELDS, ROOT, SYSTEM_FIELDS, Table, escape};
+
+    let numeric = numeric_systems(inputs.numbering_systems)?;
+    let mut records: BTreeMap<&str, Record> = BTreeMap::new();
+    for (locale, json) in inputs.locales {
+        records.insert(locale.as_str(), locale_record(locale, json, &numeric)?);
+    }
+    let names: BTreeSet<&str> = records.keys().copied().collect();
+
+    let available: Value = serde_json::from_str(inputs.available_locales)?;
+    let full: BTreeSet<&str> = available
+        .pointer("/availableLocales/full")
+        .and_then(Value::as_array)
+        .ok_or_else(|| Error::Shape("availableLocales/full".to_owned()))?
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    if full != names {
+        return Err(assumption(format!(
+            "availableLocales/full ({}) differs from the numbers files ({})",
+            full.len(),
+            names.len()
+        )));
+    }
+    let dc: Value = serde_json::from_str(inputs.default_content)?;
+    let defaults = dc
+        .pointer("/defaultContent")
+        .and_then(Value::as_array)
+        .ok_or_else(|| Error::Shape("defaultContent".to_owned()))?;
+    if let Some(d) = defaults
+        .iter()
+        .filter_map(Value::as_str)
+        .find(|d| names.contains(d))
+    {
+        return Err(assumption(format!(
+            "default-content locale {d} has its own files (the lookup assumes truncation reaches its parent's)"
+        )));
+    }
+    if !names.contains(ROOT) {
+        return Err(assumption("no root (`und`) locale".to_owned()));
+    }
+
+    let pl: Value = serde_json::from_str(inputs.parent_locales)?;
+    let pl = pl
+        .pointer("/supplemental/parentLocales")
+        .ok_or_else(|| Error::Shape("parentLocales".to_owned()))?;
+    if pl
+        .pointer("/_localeRules/parentLocale/nonlikelyScript")
+        .and_then(Value::as_str)
+        != Some("root")
+    {
+        return Err(assumption(
+            "parentLocales _localeRules: nonlikelyScript is not root".to_owned(),
+        ));
+    }
+    let parents: BTreeMap<String, String> = pl
+        .get("parentLocale")
+        .and_then(Value::as_object)
+        .ok_or_else(|| Error::Shape("parentLocales/parentLocale".to_owned()))?
+        .iter()
+        .filter_map(|(k, v)| Some((k.clone(), v.as_str()?.to_owned())))
+        .collect();
+    let likely = likely_lines(inputs.likely_subtags, &names)?;
+
+    // The parent chain, from a table that knows the locales and parents.
+    let mut skeleton = Table::default();
+    for (k, v) in &parents {
+        skeleton.parents.insert(k, v);
+    }
+    for (k, v) in &likely {
+        skeleton.likely.insert(k, v);
+    }
+    for l in &names {
+        skeleton.locales.insert(l, BTreeMap::new());
+    }
+
+    let mut out = String::new();
+    out.push_str(
+        "# mf2-locale-data: CLDR number data for every CLDR locale (plans/05-tooling.md §7).\n",
+    );
+    out.push_str(
+        "# Generated by `cargo xtask locale-data` from the `cargo xtask cldr-sync` cache (every\n",
+    );
+    out.push_str(
+        "# locale's cldr-numbers-full/main/<locale>/numbers.json, parentLocales.json) and\n",
+    );
+    out.push_str(
+        "# third_party/cldr-json (numberingSystems.json, likelySubtags.json). Do not edit.\n",
+    );
+    out.push_str(
+        "# Lines: digits <nu> <0–9> · likely <lang[-REGION]> <Script> · parent <locale> <parent>\n",
+    );
+    out.push_str(
+        "# · locale <tag> key=value… · system <tag> <nu> key=value… — a locale's fields that\n",
+    );
+    out.push_str(
+        "# differ from its parent's (CLDR's resolved data, deduplicated). `\\u{…}` escapes\n",
+    );
+    out.push_str(
+        "# spaces, controls, format characters, `=` and `\\`. Format: src/number/table.rs.\n",
+    );
+    let _ = writeln!(out, "cldr {cldr}");
+    for (nu, d) in &numeric {
+        let _ = writeln!(out, "digits {nu} {}", escape(d));
+    }
+    for (k, s) in &likely {
+        let _ = writeln!(out, "likely {k} {s}");
+    }
+    for (k, p) in &parents {
+        let _ = writeln!(out, "parent {k} {p}");
+    }
+    let empty = Record::default();
+    for (locale, rec) in &records {
+        let parent = skeleton.chain(locale).get(1).copied();
+        let prec = parent.and_then(|p| records.get(p)).unwrap_or(&empty);
+        let mut line = format!("locale {locale}");
+        for f in LOCALE_FIELDS {
+            let (mine, theirs) = (rec.fields.get(*f), prec.fields.get(*f));
+            if mine.is_none() && theirs.is_some() {
+                return Err(assumption(format!(
+                    "{locale}: no {f} although its parent {parent:?} has one (not resolved)"
+                )));
+            }
+            if let Some(v) = mine
+                && Some(v) != theirs
+            {
+                let _ = write!(line, " {f}={}", escape(v));
+            }
+        }
+        out.push_str(&line);
+        out.push('\n');
+        for (nu, fields) in &rec.systems {
+            let theirs = prec.systems.get(nu);
+            let mut line = format!("system {locale} {nu}");
+            let mut any = false;
+            for f in SYSTEM_FIELDS {
+                let (mine, base) = (fields.get(*f), theirs.and_then(|t| t.get(*f)));
+                if mine.is_none() && base.is_some() {
+                    return Err(assumption(format!(
+                        "{locale} {nu}: no {f} although its parent {parent:?} has one (not resolved)"
+                    )));
+                }
+                if let Some(v) = mine
+                    && Some(v) != base
+                {
+                    let _ = write!(line, " {f}={}", escape(v));
+                    any = true;
+                }
+            }
+            if any {
+                out.push_str(&line);
+                out.push('\n');
+            }
+        }
+    }
+
+    // The round trip: the text resolves every locale to its CLDR record.
+    let parsed = Table::parse(&out)?;
+    for (locale, rec) in &records {
+        let back = parsed.resolved(locale);
+        if back != *rec {
+            return Err(assumption(format!(
+                "{locale}: the table resolves to {back:?}, CLDR says {rec:?}"
+            )));
+        }
     }
     Ok(out)
 }

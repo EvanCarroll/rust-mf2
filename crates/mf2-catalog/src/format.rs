@@ -129,9 +129,26 @@ pub mod cold {
 }
 
 /// LOCALE entry keys (§2.7, §4). The key names the entry kind and its version.
+///
+/// Ranges (every key below 128 is one varint byte): 1–2 plural; 3–15
+/// number (3 and 4 now; a new version of one of them takes a new key here);
+/// 16–31 `currency.*` and 32–47 `unit.*` (Phase 4, A4); 48–63 dates
+/// (`icu.blob`, A6). Unknown keys are skipped by length.
 pub mod locale_key {
     /// `plural.cardinal`, encoding v1 (§4.1).
     pub const PLURAL_CARDINAL: u32 = 1;
     /// `plural.ordinal`, encoding v1 (§4.1).
     pub const PLURAL_ORDINAL: u32 = 2;
+    /// `number.symbols`, encoding v1 (§4.2): the symbols, grouping and
+    /// digits of the catalog's one numbering system.
+    pub const NUMBER_SYMBOLS: u32 = 3;
+    /// `number.patterns`, encoding v1 (§4.3): the percent and currency
+    /// patterns the corpus uses.
+    pub const NUMBER_PATTERNS: u32 = 4;
+    /// First key reserved for the `currency.*` entries (A4).
+    pub const CURRENCY_FIRST: u32 = 16;
+    /// First key reserved for the `unit.*` entries (A4).
+    pub const UNIT_FIRST: u32 = 32;
+    /// First key reserved for the date entries (`icu.blob`, A6).
+    pub const DATE_FIRST: u32 = 48;
 }

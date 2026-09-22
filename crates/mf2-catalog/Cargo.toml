@@ -48,5 +48,9 @@ required-features = ["writer", "decode"]
 name = "skew"
 required-features = ["writer", "decode"]
 
+[[test]]
+name = "number"
+required-features = ["writer"]
+
 [lints]
 workspace = true

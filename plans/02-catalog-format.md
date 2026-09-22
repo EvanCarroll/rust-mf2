@@ -325,8 +325,9 @@ LOCALE     := varint n · (varint key · varint len · u8{len}){n}   ; keys stri
 
 The key names the entry kind **and its version**; unknown keys are skipped by
 length. Version 1 defines key 1 `plural.cardinal` and key 2 `plural.ordinal`
-(§4.1), which `Catalog::new` walks for structure; §4 lists the entries Phase 4
-adds.
+(§4.1), which `Catalog::new` walks for structure; Phase 4 adds key 3
+`number.symbols` and key 4 `number.patterns` (§4.2, §4.3), which it does not
+walk (their views check what they read); §4 lists the keys and their ranges.
 
 ### 2.8 IDS — lookup by name
 
@@ -502,18 +503,33 @@ serialization `01 00 01 01 6E 00 01 07 69 6E 74 65 67 65 72`, hash
 Locale data is lazy for the same reason text is: it scales with locale count.
 The section is a small keyed table; each entry exists only if the corpus needs
 it (closed-world slicing, decided by `mf2-build` from the functions and literal
-option values actually used).
+option values actually used — the rule is §4.4).
 
-| Entry | Present when | Content |
-|---|---|---|
-| `plural.cardinal` | any `:number`/`:integer`/`:offset`/`:percent` selection with `select=plural` (the default) | CLDR rule for this locale as a tiny condition table: per category, OR of ANDs of `(operand n/i/v/w/f/t/c/e, modulus, negated, ranges)` |
-| `plural.ordinal` | any `select=ordinal` | same encoding |
-| `number.symbols` | any numeric formatter | decimal, group, minus, plus, percent, per-mille, exponent, infinity, NaN; grouping sizes; minimum grouping digits; default numbering system digits |
-| `number.systems` | a literal `numberingSystem=` is used, or the locale default is non-Latin | digit sets for exactly those systems |
-| `number.patterns` | `:percent`, `:currency`, `:unit` | the locale's patterns for the used styles |
-| `currency.*` | `:currency` | symbols / narrow symbols / display names / fraction digits for the **configured currency set** (default: literal codes found in the corpus; `currencies = "all"` opts into the full table) |
-| `unit.*` | `:unit` | patterns for the configured unit set, same policy |
-| `icu.blob` | feature `datetime-icu` and the corpus formats dates | an ICU4X data blob for this locale, restricted to the markers the corpus needs. The ICU4X *code* is in the wasm (that is the feature's cost); the *data* is here, lazy, like everything else |
+| Key | Entry | Present when (§4.4) | Content |
+|---|---|---|---|
+| 1 | `plural.cardinal` | any `:number`/`:integer`/`:offset`/`:percent` selection with `select=plural` (the default) | CLDR rule for this locale as a tiny condition table: per category, OR of ANDs of `(operand n/i/v/w/f/t/c/e, modulus, negated, ranges)` (§4.1) |
+| 2 | `plural.ordinal` | any `select=ordinal` | same encoding (§4.1) |
+| 3 | `number.symbols` | `fn-number` on and a number is formatted | decimal, group, minus, plus and percent signs; the decimal pattern's grouping sizes; minimum grouping digits; the digits of the catalog's numbering system, absent for ASCII (§4.2) |
+| 4 | `number.patterns` | `:percent`, `:currency` | the percent and currency patterns of the styles the corpus uses: grouping and affixes with the sign, percent and currency positions (§4.3) |
+| 16–31 | `currency.*` | `:currency` | symbols / narrow symbols / display names / fraction digits for the **configured currency set** (default: literal codes found in the corpus; `currencies = "all"` opts into the full table) — Phase 4, A4 |
+| 32–47 | `unit.*` | `:unit` | patterns for the configured unit set, same policy — A4 |
+| 48–63 | `icu.blob` | feature `datetime-icu` and the corpus formats dates | an ICU4X data blob for this locale, restricted to the markers the corpus needs. The ICU4X *code* is in the wasm (that is the feature's cost); the *data* is here, lazy, like everything else — A6 |
+
+Keys are `mf2_catalog::format::locale_key`; all are below 128, one varint
+byte. A new version of an entry takes a new key in its kind's range (3–15 for
+`number.*`).
+
+**Departures from the Phase 2 plan (Phase 4, A2).** (1) There is no
+`number.systems` entry: the pinned spec (`spec/functions/number.md`) has **no
+`numberingSystem` option**, so a catalog's numbering system comes from its
+locale alone — CLDR's default, or a `-u-nu-` extension in the catalog's tag —
+and a catalog has exactly one; its digits are folded into `number.symbols`
+(absent = ASCII), which saves a key, a lookup and the entry framing. (2)
+`number.symbols` carries no per-mille sign, exponent symbol, infinity or NaN:
+no MF2 function at the pin produces them (`:percent` is ×100 and there is no
+per-mille style; there is no `notation` option; numeric operands are finite).
+(3) `:unit` needs no `number.patterns` record: its unit patterns (`{0} km`)
+wrap a plain decimal and live in `unit.*`.
 
 The CLDR version used is recorded in the header flags/metadata and printed by
 `mf2 stats`. CLDR JSON is a build-time input only, pinned like the spec.
@@ -525,7 +541,12 @@ emitted.
 keyed table of versioned, opaque entries; unknown keys are skipped) and the two
 `plural.*` entries, whose encoding Phase 0 probe P0.4 prototyped and verified
 (§4.1). The number, currency, unit and date entries are defined in Phase 4 as
-additive entry kinds, which by the skip rule need no format-version bump.
+additive entry kinds, which by the skip rule need no format-version bump. Unlike
+the plural entries, `Catalog::new` does **not** walk the number entries: their
+client views (`mf2_catalog::number`) are panic-free and read only what they are
+asked for, answering `None` on malformed bytes, so a bad entry costs only the
+numbers that read it (F4) and loading stays linear in nothing more than it was.
+The writer refuses a malformed entry under a known key (`WriteError::LocaleEntry`).
 
 ### 4.1 `plural.cardinal` / `plural.ordinal` entry, v1 (from P0.4)
 
@@ -579,6 +600,171 @@ leb128      := unsigned LEB128, minimal, ≤ 10 bytes, u64
   together; per locale 0–84 B (median 3.5 B) for both entries. `en` cardinal is
   `21 01 05 82 01`. Evaluator: 429 B gz. Locales without ordinal rules (116 of
   224) resolve by subtag truncation, then root (empty entry).
+
+### 4.2 `number.symbols` entry, v1 (key 3; Phase 4, A2)
+
+The symbols, grouping and digits of the catalog's **one** numbering system.
+
+```text
+entry        := u8 grouping · u8 min_grouping · str8 decimal · str8 group
+                · str8 minus · str8 plus · str8 percent · digits
+grouping     := u8   bits 0–3 primary size, bits 4–7 secondary size (0 = no grouping)
+                     — of the locale's decimal pattern (`#,##0.###` → 3/3, `#,##,##0.###` → 3/2)
+min_grouping := u8   CLDR minimumGroupingDigits, 1–15
+str8         := u8 len · UTF-8{len}
+digits       := ε                     ASCII 0–9 (`latn`)
+              | u8{10 × w}            the ten digits in order, each w bytes of UTF-8, w ∈ 1..4;
+                                      the rest of the entry
+```
+
+* **Which system.** The catalog tag's `-u-nu-<nu>` when `<nu>` is a numeric
+  system (`native` → the locale's native one); otherwise the locale's CLDR
+  default. `traditio` and `finance` name algorithmic systems in every CLDR
+  48.2.1 locale, so they, and any algorithmic or unknown system, give the
+  default. Every CLDR 48.2.1 locale has symbols for exactly `latn`, its
+  default and its native system, and all 78 numeric systems have digits of
+  one UTF-8 width (the extractor checks both). A locale without data for the
+  requested system (`en-u-nu-arab`) takes `latn`'s symbols and grouping with
+  that system's digits — CLDR's root has no other system (ICU's per-symbol
+  fallback to `latn`).
+* **Canonical writer** (`mf2_catalog::writer::number::symbols`): the ASCII
+  digits are written as ε; sizes ≤ 15; `min_grouping` 1–15; each string
+  ≤ 255 bytes; the ten digits of one width.
+* **Reader** (`mf2_catalog::number::Symbols::parse`, `Symbols::of(catalog)`):
+  `None` when truncated, a string is not UTF-8, or the digits are not 10 × w
+  bytes (w ≤ 4) on character boundaries. Accessors return `&str` borrowed
+  from the catalog; `Digits::digit(d)` is one slice.
+* **Use** (`mf2-fn-number`, A3). The digits of the formatted number through
+  `digits().digit(d)`; the decimal separator before the fraction; a group
+  separator after integer digit *m* (0 = units) when
+  `grouping().separator_after(m)` and grouping applies: `useGrouping=auto`
+  groups when the integer part has at least `primary + min_grouping` digits,
+  `min2` at least `primary + 2`, `always` at least `primary + 1`, `never`
+  never (ECMA-402's reading, which P0.5 confirmed against node). Without a
+  pattern the sign symbol precedes the number.
+* **Sizes** (CLDR 48.2.1, every locale and its native system): 12–54 B,
+  median 12 (`en` 12, `ar-u-nu-arab` 44, `ff-Adlm-u-nu-native` 54).
+
+### 4.3 `number.patterns` entry, v1 (key 4; Phase 4, A2)
+
+The percent and currency patterns of the styles the corpus uses.
+
+```text
+entry   := record*                          ; styles strictly ascending
+record  := u8 style · u8 len · pattern{len}
+style   := 1 percent               percentFormats/standard
+         | 2 currency              currencyFormats/standard
+         | 3 currency-alpha        …/standard-alphaNextToNumber   (absent: use 2)
+         | 4 currency-no-symbol    …/standard-noCurrency          (currencyDisplay=never)
+         | 5 accounting            …/accounting                   (currencySign=accounting)
+         | 6 accounting-alpha      …/accounting-alphaNextToNumber (absent: use 5)
+         | 7 accounting-no-symbol  …/accounting-noCurrency
+pattern := u8 grouping · affix pos_prefix · affix pos_suffix
+           · [affix neg_prefix · affix neg_suffix]              ; the negative subpattern, if CLDR has one
+affix   := u8 len · u8{len}     ; UTF-8 in which 0x01 is the sign position (`-`), 0x02 the percent
+                                ; sign (`%`), 0x03 the currency symbol (`¤`); no other byte < 0x20
+```
+
+* **From CLDR** (`mf2_locale_data::number::pattern`): `grouping` is the
+  positive subpattern's integer grouping, which can differ from the decimal
+  pattern's (165 of CLDR 48.2.1's 910 system records: `as` accounting groups
+  3/3 where its decimals group 3/2, `bn` percent likewise); the affixes keep
+  their text (bidi marks, U+00A0, U+202F) with `-`, `%` and `¤` as
+  placeholders. The number part's digit counts are not kept: MF2 fixes
+  `:percent`'s fraction digits and `:currency` takes the currency's. None of
+  these CLDR 48.2.1 patterns use quoting, padding, `+`, `‰`, `¤¤`, or a
+  scientific or significant-digit number part; the extractor refuses them,
+  so a CLDR update that does is noticed.
+* **Canonical writer** (`mf2_catalog::writer::number::patterns`): records in
+  style order; an `…-alpha` record that equals its base, or that CLDR lacks
+  (the `arab` systems), is omitted; adjacent text merged; each record and
+  affix ≤ 255 bytes.
+* **Reader** (`mf2_catalog::number::Patterns::new` / `of(catalog)`):
+  `get(style)` scans the records and parses the one asked for; `resolve(style)`
+  adds the `…-alpha` → base fallback; `None` when absent or malformed.
+  `is_valid()` checks the whole entry (the writer and tests; a client need
+  not).
+* **Sign** (UTS #35 §3.2 as ICU applies it; `Pattern::signed`): no sign → the
+  positive affixes; minus → the negative affixes if the pattern has them (the
+  sign position renders the minus sign; accounting's parentheses have none),
+  else the positive affixes with the sign first; plus → the negative affixes
+  if they have a sign position (rendering the plus sign), else the positive
+  affixes with the sign first.
+* **Currency spacing.** CLDR 48.2.1's `currencySpacing` is the same in all
+  910 system records — `currencyMatch` `[[:^S:]&[:^Z:]]`, `surroundingMatch`
+  `[:digit:]`, `insertBetween` U+00A0, before and after — so no entry carries
+  it: `:currency` (A4) applies it as a constant rule, and picks the
+  `…-alpha` style when the symbol's letter would touch the digits. The
+  extractor fails if a CLDR update changes it.
+* **Sizes**: the percent record alone 6–14 B (median 6); all seven styles
+  32–106 B (median 43).
+
+### 4.4 Slicing rule — which entries a catalog carries
+
+Decided by `mf2-build` from the manifest's functions and the corpus's literal
+option values (`mf2_locale_data::{LocaleNeeds, NumberNeeds, locale_entries}`;
+`NumberNeeds::from_functions` is the conservative rule from the function set
+alone). An option given by a variable counts as every value it could take.
+
+| Entry | Carried when |
+|---|---|
+| `plural.cardinal` | a selector on `:number`, `:integer`, `:offset` or `:percent` with `select=plural` (the default) |
+| `plural.ordinal` | a selector with `select=ordinal` |
+| `number.symbols` | `fn-number` is on and a number is formatted: a placeholder or declaration with `:number`, `:integer`, `:offset`, `:percent`, `:currency` or `:unit`, or a placeholder whose variable has no function (it can receive a number — `syntax.json` #90) |
+| `number.patterns` style 1 | `:percent` |
+| styles 2, 3 | `:currency` |
+| style 4 | `:currency` with `currencyDisplay=never` (or a variable value) |
+| styles 5, 6 | `:currency` with `currencySign=accounting` (or a variable value) |
+| style 7 | both of the above |
+
+With `fn-number` off no number entry is written (numbers format neutrally,
+`mf2 check` warns `neutral-numbers`). The numbering system is the catalog tag's
+(§4.2); the tag resolves to a CLDR locale as CLDR does: a region whose likely
+script differs from its language's gains that script when such a locale exists
+(`zh-TW` → `zh-Hant-TW`, `pa-PK` → `pa-Arab-PK`); then the tag, its explicit
+parent (`parentLocales.json`: `en-AU` → `en-001` → `en`) or truncation — a
+`lang-Script` whose script is not the language's likely one has root as parent
+(`_localeRules: nonlikelyScript`) — and root (`und`).
+
+### 4.5 Test vectors
+
+Byte-exact, as `mf2_locale_data::number_locale_entries` writes them from the
+shipped table (CLDR 48.2.1); tests of the encoders (`mf2-catalog`
+`tests/number.rs`, from hand-written input), of the extraction
+(`mf2-locale-data` `tests/numbers.rs`) and of the views.
+
+| Tag | `number.symbols` | `number.patterns`, percent only |
+|---|---|---|
+| `en` | `33 01 01 2E 01 2C 01 2D 01 2B 01 25` | `01 04 33 00 01 02` |
+| `fr` | `33 01 01 2C 03 E2 80 AF 01 2D 01 2B 01 25` (group U+202F) | `01 06 33 00 03 C2 A0 02` (`#,##0 %`, U+00A0) |
+| `ar` | `33 01 01 2E 01 2C 04 E2 80 8E 2D 04 E2 80 8E 2B 07 E2 80 8E 25 E2 80 8E` (`latn`: CLDR 48's default for `ar`) | `01 04 33 00 01 02` |
+| `ar-u-nu-arab` | `33 01 02 D9 AB 02 D9 AC 03 D8 9C 2D 03 D8 9C 2B 04 D9 AA D8 9C` + digits `D9 A0 D9 A1 … D9 A9` (٠…٩) | `01 04 33 00 01 02` |
+| `hi` | `23 01 01 2E 01 2C 01 2D 01 2B 01 25` (grouping 3/2) | `01 04 23 00 01 02` |
+| `pl` | `33 02 01 2C 02 C2 A0 01 2D 01 2B 01 25` (minimum grouping 2) | `01 04 33 00 01 02` |
+
+Every style, `en` (styles 1–7; the negative subpatterns are accounting's
+parentheses):
+
+```text
+01 04 33 00 01 02                                   percent       #,##0%
+02 04 33 01 03 00                                   currency      ¤#,##0.00
+03 06 33 03 03 C2 A0 00                             currency-alpha ¤ #,##0.00
+04 03 33 00 00                                      no-symbol     #,##0.00
+05 09 33 01 03 00 02 28 03 01 29                    accounting    ¤#,##0.00;(¤#,##0.00)
+06 0D 33 03 03 C2 A0 00 04 28 03 C2 A0 01 29        acct-alpha    ¤ #,##0.00;(¤ #,##0.00)
+07 07 33 00 00 01 28 01 29                          acct-no-symbol #,##0.00;(#,##0.00)
+```
+
+`ar` currency (`‏#,##0.00 ¤;‏-#,##0.00 ¤`, a sign position in the negative
+subpattern; its `-alpha` twin is omitted): `02 12 33 03 E2 80 8F 03 C2 A0 03 04
+E2 80 8F 01 03 C2 A0 03`.
+
+**B8** (plural + number symbols ≤ 0.5 KB gz per locale, 06 §3), the LOCALE
+section of a catalog with both plural entries and `number.symbols` (+ the
+percent record), standalone `gzip -9 -n`: 39–72 B gz (47–80 B with `:percent`)
+on the panel `en es de fr ar he ja hi ru pl cy`, raw 19–54 B (27–62 B);
+`cargo test -p mf2-locale-data --test numbers b8 -- --nocapture` prints the
+table and asserts ≤ 512 B (flate2 at level 9, within 5 B of GNU gzip).
 
 ## 5. Reader API sketch (`mf2-catalog`, `no_std`)
 

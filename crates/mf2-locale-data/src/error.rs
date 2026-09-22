@@ -46,10 +46,29 @@ pub enum Error {
     },
     #[error("table line {line}: {message}")]
     Table { line: usize, message: String },
+    #[error("CLDR number pattern {pattern:?}: {message}")]
+    Pattern {
+        pattern: String,
+        message: &'static str,
+    },
+    #[error("number data of {locale} ({system}): no {field}")]
+    Missing {
+        locale: String,
+        system: String,
+        field: &'static str,
+    },
+    #[error("LOCALE entry: {0}")]
+    Entry(#[from] mf2_catalog::WriteError),
     #[cfg(feature = "extract")]
     #[error("CLDR JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[cfg(feature = "extract")]
     #[error("unexpected CLDR JSON shape: {0}")]
     Shape(String),
+    /// The CLDR input breaks an assumption the table format rests on (the
+    /// extractor checks each one, so a CLDR update that changes them is
+    /// noticed, not silently mis-encoded).
+    #[cfg(feature = "extract")]
+    #[error("CLDR number data: {0}")]
+    Assumption(String),
 }

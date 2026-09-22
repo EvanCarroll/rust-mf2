@@ -284,7 +284,9 @@ fn run_once(bytes: &[u8], hash: u64, lookups: &[String]) -> (Stats, Duration) {
     };
     w.s.sections = cat.sections().count();
     let _ = (cat.locale(), cat.dir(), cat.cldr_version());
-    for key in [0, 1, 2, 3, u32::MAX] {
+    // 64: the first opaque key of `locale_entries` (keys 3 and 4 are
+    // `number.*`, which the writer checks; 64 and up are unassigned).
+    for key in [0, 1, 2, 64, u32::MAX] {
         w.s.locale_bytes += cat.locale_entry(key).map_or(0, <[u8]>::len);
     }
     for i in 0..cat.message_count() {
@@ -714,7 +716,7 @@ fn locale_entries(n: usize) -> Case {
     options.locale_entries = vec![(1, plural)];
     options
         .locale_entries
-        .extend((0..n).map(|i| (u32_of(i) + 3, vec![7])));
+        .extend((0..n).map(|i| (u32_of(i) + 64, vec![7])));
     let src = "{$n}";
     let m = parse(src);
     let manifest = Manifest {
