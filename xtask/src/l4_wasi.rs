@@ -1,9 +1,10 @@
 //! `cargo xtask l4-wasi`: conformance layer L4 on `wasm32-wasip1`
 //! (plans/01-conformance.md §3; plans/10-phase-3-work-order.md A9). Every
 //! L4 case of the suite — each test that is not a syntax or data-model
-//! error, compiled natively for its locale, unstripped and stripped — is
-//! formatted by `mf2-l4-runner` natively and by its `mf2-l4-wasi` binary
-//! under wasmtime; the two outputs must be identical byte for byte.
+//! error, compiled natively for its locale, unstripped and stripped, in the
+//! all-features and in the default configuration (L4d) — is formatted by
+//! `mf2-l4-runner` natively and by its `mf2-l4-wasi` binary under wasmtime;
+//! the two outputs must be identical byte for byte.
 //!
 //! `--generated N` adds N generated cases (plans/10-phase-3-work-order.md
 //! A10; `mf2_conformance::l4gen`), unstripped and stripped: the seeds of
@@ -55,6 +56,14 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         let (mut unstripped, mut stripped) = mf2_conformance::l4::cases(test).map_err(Error::L4)?;
         unstripped.id.push_str("/unstripped");
         stripped.id.push_str("/stripped");
+        // The default configuration too (layer L4d): the core's neutral
+        // handlers, which the all-features registry no longer uses.
+        for c in [&unstripped, &stripped] {
+            let mut d = c.clone();
+            d.id.push_str("/default");
+            d.config = mf2_l4_runner::Config::Default;
+            cases.push(d);
+        }
         cases.push(unstripped);
         cases.push(stripped);
     }
@@ -164,10 +173,10 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         )));
     }
     eprintln!(
-        "l4-wasi: {} records identical on native and wasm32-wasip1 ({} suite tests and {} generated \
-         cases, unstripped and stripped)",
+        "l4-wasi: {} records identical on native and wasm32-wasip1 ({} suite tests, unstripped and \
+         stripped, in both configurations; {} generated cases, unstripped and stripped)",
         native.len(),
-        suite_cases / 2,
+        suite_cases / 4,
         (native.len() - suite_cases) / 2
     );
     Ok(())

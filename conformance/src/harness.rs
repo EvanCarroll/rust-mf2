@@ -15,7 +15,8 @@ use std::path::Path;
 use crate::check::Violation;
 use crate::error::{Error, Result};
 use crate::key::TestKey;
-use crate::ledger::{Cell, Ledger};
+use crate::l4::DefaultOutcome;
+use crate::ledger::{Cell, DegradedKind, Ledger};
 use crate::matrix::{Column, HARNESSED};
 use crate::spec::{DATA_MODEL_SCHEMA, spec_path};
 use crate::suite::{Suite, SuiteTest};
@@ -40,6 +41,9 @@ pub type Outcome = std::result::Result<(), String>;
 pub struct Results {
     /// Keyed by test and column.
     pub cells: BTreeMap<(TestKey, Column), Outcome>,
+    /// The default-features cells (L4d) that degrade in a documented way:
+    /// the kind and a description. Their `cells` outcome is an `Err`.
+    pub degraded: BTreeMap<(TestKey, Column), (DegradedKind, String)>,
 }
 
 impl Results {
@@ -56,11 +60,20 @@ impl Results {
         (passed, run)
     }
 
-    /// The failing cells, in key order.
+    /// The number of documented degradations in `column`.
+    pub fn degradations(&self, column: Column) -> usize {
+        self.degraded.keys().filter(|(_, c)| *c == column).count()
+    }
+
+    /// The failing cells, in key order — a documented degradation is not a
+    /// failure.
     pub fn failures(&self) -> impl Iterator<Item = (&TestKey, Column, &str)> {
-        self.cells
-            .iter()
-            .filter_map(|((k, c), o)| o.as_ref().err().map(|e| (k, *c, e.as_str())))
+        self.cells.iter().filter_map(|((k, c), o)| {
+            if self.degraded.contains_key(&(k.clone(), *c)) {
+                return None;
+            }
+            o.as_ref().err().map(|e| (k, *c, e.as_str()))
+        })
     }
 }
 
@@ -83,6 +96,13 @@ impl Harness {
             Column::L2 => Some(l2::check(test, &self.schema)),
             Column::L3 => Some(l3::check(test)),
             Column::L4 => Some(l4::check(test)),
+            Column::L4d => Some(match l4::check_default(test) {
+                DefaultOutcome::Pass => Ok(()),
+                DefaultOutcome::Degraded(kind, detail) => {
+                    Err(format!("degraded: {}: {detail}", kind.as_str()))
+                }
+                DefaultOutcome::Fail(e) => Err(e),
+            }),
             _ => None,
         };
         match catch_unwind(AssertUnwindSafe(run)) {
@@ -99,6 +119,22 @@ impl Harness {
                 if !test.kind.applies(column) {
                     continue;
                 }
+                if column == Column::L4d {
+                    let outcome = catch_unwind(AssertUnwindSafe(|| l4::check_default(test)))
+                        .unwrap_or_else(|_| DefaultOutcome::Fail("L4d panicked".to_owned()));
+                    let key = (test.key.clone(), column);
+                    let cell = match outcome {
+                        DefaultOutcome::Pass => Ok(()),
+                        DefaultOutcome::Degraded(kind, detail) => {
+                            let text = format!("degraded: {}: {detail}", kind.as_str());
+                            results.degraded.insert(key.clone(), (kind, detail));
+                            Err(text)
+                        }
+                        DefaultOutcome::Fail(e) => Err(e),
+                    };
+                    results.cells.insert(key, cell);
+                    continue;
+                }
                 if let Some(outcome) = self.run(column, test) {
                     results.cells.insert((test.key.clone(), column), outcome);
                 }
@@ -109,14 +145,43 @@ impl Harness {
 }
 
 /// Holds `ledger` to `results`: a failing `pass`, or a passing `xfail` /
-/// `skip`, is a violation.
+/// `skip`, is a violation; so is a `degraded` cell whose run does not
+/// degrade in exactly that way, and an `xfail` / `skip` whose run does.
 pub fn verify(ledger: &Ledger, results: &Results) -> Vec<Violation> {
     let mut v = Vec::new();
     for entry in &ledger.entries {
         for (&column, cell) in &entry.cells {
-            let Some(outcome) = results.cells.get(&(entry.key.clone(), column)) else {
+            let at = (entry.key.clone(), column);
+            let Some(outcome) = results.cells.get(&at) else {
                 continue;
             };
+            let degraded = results.degraded.get(&at);
+            if let Cell::Degraded { kind, .. } = cell {
+                let got = match (degraded, outcome) {
+                    (Some((k, _)), _) if k == kind => continue,
+                    (Some((k, d)), _) => format!("degrades as {} ({d})", k.as_str()),
+                    (None, Ok(())) => "passes".to_owned(),
+                    (None, Err(e)) => format!("fails: {e}"),
+                };
+                v.push(Violation::DegradationMismatch {
+                    key: entry.key.clone(),
+                    column,
+                    want: kind.as_str(),
+                    got,
+                });
+                continue;
+            }
+            if let (Cell::Xfail { .. } | Cell::Skip { .. }, Some((kind, detail))) = (cell, degraded)
+            {
+                v.push(Violation::UnrecordedDegradation {
+                    key: entry.key.clone(),
+                    column,
+                    status: cell.status(),
+                    kind: kind.as_str(),
+                    detail: detail.clone(),
+                });
+                continue;
+            }
             match (cell, outcome) {
                 (Cell::Pass { .. }, Err(detail)) => v.push(Violation::PassFails {
                     key: entry.key.clone(),
@@ -138,19 +203,27 @@ pub fn verify(ledger: &Ledger, results: &Results) -> Vec<Violation> {
 }
 
 /// Tightens `ledger` to `results`: every `xfail` cell whose harness passes
-/// becomes `pass`. Returns how many cells changed. (`skip` cells are left
-/// alone: their reason is a fact about the test, to be reviewed by hand.)
+/// becomes `pass`, and every `xfail` cell whose run degrades in a documented
+/// way becomes `degraded` with that kind. Returns how many cells changed.
+/// (`skip` cells are left alone: their reason is a fact about the test, to
+/// be reviewed by hand.)
 pub fn promote(ledger: &mut Ledger, results: &Results) -> usize {
     let mut changed = 0;
     for entry in &mut ledger.entries {
         for (&column, cell) in &mut entry.cells {
-            let passes = matches!(
-                results.cells.get(&(entry.key.clone(), column)),
-                Some(Ok(()))
-            );
-            if passes && let Cell::Xfail { via, .. } = cell {
-                *cell = Cell::Pass { via: *via };
-                changed += 1;
+            let at = (entry.key.clone(), column);
+            let passes = matches!(results.cells.get(&at), Some(Ok(())));
+            if let Cell::Xfail { via, .. } = cell {
+                if passes {
+                    *cell = Cell::Pass { via: *via };
+                    changed += 1;
+                } else if let Some((kind, detail)) = results.degraded.get(&at) {
+                    *cell = Cell::Degraded {
+                        kind: *kind,
+                        detail: Some(detail.clone()),
+                    };
+                    changed += 1;
+                }
             }
         }
     }

@@ -61,6 +61,10 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     // date/time tests pass since A5; functions/percent.json and syntax.json
     // #90 since A3).
     assert_eq!(results.tally(Column::L4), (450, 462));
+    // L4d (default features, A7): the 45 tests of the gated functions'
+    // files degrade to Unknown Function, syntax.json #90 to neutral digits.
+    assert_eq!(results.tally(Column::L4d), (416, 462));
+    assert_eq!(results.degradations(Column::L4d), 46);
 }
 
 #[test]

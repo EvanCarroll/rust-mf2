@@ -48,6 +48,45 @@ pub static REGISTRY: Registry = Registry::new(&FUNCTIONS)
     .with_numbers(&mf2_fn_number::NUMBERS)
     .with_dates(&mf2_fn_datetime::DATES);
 
+/// The handlers of the **default** configuration (L4d, `plans/01-conformance.md`
+/// §3): what an application's generated registry holds with `fn-number` and
+/// `fn-datetime` off — `:string` and the core's neutral `:number`,
+/// `:integer`, `:offset` — plus the test functions. The gated functions
+/// (`:percent`, `:currency`, `:unit`, `:datetime`, `:date`, `:time`) are
+/// absent, so they are Unknown Functions.
+pub static DEFAULT_FUNCTIONS: [(&str, &dyn Function); 7] = [
+    ("integer", &mf2_runtime::functions::INTEGER),
+    ("number", &mf2_runtime::functions::NUMBER),
+    ("offset", &mf2_runtime::functions::OFFSET),
+    ("string", &STRING),
+    ("test:format", &test_functions::FORMAT),
+    ("test:function", &test_functions::FUNCTION),
+    ("test:select", &test_functions::SELECT),
+];
+
+/// The registry over [`DEFAULT_FUNCTIONS`]: no hooks, so unannotated numbers
+/// are neutral and unannotated dates a Bad Operand.
+pub static DEFAULT_REGISTRY: Registry = Registry::new(&DEFAULT_FUNCTIONS);
+
+/// Which configuration a case formats in.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Config {
+    /// Every feature on (layer L4): [`REGISTRY`].
+    #[default]
+    All,
+    /// The default features (layer L4d): [`DEFAULT_REGISTRY`].
+    Default,
+}
+
+impl Config {
+    fn registry(self) -> &'static Registry {
+        match self {
+            Config::All => &REGISTRY,
+            Config::Default => &DEFAULT_REGISTRY,
+        }
+    }
+}
+
 static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::HOST);
 
 fn context(bidi: BidiStrategy) -> &'static FormatContext {
@@ -117,6 +156,8 @@ pub struct Case {
     pub bidi: BidiStrategy,
     /// Named arguments, as the suite's `params`.
     pub args: Vec<(String, ArgSpec)>,
+    /// The configuration (the registry) it formats in.
+    pub config: Config,
 }
 
 /// What formatting a case produced.
@@ -167,7 +208,7 @@ fn names(errors: &[FormatError]) -> Vec<String> {
 pub fn run(case: &Case) -> Result<Record, String> {
     let catalog = Catalog::new(case.catalog.clone(), case.manifest_hash)
         .map_err(|e| format!("Catalog::new: {e:?}"))?;
-    let f = Formatter::new(&catalog, &REGISTRY, context(case.bidi));
+    let f = Formatter::new(&catalog, case.config.registry(), context(case.bidi));
     let named: Vec<(&str, Arg<'_>)> = case
         .args
         .iter()
@@ -397,7 +438,10 @@ pub fn encode_cases(cases: &[Case]) -> Vec<u8> {
         put_bytes(&mut out, c.id.as_bytes());
         put_bytes(&mut out, &c.catalog);
         out.extend_from_slice(&c.manifest_hash.to_le_bytes());
-        out.push(u8::from(c.bidi == BidiStrategy::None));
+        // Bit 0: no bidi isolation; bit 1: the default configuration.
+        out.push(
+            u8::from(c.bidi == BidiStrategy::None) | u8::from(c.config == Config::Default) << 1,
+        );
         out.extend_from_slice(
             &u32::try_from(c.args.len())
                 .unwrap_or(u32::MAX)
@@ -521,10 +565,16 @@ pub fn decode_cases(b: &[u8]) -> Result<Vec<Case>, String> {
         let id = r.string()?;
         let catalog = r.bytes()?.to_vec();
         let manifest_hash = r.u64()?;
-        let bidi = if r.u8()? == 1 {
+        let flags = r.u8()?;
+        let bidi = if flags & 1 == 1 {
             BidiStrategy::None
         } else {
             BidiStrategy::Default
+        };
+        let config = if flags & 2 == 2 {
+            Config::Default
+        } else {
+            Config::All
         };
         let nargs = r.u32()?;
         let mut args = Vec::new();
@@ -546,6 +596,7 @@ pub fn decode_cases(b: &[u8]) -> Result<Vec<Case>, String> {
             manifest_hash,
             bidi,
             args,
+            config,
         });
     }
     Ok(cases)
@@ -581,6 +632,7 @@ mod tests {
                 ("c".into(), ArgSpec::DateTime(far)),
                 ("o".into(), ArgSpec::Other),
             ],
+            config: Config::Default,
         }];
         assert!(matches!(cases[0].args[4].1, ArgSpec::DateTime(_)));
         assert_eq!(ArgSpec::date_time("2006-02-30"), ArgSpec::Other);

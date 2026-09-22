@@ -23,7 +23,7 @@
 use std::borrow::Cow;
 
 use mf2_catalog::writer::{self, Options as WriterOptions};
-use mf2_l4_runner::{ArgSpec, Case};
+use mf2_l4_runner::{ArgSpec, Case, Config};
 use mf2_locale_data::{PluralKind, direction, plural_locale_entries};
 use mf2_model::{
     Attributes, CatchAllKey, Declaration, Expression, FunctionRef, Key, Literal, LiteralExpression,
@@ -102,6 +102,7 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
             manifest_hash: manifest.hash(),
             bidi,
             args: args.clone(),
+            config: Config::All,
         })
     };
     Ok(Generated {

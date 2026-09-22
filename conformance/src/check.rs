@@ -123,6 +123,26 @@ pub enum Violation {
         column: Column,
         status: &'static str,
     },
+
+    #[error(
+        "{key}: {column} degrades as documented ({kind}: {detail}) but the ledger says {status}; \
+         record the degradation"
+    )]
+    UnrecordedDegradation {
+        key: TestKey,
+        column: Column,
+        status: &'static str,
+        kind: &'static str,
+        detail: String,
+    },
+
+    #[error("{key}: {column} is degraded ({want}) in the ledger, but the harness {got}")]
+    DegradationMismatch {
+        key: TestKey,
+        column: Column,
+        want: &'static str,
+        got: String,
+    },
 }
 
 /// Checks `ledger` against `suite`. Empty ⇒ green.

@@ -128,7 +128,16 @@ MUST pass — and with **default features**, where the ledger carries second
 status columns (`L4d`, `L5d`, `L6d`) recording the documented degradations test
 by test. At L4 the default configuration is simply a registry built without the
 gated handlers, so a gated function shows up as `unknown-function` and a
-locale-dependent numeric option as `unsupported-operation`; at L5 the same tests
+locale-dependent numeric option as `unsupported-operation`; the L4d harness
+(Phase 4, A7: `mf2_l4_runner::DEFAULT_REGISTRY`,
+`mf2_conformance::l4::check_default`) formats each test in that
+configuration and classifies the run — it passes, or it degrades as
+`unknown-function` (the message names a gated function and the run reports
+the error), `unsupported-operation` (the only other error difference), or
+`neutral-numbers` (the expected errors, a different text, and the test passes
+at L4) — and the cell MUST say exactly that: a `degraded` cell whose run
+passes or degrades otherwise is red, and so is an `xfail` whose run degrades
+as documented (`--promote` records it); at L5 the same tests
 assert that **`mf2-build` rejects the corpus** (gated function) or warns (neutral
 numbers). A degradation that is not written down is a failure.
 
@@ -183,7 +192,8 @@ stripped and unstripped catalogs format identically, checked once L4 exists
 
 **Statuses**: `pass`; `xfail` (known failure; `until` names the phase that fixes
 it); `degraded` (default-features columns only: `kind` is `unsupported-operation`,
-`unknown-function` or `build-reject`); `skip` (the reason is a fact about the
+`unknown-function`, `build-reject` or `neutral-numbers` — the last added in
+Phase 4 for numbers written in the core's neutral digits, `syntax.json` #90); `skip` (the reason is a fact about the
 *test*, e.g. surrogates); `n/a` (the layer cannot apply). An L5 entry MAY carry
 `via = "dyn"` when the test's `params` deliberately mismatch the message and it
 runs through the named-args API; `dyn` is a mode, not a status.

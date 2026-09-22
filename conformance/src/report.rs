@@ -101,7 +101,10 @@ pub fn render(
             .iter()
             .map(|c| {
                 let (passed, run) = results.tally(*c);
-                format!("{c} {passed}/{run}")
+                match results.degradations(*c) {
+                    0 => format!("{c} {passed}/{run}"),
+                    d => format!("{c} {passed}/{run} (+{d} documented degradations)"),
+                }
             })
             .collect();
         let _ = writeln!(

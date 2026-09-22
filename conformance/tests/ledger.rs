@@ -236,8 +236,9 @@ fn until_at_or_before_current_phase_is_red() {
     // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 — but for
     // the xfails due at P4 (functions/currency.json; the date/time files pass
     // since P4's A5, functions/percent.json and syntax.json #90 since A3) —
-    // so the committed ledger is green at P1, P2 and P3; at P4 the L4 and L4d
-    // xfails are overdue.
+    // so the committed ledger is green at P1, P2 and P3; at P4 the L4 xfails
+    // are overdue. L4d has no xfail left (A7: every cell passes or records
+    // its degradation).
     for phase in [Phase::P1, Phase::P2, Phase::P3] {
         ledger.current_phase = phase;
         assert_eq!(check(&suite, &ledger), [], "at {phase}");
@@ -253,11 +254,8 @@ fn until_at_or_before_current_phase_is_red() {
         }
     };
     assert_eq!(v.iter().filter(|x| is_overdue(Column::L4)(x)).count(), 12);
-    assert!(v.iter().any(is_overdue(Column::L4d)));
-    assert!(
-        v.iter()
-            .all(|x| is_overdue(Column::L4)(x) || is_overdue(Column::L4d)(x))
-    );
+    assert!(!v.iter().any(is_overdue(Column::L4d)));
+    assert!(v.iter().all(is_overdue(Column::L4)));
 }
 
 #[test]

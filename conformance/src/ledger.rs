@@ -62,12 +62,20 @@ pub enum Via {
     Dyn,
 }
 
-/// What a default-features configuration does instead of passing.
+/// What a default-features configuration does instead of passing
+/// (plans/01-conformance.md §4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DegradedKind {
+    /// A locale-only option value reports Unsupported Operation.
     UnsupportedOperation,
+    /// A function only a feature provides is an Unknown Function.
     UnknownFunction,
+    /// The build refuses the corpus (L5d).
     BuildReject,
+    /// Numbers are written in the core's neutral digits and symbols instead
+    /// of the locale's (`fn-number` off): the errors are the expected ones,
+    /// only the text differs — `mf2 check`'s `neutral-numbers` warning.
+    NeutralNumbers,
 }
 
 impl DegradedKind {
@@ -76,14 +84,16 @@ impl DegradedKind {
             Self::UnsupportedOperation => "unsupported-operation",
             Self::UnknownFunction => "unknown-function",
             Self::BuildReject => "build-reject",
+            Self::NeutralNumbers => "neutral-numbers",
         }
     }
 
-    fn parse(s: &str) -> Option<Self> {
+    pub(crate) fn parse(s: &str) -> Option<Self> {
         [
             Self::UnsupportedOperation,
             Self::UnknownFunction,
             Self::BuildReject,
+            Self::NeutralNumbers,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)
@@ -394,7 +404,9 @@ fn parse_cell(v: &Value) -> std::result::Result<Cell, String> {
         "degraded" => {
             let kind = text("kind")?.ok_or("`degraded` needs `kind`")?;
             let kind = DegradedKind::parse(&kind).ok_or_else(|| {
-                format!("unknown degradation {kind:?} (unsupported-operation | unknown-function | build-reject)")
+                format!(
+                    "unknown degradation {kind:?} (unsupported-operation | unknown-function | build-reject | neutral-numbers)"
+                )
             })?;
             Cell::Degraded {
                 kind,
