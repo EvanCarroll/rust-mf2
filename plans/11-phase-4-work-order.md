@@ -119,6 +119,14 @@ before anything is built.
    restated to ≤ 5.5 KB gz** — the functions carry CLDR behaviour P0.5's
    probe did not (06 §3, "Budget moved by Phase 4").
 
+6. **The `intl` option's two limits** (03 §5.3). **Decided (owner,
+   2026-09-22):** a digit size above `Intl`'s 21 is *Bad Option* and replaced
+   by 21 on an `intl` client while the server's Rust path takes 0–99 —
+   accepted, documented; and an engine that lacks a locale's plural rules
+   answers with `en-US` ones silently — left silent and documented, no
+   per-locale detection. The `Host::numbers` slot's +15 B gz on every build
+   (B1 has room) is recorded in the results, not a decision.
+
 ## Part A — tasks (A0 and A1 first; A2–A5 in order; A6–A11 as their inputs exist)
 
 | Task | Deliverable | Done when |

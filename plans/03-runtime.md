@@ -616,7 +616,9 @@ pub static NUMBERS_HOST: IntlNumbers;            // IntlNumbers(&HOST)
   `INTL_NUMBERS`, `minimumIntegerDigits`, `minimumSignificantDigits` and
   `maximumSignificantDigits` above 21 are *Bad Option* and replaced by 21
   (number.md, "Digit Size Options", allows the replacement); the Rust path
-  takes 0–99.
+  takes 0–99, so an `intl` client and its server can report different errors
+  for such a message — **accepted by the owner (2026-09-22)**, documented
+  here; no suite test is affected.
 * **No formatter** (`numbers()` is `None`: a host without one, or a
   browser without `Intl.NumberFormat` v3 — no Rust fallback in the client,
   owner decision 4): a numeric function's resolution reports *Unsupported
@@ -927,7 +929,9 @@ it (≈ −1.8 KB, an estimate until A4 lands). Every numeric placeholder is
 the data they agree with the Rust path — P0.5's 100,000 cases 95,675 / 0,
 the panel's 4,004 localized cases all identical — but `Intl.PluralRules`
 answers with en-US rules for a locale it lacks (Firefox lacks 30 of CLDR's,
-Chromium 5), silently. **Owner decision 4 (2026-09-22): adopted as an opt-in
+Chromium 5, WebKit 33), silently — **left silent and documented (owner,
+2026-09-22)**: detecting it would cost a `supportedLocalesOf` call per
+locale, and an application that needs those locales uses the Rust path. **Owner decision 4 (2026-09-22): adopted as an opt-in
 client feature, off by default, requiring `Intl.NumberFormat` v3** — no Rust
 fallback in the client; an engine without it formats numbers neutrally and
 reports *Unsupported Operation*. The probe stays as the A/B baseline.

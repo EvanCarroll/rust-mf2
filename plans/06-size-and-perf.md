@@ -243,6 +243,29 @@ and `X-per-Y` composition. Moving the currency presentation and the unit
 composition into the catalog writer was estimated at −0.9 to −1.4 KB gz for
 a larger catalog and literal-only compound units; not taken.
 
+### Phase 4 measurements (2026-09-22)
+
+Details and commands: [phase-4-results](phase-4-results.md). Sizes on the
+merged tree (`bash bench/b12/check.sh`; wasm-release, `wasm-opt -Oz`,
+`gzip -9 -n`; each a delta between two harnesses differing only in their
+registry or host).
+
+| Item | Figure | Harness |
+|---|---|---|
+| B1, runtime part | 37,772 B raw / **18,864 B gz** (Phase 3: 18,428; +349 for the Phase 4 API hooks, +15 for `Host::numbers`, +72 for the date ones) | `b12-runtime` |
+| B1's numeric share | 5,377 B gz (≤ 10 KB) | `b12-runtime` − `b12-runtime-nonum` |
+| **B2** `fn-number` on and used (`:number` / `:integer` / `:offset` localized, `:percent`, unannotated numbers) | 4,062 / **2,034 B gz** (≤ 3,072) | `b12-runtime-fn-number` |
+| **B3** + `:currency`, `:unit` | 11,779 / **5,454 B gz** (≤ 5,632, restated above) | `b12-runtime-fn-number-measure` |
+| **B4** `datetime-icu`, Gregorian with zone styles | 154,958 / **69,641 B gz** (≤ 97,280); without zone styles 42,820 | `b12-dates-icu-greg-zones` |
+| **B4** `datetime-icu`, any calendar with zone styles | 213,235 / **83,028 B gz** (≤ 107,520); without 55,476 | `b12-dates-icu-any-zones` |
+| **B4** `datetime-intl` | wasm **5,131 B gz** (≤ 6,144), JS glue **668 B gz** (≤ 1,024) | `b12-dates-intl` − `b12-dates-web-base` |
+| … of which the date semantics every backend needs | 7,600 / **3,577 B gz** (the row's note: ≤ 3,584) | `b12-dates-semantics` − `b12-dates-base` |
+| `icu.blob` per locale, gzip -9 | **0.61–0.91 KB** without zone names (`th`, any calendar 1.05; ≤ 3), **18.3–20.9 KB** with them (≤ 25); `:datetime`'s defaults alone 0.28–0.45 KB | `cargo test -p mf2-locale-data --features icu-blob --test icu_blob sizes -- --nocapture` |
+| **B8** plural + `number.symbols` (+ the percent pattern) per panel locale | **47–85 B gz** (≤ 512); four currencies with every display 136–252 B gz, five units × three widths 200–310 B gz | `cargo test -p mf2-locale-data --test numbers b8 -- --nocapture`, 02 §4.8 |
+| **B1′** each feature on and unused: `fn-number`, `fn-datetime`, `mf2-host-web`'s date features, `intl` | **0**, **0**, **0** (JS 0), **−69 B gz** | `*-unused` harnesses |
+| **B12** | clean for the reader, the runtime, the numeric and date functions and the `intl` path; reported, not gated, for the ICU4X harnesses (7 fmt / 11–24 panic symbols, ICU4X's) and `mf2-host-web`'s own `wasm-bindgen` / `js-sys` glue (a panic path, with or without the date features) | `bench/b12/check.sh` |
+| **B13** | 0 numeric symbols without the numeric handlers, 0 date symbols without a date function | same |
+
 ### Phase 4: the `intl` client option (2026-09-22)
 
 Owner decision 4 ([03](03-runtime.md) §5.3). The option is opt-in and has no

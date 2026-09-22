@@ -120,17 +120,19 @@ native harnesses, `mf2-host-web`'s for the web ones.
 | `b12-dates-intl` | + the date functions over `Intl`; `mf2_host_web::INTL_HOST`; through `wasm-bindgen` | B4 `datetime-intl`, wasm and JS; adds no fmt / panic symbol, import or text to the web base |
 | `b12-dates-unused` | `b12-runtime`'s registry and walk, `mf2-fn-datetime` linked with both backends' features | B1′ (= `b12-runtime`, +0 B), B13 |
 
-Measured 2026-09-22 (rustc 1.98.1, wasm-opt 120, twiggy 0.8.0, wasm-bindgen
-0.2.128, gzip 1.13; `bench/b12/check.sh`):
+Measured 2026-09-22 on the merged tree (rustc 1.98.1, wasm-opt 120, twiggy
+0.8.0, wasm-bindgen 0.2.128, gzip 1.13; `bench/b12/check.sh`). The date
+semantics are 11 B gz under the note they missed by 4 before the `intl`
+option's numeric rework landed beneath them:
 
 | Figure | Δ raw | **Δ gz** | Limit |
 |---|---:|---:|---|
-| date semantics (`dates-semantics` − `dates-base`) | 7,590 | **3,588** | 06 B4's note: ≤ 3,584 |
-| + the neutral backend (`dates-neutral` − `dates-base`) | 8,572 | 4,045 | — |
-| B4 `datetime-icu`, Gregorian, zone styles (`dates-icu-greg-zones` − `dates-base`) | 155,154 | **69,602** | ≤ 97,280 |
-| … Gregorian, no zone styles | 93,615 | 42,809 | — |
-| B4 `datetime-icu`, any calendar, zone styles | 213,488 | **82,909** | ≤ 107,520 |
-| … any calendar, no zone styles | 151,133 | 55,491 | — |
+| date semantics (`dates-semantics` − `dates-base`) | 7,600 | **3,577** | 06 B4's note: ≤ 3,584 |
+| + the neutral backend (`dates-neutral` − `dates-base`) | 8,582 | 4,032 | — |
+| B4 `datetime-icu`, Gregorian, zone styles (`dates-icu-greg-zones` − `dates-base`) | 154,958 | **69,641** | ≤ 97,280 |
+| … Gregorian, no zone styles | 93,591 | 42,820 | — |
+| B4 `datetime-icu`, any calendar, zone styles | 213,235 | **83,028** | ≤ 107,520 |
+| … any calendar, no zone styles | 151,113 | 55,476 | — |
 | B4 `datetime-intl`, wasm (`dates-intl` − `dates-web-base`) | 10,830 | **5,131** | ≤ 6,144 |
 | B4 `datetime-intl`, JS glue (3,132 − 2,464 B gz) | — | **668** | ≤ 1,024 |
 | B1′: `fn-datetime` on, unused (`dates-unused` − `runtime`) | 0 | **0** | +0 |
