@@ -4,7 +4,10 @@
 //! plain neutral digits (`Ltr`) — no rounding, so the numeric handlers are
 //! not linked unless the corpus uses them; an application value through
 //! `CustomValue::as_str`; a fallback operand as its representation, `{$x}`.
-//! `:string` formats its operand the same way.
+//! A date/time is not formatted here — only by the registry's date handler
+//! (§2.7), so no date code is linked without one — and neither is a
+//! measure, which only a handler produces. `:string` formats its operand the
+//! same way.
 
 use mf2_model::Dir;
 
@@ -23,6 +26,18 @@ pub(crate) fn kind(v: &Value<'_>) -> &'static str {
     }
 }
 
+/// Whether `v` is an unannotated numeric value: what
+/// `Registry::with_numbers` localizes.
+pub(crate) fn is_numeric(v: &Value<'_>) -> bool {
+    matches!(v, Value::Int(_) | Value::Float(_) | Value::Decimal(_))
+}
+
+/// Whether `v` is an unannotated date/time: what `Registry::with_dates`
+/// formats.
+pub(crate) fn is_date_time(v: &Value<'_>) -> bool {
+    matches!(v, Value::DateTime(_))
+}
+
 /// The direction of an unannotated value.
 pub(crate) fn dir(v: &Value<'_>) -> Dir {
     match v {
@@ -35,6 +50,7 @@ pub(crate) fn dir(v: &Value<'_>) -> Dir {
 pub(crate) fn formattable(v: &Value<'_>, host: &dyn Host) -> Result<(), FormatError> {
     match v {
         Value::Str(_) | Value::Int(_) | Value::Number(_) | Value::Fallback(_) => Ok(()),
+        Value::DateTime(_) | Value::Measure(_) => Err(FormatError::BadOperand),
         Value::Float(x) => match Number::from_f64(*x, host) {
             Some(_) => Ok(()),
             None => Err(FormatError::BadOperand),
@@ -71,7 +87,7 @@ pub(crate) fn format(v: &Value<'_>, host: &dyn Host, out: &mut dyn Sink) {
             src.write(out);
             out.push_str("}");
         }
-        Value::Boxed(_) => {}
+        Value::Boxed(_) | Value::DateTime(_) | Value::Measure(_) => {}
     }
 }
 

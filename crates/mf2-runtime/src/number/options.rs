@@ -26,12 +26,17 @@ pub(crate) enum SignDisplay {
     Never,
 }
 
-/// `useGrouping`. Core output never groups; `fn-number` (P4) honours it.
+/// `useGrouping`. Core output never groups; `mf2-fn-number` honours it.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub(crate) enum Grouping {
+pub enum Grouping {
+    /// `auto` (the default): the locale's grouping, with its minimum
+    /// grouping digits.
     Auto,
+    /// `always`: grouping even below the locale's minimum grouping digits.
     Always,
+    /// `never`.
     Never,
+    /// `min2`: grouping only with at least two digits in the highest group.
     Min2,
 }
 

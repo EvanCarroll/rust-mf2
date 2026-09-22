@@ -6,25 +6,25 @@ use mf2_model::Dir;
 
 use crate::error::FormatError;
 use crate::function::{FnContext, Function, Options};
-use crate::number::{self, Spec};
+use crate::number::{self, NumberSpec};
 use crate::sink::{ErrorSink, Sink, SubPartSink};
 use crate::value::Value;
 
 /// A numeric handler: `:number`, `:integer` or `:offset`.
 #[derive(Clone, Copy)]
 pub struct NumberFunction {
-    spec: Spec,
+    spec: NumberSpec,
 }
 
 impl NumberFunction {
     pub(crate) const NUMBER: NumberFunction = NumberFunction {
-        spec: number::NUMBER,
+        spec: NumberSpec::NUMBER,
     };
     pub(crate) const INTEGER: NumberFunction = NumberFunction {
-        spec: number::INTEGER,
+        spec: NumberSpec::INTEGER,
     };
     pub(crate) const OFFSET: NumberFunction = NumberFunction {
-        spec: number::OFFSET,
+        spec: NumberSpec::OFFSET,
     };
 }
 

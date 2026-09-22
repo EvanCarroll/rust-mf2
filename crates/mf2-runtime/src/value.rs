@@ -4,13 +4,14 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
 
+use crate::datetime::DateTime;
 use crate::host::Host;
-use crate::number::Number;
+use crate::number::{Measure, Number};
 use crate::parts::FallbackSource;
 
 /// A positional argument: slot `i` of the call site is `args[i]` (the
 /// manifest's slot order). Small on purpose: every variant is a code path in
-/// the wasm. Non-exhaustive: Phase 4 adds `DateTime`.
+/// the wasm. Non-exhaustive, so variants can be added.
 #[derive(Clone, Copy)]
 #[non_exhaustive]
 pub enum Arg<'a> {
@@ -26,6 +27,15 @@ pub enum Arg<'a> {
     Custom(&'a dyn CustomValue),
     /// No value: Unresolved Variable.
     Unset,
+    /// A date/time (by reference, so `Arg` stays small).
+    DateTime(&'a DateTime<'a>),
+}
+
+impl<'a> From<&'a DateTime<'a>> for Arg<'a> {
+    #[inline]
+    fn from(d: &'a DateTime<'a>) -> Self {
+        Arg::DateTime(d)
+    }
 }
 
 impl<'a> From<&'a str> for Arg<'a> {
@@ -84,6 +94,18 @@ pub trait CustomValue {
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }
+
+    /// Its date/time value (date/time operands, `datetime.md`).
+    fn as_date_time(&self) -> Option<DateTime<'_>> {
+        None
+    }
+
+    /// Its number with a currency or a unit (`:currency` and `:unit`
+    /// operands, `number.md`; a numeric operand for the other numeric
+    /// functions).
+    fn as_measure(&self) -> Option<Measure<'_>> {
+        None
+    }
 }
 
 /// A resolved value's data. The handler that resolved it decides how it
@@ -99,7 +121,8 @@ pub enum Value<'a> {
     Float(f64),
     /// A decimal argument (`number-literal` text).
     Decimal(&'a str),
-    /// A number and its resolved options: `:number`, `:integer`, `:offset`.
+    /// A number and its resolved options: `:number`, `:integer`, `:offset`,
+    /// `:percent`.
     Number(Number),
     /// An application value.
     Custom(&'a dyn CustomValue),
@@ -111,6 +134,12 @@ pub enum Value<'a> {
     /// takes the text of its representation (`{$x}`), as the suite expects
     /// (`plans/03-runtime.md` §2.6).
     Fallback(FallbackSource<'a>),
+    /// A date/time: an argument, or what `:datetime`, `:date`, `:time`
+    /// resolved (with its options).
+    DateTime(DateTime<'a>),
+    /// A number with a currency or a unit: what `:currency` and `:unit`
+    /// resolved.
+    Measure(Measure<'a>),
 }
 
 impl<'a> Value<'a> {
@@ -122,6 +151,7 @@ impl<'a> Value<'a> {
             Arg::Float(x) => Value::Float(x),
             Arg::Decimal(s) => Value::Decimal(s),
             Arg::Custom(c) => Value::Custom(c),
+            Arg::DateTime(d) => Value::DateTime(*d),
             Arg::Unset => return None,
         })
     }
@@ -138,16 +168,19 @@ impl<'a> Value<'a> {
 
     /// Its numeric value under the numeric-operand rules (`number.md`,
     /// "Numeric Operands"): a string or decimal matching `number-literal`,
-    /// an integer, a finite float, a number (its value, without options), an
-    /// application value's `as_number`.
+    /// an integer, a finite float, a number or a measure (its value, without
+    /// options), an application value's `as_number` (else its measure's).
     pub fn to_number(&self, host: &dyn Host) -> Option<Number> {
         match self {
             Value::Str(s) | Value::Decimal(s) => Number::parse(s),
             Value::Int(n) => Some(Number::from_i64(*n)),
             Value::Float(x) => Number::from_f64(*x, host),
             Value::Number(n) => Some(n.bare()),
-            Value::Custom(c) => c.as_number(),
-            Value::Boxed(_) | Value::Fallback(_) => None,
+            Value::Measure(m) => Some(m.number.bare()),
+            Value::Custom(c) => c
+                .as_number()
+                .or_else(|| c.as_measure().map(|m| m.number.bare())),
+            Value::Boxed(_) | Value::Fallback(_) | Value::DateTime(_) => None,
         }
     }
 
@@ -161,7 +194,8 @@ impl<'a> Value<'a> {
         }
     }
 
-    /// A copy, for every variant but [`Value::Boxed`].
+    /// A copy, for the values `:string` takes: every variant but
+    /// [`Value::Boxed`], [`Value::DateTime`] and [`Value::Measure`].
     pub(crate) fn try_copy(&self) -> Option<Value<'a>> {
         Some(match self {
             Value::Str(s) => Value::Str(s),
@@ -171,7 +205,8 @@ impl<'a> Value<'a> {
             Value::Number(n) => Value::Number(n.clone()),
             Value::Custom(c) => Value::Custom(*c),
             Value::Fallback(f) => Value::Fallback(*f),
-            Value::Boxed(_) => return None,
+            // No string form (`:string`): Bad Operand.
+            Value::Boxed(_) | Value::DateTime(_) | Value::Measure(_) => return None,
         })
     }
 }

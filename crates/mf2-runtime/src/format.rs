@@ -2,6 +2,7 @@
 
 use mf2_catalog::{Catalog, Entry, MsgId, Names, StrRef};
 
+use crate::datetime::TimeZone;
 use crate::error::FormatError;
 use crate::eval::{self, Args, Env, Out};
 use crate::function::Registry;
@@ -23,22 +24,26 @@ pub enum BidiStrategy {
     None,
 }
 
-/// What formatting needs beyond the catalog and the registry. P4 adds the
-/// time zone; build it with [`FormatContext::new`].
+/// What formatting needs beyond the catalog and the registry; build it
+/// with [`FormatContext::new`].
 #[non_exhaustive]
 pub struct FormatContext {
     /// The bidi strategy.
     pub bidi: BidiStrategy,
     /// The platform services.
     pub host: &'static dyn Host,
+    /// The default time zone: what `timeZone` defaults to, and the zone of a
+    /// floating date/time (`plans/03-runtime.md` §6).
+    pub time_zone: TimeZone,
 }
 
 impl FormatContext {
-    /// The Default Bidi Strategy over `host`.
+    /// The Default Bidi Strategy over `host`, in UTC.
     pub const fn new(host: &'static dyn Host) -> FormatContext {
         FormatContext {
             bidi: BidiStrategy::Default,
             host,
+            time_zone: TimeZone::UTC,
         }
     }
 }
@@ -47,6 +52,7 @@ impl core::fmt::Debug for FormatContext {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("FormatContext")
             .field("bidi", &self.bidi)
+            .field("time_zone", &self.time_zone)
             .finish_non_exhaustive()
     }
 }
@@ -198,6 +204,7 @@ impl<'c> Formatter<'c> {
                     registry: self.registry,
                     host: self.cx.host,
                     bidi: self.cx.bidi,
+                    time_zone: &self.cx.time_zone,
                     names,
                     args,
                 };

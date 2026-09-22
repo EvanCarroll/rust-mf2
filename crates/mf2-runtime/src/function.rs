@@ -4,10 +4,12 @@
 use mf2_catalog::Catalog;
 use mf2_model::Dir;
 
+use crate::datetime::TimeZone;
 use crate::error::FormatError;
 use crate::host::Host;
 use crate::scratch::Scratch;
 use crate::sink::{ErrorSink, Sink, SubPartSink};
+use crate::unannotated;
 use crate::value::Value;
 
 /// A function handler. `:string`, `:number`, `:integer`, `:offset` are in
@@ -92,6 +94,7 @@ pub struct FnContext<'x> {
     pub(crate) catalog: &'x Catalog,
     pub(crate) host: &'static dyn Host,
     pub(crate) dir: Option<Dir>,
+    pub(crate) time_zone: &'x TimeZone,
 }
 
 impl<'x> FnContext<'x> {
@@ -113,6 +116,11 @@ impl<'x> FnContext<'x> {
     /// The catalog, for its locale data (`Catalog::locale_entry`).
     pub fn catalog(&self) -> &'x Catalog {
         self.catalog
+    }
+
+    /// The formatting context's time zone (the default of `timeZone`).
+    pub fn time_zone(&self) -> &'x TimeZone {
+        self.time_zone
     }
 }
 
@@ -196,17 +204,68 @@ impl<'o, 'a> Options<'o, 'a> {
 #[derive(Clone, Copy)]
 pub struct Registry {
     functions: &'static [(&'static str, &'static dyn Function)],
+    numbers: Option<&'static dyn Function>,
+    dates: Option<&'static dyn Function>,
 }
 
 impl Registry {
     /// No functions: every annotation is an Unknown Function.
-    pub const EMPTY: Registry = Registry { functions: &[] };
+    pub const EMPTY: Registry = Registry {
+        functions: &[],
+        numbers: None,
+        dates: None,
+    };
 
     /// The registry of `functions`: `(identifier, handler)`, the identifier
     /// as the catalog's FUNCS has it (`ns:name`, NFC). The first entry of a
     /// repeated identifier wins.
     pub const fn new(functions: &'static [(&'static str, &'static dyn Function)]) -> Registry {
-        Registry { functions }
+        Registry {
+            functions,
+            numbers: None,
+            dates: None,
+        }
+    }
+
+    /// This registry, with `f` formatting unannotated numeric values
+    /// (integer, float and decimal arguments): `mf2-fn-number`'s localized
+    /// exact value (`plans/03-runtime.md` §2.7). The evaluator checks such a
+    /// value as any unannotated value (a non-finite float is a Bad Operand)
+    /// and then asks `f` for its direction, text, sub-parts and part kind;
+    /// it still does not select. Without it they format in neutral digits
+    /// (§2.6).
+    #[must_use]
+    pub const fn with_numbers(self, f: &'static dyn Function) -> Registry {
+        Registry {
+            numbers: Some(f),
+            ..self
+        }
+    }
+
+    /// This registry, with `f` formatting unannotated date/time values
+    /// (`Arg::DateTime`, `CustomValue` has no say): `mf2-fn-datetime`, as
+    /// `:datetime` with its defaults (`plans/03-runtime.md` §2.7). The
+    /// evaluator asks `f` whether such a value formats, its direction, text,
+    /// sub-parts and part kind; it does not select. Without it an
+    /// unannotated date/time is a Bad Operand, so no date code is linked.
+    #[must_use]
+    pub const fn with_dates(self, f: &'static dyn Function) -> Registry {
+        Registry {
+            dates: Some(f),
+            ..self
+        }
+    }
+
+    /// The handler for an unannotated value `v` — a number or a date/time —
+    /// if the registry has one.
+    pub(crate) fn unannotated(&self, v: &Value<'_>) -> Option<&'static dyn Function> {
+        if unannotated::is_numeric(v) {
+            self.numbers
+        } else if unannotated::is_date_time(v) {
+            self.dates
+        } else {
+            None
+        }
     }
 
     /// The handler for `name`.

@@ -9,6 +9,7 @@ use mf2_catalog::{
 };
 use mf2_model::Dir;
 
+use crate::datetime::TimeZone;
 use crate::error::FormatError;
 use crate::format::BidiStrategy;
 use crate::function::{FnContext, Function, OptionEntries, OptionList, OptionValue, Options};
@@ -63,6 +64,7 @@ pub(crate) struct Env<'e, 'a> {
     pub(crate) registry: &'e crate::function::Registry,
     pub(crate) host: &'static dyn Host,
     pub(crate) bidi: BidiStrategy,
+    pub(crate) time_zone: &'a TimeZone,
     pub(crate) names: Names<'a>,
     pub(crate) args: Args<'e, 'a>,
 }
@@ -73,6 +75,7 @@ impl<'a> Env<'_, 'a> {
             catalog: self.catalog,
             host: self.host,
             dir,
+            time_zone: self.time_zone,
         }
     }
 
@@ -642,7 +645,20 @@ fn emit(
     errs: &mut dyn ErrorSink,
 ) {
     let cx = env.cx(r.udir);
-    let dir = match r.handler {
+    // An unannotated number goes to the registry's number handler, if it has
+    // one, and an unannotated date/time to its date handler (`fn-number`,
+    // `fn-datetime`: plans/03-runtime.md §2.7). The number is still checked
+    // as any unannotated value, so its errors do not depend on the feature.
+    let hook = match r.handler {
+        None => env.registry.unannotated(&r.value),
+        Some(_) => None,
+    };
+    let checker = match r.handler {
+        None if unannotated::is_numeric(&r.value) => None,
+        None => hook,
+        h => h,
+    };
+    let dir = match checker {
         Some(h) => match h.formattable(&cx, &r.value) {
             Ok(()) => r.udir.unwrap_or_else(|| h.dir(&cx, &r.value)),
             Err(e) => {
@@ -651,18 +667,22 @@ fn emit(
             }
         },
         None => match unannotated::formattable(&r.value, env.host) {
-            Ok(()) => r.udir.unwrap_or_else(|| unannotated::dir(&r.value)),
+            Ok(()) => r.udir.unwrap_or_else(|| match hook {
+                Some(h) => h.dir(&cx, &r.value),
+                None => unannotated::dir(&r.value),
+            }),
             Err(e) => {
                 errs.error(e);
                 return emit_fallback(env, src, out);
             }
         },
     };
+    let handler = r.handler.or(hook);
     let iso = isolation(env, dir, r.udir.is_some());
     out.expression(
         ExpressionPart {
             value: &r.value,
-            handler: r.handler,
+            handler,
             cx,
             dir,
             id: r.id,

@@ -346,6 +346,200 @@ Where the spec leaves a choice, or the suite asserts more than the spec text:
 * **Malformed data** (a view's `Err`, a string that is not UTF-8): `{�}` in its
   place, `Malformed`, and the message stops there — output before it stays.
 
+### 2.7 Phase 4 additions (A1)
+
+Written before the code (11 A1); every item is additive under the rules of
+§2 — new methods, trait methods with a default, variants of the
+`#[non_exhaustive]` enums, private or `#[non_exhaustive]` fields — and the
+frozen items above are unchanged. The function crates (`mf2-fn-number`,
+`mf2-fn-datetime`) are written against these and the §2 items only.
+
+**Date/time values** (for `mf2-fn-datetime`; `datetime.md`):
+
+```rust
+pub struct Date { /* private */ }        // civil, proleptic Gregorian (ISO 8601), |year| ≤ 999,999
+impl Date { pub const fn new(year: i32, month: u8, day: u8) -> Option<Date>; year(); month(); day();
+            days_since_epoch(); from_days_since_epoch(i64) -> Option<Date>; weekday() }   // ISO: 1 = Monday
+pub struct Time { /* private */ }        // wall clock, millisecond precision (the spec's literal has ≤ 3 digits)
+impl Time { pub const MIDNIGHT: Time; pub const fn new(h: u8, m: u8, s: u8, ms: u16) -> Option<Time>; … }
+
+#[non_exhaustive]                        // build with the constructors
+pub struct DateTime<'a> {
+    pub date: Date,
+    pub time: Time,
+    pub offset: Option<i32>,             // seconds east of UTC; `None` = floating (datetime.md: no offset)
+    pub zone: Option<&'a str>,           // the IANA zone an application value is in, if it names one
+    pub options: DateTimeOptions<'a>,    // what `:datetime`/`:date`/`:time` resolved; empty for an argument
+}
+impl<'a> DateTime<'a> {
+    pub const fn floating(date: Date, time: Time) -> DateTime<'a>;
+    pub const fn from_epoch_ms(ms: i64) -> Option<DateTime<'a>>; // an instant: UTC, offset 0
+    pub const fn to_epoch_ms(&self) -> Option<i64>;              // `None` when floating
+    pub const fn with_offset(self, seconds: i32) -> Option<Self>; // |seconds| < 86,400
+    pub const fn in_zone(self, zone: &'a str) -> Self;
+    pub fn write_iso(&self, out: &mut dyn Sink);                 // ISO 8601 / RFC 9557 text
+}
+
+#[non_exhaustive] #[derive(Default)]
+pub struct DateTimeOptions<'a> {
+    pub date: Option<DateStyle>,         // fields + length; `None`: no date part (`:time`) or unresolved
+    pub time: Option<TimePrecision>,     // `None`: no time part (`:date`) or unresolved
+    pub time_zone_style: Option<ZoneStyle>,
+    pub time_zone: Option<ZoneOption<'a>>,   // the override options travel with the value
+    pub hour12: Option<bool>,
+    pub calendar: Option<&'a str>,
+}
+pub struct DateStyle { pub fields: DateFields, pub length: DateLength }
+pub enum DateFields { Weekday, DayWeekday, MonthDay, MonthDayWeekday, YearMonthDay, YearMonthDayWeekday }
+pub enum DateLength { Long, Medium, Short }
+pub enum TimePrecision { Hour, Minute, Second }
+pub enum ZoneStyle { Long, Short }
+pub enum ZoneOption<'a> { Input, Utc, Offset(i32), Named(&'a str) }
+
+pub enum Arg<'a> { …, DateTime(&'a DateTime<'a>) }   // a reference: `Arg` stays 24 bytes
+pub enum Value<'a> { …, DateTime(DateTime<'a>) }     // an argument, or a date/time function's result
+pub trait CustomValue { …, fn as_date_time(&self) -> Option<DateTime<'_>> { None } }
+```
+
+An application converts its own type (`jiff`, `chrono`, `time`, a JS
+`Date`) into a `DateTime`; `mf2-fn-datetime` parses date/time literals and
+strings into one. **Unannotated**, a `DateTime` is formatted only by the
+registry's date handler, `Registry::with_dates` (below) — `mf2-fn-datetime`
+formats it as `:datetime` with its defaults; without one it is *Bad Operand*,
+so a client whose corpus uses no date function links no date code. (A first
+cut formatted it as ISO 8601 text in the core: +~350 B gz of B1 for every
+client, measured by `bench/b12/check.sh`, so it moved behind the hook.)
+`DateTime::write_iso` stays as a helper. Neither a date/time nor a measure
+has a string form: `:string` of one is *Bad Operand*.
+
+**The time zone of the formatting context** (§6; the default of `timeZone`):
+
+```rust
+pub struct TimeZone { /* private: UTC, an offset, or an IANA name held inline (≤ 64 bytes) */ }
+impl TimeZone {
+    pub const UTC: TimeZone;
+    pub const fn offset(seconds: i32) -> Option<TimeZone>;   // |seconds| < 86,400
+    pub fn named(name: &str) -> Option<TimeZone>;            // a well-formed RFC 9557 `time-zone-name`
+    pub fn as_option(&self) -> ZoneOption<'_>;               // Utc | Offset | Named
+}
+pub fn is_zone_name(s: &str) -> bool;                        // RFC 9557 `time-zone-name`
+pub struct FormatContext { …, pub time_zone: TimeZone }      // `new`: UTC
+impl FnContext<'_> { pub fn time_zone(&self) -> &TimeZone; }
+```
+
+Owned, not borrowed — `FormatContext` has no lifetime to add, and a
+per-request zone (the visitor's cookie, §6) is not `'static`.
+
+**`Host` methods for dates**, both with defaults (so `mf2-host-std` and any
+existing host compile unchanged):
+
+```rust
+pub trait Host: Sync {
+    …
+    /// The UTC offset, in seconds, of the IANA zone `zone` at the instant `epoch_ms`;
+    /// `None`: no zone data, or no such zone (the default). A date/time function then
+    /// reports *Unsupported Operation* where it must convert to a named zone.
+    fn zone_offset(&self, zone: &str, epoch_ms: i64) -> Option<i32> { None }
+    /// `datetime-intl`: formats `request` with the host's date formatter (the browser's
+    /// `Intl.DateTimeFormat`) and returns `true`; `false` (the default) when it has none.
+    fn format_date_time(&self, locale: &str, request: &DateTimeRequest<'_>, out: &mut dyn Sink) -> bool { false }
+}
+pub struct DateTimeRequest<'r> {
+    pub epoch_ms: i64,                   // the instant (a floating value: its wall time read as UTC)
+    pub zone: ZoneOption<'r>,            // where to show it (never `Input`)
+    pub options: &'r DateTimeOptions<'r>,
+}
+```
+
+`zone_offset` is how named zones reach both backends: `mf2-host-std` answers
+it from a tz database (owner decision 1, 11 §"Carried"), `mf2-host-web` from
+the browser's own (`Intl.DateTimeFormat` with `timeZone`), so `datetime-icu`
+on the client needs no tz data of its own. The date semantics (operand and
+option rules, the zone conversions — including the two-pass search that puts
+a floating wall time into a named zone) stay in `mf2-fn-datetime`; a backend
+only turns an instant plus a style into text.
+
+**The numeric core, public for `mf2-fn-number`**:
+
+```rust
+#[derive(Clone, Copy)]
+pub struct NumberSpec { /* private: option set, fraction defaults, integer rounding, selectable, scale */ }
+impl NumberSpec {
+    pub const NUMBER: NumberSpec; pub const INTEGER: NumberSpec; pub const OFFSET: NumberSpec;
+    pub const PERCENT: NumberSpec;       // `:percent`'s options, 0–0 fraction digits, scale 2, plural
+    pub const UNIT: NumberSpec;          // `:unit`'s options, not selectable
+    /// `:currency` whose currency shows `fraction_digits` (its own for `fractionDigits=auto`).
+    pub const fn currency(fraction_digits: u8) -> NumberSpec;
+}
+impl Number {
+    /// What `:number` does under `spec`: operand rules, the spec's options (others are
+    /// ignored), inheritance from a number or measure operand, the digit plan, rounding.
+    pub fn resolve(spec: NumberSpec, cx: &FnContext<'_>, operand: Option<&Value<'_>>,
+                   options: &Options<'_, '_>, errs: &mut dyn ErrorSink) -> Option<Number>;
+    pub fn digits(&self) -> Option<Digits<'_>>;   // the rounded display digits; `None` for a bare number
+    pub fn exact_digits(&self) -> Digits<'_>;     // the exact value, unrounded (unannotated numbers)
+    pub fn grouping(&self) -> Option<Grouping>;   // the resolved `useGrouping`; `None` = not set
+    pub fn is_selectable(&self) -> bool;
+    pub fn matches(&self, cx: &FnContext<'_>, key: &str, errs: &mut dyn ErrorSink) -> bool;
+    pub fn better_than(key1: &str, key2: &str) -> bool;
+}
+impl Digits<'_> {
+    pub fn sign(&self) -> Sign;                   // None | Minus | Plus, after `signDisplay`
+    pub fn integer_count(&self) -> u16;           // ≥ 1, after `minimumIntegerDigits`
+    pub fn fraction_count(&self) -> u16;
+    pub fn digit(&self, magnitude: i16) -> u8;    // 0–9; integers at 0.., fractions at -1..
+    pub fn is_zero(&self) -> bool;
+    pub fn write_neutral(&self, out: &mut dyn Sink);         // the core's output
+    pub fn neutral_parts(&self, out: &mut dyn SubPartSink);
+}
+pub enum Sign { None, Minus, Plus }
+pub enum Grouping { Auto, Always, Never, Min2 }
+
+/// `:currency` and `:unit` values (`mf2-fn-number`); a numeric operand for every numeric function.
+#[non_exhaustive] #[derive(Clone)]
+pub struct Measure<'a> { pub number: Number, pub unit: MeasureUnit<'a>, pub flags: u32 }
+impl<'a> Measure<'a> { pub fn new(number: Number, unit: MeasureUnit<'a>, flags: u32) -> Self; }
+pub enum MeasureUnit<'a> { Currency([u8; 3]), Unit(&'a str) }   // currency code upper-cased
+pub enum Value<'a> { …, Measure(Measure<'a>) }
+pub trait CustomValue { …, fn as_measure(&self) -> Option<Measure<'_>> { None } }
+```
+
+`flags` is the resolving crate's own encoding of the options it adds
+(`currencyDisplay`, `currencySign`, `fractionDigits`, `unitDisplay`), so a
+later `:currency` / `:unit` inherits them from its operand; the runtime never
+reads it. Selection and exact-match keys stay the core's: a localized handler
+delegates `matches` / `better_than` to `Number`, so plural operands still
+come from the formatted digits and keys stay in neutral digits.
+
+**Unannotated numbers with `fn-number` on** (`syntax.json` #90), **and
+unannotated dates with `fn-datetime` on**:
+
+```rust
+impl Registry {
+    /// This registry, with `f` formatting unannotated numeric values (integer, float and
+    /// decimal arguments): `mf2-fn-number`'s localized exact value. Without it they are
+    /// neutral (§2.6).
+    pub const fn with_numbers(self, f: &'static dyn Function) -> Registry;
+    /// This registry, with `f` formatting unannotated date/time values (`mf2-fn-datetime`:
+    /// as `:datetime` with its defaults). Without it they are *Bad Operand*.
+    pub const fn with_dates(self, f: &'static dyn Function) -> Registry;
+}
+```
+
+The evaluator checks an unannotated number as any unannotated value (§2.6:
+a non-finite float is *Bad Operand*, an over-long decimal *Unsupported
+Operation*), so the errors do not depend on the feature, and then asks `f`
+for `dir`, `format`, `format_parts` and `part_kind`; a date/time it hands to
+its handler entirely (`formattable` too). Neither selects (*Bad Selector*). Generated registries add it whenever `fn-number`
+is on (05 §3.1), so the default configuration links nothing new.
+
+**LOCALE entries** are read as before, `FnContext::catalog().locale_entry(key)`,
+with the keys of `mf2_catalog::format::locale_key` and the entry views
+`mf2-catalog` provides for them (02 §4).
+
+The numeric `Host` methods of the proposed `intl` option (§5.3) are not
+added here: they follow owner decision 4 (11 A0).
+
 ## 3. Function registry — full spec, closed world
 
 Every default function in the pinned spec is implemented, REQUIRED and

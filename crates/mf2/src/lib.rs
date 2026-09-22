@@ -48,10 +48,12 @@ mod error;
 pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, Manifest, MsgId, StrRef};
 pub use mf2_model::{ErrorKind, MarkupKind};
 pub use mf2_runtime::{
-    Arg, BidiStrategy, Category, CustomValue, ErrorSink, ExpressionPart, FallbackSource, FnContext,
-    FormatContext, FormatError, Formatter, Function, Host, Isolation, MarkupOptions, MarkupPart,
-    NoErrors, Number, Operands, OptionValue, Options, Part, PartSink, Registry, Sink, SubPartSink,
-    Value, functions, plural_category,
+    Arg, BidiStrategy, Category, CustomValue, Date, DateFields, DateLength, DateStyle, DateTime,
+    DateTimeOptions, DateTimeRequest, Digits, ErrorSink, ExpressionPart, FallbackSource, FnContext,
+    FormatContext, FormatError, Formatter, Function, Grouping, Host, Isolation, MarkupOptions,
+    MarkupPart, Measure, MeasureUnit, NoErrors, Number, NumberSpec, Operands, OptionValue, Options,
+    Part, PartSink, Registry, Sign, Sink, SubPartSink, Time, TimePrecision, TimeZone, Value,
+    ZoneOption, ZoneStyle, functions, is_zone_name, plural_category,
 };
 
 #[cfg(feature = "compile")]

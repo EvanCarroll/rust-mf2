@@ -7,6 +7,7 @@
 //! [`decimal`].
 
 mod decimal;
+mod measure;
 mod options;
 
 use mf2_catalog::format::locale_key;
@@ -20,9 +21,12 @@ use crate::value::Value;
 
 use decimal::{Decimal, Increment, ParseError, split_literal};
 use options::{
-    DigitPlan, FracDefaults, INT, Kind, NUM, NumOpts, OPTIONS, PCT, RoundingType, Select,
-    SignDisplay, apply, digit_plan, digit_size, select_named,
+    CUR, DigitPlan, FracDefaults, INT, Kind, NUM, NumOpts, OPTIONS, PCT, RoundingType, Select,
+    SignDisplay, UNIT, apply, digit_plan, digit_size, select_named,
 };
+
+pub use measure::{Measure, MeasureUnit};
+pub use options::Grouping;
 
 /// An exact decimal and, once a numeric handler resolved it, its resolved
 /// options and its display form. Opaque: the digit backend is internal
@@ -57,14 +61,90 @@ struct Display {
     lo: i16,
     /// The highest visible magnitude (≥ 0).
     hi: i16,
-    sign: SignOut,
+    sign: Sign,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum SignOut {
+/// The sign a formatted number shows, after `signDisplay`.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum Sign {
+    /// No sign.
     None,
+    /// A minus sign.
     Minus,
+    /// A plus sign.
     Plus,
+}
+
+/// Digits to show (`plans/03-runtime.md` §2.7): a resolved number's
+/// rounded display digits ([`Number::digits`]), or a number's exact value
+/// ([`Number::exact_digits`]) — what `mf2-fn-number` localizes.
+#[derive(Clone, Copy)]
+pub struct Digits<'n> {
+    dec: &'n Decimal,
+    lo: i16,
+    hi: i16,
+    sign: Sign,
+}
+
+impl Digits<'_> {
+    /// The sign (for display digits, after `signDisplay`).
+    pub fn sign(&self) -> Sign {
+        self.sign
+    }
+
+    /// The number of integer digits shown (≥ 1; for display digits, after
+    /// `minimumIntegerDigits`).
+    pub fn integer_count(&self) -> u16 {
+        u16::try_from(i32::from(self.hi) + 1).unwrap_or(1)
+    }
+
+    /// The number of fraction digits shown.
+    pub fn fraction_count(&self) -> u16 {
+        u16::try_from(-i32::from(self.lo)).unwrap_or(0)
+    }
+
+    /// The digit (0–9) worth 10^`magnitude`: the integer digits are at
+    /// magnitudes `0 .. integer_count`, the fraction digits at `-1 ..=
+    /// -fraction_count`; 0 anywhere else.
+    pub fn digit(&self, magnitude: i16) -> u8 {
+        if magnitude < self.lo || magnitude > self.hi {
+            return 0;
+        }
+        self.dec.digit_at(magnitude)
+    }
+
+    /// Whether every digit is 0.
+    pub fn is_zero(&self) -> bool {
+        self.dec.is_zero()
+    }
+
+    /// Writes the core's neutral output: ASCII digits, `.`, `-`/`+`, no
+    /// grouping.
+    pub fn write_neutral(&self, out: &mut dyn Sink) {
+        match self.sign {
+            Sign::Minus => out.push_str("-"),
+            Sign::Plus => out.push_str("+"),
+            Sign::None => {}
+        }
+        self.dec.write_digits(self.hi, self.lo, out);
+    }
+
+    /// The neutral output as sub-parts (`minusSign`, `plusSign`, `integer`,
+    /// `decimal`, `fraction`).
+    pub fn neutral_parts(&self, out: &mut dyn SubPartSink) {
+        write_parts(self.dec, self.sign, self.hi, self.lo, out);
+    }
+}
+
+impl Display {
+    fn digits(&self) -> Digits<'_> {
+        Digits {
+            dec: &self.dec,
+            lo: self.lo,
+            hi: self.hi,
+            sign: self.sign,
+        }
+    }
 }
 
 impl Number {
@@ -120,6 +200,68 @@ impl Number {
         self.value.write_plain(out);
     }
 
+    /// Resolves an expression under `spec`, as `:number` does
+    /// (`number.md`): the operand rules, the options of `spec`'s function
+    /// (any other option is ignored), inheritance from a number or measure
+    /// operand, the digit plan and rounding. `None`: a fallback value, the
+    /// reason reported through `errs`.
+    pub fn resolve(
+        spec: NumberSpec,
+        cx: &FnContext<'_>,
+        operand: Option<&Value<'_>>,
+        options: &Options<'_, '_>,
+        errs: &mut dyn ErrorSink,
+    ) -> Option<Number> {
+        resolve(spec, cx, operand, *options, errs)
+    }
+
+    /// The rounded digits to display; `None` for a number no handler
+    /// resolved.
+    pub fn digits(&self) -> Option<Digits<'_>> {
+        self.resolved.as_ref().map(|r| r.display.digits())
+    }
+
+    /// The exact value's digits, unrounded — how an unannotated number
+    /// formats (`plans/03-runtime.md` §2.6): `-1234.5`, `0.001`, `-0`.
+    pub fn exact_digits(&self) -> Digits<'_> {
+        let d = &self.value;
+        Digits {
+            dec: d,
+            lo: d.low().min(0),
+            hi: d.high().max(0),
+            sign: if d.negative() {
+                Sign::Minus
+            } else {
+                Sign::None
+            },
+        }
+    }
+
+    /// The resolved `useGrouping`; `None` when it is not set (or the number
+    /// is bare).
+    pub fn grouping(&self) -> Option<Grouping> {
+        self.resolved.as_ref().and_then(|r| r.opts.use_grouping)
+    }
+
+    /// Whether a numeric handler resolved this number and it may select
+    /// (formatting.md, "Resolve Selectors").
+    pub fn is_selectable(&self) -> bool {
+        self.selectable()
+    }
+
+    /// Match(`self`, `key`) for numeric selectors (`number.md`, "Number
+    /// Selection"): exact numeric keys, then the plural or ordinal category
+    /// of the formatted digits; *Bad Variant Key* for any other key.
+    pub fn matches(&self, cx: &FnContext<'_>, key: &str, errs: &mut dyn ErrorSink) -> bool {
+        matches(self, cx, key, errs)
+    }
+
+    /// `BetterThan(key1, key2)` for two matching keys: an exact (numeric)
+    /// key beats a keyword.
+    pub fn better_than(key1: &str, key2: &str) -> bool {
+        better_than(key1, key2)
+    }
+
     fn bare_of(value: Decimal) -> Number {
         Number {
             value,
@@ -135,13 +277,7 @@ impl Number {
     /// The plain value as sub-parts (`minusSign`, `integer`, `decimal`,
     /// `fraction`).
     pub(crate) fn plain_parts(&self, out: &mut dyn SubPartSink) {
-        let d = &self.value;
-        let sign = if d.negative() {
-            SignOut::Minus
-        } else {
-            SignOut::None
-        };
-        write_parts(d, sign, d.high().max(0), d.low().min(0), out);
+        self.exact_digits().neutral_parts(out);
     }
 
     /// Whether a numeric handler resolved this number and it may select.
@@ -154,12 +290,7 @@ impl Number {
         match &self.resolved {
             Some(r) => {
                 let d = &r.display;
-                match d.sign {
-                    SignOut::Minus => out.push_str("-"),
-                    SignOut::Plus => out.push_str("+"),
-                    SignOut::None => {}
-                }
-                d.dec.write_digits(d.hi, d.lo, out);
+                d.digits().write_neutral(out);
             }
             None => self.write_plain(out),
         }
@@ -168,13 +299,7 @@ impl Number {
     /// The display form as sub-parts.
     pub(crate) fn display_parts(&self, out: &mut dyn SubPartSink) {
         match &self.resolved {
-            Some(r) => write_parts(
-                &r.display.dec,
-                r.display.sign,
-                r.display.hi,
-                r.display.lo,
-                out,
-            ),
+            Some(r) => r.display.digits().neutral_parts(out),
             None => self.plain_parts(out),
         }
     }
@@ -182,11 +307,11 @@ impl Number {
 
 /// Writes digits `hi..=lo` of `d` as Intl-style sub-parts, in chunks of at
 /// most 64 digits (a longer run arrives as several parts of one kind).
-fn write_parts(d: &Decimal, sign: SignOut, hi: i16, lo: i16, out: &mut dyn SubPartSink) {
+fn write_parts(d: &Decimal, sign: Sign, hi: i16, lo: i16, out: &mut dyn SubPartSink) {
     match sign {
-        SignOut::Minus => out.sub_part("minusSign", "-"),
-        SignOut::Plus => out.sub_part("plusSign", "+"),
-        SignOut::None => {}
+        Sign::Minus => out.sub_part("minusSign", "-"),
+        Sign::Plus => out.sub_part("plusSign", "+"),
+        Sign::None => {}
     }
     digits_part(d, hi, 0, "integer", out);
     if lo < 0 {
@@ -237,9 +362,12 @@ fn is_number_literal(key: &str) -> bool {
 
 // ─────────────────────────────────────────────────────────── resolution ──
 
-/// How one numeric function resolves (closed world: a handler is a `Spec`).
-#[derive(Clone, Copy)]
-pub(crate) struct Spec {
+/// How one numeric function resolves (`plans/03-runtime.md` §2.7): which
+/// options it reads, its fraction-digit defaults, whether it rounds to an
+/// integer, whether it selects, and the power of ten it applies. Closed
+/// world: a handler is a spec.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct NumberSpec {
     /// Option-set bit (`NUM`, `INT`, `PCT`, `CUR`, `UNIT`); 0 = `:offset`.
     bit: u8,
     /// Fraction-digit defaults; `None` keeps the operand's (`:offset`).
@@ -252,33 +380,73 @@ pub(crate) struct Spec {
     scale: i16,
 }
 
-pub(crate) const NUMBER: Spec = Spec {
-    bit: NUM,
-    frac: Some(FracDefaults { min: 0, max: 3 }),
-    integer: false,
-    selectable: true,
-    scale: 0,
-};
+impl NumberSpec {
+    /// `:number`: 0–3 fraction digits, selects.
+    pub const NUMBER: NumberSpec = NumberSpec {
+        bit: NUM,
+        frac: Some(FracDefaults { min: 0, max: 3 }),
+        integer: false,
+        selectable: true,
+        scale: 0,
+    };
 
-pub(crate) const INTEGER: Spec = Spec {
-    bit: INT,
-    frac: Some(FracDefaults { min: 0, max: 0 }),
-    integer: true,
-    selectable: true,
-    scale: 0,
-};
+    /// `:integer`: the value rounded to an integer, selects.
+    pub const INTEGER: NumberSpec = NumberSpec {
+        bit: INT,
+        frac: Some(FracDefaults { min: 0, max: 0 }),
+        integer: true,
+        selectable: true,
+        scale: 0,
+    };
 
-pub(crate) const OFFSET: Spec = Spec {
-    bit: 0,
-    frac: None,
-    integer: false,
-    selectable: true,
-    scale: 0,
-};
+    /// `:offset`: `add` / `subtract`, the operand's other options kept.
+    pub const OFFSET: NumberSpec = NumberSpec {
+        bit: 0,
+        frac: None,
+        integer: false,
+        selectable: true,
+        scale: 0,
+    };
+
+    /// `:percent`: the value × 100 when formatting and selecting, 0–0
+    /// fraction digits, plural selection only.
+    pub const PERCENT: NumberSpec = NumberSpec {
+        bit: PCT,
+        frac: Some(FracDefaults { min: 0, max: 0 }),
+        integer: false,
+        selectable: true,
+        scale: 2,
+    };
+
+    /// `:unit`: 0–3 fraction digits, not selectable.
+    pub const UNIT: NumberSpec = NumberSpec {
+        bit: UNIT,
+        frac: Some(FracDefaults { min: 0, max: 3 }),
+        integer: false,
+        selectable: false,
+        scale: 0,
+    };
+
+    /// `:currency` whose currency shows `fraction_digits` fraction digits
+    /// (`fractionDigits`, or the currency's own for `auto`); not
+    /// selectable.
+    pub const fn currency(fraction_digits: u8) -> NumberSpec {
+        NumberSpec {
+            bit: CUR,
+            frac: Some(FracDefaults {
+                min: fraction_digits,
+                max: fraction_digits,
+            }),
+            integer: false,
+            selectable: false,
+            scale: 0,
+        }
+    }
+}
 
 /// Resolves a numeric expression; `None` = a fallback value (reported).
 pub(crate) fn resolve(
-    spec: Spec,
+    spec: NumberSpec,
     cx: &FnContext<'_>,
     operand: Option<&Value<'_>>,
     options: Options<'_, '_>,
@@ -289,11 +457,14 @@ pub(crate) fn resolve(
         errs.error(FormatError::BadOperand);
         return None;
     };
-    let (mut value, mut o, inherited, mut selectable) = match operand {
-        Value::Number(Number {
-            value,
-            resolved: Some(r),
-        }) => {
+    let resolved_operand = match operand {
+        Value::Number(n) | Value::Measure(Measure { number: n, .. }) => {
+            n.resolved.as_ref().map(|r| (&n.value, r))
+        }
+        _ => None,
+    };
+    let (mut value, mut o, inherited, mut selectable) = match resolved_operand {
+        Some((value, r)) => {
             let mut o = r.opts;
             let mut selectable = r.selectable;
             if o.select.is_some() {
@@ -317,9 +488,14 @@ pub(crate) fn resolve(
                 o.min_int = None;
                 o.rounding_increment = None;
             }
+            if spec.bit == CUR {
+                // `fractionDigits` decides (NumberSpec::currency).
+                o.min_frac = None;
+                o.max_frac = None;
+            }
             (value.clone(), o, Some((r.frac, r.scale)), selectable)
         }
-        other => match numeric_operand(other, cx.host()) {
+        None => match numeric_operand(operand, cx.host()) {
             Ok(d) => (d, NumOpts::default(), None, true),
             Err(e) => {
                 errs.error(e);
@@ -476,13 +652,13 @@ fn display(value: &Decimal, scale: i16, p: &DigitPlan, sign: SignDisplay) -> Dis
     let zero = d.is_zero();
     let negative = d.negative();
     let sign = match sign {
-        SignDisplay::ExceptZero if zero => SignOut::None,
+        SignDisplay::ExceptZero if zero => Sign::None,
         SignDisplay::Auto | SignDisplay::Always | SignDisplay::ExceptZero if negative => {
-            SignOut::Minus
+            Sign::Minus
         }
-        SignDisplay::Always | SignDisplay::ExceptZero => SignOut::Plus,
-        SignDisplay::Negative if negative && !zero => SignOut::Minus,
-        _ => SignOut::None,
+        SignDisplay::Always | SignDisplay::ExceptZero => Sign::Plus,
+        SignDisplay::Negative if negative && !zero => Sign::Minus,
+        _ => Sign::None,
     };
     Display {
         dec: d,

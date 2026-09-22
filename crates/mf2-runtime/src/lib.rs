@@ -12,9 +12,10 @@
 //! | [`Sink`], [`PartSink`], [`ErrorSink`] | where output and errors go |
 //! | [`Arg`], [`Value`], [`Number`] | arguments and resolved values |
 //! | [`Function`], [`Registry`], [`functions`] | handlers, closed world (B13) |
-//! | [`Host`] | NFC and float text from the platform |
+//! | [`Host`] | NFC, float text, zone offsets, a date formatter from the platform |
+//! | [`DateTime`], [`TimeZone`], [`NumberSpec`], [`Digits`], [`Measure`] | Phase 4's additions for the function crates (§2.7) |
 //!
-//! The API is `plans/03-runtime.md` §2. Client-path code: `no_std` +
+//! The API is `plans/03-runtime.md` §2 (§2.7: Phase 4's additions). Client-path code: `no_std` +
 //! `alloc`, `forbid(unsafe_code)`, no `core::fmt`, no panicking operation
 //! (B12); built-in handlers never allocate.
 
@@ -29,6 +30,7 @@
 
 extern crate alloc;
 
+mod datetime;
 mod error;
 mod eval;
 mod format;
@@ -47,11 +49,15 @@ mod value;
 pub use mf2_catalog::{Catalog, Dir, MsgId, StrRef};
 pub use mf2_model::MarkupKind;
 
+pub use datetime::{
+    Date, DateFields, DateLength, DateStyle, DateTime, DateTimeOptions, DateTimeRequest, Time,
+    TimePrecision, TimeZone, ZoneOption, ZoneStyle, is_zone_name,
+};
 pub use error::FormatError;
 pub use format::{BidiStrategy, FormatContext, Formatter};
 pub use function::{FnContext, Function, OptionValue, Options, Registry};
 pub use host::Host;
-pub use number::Number;
+pub use number::{Digits, Grouping, Measure, MeasureUnit, Number, NumberSpec, Sign};
 pub use parts::{
     ExpressionPart, FallbackSource, Isolation, MarkupOptions, MarkupPart, Part, PartSink,
 };
