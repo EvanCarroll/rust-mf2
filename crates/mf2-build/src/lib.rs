@@ -3,7 +3,8 @@
 //! Rust module.
 //!
 //! It runs from an i18n crate's `build.rs`
-//! (`mf2::build::Build::new().source_locale("en").run()`) and from `mf2-cli`,
+//! (`Build::new()?.emit_cargo(true).run()?.into_result()?`) and from
+//! `mf2-cli`,
 //! reading the same [`Config`] both times so that the two can never disagree
 //! (`plans/05-tooling.md` §3.1, §4). Nothing here is linked into the client
 //! wasm.

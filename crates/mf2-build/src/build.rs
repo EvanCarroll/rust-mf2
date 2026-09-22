@@ -2,7 +2,15 @@
 //!
 //! ```no_run
 //! # fn main() -> Result<(), mf2_build::Error> {
-//! mf2_build::Build::new()?.source_locale("en").run()?;
+//! // `emit_cargo` prints the report as cargo warnings and errors, and
+//! // `into_result` turns an error count into a failed build: a corpus with
+//! // errors in it writes nothing, so a build script that does not check
+//! // would go on compiling against the *previous* build's output.
+//! mf2_build::Build::new()?
+//!     .source_locale("en")
+//!     .emit_cargo(true)
+//!     .run()?
+//!     .into_result()?;
 //! # Ok(()) }
 //! ```
 
@@ -39,8 +47,10 @@ pub const CATALOGS_FILE: &str = "mf2_catalogs.rs";
 /// that depends on it, in both of cargo-leptos' builds.
 ///
 /// Splitting the two takes that cost away from the client: the i18n crate
-/// emits [`Emit::Module`], which a translation never changes, and a crate
-/// only the server binary depends on emits [`Emit::Catalogs`].
+/// emits [`Emit::Module`], which editing a translation's text never changes,
+/// and a crate only the server binary depends on emits [`Emit::Catalogs`].
+/// (A translation that introduces a *function* the source does not use still
+/// moves the manifest hash, and must — see [`crate::manifest`].)
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Emit {
     /// The manifest, the catalogs and a module that names them (the
@@ -367,8 +377,15 @@ impl Build {
                 resolved.messages.iter().flatten().copied().collect();
             let slice = slice::of(&flattened, &config.locale_data, features);
             report_slicing(tag, &slice, features, config, &sources[i], &mut report);
-            let catalog =
-                catalog::write(tag, &built.manifest, &resolved, &chain_tags, slice, config)?;
+            let catalog = catalog::write(
+                tag,
+                &built.manifest,
+                &resolved,
+                &chain_tags,
+                slice,
+                config,
+                self.emit != Emit::Module,
+            )?;
             locales.push(LocaleInfo {
                 tag: tag.clone(),
                 dir: catalog::dir_of(tag)?,
@@ -435,7 +452,11 @@ impl Build {
         }
         if self.emit == Emit::Module {
             // The catalogs are another crate's; nothing here writes one, so
-            // a translation never touches this crate's outputs.
+            // a translation never touches this crate's outputs. Any that an
+            // earlier `Emit::Both` or `Emit::Catalogs` build left behind are
+            // still this directory's to prune — `remove_stale` only ever
+            // touches `*.mf2b*`, never the manifest or the module.
+            outcome.removed = catalog::remove_stale(&self.out_dir, &[])?;
             return Ok(());
         }
         if self.emit == Emit::Catalogs {

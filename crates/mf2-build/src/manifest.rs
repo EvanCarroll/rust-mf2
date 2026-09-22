@@ -5,8 +5,14 @@
 //! bytewise order, each message's external variables in NFC slot order, its
 //! markup names — plus the function identifiers the whole corpus uses, since
 //! the generated registry is closed-world (B13). Its hash covers exactly
-//! those four things, so a translation-only edit never changes it and never
-//! rebuilds the wasm.
+//! those four things, so editing a translation's *text* never changes it and
+//! never rebuilds the wasm.
+//!
+//! The one thing a translation can change is that fourth input. A translator
+//! who writes `{$n :number}` where the source wrote `{$n}` has added a
+//! function the client must link, so the hash moves and the wasm is rebuilt
+//! — correctly: a closed-world registry that did not would leave the page
+//! with an Unknown Function at run time.
 
 use std::collections::{BTreeMap, BTreeSet};
 

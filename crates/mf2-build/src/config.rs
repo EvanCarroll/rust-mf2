@@ -402,11 +402,21 @@ impl Layout {
                 .map_err(|source| Error::io(path.clone(), source))?;
             let name = entry.file_name();
             let name = name.to_string_lossy();
-            if kind.is_dir() {
-                tags.insert(name.into_owned());
+            let tag = if kind.is_dir() {
+                name.as_ref()
             } else if let Some(tag) = name.strip_suffix(".json") {
-                tags.insert(tag.to_owned());
+                tag
+            } else {
+                continue;
+            };
+            if !is_tag(tag) {
+                return Err(Error::Layout(format!(
+                    "{}: {tag:?} is not a locale tag — `locales/` holds one \
+                     directory or one .json file per tag, and nothing else",
+                    self.locales.display()
+                )));
             }
+            tags.insert(tag.to_owned());
         }
         if tags.is_empty() {
             return Err(Error::Layout(format!(
@@ -416,4 +426,19 @@ impl Layout {
         }
         Ok(tags.into_iter().collect())
     }
+}
+
+/// Whether `name` can be a locale tag: BCP 47's shape, loosely — subtags of
+/// ASCII letters and digits joined by `-`.
+///
+/// Loose because the tag is only ever matched against CLDR data, which
+/// decides what it means; strict because it becomes a file name and is
+/// interpolated into generated Rust, and because an editor's scratch
+/// directory under `locales/` should say so rather than become a locale.
+fn is_tag(name: &str) -> bool {
+    !name.is_empty()
+        && name.len() <= 64
+        && name
+            .split('-')
+            .all(|part| !part.is_empty() && part.chars().all(|c| c.is_ascii_alphanumeric()))
 }

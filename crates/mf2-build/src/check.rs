@@ -10,7 +10,7 @@ use mf2_locale_data::plural::{PluralKind, plural_rules};
 use mf2_model::{Declaration, FunctionRef, Key, Message, OptionValue, Pattern, PatternPart};
 use mf2_syntax::Analysis;
 
-use crate::config::Config;
+use crate::config::{Config, Missing};
 use crate::corpus::LocaleSource;
 use crate::features::Features;
 use crate::lint::{Level, Lint};
@@ -512,10 +512,20 @@ fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Co
         &path,
         mf2_resource::Position { line: 1, column: 1 },
         None,
-        format!(
-            "{missing} of {total} messages are missing here and fall back to {}",
-            config.chain(&source.tag).join(", ")
-        ),
+        match config.catalog.missing {
+            Missing::Fallback => format!(
+                "{missing} of {total} messages are missing here and fall back to {}",
+                config.chain(&source.tag).join(", ")
+            ),
+            Missing::Empty => format!(
+                "{missing} of {total} messages are missing here and ship empty \
+                 (`[catalog] missing = \"empty\"`)"
+            ),
+            Missing::Id => format!(
+                "{missing} of {total} messages are missing here and ship as their id \
+                 (`[catalog] missing = \"id\"`)"
+            ),
+        },
     );
 }
 

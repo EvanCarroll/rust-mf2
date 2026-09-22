@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use clap::Parser;
-use mf2_build::{Build, Config, Features};
+use mf2_build::{Build, Config, Emit, Features};
 
 #[derive(Debug, Parser)]
 #[command(name = "build-cost", version, about)]
@@ -36,6 +36,20 @@ struct Cli {
     /// How many warm passes to time (the median is reported).
     #[arg(long, default_value_t = 5)]
     runs: u32,
+    /// What the pass emits: `both`, `module` (the i18n crate's half of the
+    /// split) or `catalogs` (the server crate's).
+    #[arg(long, value_parser = emit, default_value = "both")]
+    emit: Emit,
+}
+
+/// `Emit` is `mf2-build`'s, so it parses here rather than deriving there.
+fn emit(s: &str) -> Result<Emit, String> {
+    match s {
+        "both" => Ok(Emit::Both),
+        "module" => Ok(Emit::Module),
+        "catalogs" => Ok(Emit::Catalogs),
+        other => Err(format!("expected both, module or catalogs, not {other:?}")),
+    }
 }
 
 fn main() -> std::process::ExitCode {
@@ -58,6 +72,7 @@ fn run(cli: &Cli) -> Result<(), mf2_build::Error> {
         let outcome = Build::at(&cli.corpus, &cli.out)
             .config(config.clone())
             .features(features.clone())
+            .emit(cli.emit)
             .run()?;
         Ok((outcome.manifest.ids.len(), outcome.written.len()))
     };
@@ -130,6 +145,7 @@ fn edit_and_time(cli: &Cli, config: &Config, features: &Features) -> (Duration, 
     let outcome = Build::at(&cli.corpus, &cli.out)
         .config(config.clone())
         .features(features.clone())
+        .emit(cli.emit)
         .run();
     let elapsed = start.elapsed();
     let _ = std::fs::write(&file, &before);
@@ -138,6 +154,7 @@ fn edit_and_time(cli: &Cli, config: &Config, features: &Features) -> (Duration, 
     let _ = Build::at(&cli.corpus, &cli.out)
         .config(config.clone())
         .features(features.clone())
+        .emit(cli.emit)
         .run();
     (elapsed, written)
 }

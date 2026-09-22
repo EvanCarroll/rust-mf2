@@ -128,11 +128,21 @@ pub(crate) fn selector_function<'m>(
     name: &str,
     depth: u32,
 ) -> Option<&'m FunctionRef<'m>> {
+    declared_function(&select.declarations, name, depth)
+}
+
+/// The same for any message: the function `$name` carries by the time a
+/// pattern can use it, or `None` if it reaches the pattern unannotated.
+pub(crate) fn declared_function<'m>(
+    declarations: &'m [Declaration<'m>],
+    name: &str,
+    depth: u32,
+) -> Option<&'m FunctionRef<'m>> {
     if depth > 16 {
         return None;
     }
     let mut found = None;
-    for declaration in &select.declarations {
+    for declaration in declarations {
         let declared = match declaration {
             Declaration::Input(input) => input.name.as_ref(),
             Declaration::Local(local) => local.name.as_ref(),
@@ -148,7 +158,7 @@ pub(crate) fn selector_function<'m>(
             // `.local $x = {$y}` takes its function from `$y`.
             None => match &local.value {
                 Expression::Variable(v) => {
-                    selector_function(select, v.arg.name.as_ref(), depth + 1)
+                    declared_function(declarations, v.arg.name.as_ref(), depth + 1)
                 }
                 _ => None,
             },
@@ -186,8 +196,15 @@ fn scan_dynamic(message: &Message<'_>, slice: &mut Slice) {
         for part in pattern {
             if let mf2_model::PatternPart::Expression(e) = part {
                 note(e.function());
-                if e.function().is_none() && matches!(e, Expression::Variable(_)) {
-                    slice.unannotated = true;
+                // A bare `{$n}` only reaches the unannotated hooks when
+                // nothing annotated `$n` on the way: `.input {$n :integer}`
+                // resolves it first, and `{$n}` then formats that result.
+                if let (None, Expression::Variable(v)) = (e.function(), e) {
+                    let declared =
+                        declared_function(message.declarations(), v.arg.name.as_ref(), 0);
+                    if declared.is_none() {
+                        slice.unannotated = true;
+                    }
                 }
             }
         }

@@ -444,6 +444,36 @@ workload and the suite's messages, each as one resource file (76.6 KB and
 
 RESULTS-PENDING
 
+## Review of `mf2-build`
+
+An adversarial read of the pipeline at the end of the phase, checked claim by
+claim against the code. Eight candidates; six were real and are fixed here,
+two were the code being right and a comment being wrong.
+
+| # | What | Verdict |
+|---|---|---|
+| 1 | `Emit::Module` runs brotli 11 for every locale and discards the result | **real** — the split's whole point, undone |
+| 2 | …and returns before `remove_stale`, so a crate that switches to it leaves every old catalog in `OUT_DIR` | **real** |
+| 3 | `slice.unannotated` looks only at a placeholder's inline function, so `{$n}` under `.input {$n :integer}` links the #90 hooks it can never reach | **real**, and a B1′ leak |
+| 4 | `locales/` takes every subdirectory as a tag, unvalidated, and the tag is interpolated into generated Rust unescaped | **real** — `direction()` accepts any string, so `locales/_templates/` became a locale and a quote in a name broke the module |
+| 5 | brotli and gzip errors are discarded (`let _ =`, `unwrap_or_default`), so a truncated `.br` ships beside a `.mf2b` whose hash says it is intact | **real** |
+| 6 | the coverage message names a fallback chain even under `missing = "empty"` | **real** |
+| 7 | "a translation-only edit never changes the manifest hash" | **comment wrong**: a translation that introduces a *function* the source does not use must move it, or the closed-world registry leaves the page with an Unknown Function |
+| 8 | "`check` refused any function the configuration does not name" | **comment wrong**: `unknown-function` is an error *by default* and can be turned down, and then the runtime reports Unknown Function — the spec's own fallback |
+
+The fixes: compression is skipped and pruning still runs under `Emit::Module`;
+`declared_function` resolves a bare `{$n}` through the declarations before the
+hooks are linked; `Layout::locales` validates tags and `codegen` escapes them;
+`brotli`/`gzip` return `Result` and a new `Error::Compress`; the coverage
+message follows `[catalog] missing`. Tests for the first four are in
+`crates/mf2-build/tests/{build,slicing}.rs`
+(`emitting_only_the_module_does_not_compress`,
+`emitting_only_the_module_prunes_the_catalogs_it_stopped_writing`,
+`a_stray_directory_is_not_a_locale`,
+`a_declaration_annotates_the_placeholders_that_use_it`).
+
+What #1 was costing is in §A11.
+
 ## What changed in the plans
 
 * [05](05-tooling.md) §2 records the seven readings of the working grammar

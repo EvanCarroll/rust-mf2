@@ -204,7 +204,7 @@ fn catalogs(s: &mut String, m: &Module<'_>, gated: bool) {
     for locale in m.locales {
         let _ = writeln!(
             s,
-            "    ({tag:?}, {file:?}, include_bytes!(concat!(env!(\"OUT_DIR\"), \"/{file}\"))),",
+            "    ({tag:?}, {file:?}, include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {file:?}))),",
             tag = locale.tag,
             file = locale.file_name
         );
@@ -252,8 +252,10 @@ fn registry(s: &mut String, m: &Module<'_>) {
     for name in m.functions {
         let path = match builtin_path(name, m.features) {
             Some(path) => path.to_owned(),
-            // A custom function; `check` refused any the configuration does
-            // not name.
+            // A custom function. `unknown-function` is an error by default,
+            // so reaching here means the corpus turned that lint down: the
+            // call stays in the catalog and the runtime reports Unknown
+            // Function against it, which is the fallback the spec defines.
             None => match m.custom.get(name) {
                 Some(path) => path.clone(),
                 None => continue,

@@ -80,6 +80,23 @@ pub enum Error {
     #[error(transparent)]
     Catalog(#[from] mf2_catalog::WriteError),
 
+    /// A catalog could not be compressed.
+    ///
+    /// Both encoders write into a `Vec`, so this is a compressor fault, not a
+    /// full disk. It is still an error rather than a shrug: a truncated
+    /// `.br` would be served immutable beside a `.mf2b` whose content hash
+    /// says it is intact, and the client would see a corrupt catalog.
+    #[error("catalog for {locale}: {format}: {source}")]
+    Compress {
+        /// The tag.
+        locale: String,
+        /// `brotli` or `gzip`.
+        format: &'static str,
+        /// What the encoder said.
+        #[source]
+        source: io::Error,
+    },
+
     /// The layout on disk is not what a build needs.
     #[error("{0}")]
     Layout(String),

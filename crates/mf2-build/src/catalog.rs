@@ -184,6 +184,7 @@ pub fn write(
     chain_tags: &[String],
     slice: Slice,
     config: &Config,
+    compress: bool,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
         locale: tag.to_owned(),
@@ -225,8 +226,15 @@ pub fn write(
             locale: tag.to_owned(),
             source,
         })?;
-    let br = brotli(&bytes);
-    let gz = gzip(&bytes);
+    // Under `Emit::Module` nothing writes a catalog file, and brotli 11 at a
+    // 22-bit window is the most expensive thing in the pass — so the split
+    // that was meant to take work off the i18n crate does not pay for output
+    // it then discards (`Build::emit`).
+    let (br, gz) = if compress {
+        (brotli(tag, &bytes)?, gzip(tag, &bytes)?)
+    } else {
+        (Vec::new(), Vec::new())
+    };
     let hash = content_hash(&bytes);
     let mut locale_entries: Vec<(u32, usize)> = options
         .locale_entries
@@ -269,19 +277,34 @@ fn hex(nibble: u8) -> char {
 }
 
 /// Brotli at the quality and window B7 is measured with.
-pub fn brotli(bytes: &[u8]) -> Vec<u8> {
+pub fn brotli(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
+    let fail = |source| Error::Compress {
+        locale: locale.to_owned(),
+        format: "brotli",
+        source,
+    };
     let mut out = Vec::new();
-    let mut writer = brotli::CompressorWriter::new(&mut out, 4096, BROTLI_QUALITY, BROTLI_WINDOW);
-    let _ = writer.write_all(bytes);
-    drop(writer);
-    out
+    {
+        let mut writer =
+            brotli::CompressorWriter::new(&mut out, 4096, BROTLI_QUALITY, BROTLI_WINDOW);
+        writer.write_all(bytes).map_err(fail)?;
+        // `CompressorWriter`'s `Drop` flushes too, but it cannot report; this
+        // is where a truncated stream would otherwise pass silently.
+        writer.flush().map_err(fail)?;
+    }
+    Ok(out)
 }
 
 /// gzip at its best setting, for clients without brotli.
-pub fn gzip(bytes: &[u8]) -> Vec<u8> {
+pub fn gzip(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
+    let fail = |source| Error::Compress {
+        locale: locale.to_owned(),
+        format: "gzip",
+        source,
+    };
     let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
-    let _ = encoder.write_all(bytes);
-    encoder.finish().unwrap_or_default()
+    encoder.write_all(bytes).map_err(fail)?;
+    encoder.finish().map_err(fail)
 }
 
 /// Writes `bytes` to `path`, but only if they differ from what is there.

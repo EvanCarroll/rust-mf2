@@ -383,3 +383,98 @@ fn the_catalogs_can_be_emitted_apart_from_the_module() {
         "the catalogs crate did not notice the edit"
     );
 }
+
+/// `Emit::Module` writes no catalog, so it must not pay for one. Brotli 11 at
+/// a 22-bit window is the most expensive step in the pass, and compressing
+/// output that is then dropped would undo the point of the split.
+#[test]
+fn emitting_only_the_module_does_not_compress() {
+    let root = workload();
+    let module = Build::at(&root, out_dir("emit-module-cost"))
+        .emit(mf2_build::Emit::Module)
+        .run()
+        .expect("builds");
+    for catalog in &module.catalogs {
+        assert!(
+            catalog.br.is_empty() && catalog.gz.is_empty(),
+            "{}: Emit::Module compressed a catalog it does not write",
+            catalog.tag
+        );
+        // What the module does need is still there.
+        assert!(!catalog.hash.is_empty(), "{}: no content hash", catalog.tag);
+    }
+    // And it still agrees with a full build about what the catalogs are —
+    // the names it does not embed are the ones the other crate writes.
+    let both = Build::at(&root, out_dir("emit-both-cost"))
+        .run()
+        .expect("builds");
+    for (a, b) in module.catalogs.iter().zip(&both.catalogs) {
+        assert_eq!(a.tag, b.tag);
+        assert_eq!(a.hash, b.hash, "{}: the hash moved", a.tag);
+        assert_eq!(a.bytes, b.bytes, "{}: the catalog moved", a.tag);
+    }
+    // What `Emit::Module` leaves out is the embedded-catalog table itself.
+    assert!(!module.generated.contains("CATALOGS"));
+    assert!(both.generated.contains("CATALOGS"));
+}
+
+/// Switching a crate from `Emit::Both` to `Emit::Module` leaves catalogs in
+/// `OUT_DIR` that nothing will serve and nothing else prunes.
+#[test]
+fn emitting_only_the_module_prunes_the_catalogs_it_stopped_writing() {
+    let root = workload();
+    let out = out_dir("emit-module-prune");
+    Build::at(&root, out.clone()).run().expect("builds");
+    let before = std::fs::read_dir(&out)
+        .expect("read_dir")
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().contains(".mf2b"))
+        .count();
+    assert!(before > 0, "the first build wrote no catalogs");
+
+    let after = Build::at(&root, out.clone())
+        .emit(mf2_build::Emit::Module)
+        .run()
+        .expect("builds");
+    assert_eq!(after.removed.len(), before, "not every catalog was pruned");
+    let left = std::fs::read_dir(&out)
+        .expect("read_dir")
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().contains(".mf2b"))
+        .count();
+    assert_eq!(left, 0, "{left} catalogs left behind");
+    // The manifest and the module are this build's own, and stay.
+    assert!(out.join("manifest.mf2m").is_file(), "manifest removed");
+    assert!(out.join("mf2_generated.rs").is_file(), "module removed");
+}
+
+/// `locales/` holds one directory or one `.json` file per tag and nothing
+/// else. A tag becomes a file name and is interpolated into generated Rust,
+/// so a stray editor directory should say so rather than become a locale.
+#[test]
+fn a_stray_directory_is_not_a_locale() {
+    let root = corpus(
+        "stray-locale",
+        "source_locale = \"en\"\n",
+        &[("en", "hello = Hi\n")],
+    );
+    for stray in ["_templates", "en.bak~", "a\"b"] {
+        let dir = root.join("locales").join(stray);
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        let err = Build::at(&root, out_dir("stray-locale"))
+            .run()
+            .expect_err("a stray directory is refused");
+        // The message names the offender the way Rust would print it, so
+        // that a tag with a quote in it is legible rather than pasted raw.
+        let text = err.to_string();
+        assert!(
+            text.contains(&format!("{stray:?}")) && text.contains("not a locale tag"),
+            "{stray:?} gave {text:?}"
+        );
+        std::fs::remove_dir_all(&dir).expect("rmdir");
+    }
+    // With them gone the corpus builds.
+    Build::at(&root, out_dir("stray-locale"))
+        .run()
+        .expect("builds once the strays are gone");
+}

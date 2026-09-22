@@ -317,3 +317,55 @@ fn b8_bytes(catalog: &catalog::Catalog) -> usize {
         .map(|(_, bytes)| bytes)
         .sum()
 }
+
+/// The unannotated hooks (`with_numbers` / `with_dates`, #90) belong in the
+/// registry only when a placeholder can actually receive a raw number or
+/// date. A declaration annotates the variable before the pattern sees it, so
+/// `{$n}` under `.input {$n :integer}` never reaches them — and a corpus that
+/// annotates everything through declarations should pay nothing for them
+/// (B1′).
+#[test]
+fn a_declaration_annotates_the_placeholders_that_use_it() {
+    let cases: [(&str, bool); 5] = [
+        // Bare, undeclared: an external argument with no function.
+        ("bare = You have {$n} left", true),
+        // Declared with a function: resolved before the pattern.
+        (
+            "declared =\n  .input {$n :integer}\n  {{You have {$n} left}}",
+            false,
+        ),
+        // `.local $m = {$n}` renames; the chain still ends at `:integer`.
+        (
+            "renamed =\n  .input {$n :integer}\n  .local $m = {$n}\n  {{You have {$m} left}}",
+            false,
+        ),
+        // Declared with no function at all: still unannotated.
+        ("plain =\n  .input {$n}\n  {{You have {$n} left}}", true),
+        // A literal is text, never a number.
+        ("literal = You have {|5|} left", false),
+    ];
+    for (source, expected) in cases {
+        let root = common::corpus(
+            &format!("unannotated-{}", source.split(' ').next().unwrap_or("x")),
+            "source_locale = \"en\"\n",
+            &[("en", source)],
+        );
+        let outcome = Build::at(&root, out_dir("unannotated"))
+            .features(Features::parse("fn-number,fn-datetime"))
+            .run()
+            .expect("builds");
+        assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
+        let slice = &outcome.catalogs[0].slice;
+        assert_eq!(
+            slice.unannotated, expected,
+            "unannotated should be {expected} for:\n{source}"
+        );
+        // What the flag is for: the hooks appear in the generated registry
+        // exactly when it is set.
+        assert_eq!(
+            outcome.generated.contains("with_numbers"),
+            expected,
+            "the registry disagrees with the slice for:\n{source}"
+        );
+    }
+}
