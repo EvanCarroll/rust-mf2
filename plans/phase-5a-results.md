@@ -19,6 +19,7 @@ timings do**, so timings are ranges and the two arrangements of owner question
 | B7, B8, B1′, B13 measured on `mf2-build`'s output and met, or restated; build cost reported | **met**: B7 and B8 on the catalogs the build writes, B1′ = +0 B and B13 = 13.6 KB avoided on the wasm the generated module produces | §A10, §A11 |
 | owner questions 1 and 2 answered and recorded | **answered**, both with measurements and a recommendation | §"Owner question 1", §"Owner question 2" |
 | fuzz targets clean for ≥ 1 h each on the final code | see §A12 | §A12 |
+| (not an exit item) an adversarial review of `mf2-build` | **six real defects fixed**, two comments corrected | §"Review of `mf2-build`" |
 | `plans/phase-5a-results.md` written | this document | — |
 
 What Phase 5a leaves for later, with reasons:
@@ -282,6 +283,14 @@ those lines are behind `#[cfg(feature = "ssr")]`, so the client compilation
 never sees them. The fixture's client binary reads `MANIFEST_HASH`, as a real
 one does, which is what makes "the wasm did not change" a claim rather than an
 artefact of dead-code elimination.
+
+What S3 does *not* cover, and the code's comments wrongly claimed it did
+(§"Review of `mf2-build`", #7): a translation that introduces a **function**
+the source locale does not use. The manifest's fourth input is the function
+set of the whole corpus, because the registry is closed-world, so such an
+edit moves the hash and rebuilds the wasm — as it must, or the client would
+reach a handler it never linked. The scenarios edit text, which is what a
+translation round actually consists of.
 
 Reproducibility: two builds of the reference workload in different directories
 give byte-identical manifests, catalogs, `.br`, `.gz` and generated modules
