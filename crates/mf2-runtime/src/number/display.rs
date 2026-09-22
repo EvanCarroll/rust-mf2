@@ -4,6 +4,8 @@
 //! display, and the plural category from the catalog's rules. The `intl`
 //! backend (`intl.rs`) has the same interface and asks the host instead.
 
+use core::cell::Cell;
+
 use mf2_catalog::format::locale_key;
 
 use super::decimal::{Decimal, Increment, RoundingMode};
@@ -24,6 +26,7 @@ pub(super) struct Shown {
     /// The highest visible magnitude (≥ 0).
     hi: i16,
     sign: Sign,
+    category: Cell<u8>,
 }
 
 impl Shown {
@@ -83,6 +86,7 @@ pub(super) fn shown(value: &Decimal, scale: i16, plan: &DigitPlan, sign: SignDis
         lo,
         hi,
         sign,
+        category: Cell::new(0),
     }
 }
 
@@ -143,12 +147,18 @@ pub(super) fn write_selected(n: &Number, _r: &Resolved, cx: &FnContext<'_>, out:
 /// The plural category (cardinal or ordinal, as `select` says) of the
 /// displayed digits, by the catalog's rules.
 pub(super) fn category(_n: &Number, r: &Resolved, cx: &FnContext<'_>) -> Category {
+    let cached = r.shown.category.get();
+    if cached != 0 {
+        return Category::from_code(cached - 1);
+    }
     let entry_key = match r.opts.select {
         Some(Select::Ordinal) => locale_key::PLURAL_ORDINAL,
         _ => locale_key::PLURAL_CARDINAL,
     };
     let rules = cx.catalog().locale_entry(entry_key).unwrap_or(&[]);
-    plural::select(rules, &r.shown.digits().operands())
+    let c = plural::select(rules, &r.shown.digits().operands());
+    r.shown.category.set(c as u8 + 1);
+    c
 }
 
 /// The host is not asked.

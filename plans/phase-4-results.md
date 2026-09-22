@@ -216,6 +216,48 @@ covered build-side compilation (it now covers catalog load and formatting
 only), and ICU4X's panic on a damaged blob (above). The exit runs are
 below.
 
+## A10 — numeric speed
+
+The two candidates of the work order, each A/B-measured by alternating the
+two binaries on `runtime-bench b10 --only select` (the reference workload's
+select messages; 31 samples a row inside each run) on a machine under the
+owner's own load, its clock drifting 1.2–3.6 GHz between runs. Medians and
+minima over the alternated runs:
+
+| Change | `en` median / min (ns) | `pl` median / min (ns) | Δ size, B1's runtime part |
+|---|---|---|---|
+| baseline (the merged tree) | 600 / 452 | 948 / 723 | — |
+| **the plural category once per selector** (12 runs each) | **562 / 480** | **736 / 624** | **+24 B gz** |
+| … and an integer path in `shown` (10 runs each, against the row above) | 632 / 446 *(cache alone 750 / 463)* | 835 / 587 *(987 / 602)* | +25 B gz more |
+| baseline against both (15 runs each) | 576 / 458 → 638 / 447 | 914 / 723 → 843 / 589 | +49 B gz |
+
+**Kept: the category once per selector** — a `Cell<u8>` on the resolved
+number's display (the `intl` backend already had one), so a selector
+evaluates the locale's plural rules once instead of once per literal key.
+It takes 14–22 % off a `pl` select (three plural keys) and leaves `en`
+within the noise, because `en`'s select messages have one literal key and a
+catch-all: the catch-all never asks for a category, so there is nothing to
+reuse. 24 B gz for that is worth it.
+
+**Dropped: the integer path** (skip rounding in `shown` when the value is
+already an integer and the plan is the default fraction one). Its gain —
+about 3 % on the minima, medians contradicting — never came out of the
+noise on this machine, and it costs another 25 B gz, so by A10's rule
+("kept only if faster") it is not kept. The code is in this commit's
+message for whoever measures it on a quiet machine.
+
+`cargo run --release -p runtime-bench --example select_cost` with the cache,
+one sample each (ns per format): text only 29, `{$n}` unannotated 162,
+`{$n :integer}` 363, `.input :integer` + a placeholder 550, a select with no
+placeholder 511, select + placeholder 657, an exact key 606, `pl` select +
+placeholder 780.
+
+**Against P0.8's 317 ns** (measured on P0.3's integer-only runtime, itself
+under load 2–5): `en` select is 1.45× at this machine's best clock and 1.8×
+at its worst — the 1.5× criterion straddles the clock, and the figure is
+reported, not gated, in `bench/runtime-bench` and the B10 gate. Owner
+decision 3 of the work order.
+
 ## A11 — budgets
 
 ### B2, B3, B1′ — the numeric family
