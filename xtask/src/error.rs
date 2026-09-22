@@ -12,6 +12,9 @@ pub(crate) enum Error {
     #[error(transparent)]
     Conformance(#[from] mf2_conformance::Error),
 
+    #[error("locale data: {0}")]
+    LocaleData(#[from] mf2_locale_data::Error),
+
     #[error("catalog writer: {0}")]
     CatalogWrite(#[from] mf2_catalog::WriteError),
 

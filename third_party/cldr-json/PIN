@@ -12,13 +12,18 @@ layout   = each file keeps its upstream path relative to upstream's `cldr-json/`
            cldr-core/supplemental/ordinals.json
            cldr-core/supplemental/numberingSystems.json
            cldr-core/supplemental/currencyData.json
+           cldr-core/supplemental/likelySubtags.json
+           cldr-core/scriptMetadata.json
            cldr-numbers-full/main/<loc>/numbers.json
            cldr-numbers-full/main/<loc>/currencies.json
            cldr-units-full/main/<loc>/units.json
            LICENSE  (upstream's /LICENSE)
-vendored = 38 files (3350776 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4):
-           cldr-core/supplemental/{plurals,ordinals,numberingSystems,currencyData}.json;
+vendored = 40 files (3633315 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4; Phase 3 added
+           likelySubtags and scriptMetadata for text direction):
+           cldr-core/supplemental/{plurals,ordinals,numberingSystems,currencyData,likelySubtags}.json;
+           cldr-core/scriptMetadata.json;
            cldr-numbers-full/main/<loc>/{numbers,currencies}.json and
            cldr-units-full/main/<loc>/units.json for the probe locale panel only;
-           LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are Phase 3/4 work.
+           LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are in crates/mf2-locale-data/data/
+           (`cargo xtask locale-data`).
 refresh  = cargo xtask cldr-sync

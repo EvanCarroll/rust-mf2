@@ -33,6 +33,10 @@ fn wanted_paths() -> Vec<String> {
         // Digit sets for `numberingSystem` and currency fraction digits (P0.5).
         "cldr-core/supplemental/numberingSystems.json".to_owned(),
         "cldr-core/supplemental/currencyData.json".to_owned(),
+        // Text direction of every locale (Phase 3, `mf2-locale-data`): the
+        // likely script of a language (and region), and which scripts are RTL.
+        "cldr-core/supplemental/likelySubtags.json".to_owned(),
+        "cldr-core/scriptMetadata.json".to_owned(),
     ];
     for loc in LOCALES {
         paths.push(format!("cldr-numbers-full/main/{loc}/numbers.json"));
@@ -143,6 +147,8 @@ pub(crate) fn run(root: &Path) -> Result<()> {
          cldr-core/supplemental/ordinals.json\n\
          cldr-core/supplemental/numberingSystems.json\n\
          cldr-core/supplemental/currencyData.json\n\
+         cldr-core/supplemental/likelySubtags.json\n\
+         cldr-core/scriptMetadata.json\n\
          cldr-numbers-full/main/<loc>/numbers.json\n\
          cldr-numbers-full/main/<loc>/currencies.json\n\
          cldr-units-full/main/<loc>/units.json\n\
@@ -154,11 +160,14 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         },
     );
     let vendored = format!(
-        "{} files ({total} bytes) by `cargo xtask cldr-sync` (Phase 0 task A4):\n\
-         cldr-core/supplemental/{{plurals,ordinals,numberingSystems,currencyData}}.json;\n\
+        "{} files ({total} bytes) by `cargo xtask cldr-sync` (Phase 0 task A4; Phase 3 added\n\
+         likelySubtags and scriptMetadata for text direction):\n\
+         cldr-core/supplemental/{{plurals,ordinals,numberingSystems,currencyData,likelySubtags}}.json;\n\
+         cldr-core/scriptMetadata.json;\n\
          cldr-numbers-full/main/<loc>/{{numbers,currencies}}.json and\n\
          cldr-units-full/main/<loc>/units.json for the probe locale panel only;\n\
-         LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are Phase 3/4 work.",
+         LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are in crates/mf2-locale-data/data/\n\
+         (`cargo xtask locale-data`).",
         blobs.len(),
     );
     pin.set(

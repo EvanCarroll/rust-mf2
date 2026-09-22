@@ -406,7 +406,7 @@ impl SizeReport {
              (workload-gen, default knobs, seed 1; `en` is `{}` byte for byte), parsed with \
              `mf2-syntax`; manifest from `en` (ids sorted, slots and markup from `analyze`, \
              functions of every locale), `manifest_hash` **`{}`** (P0.7's reference); one \
-             `plural.cardinal` LOCALE entry per catalog (P0.4's bytes, CLDR 48.2.1). \
+             `plural.cardinal` LOCALE entry per catalog (mf2-locale-data; P0.4's bytes, CLDR 48.2.1). \
              Compressors: {}; {} (the gzip figures include the 18 B gzip framing); brotli \
              quality 11, window 22. **B7 is stated on brotli** (quality 11, window 22 — the \
              `.br` file the build writes and serves); the gz figures ({}) are reported, not \

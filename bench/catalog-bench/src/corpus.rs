@@ -217,7 +217,8 @@ pub fn build(locales: &[LocaleSource], round_trip: bool) -> Result<(Manifest, Ve
             .ok_or_else(|| Error::Corpus(format!("no plural rules for `{}`", l.tag)))?;
         let mut options = Options::new(l.tag.clone(), l.dir);
         options.cldr_version = Some(plural::CLDR);
-        options.locale_entries = vec![(locale_key::PLURAL_CARDINAL, entry.to_vec())];
+        let entry_len = entry.len();
+        options.locale_entries = vec![(locale_key::PLURAL_CARDINAL, entry)];
         let unstripped = writer::catalog(&manifest, &by_id, &options)?;
         let stripped = writer::catalog(&manifest, &by_id, &options.stripped())?;
 
@@ -251,7 +252,7 @@ pub fn build(locales: &[LocaleSource], round_trip: bool) -> Result<(Manifest, Ve
             source_bytes: l.source_bytes(),
             messages: manifest.ids.len(),
             kinds: Kinds::of(&cat_s),
-            plural: (plural_locale, entry.len()),
+            plural: (plural_locale, entry_len),
             lossless: (equal(&cat_s), equal(&cat_u)),
             stripped,
             unstripped,

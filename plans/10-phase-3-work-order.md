@@ -44,7 +44,9 @@ Carried — **owner decisions**:
    on the numeric path. Accept (and restate B12), fix upstream, or an own
    panic-free digit buffer (which D1's rule requires to come with a baseline, a
    gate and a fallback). **Phase 3 cannot exit with B12 red**, so this is needed
-   before A5 lands.
+   before A5 lands. — **Decided (owner, 2026-09-21): the own buffer (D15)**,
+   A/B-tested against `fixed_decimal` behind the same interface (A5b) and
+   adopted only if it is at least as good.
 2. Unchanged: the remote host (the CI `runs-on` label); the spec license
    (#1112); B5/B9 restatements (B7 was restated on brotli at the end of Phase
    2); whether the D1 gate runs on every push; the tz database (P4).
@@ -151,6 +153,7 @@ be, the trait is wrong.
 | **A3** Selection | The spec's algorithm: resolve selectors, filter by `matches`, sort by `BetterThan`, first best in source order; `:string` selection under NFC (quick check, then `Host`); bad-selector / bad-variant-key errors; missing fallback handled per spec. | `pattern-selection.json` green at L4 |
 | **A4** Bidi and parts | Default Bidi Strategy (message `dir` from the catalog header, each value's `dir`), `None`; parts output (`Text`, `BidiIsolation`, `Expression`, `Markup`, `Fallback`) sharing one walker with string output; the parts concatenate to the string. | `bidi.json`, `u-options.json`, `fallback.json` green at L4 |
 | **A5** `:string` and core numbers | `:string`; `:number` / `:integer` / `:offset` over `fixed_decimal` with every digit and rounding option, `signDisplay`, `select` = `exact` / `plural` / `ordinal`, option inheritance, operand rules, neutral symbols. Port P0.5 from history. **Needs owner decision 1.** | `functions/{string,number,integer,offset}.json` green at L4; P0.5's ECMA-402 differential re-run |
+| **A5b** Digit buffer A/B (D15) | The numeric code over the own buffer and over `fixed_decimal` (feature `fixed-decimal`, same interface): the suite, a differential on one random corpus of values × options (display, plural operands, exact-match text), wasm size of the core numeric semantics, allocations, B12, speed. Record the result; keep the own buffer only if it is no worse on every row. | the A/B committed (`bench/`), the decision recorded in 03 §5.2 |
 | **A6** Plural and `mf2-locale-data` | The P0.4 evaluator in `mf2-runtime` (plural operands from the *formatted* number); `crates/mf2-locale-data` (plural part): UTS #35 rule parser, the canonical encoder of 02 §4.1, all-locale tables from `third_party/cldr-json` (subtag truncation, then root), the CLDR `@integer`/`@decimal` samples as tests; `bench/catalog-bench` takes its plural entries from it. | 15,041 / 15,041 CLDR samples, cardinal and ordinal, every locale; the catalog-bench bytes unchanged |
 | **A7** Hosts | `crates/mf2-host-std` (NFC via `unicode-normalization`; the host for native and `wasm32-wasip1`); a minimal `crates/mf2-host-web` (`String.prototype.normalize` through `js-sys`). | used by A9 (native, wasip1) and A10 (web build only) |
 | **A8** Facade | `crates/mf2`: re-exports, the client feature flags of the master plan §5 that exist by now, `mf2::compile_str` (std: parse + validate — rejecting syntax and data-model errors with their kinds — + analyze + `writer::single`, returning the catalog and its manifest). | used by A9; doc examples compile |

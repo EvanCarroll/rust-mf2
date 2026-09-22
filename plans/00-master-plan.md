@@ -231,6 +231,7 @@ ledger; a phase cannot exit with its layer red.
 | D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
 | D13 | Spec and CLDR inputs vendored and pinned, synced by xtask | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
+| D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **decided by owner** (2026-09-21); the A/B gate is Phase 3's A5b |
 
 ## 9. Phases
 

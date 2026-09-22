@@ -1,0 +1,32 @@
+[package]
+name = "mf2"
+description = "Unicode MessageFormat 2 for Leptos: the one crate an application names — re-exports of the mf2-two crates and their feature flags, and compile_str for ad-hoc messages."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# `compile_str`: parse, validate, analyze and write a one-message catalog
+# (std, server and tests; never in a client).
+compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
+# A Host: native (servers, tests, wasm32-wasip1) or the browser.
+host-std = ["dep:mf2-host-std"]
+host-web = ["dep:mf2-host-web"]
+
+[dependencies]
+mf2-catalog.workspace = true
+mf2-host-std = { workspace = true, optional = true }
+mf2-host-web = { workspace = true, optional = true }
+mf2-locale-data = { workspace = true, optional = true }
+mf2-model.workspace = true
+mf2-runtime.workspace = true
+mf2-syntax = { workspace = true, optional = true }
+thiserror.workspace = true
+
+[package.metadata.docs.rs]
+features = ["compile", "host-std"]
+
+[lints]
+workspace = true

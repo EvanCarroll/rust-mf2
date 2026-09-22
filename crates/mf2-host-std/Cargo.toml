@@ -1,0 +1,15 @@
+[package]
+name = "mf2-host-std"
+description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through ryu."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2-runtime.workspace = true
+ryu.workspace = true
+unicode-normalization.workspace = true
+
+[lints]
+workspace = true

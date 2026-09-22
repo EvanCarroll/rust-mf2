@@ -4,6 +4,11 @@ members = [
     "crates/mf2-model",
     "crates/mf2-syntax",
     "crates/mf2-catalog",
+    "crates/mf2-runtime",
+    "crates/mf2-locale-data",
+    "crates/mf2-host-std",
+    "crates/mf2-host-web",
+    "crates/mf2",
     "xtask",
     "conformance",
     "bench/workload-gen",
@@ -26,9 +31,14 @@ publish = false
 clap = { version = "4.6.7", features = ["derive"] }
 # `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
 thiserror = { version = "2.0.20", default-features = false }
+mf2 = { path = "crates/mf2" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-conformance = { path = "conformance" }
+mf2-host-std = { path = "crates/mf2-host-std" }
+mf2-host-web = { path = "crates/mf2-host-web" }
+mf2-locale-data = { path = "crates/mf2-locale-data" }
 mf2-model = { path = "crates/mf2-model" }
+mf2-runtime = { path = "crates/mf2-runtime" }
 mf2-syntax = { path = "crates/mf2-syntax" }
 # `default-features = false` so that no_std crates (mf2-model's `serde` feature)
 # can use it; std crates add `features = ["std"]`.
@@ -50,6 +60,14 @@ brotli = "9.0.0"
 flate2 = "1.1.10"
 zlib-rs = "0.6.8"
 workload-gen = { path = "bench/workload-gen" }
+# mf2-runtime's numeric semantics: `fixed_decimal` only as the A/B baseline of
+# the own digit buffer (plans/10 A5b, owner decision 1); `ryu` for float text
+# in mf2-host-std (plans/03 §2.5).
+fixed_decimal = { version = "0.7.2", default-features = false }
+ryu = "1.0.23"
+# mf2-host-web: the browser's normalize() and String(x); no_std (no `std`,
+# no `unsafe-eval`).
+js-sys = { version = "0.3.105", default-features = false }
 
 [workspace.lints.rust]
 # Product crates add `#![forbid(unsafe_code)]` themselves. The bench crates need

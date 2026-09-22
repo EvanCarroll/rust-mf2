@@ -11,6 +11,7 @@ brotli.workspace = true
 clap.workspace = true
 flate2.workspace = true
 mf2-catalog = { workspace = true, features = ["writer", "decode", "manifest"] }
+mf2-locale-data.workspace = true
 mf2-model.workspace = true
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }

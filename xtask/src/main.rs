@@ -10,6 +10,7 @@ mod error;
 mod fsx;
 mod fuzz_seed;
 mod git;
+mod locale_data;
 mod pin;
 mod report;
 mod spec_sync;
@@ -45,6 +46,8 @@ enum Command {
     },
     /// Vendor the CLDR JSON subset named in third_party/cldr-json/PIN.
     CldrSync,
+    /// Regenerate crates/mf2-locale-data/data/ from the vendored CLDR JSON (offline).
+    LocaleData,
     /// Vendor the W3C Message Resource draft (blocked until its license is confirmed).
     ResourceSync,
     /// Check conformance/ledger.toml against the vendored suite and write
@@ -107,6 +110,7 @@ fn run(command: Command) -> Result<()> {
     match command {
         Command::SpecSync { rev, check } => spec_sync::run(&root, rev.as_deref(), check),
         Command::CldrSync => cldr_sync::run(&root),
+        Command::LocaleData => locale_data::run(&root),
         Command::ResourceSync => Err(Error::ResourceSyncBlocked),
         Command::ConformanceReport {
             init,

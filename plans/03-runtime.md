@@ -27,55 +27,306 @@ The evaluator and the function handlers are written here.
 * **Byte-identical on native and wasm32** for every deterministic function
   (conformance L4 runs on both).
 
-## 2. API sketch
+## 2. The API of `mf2-runtime`
+
+Written in Phase 3 (task A1) before the code and **frozen at the exit of
+Phase 3**; Phases 4 (functions), 5b (macros) and 6 (Leptos) are written
+against it. Methods, trait methods with a default, enum variants of the
+`#[non_exhaustive]` enums and fields of the `#[non_exhaustive]` structs may be
+added; changing a signature after the exit needs the current work order changed
+in the same commit. Every item is `no_std` + `alloc` and client-path code
+(§1; 05 §8).
+
+### 2.1 Formatting
 
 ```rust
-pub struct Formatter<'c> { catalog: &'c Catalog, registry: &'c Registry, cx: &'c FormatContext }
+#[derive(Clone, Copy)]
+pub struct Formatter<'c> { /* catalog: &'c Catalog, registry: &'c Registry, cx: &'c FormatContext */ }
 
+#[non_exhaustive]                       // P4 adds the time zone (§6); build it with `new`
 pub struct FormatContext {
-    pub bidi: BidiStrategy,          // Default (spec default) | None
-    pub time_zone: Option<TimeZoneId>, // see §6
-    pub host: &'static dyn Host,     // NFC; and the `Intl` date backend when `datetime-intl` is on
+    pub bidi: BidiStrategy,             // Default (the spec's default) | None
+    pub host: &'static dyn Host,        // NFC; f64 → shortest text; P4: the `Intl` date backend
 }
+impl FormatContext { pub const fn new(host: &'static dyn Host) -> FormatContext; } // bidi = Default
 
-impl Formatter<'_> {
-    /// Fast path: `Some(&str)` when the message is `simple` — no evaluator, no alloc.
-    pub fn simple(&self, id: MsgId) -> Option<&str>;
-    pub fn write(&self, id: MsgId, args: &[Arg<'_>], out: &mut impl Sink, errs: &mut impl ErrorSink);
-    pub fn parts(&self, id: MsgId, args: &[Arg<'_>], out: &mut impl PartSink, errs: &mut impl ErrorSink);
-    /// Dynamic, named arguments (CLI, server-side lookup-by-name, conformance `dyn` cases).
-    pub fn write_named(&self, id: MsgId, args: &[(&str, Arg<'_>)], …);
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
+pub enum BidiStrategy { #[default] Default, None }
+
+impl<'c> Formatter<'c> {
+    pub const fn new(catalog: &'c Catalog, registry: &'c Registry, cx: &'c FormatContext) -> Formatter<'c>;
+    pub fn catalog(&self) -> &'c Catalog;
+    /// `Some` when the message is `simple` and its text is valid: no evaluator, no allocation.
+    pub fn simple(&self, id: MsgId) -> Option<&'c str>;
+    /// The same, unresolved — the seam for catalog text as JS strings.
+    pub fn simple_ref(&self, id: MsgId) -> Option<StrRef>;
+    pub fn write(&self, id: MsgId, args: &[Arg<'_>], out: &mut dyn Sink, errs: &mut dyn ErrorSink);
+    pub fn parts(&self, id: MsgId, args: &[Arg<'_>], out: &mut dyn PartSink, errs: &mut dyn ErrorSink);
+    /// Arguments by name (CLI, server-side dynamic text, conformance `dyn` cases):
+    /// each slot takes the argument whose NFC name equals the slot's NAMES entry.
+    pub fn write_named(&self, id: MsgId, args: &[(&str, Arg<'_>)], out: &mut dyn Sink, errs: &mut dyn ErrorSink);
+    pub fn parts_named(&self, id: MsgId, args: &[(&str, Arg<'_>)], out: &mut dyn PartSink, errs: &mut dyn ErrorSink);
 }
 ```
 
-* `args` are **positional slots** assigned by the manifest (see
-  [05-tooling](05-tooling.md) §3). Names exist only in the catalog's NAMES
-  section, used for `write_named` and for fallback output such as `{$name}`.
-* `Sink` is a minimal `push_str` trait (not `core::fmt::Write`), implemented for
-  `String` and for the Leptos SSR buffer adapter.
-* `PartSink` receives `Text`, `BidiIsolation`, `Expression{source, parts…}`,
-  `MarkupOpen/Standalone/Close{name, options}`, `Fallback{source}` — the shape
-  `expParts` asserts. The Leptos layer consumes this to turn markup into elements.
-* `ErrorSink` receives small `enum` values (the 13 suite error kinds plus
-  `UnsupportedOperation` and `MessageFunctionError`). No strings. A
-  `diagnostics` feature (server/dev only) adds message id, source span and
-  human-readable text.
+* `args` are **positional slots** assigned by the manifest ([05](05-tooling.md)
+  §3): `args[slot]`, a missing slot is `Arg::Unset`. Names exist only in the
+  catalog's NAMES section, used by `*_named` and by fallback output (`{$name}`).
+* Every method takes `dyn` sinks: one copy of the walker in the wasm (B1).
+  Formatting never fails (§1): output and errors always both arrive.
 
-### Values
+### 2.2 Output
 
 ```rust
+pub trait Sink {
+    fn push_str(&mut self, s: &str);
+    /// Catalog text — the seam for catalog text as JS strings: the evaluator writes
+    /// catalog text only through this. `false`: the string is invalid (F4), nothing written.
+    fn push_catalog_text(&mut self, catalog: &Catalog, r: StrRef) -> bool {
+        match catalog.text(r) { Some(s) => { self.push_str(s); true } None => false }
+    }
+}
+impl Sink for String { /* growth through `try_reserve`; on failure the text is dropped */ }
+
+pub trait ErrorSink { fn error(&mut self, e: FormatError); }
+impl ErrorSink for Vec<FormatError> { /* `try_reserve` */ }
+pub struct NoErrors;                    // impl ErrorSink: discards (the release client, §8)
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, thiserror::Error)]
+#[repr(u8)]
+#[non_exhaustive]
+pub enum FormatError {
+    // Resolution Errors                // Message Function Errors
+    UnresolvedVariable,                 BadOperand,
+    UnknownFunction,                    BadOption,
+    BadSelector,                        BadVariantKey,
+                                        UnsupportedOperation,
+                                        MessageFunctionError,  // any other handler failure
+    /// No variant matched: a catalog built from an invalid model (no fallback variant,
+    /// or key counts that differ from the selector count). The message formats as `{�}`.
+    MissingFallbackVariant,
+    /// The id is not in this catalog (`Entry::Absent`, another chunk, out of range). Nothing is written.
+    MissingMessage,
+    /// The message's record is malformed (a view yielded `Err`, a string is not UTF-8):
+    /// `{�}` in its place, and the message ends there.
+    Malformed,
+}
+impl FormatError { pub const fn kind(self) -> Option<mf2_model::ErrorKind>; } // None for the last two
+
+pub trait PartSink { fn part(&mut self, part: Part<'_>); }
+
+pub enum Part<'p> {
+    Text(&'p str),
+    BidiIsolation(Isolation),           // Lri U+2066 | Rli U+2067 | Fsi U+2068 | Pdi U+2069; `as_str()`
+    Expression(ExpressionPart<'p>),     // a formatted placeholder
+    Markup(MarkupPart<'p>),
+    Fallback(FallbackSource<'p>),       // a placeholder that resolved to a fallback value
+}
+
+impl<'p> ExpressionPart<'p> {
+    pub fn kind(&self) -> &'p str;              // `Function::part_kind`: "string", "number", "test", …
+    pub fn locale(&self) -> &'p str;            // the catalog's locale
+    pub fn dir(&self) -> Dir;                   // after `u:dir`; `Auto` = unknown
+    pub fn id(&self) -> Option<&'p str>;        // `u:id`
+    pub fn value(&self) -> &'p Value<'p>;       // the resolved value
+    pub fn write(&self, out: &mut dyn Sink);    // its formatted text (what string output shows)
+    pub fn sub_parts(&self, out: &mut dyn SubPartSink); // e.g. a number's minusSign / integer / decimal / fraction
+}
+pub trait SubPartSink { fn sub_part(&mut self, kind: &str, text: &str); }
+
+impl<'p> MarkupPart<'p> {
+    pub fn kind(&self) -> MarkupKind;           // Open | Standalone | Close
+    pub fn name(&self) -> &'p str;              // NFC
+    pub fn id(&self) -> Option<&'p str>;        // `u:id`
+    pub fn options(&self) -> MarkupOptions<'p>; // (&'p str, &'p Value<'p>), resolved; `u:` options removed
+}
+
+pub enum FallbackSource<'p> { Variable(&'p str), Literal(&'p str), Function(&'p str), Unknown }
+impl FallbackSource<'_> { pub fn write(&self, out: &mut dyn Sink); } // `$x`, `|a\|b|`, `:ns:fn`, `�` — no braces
+```
+
+Errors are plain values, never strings; a later `diagnostics` feature
+(server/dev only) adds message id, source span and human-readable text.
+
+The shape is what the suite's `expParts` asserts: a `text` part, a
+`bidiIsolation` part, an expression part with `type`, `locale`, `dir`, `id`,
+`value` and sub-`parts` (the harness compares the keys a test names), a
+`markup` part with `kind`, `name`, `id`, `options`, and a `fallback` part with
+its `source`. The parts concatenate to the string output. The Leptos layer
+builds elements from `Markup` parts ([04](04-leptos-integration.md) §7).
+
+### 2.3 Values
+
+```rust
+#[derive(Clone, Copy)]
 pub enum Arg<'a> {
-    Str(&'a str), Int(i64), Float(f64), Decimal(&'a str), // number-literal text, exact
-    DateTime(DateTimeValue<'a>),                          // Instant(epoch ms) | Floating{date, time} — the spec treats
-                                                          // an operand without an offset as floating; + optional zone
+    Str(&'a str), Int(i64), Float(f64),
+    Decimal(&'a str),                   // number-literal text, exact
     Custom(&'a dyn CustomValue),
-    Unset,                                                // → unresolved-variable
+    Unset,                              // → Unresolved Variable
+    // P4, additive: DateTime(DateTimeValue<'a>) — Instant(epoch ms) | Floating{date, time}
+    // (the spec treats an operand without an offset as floating) + optional zone
+}
+// From<&str>, From<&String>, From<i32>, From<i64>, From<u32>, From<f64>: `#[inline]`, call-site side.
+
+pub trait CustomValue {                 // an application's own argument type
+    fn as_str(&self) -> Option<&str> { None }        // string conversion (placeholders, `:string`)
+    fn as_number(&self) -> Option<Number> { None }   // numeric conversion (numeric operands)
+    fn as_any(&self) -> Option<&dyn core::any::Any> { None } // for handlers that know the type
+}
+
+/// A resolved value's data. Which handler resolved it decides how it formats and selects (§2.4).
+#[non_exhaustive]
+pub enum Value<'a> {
+    Str(&'a str),                       // a literal, a string argument, `:string`'s operand
+    Int(i64), Float(f64), Decimal(&'a str), // unannotated numeric arguments
+    Number(Number),                     // `:number`, `:integer`, `:offset` (P4: `:percent`, …)
+    Custom(&'a dyn CustomValue),
+    Boxed(Box<dyn core::any::Any>),     // a custom handler's own data (the only allocation a handler makes)
+    Fallback(FallbackSource<'a>),       // an operand that failed to resolve, as a handler receives it (§2.6)
+}
+impl<'a> Value<'a> {
+    pub fn from_arg(arg: Arg<'a>) -> Option<Value<'a>>;                   // `Unset` → None
+    pub fn as_str(&self) -> Option<&str>;                                  // Str, Custom::as_str
+    pub fn to_number(&self, host: &dyn Host) -> Option<Number>;           // the numeric-operand rules
+    pub fn downcast_ref<T: core::any::Any>(&self) -> Option<&T>;          // Boxed, Custom::as_any
+}
+
+/// An exact decimal and, once a numeric handler resolved it, its resolved options. Opaque:
+/// the digit backend is internal (owner decision 1, 10 §"State at the start").
+pub struct Number { /* private */ }
+impl Number {
+    pub fn parse(number_literal: &str) -> Option<Number>;   // `["-"] (0 / [1-9]*DIGIT) ["." 1*DIGIT] [e ["-"/"+"] 1*DIGIT]`
+    pub fn from_i64(n: i64) -> Number;
+    pub fn from_f64(x: f64, host: &dyn Host) -> Option<Number>;  // finite only; shortest round trip
+    pub fn is_negative(&self) -> bool;
+    pub fn is_integer(&self) -> bool;
+    pub fn to_i64(&self) -> Option<i64>;
+    pub fn write_plain(&self, out: &mut dyn Sink);           // the exact value: `-1234.5`, no exponent
 }
 ```
 
-Kept deliberately small: every variant is a code path in the wasm. Conversions
-from Rust types (`From<i32>`, `From<&String>`, …) are `#[inline]` and live on
-the call-site side.
+`Arg` is small on purpose — every variant is a code path in the wasm.
+`Value::Boxed` is the escape hatch that lets the public API express any custom
+function (the `:test:*` functions use it); built-in handlers never allocate.
+
+### 2.4 Functions and the registry
+
+```rust
+pub trait Function: Sync {
+    /// Function resolution (formatting.md): `operand` resolved — a `Value::Fallback` when it
+    /// failed (§2.6) — and `options` resolved with `u:id`/`u:dir` removed. `None` = a
+    /// fallback value; the handler has reported why through `errs`.
+    fn resolve<'a>(&self, cx: &FnContext<'_>, operand: Option<&Value<'a>>,
+                   options: &Options<'_, 'a>, errs: &mut dyn ErrorSink) -> Option<Value<'a>>;
+    /// Whether `value` can be formatted; `Err(e)`: the placeholder is a fallback value and `e` is reported.
+    fn formattable(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> { Ok(()) }
+    fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink);
+    fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {}
+    fn part_kind(&self) -> &'static str { "string" }
+    /// The directionality of the formatted value, for the Default Bidi Strategy.
+    fn dir(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Dir { Dir::Auto }
+    /// Selection (formatting.md, "Resolve Selectors", Match, BetterThan). `matches`
+    /// gets the key in NFC and reports e.g. Bad Variant Key through `errs`.
+    fn selectable(&self, value: &Value<'_>) -> bool { false }
+    fn matches(&self, cx: &FnContext<'_>, value: &Value<'_>, key: &str, errs: &mut dyn ErrorSink) -> bool { false }
+    fn better_than(&self, cx: &FnContext<'_>, value: &Value<'_>, key1: &str, key2: &str) -> bool { false }
+}
+
+impl<'x> FnContext<'x> {                // read-only (formatting.md: access MUST be minimal)
+    pub fn locale(&self) -> &'x str;
+    pub fn dir(&self) -> Option<Dir>;   // the expression's `u:dir`, if any
+    pub fn host(&self) -> &'static dyn Host;
+    pub fn catalog(&self) -> &'x Catalog; // locale data: `catalog.locale_entry(key)`
+}
+
+impl<'o, 'a> Options<'o, 'a> {         // order is not significant; a repeated name: the last wins
+    pub fn get(&self, name: &str) -> Option<OptionValue<'o, 'a>>;
+    pub fn iter(&self) -> impl Iterator<Item = (&'a str, OptionValue<'o, 'a>)>;
+    pub fn len(&self) -> usize;
+    pub fn is_empty(&self) -> bool;
+}
+#[derive(Clone, Copy)]
+pub struct OptionValue<'o, 'a> { pub value: &'o Value<'a>, pub literal: bool } // `literal`: set by a literal
+
+/// Closed world (B13): exactly the handlers the corpus uses, built by generated code.
+pub struct Registry { /* &'static [(&'static str, &'static dyn Function)] */ }
+impl Registry {
+    pub const EMPTY: Registry;
+    pub const fn new(functions: &'static [(&'static str, &'static dyn Function)]) -> Registry;
+    pub fn get(&self, name: &str) -> Option<&'static dyn Function>; // `ns:name`, NFC
+}
+pub mod functions { pub static STRING; pub static NUMBER; pub static INTEGER; pub static OFFSET; }
+```
+
+`mf2-build` (P5a) generates `static REGISTRY: Registry = Registry::new(&[("integer",
+&mf2::functions::INTEGER)]);` — handlers are statics referenced only from that
+table, so an unused one is never linked. Function names are looked up per call
+(`catalog.function(index)` → `Registry::get`, a few short compares); A11
+measures whether a load-time table pays. A name the registry lacks is *Unknown
+Function* and a fallback value.
+
+### 2.5 The host
+
+```rust
+pub trait Host: Sync {
+    /// The NFC form of `s`, which failed the quick check (a code point ≥ U+0300).
+    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str;
+    /// The shortest text that round-trips the finite `x`, in any form `number-literal`
+    /// accepts with an optional `+` in the exponent (`ryu`'s and JavaScript's `String(x)` both do).
+    fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str>;
+}
+```
+
+`mf2-host-std` (native, `wasm32-wasip1`: `unicode-normalization`, `ryu`) and
+`mf2-host-web` (the browser: `String.prototype.normalize`, `String(x)`). Float
+text through the host keeps `ryu` out of the client wasm (06 §3, "known
+savings"); the runtime parses the text, so both hosts give the same digits.
+
+### 2.6 Resolution rules the suite fixes
+
+Where the spec leaves a choice, or the suite asserts more than the spec text:
+
+* **Declarations** are resolved lazily, each at most once (call-by-need),
+  without recursion (a chain of 10,000 `.local`s must not grow the stack). A
+  reference `External(slot)` inside or after an `.input` for that slot is the
+  `.input`'s value; inside the `.input` itself it is the argument. A reference
+  to a declaration that is not before it (only a malformed catalog has one) is
+  unresolved.
+* **A fallback operand is given to the handler**, as `Value::Fallback`, after
+  the function is found — formatting.md's step 1 would return a fallback value
+  at once, but the suite expects what a handler does with it: an unknown
+  function is still *Unknown Function* (`syntax.json` #15, #16), the numeric
+  functions and `:test:*` report *Bad Operand* (`fallback.json` #3, #5,
+  `pattern-selection.json` #11, #15), and `:string` takes the text of its
+  representation, `{$x}`, and selects on it with no further error
+  (`functions/string.json` #3). A fallback value's source is the expression's
+  own (`$x`, `|lit|`, `:fn`).
+* **Options** whose value is a fallback value are omitted and report *Bad
+  Option*. `u:id` (a string value) and `u:dir` (`ltr`, `rtl`, `auto`,
+  `inherit`) are removed before the handler is called and kept on the resolved
+  value, so a variable carries them into a later placeholder
+  (`u-options.json` #5). Any other value: *Bad Option*, ignored. `u:dir` on
+  markup: *Bad Option*, ignored.
+* **Direction**: `u:dir=ltr`/`rtl`/`auto` sets it and isolates; otherwise the
+  handler's `dir` — `:string` and unannotated strings are unknown (`Auto`),
+  numbers `Ltr` (neutral digits), fallback values unknown. The Default Bidi
+  Strategy then follows formatting.md exactly; markup is never isolated.
+* **Unannotated values**: a string formats as itself (part kind `string`); an
+  integer, float or decimal argument formats as its exact value in plain
+  neutral digits (kind `number`, `Ltr`) — no rounding, so the numeric handlers
+  are not linked unless the corpus uses them; an application value through
+  `CustomValue::as_str`, else *Bad Operand* and a fallback. None of them is
+  selectable (*Bad Selector*).
+* **Selection** is the spec's algorithm. A selector that resolved to a fallback
+  value or is not `selectable` matches only `*` and reports *Bad Selector* once
+  (`pattern-selection.json` #12, #14: not the handler's own error). A variant
+  whose key count differs from the selector count never matches; if no variant
+  matches, `{�}` and `MissingFallbackVariant`.
+* **Markup** writes nothing to a `Sink`; its options resolve like an
+  expression's; pairing is never checked.
+* **Malformed data** (a view's `Err`, a string that is not UTF-8): `{�}` in its
+  place, `Malformed`, and the message stops there — output before it stays.
 
 ## 3. Function registry — full spec, closed world
 
@@ -89,29 +340,20 @@ functions, and namespaces.
 What keeps this from bloating the client is **closed-world registration**
 (budget B13): `mf2-build` records the set of functions the corpus uses; the
 generated code builds the `Registry` from exactly those handlers; handlers are
-ordinary `fn` items referenced from nowhere else, so dead-code elimination drops
-the rest. The *library* is full-spec; each *app* links what it uses. Catalogs
-resolve function names to registry indices once at load; a name the registry
-lacks yields `unknown-function` + fallback, exactly as the spec says.
-
-```rust
-pub trait Function: Sync {
-    fn resolve<'a>(&self, cx: &FnContext<'a>, operand: Option<Resolved<'a>>, opts: &Options<'a>)
-        -> Result<Resolved<'a>, FnError>;
-}
-pub trait ResolvedValue {                 // what a function returns
-    fn write(&self, out: &mut dyn Sink) -> Result<(), FnError>;
-    fn parts(&self, out: &mut dyn PartSink) -> Result<(), FnError>;
-    fn matches(&self, key: &str) -> Result<bool, FnError>;      // spec Match
-    fn better_than(&self, k1: &str, k2: &str) -> bool;          // spec BetterThan
-    fn as_operand(&self) -> OperandView<'_>;                    // value + inheritable options
-    fn dir(&self) -> Dir;
-}
-```
+statics referenced from nowhere else, so dead-code elimination drops the rest.
+The *library* is full-spec; each *app* links what it uses. A name the registry
+lacks yields `unknown-function` + fallback, exactly as the spec says. The trait
+and the registry are in §2.4: a handler resolves an expression to a [`Value`]
+and is then asked, for that value, whether and how it formats, its direction,
+and whether it selects and how (Match, BetterThan).
 
 The three `:test:*` functions of the suite are implemented in the conformance
 crate against this public trait and nowhere else; if they cannot be, the trait
-is wrong.
+is wrong. (A1 checked it: `resolve` keeps `Input`, `DecimalPlaces`,
+`FailsFormat`, `FailsSelect` in a `Value::Boxed`, which a later `:test:*`
+expression reads back with `downcast_ref`; `formattable` fails for
+`:test:select` and `fails=format`; `selectable` is false for `:test:format` and
+`fails=select`, which yields exactly *Bad Selector*.)
 
 ## 4. Crates
 
@@ -120,8 +362,8 @@ is wrong.
 | `mf2-runtime` | evaluator, selection, fallback, bidi, parts, registry, the `Host` trait, `:string`, the plural-rule evaluator, and the **core numeric semantics**: `:number` / `:integer` / `:offset` — operand parsing, every digit and rounding option (over `fixed_decimal`), `signDisplay`, `select` with `exact` / `plural` / `ordinal`, and locale-neutral output. Depends on `mf2-model`, `mf2-catalog`, `fixed_decimal`. Numeric code is only linked when the corpus uses a numeric function (closed world) | yes |
 | `mf2-fn-number` | the *localization* of numbers — symbols, grouping, numbering systems — plus `:percent`, `:currency`, `:unit`. Depends on `mf2-runtime` | feature `fn-number`, when used |
 | `mf2-fn-datetime` | `:datetime :date :time`: semantics in Rust; text from ICU4X (`datetime-icu`, optional dependency `icu_datetime`) or from `Host` (`datetime-intl`). Depends on `mf2-runtime` only — it never names a host crate | feature `fn-datetime`, when used |
-| `mf2-host-web` | `Host` for the browser: `String.prototype.normalize`; `Intl.DateTimeFormat` glue behind `datetime-intl`. Depends on `mf2-runtime`, `js-sys`, `web-sys` | client only |
-| `mf2-host-std` | `Host` for native and for the `wasm32-wasip1` test run: a pure-Rust NFC normalizer. Depends on `mf2-runtime` | server / tests |
+| `mf2-host-web` | `Host` for the browser: `String.prototype.normalize`, `String(x)` for float text; `Intl.DateTimeFormat` glue behind `datetime-intl`. Depends on `mf2-runtime`, `js-sys`, `web-sys` | client only |
+| `mf2-host-std` | `Host` for native and for the `wasm32-wasip1` test run: a pure-Rust NFC normalizer (`unicode-normalization`) and float text (`ryu`). Depends on `mf2-runtime` | server / tests |
 
 Function crates are split by **dependency weight**, not per function; within a
 crate, closed-world linking does the fine-grained pruning.
@@ -201,10 +443,13 @@ build-time rejections) explicitly — never as silent skips.
   formatted digits, so the digit logic cannot be optional. P0.5 found that
   `fixed_decimal` 0.7.2 (and its `smallvec`) keeps six panic entry points
   reachable, which breaks B12 for the numeric path and pulls ≈ 3.6 KB raw of
-  panic formatting into std builds. Options — accept, fix upstream, or an own
-  panic-free digit buffer (which D1's rule requires to come with a baseline,
-  a gate and a fallback) — are an open owner decision; Phase 3 cannot exit with
-  B12 red.
+  panic formatting into std builds. **Owner decision (2026-09-21, D15): an own
+  panic-free, allocation-free digit buffer** inside `mf2-runtime`
+  (`number/decimal/own.rs`), under D1's rule: `fixed_decimal` stays behind the
+  same internal interface (feature `fixed-decimal`, never a client's) as the
+  baseline of an A/B — the suite, a differential on the same random corpus,
+  size, allocations, B12 and speed (10 A5b) — and as the fallback if the own
+  buffer does not pass.
 * **Dates (`fn-datetime`)**: the server always formats with ICU4X — so on a
   server build `fn-datetime` pulls in `icu_datetime` whichever client backend was
   chosen. The client backend is the app's
