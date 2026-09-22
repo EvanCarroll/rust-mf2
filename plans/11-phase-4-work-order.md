@@ -168,3 +168,69 @@ A3 exists; A11 alongside.
 - [ ] the next work orders written from Phase 4's findings: Phase 5a (the
       build pipeline, which needs only P1 + P2 and may start alongside this
       phase) and Phase 5b (macros, which needs P3, P4 and P5a)
+
+## Status at exit
+
+Measurements and commands: [phase-4-results](phase-4-results.md).
+
+**What was built.** `mf2-locale-data`'s number, currency and unit tables for
+every CLDR locale and the `icu.blob` exporter; the LOCALE entry kinds
+`number.symbols` (3), `number.patterns` (4), `currency.data` (16),
+`unit.data` (32) and `icu.blob` (48) with their client views, encoders and
+byte-exact vectors (02 §4.2–§4.9); `mf2-fn-number` (localized `:number` /
+`:integer` / `:offset`, `:percent`, `:currency`, `:unit`, unannotated
+numbers) and `mf2-fn-datetime` with the `datetime-icu` and `datetime-intl`
+backends and the time-zone context; the `intl` client option across
+`mf2-runtime`, `mf2-fn-number`, `mf2-host-web` and the facade; layer L4d;
+the locale-output goldens for four families; `conformance/l4-web` and
+`cargo xtask l4-web` (L4 in three browser engines); the date and `intl`
+harnesses in `bench/b12`.
+
+**Exit criteria, as measured:** L4 **485/485** all features (the vendored
+suite and `conformance/extra/functions/unit.json`), native and
+`wasm32-wasip1` byte-identical (`cargo xtask l4-wasi`: 7,211 records);
+L4d **416 pass + 69 documented degradations**, none `xfail`; B2, B3, B4,
+B8, B13, B1′ and B12 measured and met (B3 restated, decision 5); goldens
+identical on both targets; the API additions in 03 §2.7; the `intl` probe
+reported, decision 4 recorded, and the option's L4 run green in Chromium,
+Firefox and WebKit with every engine difference in the ledger.
+
+**Departures from the tasks as written:**
+
+* **A2** — no `number.systems` entry (the pinned spec has no
+  `numberingSystem` option, so a catalog has one numbering system and its
+  digits live in `number.symbols`), and fewer symbols than CLDR carries: no
+  MF2 function produces per-mille, exponent, infinity or NaN.
+* **A4** — the suite has no `:unit` tests, so ours are
+  `conformance/extra/functions/unit.json` (23, WG schema), in the ledger like
+  the vendored ones (01 §5). An `X-per-Y` CLDR lacks is composed at run time
+  from `X`, `Y` and the locale's `per` pattern, as ECMA-402 does; times,
+  powers and prefixes are not.
+* **A6** — `icu.blob` is sliced to the shapes the corpus formats (a
+  `DateNeeds` rule beside `NumberNeeds`), and a damaged blob can make ICU4X
+  panic (`DataMarkerAttributes::from_str_or_panic`, in release too), so the
+  fuzz target formats dates with the neutral backend in catalog mode and
+  02 §4.9 records the limit. A date placeholder costs 2.7–4.5 µs natively,
+  38 µs with a zone style, because the blob is copied into a provider and
+  the formatter built per format: no budget covers it, and P6 should.
+* **A10** — one of the two candidates is kept (the plural category once per
+  selector: −14 to −22 % on a `pl` select, +24 B gz); the integer path is
+  measured and dropped (inside the noise, +25 B gz). Select stays
+  **1.45–1.8× P0.8's 317 ns** depending on the machine's clock — reported,
+  not gated (decision 3).
+* **A11** — B3 is ≤ 5.5 KB gz (decision 5); the `Host::numbers` slot of the
+  `intl` option costs every client +15 B gz of B1's runtime part, which B1
+  has room for; B12 is reported rather than gated for the ICU4X harnesses
+  and for `mf2-host-web`'s own `wasm-bindgen` / `js-sys` glue, whose panic
+  path P6 inherits.
+* **The `intl` option** (decision 4) is built as an opt-in client feature and
+  is *larger* than the Rust path for core numbers (+2,205 B gz) and smaller
+  once `:currency` and `:unit` are used (−3,643); engines answer with `en-US`
+  plural rules for locales they lack (WebKit 33, Firefox 30, Chromium 5),
+  left silent and documented (decision 6).
+
+**Findings for later phases** are in
+[12](12-phase-5a-work-order.md) §"What Phase 4 changes here" (corpus-wide
+slicing, the gated-function build error and the `neutral-numbers` warning,
+the generated registry and host, build-side ICU4X, catalogs for `intl`
+clients) and [13](13-phase-5b-work-order.md).

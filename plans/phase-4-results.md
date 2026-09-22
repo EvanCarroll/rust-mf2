@@ -10,8 +10,18 @@ stable 1.98.1; wasm-opt 120, twiggy 0.8.0, GNU gzip 1.13, wasmtime 49.0.0
 drifts (1.8–2.3 GHz within the day): timings are ranges, and two builds are
 compared only by alternating their binaries.
 
-*In progress: this file grows with the phase; the summary table is written at
-exit.*
+## Summary
+
+| Exit item | Verdict | Evidence |
+|---|---|---|
+| L4 **100 %** in the all-features configuration — every suite file, `syntax.json` #90 and `conformance/extra/functions/unit.json` — native and `wasm32-wasip1`, byte-identical; `current_phase = "P4"` with the harness green | **met** | L4 485/485 in `conformance/REPORT.md`; `cargo xtask l4-wasi`: 7,211 records identical (§A4, §A6) |
+| the default configuration's degradations recorded (L4d), none `xfail` | **met** | 416 pass + 69 degraded, each with its kind and detail (§A7) |
+| B2–B4, B8, B13, B1′ and B12 measured and met, or restated with the owner | **met** (B3 restated to ≤ 5.5 KB gz, owner 2026-09-22) | §A11 |
+| locale-output goldens identical on both targets for the Rust backends | **met** | four families, 5,915 golden cases through `l4-wasi` (§A8) |
+| L4 on generated input (1,000,000) and a ≥ 1 h `format` fuzz run clean | **met** | §A9 |
+| the API additions in 03 §2 | **met** | 03 §2.7, all additive (§A1) |
+| the `intl` probe reported, decision 4 recorded; adopted, so L4 in Chromium, Firefox and WebKit with every engine difference in the ledger | **met** | §A0, §"The `intl` option as built"; `cargo xtask l4-web` 324/324 in each engine |
+| the Phase 5a and 5b work orders written | **written** | [12-phase-5a-work-order](12-phase-5a-work-order.md), [13-phase-5b-work-order](13-phase-5b-work-order.md) |
 
 ## A0 — the `intl` probe (owner decision 4)
 
@@ -215,6 +225,28 @@ problems, all fixed: building every locale's blob up front hit libFuzzer's
 covered build-side compilation (it now covers catalog load and formatting
 only), and ICU4X's panic on a damaged blob (above). The exit runs are
 below.
+
+### The exit runs
+
+**1,000,000 generated L4 cases clean** (`MF2_GEN_CASES=1000000 cargo test
+--release -p mf2-conformance --test generated_l4 -- --nocapture`, 445 s):
+745,590 valid messages, 527,806 formatted without errors, 298,303 calling
+`:number` or `:integer`, 249,142 selections, 57,252 `:percent`, 109,540
+`:currency` or `:unit`, 157,808 a date/time function, 27,280 with a
+formatted date/time, and 201,707 carrying an `icu.blob` sliced to the
+message's shapes and checked against the full one. Nine error kinds were
+reached (bad-operand, bad-option, bad-selector, bad-variant-key,
+message-function-error, missing-fallback-variant, unknown-function,
+unresolved-variable, unsupported-operation).
+
+**A ≥ 1 h `format` fuzz run clean on the final code**: `cargo +nightly fuzz
+run format -- -dict=mf2.dict -max_len=131072 -timeout=10 -rss_limit_mb=2048
+-max_total_time=3900` — **2,145,733 executions in 3,901 s**, no crash, no
+timeout, no leak (13:40–14:45 on 2026-09-22, the machine otherwise quiet).
+The two crash artifacts the phase's earlier smoke runs had left
+(`fuzz/artifacts/format/`, 2026-09-21 19:43 and 19:45 — the libFuzzer
+timeout from building every locale's blob up front, and ICU4X's panic on a
+damaged blob) replay clean on this code.
 
 ## A10 — numeric speed
 

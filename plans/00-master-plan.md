@@ -311,7 +311,7 @@ everything before it).
   (`wasm32-wasip1`), byte-identical; budgets B1 (runtime part), B10, B12 met
   in a client-only probe; CLDR plural samples pass for every locale.
 
-### P4 — Functions and locale data · layer **L4** (all files)
+### P4 — Functions and locale data · layer **L4** (all files) — *done* ([phase-4-results](phase-4-results.md))
 * The `intl` client option (owner request, 2026-09-21): probed first; adopted
   as an opt-in feature only if its numbers hold ([03](03-runtime.md) §5.3).
 * `mf2-locale-data`, the rest: number, currency and unit tables for all locales;
@@ -414,7 +414,9 @@ catalog's NAMES section, up to 1.1 % of a catalog's brotli size
   [07-phase-0-work-order](07-phase-0-work-order.md) (done),
   [08-phase-1-work-order](08-phase-1-work-order.md) (done),
   [09-phase-2-work-order](09-phase-2-work-order.md) (done),
-  [10-phase-3-work-order](10-phase-3-work-order.md) (done) and
-  [11-phase-4-work-order](11-phase-4-work-order.md) (next).
+  [10-phase-3-work-order](10-phase-3-work-order.md) (done),
+  [11-phase-4-work-order](11-phase-4-work-order.md) (done),
+  [12-phase-5a-work-order](12-phase-5a-work-order.md) (next) and
+  [13-phase-5b-work-order](13-phase-5b-work-order.md).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.
