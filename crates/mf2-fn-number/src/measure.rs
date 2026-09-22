@@ -28,10 +28,11 @@ use mf2_catalog::format::locale_key;
 use mf2_catalog::number::{Patterns, Style, Symbols, Template, TemplatePart};
 use mf2_catalog::unit::{Unit, Units, Width};
 use mf2_runtime::{
-    Category, Digits, Dir, ErrorSink, FnContext, FormatError, Function, Measure, MeasureUnit,
-    Number, NumberSpec, Options, Sink, SubPartSink, Value, plural_category,
+    Category, Digits, Dir, ErrorSink, FnContext, FormatError, Function, INTL_NUMBERS, Measure,
+    MeasureUnit, Number, NumberOut, NumberSpec, Options, Sink, SubPartSink, Value, plural_category,
 };
 
+use crate::intl;
 use crate::localize::{self, Out, Seps, Symbol, ends_with_currency, starts_with_currency};
 
 // ─────────────────────────────────────────────────────── the flags ──
@@ -48,7 +49,7 @@ const WIDTH_SHIFT: u32 = 12;
 
 /// `currencyDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum Display {
+pub(crate) enum Display {
     NarrowSymbol = 1,
     Symbol = 2,
     Name = 3,
@@ -76,7 +77,7 @@ fn set(flags: &mut u32, shift: u32, bits: u32, v: u32) {
     *flags = (*flags & !mask) | ((v << shift) & mask);
 }
 
-fn display_of(flags: u32) -> Display {
+pub(crate) fn display_of(flags: u32) -> Display {
     match field(flags, DISPLAY_SHIFT, 3) {
         1 => Display::NarrowSymbol,
         3 => Display::Name,
@@ -86,11 +87,16 @@ fn display_of(flags: u32) -> Display {
     }
 }
 
-fn accounting(flags: u32) -> bool {
+pub(crate) fn accounting(flags: u32) -> bool {
     field(flags, SIGN_SHIFT, 2) == 2
 }
 
-fn width_of(flags: u32) -> Width {
+/// `fractionDigits` unset or `auto`: the currency's own digits.
+pub(crate) fn own_digits(flags: u32) -> bool {
+    field(flags, DIGITS_SHIFT, 7) < 2
+}
+
+pub(crate) fn width_of(flags: u32) -> Width {
     match field(flags, WIDTH_SHIFT, 2) {
         2 => Width::Narrow,
         3 => Width::Long,
@@ -277,12 +283,18 @@ impl Function for CurrencyFunction {
 
     fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
         if let Value::Measure(m) = value {
+            if INTL_NUMBERS {
+                return intl::measure(cx, m, NumberOut::Text(out));
+            }
             write_currency(cx.catalog(), m, &mut Out::Text(out));
         }
     }
 
     fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
         if let Value::Measure(m) = value {
+            if INTL_NUMBERS {
+                return intl::measure(cx, m, NumberOut::Parts(out));
+            }
             write_currency(cx.catalog(), m, &mut Out::Parts(out));
         }
     }
@@ -505,6 +517,7 @@ impl Function for UnitFunction {
     fn formattable(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {
         match value {
             Value::Measure(m) => match m.unit {
+                MeasureUnit::Unit(_) if INTL_NUMBERS => intl::unit_formattable(cx, m),
                 MeasureUnit::Unit(id) => {
                     let units = Units::of(cx.catalog());
                     if Symbols::of(cx.catalog()).is_none()
@@ -523,12 +536,18 @@ impl Function for UnitFunction {
 
     fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
         if let Value::Measure(m) = value {
+            if INTL_NUMBERS {
+                return intl::measure(cx, m, NumberOut::Text(out));
+            }
             write_unit(cx.catalog(), m, &mut Out::Text(out));
         }
     }
 
     fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
         if let Value::Measure(m) = value {
+            if INTL_NUMBERS {
+                return intl::measure(cx, m, NumberOut::Parts(out));
+            }
             write_unit(cx.catalog(), m, &mut Out::Parts(out));
         }
     }

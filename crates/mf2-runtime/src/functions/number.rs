@@ -2,7 +2,9 @@
 //! numeric semantics of [`crate::number`], with neutral symbols —
 //! `useGrouping=always` / `min2` report *Unsupported Operation* and format
 //! neutrally (`plans/03-runtime.md` §5.1). `mf2-fn-number` supplies the
-//! localized handlers under the same names.
+//! localized handlers under the same names. With feature `intl` on
+//! `wasm32-unknown-unknown` the neutral text comes from the host's number
+//! formatter (`crate::INTL_NUMBERS`).
 
 use mf2_model::Dir;
 
@@ -55,15 +57,15 @@ impl Function for NumberFunction {
         }
     }
 
-    fn format(&self, _cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+    fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
         if let Value::Number(n) = value {
-            n.write_display(out);
+            n.write_display(cx, out);
         }
     }
 
-    fn format_parts(&self, _cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
+    fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
         if let Value::Number(n) = value {
-            n.display_parts(out);
+            n.display_parts(cx, out);
         }
     }
 

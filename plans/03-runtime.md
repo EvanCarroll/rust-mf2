@@ -539,8 +539,96 @@ is on (05 §3.1), so the default configuration links nothing new.
 with the keys of `mf2_catalog::format::locale_key` and the entry views
 `mf2-catalog` provides for them (02 §4).
 
-The numeric `Host` methods of the proposed `intl` option (§5.3) are not
-added here: they follow owner decision 4 (11 A0).
+**The `intl` option** (§5.3; owner decision 4, 11 §"Carried"): the
+numeric functions' final step — display, `:integer`'s rounding, the plural
+category — from the host's number formatter, on `wasm32-unknown-unknown`
+with feature `intl` only:
+
+```rust
+/// Feature `intl` on wasm32-unknown-unknown; `false` on every other build (servers,
+/// wasm32-wasip1, native tests: the Rust path). The one switch: mf2-fn-number reads it too.
+pub const INTL_NUMBERS: bool;
+
+pub trait Host: Sync {
+    …
+    /// The host's number formatter; `None` (the default) when it has none.
+    fn numbers(&self) -> Option<&dyn NumberFormatter> { None }
+}
+pub trait NumberFormatter: Sync {       // mf2-host-web: Intl.NumberFormat, Intl.PluralRules
+    /// Writes `request` for `locale` (neutral symbols when `request.neutral`); `false`: cannot.
+    fn format(&self, locale: &str, request: &NumberRequest<'_>, out: NumberOut<'_>) -> bool;
+    /// The plural category of `request.value` under its digit options (`request.ordinal`: ordinal).
+    fn plural(&self, locale: &str, request: &NumberRequest<'_>) -> Option<Category>;
+}
+pub enum NumberOut<'o> { Text(&'o mut dyn Sink), Parts(&'o mut dyn SubPartSink) }
+
+#[non_exhaustive] #[derive(Clone, Copy)]
+pub struct NumberRequest<'r> {
+    pub value: &'r str,                  // the exact value in plain digits: `-1234.5`, `-0`, no exponent
+    pub style: NumberStyle<'r>,          // unscaled for `Percent` (the style multiplies)
+    pub neutral: bool,                   // the core's output: `en`, `latn`, no grouping
+    pub digits: DigitOptions,
+    pub sign: SignDisplay,
+    pub grouping: Grouping,
+    pub ordinal: bool,
+}
+#[non_exhaustive] #[derive(Clone, Copy)]
+pub struct DigitOptions {                // ECMA-402's, as SetNumberFormatDigitOptions resolved them
+    pub minimum_integer: u8,             // 1–21
+    pub fraction: Option<(u8, u8)>,      // 0–100; None: the style's defaults (or significant alone)
+    pub significant: Option<(u8, u8)>,   // 1–21; None: fraction digits alone
+    pub priority: RoundingPriority,      // Auto | MorePrecision | LessPrecision
+    pub increment: u16,                  // 1 = none
+    pub mode: RoundingMode,              // Ceil | Floor | Expand | Trunc | HalfCeil | HalfFloor | HalfExpand | HalfTrunc | HalfEven
+    pub strip_if_integer: bool,          // trailingZeroDisplay
+}
+#[non_exhaustive]
+pub enum NumberStyle<'a> {
+    Decimal, Percent,
+    Currency { code: &'a str, display: CurrencyDisplay, accounting: bool,
+               own_digits: bool },           // fractionDigits unset/auto: `fraction` None, the formatter's
+    Unit { unit: &'a str, display: UnitDisplay },
+}
+pub enum CurrencyDisplay { Symbol, NarrowSymbol, Name, Code, Never }
+pub enum UnitDisplay { Short, Narrow, Long }
+pub enum SignDisplay { Auto, Always, ExceptZero, Negative, Never }   // were pub(crate)
+impl Number {
+    /// This number through the host's formatter in `style`, neutral or with the locale's
+    /// symbols: a resolved number's display, a bare number's exact value. `false`: no formatter.
+    pub fn format_by_host(&self, cx: &FnContext<'_>, style: NumberStyle<'_>, neutral: bool,
+                          out: NumberOut<'_>) -> bool;
+}
+// mf2-host-web, feature `intl`:
+pub struct IntlNumbers(pub &'static dyn Host);   // another host + `numbers()` (Intl, when v3)
+pub static NUMBERS_HOST: IntlNumbers;            // IntlNumbers(&HOST)
+```
+
+* **What moves to the host.** With `INTL_NUMBERS` the numeric core keeps
+  option validation and its errors, the operand rules, inheritance,
+  `:offset`'s exact addition, `select` and the exact-match keys, and asks
+  the formatter for the display (`format`), `:integer`'s rounded value (a
+  neutral format with 0 fraction digits), a non-integer exact key's
+  display (neutral), and the plural category (`plural`, once per selector
+  value). `Number::digits` is then always `None`: the Rust rounding, digit
+  output and plural evaluator are not linked. On every other build nothing
+  changes; `format_by_host` exists there too (and only asks the host).
+* **Limits.** The formatter's digit sizes are ECMA-402's: with
+  `INTL_NUMBERS`, `minimumIntegerDigits`, `minimumSignificantDigits` and
+  `maximumSignificantDigits` above 21 are *Bad Option* and replaced by 21
+  (number.md, "Digit Size Options", allows the replacement); the Rust path
+  takes 0–99.
+* **No formatter** (`numbers()` is `None`: a host without one, or a
+  browser without `Intl.NumberFormat` v3 — no Rust fallback in the client,
+  owner decision 4): a numeric function's resolution reports *Unsupported
+  Operation*, the value shows its exact digits in neutral symbols, and
+  keyword selection matches only `other`.
+* **One slot, not three.** `numbers()` is a trait method with a default, on
+  every build, so a client that turns `intl` on and formats no number links
+  nothing new (B1′ = +0 B); the price is one `Host` vtable slot for every
+  client: +17 B raw / +15 B gz of B1's runtime part (`b12-runtime`,
+  `bench/b12/check.sh`; three methods measured +38 / +31). A host gets the
+  formatter as a separate static (`NUMBERS_HOST`) so that `HOST` itself does
+  not grow with the feature.
 
 ## 3. Function registry — full spec, closed world
 

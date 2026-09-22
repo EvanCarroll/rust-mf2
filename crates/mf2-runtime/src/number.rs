@@ -5,12 +5,26 @@
 //! operands of the *formatted* number — with neutral output (ASCII digits,
 //! `.`, `-`/`+`, no grouping). Ported from P0.5 over the digit backend of
 //! [`decimal`].
+//!
+//! The display, `:integer`'s rounding and the plural category come from a
+//! backend with one interface: the Rust one (`display.rs`), or — feature
+//! `intl` on `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`] — the host's
+//! number formatter (`intl.rs`; `plans/03-runtime.md` §2.7, §5.3), and
+//! then the Rust rounding, digit output and plural evaluator are not linked.
 
 mod decimal;
+#[cfg(not(all(feature = "intl", target_arch = "wasm32", target_os = "unknown")))]
+mod display;
+#[cfg(all(feature = "intl", target_arch = "wasm32", target_os = "unknown"))]
+mod intl;
 mod measure;
 mod options;
+mod request;
 
-use mf2_catalog::format::locale_key;
+#[cfg(not(all(feature = "intl", target_arch = "wasm32", target_os = "unknown")))]
+use display as backend;
+#[cfg(all(feature = "intl", target_arch = "wasm32", target_os = "unknown"))]
+use intl as backend;
 
 use crate::error::FormatError;
 use crate::function::{FnContext, Options};
@@ -19,16 +33,20 @@ use crate::plural::{self, Category, OperandsBuilder};
 use crate::sink::{ErrorSink, Sink, SubPartSink};
 use crate::value::Value;
 
-use decimal::{Decimal, Increment, ParseError, split_literal};
+use decimal::{Decimal, ParseError, split_literal};
 use options::{
-    CUR, DigitPlan, FracDefaults, INT, Kind, NUM, NumOpts, OPTIONS, PCT, RoundingType, Select,
-    SignDisplay, UNIT, apply, digit_plan, select_named,
+    CUR, FracDefaults, INT, Kind, NUM, NumOpts, OPTIONS, PCT, Select, UNIT, apply, digit_plan,
+    select_named,
 };
 
 pub(crate) use options::digit_size;
 
+pub use decimal::RoundingMode;
 pub use measure::{Measure, MeasureUnit};
-pub use options::Grouping;
+pub use options::{Grouping, RoundingPriority, SignDisplay};
+pub use request::{
+    CurrencyDisplay, DigitOptions, NumberOut, NumberRequest, NumberStyle, UnitDisplay,
+};
 
 /// An exact decimal and, once a numeric handler resolved it, its resolved
 /// options and its display form. Opaque: the digit backend is internal
@@ -51,19 +69,9 @@ struct Resolved {
     scale: i16,
     /// `false` when `select` came from a variable or from the operand.
     selectable: bool,
-    display: Display,
-}
-
-/// The digits to display: rounded, with the visible magnitude range and the
-/// sign after `signDisplay`.
-#[derive(Clone)]
-struct Display {
-    dec: Decimal,
-    /// The lowest visible magnitude (≤ 0).
-    lo: i16,
-    /// The highest visible magnitude (≥ 0).
-    hi: i16,
-    sign: Sign,
+    /// What the backend keeps: the rounded display (Rust), or the digit
+    /// plan and the plural category once asked (`intl`).
+    shown: backend::Shown,
 }
 
 /// The sign a formatted number shows, after `signDisplay`.
@@ -151,17 +159,6 @@ impl Digits<'_> {
     }
 }
 
-impl Display {
-    fn digits(&self) -> Digits<'_> {
-        Digits {
-            dec: &self.dec,
-            lo: self.lo,
-            hi: self.hi,
-            sign: self.sign,
-        }
-    }
-}
-
 impl Number {
     /// A `number-literal`; `None` if `s` is not one (or is past the
     /// implementation limits: 40 significant digits, exponent ±9999).
@@ -231,9 +228,11 @@ impl Number {
     }
 
     /// The rounded digits to display; `None` for a number no handler
-    /// resolved.
+    /// resolved — and, with feature `intl` on `wasm32-unknown-unknown`
+    /// ([`crate::INTL_NUMBERS`]), always: the host rounds and formats
+    /// ([`Number::format_by_host`]).
     pub fn digits(&self) -> Option<Digits<'_>> {
-        self.resolved.as_ref().map(|r| r.display.digits())
+        self.resolved.as_ref().and_then(backend::digits)
     }
 
     /// The exact value's digits, unrounded — how an unannotated number
@@ -300,23 +299,15 @@ impl Number {
         self.resolved.as_ref().is_some_and(|r| r.selectable)
     }
 
-    /// Writes the display form (a bare number: its plain value).
-    pub(crate) fn write_display(&self, out: &mut dyn Sink) {
-        match &self.resolved {
-            Some(r) => {
-                let d = &r.display;
-                d.digits().write_neutral(out);
-            }
-            None => self.write_plain(out),
-        }
+    /// Writes the display form in neutral symbols (a bare number: its
+    /// plain value).
+    pub(crate) fn write_display(&self, cx: &FnContext<'_>, out: &mut dyn Sink) {
+        backend::write_neutral(self, cx, out);
     }
 
     /// The display form as sub-parts.
-    pub(crate) fn display_parts(&self, out: &mut dyn SubPartSink) {
-        match &self.resolved {
-            Some(r) => r.display.digits().neutral_parts(out),
-            None => self.plain_parts(out),
-        }
+    pub(crate) fn display_parts(&self, cx: &FnContext<'_>, out: &mut dyn SubPartSink) {
+        backend::neutral_parts(self, cx, out);
     }
 }
 
@@ -559,8 +550,8 @@ pub(crate) fn resolve(
     }
     if spec.integer {
         // The resolved value of `:integer` is the integer value.
-        let mode = o.rounding_mode.unwrap_or(decimal::RoundingMode::HalfExpand);
-        value.round(0, mode, Increment::One);
+        let mode = o.rounding_mode.unwrap_or(RoundingMode::HalfExpand);
+        backend::round_to_integer(&mut value, mode, cx);
     }
     let (frac, scale) = match (spec.frac, inherited) {
         (Some(f), _) => (f, spec.scale),
@@ -581,13 +572,15 @@ pub(crate) fn resolve(
         };
         value = sum;
     }
+    backend::limit_digit_sizes(&mut o, errs);
     let plan = digit_plan(&o, frac, errs);
-    let display = display(
+    let shown = backend::shown(
         &value,
         scale,
         &plan,
         o.sign_display.unwrap_or(SignDisplay::Auto),
     );
+    backend::check_host(cx, errs);
     Some(Number {
         value,
         resolved: Some(Resolved {
@@ -595,7 +588,7 @@ pub(crate) fn resolve(
             frac,
             scale,
             selectable: selectable && spec.selectable,
-            display,
+            shown,
         }),
     })
 }
@@ -616,70 +609,6 @@ fn numeric_operand(v: &Value<'_>, host: &dyn Host) -> Result<Decimal, FormatErro
             .to_number(host)
             .map(|n| n.value)
             .ok_or(FormatError::BadOperand),
-    }
-}
-
-// ──────────────────────────────────────────────────────────── display ──
-
-/// ECMA-402 `ToRawFixed`: `(rounded, rounding magnitude)`.
-fn raw_fixed(x: &Decimal, p: &DigitPlan) -> (Decimal, i16, i16) {
-    let mut d = x.clone();
-    let (inc, k) = p.increment;
-    let max = -i16::from(p.max_frac);
-    d.round(max + k, p.mode, inc);
-    let lo = (-i16::from(p.min_frac)).min(d.low()).min(0);
-    (d, lo, max)
-}
-
-/// ECMA-402 `ToRawPrecision`: `(rounded, lowest visible, rounding magnitude)`.
-fn raw_precision(x: &Decimal, p: &DigitPlan) -> (Decimal, i16, i16) {
-    let mut d = x.clone();
-    let e = d.high();
-    d.round(e - i16::from(p.max_sig) + 1, p.mode, Increment::One);
-    let e2 = d.high();
-    let lo = (e2 - i16::from(p.min_sig) + 1).min(d.low()).min(0);
-    (d, lo, e2 - i16::from(p.max_sig) + 1)
-}
-
-fn display(value: &Decimal, scale: i16, p: &DigitPlan, sign: SignDisplay) -> Display {
-    let mut x = value.clone();
-    if scale != 0 {
-        x.shift(scale);
-    }
-    let (d, mut lo, _) = match p.ty {
-        RoundingType::Fraction => raw_fixed(&x, p),
-        RoundingType::Significant => raw_precision(&x, p),
-        RoundingType::More | RoundingType::Less => {
-            let s = raw_precision(&x, p);
-            let f = raw_fixed(&x, p);
-            let fixed_more_precise = f.2 < s.2;
-            if (p.ty == RoundingType::More) == fixed_more_precise {
-                f
-            } else {
-                s
-            }
-        }
-    };
-    if p.strip_if_integer && d.is_integer() {
-        lo = 0;
-    }
-    let hi = d.high().max(0).max(i16::from(p.min_int) - 1);
-    let zero = d.is_zero();
-    let negative = d.negative();
-    let sign = match sign {
-        SignDisplay::ExceptZero if zero => Sign::None,
-        SignDisplay::Auto | SignDisplay::Always | SignDisplay::ExceptZero if negative => {
-            Sign::Minus
-        }
-        SignDisplay::Always | SignDisplay::ExceptZero => Sign::Plus,
-        SignDisplay::Negative if negative && !zero => Sign::Minus,
-        _ => Sign::None,
-    };
-    Display {
-        dec: d,
-        lo,
-        hi,
-        sign,
     }
 }
 
@@ -720,8 +649,8 @@ pub(crate) fn equals(key: &str, write: impl FnOnce(&mut dyn Sink)) -> bool {
 /// The exact-match serialization (number.md): the integer form when the
 /// value is an integer and none of the min-fraction, min-integer, min/max-
 /// significant options is set; otherwise (implementation-defined) the
-/// display form.
-fn exact_matches(n: &Number, r: &Resolved, key: &str) -> bool {
+/// display form, in neutral symbols.
+fn exact_matches(n: &Number, r: &Resolved, cx: &FnContext<'_>, key: &str) -> bool {
     let o = &r.opts;
     let plain =
         o.min_frac.is_none() && o.min_int.is_none() && o.min_sig.is_none() && o.max_sig.is_none();
@@ -735,13 +664,8 @@ fn exact_matches(n: &Number, r: &Resolved, key: &str) -> bool {
         }
         equals(key, |s| value.write_plain(s))
     } else {
-        equals(key, |s| n.write_display(s))
+        equals(key, |s| backend::write_selected(n, r, cx, s))
     }
-}
-
-/// The plural operands of the display form.
-fn operands(d: &Display) -> plural::Operands {
-    d.digits().operands()
 }
 
 /// Match(`n`, `key`) for numeric selectors (number.md, "Number Selection").
@@ -750,19 +674,16 @@ pub(crate) fn matches(n: &Number, cx: &FnContext<'_>, key: &str, errs: &mut dyn 
         return false;
     };
     if is_number_literal(key) {
-        return exact_matches(n, r, key);
+        return exact_matches(n, r, cx, key);
     }
     let Some(keyword) = Category::from_keyword(key) else {
         errs.error(FormatError::BadVariantKey);
         return false;
     };
-    let entry_key = match r.opts.select.unwrap_or(Select::Plural) {
-        Select::Exact => return false,
-        Select::Plural => locale_key::PLURAL_CARDINAL,
-        Select::Ordinal => locale_key::PLURAL_ORDINAL,
-    };
-    let rules = cx.catalog().locale_entry(entry_key).unwrap_or(&[]);
-    plural::select(rules, &operands(&r.display)) == keyword
+    if r.opts.select == Some(Select::Exact) {
+        return false;
+    }
+    backend::category(n, r, cx) == keyword
 }
 
 /// `BetterThan(n, key1, key2)` for two matching keys: an exact

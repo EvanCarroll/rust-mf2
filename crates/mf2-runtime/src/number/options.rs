@@ -18,11 +18,16 @@ pub(crate) enum Select {
 
 /// `signDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub(crate) enum SignDisplay {
+pub enum SignDisplay {
+    /// `auto` (the default): a minus sign for negative numbers, `-0` included.
     Auto,
+    /// `always`.
     Always,
+    /// `exceptZero`: a sign for nonzero numbers only.
     ExceptZero,
+    /// `negative`: a minus sign for negative numbers, not `-0`.
     Negative,
+    /// `never`.
     Never,
 }
 
@@ -42,9 +47,12 @@ pub enum Grouping {
 
 /// `roundingPriority`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub(crate) enum RoundingPriority {
+pub enum RoundingPriority {
+    /// `auto` (the default): significant digits when set, else fraction digits.
     Auto,
+    /// `morePrecision`: of the two roundings, the one keeping more digits.
     MorePrecision,
+    /// `lessPrecision`: the one keeping fewer.
     LessPrecision,
 }
 
@@ -297,6 +305,12 @@ fn split_increment(n: u16) -> (Increment, i16) {
 
 /// The digit plan of options `o` with fraction defaults `frac`; conflicting
 /// options report *Bad Option* (once, at resolution).
+// Inlined into `resolve`, its one caller on a client's path: the Rust
+// backend's `plan` (reached only through `Number::format_by_host`, which a
+// client without `intl` never links) is a second caller that otherwise keeps
+// it out of line, +54 B raw in `b12-runtime` (bench/b12/check.sh).
+#[allow(clippy::inline_always)]
+#[inline(always)]
 pub(crate) fn digit_plan(o: &NumOpts, frac: FracDefaults, errs: &mut dyn ErrorSink) -> DigitPlan {
     let increment = o.rounding_increment.unwrap_or(1);
     let mnfd_default = frac.min;

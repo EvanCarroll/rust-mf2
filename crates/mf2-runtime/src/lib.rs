@@ -12,7 +12,7 @@
 //! | [`Sink`], [`PartSink`], [`ErrorSink`] | where output and errors go |
 //! | [`Arg`], [`Value`], [`Number`] | arguments and resolved values |
 //! | [`Function`], [`Registry`], [`functions`] | handlers, closed world (B13) |
-//! | [`Host`] | NFC, float text, zone offsets, a date formatter from the platform |
+//! | [`Host`] | NFC, float text, zone offsets, a date formatter, a number formatter (`intl`) from the platform |
 //! | [`DateTime`], [`TimeZone`], [`NumberSpec`], [`Digits`], [`Measure`] | Phase 4's additions for the function crates (§2.7) |
 //!
 //! The API is `plans/03-runtime.md` §2 (§2.7: Phase 4's additions). Client-path code: `no_std` +
@@ -56,11 +56,29 @@ pub use datetime::{
 pub use error::FormatError;
 pub use format::{BidiStrategy, FormatContext, Formatter};
 pub use function::{FnContext, Function, OptionValue, Options, Registry};
-pub use host::Host;
-pub use number::{Digits, Grouping, Measure, MeasureUnit, Number, NumberSpec, Sign};
+pub use host::{Host, NumberFormatter};
+pub use number::{
+    CurrencyDisplay, DigitOptions, Digits, Grouping, Measure, MeasureUnit, Number, NumberOut,
+    NumberRequest, NumberSpec, NumberStyle, RoundingMode, RoundingPriority, Sign, SignDisplay,
+    UnitDisplay,
+};
 pub use parts::{
     ExpressionPart, FallbackSource, Isolation, MarkupOptions, MarkupPart, Part, PartSink,
 };
 pub use plural::{Category, Operands, select as plural_category};
 pub use sink::{ErrorSink, NoErrors, Sink, SubPartSink};
 pub use value::{Arg, CustomValue, Value};
+
+/// Whether numbers format through the host (`plans/03-runtime.md` §2.7,
+/// §5.3): feature `intl`, on `wasm32-unknown-unknown` only. The numeric
+/// functions — the core's and `mf2-fn-number`'s — then take the display,
+/// `:integer`'s rounding and the plural category from
+/// the host's [`NumberFormatter`] ([`Host::numbers`]: the browser's
+/// `Intl.NumberFormat` and `Intl.PluralRules`) instead of the Rust digit
+/// plan, rounding and plural evaluator, which are not linked. Everywhere
+/// else — servers, `wasm32-wasip1`, native tests — `false`: the Rust path.
+pub const INTL_NUMBERS: bool = cfg!(all(
+    feature = "intl",
+    target_arch = "wasm32",
+    target_os = "unknown"
+));

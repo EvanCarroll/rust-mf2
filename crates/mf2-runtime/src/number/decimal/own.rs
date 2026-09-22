@@ -218,6 +218,11 @@ impl Decimal {
     // their value, `a` the remainder mod the increment, `g` the comparison
     // with half, `w` the working digits.
     #[allow(clippy::many_single_char_names)]
+    // With `intl` on wasm32-unknown-unknown the host rounds (number/intl.rs).
+    #[cfg_attr(
+        all(feature = "intl", target_arch = "wasm32", target_os = "unknown"),
+        allow(dead_code)
+    )]
     pub(crate) fn round(&mut self, pos: i16, mode: RoundingMode, inc: Increment) {
         if self.len == 0 {
             return;

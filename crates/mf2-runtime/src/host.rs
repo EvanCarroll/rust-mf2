@@ -1,13 +1,16 @@
 //! What the runtime asks of its platform (`plans/03-runtime.md` §2.5,
 //! §2.7): NFC normalization (no tables in the wasm, §7), the shortest text
-//! of a float (no float-printing code in the wasm), and for dates the UTC
-//! offset of a named time zone and — `datetime-intl` — a date formatter.
+//! of a float (no float-printing code in the wasm), for dates the UTC
+//! offset of a named time zone and — `datetime-intl` — a date formatter,
+//! and — `intl` — a number formatter with plural rules.
 //! `mf2-host-std` implements it natively and for `wasm32-wasip1`,
 //! `mf2-host-web` in the browser.
 
 use alloc::string::String;
 
 use crate::datetime::DateTimeRequest;
+use crate::number::{NumberOut, NumberRequest};
+use crate::plural::Category;
 use crate::sink::Sink;
 
 /// The platform services the runtime needs.
@@ -45,4 +48,28 @@ pub trait Host: Sync {
         let _ = (locale, request, out);
         false
     }
+
+    /// `intl`: the host's number formatter (in the browser `Intl.NumberFormat`
+    /// and `Intl.PluralRules`, when the engine has `Intl.NumberFormat` v3);
+    /// `None` (the default) when it has none — the numeric functions of an
+    /// `intl` client then show exact digits and report *Unsupported
+    /// Operation* (`plans/03-runtime.md` §2.7).
+    fn numbers(&self) -> Option<&dyn NumberFormatter> {
+        None
+    }
+}
+
+/// A number formatter for the `intl` option ([`Host::numbers`];
+/// `plans/03-runtime.md` §2.7, §5.3): the final "value + resolved options →
+/// text" step and the plural category, where the numeric functions keep
+/// MF2's semantics in Rust. `mf2-host-web` implements it with `Intl`.
+pub trait NumberFormatter: Sync {
+    /// Writes `request` formatted for `locale` — or, when `request.neutral`,
+    /// in neutral symbols — as text or sub-parts, and returns `true`;
+    /// `false` when it cannot (nothing written).
+    fn format(&self, locale: &str, request: &NumberRequest<'_>, out: NumberOut<'_>) -> bool;
+
+    /// The plural category of `request.value` under its digit options and
+    /// plural type (`request.ordinal`) for `locale`; `None` when it cannot.
+    fn plural(&self, locale: &str, request: &NumberRequest<'_>) -> Option<Category>;
 }

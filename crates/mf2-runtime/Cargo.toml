@@ -11,6 +11,14 @@ publish.workspace = true
 # `fixed_decimal` instead of the crate's own panic-free digit buffer. Bench and
 # test only; never enabled by a client.
 fixed-decimal = ["dep:fixed_decimal"]
+# The `intl` client option (plans/03-runtime.md §2.7, §5.3; owner decision 4):
+# on wasm32-unknown-unknown only, the numeric functions take their display,
+# `:integer`'s rounding and the plural category from the host's number
+# formatter (`Host::numbers`: mf2-host-web's
+# `Intl`), and the Rust digit plan, rounding and plural evaluator are not
+# linked. Everywhere else (servers, wasm32-wasip1, native tests) nothing
+# changes.
+intl = []
 
 [dependencies]
 fixed_decimal = { workspace = true, optional = true }

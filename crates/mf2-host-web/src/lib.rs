@@ -2,18 +2,34 @@
 //! (`plans/03-runtime.md` §2.5, §4): NFC through `String.prototype.normalize`
 //! and the shortest round-trip text of a float through `Number.prototype
 //! .toString`, both via `js-sys`, so the wasm carries no normalization
-//! tables and no float-printing code. Phase 3 builds it minimal; the
-//! `Intl.DateTimeFormat` glue behind `datetime-intl` is Phase 4's.
+//! tables and no float-printing code.
+//!
+//! Numbers (`intl`, `plans/03-runtime.md` §2.7, §5.3) come as another host,
+//! not as more methods of [`HOST`]: a host method is linked whenever its
+//! host is (it is in the `Host` vtable), so a number method on [`HOST`]
+//! would cost every client that has the feature on, numbers or not (B1′).
+//! An application names the host its corpus needs (`mf2-build` picks it):
+//!
+//! | Static | Feature | Adds |
+//! |---|---|---|
+//! | [`HOST`] | — | NFC, float text |
+//! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host (`numbers.rs`) |
 
 #![no_std]
 #![forbid(unsafe_code)]
 
 extern crate alloc;
 
+#[cfg(feature = "intl")]
+mod numbers;
+
 use alloc::string::String;
 
 use js_sys::{JsString, Number};
 use mf2_runtime::Host;
+
+#[cfg(feature = "intl")]
+pub use numbers::{IntlNumbers, NUMBERS_HOST};
 
 /// The browser host.
 #[derive(Clone, Copy, Default, Debug)]

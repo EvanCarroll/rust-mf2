@@ -1,14 +1,22 @@
 [package]
 name = "mf2-host-web"
-description = "The browser Host of mf2-runtime: NFC through String.prototype.normalize and float text through String(x), via js-sys."
+description = "The browser Host of mf2-runtime: NFC through String.prototype.normalize and float text through String(x), via js-sys; with `intl`, numbers through Intl.NumberFormat and Intl.PluralRules."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[features]
+# `intl` (plans/03-runtime.md §2.7, §5.3): `NUMBERS_HOST` / `IntlNumbers` —
+# another host plus `Host::numbers`: `Intl.NumberFormat` and
+# `Intl.PluralRules` (cached per locale and option set) when the engine has
+# `Intl.NumberFormat` v3 (detected once).
+intl = ["dep:wasm-bindgen", "mf2-runtime/intl"]
+
 [dependencies]
 js-sys = { workspace = true }
 mf2-runtime.workspace = true
+wasm-bindgen = { workspace = true, optional = true }
 
 [lints]
 workspace = true

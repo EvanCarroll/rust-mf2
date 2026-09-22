@@ -79,6 +79,9 @@ ryu = "1.0.23"
 # mf2-host-web: the browser's normalize() and String(x); no_std (no `std`,
 # no `unsafe-eval`).
 js-sys = { version = "0.3.105", default-features = false }
+# mf2-host-web's `intl`: inline-JS modules for `Intl.NumberFormat` and
+# `Intl.PluralRules` (the CLI that post-processes the wasm is 0.2.128).
+wasm-bindgen = { version = "0.2.128", default-features = false }
 
 [workspace.lints.rust]
 # Product crates add `#![forbid(unsafe_code)]` themselves. The bench crates need

@@ -20,6 +20,13 @@ fn-datetime = ["dep:mf2-fn-datetime"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
+# The `intl` client option (plans/00-master-plan.md §5, owner decision 4;
+# plans/03-runtime.md §5.3): on wasm32-unknown-unknown the numeric functions
+# format and select through the browser's Intl.NumberFormat and
+# Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
+# Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
+# keeps the Rust path.
+intl = ["mf2-runtime/intl", "mf2-fn-number?/intl", "mf2-host-web?/intl"]
 
 [dependencies]
 mf2-catalog.workspace = true

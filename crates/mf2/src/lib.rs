@@ -11,6 +11,7 @@
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
 //! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
+//! | `intl` | on `wasm32-unknown-unknown` ([`INTL_NUMBERS`]): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
 //! Phase 5b adds the `tr!` macro, Phase 6 the Leptos and Axum layers.
 //!
@@ -49,12 +50,14 @@ mod error;
 pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, Manifest, MsgId, StrRef};
 pub use mf2_model::{ErrorKind, MarkupKind};
 pub use mf2_runtime::{
-    Arg, BidiStrategy, Category, CustomValue, Date, DateFields, DateLength, DateStyle, DateTime,
-    DateTimeOptions, DateTimeRequest, Digits, ErrorSink, ExpressionPart, FallbackSource, FnContext,
-    FormatContext, FormatError, Formatter, Function, Grouping, Host, Isolation, MarkupOptions,
-    MarkupPart, Measure, MeasureUnit, NoErrors, Number, NumberSpec, Operands, OptionValue, Options,
-    Part, PartSink, Registry, Sign, Sink, SubPartSink, Time, TimePrecision, TimeZone, Value,
-    ZoneOption, ZoneStyle, functions, is_zone_name, plural_category,
+    Arg, BidiStrategy, Category, CurrencyDisplay, CustomValue, Date, DateFields, DateLength,
+    DateStyle, DateTime, DateTimeOptions, DateTimeRequest, DigitOptions, Digits, ErrorSink,
+    ExpressionPart, FallbackSource, FnContext, FormatContext, FormatError, Formatter, Function,
+    Grouping, Host, INTL_NUMBERS, Isolation, MarkupOptions, MarkupPart, Measure, MeasureUnit,
+    NoErrors, Number, NumberFormatter, NumberOut, NumberRequest, NumberSpec, NumberStyle, Operands,
+    OptionValue, Options, Part, PartSink, Registry, RoundingMode, RoundingPriority, Sign,
+    SignDisplay, Sink, SubPartSink, Time, TimePrecision, TimeZone, UnitDisplay, Value, ZoneOption,
+    ZoneStyle, functions, is_zone_name, plural_category,
 };
 
 #[cfg(feature = "compile")]

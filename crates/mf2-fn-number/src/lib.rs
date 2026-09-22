@@ -15,6 +15,11 @@
 //! | [`CURRENCY`], [`UNIT`] | `:currency`, `:unit` (Draft): a `Measure` with the catalog's `currency.data` / `unit.data` |
 //! | [`NUMBERS`] | unannotated numbers, localized: `Registry::with_numbers(&NUMBERS)` (`syntax.json` #90) |
 //!
+//! With feature `intl` on `wasm32-unknown-unknown`
+//! ([`mf2_runtime::INTL_NUMBERS`]) the text comes from the host's number
+//! formatter (the browser's `Intl.NumberFormat`) instead (`intl.rs`,
+//! `plans/03-runtime.md` §5.3).
+//!
 //! Closed world (B13): an application's registry names only the handlers
 //! its corpus uses. Selection, exact-match keys and plural operands are the
 //! core's (neutral digits, the formatted digits' plural category): a
@@ -31,14 +36,15 @@
     clippy::panic
 )]
 
+mod intl;
 mod localize;
 mod measure;
 
 pub use measure::{CURRENCY, CurrencyFunction, UNIT, UnitFunction};
 
 use mf2_runtime::{
-    Dir, ErrorSink, FnContext, FormatError, Function, Number, NumberSpec, Options, Sink,
-    SubPartSink, Value,
+    Dir, ErrorSink, FnContext, FormatError, Function, INTL_NUMBERS, Number, NumberOut, NumberSpec,
+    Options, Sink, SubPartSink, Value,
 };
 
 use localize::{Layout, Out};
@@ -89,6 +95,9 @@ impl Function for NumberFunction {
     }
 
     fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+        if INTL_NUMBERS {
+            return intl::format(cx, value, self.layout, NumberOut::Text(out));
+        }
         if let Value::Number(n) = value
             && let Some(d) = n.digits()
         {
@@ -103,6 +112,9 @@ impl Function for NumberFunction {
     }
 
     fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
+        if INTL_NUMBERS {
+            return intl::format(cx, value, self.layout, NumberOut::Parts(out));
+        }
         if let Value::Number(n) = value
             && let Some(d) = n.digits()
         {
@@ -178,6 +190,9 @@ impl Function for Unannotated {
     }
 
     fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+        if INTL_NUMBERS {
+            return intl::format_unannotated(cx, value, NumberOut::Text(out));
+        }
         if let Some(n) = value.to_number(cx.host()) {
             localize::write(
                 cx.catalog(),
@@ -190,6 +205,9 @@ impl Function for Unannotated {
     }
 
     fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
+        if INTL_NUMBERS {
+            return intl::format_unannotated(cx, value, NumberOut::Parts(out));
+        }
         if let Some(n) = value.to_number(cx.host()) {
             localize::write(
                 cx.catalog(),

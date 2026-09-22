@@ -41,17 +41,26 @@ pub(crate) enum ParseError {
     Limit,
 }
 
-/// `roundingMode` (ECMA-402 names).
+/// `roundingMode` (ECMA-402's names and meanings).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub(crate) enum RoundingMode {
+pub enum RoundingMode {
+    /// `ceil`: towards +∞.
     Ceil,
+    /// `floor`: towards −∞.
     Floor,
+    /// `expand`: away from 0.
     Expand,
+    /// `trunc`: towards 0.
     Trunc,
+    /// `halfCeil`: to the nearest, ties towards +∞.
     HalfCeil,
+    /// `halfFloor`: to the nearest, ties towards −∞.
     HalfFloor,
+    /// `halfExpand` (the default): to the nearest, ties away from 0.
     HalfExpand,
+    /// `halfTrunc`: to the nearest, ties towards 0.
     HalfTrunc,
+    /// `halfEven`: to the nearest, ties to even.
     HalfEven,
 }
 
