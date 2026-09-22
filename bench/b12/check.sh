@@ -40,6 +40,19 @@
 #     B3 = b12-runtime-fn-number-measure − b12-runtime-fn-number (:currency
 #     and :unit too) ≤ 5.5 KB gz (restated by the owner, 2026-09-22). All are
 #     B12-checked like the runtime.
+#  8. The `intl` client option (owner decision 4; plans/03-runtime.md §2.7,
+#     §5.3), built in their own cargo invocation (their `intl` features must
+#     not reach the others): b12-runtime-intl (the core's numeric functions
+#     over a stub number formatter) and b12-runtime-fn-number-intl (the whole
+#     localized family) are B12-checked, and b12-runtime-intl must link none
+#     of the Rust rounding, digit display or plural evaluator (B13's grep the
+#     other way round: b12-runtime shows them); B1′ for `intl` =
+#     b12-runtime-intl-unused (the features on, no number in the corpus) −
+#     b12-runtime-nonum ≤ +0 B (it is below: a resolved number keeps its
+#     digit plan, not the rounded digits, so every `Value` is smaller). The
+#     other sizes are reported, not gated: the
+#     formatter is a stub here, and the browser's (mf2-host-web's `Intl` glue
+#     and its JavaScript) is measured by bench/intl-probe.
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
@@ -60,6 +73,8 @@ OUT=target/b12
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
 CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure control)
+# The `intl` harnesses: one cargo invocation of their own.
+INTL_CRATES=(runtime-intl runtime-fn-number-intl runtime-intl-unused)
 PANIC_IMPORT='b12::b12_panic_reachable'
 # twiggy demangles v0 names as `core[1a2b…]::fmt::…`; the mangled spellings
 # (`4core3fmt`) are matched too in case a name is left mangled.
@@ -74,6 +89,9 @@ cargo build -q --target "$TARGET" --profile wasm-syms "${pkgs[@]}"
 # harnesses above.
 cargo build -q --target "$TARGET" --profile wasm-release -p b12-runtime-fixed
 cargo build -q --target "$TARGET" --profile wasm-syms -p b12-runtime-fixed
+intl_pkgs=(); for c in "${INTL_CRATES[@]}"; do intl_pkgs+=(-p "b12-$c"); done
+cargo build -q --target "$TARGET" --profile wasm-release "${intl_pkgs[@]}"
+cargo build -q --target "$TARGET" --profile wasm-syms "${intl_pkgs[@]}"
 mkdir -p "$OUT"
 
 REPORT="$OUT/b12.txt"
@@ -86,7 +104,7 @@ say "B12 — catalog reader and runtime (mf2-catalog and mf2-runtime, no feature
 say "wasm-opt: $(wasm-opt --version); twiggy: $(twiggy --version)"
 
 declare -A RAW GZ
-for c in "${CRATES[@]}" runtime-fixed; do
+for c in "${CRATES[@]}" runtime-fixed "${INTL_CRATES[@]}"; do
   file="b12_${c//-/_}"
   rel="target/$TARGET/wasm-release/$file.wasm"
   syms="target/$TARGET/wasm-syms/$file.wasm"
@@ -161,11 +179,25 @@ for c in runtime runtime-nonum; do
   fi
 done
 
+# 8. The `intl` option links no Rust rounding, display or plural evaluator.
+RUST_DIGITS_RE='number::display::|Decimal>::round|plural::select|OperandsBuilder'
+say "== intl (8): Rust rounding, display and plural-evaluator symbols"
+for c in runtime runtime-intl; do
+  names="$OUT/$c.syms.opt.csv.names"
+  n_rust=$(grep -cE "$RUST_DIGITS_RE" "$names" || true)
+  say "  b12-$c: $n_rust"
+  if [ "$c" = runtime ]; then
+    [ "$n_rust" -gt 0 ] || bad "b12-runtime shows no Rust rounding symbol: the intl grep is broken"
+  else
+    [ "$n_rust" -eq 0 ] || bad "b12-runtime-intl links the Rust rounding, display or plural evaluator"
+  fi
+done
+
 # 4. Size: each harness as a delta against the base.
 {
   printf 'harness\traw\tgz\tdelta_raw\tdelta_gz\n'
   printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${GZ[base]}"
-  for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure; do
+  for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure "${INTL_CRATES[@]}"; do
     printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
       $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
   done
@@ -179,6 +211,12 @@ done
     $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((GZ[runtime-fn-number-unused] - GZ[runtime]))
   printf 'B3: + :currency, :unit (runtime-fn-number-measure - runtime-fn-number)\t-\t-\t%d\t%d\n' \
     $((RAW[runtime-fn-number-measure] - RAW[runtime-fn-number])) $((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
+  printf 'intl core, stub formatter (runtime-intl - runtime)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime-intl] - RAW[runtime])) $((GZ[runtime-intl] - GZ[runtime]))
+  printf 'intl + fn-number (runtime-fn-number-intl - runtime-fn-number-measure)\t-\t-\t%d\t%d\n' \
+    $((RAW[runtime-fn-number-intl] - RAW[runtime-fn-number-measure])) $((GZ[runtime-fn-number-intl] - GZ[runtime-fn-number-measure]))
+  printf "B1': intl on, unused (runtime-intl-unused - runtime-nonum)\t-\t-\t%d\t%d\n" \
+    $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((GZ[runtime-intl-unused] - GZ[runtime-nonum]))
 } > "$OUT/size.tsv"
 # B3 ≤ 5.5 KB gz more (plans/06-size-and-perf.md §3; restated 2026-09-22).
 b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
@@ -186,10 +224,12 @@ b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
 # B2 ≤ 3 KB gz; B1′ = +0 B (plans/06-size-and-perf.md §3).
 b2=$((GZ[runtime-fn-number] - GZ[runtime]))
 [ "$b2" -le 3072 ] || bad "B2: fn-number on and used costs $b2 B gz (> 3,072)"
+[ "${RAW[runtime-intl-unused]}" -le "${RAW[runtime-nonum]}" ] \
+  || bad "B1': intl on but unused costs more than +0 B (raw ${RAW[runtime-intl-unused]} vs ${RAW[runtime-nonum]})"
 [ "${RAW[runtime-fn-number-unused]}" -eq "${RAW[runtime]}" ] \
   || bad "B1': fn-number on but unused is not +0 B (raw ${RAW[runtime-fn-number-unused]} vs ${RAW[runtime]})"
 say "== size (wasm-release, wasm-opt -Oz, gzip -9 -n; delta against b12-base)"
-awk -F '\t' '{ printf "  %-58s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
+awk -F '\t' '{ printf "  %-72s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
 # Where the reader's bytes are (shallow code bytes after wasm-opt, by crate).
 csv="$OUT/reader.syms.opt.csv"
 awk -F, 'NR > 1 {

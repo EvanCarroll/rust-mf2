@@ -1,0 +1,18 @@
+[package]
+name = "b12-runtime-intl-unused"
+description = "B1′ for the intl client option: the `intl` features on (mf2-runtime, mf2-fn-number linked) but no number in the corpus — b12-runtime-nonum's registry. Must equal b12-runtime-nonum."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b12-runtime-walk.workspace = true
+mf2-fn-number = { workspace = true, features = ["intl"] }
+mf2-runtime = { workspace = true, features = ["intl"] }
+
+[lints]
+workspace = true

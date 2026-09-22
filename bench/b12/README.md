@@ -77,3 +77,26 @@ reader validates more at load (NAMES, FALLBACK, IDS restarts, the plural
 entries' structure), hence `Catalog::new` at 3.4 KB; `lookup` (and IDS
 validation inside `Catalog::new`) serve dev/tool builds only, since production
 catalogs strip IDS.
+
+## The `intl` client option (Phase 4, owner decision 4)
+
+`check.sh` item 8. Three harnesses with the `intl` features, built in a cargo
+invocation of their own so that the features never reach the others:
+
+| Crate | What it links |
+|---|---|
+| `b12-runtime-intl` | `b12-runtime`'s registry (the core's `:number`, `:integer`, `:offset`) with `mf2-runtime/intl`, walked over a stub number formatter (`b12_runtime_walk::run_intl`: the host chooses its answers, every request field goes to a sink) |
+| `b12-runtime-fn-number-intl` | `b12-runtime-fn-number-measure`'s registry (the whole localized family, `:currency` and `:unit` included) with the `intl` features, over the same stub |
+| `b12-runtime-intl-unused` | the `intl` features on (`mf2-fn-number` linked), a corpus without numbers: `b12-runtime-nonum`'s registry and host |
+
+Gates: B12 for all three; `b12-runtime-intl` links none of the Rust
+rounding, digit display or plural evaluator (`number::display::`,
+`Decimal>::round`, `plural::select`, `OperandsBuilder`; `b12-runtime` shows
+them, so the grep can fail); B1′ for `intl`: `b12-runtime-intl-unused` ≤
+`b12-runtime-nonum` in raw bytes. Measured 2026-09-22 (the tree of
+`plans/06-size-and-perf.md` §3's `intl` rows): B12 clean in all three; B1′
+**−34 B raw / −69 B gz** (a resolved number keeps its digit plan instead of
+its rounded digits, so every `Value` is smaller); with the stub formatter
+the core is +368 B raw / +110 B gz over `b12-runtime` and the whole family
+−9,891 / −4,688 over `b12-runtime-fn-number-measure` — without the
+browser's glue, which `bench/intl-probe` measures (the size of the option).

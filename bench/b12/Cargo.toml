@@ -19,6 +19,9 @@ members = [
     "runtime-fn-number",
     "runtime-fn-number-unused",
     "runtime-fn-number-measure",
+    "runtime-intl",
+    "runtime-fn-number-intl",
+    "runtime-intl-unused",
 ]
 
 [workspace.package]

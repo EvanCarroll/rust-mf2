@@ -20,8 +20,8 @@ use alloc::string::String;
 use b12_harness::{INPUT_CATALOG, INPUT_KEY, input, param, sink, sink_bytes};
 use mf2_catalog::{Catalog, MsgId};
 use mf2_runtime::{
-    Arg, ErrorSink, FormatContext, FormatError, Formatter, Host, Part, PartSink, Registry, Sink,
-    SubPartSink,
+    Arg, Category, ErrorSink, FormatContext, FormatError, Formatter, Host, NumberFormatter,
+    NumberOut, NumberRequest, NumberStyle, Part, PartSink, Registry, Sink, SubPartSink,
 };
 
 /// A host that normalizes nothing and prints no floats: the host's own cost
@@ -40,6 +40,95 @@ impl Host for StubHost {
 
 static HOST: StubHost = StubHost;
 static CX: FormatContext = FormatContext::new(&HOST);
+
+/// The `intl` harnesses' host (`plans/03-runtime.md` §2.7): the stub host
+/// with a number formatter whose answers the host chooses and which hands
+/// every field of each request to the host, so the runtime's and
+/// `mf2-fn-number`'s `intl` code is all live. Linked only by
+/// [`run_intl`]; the browser's formatter (`mf2-host-web`'s `Intl` glue) is
+/// measured by `bench/intl-probe`.
+struct IntlStubHost;
+
+impl Host for IntlStubHost {
+    fn nfc<'a>(&self, s: &'a str, _buf: &'a mut String) -> &'a str {
+        s
+    }
+
+    fn f64_to_text<'b>(&self, _x: f64, _buf: &'b mut [u8; 32]) -> Option<&'b str> {
+        None
+    }
+
+    fn numbers(&self) -> Option<&dyn NumberFormatter> {
+        (param(9) != 0).then_some(&STUB_FORMATTER)
+    }
+}
+
+struct StubFormatter;
+
+static STUB_FORMATTER: StubFormatter = StubFormatter;
+
+/// Every field of `r`, folded into one number for the host.
+fn take(locale: &str, r: &NumberRequest<'_>) {
+    sink_bytes(locale.as_bytes());
+    sink_bytes(r.value.as_bytes());
+    let style = match r.style {
+        NumberStyle::Decimal => 1,
+        NumberStyle::Percent => 2,
+        NumberStyle::Currency {
+            code,
+            display,
+            accounting,
+            own_digits,
+        } => {
+            sink_bytes(code.as_bytes());
+            3 ^ (display as u64) << 2 ^ u64::from(accounting) << 5 ^ u64::from(own_digits) << 6
+        }
+        NumberStyle::Unit { unit, display } => {
+            sink_bytes(unit.as_bytes());
+            4 ^ (display as u64) << 2
+        }
+        _ => 5,
+    };
+    let d = &r.digits;
+    let (fmin, fmax) = d.fraction.unwrap_or((255, 255));
+    let (smin, smax) = d.significant.unwrap_or((255, 255));
+    sink(
+        style
+            ^ u64::from(r.neutral) << 8
+            ^ (r.sign as u64) << 9
+            ^ (r.grouping as u64) << 12
+            ^ u64::from(r.ordinal) << 15
+            ^ u64::from(d.minimum_integer) << 16
+            ^ u64::from(fmin) << 24
+            ^ u64::from(fmax) << 32
+            ^ u64::from(smin) << 40
+            ^ u64::from(smax) << 48
+            ^ (d.priority as u64) << 56
+            ^ u64::from(d.increment) << 3
+            ^ (d.mode as u64) << 59
+            ^ u64::from(d.strip_if_integer) << 63,
+    );
+}
+
+impl NumberFormatter for StubFormatter {
+    fn format(&self, locale: &str, request: &NumberRequest<'_>, out: NumberOut<'_>) -> bool {
+        take(locale, request);
+        match out {
+            NumberOut::Text(o) => o.push_str(request.value),
+            NumberOut::Parts(o) => o.sub_part("integer", request.value),
+        }
+        param(10) != 0
+    }
+
+    fn plural(&self, locale: &str, request: &NumberRequest<'_>) -> Option<Category> {
+        take(locale, request);
+        let c = param(11);
+        (c < 6).then(|| Category::from_code(c as u8))
+    }
+}
+
+static INTL_HOST: IntlStubHost = IntlStubHost;
+static INTL_CX: FormatContext = FormatContext::new(&INTL_HOST);
 
 /// Folds everything written into one number.
 struct Fold(u64);
@@ -133,6 +222,15 @@ fn arg(k: u64, text: &str) -> Arg<'_> {
 
 /// Loads the host's catalog and formats every message with `registry`.
 pub fn run(registry: &Registry) -> u32 {
+    run_in(registry, &CX)
+}
+
+/// [`run`] over the `intl` harnesses' host, which has a number formatter.
+pub fn run_intl(registry: &Registry) -> u32 {
+    run_in(registry, &INTL_CX)
+}
+
+fn run_in(registry: &Registry, cx: &FormatContext) -> u32 {
     let Some(bytes) = input(INPUT_CATALOG) else {
         return 1;
     };
@@ -151,7 +249,7 @@ pub fn run(registry: &Registry) -> u32 {
         arg(kinds >> 6, text),
         arg(kinds >> 9, text),
     ];
-    let f = Formatter::new(&cat, registry, &CX);
+    let f = Formatter::new(&cat, registry, cx);
     let mut fold = Fold(0);
     for i in 0..=cat.message_count() {
         let Some(id) = MsgId::new(cat.chunk(), i) else {
