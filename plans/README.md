@@ -26,7 +26,9 @@ source of truth and links to everything else.
 | — | [phase-5a-results.md](phase-5a-results.md) | the Phase 5a measurements: the pipeline on the reference workload, the `compile_str` differential, the seeded-drift corpus, the edit scenarios, B7 and B8 on the build's own catalogs, build cost, and both owner questions answered |
 | 13 | [13-phase-5b-work-order.md](13-phase-5b-work-order.md) | Phase 5b tasks (done): `mf2-macros`, the call-site types, layer L5, and what A4 decided in the doing |
 | — | [phase-5b-results.md](phase-5b-results.md) | the Phase 5b measurements: the call-site types as built, the macro and its cache, the compile-fail set, layer L5 and L5 on generated input, B5, the macro's cost, B1′ and B13 as gates |
-| 14 | [14-phase-6-work-order.md](14-phase-6-work-order.md) | **doing the work next** — Phase 6 tasks: `leptos-mf2`, `mf2-axum`, layer L6 (SSR + hydrate) |
+| 14 | [14-phase-6-work-order.md](14-phase-6-work-order.md) | Phase 6 tasks: `leptos-mf2`, `mf2-axum`, layer L6 (SSR + hydrate) |
+| — | [phase-6-results.md](phase-6-results.md) | the Phase 6 measurements: the crate and why the description types live in it, rendering and hydration, the registry and the switch, `mf2-axum`, layer L6 in Rust and in two engines, the example, the size gate — and the one exit criterion not met |
+| 15 | [15-phase-7-work-order.md](15-phase-7-work-order.md) | **doing the work next** — Phase 7 tasks: islands, CSR, lazy routes, layer L7, the dev loop |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans

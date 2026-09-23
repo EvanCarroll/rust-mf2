@@ -38,13 +38,16 @@ members = [
 # panic handler and allocator; bench/b12/check.sh), the `intl` probe, L4
 # in the browser for the `intl` build (`cargo xtask l4-web`), whose `intl`
 # features must not unify into this workspace's builds, and the
-# `datetime-intl` browser check (tools/e2e/datetime).
+# `datetime-intl` browser check (tools/e2e/datetime), conformance L6 in the
+# browser (`cargo xtask l6-web`, whose `ssr` and `hydrate` builds are
+# exclusive), and the Phase 6 example, for the same reason.
 exclude = [
     "probes",
     "fuzz",
     "bench/b12",
     "bench/intl-probe",
     "conformance/l4-web",
+    "conformance/l6-web",
     "tools/e2e/datetime",
     # An application turns on exactly one of `ssr` and `hydrate`, and cargo
     # unifies features across a workspace: the example is its own.
