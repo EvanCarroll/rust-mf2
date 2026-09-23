@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use leptos::prelude::*;
-use leptos_mf2::{RequestCatalog, Setup, Tr, TrArgs, install, markup, tr, tr_args1, tr_rich};
+use leptos_mf2::{RequestI18n, Setup, Tr, TrArgs, install, markup, tr, tr_args1, tr_rich};
 use mf2::{ArgValue, Catalog, Compiled, Dir, Function, MsgId, Registry, functions, markup_key};
 use tachys::html::attribute::AttributeValue;
 use tachys::view::RenderHtml;
@@ -45,7 +45,7 @@ fn in_request<R>(catalog: &Arc<Catalog>, body: impl FnOnce() -> R) -> R {
     installed();
     let owner = Owner::new();
     owner.with(|| {
-        provide_context(RequestCatalog(Arc::clone(catalog)));
+        RequestI18n::new(Arc::clone(catalog)).provide();
         body()
     })
 }

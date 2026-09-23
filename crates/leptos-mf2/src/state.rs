@@ -11,8 +11,8 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use mf2_catalog::{Catalog, Dir};
-use mf2_runtime::{BidiStrategy, FormatContext, Formatter, Host, Registry, TimeZone};
+use mf2_catalog::Dir;
+use mf2_runtime::{BidiStrategy, FormatContext, Host, Registry, TimeZone};
 
 use std::sync::OnceLock;
 
@@ -94,12 +94,9 @@ impl core::fmt::Debug for Setup {
     }
 }
 
-/// The installed state: [`Setup`] plus one [`FormatContext`] per bidi
-/// strategy, so that a position picks a formatter rather than building one.
+/// The installed state.
 struct Runtime {
     setup: Setup,
-    displayed: FormatContext,
-    plain: FormatContext,
 }
 
 static RUNTIME: OnceLock<Runtime> = OnceLock::new();
@@ -112,18 +109,7 @@ static RE_INSTALLED: AtomicBool = AtomicBool::new(false);
 ///
 /// A second call is ignored — the first wins, and nothing panics.
 pub fn install(setup: Setup) {
-    let context = |bidi| {
-        let mut cx = FormatContext::new(setup.host);
-        cx.bidi = bidi;
-        cx.time_zone = setup.time_zone;
-        cx
-    };
-    let runtime = Runtime {
-        setup,
-        displayed: context(BidiStrategy::Default),
-        plain: context(BidiStrategy::None),
-    };
-    if RUNTIME.set(runtime).is_err() {
+    if RUNTIME.set(Runtime { setup }).is_err() {
         RE_INSTALLED.store(true, Ordering::Relaxed);
     }
 }
@@ -172,16 +158,28 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
     locales().iter().find(|(t, _)| *t == tag).map(|(_, d)| *d)
 }
 
-/// A formatter over `catalog` for the given position.
+/// The formatting context for a position, with the request's bidi override
+/// applied if it has one.
 ///
 /// `None` before [`install`] — the one state in which nothing can be
 /// formatted, and in which every caller renders empty text rather than
-/// panicking.
-pub(crate) fn formatter_for(catalog: &Catalog, use_: TextUse) -> Option<Formatter<'_>> {
+/// panicking. It is built per format rather than cached: a `FormatContext`
+/// is a host pointer, a strategy and a time zone, and building one is
+/// cheaper than the branch that would choose between three cached ones.
+pub(crate) fn context_for(use_: TextUse, bidi: Option<BidiStrategy>) -> Option<FormatContext> {
     let runtime = RUNTIME.get()?;
-    let cx = match use_ {
-        TextUse::Displayed => &runtime.displayed,
-        TextUse::Plain => &runtime.plain,
+    let mut cx = FormatContext::new(runtime.setup.host);
+    cx.bidi = match use_ {
+        // Plain text is never isolated, whatever the request says: the marks
+        // are what makes it not plain.
+        TextUse::Plain => BidiStrategy::None,
+        TextUse::Displayed => bidi.unwrap_or(BidiStrategy::Default),
     };
-    Some(Formatter::new(catalog, runtime.setup.registry, cx))
+    cx.time_zone = runtime.setup.time_zone;
+    Some(cx)
+}
+
+/// The installed registry.
+pub(crate) fn registry() -> Option<&'static Registry> {
+    RUNTIME.get().map(|r| r.setup.registry)
 }

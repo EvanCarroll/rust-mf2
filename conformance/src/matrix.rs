@@ -239,6 +239,8 @@ pub const HARNESSED: &[Column] = &[
     Column::L4d,
     Column::L5,
     Column::L5d,
+    Column::L6,
+    Column::L6d,
 ];
 
 #[cfg(test)]

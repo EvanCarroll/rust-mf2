@@ -20,7 +20,7 @@ use crate::ledger::{Cell, DegradedKind, Ledger, Via};
 use crate::matrix::{Column, HARNESSED};
 use crate::spec::{DATA_MODEL_SCHEMA, spec_path};
 use crate::suite::{Suite, SuiteTest};
-use crate::{l1, l2, l3, l4, l5};
+use crate::{l1, l2, l3, l4, l5, l6};
 
 /// What the harnesses need beyond the suite: the data model's JSON Schema.
 pub struct Harness {
@@ -91,6 +91,7 @@ impl Results {
 fn default_outcome(column: Column, test: &SuiteTest) -> DefaultOutcome {
     match column {
         Column::L5d => l5::check_default(test),
+        Column::L6d => l6::check_default(test),
         _ => l4::check_default(test),
     }
 }
@@ -116,14 +117,14 @@ impl Harness {
             Column::L3 => Some(l3::check(test)),
             Column::L4 => Some(l4::check(test)),
             Column::L5 => Some(l5::check(test)),
-            Column::L4d | Column::L5d => Some(match default_outcome(column, test) {
+            Column::L6 => Some(l6::check(test)),
+            Column::L4d | Column::L5d | Column::L6d => Some(match default_outcome(column, test) {
                 DefaultOutcome::Pass => Ok(()),
                 DefaultOutcome::Degraded(kind, detail) => {
                     Err(format!("degraded: {}: {detail}", kind.as_str()))
                 }
                 DefaultOutcome::Fail(e) => Err(e),
             }),
-            _ => None,
         };
         match catch_unwind(AssertUnwindSafe(run)) {
             Ok(outcome) => outcome,

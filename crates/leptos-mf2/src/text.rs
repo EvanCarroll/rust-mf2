@@ -204,9 +204,23 @@ pub(crate) fn with_text<D: Description, R>(
     use_: TextUse,
     body: impl FnOnce(&str) -> R,
 ) -> R {
-    let Some(f) = state::formatter_for(catalog, use_) else {
+    format_with(description, catalog, use_, None, None, body)
+}
+
+/// The one formatting call: everything above it decides *what* to format and
+/// *with what*, and this decides nothing.
+fn format_with<D: Description, R>(
+    description: &D,
+    catalog: &Catalog,
+    use_: TextUse,
+    registry: Option<&'static mf2_runtime::Registry>,
+    bidi: Option<mf2_runtime::BidiStrategy>,
+    body: impl FnOnce(&str) -> R,
+) -> R {
+    let (Some(cx), Some(installed)) = (state::context_for(use_, bidi), state::registry()) else {
         return body("");
     };
+    let f = Formatter::new(catalog, registry.unwrap_or(installed), &cx);
     match f.simple(description.msg_id()) {
         Some(text) => body(text),
         None => with_scratch(|buf| {
@@ -226,8 +240,15 @@ pub(crate) fn with_active_text<D: Description, R>(
     use_: TextUse,
     body: impl FnOnce(&str) -> R,
 ) -> R {
-    match catalog::active() {
-        Some(catalog) => with_text(description, &catalog, use_, body),
+    match catalog::current() {
+        Some(cx) => format_with(
+            description,
+            cx.catalog(),
+            use_,
+            cx.registry(),
+            cx.bidi(),
+            body,
+        ),
         None => body(""),
     }
 }

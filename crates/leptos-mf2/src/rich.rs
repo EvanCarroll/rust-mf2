@@ -30,11 +30,21 @@ use crate::markup::{FlatHandler, NestingHandler};
 use crate::state::{self, TextUse};
 use crate::tr::{MarkupHandler, TrRich};
 
-/// The fragment `rich` renders to against `catalog`.
-pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
-    let Some(formatter) = state::formatter_for(catalog, TextUse::Displayed) else {
+/// The fragment `rich` renders to against `catalog`, with the request's own
+/// registry and bidi strategy if it set any.
+pub(crate) fn fragment_with(
+    rich: &TrRich,
+    catalog: &Catalog,
+    registry: Option<&'static mf2_runtime::Registry>,
+    bidi: Option<mf2_runtime::BidiStrategy>,
+) -> Vec<AnyView> {
+    let (Some(cx), Some(installed)) = (
+        state::context_for(TextUse::Displayed, bidi),
+        state::registry(),
+    ) else {
         return Vec::new();
     };
+    let formatter = mf2_runtime::Formatter::new(catalog, registry.unwrap_or(installed), &cx);
     let mut builder = Builder {
         rich,
         text: String::new(),
@@ -46,10 +56,15 @@ pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
     builder.finish()
 }
 
-/// The fragment against whatever catalog this render reads.
+/// The fragment `rich` renders to against `catalog`, as installed.
+pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
+    fragment_with(rich, catalog, None, None)
+}
+
+/// The fragment against whatever this render reads.
 pub(crate) fn active_fragment(rich: &TrRich) -> Vec<AnyView> {
-    match crate::catalog::active() {
-        Some(catalog) => fragment(rich, &catalog),
+    match crate::catalog::current() {
+        Some(cx) => fragment_with(rich, cx.catalog(), cx.registry(), cx.bidi()),
         None => Vec::new(),
     }
 }

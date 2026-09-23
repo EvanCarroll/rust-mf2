@@ -116,7 +116,7 @@ pub use error::LoadError;
 /// The server's catalogs and per-request locale (§5, §6).
 #[cfg(feature = "ssr")]
 pub use catalog::{
-    CatalogEntry, RequestCatalog, catalog, catalog_entries, catalog_file, catalog_name,
+    CatalogEntry, RequestI18n, catalog, catalog_entries, catalog_file, catalog_name,
     default_catalog, install_catalogs, provide_locale,
 };
 

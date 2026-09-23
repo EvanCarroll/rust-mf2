@@ -393,7 +393,9 @@ impl SubPartSink for SubParts<'_> {
     }
 }
 
-fn value_text(v: &Value<'_>) -> String {
+/// An option value as text, the way `expParts` writes it — shared with
+/// layer L6, which records the options a markup part carries.
+pub fn value_text(v: &Value<'_>) -> String {
     match v {
         Value::Int(n) => n.to_string(),
         Value::Number(n) => {

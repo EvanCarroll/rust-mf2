@@ -136,13 +136,58 @@ pub use store::{
     install_catalogs,
 };
 
-/// The negotiated locale of one request, in the request's `Owner`.
+/// What one request formats with, in its `Owner`.
 ///
-/// `mf2-axum` provides it from `additional_context`; it must be passed to
-/// **every** `leptos_axum` `_with_context` entry point (§5).
+/// The catalog is the whole of it for an ordinary application, and
+/// `mf2-axum` provides that from `additional_context` — it must be passed to
+/// **every** `leptos_axum` `_with_context` entry point (§5). The other two
+/// exist because something does need them:
+///
+/// * `registry` — a process that serves two applications, and conformance
+///   L6, which formats the same suite with the full registry and again with
+///   the default one;
+/// * `bidi` — the suite's per-test `bidiIsolation`, and an application that
+///   wants a subtree rendered without the isolating marks (§9).
 #[cfg(feature = "ssr")]
 #[derive(Clone)]
-pub struct RequestCatalog(pub Arc<Catalog>);
+pub struct RequestI18n {
+    catalog: Arc<Catalog>,
+    registry: Option<&'static mf2_runtime::Registry>,
+    bidi: Option<mf2_runtime::BidiStrategy>,
+}
+
+#[cfg(feature = "ssr")]
+impl RequestI18n {
+    /// This request renders `catalog`, with everything else as installed.
+    #[must_use]
+    pub fn new(catalog: Arc<Catalog>) -> RequestI18n {
+        RequestI18n {
+            catalog,
+            registry: None,
+            bidi: None,
+        }
+    }
+
+    /// …with another registry than the installed one.
+    #[must_use]
+    pub fn with_registry(mut self, registry: &'static mf2_runtime::Registry) -> RequestI18n {
+        self.registry = Some(registry);
+        self
+    }
+
+    /// …with another bidi strategy for *displayed* text. Plain positions
+    /// (`prop:value`, `to_string()`) are unaffected: they are never isolated.
+    #[must_use]
+    pub fn with_bidi(mut self, bidi: mf2_runtime::BidiStrategy) -> RequestI18n {
+        self.bidi = Some(bidi);
+        self
+    }
+
+    /// Installs it for this request.
+    pub fn provide(self) {
+        reactive_graph::owner::provide_context(self);
+    }
+}
 
 /// Provides the catalog of `tag` for this request; the source locale's if
 /// `tag` was not built. Returns the tag actually used.
@@ -154,7 +199,7 @@ pub fn provide_locale(tag: &str) -> &'static str {
         .map(|(t, _)| *t);
     let tag = found.unwrap_or_else(state::source_locale);
     if let Some(c) = catalog(tag) {
-        reactive_graph::owner::provide_context(RequestCatalog(c));
+        RequestI18n::new(c).provide();
     }
     tag
 }
@@ -164,9 +209,59 @@ pub fn provide_locale(tag: &str) -> &'static str {
 #[cfg(feature = "ssr")]
 #[must_use]
 pub fn active() -> Option<Arc<Catalog>> {
-    match reactive_graph::owner::use_context::<RequestCatalog>() {
-        Some(RequestCatalog(c)) => Some(c),
-        None => default_catalog(),
+    current().map(|c| c.catalog)
+}
+
+/// Everything one format needs, resolved in **one** context lookup: doing it
+/// per field would walk the owner chain twice for every rendered node.
+#[cfg(feature = "ssr")]
+pub(crate) fn current() -> Option<RequestI18n> {
+    match reactive_graph::owner::use_context::<RequestI18n>() {
+        Some(cx) => Some(cx),
+        None => default_catalog().map(RequestI18n::new),
+    }
+}
+
+/// The same on the client, where the catalog is a `thread_local!` and there
+/// is nothing to override: one application, one registry, one page.
+#[cfg(not(feature = "ssr"))]
+pub(crate) fn current() -> Option<Resolved> {
+    active().map(|catalog| Resolved { catalog })
+}
+
+/// The client's resolved state.
+#[cfg(not(feature = "ssr"))]
+pub(crate) struct Resolved {
+    catalog: Arc<Catalog>,
+}
+
+#[cfg(not(feature = "ssr"))]
+impl Resolved {
+    pub(crate) fn catalog(&self) -> &Catalog {
+        &self.catalog
+    }
+
+    pub(crate) fn registry(&self) -> Option<&'static mf2_runtime::Registry> {
+        None
+    }
+
+    pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
+        None
+    }
+}
+
+#[cfg(feature = "ssr")]
+impl RequestI18n {
+    pub(crate) fn catalog(&self) -> &Catalog {
+        &self.catalog
+    }
+
+    pub(crate) fn registry(&self) -> Option<&'static mf2_runtime::Registry> {
+        self.registry
+    }
+
+    pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
+        self.bidi
     }
 }
 

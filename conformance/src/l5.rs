@@ -51,8 +51,16 @@ struct Crate {
     is_dyn: fn(&str) -> bool,
 }
 
+/// A call site's description, as the **render** layer takes it: the same
+/// three shapes, with the locale crate forgotten (layer L6).
+pub(crate) enum Description {
+    Tr(mf2::Tr),
+    Args(mf2::TrArgs),
+    Dyn(mf2::TrDyn),
+}
+
 /// The three shapes a call site can have, erased across the four crates.
-enum Case {
+pub(crate) enum Case {
     EnUs(mf2_l5_en_us::Case),
     Und(mf2_l5_und::Case),
     Fr(mf2_l5_fr::Case),
@@ -60,6 +68,39 @@ enum Case {
 }
 
 impl Case {
+    /// The description itself, for a layer that renders rather than formats.
+    pub(crate) fn description(&self) -> Description {
+        macro_rules! lower {
+            ($c:expr) => {
+                match $c {
+                    mf2_l5_en_us::Case::Tr(t) => Description::Tr(*t),
+                    mf2_l5_en_us::Case::Args(t) => Description::Args(t.clone()),
+                    mf2_l5_en_us::Case::Dyn(t) => Description::Dyn(t.clone()),
+                }
+            };
+        }
+        // The four crates' `Case` enums are the same shape — one file,
+        // `include!`d — but they are four types, so this is four arms.
+        match self {
+            Case::EnUs(c) => lower!(c),
+            Case::Und(c) => match c {
+                mf2_l5_und::Case::Tr(t) => Description::Tr(*t),
+                mf2_l5_und::Case::Args(t) => Description::Args(t.clone()),
+                mf2_l5_und::Case::Dyn(t) => Description::Dyn(t.clone()),
+            },
+            Case::Fr(c) => match c {
+                mf2_l5_fr::Case::Tr(t) => Description::Tr(*t),
+                mf2_l5_fr::Case::Args(t) => Description::Args(t.clone()),
+                mf2_l5_fr::Case::Dyn(t) => Description::Dyn(t.clone()),
+            },
+            Case::Ar(c) => match c {
+                mf2_l5_ar::Case::Tr(t) => Description::Tr(*t),
+                mf2_l5_ar::Case::Args(t) => Description::Args(t.clone()),
+                mf2_l5_ar::Case::Dyn(t) => Description::Dyn(t.clone()),
+            },
+        }
+    }
+
     fn write(&self, f: &Formatter<'_>, out: &mut dyn mf2::Sink, errs: &mut dyn mf2::ErrorSink) {
         match self {
             Case::EnUs(c) => c.write(f, out, errs),
@@ -190,6 +231,23 @@ fn check_rejected(test: &SuiteTest, krate: &Crate) -> Result<(), String> {
             "the build refused {id} with {got:?}, expected {want:?}"
         ))
     }
+}
+
+/// The call site of `test`, its catalog and the registry its corpus needs —
+/// what a layer above L5 renders with.
+pub(crate) fn inputs(test: &SuiteTest) -> Result<(Case, Catalog, &'static Registry), String> {
+    let Some(krate) = krate(test) else {
+        return Err(format!("no L5 crate for locale {:?}", test.locale));
+    };
+    let id = id(test);
+    let Some(case) = (krate.case)(&id) else {
+        return Err(format!(
+            "no call site for {id}: the build did not carry it into the corpus"
+        ));
+    };
+    let catalog = Catalog::new((krate.catalog)().to_vec(), (krate.manifest_hash)())
+        .map_err(|e| format!("the L5 catalog of {} does not load: {e:?}", krate.locale))?;
+    Ok((case, catalog, (krate.registry)()))
 }
 
 /// Formats the test's call site against its crate's catalog, as a record
