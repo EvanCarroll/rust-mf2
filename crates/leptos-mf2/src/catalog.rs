@@ -41,10 +41,30 @@ mod store {
     use super::{Arc, Catalog, LoadError, Vec, read, state};
     use std::sync::OnceLock;
 
-    /// `(tag, published file name, catalog)`.
-    type Entry = (&'static str, &'static str, Arc<Catalog>);
+    /// One locale, as the server holds it: what to serve, under what name,
+    /// and what to render with.
+    pub struct CatalogEntry {
+        /// The BCP 47 tag.
+        pub tag: &'static str,
+        /// The content-hashed file name the build published it under.
+        pub file: &'static str,
+        /// The bytes, for serving — the same ones the client validates.
+        pub bytes: &'static [u8],
+        /// The parsed catalog, shared by every request in this locale.
+        pub catalog: Arc<Catalog>,
+    }
 
-    static STORE: OnceLock<Vec<Entry>> = OnceLock::new();
+    impl core::fmt::Debug for CatalogEntry {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            f.debug_struct("CatalogEntry")
+                .field("tag", &self.tag)
+                .field("file", &self.file)
+                .field("bytes", &self.bytes.len())
+                .finish_non_exhaustive()
+        }
+    }
+
+    static STORE: OnceLock<Vec<CatalogEntry>> = OnceLock::new();
 
     /// Parses and stores the generated `CATALOGS` —
     /// `(tag, file name, bytes)`. Call it once, after
@@ -57,7 +77,12 @@ mod store {
     ) -> Result<(), LoadError> {
         let mut parsed = Vec::with_capacity(catalogs.len());
         for (tag, file, bytes) in catalogs {
-            parsed.push((*tag, *file, read(bytes.to_vec())?));
+            parsed.push(CatalogEntry {
+                tag,
+                file,
+                bytes,
+                catalog: read(bytes.to_vec())?,
+            });
         }
         let _ = STORE.set(parsed);
         Ok(())
@@ -69,21 +94,31 @@ mod store {
         let store = STORE.get()?;
         store
             .iter()
-            .find(|(t, _, _)| *t == tag)
-            .map(|(_, _, c)| Arc::clone(c))
+            .find(|e| e.tag == tag)
+            .map(|e| Arc::clone(&e.catalog))
     }
 
     /// The immutable file name `tag`'s catalog is published under — the
     /// preload link's URL, and what `/i18n/<tag>` resolves to.
     #[must_use]
     pub fn catalog_name(tag: &str) -> Option<&'static str> {
-        let store = STORE.get()?;
-        store.iter().find(|(t, _, _)| *t == tag).map(|(_, n, _)| *n)
+        STORE.get()?.iter().find(|e| e.tag == tag).map(|e| e.file)
+    }
+
+    /// The bytes published under `file`, for a server answering
+    /// `/i18n/<file>`.
+    #[must_use]
+    pub fn catalog_file(file: &str) -> Option<&'static [u8]> {
+        STORE
+            .get()?
+            .iter()
+            .find(|e| e.file == file)
+            .map(|e| e.bytes)
     }
 
     /// Every locale that has a catalog, in the order the build wrote them.
     #[must_use]
-    pub fn catalog_locales() -> &'static [(&'static str, &'static str, Arc<Catalog>)] {
+    pub fn catalog_entries() -> &'static [CatalogEntry] {
         STORE.get().map_or(&[], Vec::as_slice)
     }
 
@@ -96,7 +131,10 @@ mod store {
 }
 
 #[cfg(feature = "ssr")]
-pub use store::{catalog, catalog_locales, catalog_name, default_catalog, install_catalogs};
+pub use store::{
+    CatalogEntry, catalog, catalog_entries, catalog_file, catalog_name, default_catalog,
+    install_catalogs,
+};
 
 /// The negotiated locale of one request, in the request's `Owner`.
 ///

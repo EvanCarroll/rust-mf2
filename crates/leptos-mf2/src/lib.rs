@@ -52,6 +52,10 @@ mod tr;
 mod boot;
 #[cfg(feature = "leptos")]
 mod catalog;
+/// The page's own i18n furniture: the preload link, the catalog map, the
+/// `hreflang` block and the reference locale switcher (§9).
+#[cfg(feature = "leptos")]
+pub mod components;
 #[cfg(feature = "leptos")]
 mod convert;
 #[cfg(feature = "leptos")]
@@ -59,6 +63,15 @@ mod error;
 /// Everything that names tachys, one module per supported tachys line.
 #[cfg(feature = "leptos")]
 pub mod glue;
+#[cfg(feature = "leptos")]
+pub use components::{
+    AlternateLinks, CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang,
+};
+
+/// The names the page carries, shared by the shell and the boot.
+#[cfg(feature = "leptos")]
+pub mod links;
+
 #[cfg(feature = "leptos")]
 mod registry;
 #[cfg(feature = "leptos")]
@@ -70,7 +83,7 @@ mod text;
 
 pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
 pub use dynamic::{TrDyn, tr_dyn};
-pub use markup::markup;
+pub use markup::{Handler, IntoMarkupHandler, markup};
 pub use tr::{
     MarkupHandler, Tr, TrArgs, TrRich, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3,
     tr_args4, tr_rich,
@@ -79,7 +92,7 @@ pub use tr::{
 /// The view closure a rich call site writes, and the flat handler
 /// conformance L6 compares against `expParts`.
 #[cfg(feature = "leptos")]
-pub use markup::{Flat, FlatHandler, IntoMarkupHandler, NestingHandler};
+pub use markup::{Flat, FlatHandler, NestingHandler};
 
 #[cfg(feature = "leptos")]
 mod signal;
@@ -103,8 +116,8 @@ pub use error::LoadError;
 /// The server's catalogs and per-request locale (§5, §6).
 #[cfg(feature = "ssr")]
 pub use catalog::{
-    RequestCatalog, catalog, catalog_locales, catalog_name, default_catalog, install_catalogs,
-    provide_locale,
+    CatalogEntry, RequestCatalog, catalog, catalog_entries, catalog_file, catalog_name,
+    default_catalog, install_catalogs, provide_locale,
 };
 
 /// The client's active catalog and its change notifier.
@@ -114,8 +127,7 @@ pub use catalog::{changed, set_active};
 /// The client's boot and locale switch (§6).
 #[cfg(any(feature = "hydrate", feature = "csr"))]
 pub use boot::{
-    CATALOG_LINK_LOCALE_ATTR, CATALOG_LINK_REL, CATALOG_ROUTE, catalog_url, document_locale,
-    load_page_catalog, preload_locale, set_document_lang, set_locale,
+    catalog_url, document_locale, load_page_catalog, preload_locale, set_document_lang, set_locale,
 };
 
 /// Booting an application that hydrates (§6).

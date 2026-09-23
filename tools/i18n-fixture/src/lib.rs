@@ -84,7 +84,14 @@ mod tests {
             }
         }
 
-        let rich = tr!("help", kbd = Element("kbd"), b = Element("b"));
+        // A handler the caller wrote goes through `Handler`, in every build:
+        // whether something else in the workspace turned the `leptos` feature
+        // on must not change what a call site compiles to (04 §2.1).
+        let rich = tr!(
+            "help",
+            kbd = mf2::Handler(Element("kbd")),
+            b = mf2::Handler(Element("b"))
+        );
         for name in ["kbd", "b"] {
             let handler = rich.handler(name).expect("every markup name is handled");
             let handler = handler

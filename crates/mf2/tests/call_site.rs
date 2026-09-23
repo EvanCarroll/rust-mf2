@@ -7,8 +7,8 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use mf2::{
     ArgSource, ArgValue, Compiled, CustomValue, Date, DateTimeValue, FormatContext, Formatter,
-    Function, MarkupHandler, Measure, MeasureUnit, MsgId, Number, Registry, Time, Tr, functions,
-    markup, tr, tr_args_n, tr_args1, tr_args2, tr_dyn, tr_rich,
+    Function, Handler, MarkupHandler, Measure, MeasureUnit, MsgId, Number, Registry, Time, Tr,
+    functions, markup, tr, tr_args_n, tr_args1, tr_args2, tr_dyn, tr_rich,
 };
 
 static FUNCTIONS: [(&str, &dyn Function); 4] = [
@@ -209,8 +209,8 @@ fn a_rich_call_site_finds_its_handler_by_the_name_the_catalog_gives() {
     let description = tr_rich(
         mf2::tr_args0(Compiled::ID),
         vec![
-            (mf2::markup_key("b"), markup(Element("b"))),
-            (mf2::markup_key("kbd"), markup(Element("kbd"))),
+            (mf2::markup_key("b"), markup(Handler(Element("b")))),
+            (mf2::markup_key("kbd"), markup(Handler(Element("kbd")))),
         ]
         .into_boxed_slice(),
     );

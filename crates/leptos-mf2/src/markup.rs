@@ -20,23 +20,52 @@ use alloc::sync::Arc;
 
 use crate::tr::MarkupHandler;
 
-/// `markup(h)` without the `leptos` feature: a handler the caller wrote.
-#[cfg(not(feature = "leptos"))]
-#[must_use]
-pub fn markup<H: MarkupHandler + 'static>(handler: H) -> Arc<dyn MarkupHandler> {
-    Arc::new(handler)
-}
-
-/// `markup(h)` with the `leptos` feature: a view closure, a [`Flat`] closure,
-/// or a handler already erased.
-#[cfg(feature = "leptos")]
+/// `markup(h)` — the one signature, in both builds. What `h` may be is what
+/// [`IntoMarkupHandler`] is implemented for, and *that* is the feature's
+/// business.
 #[must_use]
 pub fn markup<H: IntoMarkupHandler>(handler: H) -> Arc<dyn MarkupHandler> {
     handler.into_markup_handler()
 }
 
+/// What [`markup`] accepts.
+///
+/// | Form | Available | What it is |
+/// |---|---|---|
+/// | [`Handler(h)`](Handler) | always | a [`MarkupHandler`] the caller wrote |
+/// | `Arc<dyn MarkupHandler>` | always | one already erased — `markup(markup(h))` is the identity |
+/// | `\|children\| view! { … }` | `leptos` | a **nesting** handler, called once per `{#name}…{/name}` pair |
+/// | [`Flat(f)`](Flat) over `&MarkupPart` | `leptos` | a **flat** handler, called once per markup part with no pairing |
+///
+/// The impls do not overlap, so a rich call site writes the closure and
+/// nothing else. A caller's own handler type goes through `Handler` in
+/// **both** builds rather than bare in one of them: the same source has to
+/// compile whether or not something else in the workspace turned `leptos`
+/// on.
+pub trait IntoMarkupHandler {
+    /// The erased handler a description carries.
+    fn into_markup_handler(self) -> Arc<dyn MarkupHandler>;
+}
+
+/// A [`MarkupHandler`] the caller wrote, on its way through [`markup`].
+pub struct Handler<H>(pub H);
+
+impl<H: MarkupHandler + 'static> IntoMarkupHandler for Handler<H> {
+    fn into_markup_handler(self) -> Arc<dyn MarkupHandler> {
+        Arc::new(self.0)
+    }
+}
+
+/// A handler already erased — `markup(markup(h))` is the identity, which is
+/// what lets a call site pass one it built itself.
+impl IntoMarkupHandler for Arc<dyn MarkupHandler> {
+    fn into_markup_handler(self) -> Arc<dyn MarkupHandler> {
+        self
+    }
+}
+
 #[cfg(feature = "leptos")]
-pub use self::leptos_markup::{Flat, FlatHandler, IntoMarkupHandler, NestingHandler};
+pub use self::leptos_markup::{Flat, FlatHandler, NestingHandler};
 
 #[cfg(feature = "leptos")]
 mod leptos_markup {
@@ -46,16 +75,8 @@ mod leptos_markup {
     use mf2_runtime::MarkupPart;
     use tachys::view::any_view::{AnyView, IntoAny};
 
+    use super::IntoMarkupHandler;
     use crate::tr::MarkupHandler;
-
-    /// What [`markup`](super::markup) accepts with the `leptos` feature.
-    ///
-    /// The three impls do not overlap, so a call site writes the closure and
-    /// nothing else: `|c| view! { <kbd>{c}</kbd> }`.
-    pub trait IntoMarkupHandler {
-        /// The erased handler the description carries.
-        fn into_markup_handler(self) -> Arc<dyn MarkupHandler>;
-    }
 
     /// A **nesting** handler: called with the span's inner fragment as its
     /// children, once per `{#name}…{/name}` pair (`plans/04` §7).
@@ -93,14 +114,6 @@ mod leptos_markup {
 
     impl MarkupHandler for FlatHandler {
         fn as_any(&self) -> &dyn Any {
-            self
-        }
-    }
-
-    /// A handler already erased — `markup(markup(h))` is the identity, which
-    /// is what lets a call site pass one it built itself.
-    impl IntoMarkupHandler for Arc<dyn MarkupHandler> {
-        fn into_markup_handler(self) -> Arc<dyn MarkupHandler> {
             self
         }
     }

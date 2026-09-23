@@ -71,13 +71,14 @@ mod error;
 /// says why). Without the `leptos` feature nothing of Leptos is compiled,
 /// so `mf2::Tr` is the Leptos-free description §2.1 describes.
 pub use leptos_mf2::{
-    ArgList, ArgSource, ArgValue, DateTimeValue, MarkupHandler, Text, Tr, TrArgs, TrDyn, TrRich,
-    markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
+    ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler, Text,
+    Tr, TrArgs, TrDyn, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3,
+    tr_args4, tr_dyn, tr_rich,
 };
 
 /// The Leptos layer (`plans/04-leptos-integration.md` §§3–7).
 #[cfg(feature = "leptos")]
-pub use leptos_mf2::{Flat, FlatHandler, IntoMarkupHandler, NestingHandler, SignalArg, signal_arg};
+pub use leptos_mf2::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
 
 /// The Leptos layer in full, for what this facade does not name one by one.
 #[cfg(feature = "leptos")]

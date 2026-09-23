@@ -1,0 +1,20 @@
+[package]
+name = "mf2-axum"
+description = "Locale negotiation and catalog serving for an Axum + Leptos application: an ordered list of typed sources and sinks, Content-Language and Vary, and /i18n/* served immutable from the catalogs embedded in the server binary."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum.workspace = true
+brotli.workspace = true
+flate2.workspace = true
+http.workspace = true
+leptos.workspace = true
+leptos-mf2 = { workspace = true, features = ["ssr"] }
+leptos_axum.workspace = true
+mf2-catalog.workspace = true
+
+[lints]
+workspace = true

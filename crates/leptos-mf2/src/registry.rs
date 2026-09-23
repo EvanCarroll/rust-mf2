@@ -265,7 +265,7 @@ pub(crate) fn replace(index: u32, desc: Stored) {
             *stored = desc;
             *args = args_effect(target, stored);
             text::with_text(stored, &catalog, target.text_use(), |text| {
-                target.write(text)
+                target.write(text);
             });
         }
     });
@@ -321,7 +321,9 @@ fn args_effect(target: &Target, desc: &Stored) -> Option<RenderEffect<()>> {
     Some(RenderEffect::new(move |_| {
         if let Some(catalog) = catalog::active() {
             let use_ = target.text_use();
-            text::with_text(&desc, &catalog, use_, |text| target.write(text));
+            text::with_text(&desc, &catalog, use_, |text| {
+                target.write(text);
+            });
         }
     }))
 }

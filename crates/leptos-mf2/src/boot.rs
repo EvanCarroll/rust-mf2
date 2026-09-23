@@ -48,14 +48,8 @@ use web_sys::{Document, Element, Response};
 use mf2_catalog::Dir;
 
 use crate::error::LoadError;
+use crate::links::{CATALOG_LINK_LOCALE_ATTR, CATALOG_ROUTE, PRELOAD_ATTR};
 use crate::{catalog, registry, state};
-
-/// The `rel` of the per-locale catalog links a shell may emit.
-pub const CATALOG_LINK_REL: &str = "mf2-catalog";
-/// The attribute that carries a catalog link's locale tag.
-pub const CATALOG_LINK_LOCALE_ATTR: &str = "data-mf2-locale";
-/// The route that redirects a tag to its immutable catalog URL.
-pub const CATALOG_ROUTE: &str = "/i18n/";
 
 fn document() -> Option<Document> {
     web_sys::window()?.document()
@@ -83,7 +77,8 @@ pub fn catalog_url(tag: &str) -> Option<String> {
     let document = document()?;
     // The preload link of the locale the page was rendered in.
     if document_locale().as_deref() == Some(tag)
-        && let Ok(Some(link)) = document.query_selector("link[data-mf2][href]")
+        && let Ok(Some(link)) =
+            document.query_selector(&["link[", PRELOAD_ATTR, "][href]"].concat())
         && let Some(href) = link.get_attribute("href")
     {
         return Some(href);
