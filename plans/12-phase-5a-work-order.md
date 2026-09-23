@@ -156,5 +156,6 @@ Checked at the close of the phase; the figures behind each are in
 
 **What Phase 5b inherits**: a `b12-generated` harness pair, so that B1′ and
 B13 on the generated module are a gate CI runs rather than the hand-edited
-one-off §A10 reports; and cargo-leptos, whose double build P6 brings into the
-tree.
+one-off §A10 reports — carried as **A10** of
+[13](13-phase-5b-work-order.md), with its own exit line; and cargo-leptos,
+whose double build P6 brings into the tree.

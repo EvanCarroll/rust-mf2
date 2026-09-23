@@ -91,11 +91,26 @@ Expansion, by shape:
 expansion never hard-codes a crate name and downstream crates need no direct
 dependency on ours.
 
-`ArgValue` (in `leptos-mf2`) is the **owned, `'static`** call-site value —
+`ArgValue` is the **owned, `'static`** call-site value —
 `Str(Oco<'static, str>)`, `Int`, `Float`, `Decimal`, `DateTime`, `Custom`, and
 `Reactive(Signal<ArgValue>)` for signal-valued arguments. It is borrowed into the
 runtime's `Arg<'a>` ([03-runtime](03-runtime.md) §2) at format time; the runtime
 never sees a signal.
+
+**Where these types live** (owner, 2026-09-23; Phase 5b's owner question 1,
+[13](13-phase-5b-work-order.md)). `Tr`, `TrArgs`, `TrRich` and `ArgValue` are
+a **Leptos-free core in the facade** — `mf2::Tr`, `mf2::TrArgs`,
+`mf2::ArgValue` — formatting against a catalog the caller supplies, so a
+server, a test and `mf2-cli` can use them with no Leptos in the tree. L5
+needs them in Phase 5b, before `leptos-mf2` exists.
+
+`leptos-mf2` (Phase 6) then *adds* rendering, the catalog context and the
+reactive argument; it does **not** re-declare `ArgValue`. `Reactive` is
+therefore not a variant of the core enum: the core carries `Custom`, and
+`leptos-mf2` supplies the signal through it (`impl From<Signal<T>> for
+ArgValue`), which is what keeps one type across both crates. Phase 5b's A1
+fixes whether that extension point is the `Custom` variant or a trait, and
+records it here.
 
 No closure, no `String`, no `Signal`, no `HashMap`, no id string and no argument
 names are emitted at the call site.

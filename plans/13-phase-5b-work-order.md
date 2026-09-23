@@ -48,20 +48,20 @@ per-call-site budget B5 on a 2,000-site build.
 * **The `intl` option** changes nothing in the macro: it is a client runtime
   choice. L5 runs natively (as L4's native run), where the Rust path is used.
 
-## Owner question (open)
+## Owner question (answered)
 
-1. **Where the call-site types live.** 04 §2 places `Tr`, `TrArgs`,
-   `TrRich` and `ArgValue` in `leptos-mf2` (Phase 6), whose `ArgValue` has a
-   `Reactive(Signal<…>)` variant. L5 needs them before Leptos: the
-   recommendation is a Leptos-free core in the facade (`mf2::Tr`,
-   `TrArgs`, `ArgValue` without `Reactive`, formatting against a catalog
-   the caller supplies — `to_string` on a server, in tests, in the CLI),
-   with `leptos-mf2` adding rendering, the reactive argument and the
-   catalog context in Phase 6 — which needs `ArgValue` to be extensible
-   (a `Custom` variant carrying the reactive value, or a trait) rather than
-   re-declared. Decide in A1, recorded in 04 §2, before the macro emits paths.
+1. **Where the call-site types live** — **answered** (owner, 2026-09-23):
+   a **Leptos-free core in the facade**. `mf2::Tr`, `mf2::TrArgs`,
+   `mf2::TrRich` and `mf2::ArgValue`, formatting against a catalog the
+   caller supplies, so a server, a test and `mf2-cli` need no Leptos.
+   `leptos-mf2` (Phase 6) *adds* rendering, the catalog context and the
+   reactive argument, and does not re-declare `ArgValue`: `Reactive` is not
+   a variant of the core enum, and the signal arrives through the
+   extension point. Recorded in [04](04-leptos-integration.md) §2.
+   **A1 still decides one thing**: whether that extension point is the
+   `Custom` variant or a trait — and records it in 04 §2.
 
-## Part A — tasks (A1 first; A2–A5 in order; A6–A9 as their inputs exist)
+## Part A — tasks (A1 first; A2–A5 in order; A6–A10 as their inputs exist)
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -74,6 +74,7 @@ per-call-site budget B5 on a 2,000-site build.
 | **A7** Macro cost and tooling | Macro time and `cargo check` overhead for 2,000 expansions against P0.9 (0.12–0.45 s macro time, +0.2–0.3 s `cargo check`); rust-analyzer expands `tr!` and reports its errors at the id (P0.9's `ra-check.sh`); the relocation and inline-mode scenarios re-run on the real crates. | within P0.9's figures, or the difference explained and accepted by the owner |
 | **A8** Generated input | L5 on generated messages: `l4gen`'s generator writes a corpus of generated messages into one generated crate whose tests call `tr!` and compare with L4's runner on the same catalog. | a generated corpus of ≥ 10,000 messages clean |
 | **A9** The Phase 6 work order | Written from Phase 5b's findings (call-site types, what the macro emits, B5's measured figure) into `plans/14-phase-6-work-order.md`. | written |
+| **A10** `b12-generated` (inherited from Phase 5a) | A `bench/b12` harness pair driven by the **generated** module rather than a hand-written registry: the same corpus with and without a feature it does not use, and with and without a gated function. Phase 5a measured B1′ = +0 B and B13 = 13,599 B avoided by editing `tools/i18n-fixture`'s corpus by hand ([phase-5a-results](phase-5a-results.md) §A10); this turns those one-offs into a gate. | both deltas reproduce Phase 5a's figures and CI fails on a regression |
 
 ## Exit (master plan §9, P5b)
 
@@ -85,4 +86,6 @@ per-call-site budget B5 on a 2,000-site build.
 - [ ] B5 met on the 2,000-site build (or restated with the owner)
 - [ ] rust-analyzer expands the macro; macro overhead within P0.9's threshold
 - [ ] owner question 1 answered and recorded in 04 §2
+- [ ] `b12-generated` green as a gate, reproducing Phase 5a's B1′ = +0 B and
+      B13 = 13,599 B (A10)
 - [ ] `plans/phase-5b-results.md` and the Phase 6 work order written
