@@ -265,6 +265,24 @@ template forwards exactly **one** feature to its own crates, and the
 emitter wrote a separator *and* a trailing comma per entry, so one entry
 produced valid TOML by luck and two produced `,,`. `tr-view` forwards two.
 
+**One thing the unfinished run already says.** `cargo xtask b5 --view` was
+started and, after six hours on this machine, had completed three of its
+six builds — where the `String`-path run of the same six took about half an
+hour. The difference is concentrated in one place: compiling the
+1,860-site `tr-view` application crate took **over two hours** on its own,
+against minutes for `tr` at the same scale. The two differ in exactly one
+thing, which is whether a call site hands tachys a `String` or a
+description, so what the compiler is doing with those hours is
+instantiating tachys' view machinery per site.
+
+That is a **compile-time** observation on a loaded machine, not a
+benchmark, and it is not a byte of wasm. But it is the first direct
+evidence for the hook P0.1 asked Phase 6 to propose — a tachys leaf that
+lets a description reuse `&str`'s state and async path would remove exactly
+this instantiation, and the case for it can now be made from something
+measured rather than from a size delta alone. Whoever finishes A7 should
+record the wall-clock beside the bytes.
+
 **This is the one exit criterion Phase 6 does not meet as written**, and it
 is stated here rather than quietly restated: B5 is met on the half of the
 mix Phase 5b measured, and unmeasured on the other half. [15](15-phase-7-work-order.md)
