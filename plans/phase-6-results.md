@@ -19,7 +19,7 @@ commit that moves the marker is the one that closes A7.
 | the browser run is in CI (or a nightly job CI gates on), in at least two engines | **met** — the nightly `l6-web` job, Chromium and Firefox |
 | B5 met on the full mix, or restated with the owner | **not met** — §A7: measured on the `String` half (Phase 5b's 12.6 B gz), unmeasured on the view half |
 | owner questions 1–3 answered and recorded in 04 | **met** — §6 (question 1), §9 (question 2), §10 (question 3) |
-| the size gate runs in CI | **met** — `cargo xtask size`, the nightly `b5` job |
+| the size gate runs in CI | **met** — `cargo xtask size`, the nightly `b5` job; the whole app measures **45,348 B gz** against the 105,120 the ambition allows (§A9) |
 | `plans/phase-6-results.md` and the Phase 7 work order written | **met** — this file and [15](15-phase-7-work-order.md) |
 
 The sixth column of the ledger is green either way: what A7 owes is a
@@ -305,6 +305,37 @@ per site), and their sum at the reference scale against 06 §3's whole-app
 ambition of `30 KB gz + sites × 40 B gz`. It reuses `cargo xtask b5`'s six
 builds rather than making its own, and it has replaced the b5 step in the
 nightly workflow.
+
+```
+cargo xtask size
+```
+
+| workload | template | bindgen gz | opt raw | opt gz |
+|---|---|---:|---:|---:|
+| 1,860 sites | **tr** | 703,909 | 2,711,962 | 730,770 |
+| 1,860 sites | idlit | 661,117 | 2,711,750 | 685,422 |
+| 1,860 sites | dummy | 627,889 | 2,443,553 | 643,781 |
+| 3,720 sites | **tr** | 1,216,163 | 5,054,309 | 1,280,443 |
+| 3,720 sites | idlit | 1,151,813 | 5,099,586 | 1,211,659 |
+| 3,720 sites | dummy | 1,090,423 | 4,553,491 | 1,130,174 |
+
+| Gate | Measured | Limit | Verdict |
+|---|---:|---:|---|
+| **B1**, fixed | 21,912 B gz | 30,720 | **met** |
+| **B5**, per call site | 12.6 B gz | 40 | **met** |
+| **whole app**, 1,860 sites | 45,348 B gz | 105,120 | **met** |
+
+Against the `dummy` bound: 34.0 B gz per site, 23,709 B gz fixed.
+
+**The whole app is 43 % of the ambition** — 45,348 B gz where 06 §3 budgeted
+105,120, against 525 KB gz for the reference application it is the i18n of.
+That is the claim the project has been making since Phase 0, measured end to
+end for the first time rather than added up from parts.
+
+Both marginals are Phase 5b's to the decimal (12.6 and 34.0), and the fixed
+part moved by **+15 B gz** (21,897 → 21,912) — the call-site core changing
+crates and `markup` gaining its conversion trait. Inside the budget by 8.8 KB,
+and recorded here rather than raised.
 
 ## A10 — the example
 
