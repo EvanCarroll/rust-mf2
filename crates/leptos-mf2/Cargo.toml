@@ -13,25 +13,20 @@ default = []
 # types a server, a test and `mf2-cli` format with (§2.1). The two live in
 # one crate because Rust's orphan rule requires it — `impl Render for Tr`
 # needs either the trait or the type to be ours, and the trait is tachys'.
-leptos = ["dep:leptos", "dep:tachys", "dep:reactive_graph", "dep:oco_ref"]
+leptos = [
+    "dep:leptos",
+    "dep:tachys",
+    "dep:reactive_graph",
+    "dep:oco_ref",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:web-sys",
+]
 # The three Leptos targets. An application turns exactly one on and forwards
 # it to every leptos-aware dependency, as cargo-leptos does.
 ssr = ["leptos", "leptos/ssr", "tachys/ssr"]
-hydrate = [
-    "leptos",
-    "leptos/hydrate",
-    "tachys/hydrate",
-    "dep:web-sys",
-    "dep:js-sys",
-    "dep:wasm-bindgen",
-]
-csr = [
-    "leptos",
-    "leptos/csr",
-    "dep:web-sys",
-    "dep:js-sys",
-    "dep:wasm-bindgen",
-]
+hydrate = ["leptos", "leptos/hydrate", "tachys/hydrate", "dep:any_spawner", "dep:wasm-bindgen-futures"]
+csr = ["leptos", "leptos/csr", "dep:wasm-bindgen-futures"]
 # Strategy C of D7 (`plans/04-leptos-integration.md` §4): no live update — a
 # locale switch is a cookie and a navigation. Rendered nodes then register
 # nothing, which is the natural fit for islands.
@@ -44,15 +39,28 @@ mark-fallback-lang = []
 [dependencies]
 mf2-catalog.workspace = true
 mf2-runtime.workspace = true
+thiserror.workspace = true
 
 leptos = { workspace = true, optional = true }
 tachys = { workspace = true, optional = true }
 reactive_graph = { workspace = true, optional = true }
 oco_ref = { workspace = true, optional = true }
 
+any_spawner = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true }
+
+# A dev-dependency cycle (cargo allows exactly this one): the tests compile a
+# catalog with `mf2::compile_str` and format it through the native host, which
+# is how a server uses this crate.
+[dev-dependencies]
+mf2 = { workspace = true, features = ["compile", "host-std"] }
+
+[[test]]
+name = "render"
+required-features = ["ssr"]
 
 [package.metadata.docs.rs]
 features = ["leptos", "ssr"]

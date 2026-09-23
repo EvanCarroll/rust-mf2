@@ -120,6 +120,8 @@ leptos = { version = "0.8.20", default-features = false }
 tachys = { version = "0.2.18", default-features = false }
 reactive_graph = { version = "0.2.14", default-features = false }
 oco_ref = "0.2.1"
+any_spawner = "0.3.0"
+wasm-bindgen-futures = "0.4.78"
 # The client half: the hydration cursor's nodes, the catalog fetch, one
 # console diagnostic. No `#[wasm_bindgen]` item of ours, so
 # `forbid(unsafe_code)` holds (04 §10).

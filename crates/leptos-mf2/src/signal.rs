@@ -58,7 +58,7 @@ where
     ArgValue::source(SignalArg::new(signal))
 }
 
-/// `From` for each of reactive_graph's readable signals, so that a call site
+/// `From` for each of `reactive_graph`'s readable signals, so that a call site
 /// writes the signal itself. Each is one instantiation per value type.
 macro_rules! signal_arg_from {
     ($($ty:ident),* $(,)?) => {$(

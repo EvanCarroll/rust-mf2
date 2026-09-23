@@ -36,7 +36,7 @@ pub enum TextUse {
 
 /// The application's own half of a formatter, installed once
 /// ([`install`]).
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 #[non_exhaustive]
 pub struct Setup {
     /// The handlers this corpus uses — the generated `registry()`.
@@ -83,6 +83,17 @@ impl Setup {
     }
 }
 
+impl core::fmt::Debug for Setup {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Setup")
+            .field("manifest_hash", &self.manifest_hash)
+            .field("source_locale", &self.source_locale)
+            .field("locales", &self.locales)
+            .field("time_zone", &self.time_zone)
+            .finish_non_exhaustive()
+    }
+}
+
 /// The installed state: [`Setup`] plus one [`FormatContext`] per bidi
 /// strategy, so that a position picks a formatter rather than building one.
 struct Runtime {
@@ -101,7 +112,7 @@ static RE_INSTALLED: AtomicBool = AtomicBool::new(false);
 ///
 /// A second call is ignored — the first wins, and nothing panics.
 pub fn install(setup: Setup) {
-    let mut context = |bidi| {
+    let context = |bidi| {
         let mut cx = FormatContext::new(setup.host);
         cx.bidi = bidi;
         cx.time_zone = setup.time_zone;
@@ -161,20 +172,16 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
     locales().iter().find(|(t, _)| *t == tag).map(|(_, d)| *d)
 }
 
-/// Runs `body` with a formatter over `catalog` for the given position.
+/// A formatter over `catalog` for the given position.
 ///
-/// `None` before [`install`] — which is the one state in which nothing can
-/// be formatted, and in which every caller renders empty text rather than
+/// `None` before [`install`] — the one state in which nothing can be
+/// formatted, and in which every caller renders empty text rather than
 /// panicking.
-pub(crate) fn with_formatter<R>(
-    catalog: &Catalog,
-    use_: TextUse,
-    body: impl FnOnce(&Formatter<'_>) -> R,
-) -> Option<R> {
+pub(crate) fn formatter_for(catalog: &Catalog, use_: TextUse) -> Option<Formatter<'_>> {
     let runtime = RUNTIME.get()?;
     let cx = match use_ {
         TextUse::Displayed => &runtime.displayed,
         TextUse::Plain => &runtime.plain,
     };
-    Some(body(&Formatter::new(catalog, runtime.setup.registry, cx)))
+    Some(Formatter::new(catalog, runtime.setup.registry, cx))
 }
