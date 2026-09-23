@@ -11,11 +11,11 @@ status, the commit that moved it says why (master plan §11).
 |---|---|
 | L5 100 % all features, every L5d cell recorded, none `xfail` | **met** — L5 485/485, L5d 416/485 with 69 documented degradations, the same 69 tests as L4d |
 | the `trybuild` compile-fail set green | **met** — seven cases, every `.stderr` reviewed |
-| B5 met on the 2,000-site build | *(A6 — filled in below)* |
-| rust-analyzer expands the macro; macro overhead within P0.9's threshold | *(A7)* |
+| B5 met on the 2,000-site build | **met** — 12.6 B gz per call site against `idlit`, 34.0 against the `dummy` bound, budget ≤ 40 (§A6) |
+| rust-analyzer expands the macro; macro overhead within P0.9's threshold | **met** — 0.122 s per 2,000 expansions, one manifest read, `cargo check` inside the noise; rust-analyzer expands every call site and reports the macro's own errors at the id (§A7) |
 | owner question 1 answered and recorded in 04 §2 | **met** — [04](04-leptos-integration.md) §2.1 |
 | `b12-generated` green as a gate | **met** — B1′ = +0 B, B13 = +13,573 B, in CI (§A10) |
-| results and the Phase 6 work order written | *(this file; A9)* |
+| results and the Phase 6 work order written | **met** — this file and [14](14-phase-6-work-order.md) |
 
 ## A1 — the call-site types
 
@@ -155,6 +155,39 @@ lets the optimiser merge sites a real application keeps apart — P0.1 measured
 it 11.4 B gz per site under `idlit`, which is why `idlit` is the baseline and
 `dummy` only the bound).
 
+```
+cargo xtask b5
+```
+
+| workload | template | bindgen gz | opt raw | opt gz |
+|---|---|---:|---:|---:|
+| 1,860 sites | **tr** | 703,857 | 2,711,962 | 730,765 |
+| 1,860 sites | idlit | 661,117 | 2,711,750 | 685,422 |
+| 1,860 sites | dummy | 627,889 | 2,443,553 | 643,781 |
+| 3,720 sites | **tr** | 1,216,124 | 5,054,309 | 1,280,448 |
+| 3,720 sites | idlit | 1,151,813 | 5,099,586 | 1,211,659 |
+| 3,720 sites | dummy | 1,090,423 | 4,553,491 | 1,130,174 |
+
+| baseline | marginal B gz/site | fixed B gz | budget |
+|---|---:|---:|---|
+| **`idlit`** | **12.6** | 21,897 | ≤ 40 — **met** |
+| `dummy` | 34.0 | 23,694 | (the bound) |
+
+**Read these two numbers together.** The `dummy` bound, 34.0, is directly
+comparable to P0.1's **35.7** — `dummy` means the same thing in both, and the
+two agree within 5 % on entirely different code, which is the corroboration
+that the method carried over. The `idlit` figure is *lower* than P0.1's 24.5
+because the baseline is not the same one: P0.1's `idlit` put a `&'static str`
+in the view positions, so its delta also carried what tachys costs around a
+`String` leaf, while this one produces a `String` in the same positions as
+`tr` does, and that cost cancels. What is left — 12.6 B gz — is the
+description, its lowering and the call into the formatter, and nothing else.
+
+Both are within the budget with room, and the fixed part (21.9 KB gz: the
+runtime, the reader, the call-site library and the generic instantiations)
+belongs to B1, where 06 §3's whole-app ambition accounts for it. Phase 6's A7
+re-measures the full mix with the real leaf, which is where P0.1's 24.5 sits.
+
 ## A10 — B1′ and B13 as a gate
 
 `cargo xtask b12-generated`, in CI beside the other B12 checks. Phase 5a took
@@ -175,3 +208,63 @@ measured. **B13 = B − A = +13,573 B**: what a corpus that does not use the
 measure functions does not pay. Phase 5a measured +13,599 on a slightly
 different corpus A; 26 B apart, 0.2 %. The gate holds B1′ at exactly 0 and
 B13 within 10 % of Phase 5a's figure, and prints both.
+
+## A7 — what the macro costs, and what an editor does with it
+
+Measured on the 1,860-site application `cargo xtask b5` generates — the same
+app, the same corpus, the same crates — against **`direct`**, a template that
+writes out exactly what `tr!` expands to. The two apps differ in one thing:
+the macro. (P0.9 used the same control; the scripts are one-off, the
+templates are in the tree.)
+
+| | Phase 5b | P0.9's threshold |
+|---|---|---|
+| The macro's own time, 1,860 expansions | **0.114 s** (0.122 s per 2,000) | 0.12–0.45 s per 2,000 |
+| Manifest reads for those 1,860 expansions | **1** | 1 |
+| `cargo check`, warm, every source touched, against `direct` | **+0.11 s** median, **−0.31 s** by minimum — inside this machine's run-to-run noise | +0.2–0.3 s |
+| The same with the manifest inlined | +0.045 s over the path mode | +0.5 s per 2,000 |
+
+**The first measurement found a defect.** The macro started at **0.839 s** per
+1,860 expansions — 0.90 s per 2,000, twice P0.9's upper figure. Timing an
+expansion that parsed but did nothing else (99 ms) placed the cost in the
+cache, and it was the hit itself: `map.get(&key)` then `m.hash() == hash`,
+where `Manifest::hash` **re-serializes the whole corpus** to compute it. Every
+call site was re-hashing a 1,600-message manifest. The cache now stores the
+hash it verified when it read the file, so a hit is a `u64` comparison, and
+the same measurement gives 0.114 s — 7× faster, and barely above the
+parse-only floor.
+
+The inline mode is ten times cheaper than P0.9's figure for it because the
+manifest literal is kept as the compiler handed it over and only turned into
+bytes on a cache miss; P0.9's amendment assumed it would be stringified per
+site.
+
+**rust-analyzer.** `rust-analyzer diagnostics .` on the 200-site `tr`
+application: **no** `unresolved-macro-call`, `unresolved-proc-macro` or
+`macro-error` — the build script ran, the baked path resolved, the
+proc-macro server expanded every call site. The negative control (a misspelt
+id, and an argument the message does not have) is reported as
+``unknown message id `this-id-does-not-exist` `` **at the call site**, which
+is the whole point of doing the checking in the macro.
+
+On *this* repository the same command found four `macro-error`s — and they
+were ours, though not `tr!`'s: each L5 crate reached its shared source with
+`include!("../../shared.rs")`, and rust-analyzer will not load a file outside
+the crate's own directory. The generator now writes that file into `OUT_DIR`
+beside the others, and the four are gone. What remains are 57
+`unresolved-macro-call`s in `mf2-locale-data`, every one of them an ICU4X
+baked-data macro (`icu_datetime_data::impl_datetime_names_*!`) — a
+rust-analyzer limitation that predates this phase and has nothing to do with
+`tr!`.
+
+**Relocation.** The fallback of P0.9 — look for the same
+`build/<pkg>-<hash>/out/manifest.mf2m` under the `-L dependency=…`
+directories — could not be provoked through cargo 1.98: moving the target
+directory, copying it and deleting the original, and hand-editing the baked
+path to another machine's all made cargo **rerun the i18n crate's build
+script**, which writes the path afresh. So on this cargo the stale-path case
+does not arise from a relocated target directory; the fallback is for an
+environment that *restores* build-script outputs without rerunning them
+(remote execution, a build cache), which this machine cannot reproduce. It is
+now unit-tested directly instead (`relocated_in`), both argument spellings,
+with the hash check still the thing that makes a wrong file impossible.

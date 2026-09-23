@@ -310,8 +310,12 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
         ) else {
             continue;
         };
-        let delta_small = tr_small as f64 - b_small as f64;
-        let delta_big = tr_big as f64 - b_big as f64;
+        // Every size here is a few megabytes; `f64` carries them exactly.
+        #[allow(clippy::cast_precision_loss)]
+        let (delta_small, delta_big) = (
+            tr_small as f64 - b_small as f64,
+            tr_big as f64 - b_big as f64,
+        );
         #[allow(clippy::cast_precision_loss)]
         let marginal = (delta_big - delta_small) / span as f64;
         #[allow(clippy::cast_precision_loss)]

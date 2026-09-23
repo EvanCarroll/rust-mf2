@@ -51,25 +51,43 @@ const TEST_FUNCTIONS: [(&str, &str); 3] = [
     ("test:select", "::mf2_l4_runner::test_functions::SELECT"),
 ];
 
+/// What every L5 crate is beyond its generated parts, written into `OUT_DIR`
+/// beside them.
+///
+/// It is one file in the repository and a copy per crate in `OUT_DIR`, rather
+/// than an `include!` reaching out of the crate's own directory:
+/// rust-analyzer refuses to load a file outside it (`failed to load file
+/// ../../shared.rs`), and an editor that cannot expand the crate is no use to
+/// anyone working on L5.
+const SHARED: &str = include_str!("../../shared.rs");
+
 /// Anything that stopped the generation.
 pub type Error = Box<dyn std::error::Error>;
 
-/// One of the suite's tests, as this crate needs it.
-struct Test {
-    id: String,
-    src: String,
-    /// The `params`, in the order written.
-    params: Vec<(String, Param)>,
+/// One message to build a corpus from and to call: the suite's tests, and —
+/// through [`build`] — the generated ones of `l4gen`.
+pub struct Message {
+    /// Its id in the corpus.
+    pub id: String,
+    /// The MF2 source.
+    pub src: String,
+    /// The arguments to call it with, in the order written.
+    pub params: Vec<(String, Param)>,
     /// Whether the spec refuses the message (so it cannot be in a corpus).
-    invalid: bool,
+    pub invalid: bool,
 }
 
-/// A `params` value, as the call site will pass it.
-enum Param {
+/// An argument value, as the call site will pass it.
+pub enum Param {
+    /// A string.
     Str(String),
+    /// An integer.
     Int(i64),
+    /// A float.
     Float(f64),
-    /// A typed `datetime` parameter: its literal, parsed at run time.
+    /// An exact decimal as `number-literal` text.
+    Decimal(String),
+    /// A date/time literal, parsed at run time.
     DateTime(String),
     /// A boolean or anything else no function takes: an application value
     /// with no conversions, as L4's runner passes it.
@@ -83,6 +101,7 @@ impl Param {
             Param::Str(s) => rust_str(s),
             Param::Int(n) => format!("{n}i64"),
             Param::Float(x) => format!("{x:?}f64"),
+            Param::Decimal(s) => format!("::mf2::ArgValue::decimal({})", rust_str(s)),
             Param::DateTime(s) => format!("date_time({})", rust_str(s)),
             Param::Opaque => "opaque()".to_owned(),
         }
@@ -124,12 +143,20 @@ pub fn generate(root: &Path, out: &Path, locale: &str) -> Result<(), Error> {
         collect(&extra_dir, &extra_dir, "suite.extra", locale, &mut tests)?;
     }
     tests.sort_by(|a, b| a.id.cmp(&b.id));
+    build(out, locale, &tests, "")
+}
 
-    let (invalid, valid): (Vec<&Test>, Vec<&Test>) = tests.iter().partition(|t| t.invalid);
+/// Builds an L5 crate's corpus and call sites from `messages`, whatever they
+/// are: the suite's tests ([`generate`]) or `l4gen`'s generated ones. `extra`
+/// is appended to `cases.rs` verbatim, for whatever else the crate needs to
+/// know about them.
+pub fn build(out: &Path, locale: &str, messages: &[Message], extra: &str) -> Result<(), Error> {
+    write_if_changed(&out.join("shared.rs"), SHARED)?;
+    let (invalid, valid): (Vec<&Message>, Vec<&Message>) = messages.iter().partition(|t| t.invalid);
     let manifest = build_corpus(out, locale, &valid)?;
     let rejected = build_rejected(out, locale, &invalid)?;
     let gated = build_gated(out, locale)?;
-    write_cases(out, locale, &valid, &manifest, &rejected, &gated)?;
+    write_cases(out, locale, &valid, &manifest, &rejected, &gated, extra)?;
     Ok(())
 }
 
@@ -140,7 +167,7 @@ fn collect(
     dir: &Path,
     prefix: &str,
     locale: &str,
-    out: &mut Vec<Test>,
+    out: &mut Vec<Message>,
 ) -> Result<(), Error> {
     let mut entries: Vec<PathBuf> = std::fs::read_dir(dir)
         .map_err(|e| format!("{}: {e}", dir.display()))?
@@ -195,7 +222,7 @@ fn collect(
             let invalid = errors
                 .iter()
                 .any(|e| *e == "syntax-error" || DATA_MODEL_ERRORS.contains(e));
-            out.push(Test {
+            out.push(Message {
                 id: format!("{prefix}.{stem}.t{index:03}"),
                 src: src.to_owned(),
                 params: params(&resolved),
@@ -260,7 +287,11 @@ fn features() -> Features {
 
 /// Writes the corpus and builds it: catalogs, manifest and the generated
 /// module, into `out`.
-fn build_corpus(out: &Path, locale: &str, tests: &[&Test]) -> Result<mf2_build::Manifest, Error> {
+fn build_corpus(
+    out: &Path,
+    locale: &str,
+    tests: &[&Message],
+) -> Result<mf2_build::Manifest, Error> {
     let root = out.join("corpus");
     let locales = root.join("locales");
     std::fs::create_dir_all(&locales)?;
@@ -287,7 +318,7 @@ fn build_corpus(out: &Path, locale: &str, tests: &[&Test]) -> Result<mf2_build::
 fn build_rejected(
     out: &Path,
     locale: &str,
-    tests: &[&Test],
+    tests: &[&Message],
 ) -> Result<BTreeMap<String, Vec<String>>, Error> {
     let mut kinds: BTreeMap<String, Vec<String>> = BTreeMap::new();
     if tests.is_empty() {
@@ -365,10 +396,11 @@ fn build_gated(out: &Path, locale: &str) -> Result<BTreeMap<String, String>, Err
 fn write_cases(
     out: &Path,
     locale: &str,
-    tests: &[&Test],
+    tests: &[&Message],
     manifest: &mf2_build::Manifest,
     rejected: &BTreeMap<String, Vec<String>>,
     gated: &BTreeMap<String, String>,
+    extra: &str,
 ) -> Result<(), Error> {
     let mut s = String::with_capacity(64 * 1024);
     let _ = writeln!(
@@ -469,11 +501,19 @@ fn write_cases(
         let _ = writeln!(s, "    ({}, {}),", rust_str(id), rust_str(detail));
     }
     let _ = writeln!(s, "];");
+    if !extra.is_empty() {
+        let _ = writeln!(s, "\n{extra}");
+    }
 
-    let path = out.join("cases.rs");
-    if std::fs::read_to_string(&path).is_ok_and(|old| old == s) {
+    write_if_changed(&out.join("cases.rs"), &s)
+}
+
+/// Writes `text` unless it is already there — so that a build that changes
+/// nothing leaves every timestamp alone.
+fn write_if_changed(path: &Path, text: &str) -> Result<(), Error> {
+    if std::fs::read_to_string(path).is_ok_and(|old| old == text) {
         return Ok(());
     }
-    std::fs::write(&path, s)?;
+    std::fs::write(path, text)?;
     Ok(())
 }

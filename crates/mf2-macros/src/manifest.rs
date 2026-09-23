@@ -8,6 +8,7 @@
 //! to something else is *reported*, never used.
 
 use std::collections::HashMap;
+use std::ffi::OsString;
 use std::path::{Component, Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
@@ -24,7 +25,12 @@ pub(crate) enum Source {
     Bytes(proc_macro::Literal),
 }
 
-type Cache = Mutex<HashMap<String, Arc<Manifest>>>;
+/// The manifests this process has read, by the path they were baked with —
+/// **with the hash they were verified against**, so that a cache hit is a
+/// `u64` comparison. Asking the manifest for its hash again would
+/// re-serialize the whole corpus on every expansion, which is most of what a
+/// call site would cost (2,000 of them: 0.84 s against 0.15 s).
+type Cache = Mutex<HashMap<String, (u64, Arc<Manifest>)>>;
 
 fn cache() -> &'static Cache {
     static CACHE: OnceLock<Cache> = OnceLock::new();
@@ -38,8 +44,8 @@ pub(crate) fn load(source: &Source, hash: u64) -> Result<Arc<Manifest>, Manifest
         Source::Bytes(_) => format!("inline:{hash:016x}"),
     };
     let mut map = cache().lock().unwrap_or_else(PoisonError::into_inner);
-    if let Some(m) = map.get(&key)
-        && m.hash() == hash
+    if let Some((verified, m)) = map.get(&key)
+        && *verified == hash
     {
         return Ok(Arc::clone(m));
     }
@@ -57,7 +63,7 @@ pub(crate) fn load(source: &Source, hash: u64) -> Result<Arc<Manifest>, Manifest
         });
     }
     let m = Arc::new(m);
-    map.insert(key, Arc::clone(&m));
+    map.insert(key, (hash, Arc::clone(&m)));
     Ok(m)
 }
 
@@ -100,10 +106,16 @@ fn read(source: &Source) -> Result<(Vec<u8>, PathBuf), ManifestError> {
 /// still verifies the hash, so a file found this way can never be the wrong
 /// corpus.
 fn relocated(baked: &str) -> Option<PathBuf> {
+    relocated_in(baked, std::env::args_os())
+}
+
+/// [`relocated`], over the arguments given — so that it can be tested
+/// without being a rustc.
+fn relocated_in(baked: &str, args: impl IntoIterator<Item = OsString>) -> Option<PathBuf> {
     let comps: Vec<Component<'_>> = Path::new(baked).components().collect();
     let build = comps.iter().rposition(|c| c.as_os_str() == "build")?;
     let suffix: PathBuf = comps.get(build..)?.iter().collect();
-    let mut args = std::env::args_os();
+    let mut args = args.into_iter();
     while let Some(a) = args.next() {
         let v = if a == "-L" { args.next()? } else { a };
         let v = v.to_string_lossy();
@@ -118,4 +130,66 @@ fn relocated(baked: &str) -> Option<PathBuf> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::relocated_in;
+    use std::ffi::OsString;
+
+    /// A target directory restored somewhere else: the baked path is dead,
+    /// and the same `build/<pkg>-<hash>/out/manifest.mf2m` is under one of
+    /// the `-L dependency=` directories rustc was given.
+    #[test]
+    fn a_relocated_manifest_is_found_under_the_dependency_paths() {
+        let root = std::env::temp_dir().join(format!("mf2-reloc-{}", std::process::id()));
+        let out = root
+            .join("wasm32-unknown-unknown")
+            .join("debug")
+            .join("build")
+            .join("my-i18n-0123456789abcdef")
+            .join("out");
+        std::fs::create_dir_all(&out).expect("mkdir");
+        let manifest = out.join("manifest.mf2m");
+        std::fs::write(&manifest, b"not read by this test").expect("write");
+
+        let baked = concat!(
+            "/ci/cache/elsewhere/target/wasm32-unknown-unknown/debug/",
+            "build/my-i18n-0123456789abcdef/out/manifest.mf2m"
+        );
+        let deps = root
+            .join("wasm32-unknown-unknown")
+            .join("debug")
+            .join("deps");
+        let args =
+            |list: &[&str]| -> Vec<OsString> { list.iter().map(|a| OsString::from(*a)).collect() };
+
+        // As rustc receives them: `-L` and its value as two arguments…
+        let found = relocated_in(
+            baked,
+            args(&[
+                "rustc",
+                "-L",
+                &format!("dependency={}", deps.display()),
+                "--edition=2024",
+            ]),
+        );
+        assert_eq!(found.as_deref(), Some(manifest.as_path()));
+
+        // …and as one.
+        let found = relocated_in(
+            baked,
+            args(&["rustc", &format!("-Ldependency={}", deps.display())]),
+        );
+        assert_eq!(found.as_deref(), Some(manifest.as_path()));
+
+        // Nothing to find: no guess is made.
+        assert_eq!(relocated_in(baked, args(&["rustc"])), None);
+        assert_eq!(
+            relocated_in("/nowhere/manifest.mf2m", args(&["rustc"])),
+            None
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
 }

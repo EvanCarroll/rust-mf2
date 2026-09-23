@@ -13,6 +13,6 @@
 
 mf2::include_generated!();
 
-include!("../../shared.rs");
+include!(concat!(env!("OUT_DIR"), "/shared.rs"));
 
 include!(concat!(env!("OUT_DIR"), "/cases.rs"));

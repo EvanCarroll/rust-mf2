@@ -82,12 +82,33 @@ pub const LOCALES: [&str; 18] = [
     "en-US",
 ];
 
-/// The case for `seed`: the message is `Generator::new(grammar,
-/// seed).generate("message")` (so `generated.rs`'s case `n` and this one
-/// start from the same message), steered with a second stream of the same
-/// seed. `Err` only if the generated text does not parse (a parser bug that
-/// `generated.rs` reports) or the writer fails.
-pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
+/// A generated message, before any catalog: what the seed produced and how
+/// to format it. Layer L5 needs exactly this — it compiles the source
+/// through `mf2-build` into a corpus of its own — and it costs none of the
+/// locale data and catalog writing [`case`] does.
+#[derive(Clone, Debug)]
+pub struct GeneratedMessage {
+    /// The steered message, serialized.
+    pub source: String,
+    /// Whether the steered model is free of data-model errors.
+    pub valid: bool,
+    /// The locale the seed chose.
+    pub locale: &'static str,
+    /// The bidi strategy the seed chose.
+    pub bidi: BidiStrategy,
+    /// The arguments to format it with — some names deliberately left unset,
+    /// some spelled in another normalization form.
+    pub args: Vec<(String, ArgSpec)>,
+}
+
+/// The message for `seed`, without compiling it.
+pub fn message(grammar: &Grammar, seed: u64) -> Result<GeneratedMessage, String> {
+    steered(grammar, seed).map(|(_, m)| m)
+}
+
+/// The steered model and everything derived from the seed. [`case`] goes on
+/// to compile it; [`message`] stops here.
+fn steered(grammar: &Grammar, seed: u64) -> Result<(Message<'static>, GeneratedMessage), String> {
     let src = Generator::new(grammar, seed).generate("message");
     let parsed = mf2_syntax::parse_model(&src);
     let Some(model) = parsed.message else {
@@ -121,6 +142,33 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
         };
         args.push((name.to_owned(), value));
     }
+    Ok((
+        model,
+        GeneratedMessage {
+            source,
+            valid,
+            locale,
+            bidi,
+            args,
+        },
+    ))
+}
+
+/// The case for `seed`: the message is `Generator::new(grammar,
+/// seed).generate("message")` (so `generated.rs`'s case `n` and this one
+/// start from the same message), steered with a second stream of the same
+/// seed. `Err` only if the generated text does not parse (a parser bug that
+/// `generated.rs` reports) or the writer fails.
+pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
+    let (model, generated) = steered(grammar, seed)?;
+    let GeneratedMessage {
+        source,
+        valid,
+        locale,
+        bidi,
+        args,
+    } = generated;
+    let analysis = mf2_syntax::analyze(&model);
     let slots: Vec<&str> = analysis.externals.iter().map(|n| &*n.nfc).collect();
     let mut options = WriterOptions::new(locale, direction(locale).map_err(|e| e.to_string())?);
     options.cldr_version = Some(mf2_locale_data::CLDR_VERSION);

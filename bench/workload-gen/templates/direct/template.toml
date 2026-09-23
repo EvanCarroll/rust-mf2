@@ -1,0 +1,61 @@
+# Template `direct`: the `tr` template with the macro taken out — every call
+# site is the construction `tr!` would have expanded to, written by the
+# generator instead. It exists for one measurement (plans/13 A7): the
+# difference between checking this app and checking `app-tr` is what the
+# proc-macro costs a build, with the type-checking of the expansion, the
+# support module, the i18n crate and everything else held equal.
+#
+# `{{index}}` is the rank of the id in bytewise sorted order, which is what
+# the build assigns as its `MsgId` (plans/05 §3), and `{{nargs}}` picks the
+# arity-specific constructor the macro would have picked.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "direct"
+description = "The `tr` template hand-expanded: what `tr!` emits, without the macro (the A7 control)."
+support = "support.rs"
+dependencies = [
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
+    'workload-i18n = { path = "{{template_dir}}/../tr/i18n" }',
+]
+prelude = ""
+
+[features]
+hydrate = ["workload-i18n/hydrate"]
+ssr = ["workload-i18n/ssr"]
+
+[args]
+sep = ", "
+plain = 'mf2::ArgValue::from({{value}})'
+
+[deferred]
+type = "mf2::Tr"
+view = "crate::support::s({{label}})"
+string = "crate::support::s({{label}})"
+
+[site.string]
+none = 'crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32)))'
+plain = 'crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}}))'
+
+[site.child]
+none = 'move || crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32)))'
+plain = 'move || crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}}))'
+
+[site.attr]
+none = 'move || crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32)))'
+plain = 'move || crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}}))'
+
+[site.reactive_prop]
+none = 'Signal::derive(move || crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32))))'
+plain = 'Signal::derive(move || crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}})))'
+
+[site.string_prop]
+none = 'crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32)))'
+plain = 'crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}}))'
+
+[site.deferred]
+none = 'mf2::tr(mf2::MsgId::from_raw({{index}}u32))'
+
+[site.if_else]
+none = 'crate::support::s(mf2::tr(mf2::MsgId::from_raw({{index}}u32)))'
+plain = 'crate::support::s(mf2::tr_args{{nargs}}(mf2::MsgId::from_raw({{index}}u32), {{args}}))'

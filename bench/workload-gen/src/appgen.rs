@@ -368,10 +368,11 @@ fn cargo_toml(wl: &Workload, template: &Template, krate: &str) -> String {
             .features
             .get(name)
             .map(|entries| {
-                entries
-                    .iter()
-                    .map(|e| format!("{indent}{e:?},"))
-                    .collect::<String>()
+                let mut out = String::new();
+                for e in entries {
+                    let _ = write!(out, "{indent}{e:?},");
+                }
+                out
             })
             .unwrap_or_default()
     };
