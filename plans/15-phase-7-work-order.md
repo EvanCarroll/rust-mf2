@@ -73,6 +73,21 @@ whose interactive parts are islands.
 
 ## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
+**A1 has a draft.** An unbuilt, untested start on A1 is in the local
+`git stash` as "A1 islands draft" (`git stash list`; `git stash pop` to
+restore it). The owner (2026-09-23) is content for it to be reused where
+it serves A1. Before reusing it, check it for three things:
+
+* `hydrate_body` was changed to skip hydration on **any** load failure,
+  not only `ManifestMismatch`. That departs from Phase 6's behaviour, so
+  either justify it here and in [04](04-leptos-integration.md) §6 and
+  re-run the demo's browser checks, or revert it.
+* A doc link names `crate::CatalogInline`, which does not exist yet.
+* The inline catalog (`<script type="application/mf2-catalog">`, base64,
+  decoded with `atob`) needs a server-side writer in `mf2-axum` / the
+  example, a size measurement of the page bytes it adds, and a browser
+  check.
+
 | Task | Deliverable | Done when |
 |---|---|---|
 | **A1** Islands | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
