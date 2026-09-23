@@ -478,3 +478,56 @@ fn a_stray_directory_is_not_a_locale() {
         .run()
         .expect("builds once the strays are gone");
 }
+
+/// Stripping COLD drops the original spelling of a name whose written form is
+/// not its NFC form; keeping COLD preserves it (F1,
+/// `plans/02-catalog-format.md` §2.3). Both directions, because the suite has
+/// no such name and the `pipeline` fuzz target asserted the wrong one until
+/// it found `{:a\u{F9E7}b}` — U+F9E7 is a CJK compatibility ideograph whose
+/// NFC form is U+88CF.
+#[test]
+fn a_non_nfc_name_survives_only_while_cold_does() {
+    let source = "f = {:a\u{F9E7}b}\no = {$x :g opt\u{F9E7}=1}\nm = {#mk\u{F9E7}/}\n";
+    let root = corpus(
+        "non-nfc-names",
+        "source_locale = \"en\"\n",
+        &[("en", source)],
+    );
+
+    for (strip, expected) in [(false, '\u{F9E7}'), (true, '\u{88CF}')] {
+        let mut config = Config::default();
+        if strip {
+            config.catalog.strip = [mf2_build::Strip::Cold, mf2_build::Strip::Ids]
+                .into_iter()
+                .collect();
+        } else {
+            config.catalog.strip.clear();
+        }
+        let mut lints = config.lints.clone();
+        for lint in mf2_build::Lint::ALL {
+            if lint.floor() == mf2_build::Level::Allow {
+                lints.insert(*lint, mf2_build::Level::Allow);
+            }
+        }
+        config.lints = lints;
+
+        let outcome = Build::at(&root, out_dir(if strip { "nfc-strip" } else { "nfc-keep" }))
+            .config(config)
+            .run()
+            .expect("builds");
+        assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
+
+        let cat = &outcome.catalogs[0];
+        let loaded = Catalog::new(cat.bytes.clone(), outcome.manifest_hash).expect("loads");
+        for index in 0..outcome.manifest.ids.len() {
+            let msg = mf2_catalog::MsgId::from_raw(u32::try_from(index).expect("small"));
+            let decoded = mf2_catalog::decode(&loaded, msg).expect("decodes");
+            let text = mf2_syntax::serialize(&decoded).expect("serializes");
+            assert!(
+                text.contains(expected),
+                "strip={strip}: {text:?} should carry U+{:04X}",
+                expected as u32
+            );
+        }
+    }
+}
