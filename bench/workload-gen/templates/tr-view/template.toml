@@ -1,0 +1,74 @@
+# Template `tr-view`: mf2-two with the **real leaf** — a description renders
+# itself (plans/06-size-and-perf.md §3, budget B5;
+# plans/14-phase-6-work-order.md A7).
+#
+# The difference from `tr` is the view positions. `tr` formats every site to
+# a `String` through one helper, because Phase 5b had no renderer; here a
+# text child, an attribute and a component prop take the description itself,
+# which is what an application writes and what P0.1 measured at 24.5 B gz on
+# the whole mix. The `String` positions — about half of real sites (06 §2) —
+# still produce a `String`, because that is what they are for.
+#
+# Its baseline is `idlit-view`, not `idlit`: P0.1's baseline put a
+# `&'static str` in the view positions, so that the delta carries what tachys
+# costs around a non-`&str` leaf. `idlit` puts a `String` there, which is the
+# right baseline for `tr` and the wrong one for this.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "tr-view"
+description = "mf2-two with the real leaf: a description renders itself in the view positions (budget B5, the whole mix)."
+support = "support.rs"
+dependencies = [
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
+    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2" }',
+    'workload-i18n = { path = "{{template_dir}}/../tr/i18n" }',
+]
+prelude = "use workload_i18n::tr;"
+boot = "crate::support::boot();"
+
+[features]
+hydrate = ["workload-i18n/hydrate", "leptos-mf2/hydrate"]
+ssr = ["workload-i18n/ssr", "leptos-mf2/ssr"]
+
+[args]
+sep = ", "
+plain = '"{{name}}" = {{value}}'
+
+# A description is `Copy` and `const`-constructible, so a deferred label is
+# plain data — and in a view it is the leaf itself.
+[deferred]
+type = "mf2::Tr"
+view = "{{label}}"
+string = "({{label}}).to_string()"
+
+# The `String` positions: what half of real call sites need anyway.
+[site.string]
+none = 'tr!("{{id}}").to_string()'
+plain = 'tr!("{{id}}", {{args}}).to_string()'
+
+# The view positions: the description *is* the view.
+[site.child]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+
+[site.attr]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+
+# The widgets take `#[prop(into)]`, and a description converts into all three
+# of `TextProp`, `Signal<String>` and `String` — one function in the library.
+[site.reactive_prop]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+
+[site.string_prop]
+none = 'tr!("{{id}}")'
+plain = 'tr!("{{id}}", {{args}})'
+
+[site.deferred]
+none = 'tr!("{{id}}")'
+
+[site.if_else]
+none = 'tr!("{{id}}").to_string()'
+plain = 'tr!("{{id}}", {{args}}).to_string()'

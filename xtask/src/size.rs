@@ -37,15 +37,15 @@ const B5: f64 = 40.0;
 
 pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
     let dir = out.unwrap_or_else(|| root.join("target").join("size"));
-    let measured = b5::measure(root, Some(dir.clone()), keep)?;
+    let measured = b5::measure(root, Some(dir.clone()), keep, b5::Mode::String)?;
     let sites = measured
         .first()
         .map(|(sites, _)| *sites)
         .ok_or_else(|| gate("no workload was measured"))?;
 
-    let idlit = b5::delta(&measured, "idlit")
+    let idlit = b5::delta(&measured, "tr", "idlit")
         .ok_or_else(|| gate("the `tr` or `idlit` app did not build"))?;
-    let dummy = b5::delta(&measured, "dummy");
+    let dummy = b5::delta(&measured, "tr", "dummy");
 
     #[allow(clippy::cast_precision_loss)]
     let scale = sites as f64;

@@ -56,8 +56,55 @@ const SCALES: [Scale; 2] = [
     },
 ];
 
-/// The templates, in the order the table shows them.
-const TEMPLATES: [&str; 3] = ["tr", "idlit", "dummy"];
+/// Which half of the mix is being measured.
+///
+/// Phase 5b could only measure one: without a renderer every template
+/// formatted to a `String`, so the view positions cost the same on both
+/// sides of the delta and cancelled. Phase 6's `--view` measures them, with
+/// the baseline P0.1 used — a `&'static str` leaf where `tr-view` puts a
+/// description (`plans/14-phase-6-work-order.md` A7).
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Mode {
+    /// `tr` against `idlit`: the description and the `String` path.
+    String,
+    /// `tr-view` against `idlit-view`: the whole mix, view positions and all.
+    View,
+}
+
+impl Mode {
+    /// The three templates, in the order the table shows them.
+    fn templates(self) -> [&'static str; 3] {
+        match self {
+            Mode::String => ["tr", "idlit", "dummy"],
+            Mode::View => ["tr-view", "idlit-view", "dummy"],
+        }
+    }
+
+    /// What is being measured.
+    pub(crate) fn subject(self) -> &'static str {
+        self.templates()[0]
+    }
+
+    /// What it is measured against.
+    pub(crate) fn baseline(self) -> &'static str {
+        self.templates()[1]
+    }
+
+    /// Templates that live in a directory rather than being built in.
+    fn dirs(self) -> &'static [&'static str] {
+        match self {
+            Mode::String => &["tr"],
+            Mode::View => &["tr-view", "idlit-view"],
+        }
+    }
+
+    fn tag(self) -> &'static str {
+        match self {
+            Mode::String => "",
+            Mode::View => "view-",
+        }
+    }
+}
 
 /// What every application of one scale measured: the scale's real site
 /// count, and one entry per template.
@@ -72,15 +119,20 @@ pub(crate) struct Sizes {
     pub(crate) opt_gz: u64,
 }
 
-pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
-    let measured = measure(root, out, keep)?;
-    report(&measured)
+pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool, mode: Mode) -> Result<()> {
+    let measured = measure(root, out, keep, mode)?;
+    report(&measured, mode)
 }
 
 /// Builds the six applications and measures them. Shared with
 /// `cargo xtask size`, which applies the whole-app gates to the same numbers
 /// rather than building them again.
-pub(crate) fn measure(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<Measured> {
+pub(crate) fn measure(
+    root: &Path,
+    out: Option<PathBuf>,
+    keep: bool,
+    mode: Mode,
+) -> Result<Measured> {
     let out = out.unwrap_or_else(|| root.join("target").join("b5"));
     if !keep && out.exists() {
         std::fs::remove_dir_all(&out).map_err(|source| Error::IoAt {
@@ -95,11 +147,11 @@ pub(crate) fn measure(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<M
 
     let mut measured: Vec<(usize, Vec<(&str, Sizes)>)> = Vec::new();
     for scale in &SCALES {
-        let workload = out.join(format!("wl-{}", scale.sites));
-        generate(root, &workload, scale)?;
+        let workload = out.join(format!("wl-{}{}", mode.tag(), scale.sites));
+        generate(root, &workload, scale, mode)?;
         let sites = site_count(&workload)?;
         let mut sizes = Vec::new();
-        for template in TEMPLATES {
+        for template in mode.templates() {
             eprintln!("b5: building app-{template} at {sites} sites");
             sizes.push((template, build(root, &workload, template)?));
         }
@@ -109,7 +161,7 @@ pub(crate) fn measure(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<M
 }
 
 /// Generates one workload with all three applications.
-fn generate(root: &Path, workload: &Path, scale: &Scale) -> Result<()> {
+fn generate(root: &Path, workload: &Path, scale: &Scale, mode: Mode) -> Result<()> {
     if workload.join(".workload-gen").is_file() {
         eprintln!("b5: reusing {}", workload.display());
         return Ok(());
@@ -119,11 +171,17 @@ fn generate(root: &Path, workload: &Path, scale: &Scale) -> Result<()> {
         scale.sites, scale.messages
     );
     let cargo = cmd::cargo();
-    let tr = root.join("bench/workload-gen/templates/tr");
+    // A template that lives in a directory is named by its path; a built-in
+    // by its name.
+    let paths: Vec<PathBuf> = mode
+        .dirs()
+        .iter()
+        .map(|name| root.join("bench/workload-gen/templates").join(name))
+        .collect();
     let sites = scale.sites.to_string();
     let messages = scale.messages.to_string();
     let components = scale.components.to_string();
-    let args: Vec<&OsStr> = vec![
+    let mut args: Vec<&OsStr> = vec![
         OsStr::new("run"),
         OsStr::new("--release"),
         OsStr::new("--quiet"),
@@ -131,12 +189,18 @@ fn generate(root: &Path, workload: &Path, scale: &Scale) -> Result<()> {
         OsStr::new("workload-gen"),
         OsStr::new("--"),
         OsStr::new("all"),
-        OsStr::new("-t"),
-        tr.as_os_str(),
-        OsStr::new("-t"),
-        OsStr::new("idlit"),
-        OsStr::new("-t"),
-        OsStr::new("dummy"),
+    ];
+    for path in &paths {
+        args.push(OsStr::new("-t"));
+        args.push(path.as_os_str());
+    }
+    for template in mode.templates() {
+        if !mode.dirs().contains(&template) {
+            args.push(OsStr::new("-t"));
+            args.push(OsStr::new(template));
+        }
+    }
+    args.extend_from_slice(&[
         OsStr::new("-m"),
         OsStr::new(&sites),
         OsStr::new("-n"),
@@ -145,7 +209,7 @@ fn generate(root: &Path, workload: &Path, scale: &Scale) -> Result<()> {
         OsStr::new(&components),
         OsStr::new("--out"),
         workload.as_os_str(),
-    ];
+    ]);
     cmd::run_inherit(&cargo, &args, root)
 }
 
@@ -280,7 +344,11 @@ pub(crate) struct Delta {
 }
 
 /// The marginal and fixed cost against `baseline`, from two scales.
-pub(crate) fn delta(measured: &[(usize, Vec<(&str, Sizes)>)], baseline: &str) -> Option<Delta> {
+pub(crate) fn delta(
+    measured: &[(usize, Vec<(&str, Sizes)>)],
+    subject: &str,
+    baseline: &str,
+) -> Option<Delta> {
     let ((small, small_sizes), (big, big_sizes)) = measured
         .first()
         .zip(measured.get(1))
@@ -293,8 +361,8 @@ pub(crate) fn delta(measured: &[(usize, Vec<(&str, Sizes)>)], baseline: &str) ->
             .map(|(_, s)| s.opt_gz)
     };
     let (tr_small, tr_big, b_small, b_big) = (
-        find(small_sizes, "tr")?,
-        find(big_sizes, "tr")?,
+        find(small_sizes, subject)?,
+        find(big_sizes, subject)?,
         find(small_sizes, baseline)?,
         find(big_sizes, baseline)?,
     );
@@ -328,7 +396,7 @@ pub(crate) fn size_table(measured: &[(usize, Vec<(&str, Sizes)>)]) -> String {
 }
 
 /// The table, and the gate.
-fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
+fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
     let Some(((small, small_sizes), (big, big_sizes))) = measured
         .first()
         .zip(measured.get(1))
@@ -369,10 +437,10 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
     println!("\n| baseline | marginal B gz/site | fixed B gz | budget |");
     println!("|---|---:|---:|---|");
     let mut verdict = None;
-    for baseline in ["idlit", "dummy"] {
+    for baseline in [mode.baseline(), "dummy"] {
         let (Some(tr_small), Some(tr_big), Some(b_small), Some(b_big)) = (
-            find(small_sizes, "tr"),
-            find(big_sizes, "tr"),
+            find(small_sizes, mode.subject()),
+            find(big_sizes, mode.subject()),
             find(small_sizes, baseline),
             find(big_sizes, baseline),
         ) else {
@@ -388,7 +456,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
         let marginal = (delta_big - delta_small) / span as f64;
         #[allow(clippy::cast_precision_loss)]
         let fixed = delta_small - small as f64 * marginal;
-        let gate = if baseline == "idlit" {
+        let gate = if baseline == mode.baseline() {
             verdict = Some(marginal);
             format!("≤ {BUDGET:.0}")
         } else {
@@ -399,7 +467,10 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
 
     match verdict {
         Some(marginal) if marginal <= BUDGET => {
-            println!("\nb5: {marginal:.1} B gz per call site against `idlit` — within {BUDGET:.0}");
+            println!(
+                "\nb5: {marginal:.1} B gz per call site against `{}` — within {BUDGET:.0}",
+                mode.baseline()
+            );
             Ok(())
         }
         Some(marginal) => Err(Error::CommandFailed {
@@ -411,7 +482,11 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)]) -> Result<()> {
         }),
         None => Err(Error::CommandFailed {
             command: "b5".to_owned(),
-            status: "the `tr` or `idlit` app did not build".to_owned(),
+            status: format!(
+                "the `{}` or `{}` app did not build",
+                mode.subject(),
+                mode.baseline()
+            ),
             stderr: String::new(),
         }),
     }

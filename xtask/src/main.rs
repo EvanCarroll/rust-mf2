@@ -160,6 +160,11 @@ enum Command {
         /// Reuse what is already generated and built there.
         #[arg(long)]
         keep: bool,
+        /// Measure the **whole mix** instead of the `String` path: `tr-view`
+        /// against `idlit-view`, with a description rendering itself in the
+        /// view positions (plans/14-phase-6-work-order.md A7).
+        #[arg(long)]
+        view: bool,
     },
     /// Write the seed corpora of the fuzz targets: `parse` (fuzz/corpus/parse/:
     /// the suite's messages and the reference workload) and `catalog`
@@ -248,7 +253,16 @@ fn run(command: Command) -> Result<()> {
         }
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
         Command::Scenarios { keep, split } => scenarios::run(&root, keep, split),
-        Command::B5 { out, keep } => b5::run(&root, out, keep),
+        Command::B5 { out, keep, view } => b5::run(
+            &root,
+            out,
+            keep,
+            if view {
+                b5::Mode::View
+            } else {
+                b5::Mode::String
+            },
+        ),
         Command::B12Generated => b12_generated::run(&root),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {

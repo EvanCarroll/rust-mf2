@@ -1,0 +1,42 @@
+# Template `idlit-view`: the baseline for `tr-view`, and P0.1's own
+# (plans/06-size-and-perf.md §3, "Baselines").
+#
+# The same shapes as `idlit` — a short per-site literal, distinct per site,
+# so that sites stay as distinct as they are in a real application — but the
+# **view** positions hold a `&'static str` leaf rather than a `String`. That
+# is the difference that matters: the delta against `tr-view` then carries
+# what tachys costs around a non-`&str` leaf, which is what P0.1 measured at
+# 46–102 B gz per view site and attributed to tachys rather than to us.
+#
+# Arguments are dropped, as in `idlit`: passing them is part of what a call
+# site costs.
+
+name = "idlit-view"
+description = "The B5 baseline for the whole mix: a &'static str leaf in the view positions, a String elsewhere."
+support = "support.rs"
+
+[deferred]
+type = "&'static str"
+view = "{{label}}"
+string = "({{label}}).to_owned()"
+
+[site.string]
+none = 'String::from("{{index}}")'
+
+[site.child]
+none = '"{{index}}"'
+
+[site.attr]
+none = '"{{index}}"'
+
+[site.reactive_prop]
+none = 'String::from("{{index}}")'
+
+[site.string_prop]
+none = 'String::from("{{index}}")'
+
+[site.deferred]
+none = '"{{index}}"'
+
+[site.if_else]
+none = 'String::from("{{index}}")'
