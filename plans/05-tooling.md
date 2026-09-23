@@ -410,8 +410,11 @@ Measured behaviour and costs:
   catalog, so a text edit in any locale rewrites **nothing** in the i18n
   crate's `OUT_DIR` and cargo recompiles neither it nor anything above it.
   It costs one more crate and a second parse of the corpus per build (+355 ms
-  release, +2.1 s debug for the reference workload), which is why it is the
-  application's choice rather than the default. An mtime-only touch rewrites
+  release, +2.1 s debug for the reference workload), which is why it was
+  the application's choice rather than the default. **It becomes the
+  default (owner, 2026-09-23): a translation edit never invalidates the
+  wasm.** Phase 7 A6 moves the examples and `mf2 init` onto it and measures
+  what it saves a running `cargo leptos watch`. An mtime-only touch rewrites
   nothing either way: every output is written only when its bytes change.
 * **`cargo leptos watch` does not watch `locales/`**: `mf2 init` writes
   `watch-additional-files = ["<i18n crate>/locales"]` into

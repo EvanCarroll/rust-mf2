@@ -138,7 +138,7 @@ mf2-two/
 │   ├── mf2-axum/               negotiation, catalog serving, preload headers
 │   ├── leptos-mf2/             Tr types, glue/tachys_*, context, hydrate entrypoints, switcher
 │   └── mf2/                    facade: re-exports + feature flags apps actually touch
-├── conformance/                crate mf2-conformance: L1–L6 harnesses, ledger.toml,
+├── conformance/                crate mf2-conformance: L1–L7 harnesses, ledger.toml,
 │                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md;
 │                               l4-runner/ (L4's client side, also wasm32-wasip1),
 │                               l4-web/ (L4 in the browser for the `intl` build)
@@ -376,8 +376,11 @@ everything before it).
   an `mf2-axum` dev endpoint), Leptos 0.9 glue if released, benchmarks tracked per
   commit, user documentation, coverage matrix complete
   ([01](01-conformance.md) §5).
-* **Exit**: L6 green in every delivery mode; WCAG 2.2 AA audit of the demo
-  passes; no normative spec statement without a covering test.
+* **Exit**: L6 green (SSR + hydrate, lazy routes) and **L7** green — the
+  suite in an islands page and in a client-only page, each in columns of
+  its own (owner, 2026-09-23; [01](01-conformance.md) §3); WCAG 2.2 AA
+  audit of the demo passes; no normative spec statement without a covering
+  test.
 
 ### P8 — Migration and interchange
 * `mf2 convert --from fluent`; a call-site migration guide (and codemod where

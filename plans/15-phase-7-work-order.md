@@ -53,13 +53,26 @@ whose interactive parts are islands.
 
 ## Owner questions
 
-1. **Which delivery mode is the default in the documentation.** Phase 6
+1. **Which delivery mode is the default in the documentation** —
+   **answered (owner, 2026-09-23): SSR + hydrate leads.** The live,
+   no-reload switch is the headline and most Leptos applications are built
+   that way; islands come second, presented as the smallest download, with
+   `cargo xtask islands-zero`'s numbers. Recorded in 04 §8. The question
+   as it was put: Phase 6
    documents SSR + hydrate. Islands change the trade: server-only components
    cost **zero** wasm, which is the strongest size story this project has,
    but strategy C (`static-locale`: a switch is a cookie and a navigation)
    is their natural fit, and that is a different user experience. The
    question is which one the README leads with.
-2. **Whether a translation edit may invalidate the wasm.** Phase 5a's
+2. **Whether a translation edit may invalidate the wasm** — **answered
+   (owner, 2026-09-23): never.** Catalogs emitted apart from the module
+   (`Emit::Catalogs` for a server, `mf2 compile --site` for a static host)
+   become the documented default and the examples change to match, so a
+   translation fix leaves the wasm — and every reader's cached copy of it —
+   untouched. The extra build step must fail loudly when its features and
+   the i18n crate's disagree, rather than publish catalogs the wasm rejects.
+   A6 now measures the gain rather than deciding. Recorded in 04 §8 and
+   05 §4. The question as it was put: Phase 5a's
    `Emit::Catalogs` keeps the generated module free of catalog names so that
    an edit leaves the client untouched; Phase 6 did not use it, because the
    example is one crate. If the answer is "never", the split becomes the
@@ -70,8 +83,24 @@ whose interactive parts are islands.
    it reads the locale from storage and `navigator.languages`, remembers
    the choice locally, and finds its catalogs through a generated index
    rather than a preload link the server wrote.
+4. **How the suite outside SSR + hydrate is recorded** — **answered
+   (owner, 2026-09-23): in columns of its own**, not by widening L6's, so
+   the report shows each delivery mode tested on its own. The master plan
+   (§9 P7) and [01](01-conformance.md) §3 said "L6 in every delivery mode"
+   and were changed with this answer. The column names are this document's:
+   `L7` / `L7d` for the islands page, `L7c` / `L7cd` for the client-only
+   page.
+5. **What the master plan gives Phase 7 that this order had left out** —
+   **answered (owner, 2026-09-23): all of it stays in Phase 7.** Added as
+   A11–A15: the WCAG 2.2 AA audit and the spec-coverage check (both in the
+   master plan's exit), user documentation, `mark-fallback-lang`, and
+   benchmarks tracked per commit.
 
-## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
+Still to ask when it comes up: A8 ends with a proposal *put to the tachys
+maintainers*, which is outward-facing — whether an agent may post it or
+only draft it for the owner to post.
+
+## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
 **A1, A2 and A3 are done** (2026-09-23); what they found is below the table.
 
@@ -80,12 +109,17 @@ whose interactive parts are islands.
 | **A1** Islands — **done** | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. *As built: the entry point cannot be gated, but the island walk can — an empty first island that waits (below), so the island waits.* | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
 | **A2** CSR — **done** | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
 | **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
-| **A4** Layer L7 | The suite in a page whose interactive parts are islands: the same 297 cases, the same twin switch, with the L7 and L7d ledger columns. | L7 green in both configurations, every L7d cell `pass` or `degraded` |
+| **A4** Layer L7 | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
 | **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
-| **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs`; the split made the default if it wins. Owner question 2. | both numbers, and the answer in [05](05-tooling.md) §4 |
+| **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs` — and the split made the default regardless (owner question 2: a translation edit never invalidates the wasm): `demo-ssr` and `demo-islands` emit their catalogs apart, `mf2 init` scaffolds it, and a feature mismatch between the build step and the i18n crate is an error at build time. | both numbers; the examples on the split; [05](05-tooling.md) §4 updated |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
+| **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check |
+| **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
+| **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with catalogs emitted apart as the default (owner question 2): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
+| **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
+| **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
 
 ## A1 — islands: what was built and measured
@@ -214,11 +248,15 @@ whose interactive parts are islands.
 
 ## Exit (master plan §9, P7)
 
-- [ ] L7 green in both configurations, every L7d cell recorded — `pass`, or
-      `degraded` with its kind — none `xfail`; `current_phase = "P7"` in the
-      exit commit with the harness green
+- [ ] L7 and L7c green in both configurations, every L7d and L7cd cell
+      recorded — `pass`, or `degraded` with its kind — none `xfail`;
+      `current_phase = "P7"` in the exit commit with the harness green
+- [ ] the WCAG 2.2 AA audit of the examples passes (A11)
+- [ ] no normative spec statement without a covering test (A12)
+- [ ] user documentation (A13), `mark-fallback-lang` (A14) and per-commit
+      benchmarks (A15) done
 - [ ] islands, CSR and lazy routes each demonstrated by the example and
       asserted by a browser check
 - [ ] a server-only component's wasm cost measured at zero
-- [ ] owner questions 1–3 answered and recorded in 04
+- [x] owner questions 1–5 answered (2026-09-23) and recorded in 04, 01 and the master plan
 - [ ] `plans/phase-7-results.md` and the Phase 8 work order written

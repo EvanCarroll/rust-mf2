@@ -391,6 +391,15 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 | CSR only (trunk) | Phase 7 (A2) | no server: locale from storage → `navigator.languages` → default; catalog URLs from a tiny generated index (`i18n/index.json`, written by `mf2 compile --site`, preloaded from `index.html`); `leptos_mf2::mount_to_body` with the same gate |
 | Non-Leptos hosts (CLI, workers, other servers) | `mf2-runtime` directly | catalogs from disk |
 
+**What the documentation leads with (owner, 2026-09-23).** SSR +
+hydrate first — the live switch with no reload is the headline, and it is
+how most Leptos applications are built — then islands, as the smallest
+download, with `cargo xtask islands-zero`'s measurement. In every mode the
+**catalogs are emitted apart from the module by default**: a translation
+edit never invalidates the wasm, so a fix leaves every reader's cached
+client alone (05 §4). The build step that publishes the catalogs must
+reject features that disagree with the i18n crate's.
+
 **Islands (Phase 7 A1).** Leptos' island script calls the entry point and
 walks the document for islands in the same turn —
 `mod.hydrate(); hydrateIslands(document.body, mod)` — without awaiting the
