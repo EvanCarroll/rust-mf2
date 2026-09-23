@@ -34,6 +34,23 @@ pub const LOCALE_COOKIE: &str = "mf2_locale";
 /// before reloading — otherwise the reload would negotiate the old locale.
 pub const LOCALE_QUERY: &str = "lang";
 
+/// The `data-` attribute that marks a client-only page's preload of its
+/// catalog index (§8): `index.html` writes
+/// `<link rel="preload" as="fetch" crossorigin="anonymous" href="i18n/index.json" data-mf2-index>`,
+/// and the boot reads the index's URL from it. A catalog's file name in the
+/// index is relative to the index.
+pub const CSR_INDEX_ATTR: &str = "data-mf2-index";
+
+/// Where a client-only page's boot looks for the index when the page has no
+/// [`CSR_INDEX_ATTR`] link — relative to the page, as `mf2 compile --site`
+/// lays a site out.
+pub const CSR_INDEX_URL: &str = "i18n/index.json";
+
+/// The `localStorage` key a client-only application remembers its locale
+/// under: a switch writes it, and the next boot reads it before
+/// `navigator.languages`.
+pub const LOCALE_STORAGE_KEY: &str = "mf2_locale";
+
 /// Where the catalogs are served from, and what `/i18n/<tag>` redirects
 /// within. `mf2-axum` mounts its routes here.
 pub const CATALOG_ROUTE: &str = "/i18n/";

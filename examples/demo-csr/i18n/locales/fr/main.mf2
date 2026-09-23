@@ -1,0 +1,27 @@
+@locale fr
+---
+
+app-title = Une page sans serveur
+tagline = Cette page est construite dans votre navigateur, dans la langue choisie la dernière fois.
+
+search-label = Rechercher
+search-placeholder = Rechercher partout
+
+# The element sits in a different place than in English.
+hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one  {{{$count} personne est ici}}
+  many {{{$count} personnes sont ici}}
+  *    {{{$count} personnes sont ici}}
+
+add-one = Ajouter un
+reset = Réinitialiser
+
+[language]
+label = Langue
+en = English
+fr = Français
+ar = العربية

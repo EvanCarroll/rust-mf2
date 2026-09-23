@@ -1,0 +1,31 @@
+# The example's i18n crate, shaped like the other examples': the corpus under
+# `locales/`, a build script, and a one-line `src/lib.rs`.
+[package]
+name = "demo-csr-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[features]
+# Numbers in each locale's own symbols (the counter). **Keep this list and
+# the `--features` in `../Trunk.toml` the same**: the build script compiles
+# the wasm's half from these, and `mf2 compile --site` the catalogs the
+# browser fetches from those.
+default = ["fn-number"]
+# The generated module names these whether or not the corpus uses them.
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web"] }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }
+
+# The generated module gates its server half on `ssr`; a client-only
+# application has no server half, so the feature is not declared.
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("ssr"))'] }

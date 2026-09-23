@@ -118,8 +118,8 @@ pub use signal::{SignalArg, signal_arg};
 /// (`plans/04-leptos-integration.md` §5).
 #[cfg(feature = "leptos")]
 pub use state::{
-    Setup, TextUse, dir_of, install, installed, installed_twice, locales, manifest_hash, setup,
-    source_locale,
+    Setup, TextUse, dir_of, install, installed, installed_twice, locales, lookup_locale,
+    manifest_hash, setup, source_locale,
 };
 
 /// The catalog a render reads, and what can go wrong loading one.
@@ -144,6 +144,11 @@ pub use catalog::{changed, set_active};
 pub use boot::{
     catalog_url, document_locale, load_page_catalog, preload_locale, set_document_lang, set_locale,
 };
+
+/// Booting a client-only application (§8): the locale from storage, then
+/// `navigator.languages`, then the default; the catalog from the index.
+#[cfg(feature = "csr")]
+pub use boot::{client_locale, load_client_catalog, mount_to_body};
 
 /// Booting an application that hydrates (§6), in each of its three shapes:
 /// a whole page, a page with code-split routes, and a page of islands (§8).

@@ -73,12 +73,12 @@ whose interactive parts are islands.
 
 ## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
-**A1 is done** (2026-09-23); what it found is below the table.
+**A1 and A2 are done** (2026-09-23); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
 | **A1** Islands — **done** | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. *As built: the entry point cannot be gated, but the island walk can — an empty first island that waits (below), so the island waits.* | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
-| **A2** CSR | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
+| **A2** CSR — **done** | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
 | **A3** Lazy routes | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 | The suite in a page whose interactive parts are islands: the same 297 cases, the same twin switch, with the L7 and L7d ledger columns. | L7 green in both configurations, every L7d cell `pass` or `degraded` |
 | **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here: what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
@@ -127,6 +127,52 @@ whose interactive parts are islands.
   only because hydration is fast. Both checks now poll with `until` from
   `lib/browser.mjs`. `demo.mjs` gained the failed-boot assertions: 100/100
   in two engines.
+
+## A2 — CSR: what was built and measured
+
+* **The boot.** `leptos_mf2::mount_to_body(App)` (feature `csr`) chooses
+  the locale — `localStorage` `mf2_locale`, then `navigator.languages`,
+  then `navigator.language`, then the source locale — loads
+  `i18n/index.json` through `index.html`'s
+  `<link rel=preload … data-mf2-index>`, fetches and installs that locale's
+  catalog, sets `<html lang dir>`, and only then mounts. A failed boot logs
+  one `mf2:` line and mounts nothing; a manifest mismatch reloads. The
+  browser parses the index, so the wasm has no JSON parser.
+* **One matcher.** `mf2-axum`'s RFC 4647 lookup moved into `leptos-mf2` as
+  `lookup_locale`; the server's `Accept-Language` and the client's
+  `navigator.languages` are matched by the same code (`fr-CA` → `fr`).
+* **A switch** is live and writes `localStorage`, so a reload comes back
+  in it. Under `csr` + `static-locale` a switch writes the tag and reloads
+  (there is no cookie reader). Both configurations are linted by `cargo
+  xtask ci` now; neither was built before.
+* **Publishing.** `mf2 compile --site DIR` writes the catalogs (with `.br`
+  and `.gz`) and `index.json` and nothing else (`Outcome::publish` in
+  `mf2-build`). `examples/demo-csr` runs it as a trunk `post_build` hook into
+  the staged site; its i18n crate emits `Emit::Module`, so the wasm names no
+  catalog and a translation edit leaves it alone. The hook's `--features`
+  must match the i18n crate's, and the example says so in both places.
+* **Browser checks**, `tools/e2e/checks/csr.mjs` (serves `dist/` itself as a
+  static host: catalogs immutable, index `no-cache`): 78/78 in Chromium and
+  Firefox, on a debug build and on `trunk build --release`. It covers the
+  first visit from the reader's languages (`fr-FR`, `fr-CA`, `ar-EG`,
+  `de-DE` → `en`), an unknown remembered tag being ignored, one index request
+  from the preload plus one catalog, the first frame in the chosen locale
+  with its markup element, a live switch reaching text, attribute,
+  `<title>`, a signal argument and `inLanguage` (with RTL), the choice
+  surviving a reload and outranking the reader's languages, switching back
+  matching a boot in that locale, two failed boots, and no message text in
+  the bundle. The one console message it tolerates is Chromium's note that
+  it ignores `integrity` on trunk's own wasm preload (crbug.com/981419).
+  WebKit was not run (not installed).
+* **Found:** trunk's release build fails with the system `wasm-opt` 120,
+  which does not assume the bulk-memory ops rustc now emits;
+  `index.html` passes the same feature flags `cargo xtask size` does.
+* **Size, for the record — not a budget.** `trunk build --release`
+  (opt-level z, fat LTO, `wasm-opt -Oz`), 2026-09-23: wasm 183,372 B raw /
+  79,890 B gz; JS glue 38,007 B / 7,164 B gz (`gzip -9`). Catalogs 477 /
+  563 / 714 B raw for en / fr / ar; the index 98 B.
+  Boot costs two serial requests (index, then catalog) where SSR costs one;
+  the index starts downloading with the wasm.
 
 ## Exit (master plan §9, P7)
 

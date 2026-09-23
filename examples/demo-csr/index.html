@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- The boot sets `lang` and `dir` to the locale it chooses, before
+     anything renders; these are what the page says until then. -->
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mf2</title>
+    <!-- The boot data, downloading in parallel with the wasm: the index names
+         each locale's content-hashed catalog (`mf2 compile --site`). -->
+    <link rel="preload" as="fetch" crossorigin="anonymous" href="i18n/index.json" data-mf2-index />
+    <link rel="icon" href="globe.svg" type="image/svg+xml" />
+    <link data-trunk rel="css" href="style/main.css" />
+    <link data-trunk rel="copy-file" href="public/globe.svg" />
+    <!-- A release build runs wasm-opt -Oz; the flags are Rust's default
+         wasm32 target features, which wasm-opt 120 does not assume
+         (the same list `cargo xtask size` passes). -->
+    <link
+      data-trunk
+      rel="rust"
+      data-bin="demo-csr"
+      data-wasm-opt="z"
+      data-wasm-opt-params="--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-mutable-globals --enable-reference-types --enable-multivalue"
+    />
+  </head>
+  <body></body>
+</html>

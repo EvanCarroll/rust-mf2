@@ -400,35 +400,9 @@ impl Default for Negotiator {
     }
 }
 
-/// RFC 4647 lookup: the candidate, then the candidate with its last subtag
-/// removed, and so on; then any locale whose language subtag matches, so
-/// that `fr` finds `fr-CA` when that is all the build has.
+/// The one matcher, shared with a client-only application's boot.
 fn lookup(candidate: &str, locales: &[(&'static str, Dir)]) -> Option<(&'static str, Dir)> {
-    if candidate.is_empty() || candidate == "*" {
-        return None;
-    }
-    let mut range = candidate;
-    loop {
-        if let Some(found) = locales
-            .iter()
-            .find(|(tag, _)| tag.eq_ignore_ascii_case(range))
-        {
-            return Some(*found);
-        }
-        match range.rfind('-') {
-            Some(at) => range = range.get(..at).unwrap_or(""),
-            None => break,
-        }
-    }
-    let language = candidate.split('-').next().unwrap_or(candidate);
-    locales
-        .iter()
-        .find(|(tag, _)| {
-            tag.split('-')
-                .next()
-                .is_some_and(|l| l.eq_ignore_ascii_case(language))
-        })
-        .copied()
+    leptos_mf2::lookup_locale(candidate, locales)
 }
 
 #[cfg(test)]

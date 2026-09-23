@@ -1,0 +1,29 @@
+@locale ar
+---
+
+app-title = صفحة بلا خادم
+tagline = تُبنى هذه الصفحة في متصفحك، باللغة التي اخترتها آخر مرة.
+
+search-label = بحث
+search-placeholder = ابحث في كل شيء
+
+hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  zero {{لا أحد هنا}}
+  one {{شخص واحد هنا}}
+  two {{شخصان هنا}}
+  few {{{$count} أشخاص هنا}}
+  many {{{$count} شخصا هنا}}
+  *    {{{$count} شخص هنا}}
+
+add-one = أضف واحدا
+reset = إعادة تعيين
+
+[language]
+label = اللغة
+en = English
+fr = Français
+ar = العربية

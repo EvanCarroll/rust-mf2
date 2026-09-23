@@ -158,6 +158,45 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
     locales().iter().find(|(t, _)| *t == tag).map(|(_, d)| *d)
 }
 
+/// RFC 4647 lookup of `candidate` among `locales`: the candidate, then the
+/// candidate with its last subtag removed, and so on; then any locale whose
+/// language subtag matches, so that `fr` finds `fr-CA` when that is all the
+/// build has. Case-insensitive; `*` and the empty range match nothing.
+///
+/// One matcher for both sides: `mf2-axum` negotiates a request with it, and
+/// a client-only application its stored choice and `navigator.languages`.
+#[must_use]
+pub fn lookup_locale(
+    candidate: &str,
+    locales: &[(&'static str, Dir)],
+) -> Option<(&'static str, Dir)> {
+    if candidate.is_empty() || candidate == "*" {
+        return None;
+    }
+    let mut range = candidate;
+    loop {
+        if let Some(found) = locales
+            .iter()
+            .find(|(tag, _)| tag.eq_ignore_ascii_case(range))
+        {
+            return Some(*found);
+        }
+        match range.rfind('-') {
+            Some(at) => range = range.get(..at).unwrap_or(""),
+            None => break,
+        }
+    }
+    let language = candidate.split('-').next().unwrap_or(candidate);
+    locales
+        .iter()
+        .find(|(tag, _)| {
+            tag.split('-')
+                .next()
+                .is_some_and(|l| l.eq_ignore_ascii_case(language))
+        })
+        .copied()
+}
+
 /// The formatting context for a position, with the request's bidi override
 /// applied if it has one.
 ///

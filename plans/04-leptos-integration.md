@@ -388,7 +388,7 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 | SSR + hydrate (cargo-leptos, Axum) | first-class, Phase 6 | everything above |
 | …with `#[lazy]` routes / `--split` | Phase 6 | `hydrate_lazy`; state is shared with chunks |
 | Islands | Phase 7 (A1) | server-only components cost **zero** code in the wasm (`cargo xtask islands-zero`); strategy C (`static-locale`) is the documented default; the **islands gate** below makes every island hydrate against the page's catalog |
-| CSR only (trunk) | Phase 7 | no server: locale from storage/`navigator.languages`; catalog URLs from a tiny generated index (`i18n/index.json`, preloaded from `index.html`) |
+| CSR only (trunk) | Phase 7 (A2) | no server: locale from storage → `navigator.languages` → default; catalog URLs from a tiny generated index (`i18n/index.json`, written by `mf2 compile --site`, preloaded from `index.html`); `leptos_mf2::mount_to_body` with the same gate |
 | Non-Leptos hosts (CLI, workers, other servers) | `mf2-runtime` directly | catalogs from disk |
 
 **Islands (Phase 7 A1).** Leptos' island script calls the entry point and
@@ -416,6 +416,39 @@ argument effect needs an owner: before Phase 7, `static-locale` registered
 nothing at all, so a signal-valued argument never re-formatted and a closure
 that swapped one message for another never updated. Both work now, and the
 islands check asserts the first.
+
+**CSR (Phase 7 A2), as built.** `leptos_mf2::mount_to_body(App)` spawns
+the boot and mounts only when it succeeds — the same gate as
+`hydrate_body`, for the same two reasons (a `String` read at mount, and
+markup structure), and here also so that the first frame is already in the
+chosen locale.
+
+* **The locale** is the first of: the tag remembered in `localStorage`
+  (`mf2_locale`), each of `navigator.languages`, `navigator.language`, the
+  source locale — each matched by `lookup_locale`, the RFC 4647 lookup
+  `mf2-axum` negotiates `Accept-Language` with (moved into this crate so
+  that the two sides cannot disagree). A remembered tag the build no longer
+  has is ignored. `<html lang dir>` is set before mounting.
+* **The catalog's URL** comes from `i18n/index.json`, `{"<tag>": "<file>"}`
+  with each file relative to the index, which `index.html` preloads
+  (`<link rel=preload as=fetch crossorigin data-mf2-index href=…>`; without
+  the link the boot fetches `i18n/index.json` relative to the page). The
+  browser parses it (`Response.json()`), so no JSON parser enters the wasm.
+  Boot costs two serial requests — the index, then one catalog — against
+  SSR's one; the index starts with the wasm, not after it.
+* **Publishing.** `mf2 compile --site DIR` writes only what a static host
+  serves: the catalogs (with `.br`/`.gz`) and the index, no manifest or
+  module. The example runs it as a trunk `post_build` hook into the staged
+  site, and its i18n crate emits `Emit::Module`, so the wasm names no
+  catalog. The hook's `--features` must equal the i18n crate's.
+* **A switch** is live (strategy B), and on success writes the tag to
+  `localStorage`, so a reload comes back in it. Under `static-locale` a
+  client-only switch writes the tag and reloads — there is no cookie
+  reader. Where storage is unavailable, a choice lasts until the page
+  closes.
+* **A failed boot** (no index, no catalog, a malformed one) logs one `mf2:`
+  line and mounts nothing; a manifest mismatch reloads, as in §6.
+  `tools/e2e/checks/csr.mjs` asserts all of it against `examples/demo-csr`.
 
 ## 9. Accessibility and SEO (WCAG 2.2 AA is a requirement, not a nicety)
 

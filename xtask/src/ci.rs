@@ -70,6 +70,35 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // `csr` (Phase 7 A2) has a boot of its own — the index, the stored
+    // locale, `navigator.languages` — and, with `static-locale`, a switch
+    // that reloads rather than writing a cookie. Nothing else builds either.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "csr",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "csr,static-locale",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`

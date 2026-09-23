@@ -1,0 +1,30 @@
+# The client-only example's corpus. Every message renders in the browser:
+# there is no server, so the catalog decides the first frame as well as
+# every switch.
+@locale en
+---
+
+app-title = A page with no server
+tagline = This page is built in your browser, in the language you chose last time.
+
+search-label = Search
+search-placeholder = Search everything
+
+# Markup: its elements come from the catalog, so the page does not mount
+# until the catalog is installed.
+hotkey = Press {#kbd}Esc{/kbd} to close the dialog
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} person is here}}
+  *   {{{$count} people are here}}
+
+add-one = Add one
+reset = Reset
+
+[language]
+label = Language
+en = English
+fr = Français
+ar = العربية

@@ -34,13 +34,21 @@
 //!
 //! [`catalog_url`] prefers the in-page map and falls back to the redirect
 //! route, so an application chooses by whether its shell emits the links.
+//!
+//! **A client-only application** (`csr`, §8) has no server to negotiate
+//! with and no page it rendered. [`mount_to_body`] chooses the locale itself
+//! — the one it remembered in `localStorage`, else the reader's first
+//! `navigator.languages` entry the build has, else the source locale — and
+//! finds the catalog's hashed URL in `i18n/index.json`, which `mf2 compile
+//! --site` writes beside the catalogs and `index.html` preloads. Then the
+//! same gate: fetch, validate, install, and only then mount. A switch
+//! remembers its locale, so a reload comes back in it.
 
 use alloc::string::String;
 use alloc::vec::Vec;
 
 use js_sys::Uint8Array;
 use wasm_bindgen::JsCast;
-#[cfg(any(feature = "hydrate", feature = "static-locale"))]
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Document, Element, Response};
@@ -49,7 +57,9 @@ use mf2_catalog::Dir;
 
 use crate::error::LoadError;
 use crate::links::{CATALOG_LINK_LOCALE_ATTR, CATALOG_ROUTE, PRELOAD_ATTR};
-#[cfg(feature = "static-locale")]
+#[cfg(feature = "csr")]
+use crate::links::{CSR_INDEX_ATTR, CSR_INDEX_URL, LOCALE_STORAGE_KEY};
+#[cfg(all(feature = "static-locale", not(feature = "csr")))]
 use crate::links::{LOCALE_COOKIE, LOCALE_QUERY};
 #[cfg(any(feature = "hydrate", not(feature = "static-locale")))]
 use crate::registry;
@@ -76,8 +86,15 @@ pub fn document_locale() -> Option<String> {
 
 /// The URL of `tag`'s catalog: the page's own link if the shell emitted one,
 /// else the redirect route.
+///
+/// A client-only application looks in the index its boot loaded first, and
+/// has no redirect route to fall back to: a static host serves files.
 #[must_use]
 pub fn catalog_url(tag: &str) -> Option<String> {
+    #[cfg(feature = "csr")]
+    if let Some(url) = indexed_url(tag) {
+        return Some(url);
+    }
     let document = document()?;
     // The preload link, which names the locale the page was *rendered* in —
     // not necessarily the one being asked for, once a switch has happened.
@@ -95,21 +112,31 @@ pub fn catalog_url(tag: &str) -> Option<String> {
     {
         return Some(href);
     }
+    if cfg!(feature = "csr") {
+        return None;
+    }
     // The redirect route: one extra round trip, at switch time only.
     Some([CATALOG_ROUTE, tag].concat())
 }
 
-/// Fetches `url` and returns its bytes.
-async fn fetch(url: &str) -> Result<Vec<u8>, LoadError> {
+/// Fetches `url`: a response with a success status, or `Fetch`.
+async fn fetch_response(url: &str) -> Result<Response, LoadError> {
     let window = web_sys::window().ok_or(LoadError::Fetch)?;
     let response: Response = JsFuture::from(window.fetch_with_str(url))
         .await
         .map_err(|_| LoadError::Fetch)?
         .dyn_into()
         .map_err(|_| LoadError::Fetch)?;
-    if !response.ok() {
-        return Err(LoadError::Fetch);
+    if response.ok() {
+        Ok(response)
+    } else {
+        Err(LoadError::Fetch)
     }
+}
+
+/// Fetches `url` and returns its bytes.
+async fn fetch(url: &str) -> Result<Vec<u8>, LoadError> {
+    let response = fetch_response(url).await?;
     let buffer = JsFuture::from(response.array_buffer().map_err(|_| LoadError::Fetch)?)
         .await
         .map_err(|_| LoadError::Fetch)?;
@@ -128,16 +155,24 @@ pub async fn preload_locale(tag: &str) -> Result<(), LoadError> {
 ///
 /// On failure the active catalog is untouched.
 ///
+/// A client-only application also remembers `tag`
+/// ([`LOCALE_STORAGE_KEY`](crate::links::LOCALE_STORAGE_KEY)), so that its
+/// next boot starts in it.
+///
 /// Under `static-locale` (strategy C, the default for islands) nothing
 /// follows the locale, so a switch is instead the cookie the server reads
 /// ([`LOCALE_COOKIE`](crate::links::LOCALE_COOKIE)) and a reload: the server renders the whole page —
-/// server-only components included — in the new locale.
+/// server-only components included — in the new locale. A client-only
+/// application under `static-locale` remembers the locale and reloads.
 #[cfg(not(feature = "static-locale"))]
 pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
     if state::dir_of(tag).is_none() {
         return Err(LoadError::UnknownLocale);
     }
-    switch_live(tag).await
+    switch_live(tag).await?;
+    #[cfg(feature = "csr")]
+    remember_locale(tag);
+    Ok(())
 }
 
 /// See the live build's `set_locale`: under `static-locale` a switch is the
@@ -152,6 +187,20 @@ pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
         return Ok(());
     }
     let window = web_sys::window().ok_or(LoadError::Fetch)?;
+    reload_into(&window, tag)
+}
+
+/// A client-only application's `static-locale` switch: there is no server
+/// to tell, so the choice goes where the next boot reads it first.
+#[cfg(all(feature = "static-locale", feature = "csr"))]
+fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
+    remember_locale(tag);
+    window.location().reload().map_err(|_| LoadError::Fetch)
+}
+
+/// The cookie the server negotiates from, and a navigation.
+#[cfg(all(feature = "static-locale", not(feature = "csr")))]
+fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     let document = window.document().ok_or(LoadError::Fetch)?;
     let secure = window.location().protocol().is_ok_and(|p| p == "https:");
     let cookie = [
@@ -186,7 +235,7 @@ pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
 
 /// `search` (`?a=1&lang=fr&b=2`) without the pairs named `name`, or `None`
 /// if it has none.
-#[cfg(feature = "static-locale")]
+#[cfg(all(feature = "static-locale", not(feature = "csr")))]
 fn without_param(search: &str, name: &str) -> Option<String> {
     let query = search.strip_prefix('?').unwrap_or(search);
     let named = |pair: &&str| pair.split('=').next() == Some(name);
@@ -254,23 +303,34 @@ pub async fn load_page_catalog() -> Result<(), LoadError> {
 /// and — for a deploy skew — a reload, which is the only correct answer to a
 /// wasm and a catalog that disagree (F6).
 ///
-/// CSR has no boot of its own yet (Phase 7 A2 gives it one), so only the
-/// hydrating builds reach this.
+/// What the reader is left with: a hydrating page keeps its served HTML; a
+/// client-only one keeps whatever `index.html` holds, and nothing mounts.
 #[cfg(feature = "hydrate")]
+const LEFT_AS: &str = "; the page stays as served, not interactive.";
+#[cfg(feature = "csr")]
+const LEFT_AS: &str = "; the application is not started.";
+
 fn report_boot_failure(error: &LoadError) {
-    web_sys::console::error_1(&JsValue::from_str(match error {
+    let what = match error {
         LoadError::ManifestMismatch => {
             "mf2: this page's catalog is from another deploy; reloading."
         }
-        LoadError::NotInstalled => "mf2: install() was not called before hydration.",
-        LoadError::UnknownLocale => "mf2: the page does not say which locale it is in.",
-        LoadError::Fetch => {
-            "mf2: the catalog could not be fetched; the page stays as served, not interactive."
+        LoadError::NotInstalled => "mf2: install() was not called before the boot.",
+        LoadError::UnknownLocale if cfg!(feature = "csr") => {
+            "mf2: the catalog index does not list this locale"
         }
-        LoadError::Malformed(_) => {
-            "mf2: the catalog is malformed; the page stays as served, not interactive."
+        LoadError::UnknownLocale => "mf2: the page does not say which locale it is in",
+        LoadError::Fetch if cfg!(feature = "csr") => {
+            "mf2: the catalog index or the catalog could not be fetched"
         }
-    }));
+        LoadError::Fetch => "mf2: the catalog could not be fetched",
+        LoadError::Malformed(_) => "mf2: the catalog is malformed",
+    };
+    let line = match error {
+        LoadError::ManifestMismatch | LoadError::NotInstalled => String::from(what),
+        _ => [what, LEFT_AS].concat(),
+    };
+    web_sys::console::error_1(&JsValue::from_str(&line));
     if matches!(error, LoadError::ManifestMismatch)
         && let Some(window) = web_sys::window()
     {
@@ -422,4 +482,159 @@ pub async fn wait_for_catalog() {
     if JsFuture::from(boot).await.is_err() {
         core::future::pending::<()>().await;
     }
+}
+
+// ------------------------------------------------------------ client-only ---
+
+#[cfg(feature = "csr")]
+std::thread_local! {
+    /// The catalog index the boot loaded: tag → URL, for the locales this
+    /// build knows. A tag the index has and the build does not is dropped.
+    static CSR_INDEX: core::cell::RefCell<Vec<(&'static str, String)>> =
+        const { core::cell::RefCell::new(Vec::new()) };
+}
+
+/// `tag`'s catalog URL, from the index the boot loaded.
+#[cfg(feature = "csr")]
+fn indexed_url(tag: &str) -> Option<String> {
+    CSR_INDEX.with(|index| {
+        index
+            .borrow()
+            .iter()
+            .find(|(t, _)| *t == tag)
+            .map(|(_, url)| url.clone())
+    })
+}
+
+#[cfg(feature = "csr")]
+fn storage() -> Option<web_sys::Storage> {
+    // `localStorage` throws where storage is disabled; that is "nothing
+    // remembered", not a failure.
+    web_sys::window()?.local_storage().ok()?
+}
+
+/// Remembers `tag` for the next boot. Where storage is unavailable the
+/// choice lasts until the page is closed, which is all that can be done.
+#[cfg(feature = "csr")]
+fn remember_locale(tag: &str) {
+    if let Some(storage) = storage() {
+        let _ = storage.set_item(LOCALE_STORAGE_KEY, tag);
+    }
+}
+
+/// The locale a client-only application starts in: the one it remembered,
+/// else the reader's first `navigator.languages` entry this build has
+/// (matched as `mf2-axum` matches `Accept-Language`, by
+/// [`lookup_locale`](crate::lookup_locale)), else the source locale.
+///
+/// It never fails: a remembered locale the build no longer has, or a reader
+/// whose languages it has none of, starts in the source locale.
+#[cfg(feature = "csr")]
+#[must_use]
+pub fn client_locale() -> &'static str {
+    let locales = state::locales();
+    let pick = |candidate: &str| state::lookup_locale(candidate, locales).map(|(tag, _)| tag);
+    if let Some(tag) = storage()
+        .and_then(|s| s.get_item(LOCALE_STORAGE_KEY).ok().flatten())
+        .as_deref()
+        .and_then(pick)
+    {
+        return tag;
+    }
+    if let Some(window) = web_sys::window() {
+        let navigator = window.navigator();
+        for language in navigator.languages().iter() {
+            if let Some(tag) = language.as_string().as_deref().and_then(pick) {
+                return tag;
+            }
+        }
+        // Older engines have no `languages`; every engine has `language`.
+        if let Some(tag) = navigator.language().as_deref().and_then(pick) {
+            return tag;
+        }
+    }
+    state::source_locale()
+}
+
+/// Loads the catalog index: the URL from `index.html`'s preload link (so the
+/// fetch reuses it), else [`CSR_INDEX_URL`]. It is JSON — `{"fr":
+/// "fr.3fa9c1.mf2b", …}` — parsed by the browser, so the wasm carries no
+/// JSON parser; each file name is relative to the index.
+#[cfg(feature = "csr")]
+async fn load_index() -> Result<(), LoadError> {
+    let href = document()
+        .and_then(|d| {
+            d.query_selector(&["link[", CSR_INDEX_ATTR, "][href]"].concat())
+                .ok()
+                .flatten()
+        })
+        .and_then(|link| link.get_attribute("href"))
+        .unwrap_or_else(|| String::from(CSR_INDEX_URL));
+    let response = fetch_response(&href).await?;
+    let json = JsFuture::from(response.json().map_err(|_| LoadError::Fetch)?)
+        .await
+        .map_err(|_| LoadError::Fetch)?;
+    let base = href.rfind('/').and_then(|at| href.get(..=at)).unwrap_or("");
+    let mut index = Vec::new();
+    for (tag, _) in state::locales() {
+        if let Some(file) = js_sys::Reflect::get(&json, &JsValue::from_str(tag))
+            .ok()
+            .and_then(|value| value.as_string())
+        {
+            index.push((*tag, [base, file.as_str()].concat()));
+        }
+    }
+    CSR_INDEX.with(|slot| *slot.borrow_mut() = index);
+    Ok(())
+}
+
+/// A client-only application's gate: the index, the locale, and that
+/// locale's catalog — fetched, validated and installed, with `<html lang
+/// dir>` set to match, before anything renders.
+#[cfg(feature = "csr")]
+pub async fn load_client_catalog() -> Result<(), LoadError> {
+    load_index().await?;
+    let tag = client_locale();
+    let url = indexed_url(tag).ok_or(LoadError::UnknownLocale)?;
+    let catalog = catalog::read(fetch(&url).await?)?;
+    let dir = catalog.dir();
+    catalog::set_active(catalog);
+    set_document_lang(tag, dir);
+    Ok(())
+}
+
+/// Boots a client-only application and mounts `app` to `<body>` (§8):
+///
+/// ```ignore
+/// fn main() {
+///     my_app_i18n::install();          // the generated Setup
+///     leptos_mf2::mount_to_body(App);
+/// }
+/// ```
+///
+/// with, in `index.html`, the index preloaded so that it downloads in
+/// parallel with the wasm:
+///
+/// ```html
+/// <link rel="preload" as="fetch" crossorigin="anonymous" href="i18n/index.json" data-mf2-index>
+/// ```
+///
+/// The same gate as [`hydrate_body`](crate::hydrate_body): nothing renders
+/// until the catalog is installed, so the first frame is already in the
+/// reader's language and a markup message has its structure. A catalog from
+/// another deploy reloads; any other failure logs one `mf2:` line and
+/// mounts nothing, leaving what `index.html` holds.
+#[cfg(feature = "csr")]
+pub fn mount_to_body<F, N>(app: F)
+where
+    F: FnOnce() -> N + 'static,
+    N: leptos::IntoView,
+{
+    wasm_bindgen_futures::spawn_local(async move {
+        if let Err(error) = load_client_catalog().await {
+            report_boot_failure(&error);
+            return;
+        }
+        leptos::mount::mount_to_body(app);
+    });
 }

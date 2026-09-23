@@ -143,6 +143,62 @@ fn compile_writes_a_catalog_per_locale_and_the_generated_module() {
 }
 
 #[test]
+fn compile_site_writes_the_catalogs_and_their_index_and_nothing_else() {
+    let dir = corpus("cli-compile-site");
+    let site = dir.join("site/i18n");
+    let args = [
+        "compile",
+        "--features",
+        "fn-number",
+        "--site",
+        site.to_str().expect("utf-8"),
+    ];
+    let text = ok(&run(&dir, &args));
+    assert!(text.contains("1600 messages, 4 locales"), "{text}");
+    // Nothing a static host should not serve: no manifest, no module, and
+    // nothing in the default `--out`.
+    assert!(!site.join("manifest.mf2m").exists());
+    assert!(!site.join("mf2_generated.rs").exists());
+    assert!(!dir.join("dist").exists());
+
+    let index: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(site.join("index.json")).expect("index.json"))
+            .expect("json");
+    let index = index.as_object().expect("an object");
+    assert_eq!(index.len(), 4, "one entry per locale: {index:?}");
+    for (tag, file) in index {
+        let file = file.as_str().expect("a file name");
+        assert!(file.starts_with(&format!("{tag}.")), "{tag}: {file}");
+        for suffix in ["", ".br", ".gz"] {
+            assert!(
+                site.join(format!("{file}{suffix}")).is_file(),
+                "{file}{suffix}"
+            );
+        }
+    }
+
+    // A second publish changes nothing; a changed translation replaces its
+    // catalog, and the old one goes.
+    assert!(ok(&run(&dir, &args)).contains("(0 file(s) changed)"));
+    let path = dir.join("locales/pl/common.mf2");
+    let source = std::fs::read_to_string(&path).expect("read");
+    let (id, _) = source
+        .lines()
+        .find_map(|line| line.split_once(" = "))
+        .expect("a simple message");
+    let edited = source.replacen(&format!("{id} = "), &format!("{id} = edited "), 1);
+    std::fs::write(&path, edited).expect("write");
+    let verbose = ok(&run(&dir, &[&args[..], &["--verbose"]].concat()));
+    assert!(verbose.contains("removed "), "{verbose}");
+    let catalogs = std::fs::read_dir(&site)
+        .expect("read_dir")
+        .flatten()
+        .filter(|e| e.path().extension().is_some_and(|x| x == "mf2b"))
+        .count();
+    assert_eq!(catalogs, 4, "the stale catalog is gone");
+}
+
+#[test]
 fn stats_reports_coverage_sizes_and_the_pins() {
     let dir = corpus("cli-stats");
     let text = ok(&run(&dir, &["stats", "--features", "fn-number"]));

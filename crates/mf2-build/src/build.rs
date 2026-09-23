@@ -37,6 +37,10 @@ pub const MANIFEST_FILE: &str = "manifest.mf2m";
 pub const GENERATED_FILE: &str = "mf2_generated.rs";
 /// The catalog table's file name, when the two are emitted apart.
 pub const CATALOGS_FILE: &str = "mf2_catalogs.rs";
+/// The catalog index's file name in a published site ([`Outcome::publish`]):
+/// what a client-only application reads to learn each locale's hashed URL
+/// (`plans/04-leptos-integration.md` §8).
+pub const INDEX_FILE: &str = "index.json";
 
 /// What a build writes (`plans/05-tooling.md` §4; owner question 1 of
 /// `plans/12-phase-5a-work-order.md`).
@@ -137,11 +141,86 @@ impl Outcome {
         if self.report.is_clean() {
             return Ok(self);
         }
-        Err(Error::Corpus {
+        Err(self.corpus_error())
+    }
+
+    fn corpus_error(&self) -> Error {
+        Error::Corpus {
             errors: self.report.errors(),
             locales: self.report.failing_locales().len(),
-        })
+        }
     }
+
+    /// Writes what a static host serves into `dir`: every catalog under its
+    /// content-hashed name (with its `.br` and `.gz`, when the build
+    /// compressed them) and [`INDEX_FILE`], `{"<tag>": "<file name>", …}`,
+    /// which a client-only application reads to find them. Nothing else —
+    /// not the manifest, not the generated module — so the whole directory
+    /// can be published as it is. Catalogs an earlier publish left in `dir`
+    /// are removed; each file is written only when its bytes change.
+    ///
+    /// The catalogs are immutable and may be cached forever; the index is
+    /// not, and a host should serve it `no-cache`.
+    pub fn publish(&self, dir: &Path) -> Result<Published> {
+        if !self.report.is_clean() {
+            return Err(self.corpus_error());
+        }
+        std::fs::create_dir_all(dir).map_err(|source| Error::io(dir.to_path_buf(), source))?;
+        let mut published = Published::default();
+        let keep = write_catalogs(dir, &self.catalogs, &mut published.written)?;
+        let index: serde_json::Map<String, serde_json::Value> = self
+            .catalogs
+            .iter()
+            .map(|c| (c.tag.clone(), serde_json::Value::String(c.file_name())))
+            .collect();
+        let mut json = serde_json::Value::Object(index).to_string();
+        json.push('\n');
+        let index_path = dir.join(INDEX_FILE);
+        if catalog::write_if_changed(&index_path, json.as_bytes())? {
+            published.written.push(index_path);
+        }
+        published.removed = catalog::remove_stale(dir, &keep)?;
+        Ok(published)
+    }
+}
+
+/// What [`Outcome::publish`] did.
+#[derive(Debug, Default)]
+#[non_exhaustive]
+pub struct Published {
+    /// The files whose bytes changed (and were written).
+    pub written: Vec<PathBuf>,
+    /// Old catalogs removed.
+    pub removed: Vec<PathBuf>,
+}
+
+/// Writes each catalog under its content-hashed name, with the compressed
+/// variants the build made, into `dir`; returns every path that belongs
+/// there, for [`catalog::remove_stale`].
+fn write_catalogs(
+    dir: &Path,
+    catalogs: &[Catalog],
+    written: &mut Vec<PathBuf>,
+) -> Result<Vec<PathBuf>> {
+    let mut keep = Vec::new();
+    for catalog in catalogs {
+        let base = dir.join(catalog.file_name());
+        for (path, bytes) in [
+            (base.clone(), &catalog.bytes),
+            (with_suffix(&base, ".br"), &catalog.br),
+            (with_suffix(&base, ".gz"), &catalog.gz),
+        ] {
+            // An `Emit::Module` build does not compress.
+            if bytes.is_empty() {
+                continue;
+            }
+            if catalog::write_if_changed(&path, bytes)? {
+                written.push(path.clone());
+            }
+            keep.push(path);
+        }
+    }
+    Ok(keep)
 }
 
 impl Build {
@@ -485,20 +564,7 @@ impl Build {
                 outcome.written.push(path);
             }
         }
-        let mut keep = Vec::new();
-        for catalog in &outcome.catalogs {
-            let base = self.out_dir.join(catalog.file_name());
-            for (path, bytes) in [
-                (base.clone(), &catalog.bytes),
-                (with_suffix(&base, ".br"), &catalog.br),
-                (with_suffix(&base, ".gz"), &catalog.gz),
-            ] {
-                if catalog::write_if_changed(&path, bytes)? {
-                    outcome.written.push(path.clone());
-                }
-                keep.push(path);
-            }
-        }
+        let keep = write_catalogs(&self.out_dir, &outcome.catalogs, &mut outcome.written)?;
         outcome.removed = catalog::remove_stale(&self.out_dir, &keep)?;
         Ok(())
     }

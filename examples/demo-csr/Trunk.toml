@@ -1,0 +1,24 @@
+# `trunk build` (or `trunk serve`) in this directory. Everything it needs is
+# local: the wasm-bindgen CLI and wasm-opt already installed, no downloads.
+
+[build]
+target = "index.html"
+dist = "dist"
+offline = true
+
+[tools]
+wasm_bindgen = "0.2.128"
+
+# The catalogs and their index, into the staged site's `i18n/`, after the
+# wasm is built and before the site is moved into `dist/`. `mf2` is this
+# repository's CLI (`crates/mf2-cli`); an application outside it would run an
+# installed `mf2` instead. `--features` must be the i18n crate's features
+# (`i18n/Cargo.toml`): the wasm and the catalogs are built from the same
+# corpus, and must be built for the same functions.
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = [
+    "-c",
+    "cargo run --quiet --manifest-path ../../Cargo.toml -p mf2-cli -- -C i18n compile --features fn-number --site \"$TRUNK_STAGING_DIR/i18n\"",
+]

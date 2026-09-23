@@ -18,6 +18,11 @@ pub(crate) struct Args {
     /// Where to write the manifest, the catalogs and the generated module.
     #[arg(long, short, value_name = "DIR", default_value = "dist")]
     out: PathBuf,
+    /// Instead, write only what a static host serves: the catalogs and
+    /// `index.json`, which a client-only application reads to find them
+    /// (a trunk hook points this at its staging directory's `i18n/`).
+    #[arg(long, value_name = "DIR", conflicts_with = "out")]
+    site: Option<PathBuf>,
     /// The crate path the generated module re-exports as `__mf2`.
     #[arg(long, value_name = "PATH", default_value = "::mf2")]
     facade: String,
@@ -28,20 +33,33 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
-    let outcome = Build::at(dir, &args.out)
+    let build = Build::at(dir, &args.out)
         .config(config)
         .features(args.features.features())
-        .facade(&args.facade)
-        .run()?;
+        .facade(&args.facade);
+    // A site gets the catalogs and the index only, so the build itself
+    // writes nothing (`check` runs every stage but the write).
+    let outcome = if args.site.is_some() {
+        build.check()?
+    } else {
+        build.run()?
+    };
     print!("{}", outcome.report.to_text());
     if !outcome.report.is_clean() {
         return Err(Error::Corpus);
     }
+    let (to, written, removed) = match &args.site {
+        Some(site) => {
+            let published = outcome.publish(site)?;
+            (site, published.written, published.removed)
+        }
+        None => (&args.out, outcome.written.clone(), outcome.removed.clone()),
+    };
     if args.verbose {
-        for path in &outcome.written {
+        for path in &written {
             println!("{}", path.display());
         }
-        for path in &outcome.removed {
+        for path in &removed {
             println!("removed {}", path.display());
         }
     }
@@ -49,8 +67,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         "mf2 compile: {} messages, {} locales to {} ({} file(s) changed)",
         outcome.manifest.ids.len(),
         outcome.locales.len(),
-        args.out.display(),
-        outcome.written.len()
+        to.display(),
+        written.len()
     );
     Ok(())
 }
