@@ -249,11 +249,21 @@ possible, and it is **not done**: it needs two more workload templates
 positions are a `&'static str` leaf, which is what P0.1's baseline was) and
 four more fat-LTO wasm builds.
 
-What *is* in the tree for it: the size gate below measures the same shape
-end to end and gates B5 as Phase 5b defined it. What is owed is the *view*
-half of the mix, and P0.1's open item with it — the `--cfg erase_components`
-figure, and the tachys leaf hook that would let a description reuse `&str`'s
-state and async path.
+**What is in the tree for it.** The two templates the measurement needs are
+written and verified to *generate and compile*: `tr-view` (a description in
+the text-child, attribute and prop positions; `.to_string()` in the `String`
+positions) and `idlit-view` (P0.1's baseline — a `&'static str` leaf in the
+view positions, a `String` elsewhere), selected by `cargo xtask b5 --view`.
+A generated `tr-view` application `cargo check`s clean for
+`wasm32-unknown-unknown` with `hydrate`. What is owed is the *run*: four
+fat-LTO wasm builds, and P0.1's open item with them — the
+`--cfg erase_components` figure, and the tachys leaf hook that would let a
+description reuse `&str`'s state and async path.
+
+Writing the templates found a generator bug worth naming: every existing
+template forwards exactly **one** feature to its own crates, and the
+emitter wrote a separator *and* a trailing comma per entry, so one entry
+produced valid TOML by luck and two produced `,,`. `tr-view` forwards two.
 
 **This is the one exit criterion Phase 6 does not meet as written**, and it
 is stated here rather than quietly restated: B5 is met on the half of the

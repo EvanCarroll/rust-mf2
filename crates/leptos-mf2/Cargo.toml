@@ -34,6 +34,12 @@ static-locale = []
 # WCAG 3.1.2, Language of Parts (`plans/04-leptos-integration.md` §9): text
 # the catalog borrowed from a fallback locale renders inside a `<span lang>`,
 # identically on server and client.
+#
+# **Declared, not implemented** (Phase 6 A8). It changes the rendered
+# *structure* of a message, which is the one thing hydration cannot disagree
+# about, so it needs its own design rather than a flag that half works.
+# Turning it on today does nothing; `mf2 stats` reports fallback counts
+# meanwhile, so the gap is visible either way.
 mark-fallback-lang = []
 
 [dependencies]

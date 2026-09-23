@@ -43,6 +43,20 @@ extern crate alloc;
 #[cfg(feature = "leptos")]
 extern crate std;
 
+// An application renders on one side or the other, and the two need
+// different code: `ssr` keeps the catalog in the request's context, the
+// other two in a `thread_local!`. Saying so here turns a confusing cascade
+// of missing-item errors into one sentence.
+#[cfg(all(feature = "ssr", any(feature = "hydrate", feature = "csr")))]
+compile_error!(
+    "leptos-mf2: turn on exactly one of `ssr`, `hydrate` and `csr`. \
+     cargo unifies features across a workspace, so an application that is \
+     built both ways belongs in a workspace of its own — as \
+     `examples/demo-ssr` and `conformance/l6-web` are."
+);
+#[cfg(all(feature = "hydrate", feature = "csr"))]
+compile_error!("leptos-mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+
 mod arg;
 mod dynamic;
 mod markup;

@@ -53,7 +53,8 @@ hydrate = ["leptos", "leptos-mf2/hydrate"]
 csr = ["leptos", "leptos-mf2/csr"]
 # A locale switch is a cookie and a navigation (D7 strategy C).
 static-locale = ["leptos-mf2/static-locale"]
-# WCAG 3.1.2: fallback-locale text inside a `<span lang>`.
+# WCAG 3.1.2: fallback-locale text inside a `<span lang>`. Declared, not
+# implemented — see `leptos-mf2`'s manifest for why.
 mark-fallback-lang = ["leptos-mf2/mark-fallback-lang"]
 
 [dependencies]
