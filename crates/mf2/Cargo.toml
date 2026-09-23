@@ -41,8 +41,23 @@ host-web = ["dep:mf2-host-web"]
 # Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
 # keeps the Rust path.
 intl = ["mf2-runtime/intl", "mf2-fn-number?/intl", "mf2-host-web?/intl"]
+# The Leptos layer (`plans/04-leptos-integration.md` §§3–7): the tachys view
+# impls for the description types, the catalog context, the node registry and
+# the locale switch. Off, the call-site core compiles with no Leptos crate,
+# no tachys and no reactive_graph in the tree.
+leptos = ["leptos-mf2/leptos"]
+# The three Leptos targets; an application turns exactly one on and forwards
+# it to every leptos-aware dependency, as cargo-leptos does.
+ssr = ["leptos", "leptos-mf2/ssr"]
+hydrate = ["leptos", "leptos-mf2/hydrate"]
+csr = ["leptos", "leptos-mf2/csr"]
+# A locale switch is a cookie and a navigation (D7 strategy C).
+static-locale = ["leptos-mf2/static-locale"]
+# WCAG 3.1.2: fallback-locale text inside a `<span lang>`.
+mark-fallback-lang = ["leptos-mf2/mark-fallback-lang"]
 
 [dependencies]
+leptos-mf2.workspace = true
 mf2-catalog.workspace = true
 mf2-fn-number = { workspace = true, optional = true }
 mf2-fn-datetime = { workspace = true, optional = true }

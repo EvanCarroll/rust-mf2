@@ -1,0 +1,61 @@
+[package]
+name = "leptos-mf2"
+description = "The call-site description of a message (Tr, TrArgs, TrRich, ArgValue) and, with the `leptos` feature, its Leptos rendering: the tachys view impls, the per-locale catalog, the node registry and the locale switch."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# The Leptos layer (`plans/04-leptos-integration.md` §§3–7). Off, this crate
+# is the Leptos-free call-site core and compiles no Leptos code at all: the
+# types a server, a test and `mf2-cli` format with (§2.1). The two live in
+# one crate because Rust's orphan rule requires it — `impl Render for Tr`
+# needs either the trait or the type to be ours, and the trait is tachys'.
+leptos = ["dep:leptos", "dep:tachys", "dep:reactive_graph", "dep:oco_ref"]
+# The three Leptos targets. An application turns exactly one on and forwards
+# it to every leptos-aware dependency, as cargo-leptos does.
+ssr = ["leptos", "leptos/ssr", "tachys/ssr"]
+hydrate = [
+    "leptos",
+    "leptos/hydrate",
+    "tachys/hydrate",
+    "dep:web-sys",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+]
+csr = [
+    "leptos",
+    "leptos/csr",
+    "dep:web-sys",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+]
+# Strategy C of D7 (`plans/04-leptos-integration.md` §4): no live update — a
+# locale switch is a cookie and a navigation. Rendered nodes then register
+# nothing, which is the natural fit for islands.
+static-locale = []
+# WCAG 3.1.2, Language of Parts (`plans/04-leptos-integration.md` §9): text
+# the catalog borrowed from a fallback locale renders inside a `<span lang>`,
+# identically on server and client.
+mark-fallback-lang = []
+
+[dependencies]
+mf2-catalog.workspace = true
+mf2-runtime.workspace = true
+
+leptos = { workspace = true, optional = true }
+tachys = { workspace = true, optional = true }
+reactive_graph = { workspace = true, optional = true }
+oco_ref = { workspace = true, optional = true }
+
+js-sys = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
+
+[package.metadata.docs.rs]
+features = ["leptos", "ssr"]
+
+[lints]
+workspace = true

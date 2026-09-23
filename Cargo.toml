@@ -14,6 +14,7 @@ members = [
     "crates/mf2-host-std",
     "crates/mf2-host-web",
     "crates/mf2-macros",
+    "crates/leptos-mf2",
     "crates/mf2",
     "xtask",
     "conformance",
@@ -55,6 +56,7 @@ mf2-build = { path = "crates/mf2-build" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-cli = { path = "crates/mf2-cli" }
 mf2-conformance = { path = "conformance" }
+leptos-mf2 = { path = "crates/leptos-mf2" }
 mf2-fn-number = { path = "crates/mf2-fn-number" }
 mf2-fn-datetime = { path = "crates/mf2-fn-datetime" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
@@ -110,6 +112,31 @@ ryu = "1.0.23"
 # mf2-host-web: the browser's normalize() and String(x); no_std (no `std`,
 # no `unsafe-eval`).
 js-sys = { version = "0.3.105", default-features = false }
+# leptos-mf2 (`plans/04-leptos-integration.md` §10): the latest stable Leptos
+# line, the versions P0.2 verified end to end. `tachys` and `reactive_graph`
+# are named directly — the glue module is written against one tachys line —
+# and unify with the ones `leptos` pulls in.
+leptos = { version = "0.8.20", default-features = false }
+tachys = { version = "0.2.18", default-features = false }
+reactive_graph = { version = "0.2.14", default-features = false }
+oco_ref = "0.2.1"
+# The client half: the hydration cursor's nodes, the catalog fetch, one
+# console diagnostic. No `#[wasm_bindgen]` item of ours, so
+# `forbid(unsafe_code)` holds (04 §10).
+web-sys = { version = "0.3.105", default-features = false, features = [
+    "console",
+    "Document",
+    "Element",
+    "Headers",
+    "HtmlElement",
+    "HtmlLinkElement",
+    "Node",
+    "Request",
+    "RequestInit",
+    "Response",
+    "Text",
+    "Window",
+] }
 # mf2-host-web's `intl`, `datetime-intl` and `time-zones`: inline-JS modules
 # for `Intl.NumberFormat`, `Intl.PluralRules` and `Intl.DateTimeFormat` (the
 # CLI that post-processes the wasm is 0.2.128).

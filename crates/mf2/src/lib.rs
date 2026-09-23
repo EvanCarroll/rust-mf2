@@ -58,22 +58,30 @@
 
 extern crate alloc;
 
-mod arg;
 #[cfg(feature = "compile")]
 mod compile;
-mod dynamic;
 #[cfg(feature = "compile")]
 mod error;
-mod tr;
 
 /// The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
 /// builds, and what formats it against a catalog the caller supplies.
-pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
-pub use dynamic::{TrDyn, tr_dyn};
-pub use tr::{
-    MarkupHandler, Tr, TrArgs, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2,
-    tr_args3, tr_args4, tr_rich,
+///
+/// It is declared in `leptos-mf2` and named here, because Rust's orphan rule
+/// keeps a type and its `Render` impl in one crate (that crate's `lib.rs`
+/// says why). Without the `leptos` feature nothing of Leptos is compiled,
+/// so `mf2::Tr` is the Leptos-free description §2.1 describes.
+pub use leptos_mf2::{
+    ArgList, ArgSource, ArgValue, DateTimeValue, MarkupHandler, Text, Tr, TrArgs, TrDyn, TrRich,
+    markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
 };
+
+/// The Leptos layer (`plans/04-leptos-integration.md` §§3–7).
+#[cfg(feature = "leptos")]
+pub use leptos_mf2::{Flat, FlatHandler, IntoMarkupHandler, NestingHandler, SignalArg, signal_arg};
+
+/// The Leptos layer in full, for what this facade does not name one by one.
+#[cfg(feature = "leptos")]
+pub use leptos_mf2;
 
 /// The proc-macro behind the generated `tr!` wrapper — reached as
 /// `__mf2::__tr_impl!`, never named by an application (`plans/05-tooling.md`

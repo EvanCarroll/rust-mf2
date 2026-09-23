@@ -145,18 +145,6 @@ pub fn tr_rich(args: TrArgs, handlers: Box<[(u64, Arc<dyn MarkupHandler>)]>) -> 
     TrRich { args, handlers }
 }
 
-/// The conversion a call site's markup handler goes through.
-///
-/// Phase 5b's core takes anything that is already a [`MarkupHandler`];
-/// `leptos-mf2` (Phase 6) provides the one that takes a view closure, and
-/// the facade re-exports it under the `leptos` feature. Either way the
-/// macro's expansion is the same — `markup(h)` — which is what makes the
-/// expansion contract stable across the two phases.
-#[must_use]
-pub fn markup<H: MarkupHandler + 'static>(handler: H) -> Arc<dyn MarkupHandler> {
-    Arc::new(handler)
-}
-
 impl Tr {
     /// The message's id.
     #[must_use]
