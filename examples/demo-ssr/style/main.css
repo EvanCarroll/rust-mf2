@@ -118,3 +118,24 @@ footer.row {
   border-top: 1px solid var(--line);
   padding-top: 0.75rem;
 }
+
+.nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* The router marks the link to the current page (WCAG 2.4.8). */
+a[aria-current="page"] {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}

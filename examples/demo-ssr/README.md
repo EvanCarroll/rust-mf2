@@ -1,8 +1,9 @@
 # examples/demo-ssr — the Phase 6 example
 
 One page that uses every position the integration supports, so that what
-breaks is visible rather than theoretical. It is also what
-`tools/e2e/checks/demo.mjs` drives.
+breaks is visible rather than theoretical, and a second route, `/lazy`,
+whose code is a wasm chunk of its own (Phase 7 A3). It is what
+`tools/e2e/checks/demo.mjs` and `tools/e2e/checks/lazy.mjs` drive.
 
 ## Build and run
 
@@ -11,13 +12,13 @@ From a clean checkout, with `cargo-leptos` installed
 
 ```sh
 cd examples/demo-ssr
-cargo leptos watch          # http://127.0.0.1:3702, rebuilding as you edit
+cargo leptos watch --split  # http://127.0.0.1:3702, rebuilding as you edit
 ```
 
 or, without the watcher:
 
 ```sh
-cargo leptos build
+cargo leptos build --split  # add --release for the size-optimised client
 LEPTOS_SITE_ROOT=target/site LEPTOS_SITE_PKG_DIR=pkg \
 LEPTOS_SITE_ADDR=127.0.0.1:3702 ./target/debug/demo-ssr
 ```
@@ -27,7 +28,12 @@ The browser checks, against a running server:
 ```sh
 cd ../../tools/e2e
 node run.mjs demo --base-url http://127.0.0.1:3702 --browser chromium,firefox
+node run.mjs lazy --base-url http://127.0.0.1:3702 --browser chromium,firefox
 ```
+
+Without `--split` the app still works — `/lazy` is then an ordinary async
+route in the one wasm — but `lazy.mjs` asserts the chunk, so it needs the
+`--split` build.
 
 This is a **workspace of its own**: an application turns on exactly one of
 `ssr` and `hydrate`, and cargo unifies features across a workspace, so the
@@ -45,6 +51,19 @@ example cannot share one with libraries that are built both ways.
 | the published line | a date through `:datetime`, formatted by ICU4X from the catalog's own `icu.blob` |
 | the echo line | a plain `String` built in an event handler — no bidi isolation in it, because a program consumes it (04 §9) |
 | the switcher | `<LocaleSwitcher>`: a labelled native control, each language named in its own language with its own `lang` |
+
+## The lazy route
+
+`/lazy` is a `#[lazy_route]`, so under `--split` its view is
+`pkg/split_…lazy_page_view….wasm` (11,255 B, 5,617 B gz in a release
+build), fetched the first time the route is matched — on a client-side
+navigation, or, when the page *is* `/lazy`, preloaded by the server's HTML
+and awaited by `leptos_mf2::hydrate_lazy` before hydration walks it.
+Nothing in `leptos-mf2` is aware of chunks: they share the main module's
+linear memory and thread-locals, so the chunk's descriptions read the
+catalog the boot installed, join the same node registry, and follow the
+same switch. The route has a text, an attribute, a markup message and the
+current locale, and leaving it frees every registry slot it took.
 
 `ar` is right-to-left, so switching to it flips the whole page from `<html
 dir>` alone — the CSS has no second set of rules.

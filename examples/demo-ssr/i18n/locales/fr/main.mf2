@@ -27,6 +27,19 @@ reset = Réinitialiser
 typed-nothing = Vous n'avez encore rien saisi
 typed = Vous avez saisi {$typed}
 
+not-found = Cette page n'existe pas.
+
+[nav]
+label = Pages
+home = Accueil
+lazy = Une route différée
+
+[lazy]
+heading = Une route dans son propre fragment
+title = Son code est arrivé quand vous l'avez ouverte
+body = Le code de cette page est un {#strong}fichier wasm à part{/strong}, téléchargé en chemin.
+locale-label = Rendu en
+
 [language]
 label = Langue
 en = English

@@ -28,6 +28,19 @@ reset = إعادة تعيين
 typed-nothing = لم تكتب شيئا بعد
 typed = لقد كتبت {$typed}
 
+not-found = هذه الصفحة غير موجودة.
+
+[nav]
+label = الصفحات
+home = الرئيسية
+lazy = مسار مؤجل
+
+[lazy]
+heading = مسار في جزء مستقل
+title = وصل رمزه عندما فتحته
+body = رمز هذه الصفحة {#strong}ملف wasm منفصل{/strong}، يُجلب في الطريق إليها.
+locale-label = اللغة المعروضة
+
 [language]
 label = اللغة
 en = English

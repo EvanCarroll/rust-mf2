@@ -1,4 +1,5 @@
-//! The Phase 6 example (`plans/14-phase-6-work-order.md` A10).
+//! The Phase 6 example (`plans/14-phase-6-work-order.md` A10), with the
+//! Phase 7 lazy route (`plans/15-phase-7-work-order.md` A3).
 //!
 //! One page that uses every position the integration supports, so that what
 //! breaks is visible rather than theoretical:
@@ -14,6 +15,11 @@
 //! | the echo line | a plain `String` from an event handler — no bidi isolation in it (04 §9) |
 //! | the switcher | `<LocaleSwitcher>`: a labelled native control whose option text never reaches the wasm |
 //!
+//! and a second route, `/lazy`, whose code is a wasm chunk of its own under
+//! `cargo leptos --split`: text, an attribute and a markup message rendered
+//! from the catalog the main module installed, switching live, and freeing
+//! its registry slots when the reader leaves it.
+//!
 //! Layout is flexbox, the SVG is an external file, and the page carries
 //! schema.org `inLanguage` so that the locale is machine-readable as well as
 //! rendered.
@@ -21,6 +27,8 @@
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
 use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
+use leptos_router::components::{A, Route, Router, Routes};
+use leptos_router::{Lazy, LazyRoute, lazy_route, path};
 use mf2::DateTimeValue;
 
 /// The document. `<html lang dir>` comes from the catalog this request is
@@ -56,6 +64,61 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
+
+    view! {
+        // leptos_meta evaluates this *after* rendering, outside the request
+        // owner — the case P0.2 found, and what the `ssr` capture fixes.
+        <Title text=demo_i18n::tr!("app-title") />
+
+        <Router>
+            <main class="page" itemscope itemtype="https://schema.org/WebPage">
+                // schema.org: the page states its language as data as well as
+                // rendering it, so a crawler and a screen reader agree.
+                <meta itemprop="inLanguage" content=current_locale />
+                <header class="row">
+                    <h1 itemprop="name">{demo_i18n::tr!("app-title")}</h1>
+                    <LocaleSwitcher label=demo_i18n::tr!("language.label")>
+                        <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
+                        <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
+                        <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
+                    </LocaleSwitcher>
+                </header>
+                <nav aria-label=demo_i18n::tr!("nav.label")>
+                    <ul class="row nav">
+                        <li><A href="/">{demo_i18n::tr!("nav.home")}</A></li>
+                        <li><A href="/lazy">{demo_i18n::tr!("nav.lazy")}</A></li>
+                    </ul>
+                </nav>
+
+                <Routes fallback=|| view! { <p id="not-found">{demo_i18n::tr!("not-found")}</p> }>
+                    <Route path=path!("/") view=HomePage />
+                    // Under `--split`, this route's view is its own wasm
+                    // chunk, fetched when the route is first matched.
+                    <Route path=path!("/lazy") view={Lazy::<LazyPage>::new()} />
+                </Routes>
+
+                <footer class="row">
+                    <img src="/globe.svg" alt="" width="16" height="16" />
+                    <small>{demo_i18n::tr!("tagline")}</small>
+                </footer>
+            </main>
+        </Router>
+    }
+}
+
+/// The locale the page is in, following a switch.
+///
+/// `html_lang` reads the active catalog, which is not a signal; on the
+/// client the trigger a switch fires is what makes this follow it. On the
+/// server a request never changes locale.
+fn current_locale() -> String {
+    #[cfg(not(feature = "ssr"))]
+    leptos_mf2::changed().track();
+    html_lang().0
+}
+
+#[component]
+fn HomePage() -> impl IntoView {
     let count = RwSignal::new(3);
     let typed = RwSignal::new(String::new());
     // A fixed instant, so that the page is the same on every run and the
@@ -63,85 +126,103 @@ pub fn App() -> impl IntoView {
     let published = DateTimeValue::instant(1_767_225_600_000);
 
     view! {
-        // leptos_meta evaluates this *after* rendering, outside the request
-        // owner — the case P0.2 found, and what the `ssr` capture fixes.
-        <Title text=demo_i18n::tr!("app-title") />
+        <p class="tagline">{demo_i18n::tr!("tagline")}</p>
 
-        <main class="page" itemscope itemtype="https://schema.org/WebPage">
-            // schema.org: the page states its language as data as well as
-            // rendering it, so a crawler and a screen reader agree.
-            <meta itemprop="inLanguage" content=html_lang().0 />
-            <header class="row">
-                <h1 itemprop="name">{demo_i18n::tr!("app-title")}</h1>
-                <LocaleSwitcher label=demo_i18n::tr!("language.label")>
-                    <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
-                    <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
-                    <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
-                </LocaleSwitcher>
-            </header>
+        <section class="card">
+            <label class="field">
+                <span>{demo_i18n::tr!("search-label")}</span>
+                // A description as an attribute value: one function in
+                // the library, not one per call site.
+                <input type="search" placeholder=demo_i18n::tr!("search-placeholder") />
+            </label>
+        </section>
 
-            <p class="tagline">{demo_i18n::tr!("tagline")}</p>
+        <section class="card">
+            // A signal-valued argument. The count is reactive and the
+            // locale is reactive, and neither costs this call site a
+            // closure: `count` goes in as a `Signal`, and the node's
+            // own argument effect is the library's (04 §4).
+            <p id="people">{demo_i18n::tr!("people-online", count = count)}</p>
+            <div class="row">
+                <button id="add-one" on:click=move |_| *count.write() += 1>
+                    {demo_i18n::tr!("add-one")}
+                </button>
+                <button id="reset" on:click=move |_| count.set(0)>
+                    {demo_i18n::tr!("reset")}
+                </button>
+            </div>
+        </section>
 
+        <section class="card">
+            // Markup as elements: `{#kbd}…{/kbd}` becomes a real <kbd>,
+            // and in French it lands at the end of the sentence instead
+            // of the middle — without the view knowing anything about
+            // word order.
+            <p id="hotkey">
+                {demo_i18n::tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+            </p>
+            <p id="published">
+                {published
+                    .clone()
+                    .map(|when| demo_i18n::tr!("published", when = when))}
+            </p>
+        </section>
+
+        <section class="card">
+            <label class="field">
+                <span>{demo_i18n::tr!("search-label")}</span>
+                <input
+                    id="echo-input"
+                    type="text"
+                    on:input=move |event| typed.set(event_target_value(&event))
+                />
+            </label>
+            // A plain `String`, built in an event handler and shown as
+            // data: no bidi isolation in it, because a program — and a
+            // comparison — consumes it (04 §9).
+            <p id="echo">{move || echo(typed.get())}</p>
+        </section>
+    }
+}
+
+/// The lazy route. Its view is compiled into a wasm chunk of its own under
+/// `cargo leptos --split`, and everything in it reads state the **main**
+/// module owns: the catalog `hydrate_lazy` installed, the registry its
+/// nodes join (and leave, when the reader navigates away), and the trigger
+/// a switch fires. Chunks share linear memory, statics and the reactive
+/// owner, so there is nothing to hand across (P0.2).
+#[derive(Debug)]
+pub struct LazyPage;
+
+#[lazy_route]
+impl LazyRoute for LazyPage {
+    fn data() -> Self {
+        Self
+    }
+
+    fn view(this: Self) -> AnyView {
+        let _ = this;
+        view! {
             <section class="card">
-                <label class="field">
-                    <span>{demo_i18n::tr!("search-label")}</span>
-                    // A description as an attribute value: one function in
-                    // the library, not one per call site.
-                    <input type="search" placeholder=demo_i18n::tr!("search-placeholder") />
-                </label>
-            </section>
-
-            <section class="card">
-                // A signal-valued argument. The count is reactive and the
-                // locale is reactive, and neither costs this call site a
-                // closure: `count` goes in as a `Signal`, and the node's
-                // own argument effect is the library's (04 §4).
-                <p id="people">{demo_i18n::tr!("people-online", count = count)}</p>
-                <div class="row">
-                    <button id="add-one" on:click=move |_| *count.write() += 1>
-                        {demo_i18n::tr!("add-one")}
-                    </button>
-                    <button id="reset" on:click=move |_| count.set(0)>
-                        {demo_i18n::tr!("reset")}
-                    </button>
-                </div>
-            </section>
-
-            <section class="card">
-                // Markup as elements: `{#kbd}…{/kbd}` becomes a real <kbd>,
-                // and in French it lands at the end of the sentence instead
-                // of the middle — without the view knowing anything about
-                // word order.
-                <p id="hotkey">
-                    {demo_i18n::tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                // Text and an attribute: the two positions every page has.
+                <h2 id="lazy-heading" title=demo_i18n::tr!("lazy.title")>
+                    {demo_i18n::tr!("lazy.heading")}
+                </h2>
+                // Markup, whose node structure comes from the catalog: the
+                // chunk has to see the installed one to hydrate at all.
+                <p id="lazy-body">
+                    {demo_i18n::tr!(
+                        "lazy.body",
+                        strong = |children: AnyView| view! { <strong>{children}</strong> }
+                    )}
                 </p>
-                <p id="published">
-                    {published
-                        .clone()
-                        .map(|when| demo_i18n::tr!("published", when = when))}
+                <p>
+                    {demo_i18n::tr!("lazy.locale-label")} " "
+                    <code id="lazy-locale">{current_locale}</code>
                 </p>
             </section>
-
-            <section class="card">
-                <label class="field">
-                    <span>{demo_i18n::tr!("search-label")}</span>
-                    <input
-                        id="echo-input"
-                        type="text"
-                        on:input=move |event| typed.set(event_target_value(&event))
-                    />
-                </label>
-                // A plain `String`, built in an event handler and shown as
-                // data: no bidi isolation in it, because a program — and a
-                // comparison — consumes it (04 §9).
-                <p id="echo">{move || echo(typed.get())}</p>
-            </section>
-
-            <footer class="row">
-                <img src="/globe.svg" alt="" width="16" height="16" />
-                <small>{demo_i18n::tr!("tagline")}</small>
-            </footer>
-        </main>
+        }
+        .into_any()
     }
 }
 
@@ -155,11 +236,6 @@ fn echo(typed: String) -> String {
     }
 }
 
-/// The client's entry point: install the generated setup, then boot.
-///
-/// `hydrate_body` fetches the catalog the page was served with — reusing the
-/// preload, so no extra request — validates it against `MANIFEST_HASH`,
-/// installs it, and only then hydrates (§6).
 /// How many nodes follow the locale (D7's registry). The browser checks poll
 /// it to know that hydration has finished, and read it again after a route
 /// change to see that dropped nodes freed their slots.
@@ -169,10 +245,17 @@ pub fn mf2_live_nodes() -> usize {
     leptos_mf2::live_nodes()
 }
 
+/// The client's entry point: install the generated setup, then boot.
+///
+/// `hydrate_lazy` fetches the catalog the page was served with — reusing
+/// the preload, so no extra request — validates it against `MANIFEST_HASH`,
+/// installs it, and only then hydrates (§6). It is `hydrate_body` for an
+/// application with lazy routes: on a page that *is* a lazy route, the
+/// chunk is loaded before hydration walks it.
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
     leptos_mf2::install(demo_i18n::setup());
-    leptos_mf2::hydrate_body(App);
+    leptos_mf2::hydrate_lazy(App);
 }

@@ -73,15 +73,15 @@ whose interactive parts are islands.
 
 ## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
-**A1 and A2 are done** (2026-09-23); what they found is below the table.
+**A1, A2 and A3 are done** (2026-09-23); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
 | **A1** Islands — **done** | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. *As built: the entry point cannot be gated, but the island walk can — an empty first island that waits (below), so the island waits.* | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
 | **A2** CSR — **done** | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
-| **A3** Lazy routes | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
+| **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 | The suite in a page whose interactive parts are islands: the same 297 cases, the same twin switch, with the L7 and L7d ledger columns. | L7 green in both configurations, every L7d cell `pass` or `degraded` |
-| **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here: what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
+| **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
 | **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs`; the split made the default if it wins. Owner question 2. | both numbers, and the answer in [05](05-tooling.md) §4 |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
@@ -173,6 +173,44 @@ whose interactive parts are islands.
   563 / 714 B raw for en / fr / ar; the index 98 B.
   Boot costs two serial requests (index, then catalog) where SSR costs one;
   the index starts downloading with the wasm.
+
+## A3 — lazy routes: what was built and measured
+
+* **The example has two routes.** `examples/demo-ssr` now has a router: `/`
+  is the Phase 6 page, and `/lazy` is a `#[lazy_route]` with a text, an
+  attribute (`title`), a markup message and the current locale. The client
+  boots with `leptos_mf2::hydrate_lazy(App)`. Built with `cargo leptos build
+  --split`, the route is `pkg/split_…lazy_page_view….wasm`: 11,255 B raw /
+  5,617 B gz in the release build (`wasm-release`), for the record — not a
+  budget. `leptos-mf2` needed no change for chunks: they share the main
+  module's memory and thread-locals, as P0.2 found with its own glue.
+* **Found and fixed: an attribute leaked its registry slot.** `TrAttrState`
+  — a description in an attribute or a property — had no `Drop`, so every
+  time its element unmounted, its slot stayed live, holding the detached
+  element and rewriting it on every switch. `TrState` and `TrRichState`
+  free theirs; nothing before this task ever unmounted an attribute (the
+  Phase 6 page is one route and its switch checks compare counts across a
+  switch, not a navigation). Measured with the new check: home 17 slots →
+  `/lazy` 13 → home 19, and 29 after five more round trips; with the `Drop`,
+  17 → 12 → 17 → 17. The count also exposed it as the difference between a
+  client-built `/lazy` (13) and a hydrated one (12). A5's churn measurement
+  should include attributes in the churning rows for this reason.
+* **Browser checks**, `tools/e2e/checks/lazy.mjs` against `demo-ssr`: P0.2's
+  C, D, E and H groups against this library — chunk not fetched on home,
+  fetched once on navigation, no message text in it; text, attribute,
+  markup and locale in the chunk; a switch to RTL on the lazy route equal to
+  the server's page; the page built on the way back equal to the server's;
+  slots freed on leaving and flat over five round trips; a direct `/lazy`
+  load hydrating with the chunk, changing no text, registering what a
+  client-built one does, switching and freeing its slots; a silent console.
+  Chromium and Firefox: 66/66 on the debug `--split` build; 64/64 on the
+  release `--split` build, which ran before the last two assertions
+  (`inLanguage`, below) were added; `demo.mjs` 100/100 on both builds,
+  unchanged by the router. WebKit was not run (not installed).
+* **Also changed in the example:** schema.org `inLanguage` now follows a
+  switch (it read the catalog once; `demo-csr` had fixed this for itself),
+  through the same helper the lazy route uses to show the locale — asserted
+  by `lazy.mjs`.
 
 ## Exit (master plan §9, P7)
 
