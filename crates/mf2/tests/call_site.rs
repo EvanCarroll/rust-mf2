@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use mf2::{
     ArgSource, ArgValue, Compiled, CustomValue, Date, DateTimeValue, FormatContext, Formatter,
     Function, MarkupHandler, Measure, MeasureUnit, MsgId, Number, Registry, Time, Tr, functions,
-    markup, tr, tr_args_n, tr_args1, tr_args2, tr_rich,
+    markup, tr, tr_args_n, tr_args1, tr_args2, tr_dyn, tr_rich,
 };
 
 static FUNCTIONS: [(&str, &dyn Function); 4] = [
@@ -245,4 +245,49 @@ fn text_keeps_a_literal_static_and_shares_everything_else() {
         panic!("an owned string is counted");
     };
     assert!(Arc::ptr_eq(&a, &b));
+}
+
+#[test]
+fn named_arguments_may_deliberately_mismatch_the_message() {
+    let c = compiled("Hello, {$name}!");
+
+    // What the suite's `dyn` tests do: pass a name the message does not
+    // declare. It is ignored, and the variable nothing matched is an
+    // Unresolved Variable with its fallback text.
+    let mismatched = tr_dyn(
+        Compiled::ID,
+        vec![(mf2::Text::Static("other"), ArgValue::from("x"))],
+    );
+    assert_eq!(
+        text(&c, |f| mismatched.format(f)),
+        "Hello, \u{2068}{$name}\u{2069}!"
+    );
+
+    // And the matching case, by name rather than by slot.
+    let matched = tr_dyn(
+        Compiled::ID,
+        vec![(mf2::Text::Static("name"), ArgValue::from("Ada"))],
+    );
+    assert_eq!(
+        text(&c, |f| matched.format(f)),
+        "Hello, \u{2068}Ada\u{2069}!"
+    );
+
+    // The same lowering as the positional path: a source is read here too.
+    struct Always;
+
+    impl ArgSource for Always {
+        fn arg_value(&self) -> ArgValue {
+            ArgValue::str_static("Grace")
+        }
+    }
+
+    let from_source = tr_dyn(
+        Compiled::ID,
+        vec![(mf2::Text::Static("name"), ArgValue::source(Always))],
+    );
+    assert_eq!(
+        text(&c, |f| from_source.format(f)),
+        "Hello, \u{2068}Grace\u{2069}!"
+    );
 }

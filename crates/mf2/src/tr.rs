@@ -284,7 +284,7 @@ impl TrRich {
 /// arguments — the scratch goes to the heap. An allocation that fails
 /// formats with no arguments rather than panicking: every placeholder then
 /// reports an Unresolved Variable, which is a defined outcome.
-fn with_args<R>(values: &[ArgValue], body: impl FnOnce(&[Arg<'_>]) -> R) -> R {
+pub(crate) fn with_args<R>(values: &[ArgValue], body: impl FnOnce(&[Arg<'_>]) -> R) -> R {
     if values.iter().any(|v| matches!(v, ArgValue::Source(_))) {
         let mut resolved = alloc::vec::Vec::new();
         if resolved.try_reserve_exact(values.len()).is_err() {

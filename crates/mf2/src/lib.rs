@@ -61,6 +61,7 @@ extern crate alloc;
 mod arg;
 #[cfg(feature = "compile")]
 mod compile;
+mod dynamic;
 #[cfg(feature = "compile")]
 mod error;
 mod tr;
@@ -68,6 +69,7 @@ mod tr;
 /// The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
 /// builds, and what formats it against a catalog the caller supplies.
 pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
+pub use dynamic::{TrDyn, tr_dyn};
 pub use tr::{
     MarkupHandler, Tr, TrArgs, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2,
     tr_args3, tr_args4, tr_rich,
