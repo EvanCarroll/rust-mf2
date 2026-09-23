@@ -249,6 +249,14 @@ fn text_keeps_a_literal_static_and_shares_everything_else() {
 
 #[test]
 fn named_arguments_may_deliberately_mismatch_the_message() {
+    struct Always;
+
+    impl ArgSource for Always {
+        fn arg_value(&self) -> ArgValue {
+            ArgValue::str_static("Grace")
+        }
+    }
+
     let c = compiled("Hello, {$name}!");
 
     // What the suite's `dyn` tests do: pass a name the message does not
@@ -274,14 +282,6 @@ fn named_arguments_may_deliberately_mismatch_the_message() {
     );
 
     // The same lowering as the positional path: a source is read here too.
-    struct Always;
-
-    impl ArgSource for Always {
-        fn arg_value(&self) -> ArgValue {
-            ArgValue::str_static("Grace")
-        }
-    }
-
     let from_source = tr_dyn(
         Compiled::ID,
         vec![(mf2::Text::Static("name"), ArgValue::source(Always))],
