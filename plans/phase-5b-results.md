@@ -77,22 +77,12 @@ path in its own crate (rustc #52234). Every other crate writes
 `msg_id!` arrived with A3: `TrDyn` needs a `MsgId` and there was no checked
 way to get one.
 
-## A5 — the compile-fail set
+## A3 — dynamic named arguments
 
-`tools/i18n-fixture/tests/ui/`, seven cases, each `.stderr` read before it was
-committed: unknown id (with its did-you-mean), missing argument, unknown
-argument, duplicate argument, an unknown markup handler, handlers given for
-one markup name and not its sibling, and a stale manifest. Writing them found
-and fixed two bad diagnostics — a name that is neither a variable nor a markup
-name now says so in both kinds, and a tie between two equally distant
-candidates goes to the one of similar length (`kdb` is two edits from `kbd`
-*and* from `b`).
-
-The eighth case of the work order — a gated function with its feature off — is
-not a `tr!` error but a build error, and it is tested where it happens:
-`crates/mf2-build/tests/drift.rs` drives `Lint::GatedFunction` over the real
-pipeline, and at L5d every one of those messages is a recorded
-`build-reject` degradation with the file and line the build gave.
+`mf2::TrDyn` over `Formatter::write_named`, with `msg_id!` for the id. It
+lowers through the same path as the positional types — a source is read, a
+date/time borrowed — and it is explicitly not the client path: names in the
+wasm are what `tr!` exists to avoid.
 
 ## A4 — layer L5
 
@@ -119,12 +109,22 @@ kinds. For that a `mf2-build` diagnostic now carries the MF2 error kind it
 reports, by the suite's name for it — the build's verdict is machine-checkable
 instead of prose, in `--format json` too.
 
-## A3 — dynamic named arguments
+## A5 — the compile-fail set
 
-`mf2::TrDyn` over `Formatter::write_named`, with `msg_id!` for the id. It
-lowers through the same path as the positional types — a source is read, a
-date/time borrowed — and it is explicitly not the client path: names in the
-wasm are what `tr!` exists to avoid.
+`tools/i18n-fixture/tests/ui/`, seven cases, each `.stderr` read before it was
+committed: unknown id (with its did-you-mean), missing argument, unknown
+argument, duplicate argument, an unknown markup handler, handlers given for
+one markup name and not its sibling, and a stale manifest. Writing them found
+and fixed two bad diagnostics — a name that is neither a variable nor a markup
+name now says so in both kinds, and a tie between two equally distant
+candidates goes to the one of similar length (`kdb` is two edits from `kbd`
+*and* from `b`).
+
+The eighth case of the work order — a gated function with its feature off — is
+not a `tr!` error but a build error, and it is tested where it happens:
+`crates/mf2-build/tests/drift.rs` drives `Lint::GatedFunction` over the real
+pipeline, and at L5d every one of those messages is a recorded
+`build-reject` degradation with the file and line the build gave.
 
 ## A6 — budget B5
 
@@ -187,27 +187,6 @@ Both are within the budget with room, and the fixed part (21.9 KB gz: the
 runtime, the reader, the call-site library and the generic instantiations)
 belongs to B1, where 06 §3's whole-app ambition accounts for it. Phase 6's A7
 re-measures the full mix with the real leaf, which is where P0.1's 24.5 sits.
-
-## A10 — B1′ and B13 as a gate
-
-`cargo xtask b12-generated`, in CI beside the other B12 checks. Phase 5a took
-both figures by editing the fixture's corpus by hand and putting it back
-([phase-5a-results](phase-5a-results.md) §A10); the corpus is now two cargo
-features of the fixture, so a regression fails a command.
-
-| Build | Corpus | Features | `.wasm` |
-|---|---|---|---:|
-| E | nothing a function crate could serve | `hydrate` | 349,161 |
-| F | the same | `hydrate,fn-number,fn-datetime` | **349,161** |
-| A | the fixture's own | `hydrate,fn-number` | 365,013 |
-| B | A plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | 378,586 |
-
-**B1′ = F − E = +0 B**, byte-identical, with two whole function crates linked
-and neither reachable from the generated registry — the same result Phase 5a
-measured. **B13 = B − A = +13,573 B**: what a corpus that does not use the
-measure functions does not pay. Phase 5a measured +13,599 on a slightly
-different corpus A; 26 B apart, 0.2 %. The gate holds B1′ at exactly 0 and
-B13 within 10 % of Phase 5a's figure, and prints both.
 
 ## A7 — what the macro costs, and what an editor does with it
 
@@ -305,6 +284,27 @@ ISO text that each side parses, rather than one being handed a parsed value
 and the other a re-parsed one. The two registries differ on purpose — L4
 formats with every handler, the generated crate with the closed world its
 corpus needs — and they agreed on all 10,000.
+
+## A10 — B1′ and B13 as a gate
+
+`cargo xtask b12-generated`, in CI beside the other B12 checks. Phase 5a took
+both figures by editing the fixture's corpus by hand and putting it back
+([phase-5a-results](phase-5a-results.md) §A10); the corpus is now two cargo
+features of the fixture, so a regression fails a command.
+
+| Build | Corpus | Features | `.wasm` |
+|---|---|---|---:|
+| E | nothing a function crate could serve | `hydrate` | 349,161 |
+| F | the same | `hydrate,fn-number,fn-datetime` | **349,161** |
+| A | the fixture's own | `hydrate,fn-number` | 365,013 |
+| B | A plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | 378,586 |
+
+**B1′ = F − E = +0 B**, byte-identical, with two whole function crates linked
+and neither reachable from the generated registry — the same result Phase 5a
+measured. **B13 = B − A = +13,573 B**: what a corpus that does not use the
+measure functions does not pay. Phase 5a measured +13,599 on a slightly
+different corpus A; 26 B apart, 0.2 %. The gate holds B1′ at exactly 0 and
+B13 within 10 % of Phase 5a's figure, and prints both.
 
 ## What Phase 5b leaves for later
 
