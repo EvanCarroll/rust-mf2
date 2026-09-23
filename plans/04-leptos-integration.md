@@ -76,26 +76,26 @@ with plain data, formatted when shown.
 
 Compile-time checks (proc-macro, against the manifest — see
 [05-tooling](05-tooling.md) §4): the id exists (did-you-mean otherwise); the
-argument names equal the message's variables exactly; each markup name has a
-handler; argument types convert to `Arg`.
+argument names equal the message's variables exactly; markup handlers, if the
+call site gives any, cover every markup name of the message (§2.1); argument
+types convert to `Arg`.
 
 Expansion, by shape:
 
 | Message | Expands to | Type |
 |---|---|---|
-| no variables, no markup | `$crate::__mf2::tr(MsgId(123))` — a `const fn` | `Tr` — `Copy`, 4 bytes, identical on every target |
-| variables | `$crate::__mf2::tr_args(MsgId(7), [ArgValue::from(a), ArgValue::from(b)])` | `TrArgs` — **one** concrete type: `MsgId` + an `ArgList` holding up to 4 values inline (the reference workload's maximum) and spilling to a boxed slice beyond that; never a const generic. (P0.1's `tr_args` constructor was generic over the array length — 3 instances in the workload; arity-specific constructors avoid even that.) |
-| markup | `$crate::__mf2::tr_rich(MsgId(9), args, [handler…])` | `TrRich` — type-erased handlers, renders a fragment |
+| no variables, no markup | `$crate::__mf2::tr($crate::__mf2::MsgId::from_raw(123u32))` — a `const fn` | `Tr` — `Copy`, 4 bytes, identical on every target |
+| variables | `$crate::__mf2::tr_args2(id, ArgValue::from(a), ArgValue::from(b))` | `TrArgs` — **one** concrete type: `MsgId` + an `ArgList` holding up to 4 values inline (the reference workload's maximum) and spilling to a boxed slice beyond that (`tr_args_n(id, [_; N].into())`). (P0.1's `tr_args` constructor was generic over the array length — 3 instances in the workload; the arity-specific `tr_args1`…`tr_args4` avoid even that, and only a call site with five or more arguments instantiates a generic.) |
+| markup handlers | `$crate::__mf2::tr_rich(tr_args…, [(0x…u64, $crate::__mf2::markup(h))].into())` | `TrRich` — `TrArgs` plus type-erased handlers, each keyed by the **hash** of its markup name, not the name (§2.1) |
 
 `$crate::__mf2` is a re-export in the application's generated i18n module, so the
 expansion never hard-codes a crate name and downstream crates need no direct
 dependency on ours.
 
-`ArgValue` is the **owned, `'static`** call-site value —
-`Str(Oco<'static, str>)`, `Int`, `Float`, `Decimal`, `DateTime`, `Custom`, and
-`Reactive(Signal<ArgValue>)` for signal-valued arguments. It is borrowed into the
-runtime's `Arg<'a>` ([03-runtime](03-runtime.md) §2) at format time; the runtime
-never sees a signal.
+No closure, no `String`, no `Signal`, no `HashMap`, no id string and no argument
+or markup name is emitted at the call site.
+
+### 2.1 The Leptos-free core (`mf2`), and its two extension points
 
 **Where these types live** (owner, 2026-09-23; Phase 5b's owner question 1,
 [13](13-phase-5b-work-order.md)). `Tr`, `TrArgs`, `TrRich` and `ArgValue` are
@@ -106,14 +106,83 @@ needs them in Phase 5b, before `leptos-mf2` exists.
 
 `leptos-mf2` (Phase 6) then *adds* rendering, the catalog context and the
 reactive argument; it does **not** re-declare `ArgValue`. `Reactive` is
-therefore not a variant of the core enum: the core carries `Custom`, and
-`leptos-mf2` supplies the signal through it (`impl From<Signal<T>> for
-ArgValue`), which is what keeps one type across both crates. Phase 5b's A1
-fixes whether that extension point is the `Custom` variant or a trait, and
-records it here.
+therefore not a variant of the core enum.
 
-No closure, no `String`, no `Signal`, no `HashMap`, no id string and no argument
-names are emitted at the call site.
+**A1 (2026-09-23): each extension point is a trait, not the `Custom`
+variant.** `Custom` stays what it is — an application value the runtime
+borrows as `Arg::Custom(&dyn CustomValue)`, which is how a call site passes a
+measure (`CustomValue::as_measure`), a date or a downcastable value. It
+cannot also carry a signal: every `CustomValue` method returns a borrow of
+`&self` (`as_str(&self) -> Option<&str>`), and a signal's value does not
+exist until it is read, inside the observer that is formatting. Reading it
+early would defeat the point, and caching it behind a lock cannot hand out
+`&str`. So:
+
+```rust
+pub trait ArgSource: Send + Sync {          // ArgValue::Source(Arc<dyn ArgSource>)
+    /// Its value now — called once per format, inside whatever reactive
+    /// context is formatting, which is how a signal subscribes.
+    fn arg_value(&self) -> ArgValue;
+}
+
+pub trait MarkupHandler: Send + Sync {      // TrRich's handlers
+    /// The rendering layer's own handler, for the layer that knows its type.
+    fn as_any(&self) -> &dyn Any;
+}
+```
+
+`leptos-mf2`'s `impl From<Signal<T>> for ArgValue` wraps the signal in its own
+`ArgSource`. One `ArgValue` across both crates, and the core resolves a
+`Source` the same way wherever it formats — bounded, so a source that returns
+a source cannot loop; it resolves to `Unset`, which is an Unresolved
+Variable.
+
+Markup handlers go through `markup(h)`, which the expansion names and which
+therefore has to exist in both phases: Phase 5b's core takes anything that
+already implements `MarkupHandler`, and Phase 6 supplies the one that takes a
+view closure (a blanket impl for closures is impossible — `leptos-mf2` cannot
+implement a foreign trait for a bare `F`). The **expansion does not change**
+between the two, which is the point of fixing it here.
+
+The owned, `'static`, `Send + Sync` call-site value covers every `Arg`
+variant ([03-runtime](03-runtime.md) §2), borrowed into `Arg<'a>` at format
+time — the runtime never sees a signal:
+
+| `ArgValue` | → `Arg<'a>` | From |
+|---|---|---|
+| `Str(Text)` | `Str(&'a str)` | `&str` (copied — a call site's `&str` is rarely `'static`), `String`, `&String`, `Arc<str>`, `char`; `ArgValue::str_static` keeps a literal's `&'static str`, and that is what the macro emits for one |
+| `Int(i64)` | `Int(i64)` | `i8`…`i64`, `u8`…`u32`, and `usize` (32-bit on the client; no server holds `i64::MAX` items) |
+| `Float(f64)` | `Float(f64)` | `f32`, `f64` |
+| `Decimal(Text)` | `Decimal(&'a str)` | `ArgValue::decimal(s)` — exact `number-literal` text |
+| `DateTime(Arc<DateTimeValue>)` | `DateTime(&'a DateTime<'a>)` | `DateTime<'_>`, `DateTimeValue` (instant or floating, optional zone and calendar) |
+| `Custom(Arc<dyn CustomValue + Send + Sync>)` | `Custom(&'a dyn CustomValue)` | `Arc<C>` for any `C: CustomValue + Send + Sync` |
+| `Source(Arc<dyn ArgSource>)` | the resolved value's `Arg` | the extension point above |
+| `Unset` | `Unset` | — |
+
+`Text` is `Static(&'static str) | Shared(Arc<str>)`: `&'static str` costs
+nothing, everything else is counted so that cloning a description — which a
+re-format does on every locale change — never copies text. (`Oco` is Leptos',
+so the core cannot use it; `leptos-mf2` converts, `Counted` to `Shared`,
+without copying.)
+
+Formatting is the same three methods on each of the three types, taking the
+`Formatter` the caller built from *its* catalog, registry and context:
+`write(&Formatter, &mut dyn Sink, &mut dyn ErrorSink)`,
+`parts(&Formatter, &mut dyn PartSink, &mut dyn ErrorSink)` and `format(&Formatter)
+-> String` (errors discarded). Phase 6 adds the ambient-catalog forms
+(`to_string()`, `From<Tr> for TextProp`, …) on top of these, not beside them.
+
+**Markup handlers are positional and keyed by a hash.** A rich call site
+emits `(FNV-1a 64 of the markup name, handler)` pairs in the manifest's
+ascending markup order; `TrRich::handler(name)` hashes the name the catalog
+gives at render time (`MarkupPart::name`) and finds the pair. That keeps
+markup names out of the wasm exactly as argument names are kept out (B6), and
+the macro — which has every markup name of the message — rejects the
+(astronomically unlikely) message whose two markup names collide, so the
+lookup cannot be wrong. Handlers are supplied **all or none**: a message's
+markup formats to parts with no handler at all, which is what the suite's own
+markup tests assert at L5, but a call site that handles one markup name and
+not its sibling is an oversight the macro reports ([05](05-tooling.md) §4).
 
 ## 3. Rendering
 
@@ -282,7 +351,13 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 * Head helpers: `<link rel="alternate" hreflang>` for path-prefix strategies;
   guidance for schema.org `inLanguage` on pages that emit structured data.
 * Bidi: the spec's Default Bidi Strategy is on by default so interpolated names
-  cannot scramble an RTL sentence.
+  cannot scramble an RTL sentence. **Open for Phase 6: which strategy applies
+  in which position.** The isolating marks (U+2066–U+2069) belong in displayed
+  text; in a value the user or another program consumes as plain text — `value=`
+  / `prop:value`, text copied to the clipboard, a `String` handed to a server
+  function — they are invisible junk. `BidiStrategy` is a `FormatContext`
+  field, so a renderer can hold one formatter per strategy and pick by
+  position at no per-call-site cost; §11 says why this is on the list.
 
 ## 10. Version policy
 
@@ -297,3 +372,58 @@ for `ssr` and `hydrate`, and P0.6 showed a `#[wasm_bindgen] extern` block also
 compiles under `forbid`. Versions verified end to end: Leptos 0.8.20,
 leptos_axum 0.8.10, leptos_router 0.8.15, leptos_meta 0.8.6, tachys 0.2.18;
 older 0.8.x releases were not tested (owner question for P6).
+
+## 11. Prior art: leptos-fluent (audited 2026-09-23)
+
+The owner authorized one reading of `leptos-fluent` 0.3.1 (Leptos 0.8, two
+crates: a 2.2k-line runtime and a 9.5k-line proc-macro) outside the repository
+boundary, for architecture only — nothing was copied. It is the closest thing
+to this library that exists, so what it settles is worth having written down.
+Sources are its own; the claims below were read in its tree.
+
+**What it confirms, and we keep.**
+
+| Our decision | What theirs shows |
+|---|---|
+| One macro, one `Copy` description (§2) | They have `tr!` → `String` *and* `move_tr!` → `Signal<String>` = `Signal::derive(closure)`: an `Arc`'d, non-memoizing closure per call site, re-formatting on every read. The split is a documented tripwire — a signal argument in a bare `tr!` is silently non-reactive. Our single `tr!` and a 4-byte `Tr` exist to avoid exactly this. |
+| Positional arguments, resolved at compile time (§2.1) | Theirs builds a `HashMap<Cow, FluentValue>` **per formatting call**, and the catalog list sits behind a derived signal whose closure allocates a `Vec` per lookup. |
+| Never panic when no catalog is in scope (§5) | Their `tr!` hides `expect_context::<I18n>()`, which panics outside the reactive ownership tree; the fix is a documented "pass the context as the macro's first argument" workaround and a second grammar for every macro arm. Our client state is a `thread_local!` and a missing catalog falls back to the default locale. |
+| Lazily-loaded per-locale binary catalogs (master plan §2) | Theirs compiles **every** locale into the wasm — `static_loader!` embeds the `.ftl` sources, and the lookup iterates all loaders because that *is* their fallback chain. Message text, ids and argument names are all in the client. `format!("Unknown localization {id}")` puts the fmt machinery on the client path and renders that string into the page. There is no size measurement anywhere in the project, against a stated goal of being "the most performant internationalization framework available". |
+| The manifest's path baked in, invalidated by `build.rs` (D8, 05 §4) | They tried `proc_macro::tracked_path`; **the nightly API was removed** and they fell back to emitting `include_bytes!` of every `.ftl` purely for rebuild tracking. A build script's `cargo::rerun-if-changed` is the only durable mechanism, which is what D8 uses. |
+| Checks in the call-site macro, spanned at the call site (05 §4) | Their checker re-parses every `.rs` file under the workspace root on every expansion, with no caching, and reports one aggregated error spanned at the init macro's `check_translations:` argument; the offending `tr!` is named in prose, with line:column only on nightly. Their bidirectional check (an unused argument is as much an error as a missing one) is right, and ours does it. |
+| `mf2 check` / `mf2-cli` own corpus-wide questions (05 §5–§6) | Theirs live in the proc-macro, and one of them (`fill_translations`) **writes to the source tree during expansion**. |
+
+**What it adds to our list.**
+
+1. **Markup is a real advantage, and the gap is worse than it looks.** Fluent
+   has no markup, and their tree contains no answer: no `inner_html`, no
+   wrapper component, no message-splitting helper. A sentence with a link in
+   it has to be split into fragments and reassembled in the view, which is
+   precisely the word-order bug i18n exists to prevent. §7 is therefore not a
+   nicety; it is the feature. Keep the flat handler public (L6 needs it) and
+   keep handlers cheap enough that a rich site is not a reason to avoid markup.
+2. **Bidi isolation needs per-position control** (§9). Theirs is global: a
+   `customise` closure reaching into `fluent-bundle` to call
+   `set_use_isolating(false)`, so a user who wants clean `title` text loses
+   isolation everywhere, including in the RTL sentences that need it. We can
+   do better for free, and Phase 6 should decide it rather than inherit a
+   global switch.
+3. **Serialize the negotiated locale; never re-negotiate on the client.** They
+   serialize nothing — the client re-runs negotiation at hydration and has to
+   agree by luck. Their changelog carries a `hydrate` feature added and
+   removed, a "re-render on hydration" hack added and removed, and repeated
+   "fix hydration mode" entries. §6 already reads the locale from
+   `<html lang>` and the catalog URL from the preload link, which *is* the
+   serialized answer — Phase 6 must keep it that way, and its e2e must assert
+   it (theirs added SSR end-to-end tests only after the hydration bugs).
+4. **Islands foreclose themselves if ignored.** Theirs cannot support islands:
+   the loader static and the context live in the shell. Our thread-local was
+   chosen partly for this (§5) — P7 should prove it early rather than discover
+   it.
+5. **A negotiation matrix does not scale.** Theirs has ~60 hand-parsed
+   `leptos_fluent!` parameters, including the full
+   `initial_language_from_<source>_to_<target>` cross-product; the audit found
+   a live copy-paste bug in that chain. `mf2-axum`'s strategy trait (§6) and
+   `mf2.toml` (05 §3.1) should stay an ordered list of typed sources and
+   sinks, never a boolean matrix. Their cheap insurance is worth stealing: a
+   test asserting every configuration option has a section in the docs.

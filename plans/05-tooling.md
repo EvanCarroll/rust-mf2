@@ -420,8 +420,10 @@ Measured behaviour and costs:
 
 The proc-macro checks, at compile time: the id exists (with a did-you-mean), the
 argument set equals the message's variables (unknown, missing and duplicate
-arguments), every markup name has a handler, and no unknown argument is passed.
-It emits a positional construction — see
+arguments), and — for a call site that supplies markup handlers at all — that
+every markup name of the message has one and none is unknown (handlers are
+all or none, [04](04-leptos-integration.md) §2.1). It emits a positional
+construction — see
 [04-leptos-integration](04-leptos-integration.md) — spanned at the id literal;
 several errors from one expansion are wrapped in a block (bare
 `compile_error!`s in expression position misparse and hide the later ones); and
@@ -604,7 +606,25 @@ The one crate an application names. It re-exports the public API of
 `mf2-runtime`, `leptos-mf2` (feature `leptos`), `mf2-axum` (feature `axum`) and
 the build entry point (feature `build`), carries the user-facing feature flags of
 the master plan §5 and forwards them, and offers `mf2::compile_str` (std only:
-parse + `writer::single`) for ad-hoc formatting on servers and in tests. It
-contains no logic of its own. Created in Phase 3 (runtime + features), extended
-in P4 (function features), P5b (`__mf2` path, `include_generated!`) and P6
+parse + `writer::single`) for ad-hoc formatting on servers and in tests. Created
+in Phase 3 (runtime + features), extended in P4 (function features), P5b and P6
 (Leptos and Axum re-exports).
+
+Beyond the re-exports it carries exactly one thing of its own, added in P5b:
+the **call-site core** every `tr!` expansion goes through
+([04](04-leptos-integration.md) §2.1) — `Tr`, `TrArgs`, `TrRich`, their
+constructors `tr` / `tr_args1`…`tr_args4` / `tr_args_n` / `tr_rich`,
+`ArgValue` with a `From` for every `Arg` variant and the two extension traits
+`ArgSource` and `MarkupHandler`, and the lowering that borrows an
+`&[ArgValue]` into the runtime's `&[Arg<'a>]`. It is Leptos-free, so a
+server, a test and `mf2-cli` use it with no Leptos in the tree, and it is
+**client-path code** (`no_std`, `forbid(unsafe_code)`, no `core::fmt`, no
+panicking operation — the discipline of `mf2-runtime`), because it is what
+2,000 call sites of a wasm build are made of (B5).
+
+Also P5b: `__mf2` is the path the generated module re-exports the facade
+under, `mf2::include_generated!()` includes what `mf2-build` wrote
+(`$OUT_DIR/mf2_generated.rs`; `include_generated!(catalogs)` for the
+catalog-only crate of `Emit::Catalogs`), and `mf2::__tr_impl` re-exports
+`mf2-macros`' proc-macro so that the generated `tr!` wrapper reaches it
+through `__mf2` alone.
