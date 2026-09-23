@@ -16,7 +16,10 @@
 
 #![no_main]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+#[path = "../common/budget.rs"]
+mod budget;
 
 use libfuzzer_sys::fuzz_target;
 use mf2_model::{ErrorClass, Span};
@@ -29,7 +32,7 @@ fn span_ok(src: &str, span: Span) -> bool {
 fuzz_target!(|data: &[u8]| {
     let src = String::from_utf8_lossy(data);
     let src: &str = &src;
-    let start = Instant::now();
+    let cpu = budget::Cpu::start();
 
     let cst = mf2_syntax::parse_cst(src);
     assert_eq!(cst.to_string(), src, "CST is not lossless");
@@ -58,16 +61,14 @@ fuzz_target!(|data: &[u8]| {
     if let Some(model) = &parsed.message {
         let text = mf2_syntax::serialize(model).expect("a parsed model serializes");
         let again = mf2_syntax::parse_model(&text);
-        assert_eq!(again.message.as_ref(), Some(model), "round trip via {text:?}");
+        assert_eq!(
+            again.message.as_ref(),
+            Some(model),
+            "round trip via {text:?}"
+        );
         let _ = mf2_syntax::validate(model);
         let _ = mf2_syntax::analyze(model);
     }
 
-    let budget = Duration::from_millis(50) + Duration::from_micros(50) * src.len() as u32;
-    let elapsed = start.elapsed();
-    assert!(
-        elapsed <= budget,
-        "{elapsed:?} for {} bytes (budget {budget:?})",
-        src.len()
-    );
+    budget::check(&cpu, src.len(), Duration::ZERO);
 });

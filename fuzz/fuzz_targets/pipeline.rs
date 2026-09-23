@@ -24,7 +24,7 @@ use std::path::PathBuf;
 
 use libfuzzer_sys::fuzz_target;
 use mf2_build::loader::Loader;
-use mf2_build::{Build, Config, Features, Lint, Level};
+use mf2_build::{Build, Config, Features, Level, Lint};
 
 /// Where the corpus is written. One directory, rewritten every run: the
 /// files are small and the kernel keeps them in cache.

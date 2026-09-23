@@ -56,7 +56,10 @@
 #![no_main]
 
 use std::sync::OnceLock;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+#[path = "../common/budget.rs"]
+mod budget;
 
 use libfuzzer_sys::fuzz_target;
 use mf2_catalog::format::locale_key::ICU_BLOB;
@@ -115,20 +118,21 @@ fuzz_target!(|data: &[u8]| {
             None => return,
         }
     };
-    let start = Instant::now();
+    let cpu = budget::Cpu::start();
     let mut work = 0usize;
     run(*flags, arg_bytes, payload, compiled, &mut work);
-    let budget = Duration::from_millis(50)
-        + Duration::from_micros(50) * u32::try_from(data.len()).unwrap_or(u32::MAX)
-        + Duration::from_nanos(
+    let budget = budget::budget(
+        data.len(),
+        Duration::from_nanos(
             u64::try_from(work)
                 .unwrap_or(u64::MAX)
                 .saturating_mul(NANOS_PER_TEXT_BYTE),
-        );
-    let elapsed = start.elapsed();
+        ),
+    );
+    let used = cpu.elapsed();
     assert!(
-        elapsed <= budget,
-        "{elapsed:?} for {} bytes and {work} bytes of output (budget {budget:?})",
+        used <= budget,
+        "{used:?} of CPU for {} bytes and {work} bytes of output (budget {budget:?})",
         data.len()
     );
 });

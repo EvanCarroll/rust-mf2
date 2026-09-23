@@ -8,15 +8,19 @@
 //! * a file the parser read **without a diagnostic** serializes, and that
 //!   text parses to the same resource and writes itself again byte for byte
 //!   (`mf2 fmt` is idempotent);
-//! * **linear time**: the whole check takes at most a fixed budget per input
-//!   byte.
+//! * **linear time**: the whole check takes at most a fixed budget of **CPU
+//!   time** per input byte — CPU, not wall clock, so that a busy machine
+//!   cannot fail a run the code would pass (`../common/budget.rs`).
 //!
 //! Non-UTF-8 input is fed through `from_utf8_lossy`, so every run exercises
 //! the parser.
 
 #![no_main]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+#[path = "../common/budget.rs"]
+mod budget;
 
 use libfuzzer_sys::fuzz_target;
 use mf2_model::Span;
@@ -71,7 +75,7 @@ fn check_spans(src: &str, resource: &Resource<'_, std::borrow::Cow<'_, str>>) {
 fuzz_target!(|data: &[u8]| {
     let src = String::from_utf8_lossy(data);
     let src: &str = &src;
-    let start = Instant::now();
+    let cpu = budget::Cpu::start();
 
     let (resource, diags) = parse(src);
     for d in &diags {
@@ -91,11 +95,5 @@ fuzz_target!(|data: &[u8]| {
         }
     }
 
-    let budget = Duration::from_millis(50) + Duration::from_micros(50) * src.len() as u32;
-    let elapsed = start.elapsed();
-    assert!(
-        elapsed <= budget,
-        "{elapsed:?} for {} bytes (budget {budget:?})",
-        src.len()
-    );
+    budget::check(&cpu, src.len(), Duration::ZERO);
 });

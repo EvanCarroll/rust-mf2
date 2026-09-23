@@ -294,7 +294,11 @@ tests).
   and wasm.
 * **Fuzzing** — `cargo fuzz` targets for the parser and the catalog decoder: no
   panic, no OOB, linear time (MF2 has no recursive productions; the parser MUST
-  NOT recurse on input).
+  NOT recurse on input). "Linear time" is asserted as a budget of **CPU time**
+  per input byte, not wall clock (`fuzz/common/budget.rs`): the claim is about
+  the work the code does, and a shared clock measures the machine too — on a
+  loaded desktop that fails runs the code would pass. libFuzzer's `-timeout`
+  stays wall clock, as the guard against blocking rather than spinning.
 * **Locale-output goldens** — the suite leaves number/date output
   implementation-defined. `conformance/goldens/` pins our output for a locale
   panel chosen to stress the data: `en`, `es`, `de`, `fr`, `ar` (RTL, six plural

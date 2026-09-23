@@ -1,7 +1,10 @@
 # fuzz — cargo-fuzz targets
 
 plans/01-conformance.md §5 ("Fuzzing"): no panic, no out-of-bounds, linear
-time. A standalone workspace (the root workspace excludes it), because
+time. The time budget is **CPU time**, not wall clock (`common/budget.rs`):
+the property is that the work per input byte is bounded, and measuring it on
+a clock the machine shares makes a busy desktop fail a run the code passes.
+A standalone workspace (the root workspace excludes it), because
 cargo-fuzz needs a **nightly** toolchain: this is the one place in the
 repository that uses `+nightly`; everything else stays on the stable toolchain
 pinned by `rust-toolchain.toml`.
@@ -56,7 +59,9 @@ Seeds (`cargo xtask fuzz-seed`):
 
 `-max_len=131072` for `catalog`: above the largest seed (the unstripped
 workload catalog, 73 KB), with room for insertions; the per-byte budget at
-that length, 6.6 s, stays below libFuzzer's `-timeout`. The dictionary helps
+that length, 6.6 s of CPU, stays below libFuzzer's `-timeout` — which is
+wall clock, and remains the guard against a target that blocks instead of
+spinning. The dictionary helps
 source mode; catalog mode relies on libFuzzer's comparison tracing.
 
 `fuzz/corpus/` and `fuzz/artifacts/` are git-ignored. A crash leaves its input
