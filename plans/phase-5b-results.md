@@ -268,3 +268,41 @@ environment that *restores* build-script outputs without rerunning them
 (remote execution, a build cache), which this machine cannot reproduce. It is
 now unit-tested directly instead (`relocated_in`), both argument spellings,
 with the hash check still the thing that makes a wrong file impossible.
+
+## A8 — generated input at L5 (not done)
+
+Not an exit item, and not finished. What is in place for it: `l4gen` now
+hands back a generated message *without* compiling it
+(`l4gen::message` → `GeneratedMessage`: the source, whether the spec accepts
+it, the locale and bidi the seed chose, and the arguments), and the L5
+generator's corpus-and-call-sites half is a public function
+(`mf2_l5_gen::build`) that takes messages from anywhere, not only the suite.
+What is left is the crate that feeds one into the other and the test that
+compares each generated call site with L4's runner on the same message.
+
+Two things that crate has to decide, both written down here so the next
+session does not rediscover them:
+
+* **One locale.** A corpus is one source locale, and `l4gen` picks a locale
+  per seed out of eighteen. The corpus should be built in a single locale
+  (`en`) and the L4 side compiled in the same one — the locale is what L4's
+  own generated tests vary, and what L5 adds is the manifest, the slots and
+  the macro.
+* **The registries differ on purpose.** L4 formats with every handler;
+  an L5 crate formats with the closed world its corpus needs. They agree for
+  every function a message actually uses, so a disagreement is a finding
+  about the slicing, not noise to paper over.
+
+## What Phase 5b leaves for later
+
+* **A8**, above.
+* **B5's view half** (Phase 6 A7): the marginal with a real `Tr` leaf, and
+  P0.1's open item — measure with `--cfg erase_components` and propose the
+  tachys leaf hook that would let a description reuse `&str`'s state and
+  async path.
+* **The relocation fallback is untested end to end** (§A7): cargo 1.98 does
+  not produce the stale baked path on this machine. If a build cache that
+  restores build-script outputs ever appears in CI, that is where to try it.
+* **`markup(h)` for a view closure** (Phase 6 A1): the core takes anything
+  that implements `MarkupHandler`; the facade's re-export of the Leptos one
+  is Phase 6's to settle, and the expansion does not change either way.

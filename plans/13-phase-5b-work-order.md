@@ -108,14 +108,23 @@ decided; here is why.
 
 ## Exit (master plan §9, P5b)
 
-- [ ] L5 100 % in the all-features configuration (the suite and
+- [x] L5 100 % in the all-features configuration (the suite and
       `conformance/extra/`), and every L5d cell recorded — `pass`, or
       `degraded` with the build's verdict — none `xfail`;
       `current_phase = "P5b"` in the exit commit with the harness green
-- [ ] the `trybuild` compile-fail set green
-- [ ] B5 met on the 2,000-site build (or restated with the owner)
-- [ ] rust-analyzer expands the macro; macro overhead within P0.9's threshold
-- [ ] owner question 1 answered and recorded in 04 §2
-- [ ] `b12-generated` green as a gate, reproducing Phase 5a's B1′ = +0 B and
-      B13 = 13,599 B (A10)
-- [ ] `plans/phase-5b-results.md` and the Phase 6 work order written
+      — **L5 485/485, L5d 416/485 + 69 documented degradations**
+- [x] the `trybuild` compile-fail set green — **seven cases**
+- [x] B5 met on the 2,000-site build (or restated with the owner) —
+      **12.6 B gz per site against `idlit`, 34.0 against the `dummy` bound**,
+      on the description and the `String` path; the view positions are
+      Phase 6's, and [phase-5b-results](phase-5b-results.md) §A6 says why
+- [x] rust-analyzer expands the macro; macro overhead within P0.9's threshold
+      — **0.122 s per 2,000 expansions, one manifest read**, `cargo check`
+      inside the noise; rust-analyzer reports the macro's own errors at the id
+- [x] owner question 1 answered and recorded in 04 §2
+- [x] `b12-generated` green as a gate, reproducing Phase 5a's B1′ = +0 B and
+      B13 = 13,599 B (A10) — **+0 B and +13,573 B**
+- [x] `plans/phase-5b-results.md` and the Phase 6 work order written
+
+**A8 (generated input at L5) is not an exit item and is not done**; the state
+it is in is [phase-5b-results](phase-5b-results.md) §A8.

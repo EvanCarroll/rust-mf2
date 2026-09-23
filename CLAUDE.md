@@ -9,14 +9,15 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    feature flags, decisions D1–D14, phases, risks).
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
-3. Find your task in the current work order. **Current phase: Phase 5b**
-   (macros, layer L5) → `plans/13-phase-5b-work-order.md`. Phases 1–5a are
-   done (`crates/mf2-model`, `crates/mf2-syntax`, `crates/mf2-catalog`,
-   `crates/mf2-runtime` and its hosts, `mf2-locale-data`, `mf2-fn-number`,
-   `mf2-fn-datetime` with both date backends, the `intl` client option, the
-   `mf2` facade, `mf2-resource`, `mf2-build`, `mf2-cli`, the generated module
-   and `tools/i18n-fixture`; `plans/phase-1-results.md` …
-   `plans/phase-5a-results.md`).
+3. Find your task in the current work order. **Current phase: Phase 6**
+   (Leptos and Axum, layer L6) → `plans/14-phase-6-work-order.md`. Phases
+   1–5b are done (`crates/mf2-model`, `crates/mf2-syntax`,
+   `crates/mf2-catalog`, `crates/mf2-runtime` and its hosts,
+   `mf2-locale-data`, `mf2-fn-number`, `mf2-fn-datetime` with both date
+   backends, the `intl` client option, the `mf2` facade with the call-site
+   core, `mf2-resource`, `mf2-build`, `mf2-cli`, the generated module,
+   `tools/i18n-fixture`, `mf2-macros` and layer L5 in `conformance/l5/`;
+   `plans/phase-1-results.md` … `plans/phase-5b-results.md`).
 
 ## Boundary — this repository is self-contained
 
