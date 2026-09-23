@@ -49,10 +49,17 @@ mf2-fn-datetime = { workspace = true, optional = true }
 mf2-host-std = { workspace = true, optional = true }
 mf2-host-web = { workspace = true, optional = true }
 mf2-locale-data = { workspace = true, optional = true }
+mf2-macros.workspace = true
 mf2-model.workspace = true
 mf2-runtime.workspace = true
 mf2-syntax = { workspace = true, optional = true }
 thiserror.workspace = true
+
+# The call-site core formats against a catalog the caller supplies: the test
+# builds one with `compile_str` and formats it through the native host.
+[[test]]
+name = "call_site"
+required-features = ["compile", "host-std", "fn-datetime"]
 
 [package.metadata.docs.rs]
 features = ["compile", "host-std"]

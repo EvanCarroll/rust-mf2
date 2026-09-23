@@ -15,7 +15,13 @@
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
 //! | `intl` | on `wasm32-unknown-unknown` ([`INTL_NUMBERS`]): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
-//! Phase 5b adds the `tr!` macro, Phase 6 the Leptos and Axum layers.
+//! Beyond the re-exports the facade carries one thing of its own: the
+//! **call-site core** (`plans/04-leptos-integration.md` §2.1) — [`Tr`],
+//! [`TrArgs`], [`TrRich`], [`ArgValue`] and the lowering that borrows them
+//! into the runtime's [`Arg`], with [`include_generated!`] and the `tr!`
+//! proc-macro behind it. It is Leptos-free, so a server, a test and
+//! `mf2-cli` use it as they are; Phase 6's `leptos-mf2` adds rendering, the
+//! catalog context and the reactive argument on top of it.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -41,18 +47,66 @@
 
 #![no_std]
 #![forbid(unsafe_code)]
+// The call-site core is what 2,000 client call sites are made of, so the
+// facade keeps `mf2-runtime`'s client-path discipline (B12).
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
 
 extern crate alloc;
 
+mod arg;
 #[cfg(feature = "compile")]
 mod compile;
 #[cfg(feature = "compile")]
 mod error;
+mod tr;
+
+/// The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
+/// builds, and what formats it against a catalog the caller supplies.
+pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
+pub use tr::{
+    MarkupHandler, Tr, TrArgs, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2,
+    tr_args3, tr_args4, tr_rich,
+};
+
+/// The proc-macro behind the generated `tr!` wrapper — reached as
+/// `__mf2::__tr_impl!`, never named by an application (`plans/05-tooling.md`
+/// §4).
+#[doc(hidden)]
+pub use mf2_macros::__tr_impl;
+
+/// Includes what `mf2-build` wrote into `OUT_DIR`: the manifest hash, the
+/// locale table, the closed-world registry, the host, `__mf2` and the `tr!`
+/// wrapper (`plans/05-tooling.md` §4). An i18n crate's whole `src/lib.rs` is
+///
+/// ```ignore
+/// mf2::include_generated!();
+/// ```
+///
+/// With `include_generated!(catalogs)` it includes the catalog table
+/// instead, for the server-only crate a build with
+/// `Build::emit(Emit::Catalogs)` writes.
+#[macro_export]
+macro_rules! include_generated {
+    () => {
+        include!(concat!(env!("OUT_DIR"), "/mf2_generated.rs"));
+    };
+    (catalogs) => {
+        include!(concat!(env!("OUT_DIR"), "/mf2_catalogs.rs"));
+    };
+    ($file:literal) => {
+        include!(concat!(env!("OUT_DIR"), "/", $file));
+    };
+}
 
 /// The manifest (build side: `mf2-catalog`'s `manifest` feature).
 #[cfg(feature = "compile")]
 pub use mf2_catalog::Manifest;
-pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, MsgId, StrRef};
+pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, MsgId, StrRef, markup_key};
 pub use mf2_model::{ErrorKind, MarkupKind};
 pub use mf2_runtime::{
     Arg, BidiStrategy, Category, CurrencyDisplay, CustomValue, Date, DateFields, DateLength,
