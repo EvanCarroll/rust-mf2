@@ -18,8 +18,9 @@
 //! Variable, which is a defined outcome, and the client path takes no panic.
 
 use reactive_graph::computed::{ArcMemo, Memo};
+use reactive_graph::graph::Observer;
 use reactive_graph::signal::{ArcReadSignal, ArcRwSignal, ReadSignal, RwSignal};
-use reactive_graph::traits::Get;
+use reactive_graph::traits::{Get, GetUntracked};
 use reactive_graph::wrappers::read::{ArcSignal, Signal};
 
 use crate::arg::{ArgSource, ArgValue};
@@ -36,11 +37,19 @@ impl<S> SignalArg<S> {
 
 impl<S> ArgSource for SignalArg<S>
 where
-    S: Get + Send + Sync + 'static,
-    S::Value: Into<ArgValue>,
+    S: Get + GetUntracked<Value = <S as Get>::Value> + Send + Sync + 'static,
+    <S as Get>::Value: Into<ArgValue>,
 {
     fn arg_value(&self) -> ArgValue {
-        match self.0.try_get() {
+        // Subscribe when something is watching, and do not when nothing is
+        // (04 §4: reading outside an observer — a build, an event handler, a
+        // `to_string()` — must not warn, and `try_get` warns).
+        let value = if Observer::get().is_some() {
+            self.0.try_get()
+        } else {
+            self.0.try_get_untracked()
+        };
+        match value {
             Some(value) => value.into(),
             None => ArgValue::Unset,
         }
@@ -52,8 +61,8 @@ where
 #[must_use]
 pub fn signal_arg<S>(signal: S) -> ArgValue
 where
-    S: Get + Send + Sync + 'static,
-    S::Value: Into<ArgValue>,
+    S: Get + GetUntracked<Value = <S as Get>::Value> + Send + Sync + 'static,
+    <S as Get>::Value: Into<ArgValue>,
 {
     ArgValue::source(SignalArg::new(signal))
 }

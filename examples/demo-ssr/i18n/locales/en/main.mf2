@@ -1,0 +1,37 @@
+# The demo's corpus. One message per shape the integration has to render:
+# a simple message, an argument, a plural, markup, a date, and the names of
+# the languages themselves (which is how a switcher names them without any
+# text reaching the wasm).
+@locale en
+---
+
+app-title = MessageFormat 2 for Leptos
+tagline = One macro. Every position. No locale data in the wasm.
+
+search-placeholder = Search everything
+search-label = Search
+
+greeting = Hello, {$name}!
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} person is here}}
+  *   {{{$count} people are here}}
+
+# Markup: the sentence keeps its own word order and the element goes where
+# this locale wants it.
+hotkey = Press {#kbd}Esc{/kbd} to close the dialog
+
+published = Published {$when :datetime dateStyle=long timeStyle=short}
+
+add-one = Add one
+reset = Reset
+typed-nothing = You have not typed anything yet
+typed = You typed {$typed}
+
+[language]
+label = Language
+en = English
+fr = Français
+ar = العربية

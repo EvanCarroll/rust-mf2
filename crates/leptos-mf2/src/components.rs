@@ -11,15 +11,24 @@
 //!   a screen reader pronounces "Français" with an English voice.
 //!
 //! **Where the option text comes from, and why it is not in the wasm.**
-//! [`LocaleOption`] takes its text as children, so the names come from the
-//! application's own catalog (one message per locale, present in every
-//! locale's catalog) — never from a literal in the client. The server
-//! renders the `<option>` elements; the client's view of the `<select>`
-//! declares **no** children, so hydration attaches the change handler and
-//! leaves the options exactly as they were served. No autonym reaches the
-//! wasm, which is what the size canaries check for (B6).
+//! [`LocaleOption`] takes its text as children, so each language's name is a
+//! message of the application's own catalog — `language.fr` in *every*
+//! locale's catalog — and never a literal in the client. The options render
+//! on both sides, like any other description: what keeps the autonyms out of
+//! the wasm is that they are catalog data, not that the client skips them
+//! (B6, and the browser check greps the bundle for them).
+//!
+//! An earlier version rendered the options on the server only, on the theory
+//! that a client view with no children would leave them alone. It does not:
+//! tachys walks the cursor for the element's own end marker, finds an
+//! `<option>` and traps the wasm (P0.10), which took the rest of the page's
+//! hydration with it. Server and client render the same tree.
 
 use alloc::string::String;
+// The `view!` macro expands to `vec![…]` in the client build, and this crate
+// is `no_std`; the server build of the same macro does not, hence the allow.
+#[allow(unused_imports)]
+use alloc::vec;
 use alloc::vec::Vec;
 
 use leptos::prelude::*;
@@ -162,23 +171,10 @@ pub fn LocaleSwitcher(
                 on:change=|event| switch_on_change(&event)
                 prop:value=lang.clone()
             >
-                {options(children)}
+                {children()}
             </select>
         </div>
     }
-}
-
-/// The options render on the server only: their text is locale data, and
-/// hydrating a `<select>` whose client view has no children leaves the
-/// served options exactly as they are.
-#[cfg(feature = "ssr")]
-fn options(children: Children) -> impl IntoView {
-    children()
-}
-
-#[cfg(not(feature = "ssr"))]
-fn options(children: Children) -> impl IntoView {
-    drop(children);
 }
 
 /// One `<option>`, named in its own language and marked as being in it.

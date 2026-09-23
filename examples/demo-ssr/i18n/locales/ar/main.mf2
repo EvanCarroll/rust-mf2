@@ -1,0 +1,35 @@
+@locale ar
+---
+
+app-title = MessageFormat 2 لـ Leptos
+tagline = ماكرو واحد. كل المواضع. لا بيانات لغوية في الـ wasm.
+
+search-placeholder = ابحث في كل شيء
+search-label = بحث
+
+greeting = مرحبا يا {$name}!
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  zero {{لا أحد هنا}}
+  one {{شخص واحد هنا}}
+  two {{شخصان هنا}}
+  few {{{$count} أشخاص هنا}}
+  many {{{$count} شخصا هنا}}
+  *    {{{$count} شخص هنا}}
+
+hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
+
+published = نشر في {$when :datetime dateStyle=long timeStyle=short}
+
+add-one = أضف واحدا
+reset = إعادة تعيين
+typed-nothing = لم تكتب شيئا بعد
+typed = لقد كتبت {$typed}
+
+[language]
+label = اللغة
+en = English
+fr = Français
+ar = العربية

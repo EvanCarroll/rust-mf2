@@ -1,0 +1,79 @@
+# A workspace of its own: an application turns on exactly one of `ssr` and
+# `hydrate`, and cargo unifies features across a workspace, so an app crate
+# cannot share one with libraries that are built both ways.
+[workspace]
+members = [".", "i18n"]
+resolver = "3"
+
+[package]
+name = "demo-ssr"
+description = "The Phase 6 example: SSR, hydration, a locale switch, markup as elements, a date and a plural — the whole integration in one page."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+demo-i18n = { path = "i18n" }
+leptos = { version = "0.8.20", default-features = false }
+leptos-mf2 = { path = "../../crates/leptos-mf2" }
+leptos_meta = "0.8.6"
+leptos_router = "0.8.15"
+mf2 = { path = "../../crates/mf2", features = ["fn-number", "fn-datetime", "datetime-icu"] }
+
+axum = { version = "0.8.9", optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
+leptos_axum = { version = "0.8.10", optional = true }
+mf2-axum = { path = "../../crates/mf2-axum", optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
+tower-http = { version = "0.6", features = ["fs"], optional = true }
+wasm-bindgen = { version = "0.2.128", optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "leptos-mf2/hydrate",
+    "mf2/hydrate",
+    "demo-i18n/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptos-mf2/ssr",
+    "mf2/ssr",
+    "demo-i18n/ssr",
+    "dep:axum",
+    "dep:leptos_axum",
+    "dep:mf2-axum",
+    "dep:tokio",
+    "dep:tower-http",
+]
+
+[package.metadata.leptos]
+output-name = "demo_ssr"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+assets-dir = "public"
+site-addr = "127.0.0.1:3702"
+reload-port = 3703
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

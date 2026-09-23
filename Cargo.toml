@@ -39,7 +39,17 @@ members = [
 # in the browser for the `intl` build (`cargo xtask l4-web`), whose `intl`
 # features must not unify into this workspace's builds, and the
 # `datetime-intl` browser check (tools/e2e/datetime).
-exclude = ["probes", "fuzz", "bench/b12", "bench/intl-probe", "conformance/l4-web", "tools/e2e/datetime"]
+exclude = [
+    "probes",
+    "fuzz",
+    "bench/b12",
+    "bench/intl-probe",
+    "conformance/l4-web",
+    "tools/e2e/datetime",
+    # An application turns on exactly one of `ssr` and `hydrate`, and cargo
+    # unifies features across a workspace: the example is its own.
+    "examples/demo-ssr",
+]
 
 [workspace.package]
 version = "0.0.0"

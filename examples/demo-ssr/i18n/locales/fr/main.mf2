@@ -1,0 +1,34 @@
+@locale fr
+---
+
+app-title = MessageFormat 2 pour Leptos
+tagline = Une macro. Toutes les positions. Aucune donnée de langue dans le wasm.
+
+search-placeholder = Rechercher partout
+search-label = Rechercher
+
+greeting = Bonjour {$name} !
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one  {{{$count} personne est ici}}
+  many {{{$count} personnes sont ici}}
+  *    {{{$count} personnes sont ici}}
+
+# The element lands in a different place than in English, which is the whole
+# point of markup.
+hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
+
+published = Publié le {$when :datetime dateStyle=long timeStyle=short}
+
+add-one = Ajouter un
+reset = Réinitialiser
+typed-nothing = Vous n'avez encore rien saisi
+typed = Vous avez saisi {$typed}
+
+[language]
+label = Langue
+en = English
+fr = Français
+ar = العربية

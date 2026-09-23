@@ -1,0 +1,30 @@
+# The application's i18n crate, exactly as `plans/05-tooling.md` §4 describes
+# one: `locales/`, an `mf2.toml`, a build script, and a `src/lib.rs` that is
+# one line. Everything else — the manifest, the catalogs, the closed-world
+# registry, `tr!` — is generated into `OUT_DIR`.
+[package]
+name = "demo-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[features]
+# The build script reads *this* crate's features to decide what the corpus
+# may use: a message can never add formatting code to the wasm by itself.
+default = ["fn-number", "fn-datetime", "datetime-icu"]
+# What the application forwards from its own `ssr` / `hydrate` builds.
+ssr = ["mf2/host-std", "mf2/ssr"]
+hydrate = ["mf2/host-web", "mf2/hydrate"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu", "mf2-build/icu-blob"]
+# Declared, though this demo uses ICU4X on both sides: the generated module
+# names it, so the crate has to know it.
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2" }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }

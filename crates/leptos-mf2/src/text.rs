@@ -232,7 +232,16 @@ pub(crate) fn with_active_text<D: Description, R>(
     }
 }
 
-/// The text of `description`, owned.
+/// The text of `description`, owned — the **ambient string** form, which is
+/// what `to_string()`, `String::from` and the `Oco` conversion go through.
+///
+/// On the client it subscribes to the locale change, so that a closure like
+/// `move || label(x.get())` — half of real call sites produce a `String`
+/// this way (04 §2) — re-runs after `set_locale`. Nothing is tracked when
+/// there is no observer, which is the event-handler case §4 says must not
+/// warn; the node registry, not this, is what updates a rendered node.
 pub(crate) fn to_string<D: Description>(description: &D, use_: TextUse) -> String {
+    #[cfg(not(feature = "ssr"))]
+    reactive_graph::traits::Track::track(&catalog::changed());
     with_active_text(description, use_, |text: &str| String::from(text))
 }

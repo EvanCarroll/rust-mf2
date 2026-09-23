@@ -1,0 +1,120 @@
+/* Flexbox throughout, and nothing that depends on writing direction: the
+   page lays out right-to-left in `ar` because `<html dir>` says so, not
+   because the CSS has a second set of rules. Contrast is WCAG 2.2 AA. */
+
+:root {
+  --bg: #ffffff;
+  --fg: #16181d;
+  --muted: #4a4f5a;
+  --line: #d3d7df;
+  --accent: #1b4dd8;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --fg: #f2f4f8;
+    --muted: #b9bfcc;
+    --line: #333a46;
+    --accent: #8fb0ff;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 system-ui, sans-serif;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+header.row {
+  justify-content: space-between;
+}
+
+h1 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  margin: 0;
+}
+
+.tagline {
+  margin: 0;
+  color: var(--muted);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.5rem;
+}
+
+button {
+  font: inherit;
+  color: var(--bg);
+  background: var(--accent);
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+/* A visible focus ring everywhere (WCAG 2.4.7, 2.4.11). */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+kbd {
+  font: 0.9em/1 ui-monospace, monospace;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+}
+
+.mf2-locale-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+footer.row {
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
