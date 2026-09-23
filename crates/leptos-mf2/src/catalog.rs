@@ -241,10 +241,18 @@ impl Resolved {
         &self.catalog
     }
 
+    /// Always the installed one: a page is one application, so there is
+    /// nothing to override. The shape mirrors the server's so that the
+    /// formatting path is one piece of code rather than two.
+    #[allow(clippy::unused_self)]
     pub(crate) fn registry(&self) -> Option<&'static mf2_runtime::Registry> {
         None
     }
 
+    /// Likewise: a per-request bidi override is a server's business (the
+    /// suite's `bidiIsolation`, a subtree rendered plain). A call site that
+    /// wants plain text on the client asks for it by position — §9.
+    #[allow(clippy::unused_self)]
     pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
         None
     }

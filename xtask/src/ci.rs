@@ -38,6 +38,22 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // `--workspace` builds `leptos-mf2` with `ssr` (mf2-axum turns it on and
+    // cargo unifies), so nothing above ever compiles the **client** half:
+    // the hydration cursor, the boot, the fetch. Lint it where it runs.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "hydrate",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
