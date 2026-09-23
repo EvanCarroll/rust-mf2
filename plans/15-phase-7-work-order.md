@@ -69,7 +69,7 @@ whose interactive parts are islands.
    locale source and its own index. A1 below is the whole of it; the
    question is whether it ships in Phase 7 or waits.
 
-## Part A — tasks (A1–A3 in order; A4–A9 as their inputs exist)
+## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -80,8 +80,9 @@ whose interactive parts are islands.
 | **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here: what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
 | **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs`; the split made the default if it wins. Owner question 2. | both numbers, and the answer in [05](05-tooling.md) §4 |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
-| **A8** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
-| **A9** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
+| **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
+| **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
+| **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
 
 ## Exit (master plan §9, P7)
 

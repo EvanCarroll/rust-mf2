@@ -9,15 +9,17 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    feature flags, decisions D1–D14, phases, risks).
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
-3. Find your task in the current work order. **Current phase: Phase 6**
-   (Leptos and Axum, layer L6) → `plans/14-phase-6-work-order.md`. Phases
-   1–5b are done (`crates/mf2-model`, `crates/mf2-syntax`,
+3. Find your task in the current work order. **Current phase: Phase 7**
+   (islands, CSR, lazy routes, layer L7) → `plans/15-phase-7-work-order.md`.
+   Phases 1–6 are done (`crates/mf2-model`, `crates/mf2-syntax`,
    `crates/mf2-catalog`, `crates/mf2-runtime` and its hosts,
    `mf2-locale-data`, `mf2-fn-number`, `mf2-fn-datetime` with both date
    backends, the `intl` client option, the `mf2` facade with the call-site
    core, `mf2-resource`, `mf2-build`, `mf2-cli`, the generated module,
    `tools/i18n-fixture`, `mf2-macros` and layer L5 in `conformance/l5/`;
-   `plans/phase-1-results.md` … `plans/phase-5b-results.md`).
+   `leptos-mf2`, `mf2-axum`, layer L6 in `conformance/src/l6.rs` and
+   `conformance/l6-web`, and `examples/demo-ssr`;
+   `plans/phase-1-results.md` … `plans/phase-6-results.md`).
 
 ## Boundary — this repository is self-contained
 

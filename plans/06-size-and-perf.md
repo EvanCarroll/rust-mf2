@@ -98,7 +98,7 @@ then, for comparability).
 | B3 | …plus `:currency` + `:unit`, when used | ≤ 5.5 KB gz more *(restated in Phase 4; was ≤ 4)* | — |
 | B4 | Feature `fn-datetime` on **and** used | `datetime-intl`: ≤ 6 KB gz wasm + ≤ 1 KB gz JS glue (of which ≤ 3.5 KB gz date semantics every backend needs); `datetime-icu`: ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar, `icu.blob` ≤ 3 KB gz per locale without zone names, ≤ 25 KB gz with | — |
 | B1′ | Any feature on but **unused** by the corpus | +0 B over B1 | — |
-| B5 | Per call site, marginal, weighted by §2's mix (the reference workload) | ≤ 40 B gz (P0.1: 24.5; 35.7 against the `dummy` bound). **Phase 5b, `cargo xtask b5`: 12.6 against `idlit`, 34.0 against `dummy`** — the description and the `String` path, every template formatting to a `String` because `leptos-mf2` does not exist yet, so the view positions cancel instead of being measured; Phase 6 re-measures the full mix with the real leaf ([phase-5b-results](phase-5b-results.md) §A6) | 25 B gz |
+| B5 | Per call site, marginal, weighted by §2's mix (the reference workload) | ≤ 40 B gz (P0.1: 24.5; 35.7 against the `dummy` bound). **Phase 5b, `cargo xtask b5`: 12.6 against `idlit`** — the description and the `String` path, every template formatting to a `String` because `leptos-mf2` did not exist yet. **Phase 6, `cargo xtask b5 --view`: 11.4 against `idlit-view`** — the whole mix, a description rendering itself in the view positions, which is P0.1's own comparison ([phase-6-results](phase-6-results.md) §A7). The `dummy` bound does not apply to the view pair: it comes out **negative**, because `dummy` still wraps each view position in a closure and therefore grows faster than the description does | 25 B gz |
 | B6 | Locale bytes in the wasm (text, names, rules, symbols) | **0** | — |
 | B7 | Catalog on the wire (production: COLD and IDS stripped), **brotli 11** — the `.br` file the build writes and serves | reference workload `en`: ≤ 0.91 × 25 KB = **23,296 B br**; **every locale**: br ≤ 0.91 × (0.5 × MF2 source bytes + 1 KB), and raw ≤ 1.25 × source bytes + 8 B/message | — |
 | B8 | Locale data inside the catalog: plural + number symbols | ≤ 0.5 KB gz per locale | — |
@@ -131,6 +131,10 @@ its figure is marginal, both for the reasons given under the method above.
 Phase 0 measured the parts separately — runtime floor 7.0 KB gz, core numeric
 semantics 10.2, call-site library 7.5, 24.5 B gz per site — not the whole; the
 size gate measures the whole from P5 on.
+
+**Measured end to end in Phase 6** (`cargo xtask size`, [phase-6-results](phase-6-results.md) §A9):
+21,912 B gz fixed + 12.6 B gz × 1,860 sites = **45,348 B gz**, which is 43 % of
+the 105,120 the ambition allows. The gate fails on any of the three.
 
 **Budget moved by Phase 2** (owner, 2026-09-21; evidence in
 [phase-2-results](phase-2-results.md) §A8): **B7 is stated on brotli**, the

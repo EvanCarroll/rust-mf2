@@ -5,26 +5,24 @@ What Phase 6 built and what it measured, against
 the command that produced it; where a figure moved a budget or a ledger
 status, the commit that moved it says why (master plan §11).
 
-## Status
+## Status at exit
 
-**Phase 6 has not exited.** Six of the seven exit criteria are met; the
-seventh — B5 on the full mix (A7) — is not, and §A7 says exactly what it
-needs. `current_phase` therefore stays `P5b` in the ledger: the conformance
-harness *is* green at P6 (nothing is overdue at any phase), but the exit
-commit that moves the marker is the one that closes A7.
+**Every exit criterion is met**, and `current_phase = "P6"` is in the exit
+commit with the harness green.
 
 | Exit criterion | Verdict |
 |---|---|
 | L6 green in both configurations, SSR **and** hydrate, every L6d cell recorded, none `xfail` | **met** — L6 324/324, L6d 255/324 with the same 69 documented degradations as L5d; the browser half 20/20 in two engines |
 | the browser run is in CI (or a nightly job CI gates on), in at least two engines | **met** — the nightly `l6-web` job, Chromium and Firefox |
-| B5 met on the full mix, or restated with the owner | **not met** — §A7: measured on the `String` half (Phase 5b's 12.6 B gz), unmeasured on the view half |
+| B5 met on the full mix, or restated with the owner | **met** — **11.4 B gz** per call site with the real leaf, against a budget of 40 and P0.1's 24.5 (§A7) |
 | owner questions 1–3 answered and recorded in 04 | **met** — §6 (question 1), §9 (question 2), §10 (question 3) |
 | the size gate runs in CI | **met** — `cargo xtask size`, the nightly `b5` job; the whole app measures **45,348 B gz** against the 105,120 the ambition allows (§A9) |
 | `plans/phase-6-results.md` and the Phase 7 work order written | **met** — this file and [15](15-phase-7-work-order.md) |
 
-The sixth column of the ledger is green either way: what A7 owes is a
-**measurement**, not a behaviour. Nothing in the tree is known to be over
-budget; what is missing is the number that would say so.
+What A7 still owes is not a budget but a **proposal**: the tachys leaf hook
+P0.1 asked Phase 6 to design, and the `--cfg erase_components` figure beside
+it. §A7 says why the run itself is the argument for that hook, and
+[15](15-phase-7-work-order.md) A8 carries it.
 
 ## A1 — `leptos-mf2`, and where the description types live
 
@@ -239,55 +237,79 @@ redirects through `/i18n/<tag>`.
 
 ## A7 — B5 on the whole mix
 
-**Not measured with the real leaf.** Phase 5b measured the description and
-the `String` path (12.6 B gz against `idlit`, 34.0 against the `dummy`
-bound) with every template formatting to a `String`, because `leptos-mf2`
-did not exist. Phase 6 makes a description render itself, so the
-measurement P0.1 made — the whole mix, view positions included — is now
-possible, and it is **not done**: it needs two more workload templates
-(`tr` with the description in the view positions, and an `idlit` whose view
-positions are a `&'static str` leaf, which is what P0.1's baseline was) and
-four more fat-LTO wasm builds.
+**Met: 11.4 B gz per call site**, against a budget of 40 and against P0.1's
+24.5 — and the run says something more interesting than the number.
 
-**What is in the tree for it.** The two templates the measurement needs are
-written and verified to *generate and compile*: `tr-view` (a description in
-the text-child, attribute and prop positions; `.to_string()` in the `String`
-positions) and `idlit-view` (P0.1's baseline — a `&'static str` leaf in the
-view positions, a `String` elsewhere), selected by `cargo xtask b5 --view`.
-A generated `tr-view` application `cargo check`s clean for
-`wasm32-unknown-unknown` with `hydrate`. What is owed is the *run*: four
-fat-LTO wasm builds, and P0.1's open item with them — the
-`--cfg erase_components` figure, and the tachys leaf hook that would let a
-description reuse `&str`'s state and async path.
+```
+cargo xtask b5 --view
+```
 
-Writing the templates found a generator bug worth naming: every existing
-template forwards exactly **one** feature to its own crates, and the
-emitter wrote a separator *and* a trailing comma per entry, so one entry
-produced valid TOML by luck and two produced `,,`. `tr-view` forwards two.
+| workload | template | bindgen gz | opt raw | opt gz |
+|---|---|---:|---:|---:|
+| 1,860 sites | **tr-view** | 747,872 | 2,461,120 | 768,534 |
+| 1,860 sites | idlit-view | 527,527 | 2,012,537 | 550,187 |
+| 1,860 sites | dummy | 627,889 | 2,443,553 | 643,781 |
+| 3,720 sites | **tr-view** | 1,139,541 | 4,129,931 | 1,173,646 |
+| 3,720 sites | idlit-view | 895,056 | 3,688,968 | 934,108 |
+| 3,720 sites | dummy | 1,090,396 | 4,553,690 | 1,130,013 |
 
-**One thing the unfinished run already says.** `cargo xtask b5 --view` was
-started and, after six hours on this machine, had completed three of its
-six builds — where the `String`-path run of the same six took about half an
-hour. The difference is concentrated in one place: compiling the
-1,860-site `tr-view` application crate took **over two hours** on its own,
-against minutes for `tr` at the same scale. The two differ in exactly one
-thing, which is whether a call site hands tachys a `String` or a
-description, so what the compiler is doing with those hours is
-instantiating tachys' view machinery per site.
+| baseline | marginal B gz/site | intercept B gz | budget |
+|---|---:|---:|---|
+| **`idlit-view`** | **11.4** | 197,156 | ≤ 40 — **met** |
+| `dummy` | −43.6 | 205,873 | *not a bound here* — see below |
 
-That is a **compile-time** observation on a loaded machine, not a
-benchmark, and it is not a byte of wasm. But it is the first direct
-evidence for the hook P0.1 asked Phase 6 to propose — a tachys leaf that
-lets a description reuse `&str`'s state and async path would remove exactly
-this instantiation, and the case for it can now be made from something
-measured rather than from a size delta alone. Whoever finishes A7 should
-record the wall-clock beside the bytes.
+`tr-view` puts a description in the text-child, attribute and prop
+positions; `idlit-view` is P0.1's baseline, a `&'static str` leaf in the
+same places. The `dummy` app is **byte-identical** to the size gate's
+(643,781 B gz at 1,860), which is what makes the cross-run comparisons below
+legitimate: the generator is deterministic for the same knobs.
 
-**This is the one exit criterion Phase 6 does not meet as written**, and it
-is stated here rather than quietly restated: B5 is met on the half of the
-mix Phase 5b measured, and unmeasured on the other half. [15](15-phase-7-work-order.md)
-does not carry it; it belongs at the head of whatever runs next, because the
-budget it belongs to is the one the project's size claim rests on.
+**The real leaf scales better than the `String` path.** Comparing the two
+mf2 templates directly, at the same scale, on the same corpus:
+
+| | 1,860 sites | 3,720 sites |
+|---|---:|---:|
+| `tr` (a `String` per site, in a closure) | 730,770 | 1,280,443 |
+| `tr-view` (the description renders itself) | 768,534 | **1,173,646** |
+| difference | +37,764 | **−106,797** |
+
+At the smaller scale the view leaf costs 37.8 KB gz more; at the larger it
+saves 106.8 KB. The reason is the shape, not the bytes: `move || s(tr!(…))`
+creates a closure **type per call site** — P0.1 measured that control at 97 B
+gz per site — while `tr!(…)` as a leaf creates none. Double the sites and the
+closure form pays twice; the description does not. An application is
+therefore better off, not worse off, for letting a description render itself,
+which is the thing Phase 6 built.
+
+**Two readings to be careful about.**
+
+* The intercept against `idlit-view` is **197 KB gz**, and it is *not* B1.
+  B1 is defined against `idlit` and the size gate measures it at 21.9 KB
+  (§A9). The gap is mostly the **baseline** getting leaner, not mf2 getting
+  fatter: `idlit-view` is 135 KB gz *smaller* than `idlit` at 1,860 sites,
+  because replacing `move || String::from("n")` with `"n"` deletes 1,860
+  closures from the baseline too. What is left over the two intercepts is
+  what tachys does with a non-`&str` leaf across this workload's view
+  shapes — P0.1's "46–102 B gz of tachys, not of us", now with a magnitude
+  and an amortisation: it lands in the intercept rather than the margin
+  because the shapes repeat.
+* The `dummy` figure is **negative**, so it is not a conservative bound for
+  this pair and is not read as one. `dummy` uses one literal everywhere but
+  still wraps the view positions in a closure per site, so it grows faster
+  than `tr-view` does; the two differ in shape, not only in what they say.
+
+**What it cost to measure**, which is the other half of the finding: six
+fat-LTO wasm builds took **about twelve hours** on this machine, where the
+`String`-path six take about half an hour, and almost all of it is the
+`tr-view` application crate — over two hours at 1,860 sites against minutes
+for `tr`. The two differ in exactly one thing, so what the compiler spends
+those hours on is instantiating tachys' view machinery per site. That is a
+compile-time observation on a loaded machine rather than a benchmark, but it
+is the first direct evidence for the leaf hook P0.1 asked Phase 6 to
+propose: **a tachys leaf that lets a description reuse `&str`'s state and
+async path would remove exactly this instantiation** — both the intercept
+above it and the compile time. That proposal, and P0.1's `--cfg
+erase_components` figure, are what A7 still owes; the budget itself is met.
 
 ## A8 — accessibility and SEO
 
@@ -411,8 +433,10 @@ page, whose Arabic text then matched a B6 canary.
 
 ## What Phase 6 leaves
 
-* **B5 on the view half of the mix** (A7), with P0.1's `erase_components`
-  item and the tachys leaf-hook proposal. The one exit criterion not met.
+* **The tachys leaf hook** (A7): the budget is met, but P0.1 also asked for
+  a *proposal* — a leaf that lets a description reuse `&str`'s state and
+  async path — and the `--cfg erase_components` figure beside it. §A7 is the
+  evidence for it; the design is not written.
 * **`mark-fallback-lang`**: declared, not implemented (A8).
 * **The conversions under churn**: P0.11 left it to Phase 6 and Phase 6
   leaves it to Phase 7 (15 A5) — the registry is flat under churn, but a
