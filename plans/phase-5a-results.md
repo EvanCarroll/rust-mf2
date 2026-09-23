@@ -18,8 +18,9 @@ timings do**, so timings are ranges and the two arrangements of owner question
 | the `mf2-build` ≡ `compile_str` differential green on the whole suite in both configurations | **met** — 485/485 | §A4 |
 | B7, B8, B1′, B13 measured on `mf2-build`'s output and met, or restated; build cost reported | **met**: B7 and B8 on the catalogs the build writes, B1′ = +0 B and B13 = 13.6 KB avoided on the wasm the generated module produces | §A10, §A11 |
 | owner questions 1 and 2 answered and recorded | **answered**, both with measurements and a recommendation | §"Owner question 1", §"Owner question 2" |
-| fuzz targets clean for ≥ 1 h each on the final code | see §A12 | §A12 |
+| fuzz targets clean for ≥ 1 h each on the final code | **met**: `resource` 5,595,030 runs, `pipeline` 236,683, both 3,901 s clean — after finding three defects in the code and two in the harness | §A12 |
 | (not an exit item) an adversarial review of `mf2-build` | **six real defects fixed**, two comments corrected | §"Review of `mf2-build`" |
+| (not an exit item) two gaps in the test harness itself | `tests/json.rs` had never run in CI (fixed); `fuzz/` is not fmt-checked (noted) | §A12 |
 | `plans/phase-5a-results.md` written | this document | — |
 
 What Phase 5a leaves for later, with reasons:
@@ -471,7 +472,59 @@ Seeds: `cargo xtask fuzz-seed` writes `fuzz/corpus/resource/` — the reference
 workload and the suite's messages, each as one resource file (76.6 KB and
 20.1 KB).
 
-RESULTS-PENDING
+Seeds: `cargo xtask fuzz-seed` writes both corpora, and the three inputs
+below are committed beside them as named regressions.
+
+**Both targets clean for ≥ 1 h on the final code**, machine quiet,
+`-dict=mf2.dict -max_len=16384 -timeout=10 -rss_limit_mb=2048
+-max_total_time=3900`:
+
+| Target | Runs | Elapsed | Coverage at exit | Corpus |
+|---|---:|---:|---|---:|
+| `resource` | **5,595,030** | 3,901 s | cov 1,682 · ft 9,888 | 1,611 |
+| `pipeline` | **236,683** | 3,901 s | cov 14,042 · ft 44,768 | 4,645 |
+
+Both ran their full 3,901 s of wall clock, so neither was cut short.
+`-max_total_time` is wall clock, and a suspended laptop shortens a run
+without failing it — which is why the runs are reported in executions as
+well as in seconds.
+
+### What the runs found
+
+Five failures over six runs. **Three were defects in the code**, two in the
+harness — and the targets earned their place: none of the three is reachable
+from the WG suite, and all three are now corpus seeds.
+
+| # | Target | Found | Defect |
+|---|---|---|---|
+| 1 | `resource` | 12 bytes | An entry's id lost an **escaped blank** before `=`. The trim that trims layout walked over `\ ` too, so `\ \ =7` read back as a one-space id and wrote `\  = 7`, which no longer parses. The parser was wrong, not the writer. |
+| 2 | `resource` | 28 bytes | An id holding an **escaped U+2029** parsed clean and then would not write: `read_id` tested `char::is_control()`, which is Cc, and U+2028/U+2029 are Zl/Zp. An escape passes its character through as itself, so it cannot make an unwritable one writable. |
+| 3 | `pipeline` | 147 bytes | **The target's own assertion.** It built with `Config::default()` — COLD stripped, as production ships — and asserted F1, which only holds unstripped: a stripped catalog decodes `{:a\u{F9E7}b}` as its NFC form `{:a\u{88CF}b}` and is right to (02 §2.3). Now built unstripped, with both directions pinned in `crates/mf2-build/tests/build.rs`. |
+
+The other two failures were the **clock**, not the code, and changed how the
+budget is measured (`fuzz/common/budget.rs`, 01 §5). The targets assert that
+work per input byte is bounded — a property of the code — but measured it on
+a wall clock, which measures the machine too:
+
+* 83.8 ms against an 83.6 ms budget, with wasm builds running alongside; the
+  input replays in **1 ms**.
+* a libFuzzer timeout "after 7803 seconds", which is what a **suspended
+  laptop** looks like to a wall clock. The run was at 2,345 exec/s until the
+  moment it stopped, and the input replays instantly.
+
+The budget is now **CPU time** (`CLOCK_THREAD_CPUTIME_ID`), which counts only
+the cycles the thread was given. The constants are unchanged: only the clock
+moved. A real loop still trips it, because a loop burns CPU, and libFuzzer's
+`-timeout` stays wall clock as the guard against blocking rather than
+spinning.
+
+Two smaller gaps the work turned up, both fixed: `cargo xtask ci` never ran
+`tests/json.rs`, because `mf2-resource`'s `serde` feature is optional and
+nothing in the workspace enables it (three tests, now run, all pass); and the
+`fuzz/` workspace is excluded from the root one and needs nightly, so the
+`cargo fmt --check` step has never reached it — `cargo fmt` reordered an
+import in `pipeline.rs` that had been unsorted. The second is **not** fixed
+in CI, only noted: it wants a nightly toolchain in that job.
 
 ## Review of `mf2-build`
 

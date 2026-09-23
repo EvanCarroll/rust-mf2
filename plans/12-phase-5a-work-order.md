@@ -148,7 +148,10 @@ Checked at the close of the phase; the figures behind each are in
       generated module produces (§A10); build cost reported (§A11)
 - [x] owner questions 1 and 2 answered and recorded, both with measurements
       and a recommendation
-- [x] fuzz targets clean for ≥ 1 h each on the final code (§A12)
+- [x] fuzz targets clean for ≥ 1 h each on the final code — `resource`
+      5,595,030 runs and `pipeline` 236,683, both 3,901 s (§A12). They found
+      three defects in the code and two in the harness first; the budget is
+      now CPU time, not wall clock.
 - [x] `plans/phase-5a-results.md` written
 
 **What Phase 5b inherits**: a `b12-generated` harness pair, so that B1′ and
