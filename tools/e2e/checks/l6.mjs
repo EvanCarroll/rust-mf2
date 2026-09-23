@@ -28,7 +28,7 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { watchConsole, captureSsrSnapshot, sleep } from '../lib/browser.mjs';
+import { watchConsole, captureSsrSnapshot, sleep, until } from '../lib/browser.mjs';
 
 const REPO = fileURLToPath(new URL('../../../', import.meta.url));
 const OUT = join(REPO, 'target', 'l6-web');
@@ -146,18 +146,13 @@ export async function run(ctx) {
   }
 }
 
+// Polled with `until`: `page.waitForFunction` does not await an async
+// predicate, so a wait built on it returned at once (found in Phase 7).
 async function hydrated(page) {
-  await page.waitForFunction(
-    async () => {
-      try {
-        const mod = await import('/pkg/mf2_l6_web.js');
-        return typeof mod.mf2_live_nodes === 'function' && mod.mf2_live_nodes() > 0;
-      } catch {
-        return false;
-      }
-    },
-    undefined,
-    { timeout: 60000 },
+  await until(
+    page,
+    "import('/pkg/mf2_l6_web.js').then((m) => m.mf2_live_nodes() > 0).catch(() => false)",
+    60000,
   );
   await sleep(50);
 }
