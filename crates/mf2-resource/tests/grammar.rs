@@ -498,3 +498,29 @@ fn an_escaped_blank_before_the_equals_belongs_to_the_id() {
         assert_eq!(again, r, "{src:?} wrote {text:?}");
     }
 }
+
+/// A parse that reports nothing must produce a resource the serializer can
+/// write: "clean parse ⇒ writes back" is what the `resource` fuzz target
+/// asserts. An escape passes its character through as itself, so `\` cannot
+/// smuggle an unwritable one into an id — the serializer refuses U+2028 and
+/// U+2029 there just as it refuses a control (Phase 5a, A12).
+#[test]
+fn an_escape_does_not_make_an_unwritable_character_writable_in_an_id() {
+    // Not `\n`: a raw line break ends the line before any escape applies, so
+    // it can never reach an id in the first place.
+    for bad in ['\u{2028}', '\u{2029}', '\u{0007}'] {
+        let src = format!("a\\{bad}b = 1\n");
+        let (resource, diags) = mf2_resource::parse(&src);
+        assert!(
+            !diags.is_empty(),
+            "an id holding an escaped U+{:04X} parsed clean",
+            bad as u32
+        );
+        // And the two agree: what the parser refuses, the writer refuses.
+        assert!(
+            mf2_resource::serialize(&resource).is_err() || resource.sections[0].entries.is_empty(),
+            "U+{:04X}: the writer accepted what the parser rejected",
+            bad as u32
+        );
+    }
+}

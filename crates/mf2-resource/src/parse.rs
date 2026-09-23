@@ -478,10 +478,18 @@ impl<'a> Parser<'a> {
         while let Some((i, c)) = chars.next() {
             match c {
                 '\\' => {
-                    if let Some((j, escaped)) = chars.next()
-                        && escaped.is_control()
-                    {
-                        self.diag(code::RAW_CONTROL, start + j, start + j + escaped.len_utf8());
+                    // An escape passes the next character through as itself,
+                    // so `\` does not make an unwritable one writable: the
+                    // serializer refuses it either way, and a parse that
+                    // reported nothing would produce a resource that cannot
+                    // be written back.
+                    if let Some((j, escaped)) = chars.next() {
+                        let at = start + j;
+                        if escaped.is_control() {
+                            self.diag(code::RAW_CONTROL, at, at + escaped.len_utf8());
+                        } else if escaped == '\u{2028}' || escaped == '\u{2029}' {
+                            self.diag(code::RAW_LINE_SEPARATOR, at, at + escaped.len_utf8());
+                        }
                     }
                 }
                 '.' => {}
