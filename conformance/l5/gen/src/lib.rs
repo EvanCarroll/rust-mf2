@@ -162,6 +162,24 @@ pub fn rust_str(s: &str) -> String {
 /// Builds the L5 crate for `locale`, from the repository at `root`, into
 /// `out` (`OUT_DIR`). Call it from an L5 crate's `build.rs`.
 pub fn generate(root: &Path, out: &Path, locale: &str) -> Result<(), Error> {
+    generate_with_twin(root, out, locale, None)
+}
+
+/// The same, plus a **twin**: the same messages compiled a second time under
+/// another tag, so that one manifest has two catalogs.
+///
+/// That is what a locale *switch* has to be tested against
+/// (`plans/14-phase-6-work-order.md` A6): two catalogs of different corpora
+/// have different manifest hashes and cannot be switched between at all, and
+/// one catalog cannot be switched to itself. The twin's text is the same
+/// text; what differs is its locale data, and what the switch must restore
+/// is the original, byte for byte.
+pub fn generate_with_twin(
+    root: &Path,
+    out: &Path,
+    locale: &str,
+    twin: Option<&str>,
+) -> Result<(), Error> {
     let suite_dir = root.join("third_party/message-format-wg/test/tests");
     let extra_dir = root.join("conformance/extra");
     println!("cargo::rerun-if-changed={}", suite_dir.display());
@@ -173,7 +191,7 @@ pub fn generate(root: &Path, out: &Path, locale: &str) -> Result<(), Error> {
         collect(&extra_dir, &extra_dir, "suite.extra", locale, &mut tests)?;
     }
     tests.sort_by(|a, b| a.id.cmp(&b.id));
-    build(out, locale, &tests, "")
+    build_with_twin(out, locale, twin, &tests, "")
 }
 
 /// Builds an L5 crate's corpus and call sites from `messages`, whatever they
@@ -181,9 +199,20 @@ pub fn generate(root: &Path, out: &Path, locale: &str) -> Result<(), Error> {
 /// is appended to `cases.rs` verbatim, for whatever else the crate needs to
 /// know about them.
 pub fn build(out: &Path, locale: &str, messages: &[Message], extra: &str) -> Result<(), Error> {
+    build_with_twin(out, locale, None, messages, extra)
+}
+
+/// [`build`] with a twin locale ([`generate_with_twin`]).
+pub fn build_with_twin(
+    out: &Path,
+    locale: &str,
+    twin: Option<&str>,
+    messages: &[Message],
+    extra: &str,
+) -> Result<(), Error> {
     write_if_changed(&out.join("shared.rs"), SHARED)?;
     let (invalid, valid): (Vec<&Message>, Vec<&Message>) = messages.iter().partition(|t| t.invalid);
-    let manifest = build_corpus(out, locale, &valid)?;
+    let manifest = build_corpus(out, locale, twin, &valid)?;
     let rejected = build_rejected(out, locale, &invalid)?;
     let gated = build_gated(out, locale)?;
     write_cases(out, locale, &valid, &manifest, &rejected, &gated, extra)?;
@@ -320,6 +349,7 @@ fn features() -> Features {
 fn build_corpus(
     out: &Path,
     locale: &str,
+    twin: Option<&str>,
     tests: &[&Message],
 ) -> Result<mf2_build::Manifest, Error> {
     let root = out.join("corpus");
@@ -329,10 +359,13 @@ fn build_corpus(
         .iter()
         .map(|t| (t.id.as_str(), t.src.as_str()))
         .collect();
-    std::fs::write(
-        locales.join(format!("{locale}.json")),
-        json::write(records.iter().copied()),
-    )?;
+    let corpus = json::write(records.iter().copied());
+    std::fs::write(locales.join(format!("{locale}.json")), &corpus)?;
+    if let Some(twin) = twin {
+        // The same messages, so the manifest is the same one and the two
+        // catalogs are switchable; only the locale data differs.
+        std::fs::write(locales.join(format!("{twin}.json")), &corpus)?;
+    }
     let outcome = Build::at(&root, out)
         .config(config(locale))
         .features(features())

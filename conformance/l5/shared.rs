@@ -83,6 +83,12 @@ pub fn is_dyn(id: &str) -> bool {
 }
 
 /// This crate's catalog, as the build wrote it.
+///
+/// Server-side: the generated `catalog` table is `ssr`-only, because a
+/// client fetches its one locale rather than carrying them all (B6). A crate
+/// that includes this file and builds for the browser — conformance L6 in
+/// the browser does — gets its catalog over the wire like any client.
+#[cfg(feature = "ssr")]
 #[must_use]
 pub fn catalog_bytes() -> &'static [u8] {
     catalog(SOURCE_LOCALE).unwrap_or(&[])

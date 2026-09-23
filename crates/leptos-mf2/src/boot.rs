@@ -75,7 +75,8 @@ pub fn document_locale() -> Option<String> {
 #[must_use]
 pub fn catalog_url(tag: &str) -> Option<String> {
     let document = document()?;
-    // The preload link of the locale the page was rendered in.
+    // The preload link, which names the locale the page was *rendered* in —
+    // not necessarily the one being asked for, once a switch has happened.
     if document_locale().as_deref() == Some(tag)
         && let Ok(Some(link)) =
             document.query_selector(&["link[", PRELOAD_ATTR, "][href]"].concat())

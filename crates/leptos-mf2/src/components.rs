@@ -87,19 +87,23 @@ pub fn CatalogPreload() -> impl IntoView {
     {}
 }
 
-/// The in-page tag → URL map: one `<link>` per **other** locale, so that a
-/// switch needs no round trip to learn the hashed URL (§6, owner question 1).
+/// The in-page tag → URL map: one `<link>` per locale, so that a switch needs
+/// no round trip to learn the hashed URL (§6, owner question 1).
 ///
 /// A site that would rather keep its pages a few bytes smaller simply does
 /// not render this, and the switch redirects through `/i18n/<tag>` instead.
+///
+/// **Every** locale, including the one the page was rendered in. Leaving it
+/// out looks like a saving — the preload link already carries it — but the
+/// preload is the *page's* locale, and after one switch that is no longer
+/// the locale the user may want back. Conformance L6 in the browser found
+/// this by switching to the twin and failing to come home.
 #[component]
 pub fn CatalogLinks() -> impl IntoView {
     #[cfg(feature = "ssr")]
     {
-        let here = crate::catalog::active().map(|c| String::from(c.locale()));
         let links: Vec<_> = crate::catalog::catalog_entries()
             .iter()
-            .filter(|entry| here.as_deref() != Some(entry.tag))
             .map(|entry| {
                 view! {
                     <link

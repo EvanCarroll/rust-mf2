@@ -259,10 +259,9 @@ fn orphan_and_duplicate_entries_are_red() {
 fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 (and the
-    // P4 files since A3-A5), L4d since A7, L5 and L5d since Phase 5b's A4:
-    // nothing up to L5d is xfail, so the committed ledger is green at every
-    // phase up to P5b; at P6 the L6 and L6d xfails are overdue.
+    // Every layer has a harness and the committed ledger has no `xfail` left
+    // (L6 and L6d were the last, and Phase 6 turned them green), so the
+    // ledger is clean at every phase.
     for phase in [
         Phase::P1,
         Phase::P2,
@@ -270,26 +269,33 @@ fn until_at_or_before_current_phase_is_red() {
         Phase::P4,
         Phase::P5a,
         Phase::P5b,
+        Phase::P6,
     ] {
         ledger.current_phase = phase;
         assert_eq!(check(&suite, &ledger), [], "at {phase}");
     }
+    // The rule itself still has to bite: an `xfail` whose deadline has
+    // arrived is a violation, not a note.
+    ledger.entries[0].cells.insert(
+        Column::L6,
+        Cell::Xfail {
+            until: Phase::P6,
+            reason: None,
+            via: None,
+        },
+    );
     ledger.current_phase = Phase::P6;
     let v = check(&suite, &ledger);
-    let is_overdue = |c: Column| {
-        move |x: &Violation| {
-            matches!(
-                x,
-                Violation::UntilNotInFuture { column, until: Phase::P6, .. } if *column == c
-            )
-        }
-    };
-    // L6 applies to the tests the spec accepts — the same 324 as L3.
-    assert_eq!(v.iter().filter(|x| is_overdue(Column::L6)(x)).count(), 324);
-    assert!(v.iter().any(is_overdue(Column::L6d)));
     assert!(
-        v.iter()
-            .all(|x| is_overdue(Column::L6)(x) || is_overdue(Column::L6d)(x))
+        v.iter().any(|x| matches!(
+            x,
+            Violation::UntilNotInFuture {
+                column: Column::L6,
+                until: Phase::P6,
+                ..
+            }
+        )),
+        "{v:?}"
     );
 }
 
@@ -435,43 +441,27 @@ fn missing_column_is_red_and_unknown_column_is_rejected() {
 }
 
 #[test]
-fn unverifiable_claims_are_red() {
+fn every_column_is_verifiable() {
+    // The rule this replaces a red case for: a `pass` in a column nothing
+    // checks is a silent skip, so the ledger refuses it. Since Phase 6 there
+    // is no such column — L6 and L6d were the last two without a harness —
+    // and *that* is what has to stay true. A tenth column added without a
+    // harness would fail here before it could claim anything.
+    for column in Column::ALL {
+        assert!(
+            mf2_conformance::matrix::HARNESSED.contains(&column),
+            "{column} has no harness, so nothing can verify a claim in it"
+        );
+    }
     let suite = suite();
-    let mut ledger = committed_ledger();
-    // L5 has had a harness since Phase 5b, so its `pass` is verifiable; L6
-    // has none until Phase 6, so a claim there is not.
+    let ledger = committed_ledger();
     assert_eq!(
-        ledger.entries[0].cells[&Column::L5],
-        Cell::Pass { via: None }
+        check(&suite, &ledger)
+            .iter()
+            .filter(|x| matches!(x, Violation::UnverifiedClaim { .. }))
+            .count(),
+        0
     );
-    ledger.entries[0]
-        .cells
-        .insert(Column::L6, Cell::Pass { via: None });
-    ledger.entries[0].cells.insert(
-        Column::L6d,
-        Cell::Degraded {
-            kind: mf2_conformance::ledger::DegradedKind::UnknownFunction,
-            detail: None,
-        },
-    );
-    let v = check(&suite, &ledger);
-    assert_eq!(v.len(), 2, "{v:?}");
-    assert!(v.iter().any(|x| matches!(
-        x,
-        Violation::UnverifiedClaim {
-            column: Column::L6,
-            status: "pass",
-            ..
-        }
-    )));
-    assert!(v.iter().any(|x| matches!(
-        x,
-        Violation::UnverifiedClaim {
-            column: Column::L6d,
-            status: "degraded",
-            ..
-        }
-    )));
 }
 
 #[test]

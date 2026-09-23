@@ -15,10 +15,12 @@ mod fuzz_seed;
 mod git;
 mod l4_wasi;
 mod l4_web;
+mod l6_web;
 mod locale_data;
 mod pin;
 mod report;
 mod scenarios;
+mod size;
 mod spec_sync;
 
 use std::ffi::OsString;
@@ -97,6 +99,28 @@ enum Command {
         #[arg(long)]
         no_run: bool,
     },
+    /// Conformance L6 in the browser: render every runtime-valid suite
+    /// message on the server, hydrate the page in each engine, switch to the
+    /// twin locale and back (tools/e2e/checks/l6.mjs).
+    L6Web {
+        /// Engines: `all` or a comma-separated list of chromium, firefox, webkit.
+        #[arg(long, default_value = "chromium,firefox", value_name = "ENGINES")]
+        browser: String,
+        /// Drive the page already in target/l6-web/ (no build).
+        #[arg(long)]
+        no_build: bool,
+    },
+    /// The whole-app size gate (plans/06-size-and-perf.md §3): B1 fixed, B5
+    /// per call site, and their sum at the reference scale, all measured end
+    /// to end on the reference workload.
+    Size {
+        /// Where to build [default: target/size].
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// Reuse the workloads and applications already there.
+        #[arg(long)]
+        keep: bool,
+    },
     /// Rewrite the locale-output goldens (conformance/goldens/*.tsv) from a
     /// fresh render; review the diff before committing.
     Goldens,
@@ -122,8 +146,6 @@ enum Command {
         #[arg(long)]
         split: bool,
     },
-    /// Size gate (Phase 5; not implemented yet).
-    Size,
     /// Budgets B1′ and B13 on the generated module (Phase 5b, A10): the same
     /// corpus with and without a feature it does not use, and with and
     /// without the gated measure functions.
@@ -193,6 +215,21 @@ fn run(command: Command) -> Result<()> {
             }
         }
         Command::Ci => ci::run(&root),
+        Command::Size { out, keep } => size::run(&root, out, keep),
+        Command::L6Web { browser, no_build } => {
+            let engines: Vec<String> = if browser == "all" {
+                l6_web::ENGINES.iter().map(|e| (*e).to_owned()).collect()
+            } else {
+                browser.split(',').map(str::to_owned).collect()
+            };
+            if let Some(bad) = engines
+                .iter()
+                .find(|e| !l6_web::ENGINES.contains(&e.as_str()))
+            {
+                return Err(Error::L6(format!("unknown engine {bad:?}")));
+            }
+            l6_web::run(&root, &engines, !no_build)
+        }
         Command::Goldens => goldens(&root),
         Command::L4Wasi { generated } => l4_wasi::run(&root, generated),
         Command::L4Web { browser, no_run } => {
@@ -211,7 +248,6 @@ fn run(command: Command) -> Result<()> {
         }
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
         Command::Scenarios { keep, split } => scenarios::run(&root, keep, split),
-        Command::Size => Err(Error::SizeNotImplemented),
         Command::B5 { out, keep } => b5::run(&root, out, keep),
         Command::B12Generated => b12_generated::run(&root),
         Command::FuzzSeed => fuzz_seed::run(&root),

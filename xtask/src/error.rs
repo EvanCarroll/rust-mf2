@@ -14,6 +14,9 @@ pub(crate) enum Error {
 
     #[error("L4: {0}")]
     L4(String),
+    /// Conformance layer L6 in the browser failed.
+    #[error("{0}")]
+    L6(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \
@@ -104,12 +107,6 @@ pub(crate) enum Error {
          the owner confirms one; nothing was fetched"
     )]
     ResourceSyncBlocked,
-
-    #[error(
-        "size is not implemented yet: the size gate arrives in Phase 5 \
-         (plans/06-size-and-perf.md); nothing was measured"
-    )]
-    SizeNotImplemented,
 
     #[error("ci step failed: {0}")]
     CiStepFailed(String),

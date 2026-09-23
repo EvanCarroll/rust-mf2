@@ -60,15 +60,27 @@ const SCALES: [Scale; 2] = [
 const TEMPLATES: [&str; 3] = ["tr", "idlit", "dummy"];
 
 /// What one built application measured.
-struct Sizes {
+pub(crate) struct Sizes {
     /// After `wasm-bindgen`, before `wasm-opt`.
-    bindgen_gz: u64,
+    pub(crate) bindgen_gz: u64,
     /// After `wasm-opt -Oz` — the shipped artifact.
-    opt_raw: u64,
-    opt_gz: u64,
+    pub(crate) opt_raw: u64,
+    pub(crate) opt_gz: u64,
 }
 
 pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
+    let measured = measure(root, out, keep)?;
+    report(&measured)
+}
+
+/// Builds the six applications and measures them. Shared with
+/// `cargo xtask size`, which applies the whole-app gates to the same numbers
+/// rather than building them again.
+pub(crate) fn measure(
+    root: &Path,
+    out: Option<PathBuf>,
+    keep: bool,
+) -> Result<Vec<(usize, Vec<(&'static str, Sizes)>)>> {
     let out = out.unwrap_or_else(|| root.join("target").join("b5"));
     if !keep && out.exists() {
         std::fs::remove_dir_all(&out).map_err(|source| Error::IoAt {
@@ -93,7 +105,7 @@ pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
         }
         measured.push((sites, sizes));
     }
-    report(&measured)
+    Ok(measured)
 }
 
 /// Generates one workload with all three applications.
@@ -257,6 +269,62 @@ fn gzipped(path: &Path) -> Result<u64> {
         source,
     })?;
     Ok(out.len() as u64)
+}
+
+/// What the difference of the differences says, for one baseline.
+pub(crate) struct Delta {
+    /// Bytes gz per call site.
+    pub(crate) marginal: f64,
+    /// Bytes gz that do not depend on the number of sites — B1's territory.
+    pub(crate) fixed: f64,
+}
+
+/// The marginal and fixed cost against `baseline`, from two scales.
+pub(crate) fn delta(measured: &[(usize, Vec<(&str, Sizes)>)], baseline: &str) -> Option<Delta> {
+    let ((small, small_sizes), (big, big_sizes)) = measured
+        .first()
+        .zip(measured.get(1))
+        .map(|((a, b), (c, d))| ((*a, b), (*c, d)))?;
+    let span = big.checked_sub(small).filter(|s| *s > 0)?;
+    let find = |sizes: &[(&str, Sizes)], name: &str| -> Option<u64> {
+        sizes
+            .iter()
+            .find(|(t, _)| *t == name)
+            .map(|(_, s)| s.opt_gz)
+    };
+    let (tr_small, tr_big, b_small, b_big) = (
+        find(small_sizes, "tr")?,
+        find(big_sizes, "tr")?,
+        find(small_sizes, baseline)?,
+        find(big_sizes, baseline)?,
+    );
+    // Every size here is a few megabytes; `f64` carries them exactly.
+    #[allow(clippy::cast_precision_loss)]
+    let (delta_small, delta_big) = (
+        tr_small as f64 - b_small as f64,
+        tr_big as f64 - b_big as f64,
+    );
+    #[allow(clippy::cast_precision_loss)]
+    let marginal = (delta_big - delta_small) / span as f64;
+    #[allow(clippy::cast_precision_loss)]
+    let fixed = delta_small - small as f64 * marginal;
+    Some(Delta { marginal, fixed })
+}
+
+/// The per-scale table, shared by both commands.
+pub(crate) fn size_table(measured: &[(usize, Vec<(&str, Sizes)>)]) -> String {
+    let mut out = String::from(
+        "\n| workload | template | bindgen gz | opt raw | opt gz |\n|---|---|---:|---:|---:|\n",
+    );
+    for (sites, sizes) in measured {
+        for (template, s) in sizes {
+            out.push_str(&format!(
+                "| {sites} sites | {template} | {} | {} | {} |\n",
+                s.bindgen_gz, s.opt_raw, s.opt_gz
+            ));
+        }
+    }
+    out
 }
 
 /// The table, and the gate.

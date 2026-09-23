@@ -30,11 +30,16 @@
 # * `l4-web` (a job of its own; owner decision 4): the `intl` client option's
 #   L4 run in Chromium, Firefox and WebKit, every engine difference the
 #   ledger's (`cargo xtask l4-web`; plans/01-conformance.md §3).
-# * `b5` (a job of its own; plans/13-phase-5b-work-order.md, A6): budget B5,
-#   the marginal wasm per call site — two scales of the reference workload,
-#   three generated Leptos applications each, built for the client and
-#   measured after `wasm-opt -Oz` (`cargo xtask b5`). Nightly because it is
-#   six fat-LTO wasm builds.
+# * `b5` (a job of its own; plans/06-size-and-perf.md §3, plans/14 A9): the
+#   **size gate** — two scales of the reference workload, three generated
+#   Leptos applications each, built for the client and measured after
+#   `wasm-opt -Oz`, then read three ways: B1 (fixed), B5 (per call site) and
+#   the whole app at the reference scale (`cargo xtask size`). Nightly
+#   because it is six fat-LTO wasm builds.
+# * `l6-web` (a job of its own; plans/14 A6b): conformance layer L6 in the
+#   browser — every runtime-valid suite message server-rendered, hydrated in
+#   Chromium and Firefox, switched to the twin locale and back
+#   (`cargo xtask l6-web`). The server half of L6 runs in `cargo test`.
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -288,13 +293,84 @@ jobs:
           tar -xzf "$tools/binaryen.tar.gz" -C "$tools"
           echo "$tools/$name/bin" >> "$GITHUB_PATH"
 
-      - name: B5 — the marginal wasm per call site (exit 1 over the budget)
-        run: cargo xtask b5 | tee b5.md
+      - name: The size gate — B1 fixed, B5 per site, and the whole app
+        run: cargo xtask size | tee size.md
 
-      - name: Upload the B5 table
+      - name: Upload the size report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: b5
-          path: b5.md
+          name: size
+          path: |
+            size.md
+            target/size/report.md
+          if-no-files-found: ignore
+
+  l6-web:
+    # Conformance layer L6 in the browser (plans/01-conformance.md §3;
+    # plans/14-phase-6-work-order.md A6b): every runtime-valid suite message
+    # server-rendered by conformance/l6-web, hydrated in Chromium and Firefox,
+    # switched to the twin locale and back. Two engines are what the master
+    # plan requires of P6; WebKit joins wherever a build of it is installed.
+    # The server half of L6 is a Rust harness and runs in `cargo test`, on
+    # every push.
+    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
+    # (≥ 20) and npm.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+      WASM_BINDGEN_VERSION: "0.2.128"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+
+      - name: Install the browser harness and two engines
+        run: |
+          set -eu
+          cd tools/e2e
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: L6 in the browser (exit 1 on a hydration warning or a text change)
+        run: cargo xtask l6-web --browser chromium,firefox
+
+      - name: Upload the L6 report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: l6-web
+          path: |
+            target/l6-web/report.json
+            target/l6-web/page.json
           if-no-files-found: ignore
