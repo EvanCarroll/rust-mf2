@@ -98,16 +98,14 @@ pub fn check_default(test: &SuiteTest) -> DefaultOutcome {
         Ok(inputs) => inputs,
         Err(e) => return DefaultOutcome::Fail(e),
     };
-    match render(
+    let rendered = render(
         test,
         &case.description(),
         catalog,
         &mf2_l4_runner::DEFAULT_REGISTRY,
-    ) {
-        Ok(rendered) => match judge_text(test, &rendered.text) {
-            Ok(()) => DefaultOutcome::Pass,
-            Err(e) => DefaultOutcome::Fail(e),
-        },
+    );
+    match judge_text(test, &rendered.text) {
+        Ok(()) => DefaultOutcome::Pass,
         Err(e) => DefaultOutcome::Fail(e),
     }
 }
@@ -134,7 +132,7 @@ fn render_and_judge(
     catalog: mf2::Catalog,
     registry: &'static Registry,
 ) -> Result<(), String> {
-    let rendered = render(test, description, catalog, registry)?;
+    let rendered = render(test, description, catalog, registry);
     judge_text(test, &rendered.text)?;
     judge_markup(test, &rendered.markup)
 }
@@ -145,7 +143,7 @@ fn render(
     description: &Description,
     catalog: mf2::Catalog,
     registry: &'static Registry,
-) -> Result<Rendered, String> {
+) -> Rendered {
     installed();
     let catalog = Arc::new(catalog);
     let bidi = match test.bidi_isolation.as_deref() {
@@ -154,7 +152,7 @@ fn render(
     };
     let names = markup_names(test);
     let owner = Owner::new();
-    Ok(owner.with(|| {
+    owner.with(|| {
         RequestI18n::new(Arc::clone(&catalog))
             .with_registry(registry)
             .with_bidi(bidi)
@@ -170,7 +168,7 @@ fn render(
             markers(&rich_html(description, &names))
         };
         Rendered { text, markup }
-    }))
+    })
 }
 
 /// The same description with a flat recorder handler per markup name, as
@@ -200,10 +198,13 @@ fn recorder(part: &MarkupPart<'_>) -> AnyView {
         MarkupKind::Standalone => "standalone",
         MarkupKind::Close => "close",
     };
-    let options: String = part
-        .options()
-        .map(|(name, value)| format!("{name}={};", mf2_l4_runner::value_text(value)))
-        .collect();
+    let mut options = String::new();
+    for (name, value) in part.options() {
+        options.push_str(name);
+        options.push('=');
+        options.push_str(&mf2_l4_runner::value_text(value));
+        options.push(';');
+    }
     view! {
         <mf2-mark data-kind=kind data-name=part.name().to_owned() data-options=options></mf2-mark>
     }
