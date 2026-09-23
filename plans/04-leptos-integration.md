@@ -108,6 +108,40 @@ needs them in Phase 5b, before `leptos-mf2` exists.
 reactive argument; it does **not** re-declare `ArgValue`. `Reactive` is
 therefore not a variant of the core enum.
 
+**Which crate declares them** (Phase 6 A1, 2026-09-23). The contract above
+is unchanged — `mf2::Tr`, `mf2::TrArgs`, `mf2::ArgValue` are these types,
+an application names one crate, and a build without the `leptos` feature
+compiles no Leptos code at all. What moved is the `mod`: the types are
+**declared in `leptos-mf2` and re-exported by `mf2`**, because Rust's
+orphan rule leaves no alternative. `impl Render for Tr` needs either the
+trait or the type to belong to the implementing crate; `Render` is tachys'.
+The same holds for `AttributeValue`, `IntoProperty`, `From<Tr> for
+TextProp` and `From<Signal<T>> for ArgValue`. Splitting a type from its
+rendering is not expressible in Rust; splitting them by *feature* is, and
+that is what `leptos-mf2`'s `leptos` feature does — off, it is the
+Leptos-free core, with no `leptos`, `tachys` or `reactive_graph` in the
+tree. Phase 5b's arrangement (the core in the facade) was correct while
+`leptos-mf2` did not exist; this is the same core, in the crate that must
+own it.
+
+The two extension points, as built:
+
+* **`markup(h)`** is one name with two definitions, chosen by the feature,
+  so that the macro's expansion never changes. Without `leptos` it takes
+  `H: MarkupHandler + 'static`, as Phase 5b's core did. With it, it takes
+  `IntoMarkupHandler`: a **nesting** closure `Fn(AnyView) -> impl IntoAny`
+  (the common case — `|c| view! { <kbd>{c}</kbd> }` infers with no
+  annotation), a `Flat` closure over `&MarkupPart` (§7; what L6 compares
+  against `expParts`), or an `Arc<dyn MarkupHandler>` already built. Both
+  erase to one of two concrete handler types, so the renderer downcasts to
+  a type it knows rather than to the call site's closure.
+* **`From<Signal<T>> for ArgValue`** for each of `reactive_graph`'s
+  readable signals — `Signal`, `ReadSignal`, `RwSignal`, `Memo` and their
+  `Arc` forms — through one `SignalArg<S>`: one instance per signal type,
+  not per call site. A **disposed** signal reads as `Unset`, which the
+  message reports as an Unresolved Variable; `Get::get` would panic, and
+  the client path does not panic.
+
 **A1 (2026-09-23): each extension point is a trait, not the `Custom`
 variant.** `Custom` stays what it is — an application value the runtime
 borrows as `Arg::Custom(&dyn CustomValue)`, which is how a call site passes a
@@ -298,6 +332,16 @@ at switch time only, and nothing in the page. The alternative is a small
 tag → URL map emitted by SSR into the DOM (no round trip, a few bytes per
 locale in every page).
 
+**Both are built (Phase 6 A4), and an application chooses by what its shell
+emits.** `catalog_url(tag)` looks, in order, at the page's own
+`<link rel=preload data-mf2>` (the locale the page was rendered in), then at a
+`<link rel="mf2-catalog" data-mf2-locale="fr" href="…">` map, and falls back
+to `GET /i18n/<tag>`. A shell that emits the map pays its bytes in every page
+and never makes the extra request; one that does not pays the redirect at
+switch time only. The measurement on the reference workload goes in
+[phase-6-results](phase-6-results.md) for the owner to pick the default from;
+nothing in the library prefers one.
+
 **Time zone** for date functions: see [03-runtime](03-runtime.md) §6.
 
 ## 7. Markup → elements
@@ -351,13 +395,30 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 * Head helpers: `<link rel="alternate" hreflang>` for path-prefix strategies;
   guidance for schema.org `inLanguage` on pages that emit structured data.
 * Bidi: the spec's Default Bidi Strategy is on by default so interpolated names
-  cannot scramble an RTL sentence. **Open for Phase 6: which strategy applies
-  in which position.** The isolating marks (U+2066–U+2069) belong in displayed
-  text; in a value the user or another program consumes as plain text — `value=`
-  / `prop:value`, text copied to the clipboard, a `String` handed to a server
-  function — they are invisible junk. `BidiStrategy` is a `FormatContext`
+  cannot scramble an RTL sentence. The isolating marks (U+2066–U+2069) belong in
+  displayed text; in a value the user or another program consumes as plain text —
+  `value=` / `prop:value`, text copied to the clipboard, a `String` handed to a
+  server function — they are invisible junk. `BidiStrategy` is a `FormatContext`
   field, so a renderer can hold one formatter per strategy and pick by
   position at no per-call-site cost; §11 says why this is on the list.
+
+  **Decided (Phase 6 A2, 2026-09-23; owner question 2).** The library holds
+  two formatters, built once by `install`, and every position picks one:
+
+  | Position | Strategy | Why |
+  |---|---|---|
+  | text child, `AttributeValue` (`title`, `placeholder`, `aria-label`, `alt`), markup parts, `TextProp`, `Signal<String>`, `Oco` | **Default** (isolated) | a person reads it, and an interpolated name must not scramble the sentence around it |
+  | `IntoProperty` (`prop:value`), `to_string()`, `String::from` | **None** (plain) | a program consumes it: a server function, a comparison, the clipboard, `format!` |
+
+  The split follows *who reads the text*, not which Rust type carries it:
+  `TextProp` and `Signal<String>` are display props, while a bare `String`
+  is what a call site hands to code. A call site overrides per use, not
+  globally — `to_display_string()` is the isolated form of `to_string()` —
+  which is the thing the prior-art audit (§11, item 2) found missing: a
+  global switch makes a user who wants clean `title` text lose isolation in
+  the RTL sentences that need it. Nothing here costs a call site anything:
+  the choice is which of two `&'static FormatContext`s a library function
+  passes to `Formatter::new`.
 
 ## 10. Version policy
 
