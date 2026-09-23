@@ -1,0 +1,28 @@
+# B13 (plans/06-size-and-perf.md §3): the fixture's own corpus plus the three
+# measure functions. What it costs over the fixture's is what a corpus that
+# does not use them does not pay.
+@locale en
+---
+
+plain = Save
+greeting = Hello, {$name}!
+received = You have {$count} of them
+
+items =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} item}}
+  *   {{{$count} items}}
+
+help = Press {#kbd}Esc{/kbd} to {#b}close{/b}
+
+# The three gated numeric functions, which is the whole difference.
+price = {$amount :currency currency=EUR}
+speed = {$rate :unit unit=kilometer-per-hour}
+share = {$part :percent}
+
+[account]
+name = Name
+
+[canary]
+text = ZQ7-FIXTURE-CANARY-EN

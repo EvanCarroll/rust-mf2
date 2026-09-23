@@ -30,6 +30,11 @@ fn-datetime = ["mf2/fn-datetime"]
 datetime-icu = ["mf2/datetime-icu", "mf2-build/icu-blob"]
 datetime-intl = ["mf2/datetime-intl"]
 intl = ["mf2/intl"]
+# The B1′ and B13 corpora (plans/13 A10, `cargo xtask b12-generated`): a
+# corpus with nothing a function crate could serve, and this crate's corpus
+# plus the three measure functions. Exactly one at a time.
+corpus-plain = []
+corpus-measures = []
 # Owner question 1 of plans/12: the catalogs emitted apart, so that the i18n
 # crate's generated module carries no catalog name and a translation edit
 # leaves it — and everything that depends on it — untouched.

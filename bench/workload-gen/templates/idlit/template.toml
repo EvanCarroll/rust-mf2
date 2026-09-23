@@ -1,0 +1,40 @@
+# Built-in template `idlit`: the B5 baseline (plans/06-size-and-perf.md §3,
+# P0.1's "Baselines"). Every call site is the same *shape* as the `tr`
+# template's — a `String` produced in the same position — but the string comes
+# from a short per-site literal (the message's `MsgId` as text) instead of
+# from a catalog. Sites therefore stay distinct, as they are in a real
+# application, and the delta against `tr` is the call site's own cost with
+# nothing of the surrounding app in it.
+#
+# Arguments are dropped, as in the `literal` baseline: passing them is part of
+# what a call site costs.
+
+name = "idlit"
+description = "The B5 baseline: a String from a short per-site literal, in the same positions as `tr`."
+support = "support.rs"
+
+[deferred]
+type = "&'static str"
+view = "({{label}}).to_owned()"
+string = "({{label}}).to_owned()"
+
+[site.string]
+none = 'String::from("{{index}}")'
+
+[site.child]
+none = 'move || String::from("{{index}}")'
+
+[site.attr]
+none = 'move || String::from("{{index}}")'
+
+[site.reactive_prop]
+none = 'Signal::derive(move || String::from("{{index}}"))'
+
+[site.string_prop]
+none = 'String::from("{{index}}")'
+
+[site.deferred]
+none = '"{{index}}"'
+
+[site.if_else]
+none = 'String::from("{{index}}")'

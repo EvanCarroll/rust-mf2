@@ -216,6 +216,15 @@ attribute value for `attr`; `Into<TextProp>`, `Into<Signal<String>>`,
 | `{{label}}` | deferred | the label expression (`row.label`) |
 | `{{template_dir}}` | dependencies | absolute path of the template directory |
 
+A template may also add entries to the generated app's own features, for the
+crates it brings:
+
+```toml
+[features]                         # appended to the app's `hydrate` / `ssr`
+hydrate = ["workload-i18n/hydrate"]
+ssr = ["workload-i18n/ssr"]
+```
+
 The built-ins: **`literal`** — every site is the source text as a string
 literal and arguments are dropped (the "no i18n" baseline of plans/06 §3);
 **`closure`** — `move || lookup("id")` per child/attribute,
@@ -223,3 +232,18 @@ literal and arguments are dropped (the "no i18n" baseline of plans/06 §3);
 `fn() -> String` registry, `lookup_args("id", &[("name", v.to_string())])` for
 arguments, with one shared `lookup` in the support module (opaque to the
 optimiser: `boot()` fills its map from `<html data-catalog>`).
+
+Two more built-ins serve budget **B5** (`cargo xtask b5`, plans/06 §3):
+**`idlit`** — every site is a `String` from a short per-site literal (the
+message's `MsgId` as text), in the same positions as the `tr` template's, so
+the delta against it is the call site's own cost and nothing of the app
+around it; and **`dummy`** — the same literal at every site, the harshest
+bound, where the optimiser merges sites a real application keeps apart (P0.1
+measured `dummy` 11.4 B gz per site smaller than `idlit`, which is why
+`idlit` is the baseline).
+
+**`tr`** — mf2-two itself — is not a built-in but a directory,
+`bench/workload-gen/templates/tr`, because it carries the i18n crate its app
+depends on (`i18n/`, pointed at the generated workload through
+`MF2_WORKLOAD_LOCALES`) and names it with `{{template_dir}}`. Use it as
+`-t bench/workload-gen/templates/tr`, which is what `cargo xtask b5` does.

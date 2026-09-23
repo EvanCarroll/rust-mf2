@@ -72,12 +72,13 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     println!(
         "\nmf2 init: {} in {}. Next:\n\
          \x20 1. add it to the workspace and to the application's dependencies;\n\
-         \x20 2. put `mf2::include_generated!();` in its src/lib.rs (Phase 5b);\n\
+         \x20 2. call `{}::tr!(\"id\", name = value)` from anywhere that depends on it;\n\
          \x20 3. add this to the application's [package.metadata.leptos], so that\n\
          \x20    `cargo leptos watch` sees a translation change:\n\
          \x20      watch-additional-files = [\"{}/locales\"]",
         args.name,
         dir.display(),
+        args.name.replace('-', "_"),
         dir.display()
     );
     Ok(())
@@ -133,7 +134,12 @@ fn main() {
 const LIB_RS: &str = "\
 //! The application's messages. Everything in here is generated: edit
 //! `locales/` instead.
+//!
+//! This brings in `tr!` and `msg_id!` as well. Every *other* crate calls them
+//! as `<this crate>::tr!(\"id\", name = value)`; inside this one they are
+//! called unqualified, because a `macro_export` macro that arrives through a
+//! macro expansion cannot be named by an absolute path in its own crate
+//! (rust-lang/rust#52234).
 
-// Phase 5b: `mf2::include_generated!();` brings in `tr!` as well.
-include!(concat!(env!(\"OUT_DIR\"), \"/mf2_generated.rs\"));
+mf2::include_generated!();
 ";

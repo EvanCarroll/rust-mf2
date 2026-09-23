@@ -24,7 +24,9 @@ source of truth and links to everything else.
 | — | [phase-4-results.md](phase-4-results.md) | the Phase 4 measurements: the `intl` probe and the option as built, the number and date data, `:currency` / `:unit`, the date backends, L4d, goldens, generated input and fuzzing, numeric speed, B2–B4, B8, B12, B13, B1′ |
 | 12 | [12-phase-5a-work-order.md](12-phase-5a-work-order.md) | Phase 5a tasks (done): `mf2-resource`, `mf2-build`, the generated module, `mf2 check`, `mf2-cli`; status at exit |
 | — | [phase-5a-results.md](phase-5a-results.md) | the Phase 5a measurements: the pipeline on the reference workload, the `compile_str` differential, the seeded-drift corpus, the edit scenarios, B7 and B8 on the build's own catalogs, build cost, and both owner questions answered |
-| 13 | [13-phase-5b-work-order.md](13-phase-5b-work-order.md) | **doing the work next** — Phase 5b tasks: `mf2-macros`, the call-site types, layer L5 (needs 5a, and P3 + P4) |
+| 13 | [13-phase-5b-work-order.md](13-phase-5b-work-order.md) | Phase 5b tasks (done): `mf2-macros`, the call-site types, layer L5, and what A4 decided in the doing |
+| — | [phase-5b-results.md](phase-5b-results.md) | the Phase 5b measurements: the call-site types as built, the macro and its cache, the compile-fail set, layer L5, B5, the macro's cost, B1′ and B13 as gates |
+| 14 | [14-phase-6-work-order.md](14-phase-6-work-order.md) | **doing the work next** — Phase 6 tasks: `leptos-mf2`, `mf2-axum`, layer L6 (SSR + hydrate) |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans

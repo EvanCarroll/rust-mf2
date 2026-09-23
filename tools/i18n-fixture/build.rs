@@ -1,6 +1,12 @@
 //! What an application's i18n crate writes: parse `locales/`, write the
 //! manifest and the catalogs to `OUT_DIR`, generate the module `src/lib.rs`
 //! includes (plans/05-tooling.md §4).
+//!
+//! Two features swap the corpus for a smaller one, so that B1′ and B13 can be
+//! *gated* rather than measured by hand (`cargo xtask b12-generated`,
+//! plans/13 A10): `corpus-plain` has nothing a function crate could serve,
+//! and `corpus-measures` is this crate's corpus plus the three measure
+//! functions.
 
 fn main() {
     // With `split-catalogs`, this crate emits only the module: the catalogs
@@ -10,9 +16,27 @@ fn main() {
     } else {
         mf2_build::Emit::Both
     };
-    let build = match mf2_build::Build::new() {
-        Ok(build) => build.emit_cargo(true).emit(emit),
-        Err(e) => {
+    // The corpus: this crate's, or one of the two size variants.
+    let variant = if std::env::var_os("CARGO_FEATURE_CORPUS_PLAIN").is_some() {
+        Some("plain")
+    } else if std::env::var_os("CARGO_FEATURE_CORPUS_MEASURES").is_some() {
+        Some("measures")
+    } else {
+        None
+    };
+    let build = match (mf2_build::Build::new(), variant) {
+        (Ok(build), None) => build.emit_cargo(true).emit(emit),
+        (Ok(_), Some(variant)) => {
+            let root = std::path::PathBuf::from(
+                std::env::var_os("CARGO_MANIFEST_DIR").expect("cargo sets CARGO_MANIFEST_DIR"),
+            )
+            .join("variants")
+            .join(variant);
+            let out =
+                std::path::PathBuf::from(std::env::var_os("OUT_DIR").expect("cargo sets OUT_DIR"));
+            mf2_build::Build::at(root, out).emit_cargo(true).emit(emit)
+        }
+        (Err(e), _) => {
             println!("cargo::error={e}");
             std::process::exit(1);
         }

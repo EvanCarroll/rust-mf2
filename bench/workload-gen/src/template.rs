@@ -27,6 +27,16 @@ const BUILTIN: &[(&str, &str, &str)] = &[
         include_str!("../templates/closure/template.toml"),
         include_str!("../templates/closure/support.rs"),
     ),
+    (
+        "idlit",
+        include_str!("../templates/idlit/template.toml"),
+        include_str!("../templates/idlit/support.rs"),
+    ),
+    (
+        "dummy",
+        include_str!("../templates/dummy/template.toml"),
+        include_str!("../templates/dummy/support.rs"),
+    ),
 ];
 
 /// Names of the built-in templates.
@@ -103,6 +113,10 @@ struct Raw {
     description: String,
     #[serde(default)]
     dependencies: Vec<String>,
+    /// Extra entries for the app's own `hydrate` / `ssr` features — what a
+    /// template's crates need forwarded to them.
+    #[serde(default)]
+    features: BTreeMap<String, Vec<String>>,
     #[serde(default)]
     prelude: String,
     #[serde(default)]
@@ -125,6 +139,9 @@ pub struct Template {
     /// Extra `[dependencies]` lines for the generated app (verbatim, with
     /// `{{template_dir}}` expanded).
     pub dependencies: Vec<String>,
+    /// Extra entries per app feature (`hydrate`, `ssr`), appended to the
+    /// generated app's own.
+    pub features: BTreeMap<String, Vec<String>>,
     /// Rust items inserted at the top of every component module and of
     /// `src/tables.rs`.
     pub prelude: String,
@@ -276,6 +293,7 @@ impl Template {
             })
             .collect::<Result<Vec<_>, _>>()?;
         let template = Self {
+            features: raw.features,
             name: raw.name,
             description: raw.description,
             dependencies,

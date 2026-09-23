@@ -22,10 +22,21 @@ fn describe(program: &OsStr, args: &[&OsStr]) -> String {
 
 /// Runs a command with inherited stdio in `dir`; fails on a non-zero exit.
 pub(crate) fn run_inherit(program: &OsStr, args: &[&OsStr], dir: &Path) -> Result<()> {
+    run_inherit_env(program, args, dir, &[])
+}
+
+/// [`run_inherit`], with environment variables set for the child.
+pub(crate) fn run_inherit_env(
+    program: &OsStr,
+    args: &[&OsStr],
+    dir: &Path,
+    envs: &[(&str, &OsStr)],
+) -> Result<()> {
     let shown = describe(program, args);
     let status = Command::new(program)
         .args(args)
         .current_dir(dir)
+        .envs(envs.iter().map(|(k, v)| (*k, *v)))
         .status()
         .map_err(|source| Error::Spawn {
             program: shown.clone(),

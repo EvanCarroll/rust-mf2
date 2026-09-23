@@ -3,6 +3,8 @@
 //! Network access happens only in the `*-sync` commands, and only to the
 //! upstreams named in `third_party/*/PIN` (see `CLAUDE.md`, "Boundary").
 
+mod b12_generated;
+mod b5;
 mod ci;
 mod cldr_sync;
 mod cmd;
@@ -122,6 +124,21 @@ enum Command {
     },
     /// Size gate (Phase 5; not implemented yet).
     Size,
+    /// Budgets B1′ and B13 on the generated module (Phase 5b, A10): the same
+    /// corpus with and without a feature it does not use, and with and
+    /// without the gated measure functions.
+    B12Generated,
+    /// Budget B5 (Phase 5b, A6): the marginal wasm per call site, by P0.1's
+    /// method — two scales of the reference workload, `tr` against the
+    /// `idlit` baseline and the `dummy` bound.
+    B5 {
+        /// Where to generate and build [default: target/b5].
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// Reuse what is already generated and built there.
+        #[arg(long)]
+        keep: bool,
+    },
     /// Write the seed corpora of the fuzz targets: `parse` (fuzz/corpus/parse/:
     /// the suite's messages and the reference workload) and `catalog`
     /// (fuzz/corpus/catalog/: their catalogs, unstripped and stripped).
@@ -195,6 +212,8 @@ fn run(command: Command) -> Result<()> {
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
         Command::Scenarios { keep, split } => scenarios::run(&root, keep, split),
         Command::Size => Err(Error::SizeNotImplemented),
+        Command::B5 { out, keep } => b5::run(&root, out, keep),
+        Command::B12Generated => b12_generated::run(&root),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {
             let mut full: Vec<OsString> = ["run", "--release", "-p", "workload-gen", "--"]

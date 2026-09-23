@@ -14,7 +14,9 @@ mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 # Layer L4: the one-message compile (plans/10 A9) and the client side it runs,
 # natively and on wasm32-wasip1.
 # `datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
-mf2 = { workspace = true, features = ["compile", "datetime-icu"] }
+# `host-std`: layer L5 builds its own formatter, so the facade's native host
+# has to be there on its own account, not by feature unification.
+mf2 = { workspace = true, features = ["compile", "datetime-icu", "host-std"] }
 mf2-l4-runner.workspace = true
 # Layer L5: the suite as four i18n crates — one per locale it uses — each
 # built by `mf2-build` from the vendored suite and reached through `tr!`.

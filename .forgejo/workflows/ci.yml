@@ -282,6 +282,9 @@ jobs:
       - name: B12 check (exit 1 on a panic path or core::fmt in the reader or the runtime)
         run: bash bench/b12/check.sh
 
+      - name: B1′ and B13 on the generated module (Phase 5b, A10)
+        run: cargo xtask b12-generated
+
       - name: The browser host builds for wasm32-unknown-unknown
         run: cargo build --release -p mf2-host-web --target wasm32-unknown-unknown
 

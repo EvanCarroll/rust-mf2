@@ -1,0 +1,35 @@
+# Built-in template `dummy`: the harshest B5 bound (P0.1's "Baselines"). Every
+# call site is the *same* literal, so LLVM and wasm-opt merge code that a real
+# application — whose sites differ — keeps apart: P0.1 measured the `dummy`
+# app 11.4 B gz per site smaller than `idlit`, which is why `idlit` is the
+# baseline and this one is only the bound.
+
+name = "dummy"
+description = "The harshest B5 bound: the same literal at every call site, which lets the optimiser merge sites a real app cannot."
+support = "support.rs"
+
+[deferred]
+type = "&'static str"
+view = "({{label}}).to_owned()"
+string = "({{label}}).to_owned()"
+
+[site.string]
+none = 'String::from("m")'
+
+[site.child]
+none = 'move || String::from("m")'
+
+[site.attr]
+none = 'move || String::from("m")'
+
+[site.reactive_prop]
+none = 'Signal::derive(move || String::from("m"))'
+
+[site.string_prop]
+none = 'String::from("m")'
+
+[site.deferred]
+none = '"m"'
+
+[site.if_else]
+none = 'String::from("m")'

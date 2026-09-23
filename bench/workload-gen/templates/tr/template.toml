@@ -1,0 +1,72 @@
+# Built-in template `tr`: mf2-two as an application uses it — `tr!` at every
+# call site, against the corpus of the same generated workload
+# (plans/06-size-and-perf.md §3, budget B5; plans/13-phase-5b-work-order.md A6).
+#
+# Phase 5b has no `leptos-mf2`, so a description does not render itself yet:
+# every site formats to a `String` through one shared helper, which is the
+# 45 % of real sites that need a plain `String` anyway (06 §2). The view
+# positions cost what tachys costs around a `String` leaf — the same for this
+# template and for its baselines, so it cancels in the delta. Phase 6
+# re-measures them with the real leaf.
+#
+# Not a built-in: it needs its own directory, because it carries the i18n
+# crate its generated app depends on (`i18n/`) and names it through
+# `{{template_dir}}`. Use it as `-t bench/workload-gen/templates/tr`, which is
+# what `cargo xtask b5` does.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "tr"
+description = "mf2-two: tr! per call site, formatted through one shared helper (budget B5)."
+support = "support.rs"
+dependencies = [
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
+    'workload-i18n = { path = "{{template_dir}}/i18n" }',
+]
+prelude = "use workload_i18n::tr;"
+boot = "crate::support::boot();"
+
+# The i18n crate is built for the same side as the app.
+[features]
+hydrate = ["workload-i18n/hydrate"]
+ssr = ["workload-i18n/ssr"]
+
+# `tr!` takes its arguments by name; the macro puts them in slot order and
+# the wasm carries neither the names nor the id.
+[args]
+sep = ", "
+plain = '"{{name}}" = {{value}}'
+
+# A description is `Copy` and `const`-constructible, so a deferred label is
+# plain data in a `static` table rather than a closure that returns a String.
+[deferred]
+type = "mf2::Tr"
+view = "crate::support::s({{label}})"
+string = "crate::support::s({{label}})"
+
+[site.string]
+none = 'crate::support::s(tr!("{{id}}"))'
+plain = 'crate::support::s(tr!("{{id}}", {{args}}))'
+
+[site.child]
+none = 'move || crate::support::s(tr!("{{id}}"))'
+plain = 'move || crate::support::s(tr!("{{id}}", {{args}}))'
+
+[site.attr]
+none = 'move || crate::support::s(tr!("{{id}}"))'
+plain = 'move || crate::support::s(tr!("{{id}}", {{args}}))'
+
+[site.reactive_prop]
+none = 'Signal::derive(move || crate::support::s(tr!("{{id}}")))'
+plain = 'Signal::derive(move || crate::support::s(tr!("{{id}}", {{args}})))'
+
+[site.string_prop]
+none = 'crate::support::s(tr!("{{id}}"))'
+plain = 'crate::support::s(tr!("{{id}}", {{args}}))'
+
+[site.deferred]
+none = 'tr!("{{id}}")'
+
+[site.if_else]
+none = 'crate::support::s(tr!("{{id}}"))'
+plain = 'crate::support::s(tr!("{{id}}", {{args}}))'

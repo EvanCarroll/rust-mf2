@@ -1,0 +1,28 @@
+# The i18n crate of the `tr` template's generated app: an application's own
+# i18n crate, pointed at whichever generated workload is being measured
+# (`MF2_WORKLOAD_LOCALES`). It carries its own `[workspace]` so that a
+# generated app outside this repository can depend on it by path.
+[package]
+name = "workload-i18n"
+description = "The i18n crate of the workload app: the reference workload's corpus, compiled by mf2-build."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[workspace]
+
+[features]
+default = ["ssr"]
+ssr = ["mf2/host-std"]
+hydrate = ["mf2/host-web"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2 = { path = "../../../../../crates/mf2" }
+
+[build-dependencies]
+mf2-build = { path = "../../../../../crates/mf2-build" }
