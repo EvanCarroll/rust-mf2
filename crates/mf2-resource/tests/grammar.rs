@@ -458,3 +458,43 @@ fn an_escaped_value_maps_through_its_escapes() {
     assert_eq!(&src[at(1)..at(1) + 2], "\\u");
     assert_eq!(&src[at(2)..=at(2)], "c");
 }
+
+/// The blanks before `=` are layout and come off; an **escaped** one is part
+/// of the id and stays. Trimming it read the id back a character short and
+/// wrote a line that no longer parsed — found by the `resource` fuzz target
+/// on `#h\n#h\n\ \ =7` (Phase 5a, A12).
+#[test]
+fn an_escaped_blank_before_the_equals_belongs_to_the_id() {
+    for (src, id) in [
+        ("\\ \\ =7\n", "  "),
+        ("\\ =7\n", " "),
+        ("a\\ =7\n", "a "),
+        // In an id `\X` is literally X — there is no `\t`-means-tab rule
+        // there, because an id cannot hold a control character at all.
+        ("a\\t=7\n", "at"),
+        // A real blank still comes off, and so does one after an escaped one.
+        ("a   =7\n", "a"),
+        ("a\\   =7\n", "a "),
+        // `\\` is an escaped backslash, so the blank after it is layout.
+        ("a\\\\ =7\n", "a\\"),
+    ] {
+        let r = ok(src);
+        let entry = &r.sections[0].entries[0];
+        assert_eq!(
+            entry.id.parts(),
+            &[id],
+            "id of {src:?} (got {:?})",
+            entry.id.parts()
+        );
+        assert_eq!(entry.value, "7", "value of {src:?}");
+        // And what it writes back reads the same — the round trip the fuzz
+        // target checks.
+        let text = mf2_resource::serialize(&r).expect("writes back");
+        let (again, diags) = mf2_resource::parse(&text);
+        assert!(
+            diags.is_empty(),
+            "{src:?} wrote {text:?}, which does not parse"
+        );
+        assert_eq!(again, r, "{src:?} wrote {text:?}");
+    }
+}

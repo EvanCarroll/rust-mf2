@@ -39,6 +39,10 @@ const STEPS: &[&[&str]] = &[
         "warnings",
     ],
     &["test", "--workspace"],
+    // `mf2-resource`'s `serde` feature is optional and nothing in the
+    // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
+    // or runs `tests/json.rs`.
+    &["test", "-p", "mf2-resource", "--features", "serde"],
 ];
 
 pub(crate) fn run(root: &Path) -> Result<()> {

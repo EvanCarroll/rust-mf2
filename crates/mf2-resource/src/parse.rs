@@ -296,8 +296,15 @@ impl<'a> Parser<'a> {
             self.diag(code::EXPECTED_EQUALS, line.start, line.end);
             return (None, i + 1);
         };
+        // The blanks between the id and `=` are layout and come off — but
+        // only the ones that are layout. `\ ` is how an id ends in a space,
+        // and trimming that would read the id back one character short and
+        // write something that no longer parses.
         let mut id_end = eq;
-        while id_end > line.start && matches!(self.b[id_end - 1], b' ' | b'\t') {
+        while id_end > line.start
+            && matches!(self.b[id_end - 1], b' ' | b'\t')
+            && !self.is_escaped(id_end - 1)
+        {
             id_end -= 1;
         }
         let id = self.read_id(line.start, id_end);
@@ -499,6 +506,19 @@ impl<'a> Parser<'a> {
                 None
             }
         }
+    }
+
+    /// Whether the byte at `pos` is escaped: an odd number of `\` runs up to
+    /// it. A `\` cannot cross a line break, and the byte before a line's
+    /// first is `\n`, so this never walks past the line it started on.
+    fn is_escaped(&self, pos: usize) -> bool {
+        let mut slashes = 0;
+        let mut i = pos;
+        while i > 0 && self.b[i - 1] == b'\\' {
+            slashes += 1;
+            i -= 1;
+        }
+        slashes % 2 == 1
     }
 
     /// The first `needle` in `from..to` that no `\` escapes.
