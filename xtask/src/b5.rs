@@ -27,6 +27,7 @@
 //! real leaf, which is what P0.1's 24.5 B gz was.
 
 use std::ffi::{OsStr, OsString};
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use crate::cmd;
@@ -386,10 +387,11 @@ pub(crate) fn size_table(measured: &[(usize, Vec<(&str, Sizes)>)]) -> String {
     );
     for (sites, sizes) in measured {
         for (template, s) in sizes {
-            out.push_str(&format!(
-                "| {sites} sites | {template} | {} | {} | {} |\n",
+            let _ = writeln!(
+                out,
+                "| {sites} sites | {template} | {} | {} | {} |",
                 s.bindgen_gz, s.opt_raw, s.opt_gz
-            ));
+            );
         }
     }
     out

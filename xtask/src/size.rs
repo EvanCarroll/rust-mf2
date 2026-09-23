@@ -23,6 +23,7 @@
 //! regression in any of the three is a regression in the thing the project
 //! claims.
 
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use crate::b5;
@@ -54,7 +55,8 @@ pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
 
     let mut report = String::from("# Size gate\n");
     report.push_str(&b5::size_table(&measured));
-    report.push_str(&format!(
+    let _ = write!(
+        report,
         "\n| Gate | Measured | Limit | Verdict |\n|---|---:|---:|---|\n\
          | B1, fixed | {:.0} B gz | {B1:.0} | {} |\n\
          | B5, per site | {:.1} B gz | {B5:.0} | {} |\n\
@@ -65,20 +67,22 @@ pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
         verdict(idlit.marginal <= B5),
         whole,
         verdict(whole <= ambition),
-    ));
+    );
     if let Some(dummy) = &dummy {
-        report.push_str(&format!(
+        let _ = write!(
+            report,
             "\nAgainst the `dummy` bound (one literal everywhere, so the \
              optimiser merges sites a real application keeps apart): \
              {:.1} B gz per site, {:.0} B gz fixed.\n",
             dummy.marginal, dummy.fixed
-        ));
+        );
     }
-    report.push_str(&format!(
+    let _ = write!(
+        report,
         "\nThe ambition is 06 §3's: {B1:.0} B gz fixed plus {B5:.0} B gz per \
          call site, which at {sites} sites is {ambition:.0} B gz — against \
          525 KB gz for the whole reference application.\n"
-    ));
+    );
 
     print!("{report}");
     fsx::write(&dir.join("report.md"), report.as_bytes())?;
