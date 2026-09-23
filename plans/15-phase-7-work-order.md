@@ -64,10 +64,12 @@ whose interactive parts are islands.
    an edit leaves the client untouched; Phase 6 did not use it, because the
    example is one crate. If the answer is "never", the split becomes the
    documented default and the example changes to match.
-3. **How much of the CSR story to build.** `trunk` users are a real
-   audience, but CSR has no server to negotiate with, so it needs its own
-   locale source and its own index. A1 below is the whole of it; the
-   question is whether it ships in Phase 7 or waits.
+3. **How much of the CSR story to build** — **answered (owner,
+   2026-09-23): build it, in this phase.** A2 is therefore in scope as
+   written: a client-only application has no server to negotiate with, so
+   it reads the locale from storage and `navigator.languages`, remembers
+   the choice locally, and finds its catalogs through a generated index
+   rather than a preload link the server wrote.
 
 ## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
