@@ -182,7 +182,16 @@ fn emit(
     let id = quote_spanned! {span=> #krate::__mf2::MsgId::from_raw(#raw) };
     let rich = handlers.iter().any(Option::is_some);
     let args: Vec<&Expr> = values.iter().copied().flatten().collect();
-    let value = |e: &&Expr| quote_spanned! {span=> #krate::__mf2::ArgValue::from(#e) };
+    // A string literal keeps its `&'static str`: `ArgValue::from(&str)` has
+    // to copy, because a call site's `&str` is rarely `'static` and the
+    // description outlives the call (04 §2.1).
+    let value = |e: &&Expr| match e {
+        Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Str(s),
+            ..
+        }) => quote_spanned! {span=> #krate::__mf2::ArgValue::str_static(#s) },
+        e => quote_spanned! {span=> #krate::__mf2::ArgValue::from(#e) },
+    };
 
     // `tr` for a plain message, an arity-specific constructor for up to four
     // arguments — the reference workload's maximum — and only beyond that a
@@ -227,14 +236,17 @@ fn emit(
     quote_spanned! {span=> #krate::__mf2::tr_rich(#description, [#(#entries),*].into()) }
 }
 
-/// The message for a name the message does not have.
+/// The message for a name the message does not have. A name can be either
+/// kind — an argument or a markup handler — so the suggestion says which
+/// kind it found.
 fn unknown(message: &Message<'_>, name: &str) -> String {
-    let known = message
-        .slots
-        .iter()
-        .chain(message.markup)
-        .map(String::as_str);
-    let hint = suggest(name, known).map_or_else(String::new, |s| format!("; did you mean `{s}`?"));
+    let hint = match suggest(name, message.slots.iter().map(String::as_str)) {
+        Some(s) => format!("; did you mean `{s}`?"),
+        None => suggest(name, message.markup.iter().map(String::as_str))
+            .map_or_else(String::new, |s| {
+                format!("; did you mean the markup handler `{s}`?")
+            }),
+    };
     let has = if message.slots.is_empty() {
         "it has no variables".to_owned()
     } else {
@@ -245,10 +257,12 @@ fn unknown(message: &Message<'_>, name: &str) -> String {
     } else {
         format!("; its markup: {}", list(message.markup, "#"))
     };
-    format!(
-        "message `{}` has no variable `${name}` ({has}{markup}){hint}",
-        message.id
-    )
+    let what = if message.markup.is_empty() {
+        format!("has no variable `${name}`")
+    } else {
+        format!("has no variable `${name}` and no markup `#{name}`")
+    };
+    format!("message `{}` {what} ({has}{markup}){hint}", message.id)
 }
 
 /// The message for arguments the call site did not pass.
@@ -288,14 +302,17 @@ fn list<S: AsRef<str>>(names: &[S], sigil: &str) -> String {
 }
 
 /// The closest candidate within a third of the name's length (at least 2
-/// edits), for a did-you-mean.
+/// edits), for a did-you-mean. Ties go to the candidate of the most similar
+/// length — `kdb` is two edits from both `kbd` and `b`, and only one of
+/// those is what anyone meant.
 fn suggest<'a>(wanted: &str, candidates: impl Iterator<Item = &'a str>) -> Option<&'a str> {
-    let limit = (wanted.chars().count() / 3).max(2);
+    let len = wanted.chars().count();
+    let limit = (len / 3).max(2);
     candidates
-        .map(|c| (distance(wanted, c), c))
-        .filter(|(d, _)| *d <= limit)
+        .map(|c| (distance(wanted, c), c.chars().count().abs_diff(len), c))
+        .filter(|(d, _, _)| *d <= limit)
         .min()
-        .map(|(_, c)| c)
+        .map(|(_, _, c)| c)
 }
 
 /// Levenshtein distance.

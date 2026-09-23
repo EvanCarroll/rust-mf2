@@ -376,7 +376,14 @@ generates a Rust module containing:
   as literals**: `__tr_impl!("<path>" 0x<hash>u64 ; $crate ; …)`.
 
 That last point solves discovery and invalidation without unstable features:
-any crate that depends on the i18n crate can call `tr!`; the proc-macro reads
+any crate that depends on the i18n crate can call `tr!` — as
+`my_app_i18n::tr!(…)`, and **inside the i18n crate itself only unqualified**,
+because a `macro_export` macro that arrives through a macro expansion (here
+`include_generated!` → `include!`) cannot be named by an absolute path in
+its own crate (rustc [#52234]; `mf2 init`'s scaffold says so, and the
+fixture's tests are written that way);
+
+[#52234]: https://github.com/rust-lang/rust/issues/52234 the proc-macro reads
 the manifest from the baked path (cached per compiler process keyed by path and
 verified against the hash, so 2,000 expansions read it once — 0.12–0.45 s of
 macro time, +0.2–0.3 s on `cargo check`, P0.9); a manifest whose hash differs

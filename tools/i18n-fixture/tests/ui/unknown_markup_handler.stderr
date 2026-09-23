@@ -1,0 +1,5 @@
+error: message `help` has no variable `$kdb` and no markup `#kdb` (it has no variables; its markup: #b, #kbd); did you mean the markup handler `kbd`?
+  --> tests/ui/unknown_markup_handler.rs:11:43
+   |
+11 |     let _ = mf2_i18n_fixture::tr!("help", kdb = Handler);
+   |                                           ^^^

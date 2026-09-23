@@ -38,6 +38,9 @@ split-catalogs = []
 [dependencies]
 mf2.workspace = true
 
+[dev-dependencies]
+trybuild.workspace = true
+
 [build-dependencies]
 mf2-build.workspace = true
 

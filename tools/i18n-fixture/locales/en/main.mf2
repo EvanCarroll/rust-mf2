@@ -18,8 +18,9 @@ items =
   one {{{$count} item}}
   *   {{{$count} items}}
 
-# Markup: the handler a call site has to supply.
-help = Press {#kbd}Esc{/kbd} to close
+# Markup: two names, so that a call site that handles one and not the other
+# is the oversight the macro reports (04 §2.1, handlers are all or none).
+help = Press {#kbd}Esc{/kbd} to {#b}close{/b}
 
 [account]
 name = Name

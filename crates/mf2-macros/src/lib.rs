@@ -17,6 +17,10 @@
 //! used, which is what keeps a long-lived rust-analyzer proc-macro server
 //! honest.
 //!
+//! `MF2_MACRO_STATS=<file>` makes each rustc process write what the macro
+//! cost it — expansions, nanoseconds, manifest reads — which is how the
+//! cache and the macro's time are measured (`stats`).
+//!
 //! What the macro checks and what it emits is [`expand`]'s doc; what reaches
 //! the wasm is a `MsgId` and the argument values, never an id string, an
 //! argument name or a markup name (B6).
@@ -27,6 +31,7 @@ mod error;
 mod expand;
 mod manifest;
 mod parse;
+mod stats;
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -35,26 +40,18 @@ use quote::quote;
 /// description of the message. Called only by the generated `tr!` wrapper.
 #[proc_macro]
 pub fn __tr_impl(input: TokenStream) -> TokenStream {
-    match parse::input(input).and_then(expand::expand) {
-        Ok(tokens) => tokens.into(),
+    let started = stats::start();
+    let out = match parse::input(input).and_then(expand::expand) {
+        Ok(tokens) => tokens,
         // Several errors of one call site become several `compile_error!`s;
         // wrapped in a block, so the expansion is still one expression and
         // rustc reports every one of them (a bare sequence misparses in
         // expression position and hides all but the first).
         Err(e) => {
             let errors = e.into_compile_error();
-            quote! { { #errors } }.into()
+            quote! { { #errors } }
         }
-    }
-}
-
-/// How many manifests this compiler process has read from disk — the cache's
-/// own test (A2: 2,000 expansions read the file once).
-///
-/// Expands to a `u64` literal, so a test can assert it after expanding many
-/// call sites in the same rustc.
-#[proc_macro]
-pub fn __manifest_reads(_input: TokenStream) -> TokenStream {
-    let n = manifest::reads();
-    quote! { #n }.into()
+    };
+    stats::expansion(started);
+    out.into()
 }

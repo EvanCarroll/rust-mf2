@@ -1,0 +1,6 @@
+error: the message manifest at inline:0000000000000001 is stale: it hashes to 0x08328807b4eb6fed, but this `tr!` was generated for 0x0000000000000001
+       the generated module and the manifest are from different builds — rebuild the i18n crate (in an editor: restart the proc-macro server)
+  --> tests/ui/stale_manifest.rs:11:19
+   |
+11 |         ; ::mf2 ; "plain"
+   |                   ^^^^^^^

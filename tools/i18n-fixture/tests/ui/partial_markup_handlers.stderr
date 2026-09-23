@@ -1,0 +1,5 @@
+error: message `help` has markup `b` without a handler; a call site supplies all of a message's markup handlers or none of them
+  --> tests/ui/partial_markup_handlers.rs:14:35
+   |
+14 |     let _ = mf2_i18n_fixture::tr!("help", kbd = Handler);
+   |                                   ^^^^^^

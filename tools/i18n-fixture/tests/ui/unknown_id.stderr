@@ -1,0 +1,5 @@
+error: unknown message id `plian`; did you mean `plain`?
+ --> tests/ui/unknown_id.rs:3:35
+  |
+3 |     let _ = mf2_i18n_fixture::tr!("plian");
+  |                                   ^^^^^^^

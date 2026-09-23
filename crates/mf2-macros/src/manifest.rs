@@ -31,14 +31,6 @@ fn cache() -> &'static Cache {
     CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-/// How many times this process has read a manifest from disk — what
-/// `A2`'s cache test and P0.9's timing measure.
-pub(crate) fn reads() -> u64 {
-    READS.load(std::sync::atomic::Ordering::Relaxed)
-}
-
-static READS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-
 /// The manifest `source` names, verified against `hash`.
 pub(crate) fn load(source: &Source, hash: u64) -> Result<Arc<Manifest>, ManifestError> {
     let key = match source {
@@ -51,7 +43,7 @@ pub(crate) fn load(source: &Source, hash: u64) -> Result<Arc<Manifest>, Manifest
     {
         return Ok(Arc::clone(m));
     }
-    READS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    crate::stats::read();
     let (bytes, path) = read(source)?;
     let m = Manifest::read(&bytes).map_err(|source| ManifestError::Invalid {
         path: path.clone(),

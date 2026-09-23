@@ -1,0 +1,5 @@
+error: message `greeting` needs argument `name` (its variables: $name); write tr!("greeting", name = …)
+ --> tests/ui/missing_argument.rs:3:35
+  |
+3 |     let _ = mf2_i18n_fixture::tr!("greeting");
+  |                                   ^^^^^^^^^^

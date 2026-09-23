@@ -1,0 +1,5 @@
+error: argument `name` is given twice
+ --> tests/ui/duplicate_argument.rs:3:61
+  |
+3 |     let _ = mf2_i18n_fixture::tr!("greeting", name = "Ada", name = "Grace");
+  |                                                             ^^^^

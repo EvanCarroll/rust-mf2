@@ -63,6 +63,8 @@ mf2-syntax = { path = "crates/mf2-syntax" }
 # mf2-macros: the `tr!` proc-macro (plans/05-tooling.md §4). `full` for the
 # argument expressions a call site writes.
 proc-macro2 = "1.0.107"
+# The `tr!` compile-fail set (plans/13, A5), a dev-dependency of the fixture.
+trybuild = "1.0.121"
 quote = "1.0.47"
 syn = { version = "3.0.6", features = ["full"] }
 # `default-features = false` so that no_std crates (mf2-model's `serde` feature)
