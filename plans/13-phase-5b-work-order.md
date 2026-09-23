@@ -126,5 +126,6 @@ decided; here is why.
       B13 = 13,599 B (A10) — **+0 B and +13,573 B**
 - [x] `plans/phase-5b-results.md` and the Phase 6 work order written
 
-**A8 (generated input at L5) is not an exit item and is not done**; the state
-it is in is [phase-5b-results](phase-5b-results.md) §A8.
+A8 (generated input at L5) is not an exit item; it is done all the same —
+10,000 generated messages through `tr!`, none differing from L4
+([phase-5b-results](phase-5b-results.md) §A8).

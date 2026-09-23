@@ -269,33 +269,45 @@ environment that *restores* build-script outputs without rerunning them
 now unit-tested directly instead (`relocated_in`), both argument spellings,
 with the hash check still the thing that makes a wrong file impossible.
 
-## A8 — generated input at L5 (not done)
+## A8 — generated input at L5
 
-Not an exit item, and not finished. What is in place for it: `l4gen` now
-hands back a generated message *without* compiling it
-(`l4gen::message` → `GeneratedMessage`: the source, whether the spec accepts
-it, the locale and bidi the seed chose, and the arguments), and the L5
-generator's corpus-and-call-sites half is a public function
-(`mf2_l5_gen::build`) that takes messages from anywhere, not only the suite.
-What is left is the crate that feeds one into the other and the test that
-compares each generated call site with L4's runner on the same message.
+`conformance/l5-generated`: `l4gen`'s messages as a corpus `mf2-build`
+compiles and `tr!` calls, each held to what L4's runner makes of the same
+message — the same string, the same errors, the same parts.
 
-Two things that crate has to decide, both written down here so the next
-session does not rediscover them:
+```
+MF2_L5_GENERATED=10000 cargo test -p mf2-l5-generated --test generated
+  → 10,000 generated messages, 0 differences
+```
 
-* **One locale.** A corpus is one source locale, and `l4gen` picks a locale
-  per seed out of eighteen. The corpus should be built in a single locale
-  (`en`) and the L4 side compiled in the same one — the locale is what L4's
-  own generated tests vary, and what L5 adds is the manifest, the slots and
-  the macro.
-* **The registries differ on purpose.** L4 formats with every handler;
-  an L5 crate formats with the closed world its corpus needs. They agree for
-  every function a message actually uses, so a disagreement is a finding
-  about the slicing, not noise to paper over.
+`cargo test` runs 200 of them (a few seconds); the nightly run turns it up to
+50,000. The seed and the count are the build script's environment
+(`MF2_L5_SEED`, `MF2_L5_GENERATED`), and the corpus, the call sites and the
+tables L4 is driven from are all written into `OUT_DIR`, so nothing is
+checked in and a `cargo xtask spec-sync` is carried through by the next
+build.
+
+Three things this needed, each of them useful beyond it:
+
+* `l4gen::message` — the generated message *without* its catalogs (the
+  source, whether the spec accepts it, the locale and bidi the seed chose,
+  and the arguments). `l4gen::case` goes on to compile it; L5 does not need
+  that and it is most of the cost.
+* `mf2_l5_gen::build` — the corpus-and-call-sites half of the L5 generator,
+  taking messages from anywhere rather than only the suite.
+* The generator escapes everything but printable ASCII in the literals it
+  writes. Generated messages contain bidi controls, and rustc refuses those
+  in a literal outright (`text_direction_codepoint_in_literal`) — the source
+  would change direction as you read it.
+
+Both sides are given the *same* values: a date/time argument goes through one
+ISO text that each side parses, rather than one being handed a parsed value
+and the other a re-parsed one. The two registries differ on purpose — L4
+formats with every handler, the generated crate with the closed world its
+corpus needs — and they agreed on all 10,000.
 
 ## What Phase 5b leaves for later
 
-* **A8**, above.
 * **B5's view half** (Phase 6 A7): the marginal with a real `Tr` leaf, and
   P0.1's open item — measure with `--cfg erase_components` and propose the
   tachys leaf hook that would let a description reuse `&str`'s state and

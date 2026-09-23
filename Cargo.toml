@@ -23,6 +23,7 @@ members = [
     "conformance/l5/und",
     "conformance/l5/fr",
     "conformance/l5/ar",
+    "conformance/l5-generated",
     "bench/build-cost",
     "bench/workload-gen",
     "bench/parser-gate",

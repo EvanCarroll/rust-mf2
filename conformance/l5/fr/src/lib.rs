@@ -6,10 +6,9 @@
 //! `mf2-l5-gen`; `mf2-conformance` drives it and judges the results against
 //! the same expectations L4 is judged against.
 
-// The suite's argument names are deliberately not all in NFC — matching a
-// decomposed name against the manifest's composed one is what those tests
-// test — so the generated call sites carry them as written.
-#![allow(clippy::unicode_not_nfc)]
+// Generated code: the suite's own strings, escaped by the generator (a
+// message may carry a bidi control, which rustc refuses in a literal).
+#![allow(clippy::unreadable_literal, clippy::manual_string_new)]
 
 mf2::include_generated!();
 

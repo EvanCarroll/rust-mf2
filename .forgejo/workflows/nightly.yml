@@ -15,6 +15,9 @@
 #   wasm32-wasip1 under the pinned wasmtime, byte-identical to native
 #   (`cargo xtask l4-wasi --generated`, ≈ 80 s; the bundle is held in memory,
 #   so not all million).
+# * `l5-generated` (plans/13-phase-5b-work-order.md, A8): 50,000 generated
+#   messages as a corpus `mf2-build` compiles and `tr!` calls, each held to
+#   what L4's runner makes of the same message. `cargo test` runs 200 of them.
 # * `differential`: mf2-syntax vs ox_mf2_parser on 90,000 generated and mutated
 #   messages. ox hangs on some inputs and then allocates without bound, so it
 #   runs in a child process with a timeout, under a memory limit.
@@ -100,6 +103,11 @@ jobs:
           set -eu
           cargo install --root target/tools --locked wasmtime-cli --version 49.0.0
           cargo xtask l4-wasi --generated 200000
+
+      - name: Layer L5 on generated input (50,000 messages)
+        run: |
+          set -eu
+          MF2_L5_GENERATED=50000 cargo test -p mf2-l5-generated --release --test generated
 
       - name: Differential against ox (90,000 messages)
         run: |

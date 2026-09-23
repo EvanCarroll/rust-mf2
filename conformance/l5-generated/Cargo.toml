@@ -1,0 +1,39 @@
+# Conformance layer L5 on **generated** input (plans/13-phase-5b-work-order.md
+# A8): `l4gen`'s messages as a corpus `mf2-build` compiles and `tr!` calls,
+# compared against what L4's runner makes of the same message.
+#
+# How many, and from which seed, are the build script's environment —
+# `MF2_L5_GENERATED` (default 200, so an ordinary `cargo test` pays little)
+# and `MF2_L5_SEED`. The nightly run turns it up.
+[package]
+name = "mf2-l5-generated"
+description = "Conformance layer L5 on generated messages: a corpus of them through tr!, against L4's runner."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["ssr", "fn-number", "datetime-icu"]
+ssr = ["mf2/host-std"]
+hydrate = ["mf2/host-web"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+# `compile` so that the test can compile the same message the way L4 does.
+mf2 = { workspace = true, features = ["compile"] }
+mf2-l4-runner.workspace = true
+
+[build-dependencies]
+mf2-conformance.workspace = true
+mf2-l4-runner.workspace = true
+mf2-l5-gen.workspace = true
+# The generated arguments' own types: the bidi strategy a seed chose, and a
+# date/time's ISO text.
+mf2-runtime.workspace = true
+
+[lints]
+workspace = true

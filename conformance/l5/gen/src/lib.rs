@@ -95,12 +95,19 @@ pub enum Param {
 }
 
 impl Param {
+    /// Whether [`Param::expr`] is already an `ArgValue` — the named path
+    /// then passes it as it is, rather than through a conversion to its own
+    /// type.
+    fn is_arg_value(&self) -> bool {
+        matches!(self, Param::Decimal(_) | Param::DateTime(_) | Param::Opaque)
+    }
+
     /// The Rust expression for it, at a `tr!` call site.
     fn expr(&self) -> String {
         match self {
             Param::Str(s) => rust_str(s),
             Param::Int(n) => format!("{n}i64"),
-            Param::Float(x) => format!("{x:?}f64"),
+            Param::Float(x) => rust_f64(*x),
             Param::Decimal(s) => format!("::mf2::ArgValue::decimal({})", rust_str(s)),
             Param::DateTime(s) => format!("date_time({})", rust_str(s)),
             Param::Opaque => "opaque()".to_owned(),
@@ -108,8 +115,31 @@ impl Param {
     }
 }
 
+/// A Rust expression for `x` — `{x:?}` writes `inf` and `NaN`, which are
+/// not literals.
+fn rust_f64(x: f64) -> String {
+    if x.is_nan() {
+        "f64::NAN".to_owned()
+    } else if x == f64::INFINITY {
+        "f64::INFINITY".to_owned()
+    } else if x == f64::NEG_INFINITY {
+        "f64::NEG_INFINITY".to_owned()
+    } else {
+        format!("{x:?}f64")
+    }
+}
+
 /// A Rust string literal for `s`.
-fn rust_str(s: &str) -> String {
+///
+/// Public because anything that builds messages for [`build`] has its own
+/// tables to write, and they carry the same text.
+///
+/// Everything but printable ASCII is escaped. The suite and the generator
+/// both produce text rustc refuses in a literal — bidi controls change the
+/// direction of the source itself (`text_direction_codepoint_in_literal`) —
+/// and text that is not in NFC, which clippy objects to. Escaping is also
+/// the only way a generated file stays readable in a diff.
+pub fn rust_str(s: &str) -> String {
     let mut out = String::with_capacity(s.len() + 2);
     out.push('"');
     for c in s.chars() {
@@ -119,10 +149,10 @@ fn rust_str(s: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 || c == '\u{7f}' => {
+            ' '..='~' => out.push(c),
+            c => {
                 let _ = write!(out, "\\u{{{:x}}}", c as u32);
             }
-            c => out.push(c),
         }
     }
     out.push('"');
@@ -450,12 +480,13 @@ fn write_cases(
             dynamic.push(&test.id);
             let mut args = String::new();
             for (name, value) in &test.params {
-                let _ = write!(
-                    args,
-                    "(::mf2::Text::Static({}), ::mf2::ArgValue::from({})), ",
-                    rust_str(name),
-                    value.expr()
-                );
+                let expr = value.expr();
+                let value = if value.is_arg_value() {
+                    expr
+                } else {
+                    format!("::mf2::ArgValue::from({expr})")
+                };
+                let _ = write!(args, "(::mf2::Text::Static({}), {value}), ", rust_str(name));
             }
             let _ = writeln!(
                 s,
