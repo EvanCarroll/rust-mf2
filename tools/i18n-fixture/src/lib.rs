@@ -70,6 +70,32 @@ mod tests {
         assert_eq!(tr!("help").format(&f), "Press Esc to close");
     }
 
+    /// The rich expansion: handlers for every markup name of the message,
+    /// found again by the name the catalog gives at render time — which is
+    /// what a renderer does, without the name ever being in the wasm.
+    #[cfg(all(feature = "ssr", not(feature = "split-catalogs")))]
+    #[test]
+    fn a_rich_call_site_carries_a_handler_per_markup_name() {
+        struct Element(&'static str);
+
+        impl mf2::MarkupHandler for Element {
+            fn as_any(&self) -> &dyn std::any::Any {
+                self
+            }
+        }
+
+        let rich = tr!("help", kbd = Element("kbd"), b = Element("b"));
+        for name in ["kbd", "b"] {
+            let handler = rich.handler(name).expect("every markup name is handled");
+            let handler = handler
+                .as_any()
+                .downcast_ref::<Element>()
+                .expect("the renderer knows its own type");
+            assert_eq!(handler.0, name);
+        }
+        assert!(rich.handler("i").is_none());
+    }
+
     /// Under `ssr` the catalogs are embedded, content-hashed and loadable —
     /// unless they were emitted apart, in which case this crate names none.
     #[cfg(all(feature = "ssr", not(feature = "split-catalogs")))]
