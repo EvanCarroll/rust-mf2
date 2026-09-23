@@ -13,6 +13,7 @@ members = [
     "crates/mf2-locale-data",
     "crates/mf2-host-std",
     "crates/mf2-host-web",
+    "crates/mf2-macros",
     "crates/mf2",
     "xtask",
     "conformance",
@@ -54,10 +55,16 @@ mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-host-std = { path = "crates/mf2-host-std" }
 mf2-host-web = { path = "crates/mf2-host-web" }
 mf2-locale-data = { path = "crates/mf2-locale-data" }
+mf2-macros = { path = "crates/mf2-macros" }
 mf2-model = { path = "crates/mf2-model" }
 mf2-resource = { path = "crates/mf2-resource" }
 mf2-runtime = { path = "crates/mf2-runtime" }
 mf2-syntax = { path = "crates/mf2-syntax" }
+# mf2-macros: the `tr!` proc-macro (plans/05-tooling.md §4). `full` for the
+# argument expressions a call site writes.
+proc-macro2 = "1.0.107"
+quote = "1.0.47"
+syn = { version = "3.0.6", features = ["full"] }
 # `default-features = false` so that no_std crates (mf2-model's `serde` feature)
 # can use it; std crates add `features = ["std"]`.
 serde = { version = "1.0.229", default-features = false, features = ["derive", "alloc"] }

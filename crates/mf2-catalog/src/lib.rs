@@ -38,6 +38,7 @@ mod error;
 pub mod format;
 #[cfg(feature = "manifest")]
 mod manifest;
+mod markup;
 pub mod number;
 mod plural;
 mod reader;
@@ -59,6 +60,7 @@ pub use error::ManifestError;
 pub use error::WriteError;
 #[cfg(feature = "manifest")]
 pub use manifest::Manifest;
+pub use markup::markup_key;
 pub use reader::{Catalog, CldrVersion, Entry, StrRef};
 pub use view::{
     Body, DeclView, Declarations, ExprView, FunctionView, KeyView, Keys, Malformed, MarkupView,

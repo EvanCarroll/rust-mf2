@@ -75,6 +75,7 @@ pub struct Build {
     emit: Emit,
     write: bool,
     emit_cargo: bool,
+    inline_manifest: bool,
 }
 
 /// One locale in the built corpus.
@@ -175,6 +176,7 @@ impl Build {
             emit: Emit::Both,
             write: true,
             emit_cargo: false,
+            inline_manifest: false,
         }
     }
 
@@ -218,6 +220,18 @@ impl Build {
     #[must_use]
     pub fn emit_cargo(mut self, emit: bool) -> Build {
         self.emit_cargo = emit;
+        self
+    }
+
+    /// Bakes the manifest's **bytes** into the `tr!` wrapper instead of its
+    /// path (`plans/05-tooling.md` §4): every expansion is then independent
+    /// of where the target directory lives, which is what remote execution
+    /// and a relocated CI cache need. It costs macro time and manifest size
+    /// × call sites in the generated module, so it is opt-in (P0.9:
+    /// +0.5 s per 2,000 sites).
+    #[must_use]
+    pub fn manifest_inline(mut self, inline: bool) -> Build {
+        self.inline_manifest = inline;
         self
     }
 
@@ -396,6 +410,7 @@ impl Build {
         }
 
         let unannotated = catalogs.iter().any(|c| c.slice.unannotated);
+        let manifest_bytes = built.manifest.write();
         let module = codegen::Module {
             facade: &self.facade,
             manifest_path: &self.out_dir.join(MANIFEST_FILE),
@@ -408,6 +423,11 @@ impl Build {
             unannotated,
             messages: built.manifest.ids.len(),
             emit: self.emit,
+            manifest_bytes: if self.inline_manifest {
+                Some(manifest_bytes.as_slice())
+            } else {
+                None
+            },
         };
         let generated = codegen::write(&module);
         let catalogs_module = if self.emit == Emit::Catalogs {

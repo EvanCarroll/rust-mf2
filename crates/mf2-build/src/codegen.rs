@@ -16,7 +16,9 @@
 //! * `host()` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
 //! * `pub use ::mf2 as __mf2;` and the exported `tr!` wrapper, which bakes
-//!   the manifest's absolute path and hash into every expansion (D8).
+//!   the manifest's absolute path and hash into every expansion — or, with
+//!   [`crate::Build::manifest_inline`], the manifest's bytes, so that an
+//!   expansion survives a target directory that moved (D8).
 //!
 //! The file is regenerated whenever the corpus or the feature set changes,
 //! and written only when its bytes differ.
@@ -57,6 +59,10 @@ pub struct Module<'a> {
     /// What this build writes: with [`Emit::Module`] the catalogs are
     /// another crate's, and nothing here names one.
     pub emit: Emit,
+    /// The manifest's bytes, when the wrapper bakes them in instead of the
+    /// path ([`crate::Build::manifest_inline`]): every expansion is then
+    /// independent of where the target directory lives.
+    pub manifest_bytes: Option<&'a [u8]>,
 }
 
 /// The module's source.
@@ -346,25 +352,56 @@ pub mod host {{
 }
 
 fn tr(s: &mut String, m: &Module<'_>) {
+    // Either the manifest's absolute path, or — opt-in — its bytes, which
+    // survive a target directory that moves (`Build::manifest_inline`).
+    let (source, how) = match m.manifest_bytes {
+        None => (
+            format!("{:?}", m.manifest_path.display().to_string()),
+            "The manifest's absolute path and its hash are baked in, so any crate that\n\
+             /// depends on this one can call it",
+        ),
+        Some(bytes) => (
+            format!("bytes {}", byte_string(bytes)),
+            "The manifest's bytes and its hash are baked in (inline mode), so an\n\
+             /// expansion needs no file and survives a target directory that moved",
+        ),
+    };
     let _ = write!(
         s,
         "
 /// `tr!(\"id\", name = value, …)` — the id and the argument set checked
 /// against the manifest at compile time.
 ///
-/// The manifest's absolute path and its hash are baked in, so any crate that
-/// depends on this one can call it, and a manifest whose hash differs is
+/// {how}, and a manifest whose hash differs is
 /// reported as stale rather than used (D8).
 #[macro_export]
 macro_rules! tr {{
     ($($t:tt)*) => {{
-        $crate::__mf2::__tr_impl!({path:?} 0x{hash:016x}u64 ; $crate ; $($t)*)
+        $crate::__mf2::__tr_impl!({source} 0x{hash:016x}u64 ; $crate ; $($t)*)
     }};
 }}
 ",
-        path = m.manifest_path.display().to_string(),
         hash = m.manifest_hash
     );
+}
+
+/// `b"…"`: the bytes as a Rust byte-string literal, escaped so that the
+/// generated module stays valid UTF-8 and diff-able.
+fn byte_string(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2 + 3);
+    out.push_str("b\"");
+    for &b in bytes {
+        match b {
+            b'\\' => out.push_str("\\\\"),
+            b'"' => out.push_str("\\\""),
+            0x20..=0x7e => out.push(b as char),
+            _ => {
+                let _ = write!(out, "\\x{b:02x}");
+            }
+        }
+    }
+    out.push('"');
+    out
 }
 
 #[cfg(test)]
@@ -412,6 +449,7 @@ mod tests {
             unannotated,
             messages: 3,
             emit: Emit::Both,
+            manifest_bytes: None,
         }
     }
 
@@ -501,6 +539,26 @@ mod tests {
         let dates = Features::parse("fn-datetime,datetime-intl");
         let code = write(&module(&[], &dates, &custom, &locales, false));
         assert!(code.contains("INTL_HOST"), "{code}");
+    }
+
+    #[test]
+    fn inline_mode_bakes_the_manifest_itself() {
+        let locales = locales();
+        let custom = BTreeMap::new();
+        let features = Features::default();
+        let mut m = module(&[], &features, &custom, &locales, false);
+        // A manifest's first bytes: the magic, the version, the hash — the
+        // escaping has to survive both text and non-text bytes.
+        let bytes = b"MF2M\x00\x01\xf1^\xb0\xee\x12\xdc\xe0C\"\\";
+        m.manifest_bytes = Some(bytes);
+        let code = write(&m);
+        assert!(
+            code.contains(
+                "$crate::__mf2::__tr_impl!(bytes b\"MF2M\\x00\\x01\\xf1^\\xb0\\xee\\x12\\xdc\\xe0C\\\"\\\\\" 0x43e0dc12eeb05ef1u64"
+            ),
+            "{code}"
+        );
+        assert!(!code.contains("/out/manifest.mf2m"), "{code}");
     }
 
     #[test]

@@ -1,0 +1,26 @@
+# The `tr!` proc-macro (plans/05-tooling.md §4, plans/04-leptos-integration.md
+# §2). Never named by an application: the generated i18n module's exported
+# `tr!` wrapper forwards to it through the facade's `__mf2` re-export, with the
+# manifest's absolute path and hash baked in.
+[package]
+name = "mf2-macros"
+description = "The tr! proc-macro: a call site checked against the manifest at compile time and lowered to a positional description of the message."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+mf2-catalog = { workspace = true, features = ["manifest"] }
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+thiserror = { workspace = true, features = ["std"] }
+# Argument names are matched against the manifest's, which are NFC (05 §3).
+unicode-normalization = { workspace = true, features = ["std"] }
+
+[lints]
+workspace = true
