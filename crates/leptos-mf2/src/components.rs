@@ -122,6 +122,20 @@ pub fn CatalogLinks() -> impl IntoView {
     }
 }
 
+/// The first thing in an islands page's `<body>`: an empty island that
+/// Leptos' island walk awaits until the catalog is installed, so that every
+/// island after it hydrates against the catalog the page was rendered with
+/// ([`hydrate_islands`](crate::hydrate_islands) says why nothing else can
+/// wait). Pair it with [`islands_gate!`](crate::islands_gate) in the client.
+///
+/// It must come before every island in document order, and outside all of
+/// them. It has no content and no role, so assistive technology never meets
+/// it.
+#[component]
+pub fn IslandsGate() -> impl IntoView {
+    view! { <leptos-island data-component=crate::links::ISLANDS_GATE></leptos-island> }
+}
+
 /// `<link rel="alternate" hreflang>` for a site whose locales have their own
 /// URLs (a path prefix): `href_of` maps a tag to that locale's URL for the
 /// page being rendered.

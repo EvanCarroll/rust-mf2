@@ -264,9 +264,15 @@ fn build(root: &Path, workload: &Path, template: &str) -> Result<Sizes> {
         .join("wasm-release")
         .join(format!("{lib}.wasm"));
     let pkg = workload.join(format!("pkg-{template}"));
-    let _ = std::fs::remove_dir_all(&pkg);
-    std::fs::create_dir_all(&pkg).map_err(|source| Error::IoAt {
-        path: pkg.clone(),
+    ship(root, &wasm, &pkg, &lib)
+}
+
+/// `wasm-bindgen`, then `wasm-opt -Oz`, then measure — the part of `plans/06`
+/// §3's method after cargo, for any crate's `wasm-release` build of `lib`.
+pub(crate) fn ship(root: &Path, wasm: &Path, pkg: &Path, lib: &str) -> Result<Sizes> {
+    let _ = std::fs::remove_dir_all(pkg);
+    std::fs::create_dir_all(pkg).map_err(|source| Error::IoAt {
+        path: pkg.to_path_buf(),
         source,
     })?;
     cmd::run_inherit(

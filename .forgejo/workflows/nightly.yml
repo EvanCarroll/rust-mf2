@@ -35,7 +35,9 @@
 #   Leptos applications each, built for the client and measured after
 #   `wasm-opt -Oz`, then read three ways: B1 (fixed), B5 (per call site) and
 #   the whole app at the reference scale (`cargo xtask size`). Nightly
-#   because it is six fat-LTO wasm builds.
+#   because it is six fat-LTO wasm builds. Then `cargo xtask islands-zero`:
+#   the islands example's client with and without one more server-only
+#   component, whose code must be identical (plans/15 A1).
 # * `l6-web` (a job of its own; plans/14 A6b): conformance layer L6 in the
 #   browser — every runtime-valid suite message server-rendered, hydrated in
 #   Chromium and Firefox, switched to the twin locale and back
@@ -295,6 +297,11 @@ jobs:
 
       - name: The size gate — B1 fixed, B5 per site, and the whole app
         run: cargo xtask size | tee size.md
+
+      # plans/15-phase-7-work-order.md A1: a server-only component in an
+      # islands application adds no code to the client.
+      - name: A server-only component costs the client nothing
+        run: cargo xtask islands-zero | tee -a size.md
 
       - name: Upload the size report
         if: always()

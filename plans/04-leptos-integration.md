@@ -256,7 +256,7 @@ notifier. Candidate strategies for translated nodes:
 |---|---|---|---|
 | A. `RenderEffect` tracking one global `ArcTrigger` | 10 allocs, 427 B on wasm32 (797 B native) | 12–17 ms script for 2,000 nodes at 4× throttle | simplest; **leaks dead subscribers under churn** (+72 B per churned node on wasm32) until the next switch |
 | **B. Library-owned registry** (**decided**, P0.11) | one slab slot `{node, MsgId, args, optional arg effect}`, 44.8 B and ≈ 0 allocs on wasm32; the view state is the 4-byte slot index; `Drop` frees it in O(1) | walk the slab synchronously in `set_locale`, then notify conversions: 6.8 ms script for 2,000 nodes at 4× | no effect, no `Owner`, no task per node; flat heap under 100k churn; reactive args still work because an enclosing closure drives `rebuild`, or the node's own argument effect |
-| C. No live update — switch = cookie + navigation | nothing | full reload | a feature (`static-locale`) for apps that prefer it; natural fit for islands |
+| C. No live update — switch = cookie + navigation | nothing — except a node with a reactive argument, which keeps its slot and argument effect (Phase 7; §8) | full reload | a feature (`static-locale`) for apps that prefer it; the documented default for islands |
 
 Signal-valued arguments (`count = count`) are the one place a per-node
 subscription is inherent; `TrArgs` creates a single effect only when at least one
@@ -321,6 +321,15 @@ reads a plain `String` during hydration — `<Title>` runs a client effect and
 would blank the document title — and (b) markup messages, whose node *structure*
 comes from the catalog.
 
+**A failed boot does not hydrate** (Phase 7). If the catalog cannot be
+fetched or is malformed, the boot logs one `mf2:` line and leaves the served
+HTML as it is: readable, not interactive. Phase 6 hydrated against no catalog
+instead, which blanks every message on its next update and, on a page with a
+markup message, walks a structure the document does not have and traps the
+wasm (P0.10) — so it bought an interactive page that says nothing, at best.
+A catalog from another deploy still reloads (F6). `tools/e2e/checks/demo.mjs`
+asserts the failure path (`failed-boot-*`).
+
 **Switching**: `i18n.set_locale("fr")` → fetch → validate → swap the
 thread-local → notify → update `<html lang dir>` and the cookie. On failure the
 old catalog stays and the error is returned. `i18n.preload_locale()` lets a
@@ -368,8 +377,9 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
   (`{#link href=$url}`). `u:id` is passed through; `u:dir` on markup is a *Bad
   Option* and is ignored, as the spec requires.
 * Structure comes from the catalog, so rich messages rely on the hydration gate;
-  inside islands they need the catalog before the island hydrates — an explicit
-  work item of the islands phase, not something to discover late.
+  inside islands they need the catalog before the island hydrates, which the
+  islands gate (§8) provides. Without it, an island holding a markup message
+  traps — the islands browser check keeps that control case.
 
 ## 8. Delivery modes
 
@@ -377,9 +387,35 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 |---|---|---|
 | SSR + hydrate (cargo-leptos, Axum) | first-class, Phase 6 | everything above |
 | …with `#[lazy]` routes / `--split` | Phase 6 | `hydrate_lazy`; state is shared with chunks |
-| Islands | Phase 7 | server-only components cost **zero** wasm and need no client catalog; `hydrate_islands` cannot be gated, so the catalog loads alongside and notifies; strategy C is the natural default |
+| Islands | Phase 7 (A1) | server-only components cost **zero** code in the wasm (`cargo xtask islands-zero`); strategy C (`static-locale`) is the documented default; the **islands gate** below makes every island hydrate against the page's catalog |
 | CSR only (trunk) | Phase 7 | no server: locale from storage/`navigator.languages`; catalog URLs from a tiny generated index (`i18n/index.json`, preloaded from `index.html`) |
 | Non-Leptos hosts (CLI, workers, other servers) | `mf2-runtime` directly | catalogs from disk |
+
+**Islands (Phase 7 A1).** Leptos' island script calls the entry point and
+walks the document for islands in the same turn —
+`mod.hydrate(); hydrateIslands(document.body, mod)` — without awaiting the
+first, so `hydrate_islands` has no moment to await the catalog in, and
+"cannot be gated" was right. But the walk **does** await an island whose
+function returns a promise, and walks islands one at a time in document
+order. So the gate is an island: `<IslandsGate/>`, empty and first in
+`<body>`, whose export (`leptos_mf2::islands_gate!()`, written once in the
+application because this crate forbids the `unsafe` a `#[wasm_bindgen]`
+export expands to) resolves when the catalog is installed. Every island after
+it hydrates against the page's catalog, markup included; it costs no page
+bytes and no request (the fetch reuses the preload, which started before the
+wasm did). A failed load never resolves the gate, so the islands stay as
+served, as in §6. The alternative an earlier draft took — inlining the whole
+catalog into every page as base64 — was dropped unmeasured: it puts a
+catalog's worth of uncacheable bytes into every navigation.
+
+**`static-locale` (strategy C), as built.** A switch writes the
+`mf2_locale` cookie `mf2-axum` reads by default, removes a `?lang=` from the
+address (the query source outranks the cookie), and navigates. Nothing
+registers for the locale — except a node with a **reactive argument**, whose
+argument effect needs an owner: before Phase 7, `static-locale` registered
+nothing at all, so a signal-valued argument never re-formatted and a closure
+that swapped one message for another never updated. Both work now, and the
+islands check asserts the first.
 
 ## 9. Accessibility and SEO (WCAG 2.2 AA is a requirement, not a nicety)
 

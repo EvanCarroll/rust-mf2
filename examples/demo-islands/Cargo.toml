@@ -1,0 +1,80 @@
+# A workspace of its own, like `examples/demo-ssr`: an application turns on
+# exactly one of `ssr` and `hydrate`, and cargo unifies features across a
+# workspace.
+[workspace]
+members = [".", "i18n"]
+resolver = "3"
+
+[package]
+name = "demo-islands"
+description = "The Phase 7 islands example: server-only components that cost the wasm nothing, and islands — one with a markup message — that hydrate against the page's catalog."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+demo-islands-i18n = { path = "i18n" }
+leptos = { version = "0.8.20", default-features = false, features = ["islands"] }
+leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["static-locale"] }
+leptos_meta = "0.8.6"
+mf2 = { path = "../../crates/mf2" }
+
+axum = { version = "0.8.9", optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
+leptos_axum = { version = "0.8.10", optional = true }
+mf2-axum = { path = "../../crates/mf2-axum", optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
+wasm-bindgen = { version = "0.2.128", optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "leptos-mf2/hydrate",
+    "mf2/hydrate",
+    "demo-islands-i18n/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos-mf2/ssr",
+    "mf2/ssr",
+    "demo-islands-i18n/ssr",
+    "dep:axum",
+    "dep:leptos_axum",
+    "dep:mf2-axum",
+    "dep:tokio",
+]
+# One more server-only component, full of call sites. It exists to be
+# measured: `cargo xtask islands-zero` builds the client with and without it
+# and requires the two to be the same size (plans/15-phase-7-work-order.md
+# A1).
+more-server = []
+
+[package.metadata.leptos]
+output-name = "demo_islands"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+assets-dir = "public"
+site-addr = "127.0.0.1:3704"
+reload-port = 3705
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

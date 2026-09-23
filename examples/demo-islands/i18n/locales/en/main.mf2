@@ -1,0 +1,35 @@
+# The islands example's corpus. Most of these render only on the server; the
+# counter's and the switcher's render in islands too — and one of those is a
+# markup message, which is the case an island cannot hydrate without its
+# catalog (plans/04-leptos-integration.md §7).
+@locale en
+---
+
+app-title = Islands, in any language
+tagline = Only the interactive parts of this page ship code.
+server-note = This paragraph is rendered on the server and costs the wasm nothing.
+
+search-label = Search
+search-placeholder = Search everything
+
+# Markup in a server-only component: elements, and no client code at all.
+hotkey = Press {#kbd}Esc{/kbd} to close the dialog
+
+# Markup inside an island: its structure comes from the catalog, so the
+# island has to wait for it.
+island-note = The counter below is an {#em}island{/em}: it hydrates, and the rest of the page does not.
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} person is here}}
+  *   {{{$count} people are here}}
+
+add-one = Add one
+reset = Reset
+
+[language]
+label = Language
+en = English
+fr = Français
+ar = العربية

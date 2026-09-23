@@ -16,7 +16,13 @@
 //   * markup is real elements, and its position follows the *message*;
 //   * no message text is in the client bundle (B6).
 
-import { watchConsole, resourceTimings, captureSsrSnapshot, sleep } from '../lib/browser.mjs';
+import {
+  watchConsole,
+  resourceTimings,
+  captureSsrSnapshot,
+  sleep,
+  until,
+} from '../lib/browser.mjs';
 
 /** Text that must never appear in the client bundle (B6). */
 const CANARIES = [
@@ -289,22 +295,53 @@ export async function run(ctx) {
   assert('no-message-text-in-the-client', found.length === 0, found);
 
   await context.close();
+
+  // ------------------------------------------------ a failed boot ---
+
+  // The catalog cannot be fetched. The page does not hydrate — with no
+  // catalog every message would format to nothing, and the markup message's
+  // structure would not exist (P0.10) — so the reader keeps the server's
+  // page, and the console says why, once.
+  const failing = await browser.newContext();
+  await failing.route('**/i18n/**', (route) => route.abort());
+  const failingPage = await failing.newPage();
+  const failingConsole = [];
+  watchConsole(failingPage, failingConsole);
+  await failingPage.goto(`${baseUrl}/?lang=en`, { waitUntil: 'load' });
+  const servedText = NORMALISE(await failingPage.evaluate(() => document.body.innerText));
+  await until(failingPage, () => document.querySelector('#people') !== null);
+  await sleep(1500);
+  const failed = {
+    live: await failingPage.evaluate(async () => {
+      try {
+        return (await import('/pkg/demo_ssr.js')).mf2_live_nodes();
+      } catch {
+        return -1;
+      }
+    }),
+    text: NORMALISE(await failingPage.evaluate(() => document.body.innerText)),
+    mf2: failingConsole.filter((m) => m.text.startsWith('mf2:')).map((m) => m.text),
+    other: failingConsole
+      .filter((m) => !m.text.startsWith('mf2:') && !/i18n|Failed to load resource/.test(m.text))
+      .map((m) => m.text.slice(0, 160)),
+  };
+  data.failedBoot = failed;
+  assert('failed-boot-does-not-hydrate', failed.live === 0, failed.live);
+  assert('failed-boot-keeps-the-servers-text', failed.text === servedText);
+  assert('failed-boot-says-why-once', failed.mf2.length === 1, failed.mf2);
+  assert('failed-boot-does-not-trap', failed.other.length === 0, failed.other);
+  await failing.close();
 }
 
 /** Waits until the wasm has booted and hydration has registered its nodes. */
 async function hydrated(page) {
-  await page.waitForFunction(
-    async () => {
-      try {
-        const mod = await import('/pkg/demo_ssr.js');
-        return typeof mod.mf2_live_nodes === 'function' && mod.mf2_live_nodes() > 0;
-      } catch {
-        return false;
-      }
-    },
-    undefined,
-    { timeout: 20000 },
-  );
+  await until(page, async () => {
+    try {
+      return (await import('/pkg/demo_ssr.js')).mf2_live_nodes() > 0;
+    } catch {
+      return false;
+    }
+  });
   // One frame, so that anything scheduled by hydration has run.
   await sleep(50);
 }

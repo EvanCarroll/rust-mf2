@@ -17,6 +17,23 @@ pub const CATALOG_LINK_REL: &str = "mf2-catalog";
 /// The attribute that carries a catalog link's locale tag.
 pub const CATALOG_LINK_LOCALE_ATTR: &str = "data-mf2-locale";
 
+/// The island name of [`IslandsGate`](crate::IslandsGate) — the export
+/// [`islands_gate!`](crate::islands_gate) defines. The macro spells it as a
+/// literal (an attribute argument cannot name a constant); if the two drift,
+/// Leptos warns that it cannot find the island's function, and the islands
+/// browser check fails on that warning.
+pub const ISLANDS_GATE: &str = "mf2_islands_gate";
+
+/// The cookie a switch writes under `static-locale`, and that `mf2-axum`'s
+/// `CookieLocale` reads by default: a switch there is this cookie and a
+/// reload (D7 strategy C).
+pub const LOCALE_COOKIE: &str = "mf2_locale";
+
+/// The query parameter `mf2-axum`'s `QueryParam` reads by default. It ranks
+/// above the cookie, so a `static-locale` switch removes it from the address
+/// before reloading — otherwise the reload would negotiate the old locale.
+pub const LOCALE_QUERY: &str = "lang";
+
 /// Where the catalogs are served from, and what `/i18n/<tag>` redirects
 /// within. `mf2-axum` mounts its routes here.
 pub const CATALOG_ROUTE: &str = "/i18n/";

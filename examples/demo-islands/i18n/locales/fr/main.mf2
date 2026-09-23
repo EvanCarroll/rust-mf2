@@ -1,0 +1,30 @@
+@locale fr
+---
+
+app-title = Des îlots, dans toutes les langues
+tagline = Seules les parties interactives de cette page apportent du code.
+server-note = Ce paragraphe est rendu par le serveur et ne coûte rien au wasm.
+
+search-label = Rechercher
+search-placeholder = Rechercher partout
+
+hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
+
+# The element sits in a different place than in English.
+island-note = Seul le compteur ci-dessous s'hydrate : c'est un {#em}îlot{/em}.
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  one  {{{$count} personne est ici}}
+  many {{{$count} personnes sont ici}}
+  *    {{{$count} personnes sont ici}}
+
+add-one = Ajouter un
+reset = Réinitialiser
+
+[language]
+label = Langue
+en = English
+fr = Français
+ar = العربية

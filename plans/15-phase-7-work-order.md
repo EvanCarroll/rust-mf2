@@ -73,24 +73,11 @@ whose interactive parts are islands.
 
 ## Part A — tasks (A1–A3 in order; A4–A10 as their inputs exist)
 
-**A1 has a draft.** An unbuilt, untested start on A1 is in the local
-`git stash` as "A1 islands draft" (`git stash list`; `git stash pop` to
-restore it). The owner (2026-09-23) is content for it to be reused where
-it serves A1. Before reusing it, check it for three things:
-
-* `hydrate_body` was changed to skip hydration on **any** load failure,
-  not only `ManifestMismatch`. That departs from Phase 6's behaviour, so
-  either justify it here and in [04](04-leptos-integration.md) §6 and
-  re-run the demo's browser checks, or revert it.
-* A doc link names `crate::CatalogInline`, which does not exist yet.
-* The inline catalog (`<script type="application/mf2-catalog">`, base64,
-  decoded with `atob`) needs a server-side writer in `mf2-axum` / the
-  example, a size measurement of the page bytes it adds, and a browser
-  check.
+**A1 is done** (2026-09-23); what it found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
-| **A1** Islands | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
+| **A1** Islands — **done** | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. *As built: the entry point cannot be gated, but the island walk can — an empty first island that waits (below), so the island waits.* | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
 | **A2** CSR | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
 | **A3** Lazy routes | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 | The suite in a page whose interactive parts are islands: the same 297 cases, the same twin switch, with the L7 and L7d ledger columns. | L7 green in both configurations, every L7d cell `pass` or `degraded` |
@@ -100,6 +87,46 @@ it serves A1. Before reusing it, check it for three things:
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
+
+## A1 — islands: what was built and measured
+
+* **The islands gate.** Leptos' island script does not await the entry
+  point, but it does await an island that returns a promise, one island at a
+  time in document order. `<IslandsGate/>` is such an island, first in
+  `<body>`; `leptos_mf2::islands_gate!()` exports it from the application
+  (this crate forbids the `unsafe` a `#[wasm_bindgen]` export expands to);
+  `hydrate_islands()` sets the owner and starts the catalog load it waits
+  on. So the rule for a rich message inside an island is the first
+  alternative — **the island waits** — at no page bytes and no extra request.
+  An earlier draft inlined the whole catalog into every page instead; it was
+  dropped (04 §8 says why).
+* **`static-locale` is the islands default, and was broken.** It registered
+  nothing, so a signal-valued argument never re-formatted and a rebuilt
+  description never rewrote its node. Now only a node with a reactive
+  argument registers (the counter's line: `mf2_live_nodes() == 1` on the
+  islands page), and an unregistered node's rebuild writes straight to it.
+  Its switch is the `mf2_locale` cookie, the `?lang=` removed from the
+  address, and a navigation. `static-locale` had never been linted: six
+  dead-code warnings went with the fix.
+* **A failed boot no longer hydrates**, in every mode: the page stays as
+  served (04 §6). Phase 6 hydrated against no catalog, which traps on a page
+  with a markup message.
+* **Measured** — `cargo xtask islands-zero` (nightly, beside the size gate):
+  the example's client with and without `more-server`, a server-only
+  component with a call site in every position. Code section 185,925 B and
+  1,019 functions in both; data 25,824 vs 25,823 B, the same constants in a
+  different order; shipped 220,634 vs 220,633 B raw, 94,904 B gz both. The
+  gate: identical code, data within 16 B of padding.
+* **Browser checks**, `examples/demo-islands` (`tools/e2e/checks/islands.mjs`):
+  56/56 in Chromium and Firefox. They include the gate holding a delayed
+  catalog (no island hydrates until it lands) and the control: the same page
+  with the gate removed traps on the island's markup message. WebKit was not
+  run; its build is no longer installed on the development machine.
+* **Found in the harness:** `page.waitForFunction` does not await an async
+  predicate, so `demo.mjs`'s "hydrated" wait returned at once and passed
+  only because hydration is fast. Both checks now poll with `until` from
+  `lib/browser.mjs`. `demo.mjs` gained the failed-boot assertions: 100/100
+  in two engines.
 
 ## Exit (master plan §9, P7)
 

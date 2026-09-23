@@ -79,7 +79,8 @@ mod error;
 pub mod glue;
 #[cfg(feature = "leptos")]
 pub use components::{
-    AlternateLinks, CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang,
+    AlternateLinks, CatalogLinks, CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher,
+    html_lang,
 };
 
 /// The names the page carries, shared by the shell and the boot.
@@ -144,9 +145,55 @@ pub use boot::{
     catalog_url, document_locale, load_page_catalog, preload_locale, set_document_lang, set_locale,
 };
 
-/// Booting an application that hydrates (§6).
+/// Booting an application that hydrates (§6), in each of its three shapes:
+/// a whole page, a page with code-split routes, and a page of islands (§8).
 #[cfg(feature = "hydrate")]
-pub use boot::{hydrate_body, hydrate_lazy};
+pub use boot::{hydrate_body, hydrate_islands, hydrate_lazy, wait_for_catalog};
+
+/// What [`islands_gate!`] expands to names these, so that an application
+/// needs no direct dependency on them.
+#[cfg(feature = "hydrate")]
+#[doc(hidden)]
+pub mod __private {
+    pub use wasm_bindgen;
+    pub use wasm_bindgen_futures;
+    pub use web_sys;
+}
+
+/// Exports the island [`IslandsGate`] renders, in the application's crate
+/// (this one forbids the `unsafe` a `#[wasm_bindgen]` export expands to).
+/// Write it once, beside the `hydrate` entry point:
+///
+/// ```ignore
+/// leptos_mf2::islands_gate!();
+/// ```
+///
+/// It expands to nothing in a server build.
+// rustfmt re-indents a `$crate` attribute inside a macro on every run.
+#[cfg(feature = "hydrate")]
+#[macro_export]
+#[rustfmt::skip]
+macro_rules! islands_gate {
+    () => {
+        #[$crate::__private::wasm_bindgen::prelude::wasm_bindgen(
+            wasm_bindgen = $crate::__private::wasm_bindgen,
+            wasm_bindgen_futures = $crate::__private::wasm_bindgen_futures,
+            js_name = "mf2_islands_gate"
+        )]
+        #[doc(hidden)]
+        pub async fn __mf2_islands_gate(_island: $crate::__private::web_sys::HtmlElement) {
+            $crate::wait_for_catalog().await
+        }
+    };
+}
+
+/// Exports the island [`IslandsGate`] renders — in a client build. This is
+/// a server build, where there is nothing to export.
+#[cfg(not(feature = "hydrate"))]
+#[macro_export]
+macro_rules! islands_gate {
+    () => {};
+}
 
 /// How many nodes follow the locale (D7's registry) — the number the browser
 /// checks read to know that hydration finished and that dropped nodes freed

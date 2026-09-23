@@ -38,7 +38,9 @@ use tachys::view::any_view::AnyViewState;
 use tachys::view::iterators::VecState;
 use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTemplate};
 
-use crate::registry::{self, Relocalize, Target};
+#[cfg(not(feature = "static-locale"))]
+use crate::registry::Relocalize;
+use crate::registry::{self, Target};
 use crate::rich;
 use crate::state::TextUse;
 use crate::text::{self, Description};
@@ -150,7 +152,12 @@ macro_rules! render_description {
             }
 
             fn rebuild(self, state: &mut Self::State) {
-                registry::replace(state.slot, self.into_stored());
+                let node = &state.node;
+                registry::replace(
+                    &mut state.slot,
+                    || Some(Target::Text(node.clone())),
+                    self.into_stored(),
+                );
             }
         }
 
@@ -238,14 +245,36 @@ render_description!(TrArgs);
 render_description!(TrDyn);
 
 /// The retained state of a description in an attribute or a property: the
-/// registry slot that writes it again on a locale switch, and nothing else.
+/// registry slot that writes it again on a locale switch — and, under
+/// `static-locale`, where most nodes have no slot, the element, so that a
+/// rebuild can still write it.
 pub struct TrAttrState {
     slot: u32,
+    #[cfg(feature = "static-locale")]
+    el: Element,
 }
 
-impl Drop for TrAttrState {
-    fn drop(&mut self) {
-        registry::remove(self.slot);
+impl TrAttrState {
+    #[cfg_attr(not(feature = "static-locale"), allow(unused_variables))]
+    fn new(slot: u32, el: &Element) -> TrAttrState {
+        TrAttrState {
+            slot,
+            #[cfg(feature = "static-locale")]
+            el: el.clone(),
+        }
+    }
+
+    /// Rewrites this attribute or property for `desc`. `target` builds the
+    /// registry's target from the element, which only a `static-locale`
+    /// state keeps: elsewhere every node has a slot that holds it.
+    #[cfg_attr(not(feature = "static-locale"), allow(unused_variables))]
+    fn rebuild(&mut self, target: impl FnOnce(&Element) -> Target, desc: crate::text::Stored) {
+        #[cfg(feature = "static-locale")]
+        let el = &self.el;
+        #[cfg(feature = "static-locale")]
+        registry::replace(&mut self.slot, || Some(target(el)), desc);
+        #[cfg(not(feature = "static-locale"))]
+        registry::replace(&mut self.slot, || None, desc);
     }
 }
 
@@ -285,7 +314,7 @@ macro_rules! attribute_description {
                     Target::Attribute(el.clone(), key.into()),
                     self.into_stored(),
                 );
-                TrAttrState { slot }
+                TrAttrState::new(slot, el)
             }
 
             fn build(self, el: &Element, key: &str) -> Self::State {
@@ -296,11 +325,14 @@ macro_rules! attribute_description {
                     Target::Attribute(el.clone(), key.into()),
                     self.into_stored(),
                 );
-                TrAttrState { slot }
+                TrAttrState::new(slot, el)
             }
 
-            fn rebuild(self, _key: &str, state: &mut Self::State) {
-                registry::replace(state.slot, self.into_stored());
+            fn rebuild(self, key: &str, state: &mut Self::State) {
+                state.rebuild(
+                    |el| Target::Attribute(el.clone(), key.into()),
+                    self.into_stored(),
+                );
             }
 
             fn into_cloneable(self) -> Self::Cloneable {
@@ -334,11 +366,14 @@ macro_rules! attribute_description {
                 });
                 let slot =
                     registry::insert(Target::Property(el.clone(), key.into()), self.into_stored());
-                TrAttrState { slot }
+                TrAttrState::new(slot, el)
             }
 
-            fn rebuild(self, state: &mut Self::State, _key: &str) {
-                registry::replace(state.slot, self.into_stored());
+            fn rebuild(self, state: &mut Self::State, key: &str) {
+                state.rebuild(
+                    |el| Target::Property(el.clone(), key.into()),
+                    self.into_stored(),
+                );
             }
 
             fn into_cloneable(self) -> Self::Cloneable {
@@ -410,6 +445,7 @@ pub(crate) struct RichNode {
     state: VecState<AnyViewState>,
 }
 
+#[cfg(not(feature = "static-locale"))]
 impl Relocalize for RichNode {
     fn relocalize(&mut self, catalog: &mf2_catalog::Catalog) {
         rich::fragment(&self.desc, catalog).rebuild(&mut self.state);
@@ -425,11 +461,16 @@ pub struct TrRichState {
 impl TrRichState {
     fn new(desc: TrRich, state: VecState<AnyViewState>) -> TrRichState {
         let node = Rc::new(RefCell::new(RichNode { desc, state }));
-        let erased: Rc<RefCell<dyn Relocalize>> = node.clone();
-        TrRichState {
-            slot: registry::insert_rich(erased),
-            node,
-        }
+        #[cfg(not(feature = "static-locale"))]
+        let slot = {
+            let erased: Rc<RefCell<dyn Relocalize>> = node.clone();
+            registry::insert_rich(erased)
+        };
+        // Nothing follows the locale, and the fragment's own rebuild goes
+        // through this state, not the registry.
+        #[cfg(feature = "static-locale")]
+        let slot = registry::NONE;
+        TrRichState { node, slot }
     }
 
     fn with<R>(&self, body: impl FnOnce(&mut VecState<AnyViewState>) -> R) -> Option<R> {

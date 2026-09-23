@@ -13,6 +13,7 @@ mod error;
 mod fsx;
 mod fuzz_seed;
 mod git;
+mod islands_zero;
 mod l4_wasi;
 mod l4_web;
 mod l6_web;
@@ -121,6 +122,10 @@ enum Command {
         #[arg(long)]
         keep: bool,
     },
+    /// A server-only component costs the client nothing (Phase 7, A1): the
+    /// islands example's client, built with and without one more server-only
+    /// component full of call sites, must be the same size.
+    IslandsZero,
     /// Rewrite the locale-output goldens (conformance/goldens/*.tsv) from a
     /// fresh render; review the diff before committing.
     Goldens,
@@ -221,6 +226,7 @@ fn run(command: Command) -> Result<()> {
         }
         Command::Ci => ci::run(&root),
         Command::Size { out, keep } => size::run(&root, out, keep),
+        Command::IslandsZero => islands_zero::run(&root),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {
                 l6_web::ENGINES.iter().map(|e| (*e).to_owned()).collect()

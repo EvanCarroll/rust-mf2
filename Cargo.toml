@@ -50,8 +50,9 @@ exclude = [
     "conformance/l6-web",
     "tools/e2e/datetime",
     # An application turns on exactly one of `ssr` and `hydrate`, and cargo
-    # unifies features across a workspace: the example is its own.
+    # unifies features across a workspace: each example is its own.
     "examples/demo-ssr",
+    "examples/demo-islands",
 ]
 
 [workspace.package]

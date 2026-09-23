@@ -56,7 +56,9 @@ pub(crate) fn fragment_with(
     builder.finish()
 }
 
-/// The fragment `rich` renders to against `catalog`, as installed.
+/// The fragment `rich` renders to against `catalog`, as installed — what a
+/// locale switch rebuilds, so nothing calls it under `static-locale`.
+#[cfg(not(feature = "static-locale"))]
 pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
     fragment_with(rich, catalog, None, None)
 }

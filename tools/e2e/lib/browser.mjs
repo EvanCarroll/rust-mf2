@@ -152,3 +152,20 @@ export async function throttle(page, { latencyMs, downloadKbps, uploadKbps }) {
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Polls `probe` in `page` until it returns something truthy.
+ *
+ * Not `page.waitForFunction`: that does not await an async predicate — the
+ * promise it gets back is truthy at once — and a probe that asks the app's
+ * module anything has to `import()` it, which is async. Found in Phase 7:
+ * a hydration wait built on `waitForFunction` returned before hydration.
+ */
+export async function until(page, probe, timeout = 20000) {
+  const end = Date.now() + timeout;
+  while (Date.now() < end) {
+    if (await page.evaluate(probe).catch(() => false)) return;
+    await sleep(50);
+  }
+  throw new Error(`timed out after ${timeout} ms waiting for ${probe}`);
+}

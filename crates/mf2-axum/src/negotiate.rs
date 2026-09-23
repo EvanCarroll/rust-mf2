@@ -83,7 +83,8 @@ pub struct CookieLocale {
 impl Default for CookieLocale {
     fn default() -> CookieLocale {
         CookieLocale {
-            name: "mf2_locale",
+            // The name a `static-locale` client writes on a switch.
+            name: leptos_mf2::links::LOCALE_COOKIE,
             max_age: 31_536_000,
             path: "/",
             same_site: "Lax",
@@ -227,7 +228,8 @@ pub struct QueryParam(pub &'static str);
 
 impl Default for QueryParam {
     fn default() -> QueryParam {
-        QueryParam("lang")
+        // The name a `static-locale` client removes on a switch.
+        QueryParam(leptos_mf2::links::LOCALE_QUERY)
     }
 }
 

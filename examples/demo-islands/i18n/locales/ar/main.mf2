@@ -1,0 +1,32 @@
+@locale ar
+---
+
+app-title = جزر، بأي لغة
+tagline = الأجزاء التفاعلية وحدها من هذه الصفحة تحمل شيفرة.
+server-note = تُعرض هذه الفقرة على الخادم ولا تكلّف الـ wasm شيئا.
+
+search-label = بحث
+search-placeholder = ابحث في كل شيء
+
+hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
+
+island-note = العداد أدناه {#em}جزيرة{/em}: يُفعَّل وحده، أما بقية الصفحة فلا.
+
+people-online =
+  .input {$count :integer}
+  .match $count
+  zero {{لا أحد هنا}}
+  one {{شخص واحد هنا}}
+  two {{شخصان هنا}}
+  few {{{$count} أشخاص هنا}}
+  many {{{$count} شخصا هنا}}
+  *    {{{$count} شخص هنا}}
+
+add-one = أضف واحدا
+reset = إعادة تعيين
+
+[language]
+label = اللغة
+en = English
+fr = Français
+ar = العربية

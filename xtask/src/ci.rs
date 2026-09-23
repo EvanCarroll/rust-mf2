@@ -54,6 +54,22 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // `static-locale` (strategy C, the islands default) changes what the
+    // registry and the glue compile; nothing else builds it, and Phase 7
+    // found it had rotted — a signal-valued argument that never updated.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "hydrate,static-locale",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
