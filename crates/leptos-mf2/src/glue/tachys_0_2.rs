@@ -278,6 +278,17 @@ impl TrAttrState {
     }
 }
 
+/// As for a text node: dropping the state frees the slot, and with it the
+/// slot's handle on the element. Without this an attribute leaked one slot
+/// each time its element unmounted — a route left, a list row removed —
+/// and the registry kept writing to detached elements on every switch
+/// (Phase 7 A3 found it; nothing before it ever unmounted an attribute).
+impl Drop for TrAttrState {
+    fn drop(&mut self) {
+        registry::remove(self.slot);
+    }
+}
+
 /// `AttributeValue` and `IntoProperty` for one description type.
 ///
 /// An attribute is text a person reads, so it is isolated; a property is
