@@ -14,7 +14,7 @@ status, the commit that moved it says why (master plan §11).
 | B5 met on the 2,000-site build | *(A6 — filled in below)* |
 | rust-analyzer expands the macro; macro overhead within P0.9's threshold | *(A7)* |
 | owner question 1 answered and recorded in 04 §2 | **met** — [04](04-leptos-integration.md) §2.1 |
-| `b12-generated` green as a gate | *(A10)* |
+| `b12-generated` green as a gate | **met** — B1′ = +0 B, B13 = +13,573 B, in CI (§A10) |
 | results and the Phase 6 work order written | *(this file; A9)* |
 
 ## A1 — the call-site types
@@ -154,3 +154,24 @@ are in a real application) and **`dummy`** uses one literal everywhere (which
 lets the optimiser merge sites a real application keeps apart — P0.1 measured
 it 11.4 B gz per site under `idlit`, which is why `idlit` is the baseline and
 `dummy` only the bound).
+
+## A10 — B1′ and B13 as a gate
+
+`cargo xtask b12-generated`, in CI beside the other B12 checks. Phase 5a took
+both figures by editing the fixture's corpus by hand and putting it back
+([phase-5a-results](phase-5a-results.md) §A10); the corpus is now two cargo
+features of the fixture, so a regression fails a command.
+
+| Build | Corpus | Features | `.wasm` |
+|---|---|---|---:|
+| E | nothing a function crate could serve | `hydrate` | 349,161 |
+| F | the same | `hydrate,fn-number,fn-datetime` | **349,161** |
+| A | the fixture's own | `hydrate,fn-number` | 365,013 |
+| B | A plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | 378,586 |
+
+**B1′ = F − E = +0 B**, byte-identical, with two whole function crates linked
+and neither reachable from the generated registry — the same result Phase 5a
+measured. **B13 = B − A = +13,573 B**: what a corpus that does not use the
+measure functions does not pay. Phase 5a measured +13,599 on a slightly
+different corpus A; 26 B apart, 0.2 %. The gate holds B1′ at exactly 0 and
+B13 within 10 % of Phase 5a's figure, and prints both.

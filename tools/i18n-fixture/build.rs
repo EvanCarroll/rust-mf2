@@ -17,6 +17,12 @@ fn main() {
         mf2_build::Emit::Both
     };
     // The corpus: this crate's, or one of the two size variants.
+    let plain = std::env::var_os("CARGO_FEATURE_CORPUS_PLAIN").is_some();
+    let measures = std::env::var_os("CARGO_FEATURE_CORPUS_MEASURES").is_some();
+    if plain && measures {
+        println!("cargo::error=corpus-plain and corpus-measures are one corpus each: turn on one");
+        std::process::exit(1);
+    }
     let variant = if std::env::var_os("CARGO_FEATURE_CORPUS_PLAIN").is_some() {
         Some("plain")
     } else if std::env::var_os("CARGO_FEATURE_CORPUS_MEASURES").is_some() {
