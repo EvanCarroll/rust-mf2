@@ -247,11 +247,21 @@ runs through the named-args API; `dyn` is a mode, not a status.
 
 **What "pass" means for error tests, and where `n/a` is correct:**
 
-| Test kind | L1 | L2 | L3 | L4 | L5 | L6 |
-|---|---|---|---|---|---|---|
-| expects `syntax-error` | error reported | `n/a` | `n/a` | one-message compile rejects with that kind | `mf2-build` rejects with that kind | `n/a` |
-| expects a data-model error | parses clean | error(s) reported | `n/a` | compile rejects with that kind | `mf2-build` rejects with that kind | `n/a` |
-| everything else | parses clean | validates clean | lossless | output/parts/errors match | same, through `tr!` | same, through Leptos |
+| Test kind | L1 | L2 | L3 | L4 | L5 | L6 | L7 |
+|---|---|---|---|---|---|---|---|
+| expects `syntax-error` | error reported | `n/a` | `n/a` | one-message compile rejects with that kind | `mf2-build` rejects with that kind | `n/a` | `n/a` |
+| expects a data-model error | parses clean | error(s) reported | `n/a` | compile rejects with that kind | `mf2-build` rejects with that kind | `n/a` | `n/a` |
+| everything else | parses clean | validates clean | lossless | output/parts/errors match | same, through `tr!` | same, through Leptos | L6 passes, and every engine agrees with the server through the delivery mode and its twin switch |
+
+L7's four columns (`L7`, `L7c`, `L7d`, `L7cd`) have no harness in `cargo
+test`: only an engine can run them. `cargo xtask l7-web` is their harness
+(Phase 7, A4) — it renders one page per locale the suite uses, per delivery
+mode and configuration, drives each in every engine, judges every cell from
+what the engines recorded and from L6/L6d's verdict on the test, and holds
+the ledger to the result with the same rules 2 and 3 below (`--promote`
+tightens it). A default-configuration page holds only what the default build
+accepts, so a test L6d records as `build-reject` is `degraded` the same way
+at L7d and L7cd.
 
 `cargo xtask conformance-report --init` generates exactly this matrix with every
 applicable cell `xfail` and `until` taken from the layer → phase table in §3.
@@ -270,7 +280,9 @@ The harness fails when:
    all of them;
 6. an `until` is later than its layer's deadline in §3 (a ledger cannot
    quietly postpone a layer);
-7. a cell says `pass` or `degraded` for a layer that has no harness yet;
+7. a cell says `pass` or `degraded` for a layer that has no harness yet (a
+   harness in the engines, like L7's, counts; `conformance-report` then checks
+   the cell's form and `cargo xtask l7-web` its truth);
 8. the `n/a` pattern of the table above is violated in either direction, a
    column is missing, `via` appears outside L5/L5d, or `degraded` outside the
    `d` columns.

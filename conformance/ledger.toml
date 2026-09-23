@@ -4,9 +4,11 @@
 #
 # Key = (file, hash, nth); the hash encoding is documented in conformance/src/key.rs.
 # `index` is the test's 0-based position in its file: a hint, not part of the key.
-# Columns: L1..L6 (all features on), L4d/L5d/L6d (default features).
+# Columns: L1..L6 (all features on), L7 (islands) and L7c (client-only), then the default
+# features: L4d/L5d/L6d, L7d and L7cd. L7* are judged in browser engines (cargo xtask l7-web).
 # Statuses: "pass" | "n/a" | { status = "xfail", until = "<phase>", reason? }
-#           | { status = "degraded", kind, detail? } (L4d/L5d/L6d) | { status = "skip", reason }
+#           | { status = "degraded", kind, detail? } (default-features columns)
+#           | { status = "skip", reason }
 # L5/L5d cells may add via = "dyn". Tags are never a skip reason.
 # intl = [{ engines, kind, fails?, detail }]: where the `intl` build differs from the Rust
 # path in a browser engine (cargo xtask l4-web); kind = space | digits | symbols | plural |
@@ -122,9 +124,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -137,9 +143,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -152,9 +162,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -167,9 +181,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -182,9 +200,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -197,9 +219,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -212,9 +238,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -227,9 +257,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -242,9 +276,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -257,9 +295,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -272,9 +314,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -287,9 +333,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "bidi.json"
@@ -302,9 +352,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -317,9 +371,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -332,9 +390,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -347,9 +409,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -362,9 +428,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -377,9 +447,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -392,9 +466,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -407,9 +485,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -422,9 +504,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -437,9 +523,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -452,9 +542,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "bidi.json"
@@ -467,9 +561,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -482,9 +580,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -497,9 +599,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "bidi.json"
@@ -512,9 +618,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -527,9 +637,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -542,9 +656,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -557,9 +675,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -572,9 +694,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -587,9 +713,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -602,9 +732,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -617,9 +751,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -632,9 +770,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -647,9 +789,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -662,9 +808,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -677,9 +827,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -692,9 +846,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -707,9 +865,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -722,9 +884,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -737,9 +903,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -752,9 +922,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -767,9 +941,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -782,9 +960,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -797,9 +979,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -812,9 +998,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -827,9 +1017,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -842,9 +1036,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "data-model-errors.json"
@@ -857,9 +1055,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -872,9 +1074,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:27:41: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:27:41: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:27:41: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:27:41: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -887,9 +1093,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:28:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:28:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:28:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:28:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -902,9 +1112,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:29:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:29:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:29:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:29:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -917,9 +1131,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:30:71: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:30:71: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:30:71: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:30:71: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -932,9 +1150,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:31:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:31:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:31:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:31:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -947,9 +1169,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:32:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:32:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:32:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:32:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -962,9 +1188,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:33:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:33:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:33:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:33:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -977,9 +1207,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:34:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:34:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:34:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:34:43: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -992,9 +1226,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:35:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:35:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:35:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:35:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1007,9 +1245,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:36:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:36:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:36:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:36:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1022,9 +1264,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:37:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:37:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:37:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:37:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1037,9 +1283,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:38:48: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:38:48: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:38:48: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:38:48: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1052,9 +1302,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:39:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:39:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:39:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:39:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1067,9 +1321,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:40:95: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:40:95: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:40:95: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:40:95: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1082,9 +1340,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:41:74: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:41:74: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:41:74: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:41:74: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1097,9 +1359,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:42:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:42:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:42:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:42:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1112,9 +1378,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:43:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:43:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:43:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:43:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1127,9 +1397,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:44:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:44:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:44:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:44:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1142,9 +1416,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1157,9 +1435,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1172,9 +1454,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1187,9 +1473,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "extra/functions/unit.json"
@@ -1202,9 +1492,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "fallback.json"
@@ -1217,9 +1511,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1232,9 +1530,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1247,9 +1549,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1262,9 +1568,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1277,9 +1587,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1292,9 +1606,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1307,9 +1625,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"
@@ -1322,9 +1644,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/currency.json"
@@ -1337,9 +1663,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:58:39: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:58:39: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:58:39: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:58:39: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1352,9 +1682,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:59:43: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:59:43: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:59:43: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:59:43: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1367,9 +1701,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:60:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:60:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:60:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:60:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1382,9 +1720,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:61:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:61:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:61:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:61:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1397,9 +1739,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:62:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:62:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:62:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:62:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1412,9 +1758,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:63:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:63:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:63:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:63:69: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1427,9 +1777,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:64:70: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:64:70: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:64:70: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:64:70: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1442,9 +1796,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:65:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:65:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:65:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:65:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1457,9 +1815,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:66:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:66:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:66:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:66:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1472,9 +1834,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:67:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:67:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:67:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:67:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1487,9 +1853,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:68:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:68:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:68:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:68:42: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/currency.json"
@@ -1502,9 +1872,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:69:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:69:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:69:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:69:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1517,9 +1891,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:70:35: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:70:35: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:70:35: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:70:35: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1532,9 +1910,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:71:41: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:71:41: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:71:41: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:71:41: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1547,9 +1929,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:72:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:72:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:72:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:72:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1562,9 +1948,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:73:57: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:73:57: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:73:57: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:73:57: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1577,9 +1967,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:74:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:74:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:74:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:74:48: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1592,9 +1986,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:75:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:75:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:75:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:75:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/date.json"
@@ -1607,9 +2005,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":date, :datetime need fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:76:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:76:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:76:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:76:60: :date needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1622,9 +2024,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:77:39: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:77:39: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:77:39: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:77:39: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1637,9 +2043,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:78:42: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:78:42: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:78:42: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:78:42: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1652,9 +2062,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:79:45: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:79:45: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:79:45: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:79:45: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1667,9 +2081,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:80:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:80:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:80:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:80:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1682,9 +2100,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:81:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:81:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:81:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:81:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1697,9 +2119,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:82:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:82:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:82:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:82:61: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/datetime.json"
@@ -1712,9 +2138,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:83:43: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:83:43: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:83:43: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:83:43: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/integer.json"
@@ -1727,9 +2157,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1742,9 +2176,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1757,9 +2195,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1772,9 +2214,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1787,9 +2233,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1802,9 +2252,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1817,9 +2271,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1832,9 +2290,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1847,9 +2309,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1862,9 +2328,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1877,9 +2347,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1892,9 +2366,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/integer.json"
@@ -1907,9 +2385,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1922,9 +2404,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1937,9 +2423,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1952,9 +2442,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1967,9 +2461,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1982,9 +2480,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -1997,9 +2499,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2012,9 +2518,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2027,9 +2537,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2042,9 +2556,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2057,9 +2575,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2072,9 +2594,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2087,9 +2613,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2102,9 +2632,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2117,9 +2651,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2132,9 +2670,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2147,9 +2689,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2162,9 +2708,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2177,9 +2727,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2192,9 +2746,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2207,9 +2765,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2222,9 +2784,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2237,9 +2803,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2252,9 +2822,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2267,9 +2841,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2282,9 +2860,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2297,9 +2879,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2312,9 +2898,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2327,9 +2917,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2342,9 +2936,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2357,9 +2955,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2372,9 +2974,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2387,9 +2993,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2402,9 +3012,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2417,9 +3031,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2432,9 +3050,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2447,9 +3069,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2462,9 +3088,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2477,9 +3107,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2492,9 +3126,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2507,9 +3145,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/number.json"
@@ -2522,9 +3164,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2537,9 +3183,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2552,9 +3202,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2567,9 +3221,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2582,9 +3240,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2597,9 +3259,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2612,9 +3278,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2627,9 +3297,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2642,9 +3316,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2657,9 +3335,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2672,9 +3354,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2687,9 +3373,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2702,9 +3392,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2717,9 +3411,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2732,9 +3430,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2747,9 +3449,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/offset.json"
@@ -2762,9 +3468,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/percent.json"
@@ -2777,9 +3487,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:154:38: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:154:38: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:154:38: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:154:38: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2792,9 +3506,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:155:42: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:155:42: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:155:42: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:155:42: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2807,9 +3525,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:156:40: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:156:40: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:156:40: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:156:40: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2822,9 +3544,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:157:70: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:157:70: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:157:70: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:157:70: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2837,9 +3563,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:158:69: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:158:69: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:158:69: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:158:69: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2852,9 +3582,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:159:55: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:159:55: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:159:55: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:159:55: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2867,9 +3601,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:160:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:160:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:160:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:160:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2882,9 +3620,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:161:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:161:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:161:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:161:49: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2897,9 +3639,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:162:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:162:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:162:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:162:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2912,9 +3658,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:163:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:163:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:163:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:163:43: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2927,9 +3677,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:164:41: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:164:41: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:164:41: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:164:41: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2942,9 +3696,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:165:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:165:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:165:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:165:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/percent.json"
@@ -2957,9 +3715,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:166:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:166:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:166:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:166:48: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/string.json"
@@ -2972,9 +3734,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -2987,9 +3753,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -3002,9 +3772,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -3017,9 +3791,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -3032,9 +3810,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -3047,9 +3829,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "functions/string.json"
@@ -3062,9 +3848,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "functions/string.json"
@@ -3077,9 +3867,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "functions/string.json"
@@ -3092,9 +3886,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/string.json"
@@ -3107,9 +3905,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "functions/time.json"
@@ -3122,9 +3924,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":time needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:174:35: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:174:35: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:174:35: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:174:35: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/time.json"
@@ -3137,9 +3943,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":time needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:175:41: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:175:41: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:175:41: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:175:41: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/time.json"
@@ -3152,9 +3962,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":time needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:176:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:176:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:176:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:176:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/time.json"
@@ -3167,9 +3981,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":time needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:177:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:177:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:177:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:177:57: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/time.json"
@@ -3182,9 +4000,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":time needs fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:178:69: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:178:69: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:178:69: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:178:69: :time needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "functions/time.json"
@@ -3197,9 +4019,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "unknown-function", detail = ":datetime, :time need fn-datetime" }
 L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:179:69: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:179:69: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:179:69: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:179:69: :datetime needs the `fn-datetime` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3212,9 +4038,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3227,9 +4057,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3242,9 +4076,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3257,9 +4095,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3272,9 +4114,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3287,9 +4133,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3302,9 +4152,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3317,9 +4171,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3332,9 +4190,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3347,9 +4209,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3362,9 +4228,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3377,9 +4247,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3392,9 +4266,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3407,9 +4285,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3422,9 +4304,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3437,9 +4323,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3452,9 +4342,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3467,9 +4361,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3482,9 +4380,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3497,9 +4399,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3512,9 +4418,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "pattern-selection.json"
@@ -3527,9 +4437,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3542,9 +4456,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3557,9 +4475,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3572,9 +4494,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3587,9 +4513,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3602,9 +4532,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3617,9 +4551,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3632,9 +4570,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3647,9 +4589,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3662,9 +4608,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3677,9 +4627,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3692,9 +4646,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3707,9 +4665,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3722,9 +4684,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3737,9 +4703,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3752,9 +4722,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3767,9 +4741,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3782,9 +4760,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3797,9 +4779,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3812,9 +4798,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3827,9 +4817,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3842,9 +4836,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3857,9 +4855,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3872,9 +4874,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3887,9 +4893,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3902,9 +4912,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3917,9 +4931,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3932,9 +4950,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3947,9 +4969,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3962,9 +4988,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3977,9 +5007,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -3992,9 +5026,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4007,9 +5045,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4022,9 +5064,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4037,9 +5083,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4052,9 +5102,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4067,9 +5121,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4082,9 +5140,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4097,9 +5159,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4112,9 +5178,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4127,9 +5197,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4142,9 +5216,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4157,9 +5235,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4172,9 +5254,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4187,9 +5273,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4202,9 +5292,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4217,9 +5311,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4232,9 +5330,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4247,9 +5349,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4262,9 +5368,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4277,9 +5387,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4292,9 +5406,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4307,9 +5425,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4322,9 +5444,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4337,9 +5463,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4352,9 +5482,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4367,9 +5501,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4382,9 +5520,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4397,9 +5539,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4412,9 +5558,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4427,9 +5577,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4442,9 +5596,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4457,9 +5615,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4472,9 +5634,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4487,9 +5653,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4502,9 +5672,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4517,9 +5691,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4532,9 +5710,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4547,9 +5729,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4562,9 +5748,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4577,9 +5767,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4592,9 +5786,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4607,9 +5805,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4622,9 +5824,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4637,9 +5843,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4652,9 +5862,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4667,9 +5881,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4682,9 +5900,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4697,9 +5919,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4712,9 +5938,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4727,9 +5957,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4742,9 +5976,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4757,9 +5995,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4772,9 +6014,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4787,9 +6033,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4802,9 +6052,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4817,9 +6071,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4832,9 +6090,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4847,9 +6109,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4862,9 +6128,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4877,9 +6147,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4892,9 +6166,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4907,9 +6185,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4922,9 +6204,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4937,9 +6223,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4952,9 +6242,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4967,9 +6261,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4982,9 +6280,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -4997,9 +6299,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5012,9 +6318,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5027,9 +6337,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5042,9 +6356,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5057,9 +6375,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5072,9 +6394,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5087,9 +6413,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5102,9 +6432,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5117,9 +6451,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5132,9 +6470,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5147,9 +6489,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5162,9 +6508,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5177,9 +6527,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5192,9 +6546,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5207,9 +6565,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5222,9 +6584,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5237,9 +6603,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5252,9 +6622,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5267,9 +6641,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5282,9 +6660,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5297,9 +6679,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5312,9 +6698,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5327,9 +6717,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5342,9 +6736,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5357,9 +6755,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5372,9 +6774,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5387,9 +6793,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5402,9 +6812,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5417,9 +6831,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5432,9 +6850,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5447,9 +6869,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5462,9 +6888,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5477,9 +6907,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5492,9 +6926,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5507,9 +6945,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax-errors.json"
@@ -5522,9 +6964,13 @@ L3 = "n/a"
 L4 = "pass"
 L5 = "pass"
 L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
 L4d = "pass"
 L5d = "pass"
 L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
 
 [[test]]
 file  = "syntax.json"
@@ -5537,9 +6983,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5552,9 +7002,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5567,9 +7021,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5582,9 +7040,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5597,9 +7059,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5612,9 +7078,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5627,9 +7097,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5642,9 +7116,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5657,9 +7135,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5672,9 +7154,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5687,9 +7173,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5702,9 +7192,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5717,9 +7211,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5732,9 +7230,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5747,9 +7249,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5762,9 +7268,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5777,9 +7287,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5792,9 +7306,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5807,9 +7325,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5822,9 +7344,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5837,9 +7363,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5852,9 +7382,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5867,9 +7401,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5882,9 +7420,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5897,9 +7439,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5912,9 +7458,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5927,9 +7477,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5942,9 +7496,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5957,9 +7515,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5972,9 +7534,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -5987,9 +7553,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6002,9 +7572,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6017,9 +7591,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6032,9 +7610,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6047,9 +7629,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6062,9 +7648,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6077,9 +7667,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6092,9 +7686,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6107,9 +7705,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6122,9 +7724,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6137,9 +7743,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6152,9 +7762,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6167,9 +7781,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6182,9 +7800,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6197,9 +7819,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6212,9 +7838,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6227,9 +7857,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6242,9 +7876,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6257,9 +7895,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6272,9 +7914,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6287,9 +7933,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6302,9 +7952,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6317,9 +7971,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6332,9 +7990,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6347,9 +8009,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6362,9 +8028,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6377,9 +8047,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6392,9 +8066,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6407,9 +8085,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6422,9 +8104,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6437,9 +8123,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6452,9 +8142,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6467,9 +8161,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6482,9 +8180,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6497,9 +8199,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6512,9 +8218,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6527,9 +8237,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6542,9 +8256,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6557,9 +8275,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6572,9 +8294,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6587,9 +8313,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6602,9 +8332,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6617,9 +8351,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6632,9 +8370,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6647,9 +8389,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6662,9 +8408,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6677,9 +8427,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6692,9 +8446,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6707,9 +8465,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6722,9 +8484,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6737,9 +8503,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6752,9 +8522,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6767,9 +8541,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6782,9 +8560,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6797,9 +8579,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6812,9 +8598,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6827,9 +8617,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6842,9 +8636,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6857,9 +8655,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6872,9 +8674,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6887,9 +8693,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = { status = "degraded", kind = "neutral-numbers", detail = "neutral digits: \"1.3 et 4.2\"" }
 L5d = { status = "degraded", kind = "neutral-numbers", detail = "neutral digits: \"1.3 et 4.2\"" }
 L6d = { status = "degraded", kind = "neutral-numbers", detail = "neutral digits: \"1.3 et 4.2\"" }
+L7d = { status = "degraded", kind = "neutral-numbers", detail = "neutral digits: \"1.3 et 4.2\"" }
+L7cd = { status = "degraded", kind = "neutral-numbers", detail = "neutral digits: \"1.3 et 4.2\"" }
 
 [[test]]
 file  = "syntax.json"
@@ -6902,9 +8712,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6917,9 +8731,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6932,9 +8750,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6947,9 +8769,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6962,9 +8788,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6977,9 +8807,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -6992,9 +8826,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7007,9 +8845,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7022,9 +8864,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7037,9 +8883,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7052,9 +8902,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7067,9 +8921,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7082,9 +8940,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7097,9 +8959,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7112,9 +8978,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7127,9 +8997,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7142,9 +9016,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7157,9 +9035,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7172,9 +9054,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7187,9 +9073,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7202,9 +9092,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = { status = "pass", via = "dyn" }
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = { status = "pass", via = "dyn" }
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7217,9 +9111,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "syntax.json"
@@ -7232,9 +9130,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7247,9 +9149,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7262,9 +9168,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7277,9 +9187,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7292,9 +9206,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7307,9 +9225,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7322,9 +9244,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7337,9 +9263,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7352,9 +9282,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7367,9 +9301,13 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "u-options.json"
@@ -7382,6 +9320,10 @@ L3 = "pass"
 L4 = "pass"
 L5 = "pass"
 L6 = "pass"
+L7 = "pass"
+L7c = "pass"
 L4d = "pass"
 L5d = "pass"
 L6d = "pass"
+L7d = "pass"
+L7cd = "pass"

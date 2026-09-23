@@ -17,6 +17,7 @@ mod islands_zero;
 mod l4_wasi;
 mod l4_web;
 mod l6_web;
+mod l7_web;
 mod locale_data;
 mod pin;
 mod report;
@@ -110,6 +111,23 @@ enum Command {
         /// Drive the page already in target/l6-web/ (no build).
         #[arg(long)]
         no_build: bool,
+    },
+    /// Conformance L7 in the browser: the suite's pages as islands and
+    /// client-only, in both configurations, switched to the twin locale and
+    /// back in each engine; judges the ledger's L7 columns
+    /// (tools/e2e/checks/l7.mjs).
+    L7Web {
+        /// Engines: `all` (Chromium, Firefox, and `WebKit` where installed)
+        /// or a comma-separated list.
+        #[arg(long, default_value = "all", value_name = "ENGINES")]
+        browser: String,
+        /// Drive the pages already in target/l7-web/ (no build).
+        #[arg(long)]
+        no_build: bool,
+        /// Tighten the ledger to the run: every `xfail` L7 cell that passes
+        /// becomes `pass`, every documented degradation `degraded`.
+        #[arg(long)]
+        promote: bool,
     },
     /// The whole-app size gate (plans/06-size-and-perf.md §3): B1 fixed, B5
     /// per call site, and their sum at the reference scale, all measured end
@@ -240,6 +258,19 @@ fn run(command: Command) -> Result<()> {
                 return Err(Error::L6(format!("unknown engine {bad:?}")));
             }
             l6_web::run(&root, &engines, !no_build)
+        }
+        Command::L7Web {
+            browser,
+            no_build,
+            promote,
+        } => {
+            if let Some(bad) = browser
+                .split(',')
+                .find(|e| *e != "all" && !l7_web::ENGINES.contains(e))
+            {
+                return Err(Error::L7(format!("unknown engine {bad:?}")));
+            }
+            l7_web::run(&root, &browser, !no_build, promote)
         }
         Command::Goldens => goldens(&root),
         Command::L4Wasi { generated } => l4_wasi::run(&root, generated),

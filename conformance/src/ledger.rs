@@ -400,6 +400,27 @@ impl Ledger {
         added
     }
 
+    /// Gives every entry of a test in `suite` the columns it lacks, as
+    /// `--init` would write them — which is how a new column (L7's, in
+    /// Phase 7) reaches a ledger that already exists. Returns how many cells
+    /// were added.
+    pub fn add_missing_columns(&mut self, suite: &Suite) -> usize {
+        let mut added = 0;
+        for entry in &mut self.entries {
+            let Some(t) = suite.tests().iter().find(|t| t.key == entry.key) else {
+                continue;
+            };
+            for (column, cell) in Self::fresh_entry(t).cells {
+                if let std::collections::btree_map::Entry::Vacant(slot) = entry.cells.entry(column)
+                {
+                    slot.insert(cell);
+                    added += 1;
+                }
+            }
+        }
+        added
+    }
+
     /// The ledger `--init` generates: every applicable cell `xfail` until the
     /// phase of the layer → phase table, every other cell `n/a`.
     pub fn init(suite: &Suite) -> Self {
@@ -425,9 +446,11 @@ const HEADER: &str = "\
 #
 # Key = (file, hash, nth); the hash encoding is documented in conformance/src/key.rs.
 # `index` is the test's 0-based position in its file: a hint, not part of the key.
-# Columns: L1..L6 (all features on), L4d/L5d/L6d (default features).
+# Columns: L1..L6 (all features on), L7 (islands) and L7c (client-only), then the default
+# features: L4d/L5d/L6d, L7d and L7cd. L7* are judged in browser engines (cargo xtask l7-web).
 # Statuses: \"pass\" | \"n/a\" | { status = \"xfail\", until = \"<phase>\", reason? }
-#           | { status = \"degraded\", kind, detail? } (L4d/L5d/L6d) | { status = \"skip\", reason }
+#           | { status = \"degraded\", kind, detail? } (default-features columns)
+#           | { status = \"skip\", reason }
 # L5/L5d cells may add via = \"dyn\". Tags are never a skip reason.
 # intl = [{ engines, kind, fails?, detail }]: where the `intl` build differs from the Rust
 # path in a browser engine (cargo xtask l4-web); kind = space | digits | symbols | plural |

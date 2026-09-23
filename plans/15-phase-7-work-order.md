@@ -22,6 +22,7 @@ whose interactive parts are islands.
 | Markup → elements, nesting and flat handlers | `crates/leptos-mf2/src/rich.rs` |
 | Negotiation, `/i18n/*`, the per-request context | `crates/mf2-axum` |
 | L6 and L6d green; L6 in two engines | `conformance/src/l6.rs`, `conformance/l6-web`, `tools/e2e/checks/l6.mjs` |
+| *(added by A4)* L7, L7c, L7d, L7cd green in two engines | `conformance/l7-web`, `tools/e2e/checks/l7.mjs`, `cargo xtask l7-web` |
 | The example, and the browser checks that drive it | `examples/demo-ssr`, `tools/e2e/checks/demo.mjs` |
 | The whole-app size gate | `cargo xtask size` |
 
@@ -102,14 +103,14 @@ only draft it for the owner to post.
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2 and A3 are done** (2026-09-23); what they found is below the table.
+**A1, A2, A3 and A4 are done** (2026-09-23); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
 | **A1** Islands — **done** | `hydrate_islands` with the catalog loaded **alongside** rather than before it (it cannot be gated), and the rule for a rich message inside an island: either the island waits for the catalog or the message is not rich. `static-locale` as the documented default for islands. *As built: the entry point cannot be gated, but the island walk can — an empty first island that waits (below), so the island waits.* | an islands build of the example renders and switches; a server-only component contributes **zero** bytes to the wasm, measured |
 | **A2** CSR — **done** | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
 | **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
-| **A4** Layer L7 | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
+| **A4** Layer L7 — **done** | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. *As built: all 324 runtime-valid tests, not 297 — one page per locale the suite uses (below).* | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
 | **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
 | **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs` — and the split made the default regardless (owner question 2: a translation edit never invalidates the wasm): `demo-ssr` and `demo-islands` emit their catalogs apart, `mf2 init` scaffolds it, and a feature mismatch between the build step and the i18n crate is an error at build time. | both numbers; the examples on the split; [05](05-tooling.md) §4 updated |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
@@ -246,11 +247,69 @@ only draft it for the owner to post.
   through the same helper the lazy route uses to show the locale — asserted
   by `lazy.mjs`.
 
+## A4 — layer L7: what was built and measured
+
+* **All 324, not 297.** 297 is the `en-US` page of L6(b); the ledger's
+  runtime-valid tests are 324, and 27 of them are in `und` (22), `fr` (1)
+  and `ar` (4). A column whose cells are claimed must test every one, so L7
+  has **one page per locale the suite uses**. A page is in one locale at a
+  time and a generated module belongs to the crate that includes it, so the
+  corpus is four **set** crates (`conformance/l7-web/sets/*`, built by
+  `set-build`), each with the twin `en-GB`; one wasm carries all four and
+  installs the set its page names (`<html data-l7-set>`).
+* **The pages.** Islands (`L7`, `L7d`): server-rendered with Leptos' own
+  `HydrationScripts islands=true`, `<IslandsGate/>` first, and every call
+  site an island of its own, so each hydrates separately behind the gate
+  and follows a **live** switch from inside its island — "the same twin
+  switch" as L6(b), which exercises the registry inside islands (the
+  thread-local choice of §"What Phase 6 settled"; it held). Not
+  `static-locale`: under it a switch is a navigation to a page the server
+  renders in the twin, which is L6's path again, and `demo-islands`'
+  browser check covers that mode. Client-only (`L7c`, `L7cd`): an empty
+  body, the index preload, `mount_to_body`.
+* **What is asserted, per case, in each engine:** islands — the server's
+  text (read at `DOMContentLoaded`) is what the server renders alone,
+  hydration changes none of it; client-only — the mounted text is what the
+  server *would* render (the `l7-page` binary writes it beside the page);
+  both — after the switch every case is the server's twin text, after
+  switching back the first text exactly, `<html lang>` follows, the registry
+  ends where it started, the console is silent. A page-level failure fails
+  every case on it.
+* **Judged by `cargo xtask l7-web`**, the columns' harness (they cannot run in
+  `cargo test`; `BROWSER_HARNESSED` in `conformance/src/matrix.rs`, rule 7 of
+  01 §4). A cell passes when L6 (or L6d) passes the test *and* every engine
+  agreed on its case — a delivery mode is never greener than the render it
+  delivers. In the default configuration a page holds only what the default
+  build accepts (`mf2_l5_gen::Configuration::Default`), so the 68 tests L6d
+  records as `build-reject` are that at L7d/L7cd too; the one
+  `neutral-numbers` test (`syntax.json` #90, `fr`) is on the page and must
+  agree. The ledger is held to the result by the same `verify`/`promote` as
+  every other column; `--promote` rewrote it and the report.
+* **Result**, Chromium and Firefox, `cargo xtask l7-web` (2026-09-23): L7
+  324/324, L7c 324/324, L7d and L7cd 255/324 + 69 documented degradations —
+  exactly L6d's. 16 pages per engine. Negative controls: a wrong expected
+  text in a page's data fails the case in the check, and fails the promoted
+  `pass` cells in the xtask with the engine, the stage and both texts.
+  WebKit was not run (not installed). A nightly job (`l7-web`) runs it in
+  both engines.
+* **Found:** a client-only application's reader in `en-US`, where the build
+  has `fr` (source) and `en-GB`, gets `en-GB` — `lookup_locale` falls back
+  to a locale of the same language before the source locale, as designed
+  (A2). The check therefore starts each client-only page from a remembered
+  choice of the set's locale, the path the boot ranks first.
+* **Found:** `conformance/l5/shared.rs`'s `date_time` named
+  `mf2::fn_datetime` unconditionally, so no crate including it could be
+  built without `fn-datetime`; it is now `cfg`-gated on that feature (every
+  existing includer has it on). And `l6.mjs` still waited for hydration with
+  an async `waitForFunction`, which returns at once (A1's finding, fixed
+  there in `demo.mjs` only); it polls with `until` now.
+
 ## Exit (master plan §9, P7)
 
 - [ ] L7 and L7c green in both configurations, every L7d and L7cd cell
       recorded — `pass`, or `degraded` with its kind — none `xfail`;
       `current_phase = "P7"` in the exit commit with the harness green
+      *(A4: every cell recorded, none `xfail`; the bump is the exit's)*
 - [ ] the WCAG 2.2 AA audit of the examples passes (A11)
 - [ ] no normative spec statement without a covering test (A12)
 - [ ] user documentation (A13), `mark-fallback-lang` (A14) and per-commit

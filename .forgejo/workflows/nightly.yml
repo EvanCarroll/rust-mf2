@@ -42,6 +42,9 @@
 #   browser — every runtime-valid suite message server-rendered, hydrated in
 #   Chromium and Firefox, switched to the twin locale and back
 #   (`cargo xtask l6-web`). The server half of L6 runs in `cargo test`.
+# * `l7-web` (a job of its own; plans/15 A4): conformance layer L7 — the
+#   same, as islands and client-only, in both configurations, judging the
+#   ledger's L7 columns (`cargo xtask l7-web`).
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -380,4 +383,74 @@ jobs:
           path: |
             target/l6-web/report.json
             target/l6-web/page.json
+          if-no-files-found: ignore
+
+  l7-web:
+    # Conformance layer L7 (plans/01-conformance.md §3;
+    # plans/15-phase-7-work-order.md A4): L6's page and twin switch as an
+    # islands page and as a client-only page, in both configurations, one
+    # page per locale the suite uses, in Chromium and Firefox. Only an engine
+    # can run it, so `cargo xtask l7-web` is the harness of the ledger's L7,
+    # L7c, L7d and L7cd columns: it judges every cell and fails on one the
+    # ledger does not match. Six release builds (a server and two clients per
+    # configuration).
+    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
+    # (≥ 20) and npm.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+      WASM_BINDGEN_VERSION: "0.2.128"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+
+      - name: Install the browser harness and two engines
+        run: |
+          set -eu
+          cd tools/e2e
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: L7 in the browser (exit 1 on a cell the ledger does not match)
+        run: cargo xtask l7-web --browser chromium,firefox
+
+      - name: Upload the L7 report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: l7-web
+          path: |
+            target/l7-web/report.json
+            target/l7-web/*/*.json
           if-no-files-found: ignore

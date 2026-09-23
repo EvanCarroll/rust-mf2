@@ -3,14 +3,17 @@
 //! follow from §3–§4:
 //!
 //! 1. ledger ↔ suite is a bijection on the key (rule 1);
-//! 2. every entry has exactly the nine columns, `n/a` exactly where the matrix
+//! 2. every entry has exactly the thirteen columns, `n/a` exactly where the matrix
 //!    says (a stray `n/a` would be a silent skip);
 //! 3. no `xfail` whose `until` is `current_phase` or earlier (rule 4), and none
 //!    later than the phase at which its layer must be green (§3);
 //! 4. no `skip` by tag (rule 5);
-//! 5. `degraded` only in L4d/L5d/L6d, `via` only in L5/L5d;
+//! 5. `degraded` only in the default-features columns (L4d–L7d, L7cd),
+//!    `via` only in L5/L5d;
 //! 6. `pass`/`degraded` only in columns whose harness exists
-//!    ([`crate::matrix::HARNESSED`]) — rules 2 and 3 run there;
+//!    ([`crate::matrix::HARNESSED`], where rules 2 and 3 run in `cargo
+//!    test`, and [`crate::matrix::BROWSER_HARNESSED`], where `cargo xtask
+//!    l7-web` runs them in the engines);
 //! 7. the unpaired-surrogates note is present;
 //! 8. no `open` note whose `until` is `current_phase` or earlier (rule 4, for
 //!    an obligation recorded once rather than per test);
@@ -26,7 +29,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::key::TestKey;
 use crate::ledger::{Cell, Ledger, OPEN, SURROGATES_NOTE_ID};
-use crate::matrix::{Column, HARNESSED, Phase};
+use crate::matrix::{BROWSER_HARNESSED, Column, HARNESSED, Phase};
 use crate::suite::{Suite, SuiteTest};
 
 /// The tags the schema defines. None of them may justify a skip.
@@ -86,7 +89,7 @@ pub enum Violation {
         tag: String,
     },
 
-    #[error("{key}: {column} is degraded; degraded is only valid in L4d/L5d/L6d")]
+    #[error("{key}: {column} is degraded; degraded is only valid in L4d/L5d/L6d/L7d/L7cd")]
     DegradedOutsideDefaultColumns { key: TestKey, column: Column },
 
     #[error("{key}: {column} has via = \"dyn\"; via is only valid in L5/L5d")]
@@ -273,7 +276,7 @@ fn check_entry(
                 if via.is_some() && !column.is_macro_layer() {
                     v.push(Violation::ViaOutsideMacroLayer { key: key(), column });
                 }
-                if !HARNESSED.contains(&column) {
+                if !HARNESSED.contains(&column) && !BROWSER_HARNESSED.contains(&column) {
                     v.push(Violation::UnverifiedClaim {
                         key: key(),
                         column,
@@ -285,7 +288,7 @@ fn check_entry(
                 if !column.is_default_features() {
                     v.push(Violation::DegradedOutsideDefaultColumns { key: key(), column });
                 }
-                if !HARNESSED.contains(&column) {
+                if !HARNESSED.contains(&column) && !BROWSER_HARNESSED.contains(&column) {
                     v.push(Violation::UnverifiedClaim {
                         key: key(),
                         column,

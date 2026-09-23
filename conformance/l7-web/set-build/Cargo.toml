@@ -1,0 +1,10 @@
+[package]
+name = "mf2-l7-set-build"
+description = "Builds one of conformance L7's page sets: the suite's tests of one locale, as a corpus with a twin and as call sites, in the configuration the set crate's features say."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[dependencies]
+mf2-l5-gen = { path = "../../l5/gen" }

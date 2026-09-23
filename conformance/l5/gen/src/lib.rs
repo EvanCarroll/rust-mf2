@@ -185,13 +185,73 @@ pub fn generate_with_twin(
     println!("cargo::rerun-if-changed={}", suite_dir.display());
     println!("cargo::rerun-if-changed={}", extra_dir.display());
 
+    let tests = suite_messages(root, locale)?;
+    build_with_twin(out, locale, twin, &tests, "")
+}
+
+/// Every test of `locale` in the vendored suite and `conformance/extra/`, as
+/// messages, in id order.
+fn suite_messages(root: &Path, locale: &str) -> Result<Vec<Message>, Error> {
+    let suite_dir = root.join("third_party/message-format-wg/test/tests");
+    let extra_dir = root.join("conformance/extra");
     let mut tests = Vec::new();
     collect(&suite_dir, &suite_dir, "suite", locale, &mut tests)?;
     if extra_dir.is_dir() {
         collect(&extra_dir, &extra_dir, "suite.extra", locale, &mut tests)?;
     }
     tests.sort_by(|a, b| a.id.cmp(&b.id));
-    build_with_twin(out, locale, twin, &tests, "")
+    Ok(tests)
+}
+
+/// Which client configuration a page's corpus is built for (layer L7,
+/// `plans/15-phase-7-work-order.md` A4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Configuration {
+    /// Every function feature on: the whole runtime-valid corpus.
+    All,
+    /// The default features. A message naming a function whose client
+    /// feature is off is refused by the build (L5d's `build-reject`), so a
+    /// real application in this configuration could not ship it at all:
+    /// the corpus is the rest, built with the default features.
+    Default,
+}
+
+/// A page's corpus: [`generate_with_twin`] for `configuration`.
+///
+/// With [`Configuration::All`] it is exactly that. With
+/// [`Configuration::Default`] the build is asked first — over the whole
+/// corpus, in a directory of its own — which messages it refuses, and the
+/// corpus, the manifest, the generated module and the call sites are then
+/// the messages it accepts, built with the default features. `GATED` still
+/// lists the refused ones, so a page can say which of the suite's tests it
+/// cannot hold and why.
+pub fn generate_page(
+    root: &Path,
+    out: &Path,
+    locale: &str,
+    twin: &str,
+    configuration: Configuration,
+) -> Result<(), Error> {
+    let suite_dir = root.join("third_party/message-format-wg/test/tests");
+    let extra_dir = root.join("conformance/extra");
+    println!("cargo::rerun-if-changed={}", suite_dir.display());
+    println!("cargo::rerun-if-changed={}", extra_dir.display());
+    let tests = suite_messages(root, locale)?;
+    if configuration == Configuration::All {
+        return build_with_twin(out, locale, Some(twin), &tests, "");
+    }
+    write_if_changed(&out.join("shared.rs"), SHARED)?;
+    let (invalid, valid): (Vec<&Message>, Vec<&Message>) = tests.iter().partition(|t| t.invalid);
+    let probe = out.join("probe");
+    write_corpus(&probe.join("corpus"), locale, None, &valid)?;
+    let gated = build_gated(&probe, locale)?;
+    let kept: Vec<&Message> = valid
+        .into_iter()
+        .filter(|t| !gated.contains_key(&t.id))
+        .collect();
+    let manifest = build_corpus_with(out, locale, Some(twin), &kept, Features::default())?;
+    let rejected = build_rejected(out, locale, &invalid)?;
+    write_cases(out, locale, &kept, &manifest, &rejected, &gated, "")
 }
 
 /// Builds an L5 crate's corpus and call sites from `messages`, whatever they
@@ -352,7 +412,37 @@ fn build_corpus(
     twin: Option<&str>,
     tests: &[&Message],
 ) -> Result<mf2_build::Manifest, Error> {
+    build_corpus_with(out, locale, twin, tests, features())
+}
+
+/// [`build_corpus`] with the given features.
+fn build_corpus_with(
+    out: &Path,
+    locale: &str,
+    twin: Option<&str>,
+    tests: &[&Message],
+    features: Features,
+) -> Result<mf2_build::Manifest, Error> {
     let root = out.join("corpus");
+    write_corpus(&root, locale, twin, tests)?;
+    let outcome = Build::at(&root, out)
+        .config(config(locale))
+        .features(features)
+        .run()?;
+    let outcome = outcome.into_result().map_err(|e| {
+        format!("the suite's own messages did not build as a corpus for {locale}: {e}")
+    })?;
+    Ok(outcome.manifest)
+}
+
+/// Writes `tests` as the corpus under `root` (`locales/<tag>.json`), and the
+/// twin's copy of it.
+fn write_corpus(
+    root: &Path,
+    locale: &str,
+    twin: Option<&str>,
+    tests: &[&Message],
+) -> Result<(), Error> {
     let locales = root.join("locales");
     std::fs::create_dir_all(&locales)?;
     let records: Vec<(&str, &str)> = tests
@@ -366,14 +456,7 @@ fn build_corpus(
         // catalogs are switchable; only the locale data differs.
         std::fs::write(locales.join(format!("{twin}.json")), &corpus)?;
     }
-    let outcome = Build::at(&root, out)
-        .config(config(locale))
-        .features(features())
-        .run()?;
-    let outcome = outcome.into_result().map_err(|e| {
-        format!("the suite's own messages did not build as a corpus for {locale}: {e}")
-    })?;
-    Ok(outcome.manifest)
+    Ok(())
 }
 
 /// Builds the messages the spec refuses, and collects what the build said

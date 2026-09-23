@@ -259,9 +259,9 @@ fn orphan_and_duplicate_entries_are_red() {
 fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // Every layer has a harness and the committed ledger has no `xfail` left
-    // (L6 and L6d were the last, and Phase 6 turned them green), so the
-    // ledger is clean at every phase.
+    // Every layer before L7 is green, and L7's cells are `xfail` until P7
+    // until `cargo xtask l7-web` promotes them — both clean at every phase
+    // up to P6.
     for phase in [
         Phase::P1,
         Phase::P2,
@@ -436,7 +436,7 @@ fn missing_column_is_red_and_unknown_column_is_rejected() {
         }]
     ));
     let text = fs::read_to_string(root().join(LEDGER_PATH)).unwrap();
-    let text = text.replacen("L6d = ", "L7 = ", 1);
+    let text = text.replacen("L6d = ", "L8 = ", 1);
     assert!(Ledger::parse(&text).is_err());
 }
 
@@ -445,11 +445,13 @@ fn every_column_is_verifiable() {
     // The rule this replaces a red case for: a `pass` in a column nothing
     // checks is a silent skip, so the ledger refuses it. Since Phase 6 there
     // is no such column — L6 and L6d were the last two without a harness —
-    // and *that* is what has to stay true. A tenth column added without a
+    // and *that* is what has to stay true. L7's four columns are harnessed
+    // in the engines (`cargo xtask l7-web`); a column added with neither
     // harness would fail here before it could claim anything.
     for column in Column::ALL {
         assert!(
-            mf2_conformance::matrix::HARNESSED.contains(&column),
+            mf2_conformance::matrix::HARNESSED.contains(&column)
+                || mf2_conformance::matrix::BROWSER_HARNESSED.contains(&column),
             "{column} has no harness, so nothing can verify a claim in it"
         );
     }

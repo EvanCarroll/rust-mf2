@@ -8,7 +8,7 @@ use std::fmt::Write as _;
 use crate::check::{Violation, stale_index_hints};
 use crate::harness::Results;
 use crate::ledger::{Cell, Ledger};
-use crate::matrix::{Column, HARNESSED, Phase};
+use crate::matrix::{BROWSER_HARNESSED, Column, HARNESSED, Phase};
 use crate::suite::Suite;
 
 /// Status columns of the report, in order.
@@ -109,6 +109,12 @@ pub fn render(
             harnessed.join(", ")
         }
     );
+    let browser: Vec<&str> = BROWSER_HARNESSED.iter().map(|c| c.as_str()).collect();
+    let _ = writeln!(
+        out,
+        "* Layers judged in browser engines, by `cargo xtask l7-web` rather than this report: {}",
+        browser.join(", ")
+    );
     if let Some(results) = results {
         let runs: Vec<String> = HARNESSED
             .iter()
@@ -150,8 +156,10 @@ pub fn render(
     }
 
     out.push_str(
-        "\n## Layer × file\n\nL1–L6 run with all features on; L4d/L5d/L6d are the \
-         default-features configuration. Each cell lists the non-zero status counts.\n\n",
+        "\n## Layer × file\n\nL1–L7c run with all features on; L4d–L7cd are the \
+         default-features configuration. L7/L7d are an islands page and L7c/L7cd a \
+         client-only one, judged in browser engines by `cargo xtask l7-web`. Each cell \
+         lists the non-zero status counts.\n\n",
     );
     out.push_str("| File | Tests |");
     for col in Column::ALL {

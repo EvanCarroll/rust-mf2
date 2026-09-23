@@ -1,0 +1,30 @@
+# Conformance L7's `en-US` set: see conformance/l7-web/set-build.
+[package]
+name = "mf2-l7-set-en-us"
+description = "Conformance L7: the suite's en-US tests as an i18n crate with the twin en-GB, for a page in that locale."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[features]
+default = []
+# Both on: the whole corpus. Both off: the default configuration.
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+ssr = ["mf2/host-std", "leptos-mf2/ssr"]
+client = ["mf2/host-web"]
+
+[dependencies]
+mf2 = { path = "../../../../crates/mf2" }
+mf2-l4-runner = { path = "../../../l4-runner" }
+leptos = { version = "0.8.20", default-features = false }
+leptos-mf2 = { path = "../../../../crates/leptos-mf2", features = ["leptos"] }
+
+[build-dependencies]
+mf2-l7-set-build = { path = "../../set-build" }
+
+[lints.rust]
+unsafe_code = "forbid"

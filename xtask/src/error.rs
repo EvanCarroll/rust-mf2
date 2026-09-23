@@ -17,6 +17,9 @@ pub(crate) enum Error {
     /// Conformance layer L6 in the browser failed.
     #[error("{0}")]
     L6(String),
+    /// Conformance layer L7 failed, or its ledger columns do not hold.
+    #[error("l7-web: {0}")]
+    L7(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

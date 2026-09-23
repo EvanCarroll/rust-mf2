@@ -34,7 +34,8 @@ pub(crate) fn init(root: &Path, ledger: Option<&Path>, force: bool) -> Result<()
     Ok(())
 }
 
-/// `--promote`: add entries for tests the ledger lacks, run the layer
+/// `--promote`: add entries for tests the ledger lacks (and cells for
+/// columns it lacks), run the layer
 /// harnesses and turn every `xfail` cell they pass into `pass` (and every
 /// documented degradation into `degraded`) — the ratchet's way up —
 /// rewriting the ledger.
@@ -51,6 +52,11 @@ pub(crate) fn promote(root: &Path, ledger: Option<&Path>) -> Result<()> {
     let added = ledger.add_missing(&suite);
     if added > 0 {
         eprintln!("conformance-report: added {added} ledger entries for new tests");
+    }
+    // …and columns the ledger lacks (a new layer) get their fresh cells.
+    let cells = ledger.add_missing_columns(&suite);
+    if cells > 0 {
+        eprintln!("conformance-report: added {cells} cell(s) for new columns");
     }
     let results = Harness::load(root)?.run_all(&suite);
     let changed = mf2_conformance::promote(&mut ledger, &results);

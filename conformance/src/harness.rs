@@ -118,6 +118,8 @@ impl Harness {
             Column::L4 => Some(l4::check(test)),
             Column::L5 => Some(l5::check(test)),
             Column::L6 => Some(l6::check(test)),
+            // Browser columns: `cargo xtask l7-web` runs them.
+            Column::L7 | Column::L7c | Column::L7d | Column::L7cd => None,
             Column::L4d | Column::L5d | Column::L6d => Some(match default_outcome(column, test) {
                 DefaultOutcome::Pass => Ok(()),
                 DefaultOutcome::Degraded(kind, detail) => {
