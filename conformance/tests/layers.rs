@@ -66,6 +66,14 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     // files degrade to Unknown Function, syntax.json #90 to neutral digits.
     assert_eq!(results.tally(Column::L4d), (416, 485));
     assert_eq!(results.degradations(Column::L4d), 69);
+    // L5 (the macro layer, Phase 5b A4): the same 485, through `tr!` against
+    // a corpus `mf2-build` compiled — the tests whose message the spec
+    // refuses assert that the *build* refused it, with the same kinds.
+    assert_eq!(results.tally(Column::L5), (485, 485));
+    // L5d: the same degradations as L4d, except that a gated function is the
+    // build refusing the corpus rather than a run-time Unknown Function.
+    assert_eq!(results.tally(Column::L5d), (416, 485));
+    assert_eq!(results.degradations(Column::L5d), 69);
 }
 
 #[test]

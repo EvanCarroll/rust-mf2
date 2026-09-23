@@ -247,6 +247,15 @@ fn json_unstring(s: &str) -> Option<String> {
 /// The message of a one-message catalog.
 const ID: MsgId = MsgId::from_raw(0);
 
+/// The suite's names for `errors`, sorted — the spec fixes no order.
+///
+/// Public so that another layer can build a [`Record`] the same way: layer
+/// L5 formats through `tr!` rather than through [`run`], and its records
+/// have to be comparable with these byte for byte.
+pub fn error_names(errors: &[FormatError]) -> Vec<String> {
+    names(errors)
+}
+
 fn names(errors: &[FormatError]) -> Vec<String> {
     let mut v: Vec<String> = errors
         .iter()
@@ -327,6 +336,20 @@ fn run_in(case: &Case, cx: &FormatContext) -> Result<Record, String> {
     let mut parts = JsonParts::default();
     let mut parts_errors = Vec::new();
     f.parts_named(ID, &named, &mut parts, &mut parts_errors);
+    record_from(text, &errors, &parts, &parts_errors)
+}
+
+/// One [`Record`] from what a format produced, with the invariant every
+/// layer has to hold: the parts concatenate to the string.
+///
+/// Layer L5 formats through `tr!` and calls this, so that a record made
+/// there and a record made by [`run`] are comparable byte for byte.
+pub fn record_from(
+    text: String,
+    errors: &[FormatError],
+    parts: &JsonParts,
+    parts_errors: &[FormatError],
+) -> Result<Record, String> {
     let mut concatenated = String::new();
     for p in &parts.text {
         concatenated.push_str(p);
@@ -338,16 +361,19 @@ fn run_in(case: &Case, cx: &FormatContext) -> Result<Record, String> {
     }
     Ok(Record {
         text,
-        errors: names(&errors),
+        errors: names(errors),
         parts: format!("[{}]", parts.json.join(",")),
-        parts_errors: names(&parts_errors),
+        parts_errors: names(parts_errors),
     })
 }
 
 /// Parts as canonical JSON objects (and their text, to check the
 /// concatenation).
+///
+/// Public so that layer L5 can format to parts the same way (see
+/// [`record_from`]).
 #[derive(Default)]
-struct JsonParts {
+pub struct JsonParts {
     json: Vec<String>,
     text: Vec<String>,
 }

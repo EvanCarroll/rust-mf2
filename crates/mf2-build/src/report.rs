@@ -7,7 +7,18 @@ use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
+use mf2_model::ErrorKind;
+
 use crate::lint::{Level, Lint};
+
+/// Serializes an error kind as the name the WG suite gives it.
+#[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]
+fn suite_name<S: serde::Serializer>(kind: &Option<ErrorKind>, s: S) -> Result<S::Ok, S::Error> {
+    match kind {
+        Some(k) => s.serialize_str(k.suite_name()),
+        None => s.serialize_none(),
+    }
+}
 
 /// One thing a build has to say.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -29,6 +40,16 @@ pub struct Diagnostic {
     /// lint but the message being wrong.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lint: Option<Lint>,
+    /// The MF2 error kind, for a diagnostic that *is* one — a syntax or
+    /// data-model error. It is what the WG suite names the error, so a
+    /// consumer can check the build's verdict without reading prose:
+    /// conformance layer L5 does, and `--format json` carries it.
+    #[serde(
+        rename = "kind",
+        serialize_with = "suite_name",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub kind: Option<ErrorKind>,
     /// What is wrong.
     pub message: String,
 }
@@ -181,6 +202,30 @@ impl<'r> Sink<'r> {
             column: at.column,
             id: id.map(ToOwned::to_owned),
             lint,
+            kind: None,
+            message: message.into(),
+        });
+    }
+
+    /// A message the spec refuses: a syntax or data-model error, with the
+    /// kind the WG suite names it by.
+    pub fn add_invalid(
+        &mut self,
+        file: &Path,
+        at: mf2_resource::Position,
+        id: Option<&str>,
+        kind: ErrorKind,
+        message: impl Into<String>,
+    ) {
+        self.report.push(Diagnostic {
+            level: Level::Error,
+            locale: self.locale.clone(),
+            file: file.to_path_buf(),
+            line: at.line,
+            column: at.column,
+            id: id.map(ToOwned::to_owned),
+            lint: None,
+            kind: Some(kind),
             message: message.into(),
         });
     }
@@ -194,6 +239,7 @@ mod tests {
 
     fn diagnostic(level: Level, line: u32, message: &str) -> Diagnostic {
         Diagnostic {
+            kind: None,
             level,
             locale: "pl".to_owned(),
             file: PathBuf::from("locales/pl/chat.mf2"),

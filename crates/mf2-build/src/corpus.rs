@@ -117,12 +117,11 @@ pub fn parse<'a>(source: &'a LocaleSource, report: &mut Report) -> Vec<Option<Me
         for d in &parsed.diagnostics {
             let (start, end) = d.span.map_or((0, 0), |s| (s.start, s.end));
             let at = source.position(record, start, end);
-            sink.add(
-                Level::Error,
-                None,
+            sink.add_invalid(
                 &source.file(record).path,
                 at,
                 Some(&record.id),
+                d.kind,
                 describe(d),
             );
         }

@@ -81,6 +81,10 @@ pub use tr::{
 #[doc(hidden)]
 pub use mf2_macros::__tr_impl;
 
+/// The proc-macro behind the generated `msg_id!` wrapper.
+#[doc(hidden)]
+pub use mf2_macros::__msg_id_impl;
+
 /// Includes what `mf2-build` wrote into `OUT_DIR`: the manifest hash, the
 /// locale table, the closed-world registry, the host, `__mf2` and the `tr!`
 /// wrapper (`plans/05-tooling.md` §4). An i18n crate's whole `src/lib.rs` is

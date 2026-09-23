@@ -16,6 +16,15 @@ mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 # `datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
 mf2 = { workspace = true, features = ["compile", "datetime-icu"] }
 mf2-l4-runner.workspace = true
+# Layer L5: the suite as four i18n crates — one per locale it uses — each
+# built by `mf2-build` from the vendored suite and reached through `tr!`.
+# The library depends on them (not the other way round), which is how
+# `Harness` can run L5 in the same process as every other layer; their build
+# scripts are where the pipeline runs.
+mf2-l5-ar.workspace = true
+mf2-l5-en-us.workspace = true
+mf2-l5-fr.workspace = true
+mf2-l5-und.workspace = true
 # Generated L4 cases (plans/10 A10): the catalog's direction and plural rules,
 # number data, and `icu.blob` (A6).
 mf2-locale-data = { workspace = true, features = ["icu-blob"] }

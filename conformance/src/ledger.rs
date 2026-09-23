@@ -46,7 +46,7 @@ impl Cell {
         }
     }
 
-    fn via(&self) -> Option<Via> {
+    pub(crate) fn via(&self) -> Option<Via> {
         match self {
             Self::Pass { via } | Self::Xfail { via, .. } => *via,
             _ => None,

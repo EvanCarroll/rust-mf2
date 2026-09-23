@@ -1,0 +1,19 @@
+# The build-side of conformance layer L5 (plans/01-conformance.md §3,
+# plans/13-phase-5b-work-order.md A4): one i18n crate per locale the suite
+# uses, its corpus and its `tr!` call sites derived from the vendored suite at
+# build time — so nothing is checked in to drift, and `cargo xtask spec-sync`
+# is carried through by the next build.
+[package]
+name = "mf2-l5-gen"
+description = "Builds a conformance L5 crate: the suite's messages as a corpus, and one tr! call site per test."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2-build = { workspace = true, features = ["icu-blob"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true

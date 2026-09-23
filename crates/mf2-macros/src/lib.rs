@@ -55,3 +55,20 @@ pub fn __tr_impl(input: TokenStream) -> TokenStream {
     stats::expansion(started);
     out.into()
 }
+
+/// The `MsgId` of a message, checked against the manifest — for a caller
+/// that formats with arguments it does not know at compile time
+/// (`mf2::TrDyn`). Called only by the generated `msg_id!` wrapper.
+#[proc_macro]
+pub fn __msg_id_impl(input: TokenStream) -> TokenStream {
+    let started = stats::start();
+    let out = match parse::input(input).and_then(expand::expand_id) {
+        Ok(tokens) => tokens,
+        Err(e) => {
+            let errors = e.into_compile_error();
+            quote! { { #errors } }
+        }
+    };
+    stats::expansion(started);
+    out.into()
+}

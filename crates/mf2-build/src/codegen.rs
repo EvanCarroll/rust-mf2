@@ -380,6 +380,16 @@ macro_rules! tr {{
         $crate::__mf2::__tr_impl!({source} 0x{hash:016x}u64 ; $crate ; $($t)*)
     }};
 }}
+
+/// `msg_id!(\"id\")` — the id checked against the manifest, and nothing
+/// else: the `MsgId` a caller needs to format a message whose arguments are
+/// not known until run time (`mf2::TrDyn`).
+#[macro_export]
+macro_rules! msg_id {{
+    ($($t:tt)*) => {{
+        $crate::__mf2::__msg_id_impl!({source} 0x{hash:016x}u64 ; $crate ; $($t)*)
+    }};
+}}
 ",
         hash = m.manifest_hash
     );
@@ -569,6 +579,10 @@ mod tests {
         let code = write(&module(&[], &features, &custom, &locales, false));
         assert!(
             code.contains("$crate::__mf2::__tr_impl!(\"/out/manifest.mf2m\" 0x43e0dc12eeb05ef1u64 ; $crate ; $($t)*)"),
+            "{code}"
+        );
+        assert!(
+            code.contains("$crate::__mf2::__msg_id_impl!(\"/out/manifest.mf2m\" 0x43e0dc12eeb05ef1u64 ; $crate ; $($t)*)"),
             "{code}"
         );
     }

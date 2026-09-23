@@ -260,28 +260,36 @@ fn until_at_or_before_current_phase_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
     // L1/L2 pass since Phase 1, L3 since Phase 2, L4 since Phase 3 (and the
-    // P4 files since A3-A5), L4d since A7: nothing in L1-L4d is xfail, so the
-    // committed ledger is green at P1, P2, P3 and P4; at P5b the L5 and L5d
-    // xfails are overdue.
-    for phase in [Phase::P1, Phase::P2, Phase::P3, Phase::P4] {
+    // P4 files since A3-A5), L4d since A7, L5 and L5d since Phase 5b's A4:
+    // nothing up to L5d is xfail, so the committed ledger is green at every
+    // phase up to P5b; at P6 the L6 and L6d xfails are overdue.
+    for phase in [
+        Phase::P1,
+        Phase::P2,
+        Phase::P3,
+        Phase::P4,
+        Phase::P5a,
+        Phase::P5b,
+    ] {
         ledger.current_phase = phase;
         assert_eq!(check(&suite, &ledger), [], "at {phase}");
     }
-    ledger.current_phase = Phase::P5b;
+    ledger.current_phase = Phase::P6;
     let v = check(&suite, &ledger);
     let is_overdue = |c: Column| {
         move |x: &Violation| {
             matches!(
                 x,
-                Violation::UntilNotInFuture { column, until: Phase::P5b, .. } if *column == c
+                Violation::UntilNotInFuture { column, until: Phase::P6, .. } if *column == c
             )
         }
     };
-    assert_eq!(v.iter().filter(|x| is_overdue(Column::L5)(x)).count(), 485);
-    assert!(v.iter().any(is_overdue(Column::L5d)));
+    // L6 applies to the tests the spec accepts — the same 324 as L3.
+    assert_eq!(v.iter().filter(|x| is_overdue(Column::L6)(x)).count(), 324);
+    assert!(v.iter().any(is_overdue(Column::L6d)));
     assert!(
         v.iter()
-            .all(|x| is_overdue(Column::L5)(x) || is_overdue(Column::L5d)(x))
+            .all(|x| is_overdue(Column::L6)(x) || is_overdue(Column::L6d)(x))
     );
 }
 
@@ -430,27 +438,28 @@ fn missing_column_is_red_and_unknown_column_is_rejected() {
 fn unverifiable_claims_are_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
-    // L5 has no harness until Phase 5b (L4 has one since Phase 3).
+    // L5 has had a harness since Phase 5b, so its `pass` is verifiable; L6
+    // has none until Phase 6, so a claim there is not.
     assert_eq!(
-        ledger.entries[0].cells[&Column::L4],
+        ledger.entries[0].cells[&Column::L5],
         Cell::Pass { via: None }
     );
     ledger.entries[0]
         .cells
-        .insert(Column::L5, Cell::Pass { via: None });
+        .insert(Column::L6, Cell::Pass { via: None });
     ledger.entries[0].cells.insert(
-        Column::L6,
+        Column::L6d,
         Cell::Degraded {
             kind: mf2_conformance::ledger::DegradedKind::UnknownFunction,
             detail: None,
         },
     );
     let v = check(&suite, &ledger);
-    assert_eq!(v.len(), 3, "{v:?}");
+    assert_eq!(v.len(), 2, "{v:?}");
     assert!(v.iter().any(|x| matches!(
         x,
         Violation::UnverifiedClaim {
-            column: Column::L5,
+            column: Column::L6,
             status: "pass",
             ..
         }
@@ -458,15 +467,11 @@ fn unverifiable_claims_are_red() {
     assert!(v.iter().any(|x| matches!(
         x,
         Violation::UnverifiedClaim {
-            column: Column::L6,
+            column: Column::L6d,
             status: "degraded",
             ..
         }
     )));
-    assert!(
-        v.iter()
-            .any(|x| matches!(x, Violation::DegradedOutsideDefaultColumns { .. }))
-    );
 }
 
 #[test]

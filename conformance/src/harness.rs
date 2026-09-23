@@ -16,11 +16,11 @@ use crate::check::Violation;
 use crate::error::{Error, Result};
 use crate::key::TestKey;
 use crate::l4::DefaultOutcome;
-use crate::ledger::{Cell, DegradedKind, Ledger};
+use crate::ledger::{Cell, DegradedKind, Ledger, Via};
 use crate::matrix::{Column, HARNESSED};
 use crate::spec::{DATA_MODEL_SCHEMA, spec_path};
 use crate::suite::{Suite, SuiteTest};
-use crate::{l1, l2, l3, l4};
+use crate::{l1, l2, l3, l4, l5};
 
 /// What the harnesses need beyond the suite: the data model's JSON Schema.
 pub struct Harness {
@@ -44,6 +44,14 @@ pub struct Results {
     /// The default-features cells (L4d) that degrade in a documented way:
     /// the kind and a description. Their `cells` outcome is an `Err`.
     pub degraded: BTreeMap<(TestKey, Column), (DegradedKind, String)>,
+    /// How a macro-layer cell was driven, where it was not the macro: the
+    /// suite's tests whose `params` deliberately do not name the message's
+    /// variables go through the dynamic named-argument API, and the ledger
+    /// says so (`via = "dyn"`).
+    // A map rather than a set, because it mirrors the ledger's own model:
+    // `via` is an enum there, and a later layer may drive a cell another way.
+    #[allow(clippy::zero_sized_map_values)]
+    pub via: BTreeMap<(TestKey, Column), Via>,
 }
 
 impl Results {
@@ -77,6 +85,16 @@ impl Results {
     }
 }
 
+/// What a default-features column says about a test: L4d runs the one-message
+/// catalog with the default registry, L5d the corpus the build accepted —
+/// and the messages it refused, which is that layer's whole point.
+fn default_outcome(column: Column, test: &SuiteTest) -> DefaultOutcome {
+    match column {
+        Column::L5d => l5::check_default(test),
+        _ => l4::check_default(test),
+    }
+}
+
 impl Harness {
     /// Loads what the harnesses need from the repository at `root`.
     pub fn load(root: &Path) -> Result<Self> {
@@ -90,13 +108,15 @@ impl Harness {
     }
 
     /// Runs `column` on `test`; `None` if the column has no harness yet.
+    ///
     pub fn run(&self, column: Column, test: &SuiteTest) -> Option<Outcome> {
         let run = || match column {
             Column::L1 => Some(l1::check(test)),
             Column::L2 => Some(l2::check(test, &self.schema)),
             Column::L3 => Some(l3::check(test)),
             Column::L4 => Some(l4::check(test)),
-            Column::L4d => Some(match l4::check_default(test) {
+            Column::L5 => Some(l5::check(test)),
+            Column::L4d | Column::L5d => Some(match default_outcome(column, test) {
                 DefaultOutcome::Pass => Ok(()),
                 DefaultOutcome::Degraded(kind, detail) => {
                     Err(format!("degraded: {}: {detail}", kind.as_str()))
@@ -119,9 +139,12 @@ impl Harness {
                 if !test.kind.applies(column) {
                     continue;
                 }
-                if column == Column::L4d {
-                    let outcome = catch_unwind(AssertUnwindSafe(|| l4::check_default(test)))
-                        .unwrap_or_else(|_| DefaultOutcome::Fail("L4d panicked".to_owned()));
+                if column.is_macro_layer() && l5::is_dyn(test) {
+                    results.via.insert((test.key.clone(), column), Via::Dyn);
+                }
+                if column.is_default_features() {
+                    let outcome = catch_unwind(AssertUnwindSafe(|| default_outcome(column, test)))
+                        .unwrap_or_else(|_| DefaultOutcome::Fail(format!("{column} panicked")));
                     let key = (test.key.clone(), column);
                     let cell = match outcome {
                         DefaultOutcome::Pass => Ok(()),
@@ -155,6 +178,24 @@ pub fn verify(ledger: &Ledger, results: &Results) -> Vec<Violation> {
             let Some(outcome) = results.cells.get(&at) else {
                 continue;
             };
+            // `via` is how the harness drove it, not a claim the ledger may
+            // make on its own: a test moves between the macro and the
+            // dynamic path when its message's variables change.
+            if column.is_macro_layer() && matches!(cell, Cell::Pass { .. }) {
+                let want = results.via.get(&at).copied();
+                if cell.via() != want {
+                    let name = |v: Option<Via>| match v {
+                        Some(Via::Dyn) => "via = \"dyn\"",
+                        None => "through the macro",
+                    };
+                    v.push(Violation::ViaMismatch {
+                        key: entry.key.clone(),
+                        column,
+                        want: name(cell.via()),
+                        got: name(want),
+                    });
+                }
+            }
             let degraded = results.degraded.get(&at);
             if let Cell::Degraded { kind, .. } = cell {
                 let got = match (degraded, outcome) {
@@ -214,8 +255,11 @@ pub fn promote(ledger: &mut Ledger, results: &Results) -> usize {
             let at = (entry.key.clone(), column);
             let passes = matches!(results.cells.get(&at), Some(Ok(())));
             if let Cell::Xfail { via, .. } = cell {
+                // How the harness drove it wins over what the cell said: a
+                // test moves between the two paths when its message changes.
+                let via = results.via.get(&at).copied().or(*via);
                 if passes {
-                    *cell = Cell::Pass { via: *via };
+                    *cell = Cell::Pass { via };
                     changed += 1;
                 } else if let Some((kind, detail)) = results.degraded.get(&at) {
                     *cell = Cell::Degraded {

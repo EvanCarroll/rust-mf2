@@ -85,7 +85,17 @@ pub fn check_default(test: &SuiteTest) -> DefaultOutcome {
         Ok(r) => r,
         Err(e) => return DefaultOutcome::Fail(e),
     };
-    let Err(problem) = compare(test, &got) else {
+    classify_default(test, &got)
+}
+
+/// Classifies what a default-configuration run produced: it passes, it
+/// degrades in one of the documented ways, or it fails.
+///
+/// Layer L5d classifies the same way — the run is a call site rather than a
+/// one-message catalog, but what counts as a documented degradation is the
+/// same, which is what lets the ledger hold the two columns to each other.
+pub fn classify_default(test: &SuiteTest, got: &Record) -> DefaultOutcome {
+    let Err(problem) = compare(test, got) else {
         return DefaultOutcome::Pass;
     };
     let mut want: Vec<String> = test.exp_errors.clone();

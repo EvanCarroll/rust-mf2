@@ -16,6 +16,32 @@ use syn::Expr;
 
 use crate::parse::{Call, Input};
 
+/// `msg_id!("id")`: the id checked against the manifest, and nothing else —
+/// the `MsgId` a caller needs to format a message whose arguments are not
+/// known until run time (`mf2::TrDyn`, `plans/13-phase-5b-work-order.md` A3).
+/// It takes no arguments, so there is no argument set to check.
+pub(crate) fn expand_id(input: Input) -> syn::Result<TokenStream> {
+    let Input {
+        source,
+        hash,
+        krate,
+        call,
+    } = input;
+    let manifest = crate::manifest::load(&source, hash)
+        .map_err(|e| syn::Error::new(call.id.span(), e.to_string()))?;
+    let message = message(&manifest, &call)?;
+    if let Some(arg) = call.args.first() {
+        return Err(syn::Error::new(
+            arg.span,
+            "msg_id! takes only the id; pass the arguments where the message is formatted",
+        ));
+    }
+    let span = call.id.span();
+    let mut raw = Literal::u32_unsuffixed(message.msg_id.raw());
+    raw.set_span(span);
+    Ok(quote_spanned! {span=> #krate::__mf2::MsgId::from_raw(#raw) })
+}
+
 pub(crate) fn expand(input: Input) -> syn::Result<TokenStream> {
     let Input {
         source,

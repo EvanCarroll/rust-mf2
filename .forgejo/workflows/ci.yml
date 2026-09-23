@@ -5,7 +5,7 @@
 # wasm32-unknown-unknown with the `intl` client option, whose code compiles
 # only there — cargo test for the workspace and again for `mf2-resource`'s
 # optional `serde` feature, which nothing in the workspace turns on, the
-# conformance report, which runs layers L1-L4
+# conformance report, which runs layers L1-L5
 # over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain and publish conformance/REPORT.md.

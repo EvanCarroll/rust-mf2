@@ -65,4 +65,6 @@ pub use error::{Error, Result};
 pub use features::Features;
 pub use lint::{Level, Lint};
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};
+/// The manifest a build derived from the source locale (`mf2-catalog`).
+pub use mf2_catalog::Manifest;
 pub use report::{Diagnostic, Report};

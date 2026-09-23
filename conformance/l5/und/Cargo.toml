@@ -1,0 +1,37 @@
+# Conformance layer L5 for the suite's `und` tests: an i18n crate exactly as
+# an application writes one, whose corpus and call sites are the suite itself
+# (plans/01-conformance.md §3, plans/13-phase-5b-work-order.md A4). Its build
+# script derives everything from the vendored suite, so nothing is checked in
+# to drift.
+[package]
+name = "mf2-l5-und"
+description = "Conformance layer L5: the WG suite's und tests as an i18n crate, through tr!."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# The features an application forwards, declared the way an application
+# declares them — the generated module's host and registry name them, so a
+# crate that includes it has to have them all. Every function feature is on:
+# the catalogs must carry what layer L4 formats with.
+default = ["ssr", "fn-number", "datetime-icu"]
+ssr = ["mf2/host-std"]
+hydrate = ["mf2/host-web"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2.workspace = true
+# The suite's own `:test:*` functions, through the public custom-function API
+# and nowhere else — the same handlers L4 uses.
+mf2-l4-runner.workspace = true
+
+[build-dependencies]
+mf2-l5-gen.workspace = true
+
+[lints]
+workspace = true

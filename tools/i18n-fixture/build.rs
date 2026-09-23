@@ -10,7 +10,14 @@ fn main() {
     } else {
         mf2_build::Emit::Both
     };
-    let outcome = match mf2_build::Build::new().and_then(|b| b.emit_cargo(true).emit(emit).run()) {
+    let build = match mf2_build::Build::new() {
+        Ok(build) => build.emit_cargo(true).emit(emit),
+        Err(e) => {
+            println!("cargo::error={e}");
+            std::process::exit(1);
+        }
+    };
+    let outcome = match build.run() {
         Ok(outcome) => outcome,
         Err(e) => {
             println!("cargo::error={e}");

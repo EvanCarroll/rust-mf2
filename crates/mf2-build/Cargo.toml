@@ -17,7 +17,9 @@ brotli.workspace = true
 flate2.workspace = true
 mf2-catalog = { workspace = true, features = ["decode", "manifest", "writer"] }
 mf2-locale-data.workspace = true
-mf2-model.workspace = true
+# `suite-names`: a diagnostic carries the WG suite's name for the MF2 error
+# kind it reports, so the build's verdict is machine-checkable (L5).
+mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }

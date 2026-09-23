@@ -18,6 +18,11 @@ members = [
     "xtask",
     "conformance",
     "conformance/l4-runner",
+    "conformance/l5/gen",
+    "conformance/l5/en-us",
+    "conformance/l5/und",
+    "conformance/l5/fr",
+    "conformance/l5/ar",
     "bench/build-cost",
     "bench/workload-gen",
     "bench/parser-gate",
@@ -52,6 +57,11 @@ mf2-conformance = { path = "conformance" }
 mf2-fn-number = { path = "crates/mf2-fn-number" }
 mf2-fn-datetime = { path = "crates/mf2-fn-datetime" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
+mf2-l5-gen = { path = "conformance/l5/gen" }
+mf2-l5-en-us = { path = "conformance/l5/en-us" }
+mf2-l5-und = { path = "conformance/l5/und" }
+mf2-l5-fr = { path = "conformance/l5/fr" }
+mf2-l5-ar = { path = "conformance/l5/ar" }
 mf2-host-std = { path = "crates/mf2-host-std" }
 mf2-host-web = { path = "crates/mf2-host-web" }
 mf2-locale-data = { path = "crates/mf2-locale-data" }

@@ -148,6 +148,14 @@ pub enum Violation {
     #[error("{key}: engine {engine} is in more than one `intl` entry")]
     IntlEngineTwice { key: TestKey, engine: String },
 
+    #[error("{key}: {column} says {want}, but the harness drove it {got}")]
+    ViaMismatch {
+        key: TestKey,
+        column: Column,
+        want: &'static str,
+        got: &'static str,
+    },
+
     #[error("{key}: {column} is degraded ({want}) in the ledger, but the harness {got}")]
     DegradationMismatch {
         key: TestKey,
