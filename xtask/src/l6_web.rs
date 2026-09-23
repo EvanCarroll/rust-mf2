@@ -22,7 +22,7 @@ use crate::cmd;
 use crate::error::{Error, Result};
 
 /// The engines this runs in by default. Two are required (master plan §9,
-/// P6); WebKit joins wherever a build of it is installed.
+/// P6); `WebKit` joins wherever a build of it is installed.
 pub(crate) const ENGINES: [&str; 3] = ["chromium", "firefox", "webkit"];
 
 pub(crate) fn run(root: &Path, engines: &[String], build: bool) -> Result<()> {

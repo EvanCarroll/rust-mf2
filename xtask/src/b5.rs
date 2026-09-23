@@ -59,6 +59,10 @@ const SCALES: [Scale; 2] = [
 /// The templates, in the order the table shows them.
 const TEMPLATES: [&str; 3] = ["tr", "idlit", "dummy"];
 
+/// What every application of one scale measured: the scale's real site
+/// count, and one entry per template.
+pub(crate) type Measured = Vec<(usize, Vec<(&'static str, Sizes)>)>;
+
 /// What one built application measured.
 pub(crate) struct Sizes {
     /// After `wasm-bindgen`, before `wasm-opt`.
@@ -76,11 +80,7 @@ pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
 /// Builds the six applications and measures them. Shared with
 /// `cargo xtask size`, which applies the whole-app gates to the same numbers
 /// rather than building them again.
-pub(crate) fn measure(
-    root: &Path,
-    out: Option<PathBuf>,
-    keep: bool,
-) -> Result<Vec<(usize, Vec<(&'static str, Sizes)>)>> {
+pub(crate) fn measure(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<Measured> {
     let out = out.unwrap_or_else(|| root.join("target").join("b5"));
     if !keep && out.exists() {
         std::fs::remove_dir_all(&out).map_err(|source| Error::IoAt {
