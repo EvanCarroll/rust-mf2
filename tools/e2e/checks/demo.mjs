@@ -110,9 +110,11 @@ export async function run(ctx) {
   );
   data.preloadHref = preloadHref;
 
-  // The in-page map carries the *other* locales, not this one.
+  // The in-page map carries *every* locale, this page's included: after a
+  // switch, the preload link no longer names the locale the user may want
+  // back (conformance L6 in the browser found this by failing to come home).
   const mapped = [...englishHtml.matchAll(/data-mf2-locale="([^"]+)"/g)].map((m) => m[1]).sort();
-  assert('catalog-map-is-the-other-locales', JSON.stringify(mapped) === '["ar","fr"]', mapped);
+  assert('catalog-map-is-every-locale', JSON.stringify(mapped) === '["ar","en","fr"]', mapped);
 
   // The catalog itself.
   const catalog = await get(preloadHref, { 'accept-encoding': 'identity' });
