@@ -48,7 +48,7 @@ use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTem
 use crate::registry::Relocalize;
 use crate::registry::{self, Target};
 use crate::rich;
-use crate::state::TextUse;
+use crate::state::{self, TextUse};
 use crate::text::{self, Description};
 use crate::{Tr, TrArgs, TrDyn, TrRich};
 
@@ -311,8 +311,9 @@ impl Drop for TrAttrState {
 
 /// `AttributeValue` and `IntoProperty` for one description type.
 ///
-/// An attribute is text a person reads, so it is isolated; a property is
-/// text a program reads, so it is not (§9).
+/// An attribute is isolated or not by its name — `title` is text a person
+/// reads, `value` is text a program reads ([`state::attribute_use`]); a
+/// property is text a program reads, so it is never isolated (§9).
 macro_rules! attribute_description {
     ($ty:ty) => {
         impl AttributeValue for $ty {
@@ -326,7 +327,7 @@ macro_rules! attribute_description {
             }
 
             fn to_html(self, key: &str, buf: &mut String) {
-                with_text(&self, TextUse::Displayed, |text| {
+                with_text(&self, state::attribute_use(key), |text| {
                     <&str as AttributeValue>::to_html(text, key, buf);
                 });
             }
@@ -337,7 +338,7 @@ macro_rules! attribute_description {
                 // As tachys does for `&str`: server HTML already carries the
                 // attribute, and a `<template>` clone does not.
                 if !FROM_SERVER {
-                    with_text(&self, TextUse::Displayed, |text| {
+                    with_text(&self, state::attribute_use(key), |text| {
                         Rndr::set_attribute(el, key, text);
                     });
                 }
@@ -349,7 +350,7 @@ macro_rules! attribute_description {
             }
 
             fn build(self, el: &Element, key: &str) -> Self::State {
-                with_text(&self, TextUse::Displayed, |text| {
+                with_text(&self, state::attribute_use(key), |text| {
                     Rndr::set_attribute(el, key, text);
                 });
                 let slot = registry::insert(

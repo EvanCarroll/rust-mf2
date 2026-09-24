@@ -143,7 +143,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7** and **A8** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8** and **A9** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -155,7 +155,7 @@ found nothing to propose (§"A8").
 | **A6** The dev loop — **done** | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
 | **A7** Leptos 0.9 — **done** | *Rescoped by owner question 7.* A `tachys-0-3` feature of `leptos-mf2` that switches the two `to_html_with_buf` impls (`Tr`/`TrArgs`/`TrDyn` and `TrRich`) to 0.9's `RenderFlags` form, in the existing glue module; everything else stays shared. The glue module is renamed to name no line (`glue/view.rs`), and `glue.rs`' doc says why. `cargo xtask leptos-beta`: copies the tracked tree to `target/leptos-beta`, pins the workspace's `leptos`, `tachys`, `reactive_graph`, `leptos_axum`, `leptos_meta` and `leptos_router` to the newest 0.9 / 0.3 pre-releases, then checks `leptos-mf2` for `ssr`, `csr` and `hydrate` and runs its `render` (ssr) and `churn` (csr) tests, all with `tachys-0-3`. The working tree is never edited. A nightly job, `leptos-beta`, runs it with `continue-on-error`. `tachys-0-3` with 0.8's dependencies is a compile error that names the fix. At 0.9's release, the workspace moves to it (D10: latest stable), and whether 0.8 stays supported is a question for the owner then. | the xtask passes on today's beta (and fails on it without `tachys-0-3`, as the negative control); the nightly job exists; `cargo xtask ci` green on 0.8 |
 | **A8** The tachys leaf hook — **done: the reason not to** | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. *As found: neither half of the case survived measurement. The 197 KB was the server's host linked into the benchmark's client (a template bug, fixed); the fixed cost is 28 KB gz, the margin 11.9 B gz, and ≈ 0 under `erase_components`; the two-hour compile did not reproduce (below).* | the proposal written and put to the tachys maintainers, or the reason not to |
-| **A9** The bidi override in a view — *decided by owner question 8* | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position could only be overridden per request. *Decided: an attribute's strategy follows its name* ([04](04-leptos-integration.md) §9's second table). `AttributeValue`'s `to_html`, `build` and `hydrate` and the registry's `Target::Attribute` rewrite on a switch all choose `TextUse` from the key through **one** function (ASCII case-insensitive; `data-` by prefix); `IntoProperty`, text children and markup are unchanged. The `TextUse` and `Target` docs and the `with_bidi` doc say so. The closure form for a plain text child goes in the user documentation (A13). | a native `ssr` render test: a message with an argument in `value=` and `data-x=` has no U+2066–U+2069, in `title=` it has them, and the name match ignores case; a browser check on an example page asserts the same after hydration **and** after a live switch (the registry path); negative control: with the rule forced to `Displayed`, both fail; `cargo xtask size` passes, with the B1 change recorded |
+| **A9** The bidi override in a view — **done**, *decided by owner question 8* | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position could only be overridden per request. *Decided: an attribute's strategy follows its name* ([04](04-leptos-integration.md) §9's second table). `AttributeValue`'s `to_html`, `build` and `hydrate` and the registry's `Target::Attribute` rewrite on a switch all choose `TextUse` from the key through **one** function (ASCII case-insensitive; `data-` by prefix); `IntoProperty`, text children and markup are unchanged. The `TextUse` and `Target` docs and the `with_bidi` doc say so. The closure form for a plain text child goes in the user documentation (A13). | a native `ssr` render test: a message with an argument in `value=` and `data-x=` has no U+2066–U+2069, in `title=` it has them, and the name match ignores case; a browser check on an example page asserts the same after hydration **and** after a live switch (the registry path); negative control: with the rule forced to `Displayed`, both fail; `cargo xtask size` passes, with the B1 change recorded |
 | **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check |
 | **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
 | **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
@@ -686,6 +686,50 @@ hook had two halves, and neither survived.
   made absolute first.
 * **Corrected elsewhere:** phase-6-results §A7 (a pointer here), 04 §1, 06
   §3 (B5's row).
+
+## A9 — an attribute's bidi strategy by its name: what was built and measured
+
+* **The rule** is `state::attribute_use(key)` in `leptos-mf2`: plain for
+  the sixteen names of 04 §9's second table and any `data-*`, isolated for
+  every other name, ASCII case-insensitive. It is asked in all four places
+  an attribute's text is made — `AttributeValue::to_html` (the server),
+  `build` and `hydrate` (the client), and `Target::text_use` (the
+  registry's rewrite on a switch, and the unregistered rebuild under
+  `static-locale`). `IntoProperty` stays plain, text children and markup
+  stay isolated. The docs of `TextUse`, `Target::Attribute` and
+  `RequestI18n::with_bidi` say so.
+* **Test**, `crates/leptos-mf2/tests/render.rs`
+  `an_attribute_is_isolated_or_plain_by_its_name` (`--features ssr`, 13/13):
+  `Hello, {$name}!` is plain in `value`, `data-x`, `href`, `download`,
+  `VALUE`, `Data-X`, and isolated in `title`, `aria-label`, `placeholder`,
+  `alt`, and in `database` and `values` (a near miss is not a match).
+* **The example.** demo-ssr's home page has a prefilled "Message" field
+  (`message-label`, added in en/fr/ar) whose `value=`, `title=` and
+  `data-greeting=` are the corpus's `greeting` with a name, which was in the
+  catalog and unused. `tools/e2e/checks/demo.mjs` asserts, at four stages —
+  the server's HTML, as hydrated, after a live switch to `fr` (written by
+  the registry), and after the switch to `ar` (a Latin name in an RTL
+  sentence) — that `value` has no U+2066–U+2069, `data-greeting` equals it,
+  `title` has U+2068 `Ada` U+2069, and the two differ only by the marks.
+  Chromium and Firefox, debug `--split` build, 2026-09-24: `demo.mjs`
+  134/134 (was 100: 17 new assertions per engine), `lazy.mjs` 66/66.
+  WebKit was not run (not installed).
+* **Negative controls**, `attribute_use` forced to `Displayed`: the render
+  test fails at `value= is plain`; `demo.mjs` fails 118/134 — the `value`
+  and differ-only-by-the-marks assertions at all four stages, in both
+  engines (the `data` one passes because it compares with `value`, and
+  `title` is isolated either way).
+* **Size.** `cargo xtask size` passes unchanged to the byte (B1 22,108 B gz,
+  B5 12.6, whole app 45,519, as at A8). That gate's `tr` template formats
+  every site to a `String`, so the attribute glue is not in it; the rule's
+  cost is in the view path: `cargo xtask b5 --view`, against A8's run
+  of the previous commit (the `idlit-view` and `dummy` baselines reproduce
+  it to the byte, so the difference is this change): `tr-view` at 1,860
+  sites 600,670 → 601,079 B gz (+409; raw 2,071,085 → 2,071,615, +530), at
+  3,720 sites 1,006,726 → 1,007,111 (+385). **Fixed 28,423 → 28,856 B gz
+  (+433), marginal 11.9 → 11.8 B gz a site** — a fixed cost, nothing per
+  call site, within the ≤ 40 budget.
+* `cargo xtask ci` green (2026-09-24).
 
 ## Exit (master plan §9, P7)
 

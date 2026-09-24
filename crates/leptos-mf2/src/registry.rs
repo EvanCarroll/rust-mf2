@@ -40,7 +40,7 @@ use tachys::renderer::Rndr;
 use tachys::renderer::types::{Element, Text};
 
 use crate::catalog;
-use crate::state::TextUse;
+use crate::state::{self, TextUse};
 use reactive_graph::effect::RenderEffect;
 use reactive_graph::graph::{Subscriber, ToAnySubscriber};
 
@@ -58,7 +58,8 @@ pub(crate) const NONE: u32 = u32::MAX;
 pub(crate) enum Target {
     /// A text child.
     Text(Text),
-    /// An attribute of an element (`title`, `placeholder`, `aria-label`).
+    /// An attribute of an element (`title`, `placeholder`, `value`), whose
+    /// name decides its isolation ([`state::attribute_use`]).
     Attribute(Element, Box<str>),
     /// A DOM property (`prop:value`), which is plain text: no bidi
     /// isolation (§9).
@@ -69,7 +70,8 @@ impl Target {
     /// What the text in this position is for, which decides bidi isolation.
     fn text_use(&self) -> TextUse {
         match self {
-            Target::Text(_) | Target::Attribute(..) => TextUse::Displayed,
+            Target::Text(_) => TextUse::Displayed,
+            Target::Attribute(_, key) => state::attribute_use(key),
             Target::Property(..) => TextUse::Plain,
         }
     }

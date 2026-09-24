@@ -8,6 +8,7 @@ search-placeholder = ابحث في كل شيء
 search-label = بحث
 
 greeting = مرحبا يا {$name}!
+message-label = الرسالة
 
 people-online =
   .input {$count :integer}

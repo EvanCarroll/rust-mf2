@@ -184,6 +184,25 @@ fn HomePage() -> impl IntoView {
             // comparison — consumes it (04 §9).
             <p id="echo">{move || echo(typed.get())}</p>
         </section>
+
+        <section class="card">
+            // One sentence with a name in it, in three attributes. The
+            // library decides by the attribute's name: `value=` is
+            // submitted with a form and `data-*` is read by a script, so
+            // they carry no bidi marks; `title=` is read by a person, so
+            // the name in it is isolated (04 §9).
+            <label class="field">
+                <span>{demo_i18n::tr!("message-label")}</span>
+                <input
+                    id="message"
+                    type="text"
+                    name="message"
+                    value=demo_i18n::tr!("greeting", name = "Ada")
+                    title=demo_i18n::tr!("greeting", name = "Ada")
+                    data-greeting=demo_i18n::tr!("greeting", name = "Ada")
+                />
+            </label>
+        </section>
     }
 }
 

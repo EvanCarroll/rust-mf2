@@ -14,6 +14,10 @@
 //     `<title>` — and switching back gives exactly the server's text;
 //   * a signal-valued argument still re-formats after a switch;
 //   * markup is real elements, and its position follows the *message*;
+//   * an attribute's bidi marks follow its name — none in `value=` and
+//     `data-*`, which programs read, and around the name in `title=` — as
+//     served, as hydrated, and as the registry rewrites them on a switch
+//     (04 §9);
 //   * no message text is in the client bundle (B6).
 
 import {
@@ -205,6 +209,16 @@ export async function run(ctx) {
   assert('markup-is-an-element', (await page.locator('#hotkey kbd').count()) === 1);
   const enHotkey = NORMALISE(await page.textContent('#hotkey'));
 
+  // Bidi by attribute name, first in the server's HTML, then as hydrated.
+  const served = englishHtml.match(/<input[^>]*\bid="message"[^>]*>/)?.[0] || '';
+  checkAttributeBidi(assert, 'served', {
+    value: attr(served, /\svalue="([^"]*)"/),
+    data: attr(served, /\sdata-greeting="([^"]*)"/),
+    title: attr(served, /\stitle="([^"]*)"/),
+  });
+  const enMessage = await messageAttributes(page);
+  checkAttributeBidi(assert, 'hydrated', enMessage);
+
   // ------------------------------------------------------------ switch ---
 
   const enText = NORMALISE(await page.evaluate(() => document.body.innerText));
@@ -226,6 +240,13 @@ export async function run(ctx) {
   const frHotkey = NORMALISE(await page.textContent('#hotkey'));
   assert('markup-follows-the-message', frHotkey !== enHotkey, { en: enHotkey, fr: frHotkey });
   assert('markup-survives-a-switch', (await page.locator('#hotkey kbd').count()) === 1);
+  // The registry's rewrite, not the server, wrote these.
+  const frMessage = await messageAttributes(page);
+  assert('attributes-follow-the-switch', frMessage.value !== enMessage.value, {
+    en: enMessage.value,
+    fr: frMessage.value,
+  });
+  checkAttributeBidi(assert, 'switched', frMessage);
 
   // What the switch produced must equal what the server produces for the
   // same locale: one renderer, two entry points.
@@ -239,6 +260,9 @@ export async function run(ctx) {
   await page.selectOption('#mf2-locale', 'ar');
   await page.waitForFunction(() => document.documentElement.lang === 'ar', undefined, { timeout: 5000 });
   assert('rtl-switch-sets-dir', (await page.getAttribute('html', 'dir')) === 'rtl');
+  // Right-to-left is where the marks matter: the Latin name inside an
+  // Arabic sentence.
+  checkAttributeBidi(assert, 'switched-rtl', await messageAttributes(page));
   const arText = NORMALISE(await page.evaluate(() => document.body.innerText));
   const arServer = await serverText(context, `${baseUrl}/?lang=ar`);
   assert('rtl-text-equals-server-text', arText === arServer, {
@@ -331,6 +355,37 @@ export async function run(ctx) {
   assert('failed-boot-says-why-once', failed.mf2.length === 1, failed.mf2);
   assert('failed-boot-does-not-trap', failed.other.length === 0, failed.other);
   await failing.close();
+}
+
+const BIDI_MARKS = /[\u2066-\u2069]/;
+
+/** `#message`'s three translated attributes. */
+async function messageAttributes(page) {
+  return page.evaluate(() => {
+    const el = document.querySelector('#message');
+    return {
+      value: el?.getAttribute('value'),
+      data: el?.getAttribute('data-greeting'),
+      title: el?.getAttribute('title'),
+    };
+  });
+}
+
+/**
+ * One sentence in three attributes: plain where a program reads it
+ * (`value`, `data-*`), the name isolated where a person does (`title`),
+ * and otherwise the same text.
+ */
+function checkAttributeBidi(assert, stage, { value, data, title }) {
+  const shown = { value, data, title };
+  assert(`${stage}-value-attribute-is-plain`, value?.includes('Ada') && !BIDI_MARKS.test(value), shown);
+  assert(`${stage}-data-attribute-is-plain`, data === value, shown);
+  assert(`${stage}-title-attribute-is-isolated`, title?.includes('\u2068Ada\u2069'), shown);
+  assert(
+    `${stage}-attributes-differ-only-by-the-marks`,
+    title?.replace(/[\u2066-\u2069]/g, '') === value,
+    shown,
+  );
 }
 
 /** Waits until the wasm has booted and hydration has registered its nodes. */

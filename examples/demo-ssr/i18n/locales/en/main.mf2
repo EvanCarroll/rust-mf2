@@ -12,6 +12,7 @@ search-placeholder = Search everything
 search-label = Search
 
 greeting = Hello, {$name}!
+message-label = Message
 
 people-online =
   .input {$count :integer}

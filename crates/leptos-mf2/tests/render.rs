@@ -114,6 +114,43 @@ fn a_description_is_an_attribute_value() {
     assert_eq!(buf, " placeholder=\"Search &quot;everything&quot;\"");
 }
 
+/// An attribute is isolated or plain by its name (04 §9, owner,
+/// 2026-09-24): `value=` is submitted with a form and `data-*` is read by a
+/// script, so the marks would be junk there; `title=` is read by a person.
+#[test]
+fn an_attribute_is_isolated_or_plain_by_its_name() {
+    let catalog = catalog_of("Hello, {$name}!", "en");
+    let attr = |key: &str| {
+        let mut buf = String::new();
+        in_request(&catalog, || {
+            let d: TrArgs = tr_args1(ID, ArgValue::str_static("Ada"));
+            AttributeValue::to_html(d, key, &mut buf);
+        });
+        buf
+    };
+    for key in ["value", "data-x", "href", "download", "VALUE", "Data-X"] {
+        assert_eq!(
+            attr(key),
+            format!(" {key}=\"Hello, Ada!\""),
+            "{key}= is plain"
+        );
+    }
+    for key in [
+        "title",
+        "aria-label",
+        "placeholder",
+        "alt",
+        "database",
+        "values",
+    ] {
+        assert_eq!(
+            attr(key),
+            format!(" {key}=\"Hello, \u{2068}Ada\u{2069}!\""),
+            "{key}= is isolated"
+        );
+    }
+}
+
 #[test]
 fn a_missing_catalog_renders_empty_text_and_does_not_panic() {
     installed();

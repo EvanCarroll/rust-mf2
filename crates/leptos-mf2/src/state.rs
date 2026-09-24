@@ -26,12 +26,55 @@ use std::sync::OnceLock;
 /// two formatters the library already holds, at no per-call-site cost.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum TextUse {
-    /// Text a person reads: a text child, an attribute (`title`,
-    /// `aria-label`, `placeholder`, `alt`), a markup part. Isolated.
+    /// Text a person reads: a text child, a markup part, an attribute a
+    /// person reads (`title`, `aria-label`, `placeholder`, `alt`; the
+    /// attribute's name decides, §9). Isolated.
     Displayed,
-    /// Text a program consumes: a DOM property, [`ToString`], `String` and
-    /// `Oco` conversions. Not isolated.
+    /// Text a program consumes: a DOM property, an attribute a program reads
+    /// (`value`, `href`, `download`, `data-*`), [`ToString`], `String` and `Oco` conversions. Not isolated.
     Plain,
+}
+
+/// Attributes whose value a program reads — a form submits it, a browser
+/// resolves it as a URL or a file name, a selector or a script matches it —
+/// so they are plain. `data-*` is matched by prefix in [`attribute_use`].
+const PLAIN_ATTRIBUTES: [&str; 16] = [
+    "value",
+    "href",
+    "src",
+    "srcset",
+    "action",
+    "formaction",
+    "poster",
+    "cite",
+    "download",
+    "id",
+    "name",
+    "for",
+    "form",
+    "list",
+    "class",
+    "type",
+];
+
+/// What the text of the attribute `key` is for, which decides its bidi
+/// isolation (§9, owner, 2026-09-24): plain for the attributes a program
+/// reads, isolated for every other — the ones a person reads (`title`,
+/// `alt`, `aria-*`, `placeholder`, `label`, `content`, …).
+///
+/// Every place an attribute's text is made — the server's HTML, a client
+/// build or hydration, the registry's rewrite on a switch — asks this one
+/// function, so server and client agree. HTML attribute names are ASCII
+/// case-insensitive, and so is the match.
+pub(crate) fn attribute_use(key: &str) -> TextUse {
+    let data = key
+        .get(..5)
+        .is_some_and(|p| p.eq_ignore_ascii_case("data-"));
+    if data || PLAIN_ATTRIBUTES.iter().any(|a| a.eq_ignore_ascii_case(key)) {
+        TextUse::Plain
+    } else {
+        TextUse::Displayed
+    }
 }
 
 /// The application's own half of a formatter, installed once

@@ -176,7 +176,8 @@ impl RequestI18n {
     }
 
     /// …with another bidi strategy for *displayed* text. Plain positions
-    /// (`prop:value`, `to_string()`) are unaffected: they are never isolated.
+    /// (`prop:value`, an attribute a program reads such as `value=` or
+    /// `data-*`, `to_string()`) are unaffected: they are never isolated.
     #[must_use]
     pub fn with_bidi(mut self, bidi: mf2_runtime::BidiStrategy) -> RequestI18n {
         self.bidi = Some(bidi);
@@ -250,8 +251,9 @@ impl Resolved {
     }
 
     /// Likewise: a per-request bidi override is a server's business (the
-    /// suite's `bidiIsolation`, a subtree rendered plain). A call site that
-    /// wants plain text on the client asks for it by position — §9.
+    /// suite's `bidiIsolation`, a subtree rendered plain). On the client the
+    /// position decides — `prop:value`, an attribute a program reads by its
+    /// name, `to_string()` — §9.
     #[allow(clippy::unused_self)]
     pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
         None
