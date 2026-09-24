@@ -46,6 +46,9 @@ exclude = [
     "fuzz",
     "bench/b12",
     "bench/intl-probe",
+    # The churn harness (Phase 7 A5): a `csr` cdylib, which must not unify
+    # with this workspace's `ssr`.
+    "bench/churn",
     "conformance/l4-web",
     "conformance/l6-web",
     "tools/e2e/datetime",

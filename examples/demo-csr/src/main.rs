@@ -28,9 +28,10 @@ use demo_csr_i18n::tr;
 fn App() -> impl IntoView {
     provide_meta_context();
     // `html_lang` reads the active catalog, which is not a signal; the
-    // trigger a switch fires is what makes this follow it.
+    // trigger a switch fires is what makes this follow it (`track_locale`
+    // subscribes until the reader's next run, so nothing is left behind).
     let in_language = move || {
-        leptos_mf2::changed().track();
+        leptos_mf2::track_locale();
         html_lang().0
     };
     let count = RwSignal::new(3);

@@ -137,7 +137,7 @@ pub use catalog::{
 
 /// The client's active catalog and its change notifier.
 #[cfg(all(feature = "leptos", not(feature = "ssr")))]
-pub use catalog::{changed, set_active};
+pub use catalog::{changed, set_active, track_locale};
 
 /// The client's boot and locale switch (§6).
 #[cfg(any(feature = "hydrate", feature = "csr"))]

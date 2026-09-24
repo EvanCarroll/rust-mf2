@@ -109,11 +109,13 @@ pub fn App() -> impl IntoView {
 /// The locale the page is in, following a switch.
 ///
 /// `html_lang` reads the active catalog, which is not a signal; on the
-/// client the trigger a switch fires is what makes this follow it. On the
-/// server a request never changes locale.
+/// client the trigger a switch fires is what makes this follow it —
+/// `track_locale` rather than `changed().track()`, so that the lazy route's
+/// reader leaves the trigger when the route unmounts. On the server a
+/// request never changes locale.
 fn current_locale() -> String {
     #[cfg(not(feature = "ssr"))]
-    leptos_mf2::changed().track();
+    leptos_mf2::track_locale();
     html_lang().0
 }
 

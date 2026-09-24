@@ -63,10 +63,16 @@ web-sys = { workspace = true, optional = true }
 # is how a server uses this crate.
 [dev-dependencies]
 mf2 = { workspace = true, features = ["compile", "host-std"] }
+# `tests/churn.rs` runs the client's effects natively.
+any_spawner = { workspace = true, features = ["futures-executor"] }
 
 [[test]]
 name = "render"
 required-features = ["ssr"]
+
+[[test]]
+name = "churn"
+required-features = ["csr"]
 
 [package.metadata.docs.rs]
 features = ["leptos", "ssr"]

@@ -5,6 +5,7 @@
 
 mod b12_generated;
 mod b5;
+mod churn;
 mod ci;
 mod cldr_sync;
 mod cmd;
@@ -140,6 +141,19 @@ enum Command {
         #[arg(long)]
         keep: bool,
     },
+    /// The conversions under churn (Phase 7, A5): P0.11's churning list on
+    /// leptos-mf2, one row shape per variant, built as a client-only site
+    /// and run in the browser; no shape may grow the heap
+    /// (tools/e2e/checks/churn.mjs).
+    Churn {
+        /// Engines: `all` (Chromium, Firefox, and `WebKit` where installed)
+        /// or a comma-separated list.
+        #[arg(long, default_value = "chromium,firefox", value_name = "ENGINES")]
+        browser: String,
+        /// Drive the site already in target/churn/ (no build).
+        #[arg(long)]
+        no_build: bool,
+    },
     /// A server-only component costs the client nothing (Phase 7, A1): the
     /// islands example's client, built with and without one more server-only
     /// component full of call sites, must be the same size.
@@ -245,6 +259,7 @@ fn run(command: Command) -> Result<()> {
         Command::Ci => ci::run(&root),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
+        Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {
                 l6_web::ENGINES.iter().map(|e| (*e).to_owned()).collect()

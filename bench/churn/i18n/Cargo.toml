@@ -1,0 +1,27 @@
+# The harness's i18n crate, shaped like `examples/demo-csr`'s: the corpus
+# under `locales/`, a build script, and a one-line `src/lib.rs`.
+[package]
+name = "churn-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[features]
+# `row-n` formats a number. **Keep this list and the `--features` that
+# `cargo xtask churn` passes to `mf2 compile --site` the same.**
+default = ["fn-number"]
+# The generated module names these whether or not the corpus uses them.
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web"] }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("ssr"))'] }

@@ -50,8 +50,9 @@ fn reader<D: Description>(description: D) -> impl Fn() -> String + Send + Sync +
         move || {
             // Subscribing here is what makes the consumer's own effect re-run
             // after `set_locale`; the node registry handles the nodes we
-            // rendered ourselves.
-            reactive_graph::traits::Track::track(&crate::catalog::changed());
+            // rendered ourselves. The subscription ends with the consumer's
+            // run, so a consumer in a churning row leaves nothing behind.
+            crate::catalog::track_locale();
             text::to_string(&description, TextUse::Displayed)
         }
     }

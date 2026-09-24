@@ -100,6 +100,19 @@ const STEPS: &[&[&str]] = &[
         "warnings",
     ],
     &["test", "--workspace"],
+    // The client half's conversions under churn (Phase 7 A5): natively, with
+    // `csr`, which `--workspace` never builds (it unifies `ssr`). The browser
+    // measurement of every row shape is `cargo xtask churn`.
+    &[
+        "test",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "csr",
+        "--test",
+        "churn",
+    ],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
     // or runs `tests/json.rs`.

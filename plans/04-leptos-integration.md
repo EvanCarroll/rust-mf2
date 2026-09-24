@@ -266,8 +266,28 @@ code, whereas the user writing `move || tr!(…, count = count.get())` creates a
 closure type per site and costs what the old stack did — the documentation
 steers users to the signal-valued form. The conversions (`TextProp`,
 `Signal<String>`, `to_string()` under an observer) still subscribe to the one
-trigger through the consuming component's effect; their behaviour inside
-churning rows is a P6 follow-up.
+trigger through the consuming component's effect.
+
+**Under churn (Phase 7 A5).** `reactive_graph` 0.2 removes an effect from a
+source's subscriber set only when the effect re-runs. A dropped effect stays
+there until the source next fires. Measured in `bench/churn`, both of the
+remaining subscriptions leaked ≈ 70 B per churned row on wasm32:
+
+* a conversion's consumer, until the next locale switch;
+* a node's argument effect, until the application's signal changed, which
+  may be never.
+
+Both are closed:
+
+* the conversions subscribe through `track_locale()`, which also registers
+  an owner cleanup that unsubscribes. That cleanup runs before each re-run
+  and at disposal, since every observer has an owner of its own. It costs
+  48–64 B per *live* consumer.
+* the argument effect clears its sources when its slot drops it.
+
+Application code that wants to follow the locale calls `track_locale()`,
+not `changed().track()`. `cargo xtask churn` holds every row shape flat
+over 100,000 churned rows.
 
 Reading outside a reactive observer (event handlers, `format!`) MUST NOT warn:
 tracking is attempted only when an observer exists; `tr_untracked!` is available

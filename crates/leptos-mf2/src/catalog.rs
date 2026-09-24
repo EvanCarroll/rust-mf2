@@ -304,12 +304,41 @@ mod client {
         ACTIVE.with(|a| *a.borrow_mut() = Some(catalog));
     }
 
-    /// The trigger, cloned, for a caller that wants to subscribe.
+    /// The trigger, cloned, for a caller that wants to subscribe — prefer
+    /// [`track_locale`], which also unsubscribes.
     #[must_use]
     pub fn changed() -> ArcTrigger {
         CHANGED.with(Clone::clone)
     }
+
+    /// Subscribes the running observer — the effect or memo reading a
+    /// description — to the locale change, **until its owner is next cleaned
+    /// up**: when it re-runs (and subscribes again) or is disposed.
+    ///
+    /// Tracking [`changed`] alone is strategy A's leak (P0.11): a dropped
+    /// effect stays in the trigger's subscriber set until the trigger next
+    /// fires, and a locale switch is rare, so an effect in a churning list —
+    /// a row taking a `TextProp` — left ≈ 70 B behind per row on wasm32
+    /// (Phase 7 A5, `bench/churn`). The owner's cleanup takes it out instead.
+    /// Every `reactive_graph` observer runs under an owner of its own, which
+    /// is cleaned before each re-run and when it is dropped. With no owner
+    /// nothing can clean up, and this is plain tracking.
+    ///
+    /// Outside an observer it does nothing (§4: an event handler must not
+    /// warn).
+    pub fn track_locale() {
+        use reactive_graph::graph::{Observer, Source};
+        use reactive_graph::owner::Owner;
+        use reactive_graph::traits::Track;
+
+        let Some(observer) = Observer::get() else {
+            return;
+        };
+        let trigger = changed();
+        trigger.track();
+        Owner::on_cleanup(move || trigger.remove_subscriber(&observer));
+    }
 }
 
 #[cfg(not(feature = "ssr"))]
-pub use client::{active, changed, set_active};
+pub use client::{active, changed, set_active, track_locale};

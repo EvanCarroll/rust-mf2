@@ -1,0 +1,5 @@
+source_locale = "en"
+
+[catalog]
+strip = ["cold", "ids"]
+missing = "fallback"

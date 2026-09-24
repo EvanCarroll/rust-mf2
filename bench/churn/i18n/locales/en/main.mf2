@@ -1,0 +1,8 @@
+# The churn harness's corpus: one message per row position, and one with a
+# placeholder so that a row can hold a description with an argument.
+@locale en
+---
+
+row = A row in a list that churns
+row-title = More about this row
+row-n = Row {$n}

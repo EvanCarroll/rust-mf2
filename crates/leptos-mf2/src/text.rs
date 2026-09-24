@@ -263,6 +263,6 @@ pub(crate) fn with_active_text<D: Description, R>(
 /// warn; the node registry, not this, is what updates a rendered node.
 pub(crate) fn to_string<D: Description>(description: &D, use_: TextUse) -> String {
     #[cfg(not(feature = "ssr"))]
-    reactive_graph::traits::Track::track(&catalog::changed());
+    catalog::track_locale();
     with_active_text(description, use_, |text: &str| String::from(text))
 }

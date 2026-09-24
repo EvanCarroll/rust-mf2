@@ -44,7 +44,9 @@
 #   (`cargo xtask l6-web`). The server half of L6 runs in `cargo test`.
 # * `l7-web` (a job of its own; plans/15 A4): conformance layer L7 — the
 #   same, as islands and client-only, in both configurations, judging the
-#   ledger's L7 columns (`cargo xtask l7-web`).
+#   ledger's L7 columns (`cargo xtask l7-web`). Then, in the same job,
+#   `cargo xtask churn` (plans/15 A5): no row shape of a churning list may
+#   grow the heap.
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -453,4 +455,19 @@ jobs:
           path: |
             target/l7-web/report.json
             target/l7-web/*/*.json
+          if-no-files-found: ignore
+
+      # plans/15-phase-7-work-order.md A5: P0.11's churning list on
+      # leptos-mf2, one row shape per variant (text, attribute, argument,
+      # TextProp, Signal<String>, to_string(), Oco); the heap must stay flat
+      # over 100,000 churned rows. Here because this job has the engines.
+      - name: The conversions under churn (exit 1 on a row shape that leaks)
+        run: cargo xtask churn --browser chromium,firefox
+
+      - name: Upload the churn report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: churn
+          path: target/churn/report.json
           if-no-files-found: ignore

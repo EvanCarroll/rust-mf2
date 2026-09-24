@@ -212,7 +212,12 @@ Reactive-graph costs (P0.11): a `RenderEffect` per node costs 427 B and 10
 allocations on wasm32 (797 B native) and leaks +72 B per churned node until the
 next switch; the registry costs 44.8 B and ≈ 0 allocations per node with a flat
 heap; a switch with 2,000 live nodes takes 6.8 ms of script at 4× CPU throttle
-(registry) vs 12–17 ms (effects) — hence D7 = B.
+(registry) vs 12–17 ms (effects) — hence D7 = B. Phase 7 A5 (`cargo xtask
+churn`, `leptos-mf2` itself) found the same leak, +69.8 B per churned row, in
+the rows P0.11 had not churned: a `TextProp`, `Signal<String>` or
+`to_string()` consumer, and a node with a signal-valued argument. Both were
+fixed. Every row shape is now +0 B over 100,000 churned rows, at 48–64 B more
+per live conversion consumer ([15](15-phase-7-work-order.md) §A5).
 
 Comparable prior art: `leptos_i18n`'s lazy mode removes the strings but, by its
 own documentation, "the code to render each key is still baked in" — the

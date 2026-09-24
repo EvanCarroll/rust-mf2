@@ -1,0 +1,6 @@
+@locale fr
+---
+
+row = Une ligne dans une liste qui change
+row-title = En savoir plus sur cette ligne
+row-n = Ligne {$n}

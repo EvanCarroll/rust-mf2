@@ -16,7 +16,12 @@
 //! A **reactive argument** is the one subscription that is inherent, and it
 //! is per node rather than per call site: a slot whose description holds an
 //! [`ArgValue::Source`](crate::ArgValue::Source) owns one `RenderEffect`
-//! that tracks the arguments only — the locale is this slab's business.
+//! that tracks the arguments only — the locale is this slab's business. It
+//! unsubscribes from them when the slot lets it go ([`ArgsEffect`]): a
+//! dropped effect otherwise stays in each source's subscriber set until that
+//! source next changes, which is P0.11's leak again, keyed on the
+//! application's signal instead of the locale (Phase 7 A5: ≈ 70 B per
+//! churned row on wasm32 for a row whose argument reads one shared signal).
 //!
 //! With the `static-locale` feature (strategy C) a switch is a cookie and a
 //! navigation, which is the natural fit for islands, so the locale needs no
@@ -37,6 +42,7 @@ use tachys::renderer::types::{Element, Text};
 use crate::catalog;
 use crate::state::TextUse;
 use reactive_graph::effect::RenderEffect;
+use reactive_graph::graph::{Subscriber, ToAnySubscriber};
 
 use crate::text::{self, Stored};
 
@@ -99,7 +105,7 @@ enum Slot {
         target: Target,
         desc: Stored,
         /// Present only when an argument is reactive.
-        args: Option<RenderEffect<()>>,
+        args: Option<ArgsEffect>,
     },
     /// A rich message's fragment, shared with its view state so that both
     /// the view tree and a locale switch can reach it. Rich messages are
@@ -325,11 +331,28 @@ pub fn live_nodes() -> usize {
     })
 }
 
+/// A node's argument effect, which leaves its sources' subscriber sets when
+/// it is dropped — when the slot is freed, or replaced by a rebuild.
+///
+/// `reactive_graph` 0.2 removes an effect from its sources only when it
+/// re-runs; dropping one leaves a dead entry (and the allocation it points
+/// to) in every source it read, until that source next notifies. An
+/// argument is typically an application signal shared by many rows — a
+/// count, a user — that may not change for the whole session.
+struct ArgsEffect(RenderEffect<()>);
+
+impl Drop for ArgsEffect {
+    fn drop(&mut self) {
+        let subscriber = self.0.to_any_subscriber();
+        subscriber.clear_sources(&subscriber);
+    }
+}
+
 /// One effect per node **with a reactive argument**, tracking the arguments
 /// and nothing else (§4). A description with no source registers none, which
 /// is almost all of them — and the effect is the library's one closure type,
 /// not one per call site (P0.1).
-fn args_effect(target: &Target, desc: &Stored) -> Option<RenderEffect<()>> {
+fn args_effect(target: &Target, desc: &Stored) -> Option<ArgsEffect> {
     if !desc.has_source() {
         return None;
     }
@@ -337,12 +360,12 @@ fn args_effect(target: &Target, desc: &Stored) -> Option<RenderEffect<()>> {
     let desc = desc.clone();
     // `RenderEffect::new` runs the closure at once, which is what subscribes
     // to the sources; the write it makes is the one `build` just made.
-    Some(RenderEffect::new(move |_| {
+    Some(ArgsEffect(RenderEffect::new(move |_| {
         if let Some(catalog) = catalog::active() {
             let use_ = target.text_use();
             text::with_text(&desc, &catalog, use_, |text| {
                 target.write(text);
             });
         }
-    }))
+    })))
 }

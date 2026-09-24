@@ -1,0 +1,35 @@
+# A workspace of its own, like the examples: an application turns on exactly
+# one of `ssr`, `hydrate` and `csr`, and cargo unifies features across a
+# workspace. `cargo xtask churn` builds it and runs the browser check.
+[workspace]
+members = [".", "i18n"]
+resolver = "3"
+
+[package]
+name = "churn-harness"
+description = "Phase 7 A5: P0.11's churning list on leptos-mf2 — the heap under 100k churned rows, per row shape (text, attribute, argument, TextProp, Signal<String>, to_string(), Oco)."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+any_spawner = { version = "0.3.0", features = ["wasm-bindgen"] }
+churn-i18n = { path = "i18n" }
+leptos = { version = "0.8.20", features = ["csr"] }
+leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["csr"] }
+mf2 = { path = "../../crates/mf2", features = ["csr"] }
+wasm-bindgen = "0.2.128"
+wasm-bindgen-futures = "0.4.78"
+web-sys = { version = "0.3.105", features = ["Element"] }
+
+# The shipped client's size profile (plans/06 §3), as P0.11's harness used.
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

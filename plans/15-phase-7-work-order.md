@@ -23,6 +23,7 @@ whose interactive parts are islands.
 | Negotiation, `/i18n/*`, the per-request context | `crates/mf2-axum` |
 | L6 and L6d green; L6 in two engines | `conformance/src/l6.rs`, `conformance/l6-web`, `tools/e2e/checks/l6.mjs` |
 | *(added by A4)* L7, L7c, L7d, L7cd green in two engines | `conformance/l7-web`, `tools/e2e/checks/l7.mjs`, `cargo xtask l7-web` |
+| *(added by A5)* The churn harness, every row shape flat | `bench/churn`, `tools/e2e/checks/churn.mjs`, `cargo xtask churn`; natively `crates/leptos-mf2/tests/churn.rs` |
 | The example, and the browser checks that drive it | `examples/demo-ssr`, `tools/e2e/checks/demo.mjs` |
 | The whole-app size gate | `cargo xtask size` |
 
@@ -103,7 +104,7 @@ only draft it for the owner to post.
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3 and A4 are done** (2026-09-23); what they found is below the table.
+**A1, A2, A3, A4 and A5 are done** (2026-09-23); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -111,7 +112,7 @@ only draft it for the owner to post.
 | **A2** CSR — **done** | The locale from storage → `navigator.languages` → default; the catalog URL from a generated `i18n/index.json` preloaded by `index.html`; `mount_to_body` with the same boot gate. | a `trunk` build of the example renders, switches and reloads into the same locale |
 | **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 — **done** | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. *As built: all 324 runtime-valid tests, not 297 — one page per locale the suite uses (below).* | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
-| **A5** The churn follow-up | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost |
+| **A5** The churn follow-up — **done** | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost *(flat, below: all three conversions and the argument effect leaked ≈ 70 B a churned row, and now leave nothing)* |
 | **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs` — and the split made the default regardless (owner question 2: a translation edit never invalidates the wasm): `demo-ssr` and `demo-islands` emit their catalogs apart, `mf2 init` scaffolds it, and a feature mismatch between the build step and the i18n crate is an error at build time. | both numbers; the examples on the split; [05](05-tooling.md) §4 updated |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
@@ -303,6 +304,81 @@ only draft it for the owner to post.
   existing includer has it on). And `l6.mjs` still waited for hydration with
   an async `waitForFunction`, which returns at once (A1's finding, fixed
   there in `demo.mjs` only); it polls with `until` now.
+
+## A5 — the conversions under churn: what was built and measured
+
+* **The harness.** `bench/churn` is P0.11's churning list on `leptos-mf2`
+  itself (a `csr` cdylib, a workspace of its own): 2,000 live rows, then
+  10,000 churned rows of warm-up and 100,000 more, 50 per round under a
+  round owner that is cleaned (a keyed list's shape), with a counting
+  allocator. One fresh page per row shape: `text`, `attr` (text plus a
+  `title`, as A3 asked), `args` (a signal-valued argument), `textprop`,
+  `signal`, `to-string` (`move || tr!(…).to_string()`) and `oco` (the
+  control: a value). `cargo xtask churn` builds it (release, `opt-level =
+  "z"`, fat LTO), publishes the catalogs with `mf2 compile --site`, and runs
+  `tools/e2e/checks/churn.mjs`: the heap may grow at most 64 KiB over the
+  100,000 rows, the registry must end where it started, and after the churn
+  every live row follows a switch to `fr` and back (the `Oco` rows keep
+  their text, as documented). It runs nightly in the `l7-web` job.
+* **Measured before the fix**, Chromium, 2026-09-23, at d22875c (load
+  1.3–1.6; heap figures are load-independent):
+
+  | Row | heap over 100,000 churned rows | released by the next locale notify |
+  |---|---:|---|
+  | `text`, `attr`, `oco` | +0 B | — |
+  | `textprop`, `signal`, `to-string` | **+6,979,072 B (69.8 B a row), linear** | yes: 7,692,544 B, warm-up included; the notify took 4.4–7.0 ms, against 0.1 ms |
+  | `args` | **+6,979,072 B (69.8 B a row), linear** | **no** |
+
+  The conversions leaked exactly as the work order expected: strategy A's
+  leak, through the consumer's effect. The `args` row was not expected. The
+  work order's "the registry is flat under churn" held for P0.11's rows,
+  but P0.11 left rows with a signal-valued argument out of its churn. Such a
+  node's argument effect stays in the *application's* signal's subscriber
+  set when the node is dropped. That signal may never change, so a locale
+  switch does not release it and nothing else does either.
+* **The fix, in `leptos-mf2`.**
+  * `track_locale()` (client, public; `catalog.rs`) subscribes the running
+    observer to the locale trigger and registers an owner cleanup that
+    removes it. Every `reactive_graph` observer runs under an owner of its
+    own, which is cleaned before each re-run and when it is dropped. The
+    three conversions go through it (`convert.rs`, `text.rs`).
+  * `changed().track()` still works, but its documentation now points to
+    `track_locale()`, and both examples use `track_locale()` now.
+  * The registry's argument effect is an `ArgsEffect`, whose `Drop` clears
+    the effect's sources. That covers a slot freed and a slot whose
+    description a rebuild replaced.
+* **Measured after**, Chromium and Firefox (`cargo xtask churn`, 84/84):
+  every row shape +0 B over the 100,000 rows. The trigger's notify after the
+  churn takes 0.2–0.4 ms in Chromium; Firefox reports 0 ms at its timer's
+  resolution. The heap figures are identical in the two engines. **The
+  cost** is paid by each *live* consumer:
+
+  | Row, live | before | after |
+  |---|---:|---:|
+  | `textprop` | 518.1 B, 14.0 allocations | 582.1 B, 17.0 |
+  | `signal` | 550.6 B, 16.0 | 614.6 B, 19.0 |
+  | `to-string` | 498.1 B, 12.0 | 546.1 B, 14.0 |
+  | `args`, `text`, `attr`, `oco` | 683.9, 112.8, 154.6, 120.0 B | unchanged |
+
+  So a live consumer costs 48–64 B more, where before every consumer that
+  had been dropped cost 70 B, without bound. Firefox was measured after the
+  fix only.
+* **In `cargo xtask ci`**, natively (no DOM):
+  `crates/leptos-mf2/tests/churn.rs`, run with `--features csr` because
+  `--workspace` unifies `ssr`. It churns 20,000 consumers of each conversion
+  and requires at most 16 KiB of growth. A plain-`track()` control must
+  still leak: without the fix it left 3,140,864 B (157 B a row natively;
+  P0.11 measured 151). If the control stops leaking, `reactive_graph`
+  cleans up dropped subscribers itself and the workaround can go. The test
+  also checks that a live consumer re-subscribes after every run: three
+  switches, three re-runs.
+  **Negative control:** with the owner cleanup removed, the test fails with
+  `TextProp: 20000 churned rows left 3140864 B behind`.
+* **Re-checked, because the conversions changed:** `demo.mjs` 100/100 and
+  `lazy.mjs` 66/66 on demo-ssr (debug, `--split`), and `csr.mjs` 78/78 on
+  demo-csr. All three ran in Chromium and Firefox. L6 and L7 were not
+  re-run: their pages use no conversion, and demo-islands' `<Title>` is
+  rendered by the server. WebKit was not run (not installed).
 
 ## Exit (master plan §9, P7)
 
