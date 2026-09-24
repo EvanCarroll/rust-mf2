@@ -162,7 +162,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8** and **A9** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9** and **A11** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -175,7 +175,7 @@ found nothing to propose (§"A8").
 | **A7** Leptos 0.9 — **done** | *Rescoped by owner question 7.* A `tachys-0-3` feature of `leptos-mf2` that switches the two `to_html_with_buf` impls (`Tr`/`TrArgs`/`TrDyn` and `TrRich`) to 0.9's `RenderFlags` form, in the existing glue module; everything else stays shared. The glue module is renamed to name no line (`glue/view.rs`), and `glue.rs`' doc says why. `cargo xtask leptos-beta`: copies the tracked tree to `target/leptos-beta`, pins the workspace's `leptos`, `tachys`, `reactive_graph`, `leptos_axum`, `leptos_meta` and `leptos_router` to the newest 0.9 / 0.3 pre-releases, then checks `leptos-mf2` for `ssr`, `csr` and `hydrate` and runs its `render` (ssr) and `churn` (csr) tests, all with `tachys-0-3`. The working tree is never edited. A nightly job, `leptos-beta`, runs it with `continue-on-error`. `tachys-0-3` with 0.8's dependencies is a compile error that names the fix. At 0.9's release, the workspace moves to it (D10: latest stable), and whether 0.8 stays supported is a question for the owner then. | the xtask passes on today's beta (and fails on it without `tachys-0-3`, as the negative control); the nightly job exists; `cargo xtask ci` green on 0.8 |
 | **A8** The tachys leaf hook — **done: the reason not to** | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. *As found: neither half of the case survived measurement. The 197 KB was the server's host linked into the benchmark's client (a template bug, fixed); the fixed cost is 28 KB gz, the margin 11.9 B gz, and ≈ 0 under `erase_components`; the two-hour compile did not reproduce (below).* | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view — **done**, *decided by owner question 8* | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position could only be overridden per request. *Decided: an attribute's strategy follows its name* ([04](04-leptos-integration.md) §9's second table). `AttributeValue`'s `to_html`, `build` and `hydrate` and the registry's `Target::Attribute` rewrite on a switch all choose `TextUse` from the key through **one** function (ASCII case-insensitive; `data-` by prefix); `IntoProperty`, text children and markup are unchanged. The `TextUse` and `Target` docs and the `with_bidi` doc say so. The closure form for a plain text child goes in the user documentation (A13). | a native `ssr` render test: a message with an argument in `value=` and `data-x=` has no U+2066–U+2069, in `title=` it has them, and the name match ignores case; a browser check on an example page asserts the same after hydration **and** after a live switch (the registry path); negative control: with the rule forced to `Displayed`, both fail; `cargo xtask size` passes, with the B1 change recorded |
-| **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
+| **A11** The WCAG 2.2 AA audit — **done** | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
 | **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
 | **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
@@ -809,13 +809,47 @@ tree; the draft scan was not kept.
   `ariaSnapshot`) stands in for it; that the voice changes on an option's
   `lang` is not verified.
 
+## A11 — the audit: what was built and measured
+
+The written audit — every finding, what became of it, and what was not
+done — is [phase-7-results](phase-7-results.md) §A11. In short:
+
+* **The switcher (owner question 9).** `<LocaleSwitcher>` is a `<form
+  method="get">`: the `<select name="lang">` inside its `<label>` (no `id`),
+  and a submit button whose text is a new `button` prop. The option of the
+  page's locale is `selected` in the markup, so the form is right before any
+  code runs. Under `hydrate`/`csr` the submit is intercepted and is
+  `set_locale`, focus kept; without code it is `GET ?lang=`. demo-islands'
+  switcher is no longer an island. Test: `render.rs`
+  `the_switcher_is_a_get_form_applied_by_a_button` (14/14); negative
+  control, `selected` never set: it fails at "the page's locale is selected
+  in the markup".
+* **The example fixes:** a `--field` colour for control edges (4.19:1 /
+  4.26:1), placeholders in `--muted` (8.21:1 / 9.82:1), banner, navigation,
+  main and contentinfo as siblings, the counter a `status`, demo-ssr's echo
+  field its own label, `/lazy` its own title; `language.apply` in every
+  example and locale.
+* **The check:** `tools/e2e/checks/a11y.mjs`, 720/720 in Chromium and
+  Firefox, 2026-09-24: the axe-core scan over 28 pages, the contrast figures,
+  reflow and text spacing, the structure, and the switcher from the keyboard
+  (an arrow key changes nothing but the select; the button switches — live
+  on demo-ssr and demo-csr, by navigation on demo-islands and on demo-ssr
+  with the wasm blocked). Negative controls in the page for each detector.
+  The static host `csr.mjs` had is `lib/static.mjs` now, shared.
+* **Re-run**, because every check switched on `change`: `demo.mjs` 134/134,
+  `lazy.mjs` 66/66, `islands.mjs` 58/58, `csr.mjs` 78/78, both engines.
+  WebKit was not run (not installed).
+* **Not done:** a screen reader (none installed; outside the permitted
+  network). The accessibility tree stands in for it.
+
 ## Exit (master plan §9, P7)
 
 - [ ] L7 and L7c green in both configurations, every L7d and L7cd cell
       recorded — `pass`, or `degraded` with its kind — none `xfail`;
       `current_phase = "P7"` in the exit commit with the harness green
       *(A4: every cell recorded, none `xfail`; the bump is the exit's)*
-- [ ] the WCAG 2.2 AA audit of the examples passes (A11)
+- [x] the WCAG 2.2 AA audit of the examples passes (A11; the audit is in
+      [phase-7-results](phase-7-results.md), a screen reader not run)
 - [ ] no normative spec statement without a covering test (A12)
 - [ ] user documentation (A13), `mark-fallback-lang` (A14) and per-commit
       benchmarks (A15) done

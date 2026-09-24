@@ -2,7 +2,7 @@
 //!
 //! Most of this page is **server-only**: it renders on the server and ships
 //! no code, so its call sites cost the wasm nothing — `cargo xtask
-//! islands-zero` measures that. Two parts are islands, and hydrate:
+//! islands-zero` measures that. One part is an island, and hydrates:
 //!
 //! | On the page | Where it runs | What it exercises |
 //! |---|---|---|
@@ -11,7 +11,7 @@
 //! | the hotkey line | server | markup as elements, with no client code |
 //! | the counter | **island** | a signal-valued argument under `static-locale`: the one kind of node that still registers |
 //! | the note above the counter | **island** | a markup message in an island, whose node structure comes from the catalog — the case [`IslandsGate`] exists for |
-//! | the switcher | **island** | `static-locale`'s switch: a cookie and a reload |
+//! | the switcher | server | `static-locale`'s switch: the form's `GET ?lang=`, which the server negotiates and remembers in the cookie |
 //!
 //! Layout is flexbox, the SVG is an external file, and the page carries
 //! schema.org `inLanguage`.
@@ -58,36 +58,40 @@ pub fn App() -> impl IntoView {
     view! {
         <Title text=tr!("app-title") />
 
-        <main class="page" itemscope itemtype="https://schema.org/WebPage">
+        // The landmarks are siblings — banner, main, contentinfo — so that
+        // "skip to main" lands on the content (WCAG 1.3.1, 2.4.1).
+        <div class="page" itemscope itemtype="https://schema.org/WebPage">
             <meta itemprop="inLanguage" content=html_lang().0 />
             <header class="row">
                 <h1 itemprop="name">{tr!("app-title")}</h1>
                 <Switcher />
             </header>
 
-            <p class="tagline">{tr!("tagline")}</p>
+            <main>
+                <p class="tagline">{tr!("tagline")}</p>
 
-            <section class="card">
-                <p id="server-note">{tr!("server-note")}</p>
-                <label class="field">
-                    <span>{tr!("search-label")}</span>
-                    <input type="search" placeholder=tr!("search-placeholder") />
-                </label>
-                // Markup on the server: real elements, no client code.
-                <p id="hotkey">
-                    {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
-                </p>
-            </section>
+                <section class="card">
+                    <p id="server-note">{tr!("server-note")}</p>
+                    <label class="field">
+                        <span>{tr!("search-label")}</span>
+                        <input type="search" placeholder=tr!("search-placeholder") />
+                    </label>
+                    // Markup on the server: real elements, no client code.
+                    <p id="hotkey">
+                        {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                    </p>
+                </section>
 
-            <Counter />
+                <Counter />
 
-            {more_server()}
+                {more_server()}
+            </main>
 
             <footer class="row">
                 <img src="/globe.svg" alt="" width="16" height="16" />
                 <small>{tr!("tagline")}</small>
             </footer>
-        </main>
+        </div>
     }
 }
 
@@ -106,7 +110,9 @@ fn Counter() -> impl IntoView {
             </p>
             // Signal-valued: under `static-locale` this is the one node that
             // registers, because its argument effect needs somewhere to live.
-            <p id="people">{tr!("people-online", count = count)}</p>
+            // `role="status"`: the count changes with focus on the button, so
+            // it is announced without moving focus (WCAG 4.1.3).
+            <p id="people" role="status">{tr!("people-online", count = count)}</p>
             <div class="row">
                 <button id="add-one" on:click=move |_| *count.write() += 1>
                     {tr!("add-one")}
@@ -119,12 +125,14 @@ fn Counter() -> impl IntoView {
     }
 }
 
-/// An island: the switcher. Under `static-locale` choosing a language writes
-/// the cookie the server negotiates from and reloads.
-#[island]
+/// The switcher — **not** an island. Its form's `GET ?lang=` is the switch
+/// under `static-locale`: the server negotiates the query, writes the cookie
+/// and renders the whole page, server-only parts included, in the new
+/// locale. So it ships no code, and works before the wasm loads.
+#[component]
 fn Switcher() -> impl IntoView {
     view! {
-        <LocaleSwitcher label=tr!("language.label")>
+        <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
             <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
             <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
             <LocaleOption tag="ar">{tr!("language.ar")}</LocaleOption>

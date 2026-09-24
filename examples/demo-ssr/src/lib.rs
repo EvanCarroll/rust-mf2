@@ -13,7 +13,7 @@
 //! | the hotkey line | **markup as elements** — and the `<kbd>` lands in a different place in French, which is the point (04 §7) |
 //! | the published line | a date, through `:datetime` and the catalog's ICU4X blob |
 //! | the echo line | a plain `String` from an event handler — no bidi isolation in it (04 §9) |
-//! | the switcher | `<LocaleSwitcher>`: a labelled native control whose option text never reaches the wasm |
+//! | the switcher | `<LocaleSwitcher>`: a labelled native control whose option text never reaches the wasm, applied by a button — live once hydrated, a plain `GET ?lang=` before |
 //!
 //! and a second route, `/lazy`, whose code is a wasm chunk of its own under
 //! `cargo leptos --split`: text, an attribute and a markup message rendered
@@ -71,13 +71,23 @@ pub fn App() -> impl IntoView {
         <Title text=demo_i18n::tr!("app-title") />
 
         <Router>
-            <main class="page" itemscope itemtype="https://schema.org/WebPage">
+            // The landmarks are siblings — banner, navigation, main,
+            // contentinfo — so that "skip to main" lands on the content
+            // (WCAG 1.3.1, 2.4.1).
+            <div class="page" itemscope itemtype="https://schema.org/WebPage">
                 // schema.org: the page states its language as data as well as
                 // rendering it, so a crawler and a screen reader agree.
                 <meta itemprop="inLanguage" content=current_locale />
                 <header class="row">
                     <h1 itemprop="name">{demo_i18n::tr!("app-title")}</h1>
-                    <LocaleSwitcher label=demo_i18n::tr!("language.label")>
+                    // A choice applies on the button, never on the select's
+                    // `change`, which the keyboard fires per arrow key
+                    // (WCAG 3.2.2). Before the wasm loads, the form's own
+                    // `GET ?lang=` switches.
+                    <LocaleSwitcher
+                        label=demo_i18n::tr!("language.label")
+                        button=demo_i18n::tr!("language.apply")
+                    >
                         <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
                         <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
                         <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
@@ -90,18 +100,20 @@ pub fn App() -> impl IntoView {
                     </ul>
                 </nav>
 
-                <Routes fallback=|| view! { <p id="not-found">{demo_i18n::tr!("not-found")}</p> }>
-                    <Route path=path!("/") view=HomePage />
-                    // Under `--split`, this route's view is its own wasm
-                    // chunk, fetched when the route is first matched.
-                    <Route path=path!("/lazy") view={Lazy::<LazyPage>::new()} />
-                </Routes>
+                <main class="content">
+                    <Routes fallback=|| view! { <p id="not-found">{demo_i18n::tr!("not-found")}</p> }>
+                        <Route path=path!("/") view=HomePage />
+                        // Under `--split`, this route's view is its own wasm
+                        // chunk, fetched when the route is first matched.
+                        <Route path=path!("/lazy") view={Lazy::<LazyPage>::new()} />
+                    </Routes>
+                </main>
 
                 <footer class="row">
                     <img src="/globe.svg" alt="" width="16" height="16" />
                     <small>{demo_i18n::tr!("tagline")}</small>
                 </footer>
-            </main>
+            </div>
         </Router>
     }
 }
@@ -144,7 +156,9 @@ fn HomePage() -> impl IntoView {
             // locale is reactive, and neither costs this call site a
             // closure: `count` goes in as a `Signal`, and the node's
             // own argument effect is the library's (04 §4).
-            <p id="people">{demo_i18n::tr!("people-online", count = count)}</p>
+            // `role="status"`: the count changes with focus on the button,
+            // so it is announced without moving focus (WCAG 4.1.3).
+            <p id="people" role="status">{demo_i18n::tr!("people-online", count = count)}</p>
             <div class="row">
                 <button id="add-one" on:click=move |_| *count.write() += 1>
                     {demo_i18n::tr!("add-one")}
@@ -172,7 +186,7 @@ fn HomePage() -> impl IntoView {
 
         <section class="card">
             <label class="field">
-                <span>{demo_i18n::tr!("search-label")}</span>
+                <span>{demo_i18n::tr!("echo-label")}</span>
                 <input
                     id="echo-input"
                     type="text"
@@ -224,6 +238,9 @@ impl LazyRoute for LazyPage {
     fn view(this: Self) -> AnyView {
         let _ = this;
         view! {
+            // Its own `<title>`, which a client navigation here sets and
+            // leaving restores (WCAG 2.4.2).
+            <Title text=demo_i18n::tr!("lazy.page-title") />
             <section class="card">
                 // Text and an attribute: the two positions every page has.
                 <h2 id="lazy-heading" title=demo_i18n::tr!("lazy.title")>

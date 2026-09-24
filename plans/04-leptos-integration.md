@@ -512,7 +512,9 @@ chosen locale.
   loads, after a failed boot, and on an islands page without an island.
   Under `hydrate` and `csr` the submit is intercepted and becomes the live
   `set_locale`. A reader pays one extra action; an application supplies one
-  more message.
+  more message. The option of the page's locale is `selected` in the markup, so
+  the form submits the right language before any code runs. Built and
+  audited in Phase 7 A11 ([phase-7-results](phase-7-results.md)).
 * Head helpers: `<link rel="alternate" hreflang>` for path-prefix strategies;
   guidance for schema.org `inLanguage` on pages that emit structured data.
 * Bidi: the spec's Default Bidi Strategy is on by default so interpolated names

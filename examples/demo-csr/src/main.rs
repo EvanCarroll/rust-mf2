@@ -38,46 +38,56 @@ fn App() -> impl IntoView {
     view! {
         <Title text=tr!("app-title") />
 
-        <main class="page" itemscope itemtype="https://schema.org/WebPage">
+        // The landmarks are siblings — banner, main, contentinfo — so that
+        // "skip to main" lands on the content (WCAG 1.3.1, 2.4.1).
+        <div class="page" itemscope itemtype="https://schema.org/WebPage">
             <meta itemprop="inLanguage" content=in_language />
             <header class="row">
                 <h1 itemprop="name">{tr!("app-title")}</h1>
-                <LocaleSwitcher label=tr!("language.label")>
+                // A choice applies on the button, never on the select's
+                // `change`, which the keyboard fires per arrow key (WCAG
+                // 3.2.2).
+                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
                     <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
                     <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
                     <LocaleOption tag="ar">{tr!("language.ar")}</LocaleOption>
                 </LocaleSwitcher>
             </header>
 
-            <p class="tagline" id="tagline">{tr!("tagline")}</p>
+            <main>
+                <p class="tagline" id="tagline">{tr!("tagline")}</p>
 
-            <section class="card">
-                <label class="field">
-                    <span>{tr!("search-label")}</span>
-                    <input id="search" type="search" placeholder=tr!("search-placeholder") />
-                </label>
-                <p id="hotkey">
-                    {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
-                </p>
-            </section>
+                <section class="card">
+                    <label class="field">
+                        <span>{tr!("search-label")}</span>
+                        <input id="search" type="search" placeholder=tr!("search-placeholder") />
+                    </label>
+                    <p id="hotkey">
+                        {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                    </p>
+                </section>
 
-            <section class="card">
-                <p id="people">{tr!("people-online", count = count)}</p>
-                <div class="row">
-                    <button id="add-one" on:click=move |_| *count.write() += 1>
-                        {tr!("add-one")}
-                    </button>
-                    <button id="reset" on:click=move |_| count.set(0)>
-                        {tr!("reset")}
-                    </button>
-                </div>
-            </section>
+                <section class="card">
+                    // `role="status"`: the count changes with focus on the
+                    // button, so it is announced without moving focus (WCAG
+                    // 4.1.3).
+                    <p id="people" role="status">{tr!("people-online", count = count)}</p>
+                    <div class="row">
+                        <button id="add-one" on:click=move |_| *count.write() += 1>
+                            {tr!("add-one")}
+                        </button>
+                        <button id="reset" on:click=move |_| count.set(0)>
+                            {tr!("reset")}
+                        </button>
+                    </div>
+                </section>
+            </main>
 
             <footer class="row">
                 <img src="globe.svg" alt="" width="16" height="16" />
                 <small>{tr!("tagline")}</small>
             </footer>
-        </main>
+        </div>
     }
 }
 

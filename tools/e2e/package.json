@@ -11,6 +11,7 @@
     "browsers": "playwright install chromium firefox"
   },
   "dependencies": {
+    "axe-core": "4.13.0",
     "playwright": "1.63.0"
   }
 }

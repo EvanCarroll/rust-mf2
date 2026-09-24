@@ -21,6 +21,7 @@
 //   * no message text is in the client bundle (B6).
 
 import {
+  chooseLocale,
   watchConsole,
   resourceTimings,
   captureSsrSnapshot,
@@ -222,7 +223,7 @@ export async function run(ctx) {
   // ------------------------------------------------------------ switch ---
 
   const enText = NORMALISE(await page.evaluate(() => document.body.innerText));
-  await page.selectOption('#mf2-locale', 'fr');
+  await chooseLocale(page, 'fr');
   await page.waitForFunction(
     () => document.documentElement.lang === 'fr',
     undefined,
@@ -257,7 +258,7 @@ export async function run(ctx) {
   });
 
   // Right-to-left, and back.
-  await page.selectOption('#mf2-locale', 'ar');
+  await chooseLocale(page, 'ar');
   await page.waitForFunction(() => document.documentElement.lang === 'ar', undefined, { timeout: 5000 });
   assert('rtl-switch-sets-dir', (await page.getAttribute('html', 'dir')) === 'rtl');
   // Right-to-left is where the marks matter: the Latin name inside an
@@ -270,7 +271,7 @@ export async function run(ctx) {
     server: arServer.slice(0, 80),
   });
 
-  await page.selectOption('#mf2-locale', 'en');
+  await chooseLocale(page, 'en');
   await page.waitForFunction(() => document.documentElement.lang === 'en', undefined, { timeout: 5000 });
   const backText = NORMALISE(await page.evaluate(() => document.body.innerText));
   assert('switching-back-restores-the-text', backText === enText, {
@@ -291,11 +292,11 @@ export async function run(ctx) {
   assert('a-signal-argument-reformats', beforeClick !== afterClick, { beforeClick, afterClick });
 
   // …and it still follows the locale afterwards.
-  await page.selectOption('#mf2-locale', 'fr');
+  await chooseLocale(page, 'fr');
   await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, { timeout: 5000 });
   const frCount = await page.textContent('#people');
   assert('a-signal-argument-follows-the-locale', frCount !== afterClick, { afterClick, frCount });
-  await page.selectOption('#mf2-locale', 'en');
+  await chooseLocale(page, 'en');
   await page.waitForFunction(() => document.documentElement.lang === 'en', undefined, { timeout: 5000 });
 
   assert('console-is-still-silent', console_.length === 0, console_.slice(0, 4));

@@ -30,6 +30,7 @@ add-one = Add one
 reset = Reset
 typed-nothing = You have not typed anything yet
 typed = You typed {$typed}
+echo-label = Type something
 
 not-found = This page does not exist.
 
@@ -40,6 +41,7 @@ lazy = A lazy route
 
 # The route whose code is a wasm chunk of its own (`cargo leptos --split`).
 [lazy]
+page-title = A lazy route · MessageFormat 2 for Leptos
 heading = A route in its own chunk
 title = Its code arrived when you opened it
 body = This page's code is a {#strong}separate wasm file{/strong}, fetched on the way here.
@@ -47,6 +49,8 @@ locale-label = Rendered in
 
 [language]
 label = Language
+# The switcher's button: a choice applies only when it is pressed.
+apply = Apply
 en = English
 fr = Français
 ar = العربية

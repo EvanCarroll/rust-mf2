@@ -24,24 +24,14 @@
 //   (cd examples/demo-csr && trunk build)
 //   node run.mjs csr --browser chromium,firefox
 
-import { createServer } from 'node:http';
-import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, normalize } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { watchConsole, resourceTimings, sleep, until } from '../lib/browser.mjs';
+import { chooseLocale, watchConsole, resourceTimings, sleep, until } from '../lib/browser.mjs';
+import { serveStatic } from '../lib/static.mjs';
 
 const DIST = fileURLToPath(new URL('../../../examples/demo-csr/dist/', import.meta.url));
-const TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript',
-  '.wasm': 'application/wasm',
-  '.css': 'text/css',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json',
-  '.mf2b': 'application/octet-stream',
-};
-
 const CANARIES = [
   'people are here',
   'personnes sont ici',
@@ -62,29 +52,7 @@ const TRUNK_SRI_NOTE = /integrity` attribute is currently ignored for preload de
 /** Console warnings and errors, less the one above. */
 const worth = (messages) => messages.filter((m) => !TRUNK_SRI_NOTE.test(m.text));
 
-/** A static host: files, their types, and the cache policy §6 asks for. */
-function serve() {
-  const server = createServer((req, res) => {
-    let path = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/+/, '');
-    if (path === '') path = 'index.html';
-    const file = normalize(join(DIST, path));
-    if (!file.startsWith(DIST) || !existsSync(file) || !statSync(file).isFile()) {
-      res.writeHead(404, { 'Cache-Control': 'no-cache' }).end('not found');
-      return;
-    }
-    // A catalog is named by its content: immutable. The index names the
-    // current ones, so it must be revalidated.
-    const cache = file.endsWith('.mf2b')
-      ? 'public, max-age=31536000, immutable'
-      : 'no-cache';
-    res.writeHead(200, {
-      'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream',
-      'Cache-Control': cache,
-    });
-    createReadStream(file).pipe(res);
-  });
-  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
-}
+const serve = () => serveStatic(DIST);
 
 export async function run(ctx) {
   const { assert, data } = ctx;
@@ -164,7 +132,7 @@ async function firstVisit(ctx, base, index) {
     window.__notReloaded = true;
   });
   const placeholder = await page.getAttribute('#search', 'placeholder');
-  await page.selectOption('#mf2-locale', 'ar');
+  await chooseLocale(page, 'ar');
   await until(page, () => document.documentElement.lang === 'ar');
   assert('switch-is-live', await page.evaluate(() => window.__notReloaded === true));
   assert('rtl-switch-sets-dir', (await page.getAttribute('html', 'dir')) === 'rtl');
@@ -193,7 +161,7 @@ async function firstVisit(ctx, base, index) {
   );
 
   // Back to French: the same page as booting in French.
-  await page.selectOption('#mf2-locale', 'fr');
+  await chooseLocale(page, 'fr');
   await until(page, () => document.documentElement.lang === 'fr');
   await sleep(50);
   const backToFr = NORMALISE(await page.evaluate(() => document.body.innerText));
@@ -203,7 +171,7 @@ async function firstVisit(ctx, base, index) {
   });
 
   // English, remembered, over a reader who prefers French.
-  await page.selectOption('#mf2-locale', 'en');
+  await chooseLocale(page, 'en');
   await until(page, () => document.documentElement.lang === 'en');
   await page.reload({ waitUntil: 'load' });
   await mounted(page);

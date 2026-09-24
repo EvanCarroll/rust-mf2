@@ -169,3 +169,15 @@ export async function until(page, probe, timeout = 20000) {
   }
   throw new Error(`timed out after ${timeout} ms waiting for ${probe}`);
 }
+
+/**
+ * Chooses `tag` in the page's `<LocaleSwitcher>` and presses its button — the
+ * way a reader switches (Phase 7 A11, owner question 9: choosing alone
+ * changes nothing). Live under `hydrate`/`csr`; a `GET ?lang=` navigation
+ * where the form is not intercepted.
+ */
+export async function chooseLocale(page, tag, switcher = '.mf2-locale-switcher') {
+  const form = page.locator(switcher).first();
+  await form.locator('select').selectOption(tag);
+  await form.locator('button[type="submit"]').click();
+}

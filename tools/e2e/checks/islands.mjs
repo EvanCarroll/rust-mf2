@@ -4,7 +4,8 @@
 // What it asserts, and why each one is here:
 //
 //   * the page is served as islands: the gate is the first island in the
-//     document, and the counter and the switcher are islands;
+//     document, the counter is an island and the switcher is not (its
+//     form's `GET ?lang=` is the switch);
 //   * hydration changes no text and logs nothing, the catalog is fetched once
 //     and from the preload, and the markup message *inside* an island
 //     hydrates as an element;
@@ -13,11 +14,13 @@
 //     fails the way plans/04 §7 says it must;
 //   * a signal-valued argument re-formats under `static-locale` (it did not
 //     before Phase 7);
-//   * a switch is a cookie and a reload, and the reloaded page is the
+//   * a switch is the form's `GET ?lang=`, which the server answers with the
+//     cookie and the page in the new locale — the reloaded page is the
 //     server's page in the new locale, right-to-left included;
 //   * no message text is in the client bundle (B6).
 
 import {
+  chooseLocale,
   watchConsole,
   resourceTimings,
   captureSsrSnapshot,
@@ -55,7 +58,11 @@ export async function run(ctx) {
     /<body>\s*<leptos-island data-component="mf2_islands_gate">/.test(html),
   );
   assert('counter-is-an-island', islands.some((i) => i.startsWith('Counter_')), islands);
-  assert('switcher-is-an-island', islands.some((i) => i.startsWith('Switcher_')), islands);
+  // The switcher is server-only: its form's `GET ?lang=` is the switch
+  // (Phase 7 A11, owner question 9), so it ships no code.
+  assert('switcher-is-not-an-island', !islands.some((i) => i.startsWith('Switcher_')), islands);
+  const switcherForm = html.match(/<form[^>]*class="mf2-locale-switcher"[^>]*>/)?.[0] || '';
+  assert('switcher-is-a-get-form', / method="get"/.test(switcherForm), switcherForm);
   assert('server-markup-is-an-element', /<p id="hotkey">[^]*?<kbd>/.test(html));
 
   // ---------------------------------------------------------- browser ---
@@ -103,7 +110,7 @@ export async function run(ctx) {
 
   // ------------------------------------------------------------ switch ---
 
-  await page.selectOption('#mf2-locale', 'fr');
+  await chooseLocale(page, 'fr');
   await page.waitForURL(() => true, { waitUntil: 'load' });
   await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, {
     timeout: 10000,
@@ -122,14 +129,14 @@ export async function run(ctx) {
   const frNote = NORMALISE(await page.textContent('#island-note'));
   assert('island-markup-follows-the-message', /îlot\.$/.test(frNote), frNote);
 
-  await page.selectOption('#mf2-locale', 'ar');
+  await chooseLocale(page, 'ar');
   await page.waitForFunction(() => document.documentElement.lang === 'ar', undefined, {
     timeout: 10000,
   });
   await hydrated(page);
   assert('rtl-switch-sets-dir', (await page.getAttribute('html', 'dir')) === 'rtl');
 
-  await page.selectOption('#mf2-locale', 'en');
+  await chooseLocale(page, 'en');
   await page.waitForFunction(() => document.documentElement.lang === 'en', undefined, {
     timeout: 10000,
   });

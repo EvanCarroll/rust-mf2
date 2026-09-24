@@ -35,7 +35,7 @@ Like the other examples, this is a **workspace of its own**.
 | the search field's `placeholder` | a description as an attribute |
 | the hotkey line | markup as elements, whose structure comes from the catalog |
 | the counter | a signal-valued argument |
-| the switcher | a live switch, remembered in `localStorage` |
+| the switcher | a live switch on the button (never on the select's `change`), remembered in `localStorage` |
 | `inLanguage` | schema.org's language of the page, kept up to date across a switch |
 
 ## Three things a client-only application does

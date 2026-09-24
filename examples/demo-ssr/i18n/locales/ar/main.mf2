@@ -28,6 +28,7 @@ add-one = أضف واحدا
 reset = إعادة تعيين
 typed-nothing = لم تكتب شيئا بعد
 typed = لقد كتبت {$typed}
+echo-label = اكتب شيئا
 
 not-found = هذه الصفحة غير موجودة.
 
@@ -37,6 +38,7 @@ home = الرئيسية
 lazy = مسار مؤجل
 
 [lazy]
+page-title = مسار مؤجل · MessageFormat 2 لـ Leptos
 heading = مسار في جزء مستقل
 title = وصل رمزه عندما فتحته
 body = رمز هذه الصفحة {#strong}ملف wasm منفصل{/strong}، يُجلب في الطريق إليها.
@@ -44,6 +46,8 @@ locale-label = اللغة المعروضة
 
 [language]
 label = اللغة
+# The switcher's button: a choice applies only when it is pressed.
+apply = تطبيق
 en = English
 fr = Français
 ar = العربية

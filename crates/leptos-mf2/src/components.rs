@@ -34,9 +34,9 @@ use alloc::vec::Vec;
 use leptos::prelude::*;
 use mf2_catalog::Dir;
 
-use crate::links::CATALOG_LINK_REL;
 #[cfg(feature = "ssr")]
 use crate::links::catalog_href;
+use crate::links::{CATALOG_LINK_REL, LOCALE_QUERY};
 
 /// The `lang` and `dir` the shell should put on `<html>`: the catalog's own
 /// locale, so the page always says what it is in (WCAG 3.1.1).
@@ -156,15 +156,27 @@ pub fn AlternateLinks(
     links
 }
 
-/// A labelled native control that switches locale.
+/// A labelled native control that switches locale, applied by a button.
 ///
-/// The control is a `<select>` — a real form control, so it is reachable by
-/// keyboard, announced with its label, and styled by the platform. The
-/// options are [`LocaleOption`]s the caller writes, each carrying its own
-/// `lang`.
+/// A `<form method="get">` holding a `<select name=`[`LOCALE_QUERY`]`>`
+/// inside its `<label>` and a submit button. Choosing a language changes
+/// nothing until the button is pressed: the keyboard fires a `<select>`'s
+/// `change` on every arrow key, so switching on it would change the page's
+/// language — or, under `static-locale`, reload it — per keypress (WCAG
+/// 3.2.2, failure F37; §9).
+///
+/// With no client code — before the wasm loads, after a failed boot, or on
+/// an islands page where the switcher is not an island — the form's own
+/// `GET ?lang=…` is the switch, which `mf2-axum`'s `QueryParam` negotiates.
+/// Under `hydrate` and `csr` the submit is intercepted and becomes
+/// [`set_locale`](crate::set_locale), live, with focus left on the button.
+///
+/// The `<select>` is inside its `<label>`, so there is no fixed `id` and a
+/// page may carry two switchers (a header and a footer). The options are
+/// [`LocaleOption`]s the caller writes, each carrying its own `lang`.
 ///
 /// ```ignore
-/// <LocaleSwitcher label=tr!("choose-language")>
+/// <LocaleSwitcher label=tr!("choose-language") button=tr!("apply-language")>
 ///     <LocaleOption tag="en">{tr!("language-en")}</LocaleOption>
 ///     <LocaleOption tag="fr">{tr!("language-fr")}</LocaleOption>
 /// </LocaleSwitcher>
@@ -176,26 +188,36 @@ pub fn LocaleSwitcher(
     /// announced (WCAG 3.3.2).
     #[prop(into)]
     label: TextProp,
+    /// The submit button's text — the application's own message, in the
+    /// page's language, like `label`.
+    #[prop(into)]
+    button: TextProp,
     /// The options: one [`LocaleOption`] per locale offered.
     children: Children,
 ) -> impl IntoView {
-    let (lang, _) = html_lang();
+    let select = NodeRef::<leptos::html::Select>::new();
     view! {
-        <div class="mf2-locale-switcher">
-            <label for="mf2-locale">{move || label.get()}</label>
-            <select
-                id="mf2-locale"
-                name="mf2-locale"
-                on:change=|event| switch_on_change(&event)
-                prop:value=lang.clone()
-            >
-                {children()}
-            </select>
-        </div>
+        <form
+            class="mf2-locale-switcher"
+            method="get"
+            on:submit=move |event| switch_on_submit(&event, select)
+        >
+            <label>
+                <span>{move || label.get()}</span>
+                <select name=LOCALE_QUERY node_ref=select>
+                    {children()}
+                </select>
+            </label>
+            <button type="submit">{move || button.get()}</button>
+        </form>
     }
 }
 
 /// One `<option>`, named in its own language and marked as being in it.
+///
+/// The option of the page's locale is `selected` in the markup, so that the
+/// control shows the right language before any client code runs — the form
+/// submits it as it stands.
 #[component]
 pub fn LocaleOption(
     /// The BCP 47 tag this option selects.
@@ -204,19 +226,32 @@ pub fn LocaleOption(
     /// catalog, so it is never a literal in the client.
     children: Children,
 ) -> impl IntoView {
+    let selected = html_lang().0 == tag;
     view! {
-        <option value=tag lang=tag>
+        <option value=tag lang=tag selected=selected>
             {children()}
         </option>
     }
 }
 
-/// What the `<select>` does: switch, and on failure leave the page alone.
+/// What the form's submit does on the client: switch in place, and on
+/// failure leave the page alone. Without client code the browser submits the
+/// form, and the server negotiates `?lang=`.
 #[allow(unused_variables)]
-fn switch_on_change(event: &leptos::ev::Event) {
+fn switch_on_submit(event: &leptos::ev::SubmitEvent, select: NodeRef<leptos::html::Select>) {
     #[cfg(any(feature = "hydrate", feature = "csr"))]
     {
-        let tag = event_target_value(event);
+        let Some(element) = select.get_untracked() else {
+            return;
+        };
+        let Some(tag) =
+            js_sys::Reflect::get(element.as_ref(), &wasm_bindgen::JsValue::from_str("value"))
+                .ok()
+                .and_then(|value| value.as_string())
+        else {
+            return;
+        };
+        event.prevent_default();
         leptos::task::spawn_local(async move {
             if let Err(error) = crate::set_locale(&tag).await {
                 web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(match error {

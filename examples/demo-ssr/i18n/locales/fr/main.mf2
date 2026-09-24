@@ -27,6 +27,7 @@ add-one = Ajouter un
 reset = Réinitialiser
 typed-nothing = Vous n'avez encore rien saisi
 typed = Vous avez saisi {$typed}
+echo-label = Saisissez quelque chose
 
 not-found = Cette page n'existe pas.
 
@@ -36,6 +37,7 @@ home = Accueil
 lazy = Une route différée
 
 [lazy]
+page-title = Une route différée · MessageFormat 2 pour Leptos
 heading = Une route dans son propre fragment
 title = Son code est arrivé quand vous l'avez ouverte
 body = Le code de cette page est un {#strong}fichier wasm à part{/strong}, téléchargé en chemin.
@@ -43,6 +45,8 @@ locale-label = Rendu en
 
 [language]
 label = Langue
+# The switcher's button: a choice applies only when it is pressed.
+apply = Appliquer
 en = English
 fr = Français
 ar = العربية

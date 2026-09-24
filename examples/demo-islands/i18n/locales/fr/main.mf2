@@ -25,6 +25,8 @@ reset = Réinitialiser
 
 [language]
 label = Langue
+# The switcher's button: a choice applies only when it is pressed.
+apply = Appliquer
 en = English
 fr = Français
 ar = العربية

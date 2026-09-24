@@ -29,6 +29,13 @@ cd ../../tools/e2e
 node run.mjs islands --base-url http://127.0.0.1:3704 --browser chromium,firefox
 ```
 
+and the accessibility audit, which drives all three examples (demo-ssr on
+port 3702, this one on 3704 — `MF2_ISLANDS_URL` to change it):
+
+```sh
+node run.mjs a11y --base-url http://127.0.0.1:3702 --browser chromium,firefox
+```
+
 and the size claim, from the repository root:
 
 ```sh
@@ -46,7 +53,7 @@ Like `examples/demo-ssr`, this is a **workspace of its own**.
 | the hotkey line | server | markup as elements, with no client code |
 | the counter | **island** | a signal-valued argument under `static-locale` |
 | the note above the counter | **island** | a markup message inside an island — the case the gate exists for |
-| the switcher | **island** | `static-locale`'s switch: a cookie and a reload |
+| the switcher | server | `static-locale`'s switch: the form's `GET ?lang=`, which the server negotiates and remembers in the cookie — no code, so it works before the wasm loads |
 
 ## Three things an islands application does
 
@@ -81,8 +88,10 @@ fails to hydrate. The browser check keeps that control case. The gate adds no
 page bytes and no request, because the catalog fetch reuses the preload.
 
 **Why `static-locale`.** Server-only components are static HTML: a live switch
-could update the islands but not them. So a switch is the `mf2_locale` cookie
-and a reload, and the server renders the whole page in the new locale. On the
+could update the islands but not them. So a switch is a navigation: the switcher's
+form submits `?lang=`, the server renders the whole page in the new locale and
+writes the `mf2_locale` cookie. The switcher is therefore not an island — a
+choice applies on its button, never on the select's `change` (WCAG 3.2.2). On the
 client, only a node with a reactive argument registers — here, the counter's
 line.
 

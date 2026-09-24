@@ -7,6 +7,9 @@
   --fg: #16181d;
   --muted: #4a4f5a;
   --line: #d3d7df;
+  /* A control's edge must show against the page (1.4.11: 3:1); --line is
+     decorative and does not. */
+  --field: #767c89;
   --accent: #1b4dd8;
   color-scheme: light dark;
 }
@@ -17,6 +20,7 @@
     --fg: #f2f4f8;
     --muted: #b9bfcc;
     --line: #333a46;
+    --field: #737b8c;
     --accent: #8fb0ff;
   }
 }
@@ -35,6 +39,14 @@ body {
   max-width: 44rem;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
+}
+
+/* The landmarks inside the page: main stacks its sections like the page
+   stacks the landmarks. */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .row {
@@ -78,9 +90,17 @@ select {
   font: inherit;
   color: inherit;
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: 1px solid var(--field);
   border-radius: 0.25rem;
   padding: 0.4rem 0.5rem;
+}
+
+/* The engines' own placeholder colours fall below 4.5:1 in one scheme or
+   the other (Chromium's #757575 on the dark page; Firefox's 54 % of the
+   text colour on the light one), so the page sets its own (1.4.3). */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 button {
@@ -107,8 +127,10 @@ kbd {
   padding: 0.15em 0.4em;
 }
 
-.mf2-locale-switcher {
+.mf2-locale-switcher,
+.mf2-locale-switcher label {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
 }

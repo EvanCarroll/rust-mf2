@@ -29,6 +29,8 @@ The browser checks, against a running server:
 cd ../../tools/e2e
 node run.mjs demo --base-url http://127.0.0.1:3702 --browser chromium,firefox
 node run.mjs lazy --base-url http://127.0.0.1:3702 --browser chromium,firefox
+# the WCAG 2.2 AA audit: all three examples (demo-islands running on 3704)
+node run.mjs a11y --base-url http://127.0.0.1:3702 --browser chromium,firefox
 ```
 
 Without `--split` the app still works — `/lazy` is then an ordinary async
@@ -50,7 +52,9 @@ example cannot share one with libraries that are built both ways.
 | the hotkey line | **markup as elements** — and in French the `<kbd>` lands at the *end* of the sentence, where French puts it, without the view knowing anything about word order (04 §7) |
 | the published line | a date through `:datetime`, formatted by ICU4X from the catalog's own `icu.blob` |
 | the echo line | a plain `String` built in an event handler — no bidi isolation in it, because a program consumes it (04 §9) |
-| the switcher | `<LocaleSwitcher>`: a labelled native control, each language named in its own language with its own `lang` |
+| the switcher | `<LocaleSwitcher>`: a labelled native control, each language named in its own language with its own `lang`, applied by its button — live once hydrated, the form's `GET ?lang=` before (WCAG 3.2.2) |
+| the counter's line | `role="status"`: announced when a button changes it, focus left on the button (4.1.3) |
+| the page's landmarks | banner, navigation, main and contentinfo as siblings, so "skip to main" lands on the content |
 
 ## The lazy route
 
@@ -62,8 +66,8 @@ and awaited by `leptos_mf2::hydrate_lazy` before hydration walks it.
 Nothing in `leptos-mf2` is aware of chunks: they share the main module's
 linear memory and thread-locals, so the chunk's descriptions read the
 catalog the boot installed, join the same node registry, and follow the
-same switch. The route has a text, an attribute, a markup message and the
-current locale, and leaving it frees every registry slot it took.
+same switch. The route has its own `<title>`, a text, an attribute, a markup message and
+the current locale, and leaving it frees every registry slot it took.
 
 `ar` is right-to-left, so switching to it flips the whole page from `<html
 dir>` alone — the CSS has no second set of rules.

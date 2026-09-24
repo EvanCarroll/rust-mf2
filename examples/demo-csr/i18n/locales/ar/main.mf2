@@ -24,6 +24,8 @@ reset = إعادة تعيين
 
 [language]
 label = اللغة
+# The switcher's button: a choice applies only when it is pressed.
+apply = تطبيق
 en = English
 fr = Français
 ar = العربية

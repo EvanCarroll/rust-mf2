@@ -17,7 +17,7 @@
 //     chunk loaded, no text changed — and switches live;
 //   * none of it logs anything.
 
-import { captureSsrSnapshot, sleep, until, watchConsole, watchNetwork } from '../lib/browser.mjs';
+import { captureSsrSnapshot, chooseLocale, sleep, until, watchConsole, watchNetwork } from '../lib/browser.mjs';
 
 /** A few strings from the corpus, to name what is expected. */
 const T = {
@@ -197,7 +197,7 @@ export async function run(ctx) {
 }
 
 async function switchTo(page, tag) {
-  await page.selectOption('#mf2-locale', tag);
+  await chooseLocale(page, tag);
   await page.waitForFunction((t) => document.documentElement.lang === t, tag, { timeout: 5000 });
   // Let the derived conversions (the title, `inLanguage`) re-run.
   await sleep(100);

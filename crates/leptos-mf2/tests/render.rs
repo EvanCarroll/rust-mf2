@@ -219,3 +219,53 @@ fn a_text_prop_captures_the_request_s_catalog() {
 fn the_description_of_a_call_site_is_still_four_bytes() {
     assert_eq!(size_of::<Tr>(), 4);
 }
+
+#[test]
+fn the_switcher_is_a_get_form_applied_by_a_button() {
+    // Phase 7 A11 (owner question 9): with no client code the form's own
+    // `GET ?lang=` is the switch, so the markup alone must be complete — the
+    // page's locale selected, the select named for `QueryParam`, a submit
+    // button — and it must carry no fixed `id`, so a page may have two.
+    use leptos_mf2::{LocaleOption, LocaleSwitcher};
+    let catalog = catalog_of("Save", "ar");
+    let html = in_request(&catalog, || {
+        view! {
+            <LocaleSwitcher label="Language" button="Apply">
+                <LocaleOption tag="en">"English"</LocaleOption>
+                <LocaleOption tag="ar">"العربية"</LocaleOption>
+            </LocaleSwitcher>
+        }
+        .to_html()
+    });
+    let form_tag = &html[..html.find('>').expect("a tag")];
+    assert!(form_tag.starts_with("<form "), "{html}");
+    assert!(form_tag.contains(" method=\"get\""), "{html}");
+    assert!(
+        form_tag.contains(" class=\"mf2-locale-switcher\""),
+        "{html}"
+    );
+    let label = html.find("<label>").expect("a label with no `for`");
+    let select = html
+        .find("<select name=\"lang\"")
+        .expect("a select named `lang`");
+    let label_end = html.find("</label>").expect("the label closes");
+    assert!(
+        label < select && select < label_end,
+        "the select is inside its label: {html}"
+    );
+    assert!(html.contains("<span>Language</span>"), "{html}");
+    assert!(
+        html.contains("<button type=\"submit\">Apply</button>"),
+        "{html}"
+    );
+    assert!(
+        html.contains("<option value=\"en\" lang=\"en\">English</option>"),
+        "{html}"
+    );
+    assert!(
+        html.contains("<option value=\"ar\" lang=\"ar\" selected>العربية</option>"),
+        "the page's locale is selected in the markup: {html}"
+    );
+    assert!(!html.contains(" id="), "no fixed id: {html}");
+    assert!(!html.contains(" for="), "{html}");
+}
