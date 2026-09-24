@@ -433,18 +433,28 @@ attribute_description!(TrDyn);
 macro_rules! string_conversions {
     ($ty:ty) => {
         impl $ty {
-            /// The message's text against the catalog in force — **plain**:
-            /// no bidi isolation, because a `String` is what a program
-            /// consumes (§9). [`to_display_string`](Self::to_display_string)
-            /// is the isolated form.
+            /// The message's text against the catalog in force, **isolated**:
+            /// the spec's Default Bidi Strategy, which `formatting.md` makes
+            /// the default for a message formatted as a single string (§9,
+            /// revised in Phase 7 A12). [`to_plain_string`](Self::to_plain_string)
+            /// is the form for text a program consumes.
             #[must_use]
             #[allow(clippy::inherent_to_string)]
             pub fn to_string(&self) -> String {
+                text::to_string(self, TextUse::Displayed)
+            }
+
+            /// The same text with no bidi isolation, for a `String` a
+            /// program consumes — a server function, a comparison, the
+            /// clipboard, `format!` — where U+2066–U+2069 would be invisible
+            /// junk.
+            #[must_use]
+            pub fn to_plain_string(&self) -> String {
                 text::to_string(self, TextUse::Plain)
             }
 
-            /// The same text, isolated, for a `String` that goes back into
-            /// the page.
+            /// A synonym of [`to_string`](Self::to_string), kept from when
+            /// `to_string()` was plain.
             #[must_use]
             pub fn to_display_string(&self) -> String {
                 text::to_string(self, TextUse::Displayed)
@@ -453,7 +463,7 @@ macro_rules! string_conversions {
 
         impl From<$ty> for String {
             fn from(description: $ty) -> String {
-                text::to_string(&description, TextUse::Plain)
+                text::to_string(&description, TextUse::Displayed)
             }
         }
     };

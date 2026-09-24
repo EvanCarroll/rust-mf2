@@ -86,22 +86,27 @@ fn a_pattern_formats_its_arguments() {
 }
 
 #[test]
-fn a_string_is_plain_and_a_text_child_is_isolated() {
+fn a_string_is_isolated_and_a_plain_string_is_not() {
     let catalog = catalog_of("Hello, {$name}!", "en");
-    let (html, string) = in_request(&catalog, || {
+    let (html, string, from, plain, displayed) = in_request(&catalog, || {
         let d: TrArgs = tr_args1(ID, ArgValue::str_static("Ada"));
-        (RenderHtml::to_html(d.clone()), d.to_string())
+        (
+            RenderHtml::to_html(d.clone()),
+            d.to_string(),
+            String::from(d.clone()),
+            d.to_plain_string(),
+            d.to_display_string(),
+        )
     });
-    assert_eq!(html, "Hello, \u{2068}Ada\u{2069}!");
-    // A `String` is what a program consumes, so no invisible controls in it
-    // (04 §9).
-    assert_eq!(string, "Hello, Ada!");
-    // …and the displayed form is there when the String goes back into the
-    // page.
-    let displayed = in_request(&catalog, || {
-        tr_args1(ID, ArgValue::str_static("Ada")).to_display_string()
-    });
-    assert_eq!(displayed, "Hello, \u{2068}Ada\u{2069}!");
+    let isolated = "Hello, \u{2068}Ada\u{2069}!";
+    assert_eq!(html, isolated);
+    // A message formatted as a single string gets the Default Bidi Strategy
+    // by default (formatting.md; 04 §9, revised in Phase 7 A12)…
+    assert_eq!(string, isolated);
+    assert_eq!(from, isolated);
+    assert_eq!(displayed, isolated);
+    // …and the plain form is the one a program consumes.
+    assert_eq!(plain, "Hello, Ada!");
 }
 
 #[test]

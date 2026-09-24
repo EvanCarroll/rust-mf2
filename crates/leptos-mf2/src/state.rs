@@ -28,10 +28,13 @@ use std::sync::OnceLock;
 pub enum TextUse {
     /// Text a person reads: a text child, a markup part, an attribute a
     /// person reads (`title`, `aria-label`, `placeholder`, `alt`; the
-    /// attribute's name decides, §9). Isolated.
+    /// attribute's name decides, §9), and a message formatted as a single
+    /// string (`to_string()`, `String::from`, `Oco`) — the spec's default.
+    /// Isolated.
     Displayed,
     /// Text a program consumes: a DOM property, an attribute a program reads
-    /// (`value`, `href`, `download`, `data-*`), [`ToString`], `String` and `Oco` conversions. Not isolated.
+    /// (`value`, `href`, `download`, `data-*`), `to_plain_string()`. Not
+    /// isolated.
     Plain,
 }
 
