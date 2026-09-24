@@ -19,6 +19,7 @@ mod l4_wasi;
 mod l4_web;
 mod l6_web;
 mod l7_web;
+mod leptos_beta;
 mod locale_data;
 mod pin;
 mod report;
@@ -154,6 +155,17 @@ enum Command {
         #[arg(long)]
         no_build: bool,
     },
+    /// `leptos-mf2` on the newest Leptos 0.9 pre-release (Phase 7, A7): the
+    /// tracked tree copied to target/leptos-beta with the Leptos pins moved
+    /// to 0.9 / 0.3, checked for ssr, hydrate and csr and its render and
+    /// churn tests run, all with `tachys-0-3`; first, that `tachys-0-3` on
+    /// the working tree's Leptos 0.8 is a compile error naming the fix.
+    LeptosBeta {
+        /// The negative control: the same on the pre-release without
+        /// `tachys-0-3`, which must fail.
+        #[arg(long)]
+        no_tachys_0_3: bool,
+    },
     /// A server-only component costs the client nothing (Phase 7, A1): the
     /// islands example's client, built with and without one more server-only
     /// component full of call sites, must be the same size.
@@ -259,6 +271,7 @@ fn run(command: Command) -> Result<()> {
         Command::Ci => ci::run(&root),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
+        Command::LeptosBeta { no_tachys_0_3 } => leptos_beta::run(&root, !no_tachys_0_3),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

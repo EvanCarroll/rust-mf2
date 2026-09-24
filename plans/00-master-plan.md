@@ -136,7 +136,7 @@ mf2-two/
 │   ├── mf2-macros/             tr! proc-macro
 │   ├── mf2-cli/                `mf2` binary (clap)
 │   ├── mf2-axum/               negotiation, catalog serving, preload headers
-│   ├── leptos-mf2/             Tr types, glue/tachys_*, context, hydrate entrypoints, switcher
+│   ├── leptos-mf2/             Tr types, glue/view.rs, context, hydrate entrypoints, switcher
 │   └── mf2/                    facade: re-exports + feature flags apps actually touch
 ├── conformance/                crate mf2-conformance: L1–L7 harnesses, ledger.toml,
 │                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md;

@@ -17,13 +17,14 @@ whose interactive parts are islands.
 
 | In the tree | Where |
 |---|---|
-| The description types and their rendering: `Render`, `RenderHtml`, `AddAnyAttr`, `ToTemplate`, `AttributeValue`, `IntoProperty`, and `From` into `TextProp` / `Signal<String>` / `Oco` / `String` | `crates/leptos-mf2/src/glue/tachys_0_2.rs` |
+| The description types and their rendering: `Render`, `RenderHtml`, `AddAnyAttr`, `ToTemplate`, `AttributeValue`, `IntoProperty`, and `From` into `TextProp` / `Signal<String>` / `Oco` / `String` | `crates/leptos-mf2/src/glue/view.rs` (named `tachys_0_2.rs` until A7) |
 | The node registry (D7 = B), the catalog state, `set_locale`, `hydrate_body`, `hydrate_lazy` | `crates/leptos-mf2/src/{registry,catalog,boot}.rs` |
 | Markup → elements, nesting and flat handlers | `crates/leptos-mf2/src/rich.rs` |
 | Negotiation, `/i18n/*`, the per-request context | `crates/mf2-axum` |
 | L6 and L6d green; L6 in two engines | `conformance/src/l6.rs`, `conformance/l6-web`, `tools/e2e/checks/l6.mjs` |
 | *(added by A4)* L7, L7c, L7d, L7cd green in two engines | `conformance/l7-web`, `tools/e2e/checks/l7.mjs`, `cargo xtask l7-web` |
 | *(added by A5)* The churn harness, every row shape flat | `bench/churn`, `tools/e2e/checks/churn.mjs`, `cargo xtask churn`; natively `crates/leptos-mf2/tests/churn.rs` |
+| *(added by A7)* The 0.9 glue (`tachys-0-3`) and its nightly beta run | `crates/leptos-mf2/src/glue/view.rs`, `cargo xtask leptos-beta`, nightly `leptos-beta` |
 | The example, and the browser checks that drive it | `examples/demo-ssr`, `tools/e2e/checks/demo.mjs` |
 | The whole-app size gate | `cargo xtask size` |
 
@@ -129,7 +130,7 @@ only draft it for the owner to post.
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -139,7 +140,7 @@ only draft it for the owner to post.
 | **A4** Layer L7 — **done** | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. *As built: all 324 runtime-valid tests, not 297 — one page per locale the suite uses (below).* | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
 | **A5** The churn follow-up — **done** | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost *(flat, below: all three conversions and the argument effect leaked ≈ 70 B a churned row, and now leave nothing)* |
 | **A6** The dev loop — **done** | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
-| **A7** Leptos 0.9 | *Rescoped by owner question 7.* A `tachys-0-3` feature of `leptos-mf2` that switches the two `to_html_with_buf` impls (`Tr`/`TrArgs`/`TrDyn` and `TrRich`) to 0.9's `RenderFlags` form, in the existing glue module; everything else stays shared. The glue module is renamed to name no line (`glue/view.rs`), and `glue.rs`' doc says why. `cargo xtask leptos-beta`: copies the tracked tree to `target/leptos-beta`, pins the workspace's `leptos`, `tachys`, `reactive_graph`, `leptos_axum`, `leptos_meta` and `leptos_router` to the newest 0.9 / 0.3 pre-releases, then checks `leptos-mf2` for `ssr`, `csr` and `hydrate` and runs its `render` (ssr) and `churn` (csr) tests, all with `tachys-0-3`. The working tree is never edited. A nightly job, `leptos-beta`, runs it with `continue-on-error`. `tachys-0-3` with 0.8's dependencies is a compile error that names the fix. At 0.9's release, the workspace moves to it (D10: latest stable), and whether 0.8 stays supported is a question for the owner then. | the xtask passes on today's beta (and fails on it without `tachys-0-3`, as the negative control); the nightly job exists; `cargo xtask ci` green on 0.8 |
+| **A7** Leptos 0.9 — **done** | *Rescoped by owner question 7.* A `tachys-0-3` feature of `leptos-mf2` that switches the two `to_html_with_buf` impls (`Tr`/`TrArgs`/`TrDyn` and `TrRich`) to 0.9's `RenderFlags` form, in the existing glue module; everything else stays shared. The glue module is renamed to name no line (`glue/view.rs`), and `glue.rs`' doc says why. `cargo xtask leptos-beta`: copies the tracked tree to `target/leptos-beta`, pins the workspace's `leptos`, `tachys`, `reactive_graph`, `leptos_axum`, `leptos_meta` and `leptos_router` to the newest 0.9 / 0.3 pre-releases, then checks `leptos-mf2` for `ssr`, `csr` and `hydrate` and runs its `render` (ssr) and `churn` (csr) tests, all with `tachys-0-3`. The working tree is never edited. A nightly job, `leptos-beta`, runs it with `continue-on-error`. `tachys-0-3` with 0.8's dependencies is a compile error that names the fix. At 0.9's release, the workspace moves to it (D10: latest stable), and whether 0.8 stays supported is a question for the owner then. | the xtask passes on today's beta (and fails on it without `tachys-0-3`, as the negative control); the nightly job exists; `cargo xtask ci` green on 0.8 |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
 | **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check |
@@ -520,6 +521,49 @@ answered; the A7 row says what remains.
   control still leaks on `reactive_graph` 0.3.0-beta2, so A5's workaround is
   still needed there.
 * Not tried on the beta: the examples, `mf2-axum`, the browser checks.
+
+## A7 — Leptos 0.9: what was built and measured
+
+* **One glue module, two forms of one method.** `glue/tachys_0_2.rs` is now
+  `glue/view.rs`; `glue.rs` says why it names no line. The `tachys-0-3`
+  feature (`= ["leptos"]`) switches the two `to_html_with_buf` impls — the
+  `render_description!` one (`Tr`, `TrArgs`, `TrDyn`) and `TrRich`'s — to
+  0.3's `flags: RenderFlags`, passed through to tachys' own `&str` and
+  fragment impls as the 0.2 form passes `escape` and `mark_branches`. Nothing
+  else in the crate is `cfg`'d on it.
+* **On Leptos 0.8 it is a compile error that names the fix.** The first
+  error is always the `RenderFlags` import (rustc continues to type-check and
+  reports eight more), and rustc prints that import's line, so the line
+  carries the fix: ``use tachys::view::RenderFlags; // `tachys-0-3` needs
+  Leptos 0.9; for Leptos 0.8, turn it off``. A custom
+  `#[diagnostic::on_unimplemented]` trait on the method's arity was tried
+  first and dropped: rustc reports a closure-arity mismatch as E0593 and
+  ignores the custom message.
+* **`cargo xtask leptos-beta`** (`xtask/src/leptos_beta.rs`): (1) in the
+  working tree, `tachys-0-3` with `ssr` must fail and its first error must
+  contain that sentence; (2) every tracked file, as it is in the working
+  tree, copied to `target/leptos-beta/tree`, the six workspace pins
+  rewritten to `^0.9.0-alpha` / `^0.3.0-alpha` so cargo picks the newest
+  pre-release, no lock file, builds in `target/leptos-beta/target`; (3)
+  `leptos-mf2` checked for `ssr` natively and for `hydrate` and `csr` on
+  `wasm32-unknown-unknown`, then `render` (`ssr`) and `churn` (`csr`), all
+  with `tachys-0-3`. It prints what each pin resolved to, and says so when
+  one resolves to a release (the cue to move the workspace, D10).
+  `--no-tachys-0-3` is the negative control. The working tree is never
+  written; `git status` after both runs showed only this change.
+* **Result, 2026-09-24**, resolved to leptos 0.9.0-beta, tachys and
+  reactive_graph 0.3.0-beta2, leptos_axum and leptos_meta 0.9.0-beta,
+  leptos_router 0.9.0-beta1: all three checks pass, `render` 12/12, `churn`
+  1/1 (so its plain-`track()` control still leaks on 0.3 — A5's workaround
+  is still needed). **Negative control**, `--no-tachys-0-3`: the `ssr` check
+  fails with the eight errors the measurement before building found (four
+  E0050, four E0061), all in the two methods.
+* **The nightly job** `leptos-beta` runs the xtask, its step
+  `continue-on-error`, with the wasm32 target installed.
+* **`cargo xtask ci`** on Leptos 0.8: green, every step (2026-09-24). It does not
+  build `tachys-0-3`; that is the nightly's.
+* Not tried on the beta, as before: the examples, `mf2-axum`, the browser
+  checks.
 
 ## Exit (master plan §9, P7)
 

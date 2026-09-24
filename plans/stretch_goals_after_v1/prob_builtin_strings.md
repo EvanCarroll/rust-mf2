@@ -173,7 +173,7 @@ start and makes a later switch local:
    StrRef)`, defaulting to `push_str(catalog.text(r))` — so a JS-string sink or
    the cache (form A) needs no evaluator change (03 §2). `Formatter::simple`
    gets a variant that yields the `StrRef`, not only the `&str`.
-3. **All DOM writes stay in one glue module** (04 §3, `glue/tachys_0_2.rs`) —
+3. **All DOM writes stay in one glue module** (04 §3, `glue/view.rs`) —
    already the plan.
 4. **Catalog loading is one function** behind `hydrate_body` / `set_locale` —
    the only place that knows "fetch + copy + `Catalog::new`".

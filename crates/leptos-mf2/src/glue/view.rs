@@ -1,11 +1,13 @@
-//! Everything that names tachys, for the 0.2 line
-//! (`plans/04-leptos-integration.md` §3).
+//! Everything that names tachys (`plans/04-leptos-integration.md` §3), for
+//! the 0.2 line (Leptos 0.8) and, with `tachys-0-3`, the 0.3 line (Leptos
+//! 0.9).
 //!
-//! It is one module on purpose. Leptos 0.9's only rendering-trait break is
-//! `to_html_with_buf` taking a `RenderFlags`, and the text-separator rules
-//! moving from `escape` to `flags.hydrate` — so a `glue/tachys_0_3.rs`
-//! beside this one is the whole port, and the rest of the crate never learns
-//! about it (§1).
+//! The two lines differ here in one method: `to_html_with_buf` takes
+//! `escape` and `mark_branches` on 0.2 and one `RenderFlags` on 0.3, with the
+//! text-separator rule moving from `escape` to `flags.hydrate` (§1). Both
+//! impls of it below exist in both forms, switched by the feature; each form
+//! only passes its parameters on to tachys' own impl, so the separator rules
+//! stay tachys' on either line. Everything else is shared.
 //!
 //! Three rules hold everywhere below.
 //!
@@ -36,6 +38,10 @@ use tachys::renderer::{CastFrom, Rndr};
 use tachys::view::add_attr::AddAnyAttr;
 use tachys::view::any_view::AnyViewState;
 use tachys::view::iterators::VecState;
+// With `tachys-0-3` on Leptos 0.8 this import is the first error, and rustc
+// prints its line, so the line says what to do.
+#[cfg(feature = "tachys-0-3")]
+use tachys::view::RenderFlags; // `tachys-0-3` needs Leptos 0.9; for Leptos 0.8, turn it off
 use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTemplate};
 
 #[cfg(not(feature = "static-locale"))]
@@ -177,6 +183,7 @@ macro_rules! render_description {
                 0
             }
 
+            #[cfg(not(feature = "tachys-0-3"))]
             fn to_html_with_buf(
                 self,
                 buf: &mut String,
@@ -194,6 +201,19 @@ macro_rules! render_description {
                         mark_branches,
                         extra_attrs,
                     );
+                });
+            }
+
+            #[cfg(feature = "tachys-0-3")]
+            fn to_html_with_buf(
+                self,
+                buf: &mut String,
+                position: &mut Position,
+                flags: RenderFlags,
+                extra_attrs: Vec<AnyAttribute>,
+            ) {
+                with_text(&self, TextUse::Displayed, |text| {
+                    <&str as RenderHtml>::to_html_with_buf(text, buf, position, flags, extra_attrs);
                 });
             }
 
@@ -556,6 +576,7 @@ impl RenderHtml for TrRich {
         0
     }
 
+    #[cfg(not(feature = "tachys-0-3"))]
     fn to_html_with_buf(
         self,
         buf: &mut String,
@@ -571,6 +592,17 @@ impl RenderHtml for TrRich {
             mark_branches,
             extra_attrs,
         );
+    }
+
+    #[cfg(feature = "tachys-0-3")]
+    fn to_html_with_buf(
+        self,
+        buf: &mut String,
+        position: &mut Position,
+        flags: RenderFlags,
+        extra_attrs: Vec<AnyAttribute>,
+    ) {
+        rich::active_fragment(&self).to_html_with_buf(buf, position, flags, extra_attrs);
     }
 
     /// The structure came from the catalog, so the catalog has to be the one

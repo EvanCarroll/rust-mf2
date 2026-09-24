@@ -41,6 +41,12 @@ static-locale = []
 # Turning it on today does nothing; `mf2 stats` reports fallback counts
 # meanwhile, so the gap is visible either way.
 mark-fallback-lang = []
+# The tachys 0.3 line (Leptos 0.9), against its betas until 0.9 is released
+# (`plans/04-leptos-integration.md` §§3, 10): the glue's two
+# `to_html_with_buf` impls in 0.3's `RenderFlags` form. Only for a build whose
+# Leptos is 0.9; with Leptos 0.8 it is a compile error that says so. Not
+# documented to users until 0.9 ships (`cargo xtask leptos-beta` tests it).
+tachys-0-3 = ["leptos"]
 
 [dependencies]
 mf2-catalog.workspace = true

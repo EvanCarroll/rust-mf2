@@ -133,8 +133,9 @@ ryu = "1.0.23"
 js-sys = { version = "0.3.105", default-features = false }
 # leptos-mf2 (`plans/04-leptos-integration.md` §10): the latest stable Leptos
 # line, the versions P0.2 verified end to end. `tachys` and `reactive_graph`
-# are named directly — the glue module is written against one tachys line —
-# and unify with the ones `leptos` pulls in.
+# are named directly — the glue module is written against tachys — and unify
+# with the ones `leptos` pulls in. `cargo xtask leptos-beta` moves these three
+# (and the three below) to the 0.9 pre-releases in a copy of the tree.
 leptos = { version = "0.8.20", default-features = false }
 tachys = { version = "0.2.18", default-features = false }
 reactive_graph = { version = "0.2.14", default-features = false }

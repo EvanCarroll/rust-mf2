@@ -74,7 +74,7 @@ pub mod components;
 mod convert;
 #[cfg(feature = "leptos")]
 mod error;
-/// Everything that names tachys, one module per supported tachys line.
+/// Everything that names tachys, in one module for every supported line.
 #[cfg(feature = "leptos")]
 pub mod glue;
 #[cfg(feature = "leptos")]
@@ -213,4 +213,4 @@ pub use text::{Description, Stored};
 
 /// The retained view state of a rendered description.
 #[cfg(feature = "leptos")]
-pub use glue::tachys_0_2::{TrAttrState, TrRichState, TrState};
+pub use glue::view::{TrAttrState, TrRichState, TrState};
