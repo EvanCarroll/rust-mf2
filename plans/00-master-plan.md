@@ -373,8 +373,8 @@ everything before it).
 * CSR (`demo-csr`), islands (`demo-islands`, including rich messages inside
   islands), `static-locale`, `mark-fallback-lang`, `<LocaleSwitcher>`, head
   helpers, dev hot reload (design owned by this phase's work order: `mf2 watch` +
-  an `mf2-axum` dev endpoint), Leptos 0.9 glue (against the betas until released), benchmarks tracked per
-  commit, user documentation, coverage matrix complete
+  an `mf2-axum` dev endpoint), Leptos 0.9 glue (against the betas until released), user documentation,
+  coverage matrix complete
   ([01](01-conformance.md) §5).
 * **Exit**: L6 green (SSR + hydrate, lazy routes) and **L7** green — the
   suite in an islands page and in a client-only page, each in columns of
@@ -385,9 +385,17 @@ everything before it).
 ### P8 — Migration and interchange
 * `mf2 convert --from fluent`; a call-site migration guide (and codemod where
   mechanical) from closure-per-site macros to `tr!`; XLIFF 2 export/import.
+* **The A/B against `leptos-fluent`**, measured **once**, at migration: the
+  same application's client size (and the speed figures that apply) on
+  `leptos-fluent` and on this library, reported with the commit it measured
+  and committed as a snapshot — "at this commit, this is what we had". It
+  is not re-run per commit; a later commit is audited against the snapshot
+  only **when the owner asks**, by re-running the same command there
+  (owner, 2026-09-24, replacing Phase 7's per-commit benchmark history).
 * **Exit**: a Fluent corpus of reference-workload shape converts with a report of
   zero unmapped constructs; converted catalogs format identically to the Fluent
-  originals on a sampled argument set.
+  originals on a sampled argument set; the `leptos-fluent` A/B measured,
+  reported and its snapshot committed.
 
 ### P9 — Release
 * Name verification, API review, semver policy tied to Leptos lines, docs.rs,

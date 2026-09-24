@@ -413,6 +413,12 @@ beyond a small tolerance (default 1 % or 256 B, whichever is larger). The report
 is attached to every CI run; the numbers in this file are updated only by a
 commit that also explains the change.
 
+No per-commit history of these numbers is kept (owner, 2026-09-24): the
+gates fail on a regression, and the comparison that is kept is the A/B
+against `leptos-fluent`, measured once at migration and committed as a
+snapshot with its commit ([master plan](00-master-plan.md) §9 P8). A later
+commit is audited against that snapshot on the owner's request.
+
 Benchmarks (`criterion` native; a small wasm timing harness in the browser) cover
 load, simple lookup, pattern format, select format, and locale switch with 2,000
 live nodes.

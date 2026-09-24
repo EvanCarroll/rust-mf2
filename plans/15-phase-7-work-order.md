@@ -99,7 +99,8 @@ whose interactive parts are islands.
    **answered (owner, 2026-09-23): all of it stays in Phase 7.** Added as
    A11–A15: the WCAG 2.2 AA audit and the spec-coverage check (both in the
    master plan's exit), user documentation, `mark-fallback-lang`, and
-   benchmarks tracked per commit.
+   benchmarks tracked per commit. *(The last, A15, was withdrawn by owner
+   question 12.)*
 
 6. **Whether the two-crate layout is still the default for a
    server-rendered application** — **answered (owner, 2026-09-23): no, one
@@ -176,13 +177,27 @@ whose interactive parts are islands.
     default, build-time only. Recorded in 05 §5. The question as it was
     put: build it, or record the SHOULD as not done.
 
+12. **Whether size and speed are recorded for every commit** —
+    **answered (owner, 2026-09-24): no; A15 is withdrawn.** No per-commit
+    history is kept and no CI job is added for one. What matters is the
+    A/B between this library and `leptos-fluent`, measured **once**, at
+    migration (Phase 8), and committed as a snapshot with the commit it
+    measured, so it can later be said "at this point, this was what we
+    had" and history examined from there. A later commit is audited
+    against the snapshot only when the owner asks. The existing gates
+    (every push and nightly) stay as they are. Recorded in the master plan
+    (§9 P7 and P8) and [06](06-size-and-perf.md) §6. The question as it
+    was put: where a per-commit history would live (a data branch, git
+    notes, or run attachments) and whether the half-hour whole-app size
+    check would move from nightly to every push.
+
 The question this order held back for A8 — whether an agent may post a
 proposal to the tachys maintainers or only draft it — did not arise: A8
 found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13** and **A14** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13** and **A14** (2026-09-24); what they found is below the table. **A15 is withdrawn** (owner question 12); A10 is next.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -199,8 +214,8 @@ found nothing to propose (§"A8").
 | **A12** Spec coverage — **done** (§"A12" below; [phase-7-results](phase-7-results.md) §A12) | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. *Added by owner questions 10 and 11:* `to_string()` / `String::from` isolated by default and a new `to_plain_string()` (04 §9); the `nonstandard-name` lint (05 §5). | the matrix complete; zero uncovered normative statements; `cargo xtask conformance-report` checks it (and writes `COVERAGE.md`); the two additions built, each with a test and a negative control |
 | **A13** User documentation — **done** (§"A13" below) | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` — **done** (§"A14 — design" below; [phase-7-results](phase-7-results.md) §A14) | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed (done), built, and asserted in a browser (hydration included) |
-| **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
-| **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
+| **A15** Benchmarks per commit — **withdrawn** (owner question 12) | ~~The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI.~~ Replaced by the `leptos-fluent` A/B, measured once at migration and committed as a snapshot (master plan §9 P8); A10 carries it into the Phase 8 work order. | — |
+| **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`, including the `leptos-fluent` A/B of owner question 12. | written |
 
 ## A1 — islands: what was built and measured
 
@@ -1058,11 +1073,10 @@ built (it says the feature does nothing), and the feature's comment in
       [phase-7-results](phase-7-results.md), a screen reader not run)
 - [x] no normative spec statement without a covering test (A12; 164
       statements, 0 gaps)
-- [ ] user documentation (A13), `mark-fallback-lang` (A14) and per-commit
-      benchmarks (A15) done
-      *(A13 and A14 done; A15 remains)*
+- [x] user documentation (A13) and `mark-fallback-lang` (A14) done
+      *(per-commit benchmarks, A15, withdrawn by owner question 12)*
 - [ ] islands, CSR and lazy routes each demonstrated by the example and
       asserted by a browser check
 - [ ] a server-only component's wasm cost measured at zero
-- [x] owner questions 1–11 answered (2026-09-23; 7–11 on 2026-09-24) and recorded in 04, 05, 01 and the master plan
+- [x] owner questions 1–12 answered (2026-09-23; 7–12 on 2026-09-24) and recorded in 04, 05, 01 and the master plan
 - [ ] `plans/phase-7-results.md` and the Phase 8 work order written
