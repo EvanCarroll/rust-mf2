@@ -18,6 +18,8 @@ mf2-locale-data = { workspace = true, features = ["extract"] }
 mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde_json.workspace = true
+# `cargo xtask docs` points a documented manifest at the working tree.
+toml.workspace = true
 thiserror = { workspace = true, features = ["std"] }
 
 [lints]

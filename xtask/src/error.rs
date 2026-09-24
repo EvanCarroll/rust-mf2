@@ -20,6 +20,9 @@ pub(crate) enum Error {
     /// Conformance layer L7 failed, or its ledger columns do not hold.
     #[error("l7-web: {0}")]
     L7(String),
+    /// A sample in the user documentation is malformed or does not compile.
+    #[error("docs: {0}")]
+    Docs(String),
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
     #[error("leptos-beta: {0}")]
     LeptosBeta(String),

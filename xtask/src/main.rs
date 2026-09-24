@@ -10,6 +10,7 @@ mod ci;
 mod cldr_sync;
 mod cmd;
 mod codegen_matrix;
+mod docs;
 mod error;
 mod fsx;
 mod fuzz_seed;
@@ -175,6 +176,15 @@ enum Command {
     Goldens,
     /// Run locally exactly what CI runs: fmt, clippy, tests, conformance report.
     Ci,
+    /// Compile every code sample in the user documentation (`docs/`): the
+    /// samples of each application are assembled under
+    /// `target/docs/projects` and checked for the targets it runs on.
+    Docs {
+        /// Assemble and verify the samples (the `mf2` commands they run,
+        /// the files they say were generated) without compiling them.
+        #[arg(long)]
+        no_build: bool,
+    },
     /// Compile the module `mf2-build` generates (tools/i18n-fixture) in every
     /// feature combination of the facade, for the server and for
     /// wasm32-unknown-unknown (Phase 5a, A5).
@@ -269,6 +279,7 @@ fn run(command: Command) -> Result<()> {
             }
         }
         Command::Ci => ci::run(&root),
+        Command::Docs { no_build } => docs::run(&root, !no_build),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
         Command::LeptosBeta { no_tachys_0_3 } => leptos_beta::run(&root, !no_tachys_0_3),

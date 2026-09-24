@@ -5,6 +5,7 @@
 # wasm32-unknown-unknown with the `intl` client option, whose code compiles
 # only there — cargo test for the workspace and again for `mf2-resource`'s
 # optional `serde` feature, which nothing in the workspace turns on, the
+# documentation's samples assembled (job `docs` compiles them), the
 # conformance report, which runs layers L1-L5
 # over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
@@ -36,6 +37,15 @@
 # greps the client artifact for budget B6; `cargo xtask scenarios` runs the
 # incremental-rebuild scenarios of P0.9 on tools/i18n-fixture, where a
 # translation-only edit must leave the client wasm byte-identical.
+#
+# Job `docs`: every code sample in the user documentation, compiled (Phase 7
+# A13). `cargo xtask docs` assembles the `rust`, `toml` and `mf2` blocks of
+# docs/*.md into the small applications they describe — running the `mf2
+# init` the pages run, and failing if a file a page shows as generated
+# differs from what was generated — then checks each one for the server
+# and for wasm32-unknown-unknown with warnings denied, and publishes the
+# client-only one's catalogs with `mf2 compile --site`. `cargo xtask ci`
+# runs the assembly without the builds.
 #
 # Job `l4-wasi`: conformance layer L4 on wasm32-wasip1 (plans/01-conformance.md
 # §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
@@ -348,6 +358,47 @@ jobs:
 
       - name: The incremental-rebuild scenarios
         run: cargo xtask scenarios
+
+  docs:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Every documentation sample, compiled (server and wasm32)
+        run: cargo xtask docs
 
   l4-wasi:
     # PLACEHOLDER: see the `ci` job.

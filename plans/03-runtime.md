@@ -1063,7 +1063,11 @@ code:
 * **Time zone** — the server cannot know it. `leptos-mf2` persists the client's
   IANA zone in a cookie on first load; SSR uses it when present and otherwise
   formats date/time in UTC **and marks the node for client re-render after
-  hydration**. This holds for any backend.
+  hydration**. This holds for any backend. *Not built as of Phase 7 (found
+  writing the user documentation, A13): there is no zone cookie and no
+  re-render; an instant formats in the zone it carries
+  (`DateTimeValue::with_zone`), else `Setup::with_time_zone`'s default,
+  else UTC, identically on both sides. Left to the Phase 8 work order.*
 * **"Now"** never enters a message implicitly; date arguments are always explicit.
 
 ## 7. Spec obligations with structural impact

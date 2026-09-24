@@ -127,6 +127,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         let args: Vec<&OsStr> = step.iter().map(OsStr::new).collect();
         run_inherit(&cargo, &args, root).map_err(|_| Error::CiStepFailed(shown))?;
     }
+    // The documentation's samples, assembled and the `mf2` commands they
+    // run checked; compiling them is the `docs` job's (`cargo xtask docs`).
+    eprintln!("==> cargo xtask docs --no-build");
+    crate::docs::run(root, false)?;
     eprintln!("==> cargo xtask conformance-report");
     report::check(root, None, None)?;
     eprintln!("==> ci: all steps passed");

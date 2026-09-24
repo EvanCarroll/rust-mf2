@@ -484,7 +484,7 @@ the list — they are names users choose as much as option names are.*
 
 | Command | Purpose |
 |---|---|
-| `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs` |
+| `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs`. Since Phase 7 A13 the crate is ready for Leptos as written: `ssr`, `hydrate` and `csr` features forwarding `mf2`'s, and a `setup()` for `leptos_mf2::install` / `mf2_axum::install` — what every example had added by hand, and what the user documentation shows verbatim (checked by `cargo xtask docs`) |
 | `mf2 check` | all lints, machine-readable output for CI (`--format json`) |
 | `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8). With `--site` the functions are the i18n crate's features as `cargo metadata` resolves them (only `fn-number`, `fn-datetime` and `datetime-icu` change a catalog); a `--features` that names others fails, with both lists, and writes nothing — so the catalogs are built for the wasm's functions without the list being written twice (Phase 7 A6). DIR must be a cargo package |
 | `mf2 fmt` | canonical formatting of `.mf2` resources |

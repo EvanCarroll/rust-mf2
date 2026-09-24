@@ -69,23 +69,25 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         write(path, body)?;
         println!("{}", path.display());
     }
+    let krate = args.name.replace('-', "_");
     println!(
-        "\nmf2 init: {} in {}. Next:\n\
-         \x20 1. add it to the workspace and to the application's dependencies;\n\
-         \x20 2. call `{}::tr!(\"id\", name = value)` from anywhere that depends on it;\n\
-         \x20 3. add this to the application's [package.metadata.leptos], so that\n\
+        "\nmf2 init: {name} in {dir}. Next:\n\
+         \x20 1. add it to the workspace and to the application's dependencies, and\n\
+         \x20    forward the application's `ssr`, `hydrate` or `csr` feature to it;\n\
+         \x20 2. install it once on each side: `mf2_axum::install({krate}::setup(),\n\
+         \x20    {krate}::CATALOGS)` in the server's `main`, and\n\
+         \x20    `leptos_mf2::install({krate}::setup())` before the client boots;\n\
+         \x20 3. call `{krate}::tr!(\"id\", name = value)` from anywhere that depends on it;\n\
+         \x20 4. add this to the application's [package.metadata.leptos], so that\n\
          \x20    `cargo leptos watch` sees a translation change:\n\
-         \x20      watch-additional-files = [\"{}/locales\"]\n\
-         \x20 4. only for a client-only application (no server to embed the\n\
+         \x20      watch-additional-files = [\"{dir}/locales\"]\n\
+         \x20 5. only for a client-only application (no server to embed the\n\
          \x20    catalogs in): emit `mf2_build::Emit::Module` in build.rs, and\n\
          \x20    publish the catalogs beside the wasm with\n\
-         \x20      mf2 -C {} compile --site <site>/i18n\n\
+         \x20      mf2 -C {dir} compile --site <site>/i18n\n\
          \x20    which builds them for this crate's features as cargo resolves them.",
-        args.name,
-        dir.display(),
-        args.name.replace('-', "_"),
-        dir.display(),
-        dir.display()
+        name = args.name,
+        dir = dir.display(),
     );
     Ok(())
 }
@@ -97,17 +99,19 @@ fn cargo_toml(name: &str) -> String {
          version = \"0.1.0\"\n\
          edition = \"2024\"\n\
          \n\
-         # The feature set is declared here, once, and the application forwards\n\
-         # it from both its `ssr` and its `hydrate` builds, so the server and\n\
-         # the client always have the same functions (plans/05-tooling.md §3.1).\n\
+         # The functions a message may use are this crate's features, declared\n\
+         # once: the application's server and client builds both get them, so\n\
+         # the two always format alike. Turn on what the corpus needs.\n\
          [features]\n\
          default = []\n\
-         ssr = [\"mf2/host-std\"]\n\
-         hydrate = [\"mf2/host-web\"]\n\
+         # The application forwards exactly one of these from its own build.\n\
+         ssr = [\"mf2/host-std\", \"mf2/ssr\"]\n\
+         hydrate = [\"mf2/host-web\", \"mf2/hydrate\"]\n\
+         csr = [\"mf2/host-web\", \"mf2/csr\"]\n\
          fn-number = [\"mf2/fn-number\"]\n\
          fn-datetime = [\"mf2/fn-datetime\"]\n\
-         datetime-icu = [\"mf2/datetime-icu\", \"mf2-build/icu-blob\"]\n\
-         datetime-intl = [\"mf2/datetime-intl\"]\n\
+         datetime-icu = [\"fn-datetime\", \"mf2/datetime-icu\", \"mf2-build/icu-blob\"]\n\
+         datetime-intl = [\"fn-datetime\", \"mf2/datetime-intl\"]\n\
          intl = [\"mf2/intl\"]\n\
          \n\
          [dependencies]\n\
@@ -120,7 +124,7 @@ fn cargo_toml(name: &str) -> String {
 
 const BUILD_RS: &str = "\
 //! Parses locales/, writes the manifest and the catalogs to OUT_DIR, and
-//! generates the module src/lib.rs includes (plans/05-tooling.md §4).
+//! generates the module src/lib.rs includes.
 
 fn main() {
     let outcome = match mf2_build::Build::new().and_then(|build| build.emit_cargo(true).run()) {
@@ -148,4 +152,18 @@ const LIB_RS: &str = "\
 //! (rust-lang/rust#52234).
 
 mf2::include_generated!();
+
+/// What the application installs once on each side: the registry, the host,
+/// the manifest hash and the locale table the build generated.
+#[cfg(any(feature = \"ssr\", feature = \"hydrate\", feature = \"csr\"))]
+#[must_use]
+pub fn setup() -> mf2::leptos_mf2::Setup {
+    mf2::leptos_mf2::Setup::new(
+        registry(),
+        &host::HOST,
+        MANIFEST_HASH,
+        SOURCE_LOCALE,
+        LOCALES,
+    )
+}
 ";

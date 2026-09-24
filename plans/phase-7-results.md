@@ -251,3 +251,70 @@ the `mf2` CLI, never of a client crate. `cargo build --release -p mf2-cli`
 with the lint as built and with its two UTS #39 checks and the dependency
 removed: `target/release/mf2` 11,848,664 → **11,890,464 B (+41,800,
 +0.35 %)**. Its compile time was not measured separately. Kept.
+
+## A13 — user documentation
+
+**What was written.** `docs/` — [getting started](../docs/getting-started.md),
+[call sites](../docs/call-sites.md), [delivery modes](../docs/delivery-modes.md),
+[switching language](../docs/switching.md), [accessibility](../docs/accessibility.md)
+and an index — and a new root `README.md` (the old one said "Phase 2 is
+next"). The order is owner question 1's: SSR + hydrate first, islands second
+with `cargo xtask islands-zero`'s figures, then client-only; one i18n crate
+for a server-rendered application and catalogs published apart
+(`Emit::Module` + `mf2 compile --site`) for a client-only one (questions 2
+and 6). The pages name the crates as a release will (`mf2 = "0.1"`) and say
+that, until then, a path into a checkout replaces the version.
+
+**Every sample compiled — `cargo xtask docs`.** A `rust`, `toml` or `mf2`
+block names its file (`file=<project>/<path>`); the blocks of a project, in
+page order, are that project. `merge` merges a `toml` block into the file a
+project inherits (the islands manifest shows two lines, not seventy);
+`generated` marks a file a command wrote, compared byte for byte; `run=`
+holds the `mf2` commands a page runs, so the i18n crate is made by the
+documented `mf2 init`. A code block with no `file=`, an unknown attribute,
+or a page under `docs/` the xtask does not list is an error. Dependencies on
+this repository's crates are pointed at the working tree. Five applications
+(`hello`, `calls`, `lazy`, `islands`, `csr`) are checked natively with `ssr`
+and on `wasm32-unknown-unknown` with `hydrate` (or `csr`), `RUSTFLAGS="-D
+warnings"`, one shared target directory; `csr`'s catalogs are then
+published with `mf2 compile --site` and must include `index.json`.
+
+* 2026-09-24: 68 blocks on 6 pages, 60 of them files, all compiled; the
+  build scripts' lints silent (the first run found `missing-plural-category`
+  on the French plural, and the sample now names `many`); the first run
+  also failed on a `cfg(feature = "csr")` in an application that declares
+  no `csr`, now fixed in the sample.
+* Negative controls, run: a line of `mf2 init`'s `src/lib.rs` changed on
+  the page — `--no-build` fails naming the page line and both texts; a
+  misspelt id in a sample (`welcom`) — the `calls` check fails with the
+  macro's "did you mean `welcome`?".
+* CI: a new `docs` job runs `cargo xtask docs`; `cargo xtask ci` runs the
+  assembly without the builds.
+
+**`mf2 init` changed** so that what the pages show verbatim works: the
+scaffolded crate forwards `mf2`'s `ssr`/`hydrate`/`csr` and has a `setup()`
+(every example had added both by hand), and `datetime-icu` /
+`datetime-intl` imply `fn-datetime`, without which the build script does not
+consider dates available. Its "next steps" name both installs.
+
+**Found and fixed: a live switch was not remembered.** 04 §6 says a switch
+updates the cookie; under `hydrate` without `static-locale`, `set_locale`
+wrote none, and a `?lang=` in the address (which the switcher's no-script
+form and any link produce) outranks the cookie anyway. Observed before the
+fix, `demo-ssr` (debug `--split`), Chromium and Firefox: after a live switch
+to `fr` the cookie held another tag, the address kept `?lang=en`, and a
+reload came back in `en` — `demo.mjs` 138/144, the three new assertions
+failing in each engine. Now the live switch writes the `mf2_locale` cookie
+with `CookieLocale`'s default attributes (the code the `static-locale`
+switch already had, shared) and removes `lang` from the address with
+`history.replaceState` (web-sys `History`). After: `demo.mjs` 144/144,
+`lazy.mjs` 66/66, `islands.mjs` 58/58, `csr.mjs` 78/78, `a11y.mjs`
+720/720, both engines. WebKit was not run (not installed). Size, `cargo
+xtask size`: B1 22,100 → **22,102 B gz** (+2, the cookie write and the
+query removal now on the live path), B5 12.6 B gz a site (unchanged), whole
+app at 1,860 sites **45,517 B gz** — all met.
+
+**Found, not built: the reader's time zone.** 03 §6 plans a zone cookie and
+a re-render after hydration; neither exists. An instant formats in its own
+zone, else `Setup::with_time_zone`'s, else UTC, identically on both sides.
+The call-site page says so. Left to the Phase 8 work order.

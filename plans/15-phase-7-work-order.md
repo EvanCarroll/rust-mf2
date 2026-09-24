@@ -182,7 +182,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11** and **A12** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12** and **A13** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -197,7 +197,7 @@ found nothing to propose (§"A8").
 | **A9** The bidi override in a view — **done**, *decided by owner question 8* | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position could only be overridden per request. *Decided: an attribute's strategy follows its name* ([04](04-leptos-integration.md) §9's second table). `AttributeValue`'s `to_html`, `build` and `hydrate` and the registry's `Target::Attribute` rewrite on a switch all choose `TextUse` from the key through **one** function (ASCII case-insensitive; `data-` by prefix); `IntoProperty`, text children and markup are unchanged. The `TextUse` and `Target` docs and the `with_bidi` doc say so. The closure form for a plain text child goes in the user documentation (A13). | a native `ssr` render test: a message with an argument in `value=` and `data-x=` has no U+2066–U+2069, in `title=` it has them, and the name match ignores case; a browser check on an example page asserts the same after hydration **and** after a live switch (the registry path); negative control: with the rule forced to `Displayed`, both fail; `cargo xtask size` passes, with the B1 change recorded |
 | **A11** The WCAG 2.2 AA audit — **done** | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
 | **A12** Spec coverage — **done** (§"A12" below; [phase-7-results](phase-7-results.md) §A12) | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. *Added by owner questions 10 and 11:* `to_string()` / `String::from` isolated by default and a new `to_plain_string()` (04 §9); the `nonstandard-name` lint (05 §5). | the matrix complete; zero uncovered normative statements; `cargo xtask conformance-report` checks it (and writes `COVERAGE.md`); the two additions built, each with a test and a negative control |
-| **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
+| **A13** User documentation — **done** (§"A13" below) | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
@@ -888,6 +888,36 @@ The whole record is [phase-7-results](phase-7-results.md) §A12. In short:
 * **A reading recorded:** `u:id` takes a string (or an exact decimal's text,
   or a custom value exposing one); an integer or float is Bad Option. No
   test asserts the number half.
+
+## A13 — done (2026-09-24)
+
+The whole record is [phase-7-results](phase-7-results.md) §A13. In short:
+
+* **The pages:** `docs/` — getting started (install, `mf2 init`, the
+  messages, a server-rendered application that hydrates and switches), call
+  sites, delivery modes (SSR + hydrate first, then lazy routes, islands with
+  `islands-zero`'s figures, client-only with `mf2 compile --site`),
+  switching language, accessibility. The root README leads the same way
+  and was rewritten (it still said "Phase 2 is next").
+* **Every sample compiled:** `cargo xtask docs` assembles the `rust`,
+  `toml` and `mf2` blocks of the pages and the README into five
+  applications (`file=<project>/<path>` in the info string; `merge` for a
+  manifest a variant changes; `generated` for a file `mf2 init` wrote,
+  compared byte for byte; `run=` for the `mf2` commands a page runs), and
+  checks each for the server and for wasm32 with warnings denied; the
+  client-only one also publishes its catalogs. A code block with no
+  `file=` is refused. New CI job `docs`; `cargo xtask ci` runs the
+  assembly (`--no-build`).
+* **`mf2 init` scaffolds a crate that works with Leptos as written**
+  (`ssr`/`hydrate`/`csr` forwarding `mf2`'s, `setup()`, the date features
+  implying `fn-datetime`); every example had added these by hand.
+* **Found and fixed: a live switch was not remembered.** Under `hydrate`,
+  `set_locale` wrote no cookie (04 §6 said it did) and left `?lang=` in
+  the address, so a reload came back in the old locale. It now writes the
+  cookie and drops the query; `demo.mjs` asserts it.
+* **Found, not built:** the reader's time zone (03 §6's cookie) — an
+  instant formats in UTC unless the value or `Setup` names a zone. The
+  documentation says so; it is left to the Phase 8 order (A10).
 
 ## Exit (master plan §9, P7)
 
