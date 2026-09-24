@@ -135,6 +135,12 @@ pub(crate) fn measure(
     mode: Mode,
 ) -> Result<Measured> {
     let out = out.unwrap_or_else(|| root.join("target").join("b5"));
+    // Absolute, because the workload's path reaches the i18n crate's build
+    // script (`MF2_WORKLOAD_LOCALES`), which runs in another directory.
+    let out = std::path::absolute(&out).map_err(|source| Error::IoAt {
+        path: out.clone(),
+        source,
+    })?;
     if !keep && out.exists() {
         std::fs::remove_dir_all(&out).map_err(|source| Error::IoAt {
             path: out.clone(),

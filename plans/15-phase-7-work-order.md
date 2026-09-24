@@ -124,13 +124,13 @@ whose interactive parts are islands.
    allowed-to-fail beta job; against today's code that job fails every
    night on the one known break and so cannot report a new one.
 
-Still to ask when it comes up: A8 ends with a proposal *put to the tachys
-maintainers*, which is outward-facing — whether an agent may post it or
-only draft it for the owner to post.
+The question this order held back for A8 — whether an agent may post a
+proposal to the tachys maintainers or only draft it — did not arise: A8
+found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7** and **A8** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -141,7 +141,7 @@ only draft it for the owner to post.
 | **A5** The churn follow-up — **done** | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost *(flat, below: all three conversions and the argument effect leaked ≈ 70 B a churned row, and now leave nothing)* |
 | **A6** The dev loop — **done** | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
 | **A7** Leptos 0.9 — **done** | *Rescoped by owner question 7.* A `tachys-0-3` feature of `leptos-mf2` that switches the two `to_html_with_buf` impls (`Tr`/`TrArgs`/`TrDyn` and `TrRich`) to 0.9's `RenderFlags` form, in the existing glue module; everything else stays shared. The glue module is renamed to name no line (`glue/view.rs`), and `glue.rs`' doc says why. `cargo xtask leptos-beta`: copies the tracked tree to `target/leptos-beta`, pins the workspace's `leptos`, `tachys`, `reactive_graph`, `leptos_axum`, `leptos_meta` and `leptos_router` to the newest 0.9 / 0.3 pre-releases, then checks `leptos-mf2` for `ssr`, `csr` and `hydrate` and runs its `render` (ssr) and `churn` (csr) tests, all with `tachys-0-3`. The working tree is never edited. A nightly job, `leptos-beta`, runs it with `continue-on-error`. `tachys-0-3` with 0.8's dependencies is a compile error that names the fix. At 0.9's release, the workspace moves to it (D10: latest stable), and whether 0.8 stays supported is a question for the owner then. | the xtask passes on today's beta (and fails on it without `tachys-0-3`, as the negative control); the nightly job exists; `cargo xtask ci` green on 0.8 |
-| **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
+| **A8** The tachys leaf hook — **done: the reason not to** | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. *As found: neither half of the case survived measurement. The 197 KB was the server's host linked into the benchmark's client (a template bug, fixed); the fixed cost is 28 KB gz, the margin 11.9 B gz, and ≈ 0 under `erase_components`; the two-hour compile did not reproduce (below).* | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
 | **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check |
 | **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
@@ -564,6 +564,115 @@ answered; the A7 row says what remains.
   build `tachys-0-3`; that is the nightly's.
 * Not tried on the beta, as before: the examples, `mf2-axum`, the browser
   checks.
+
+## A8 — the tachys leaf hook: the reason not to
+
+Measured 2026-09-24, before anything was designed. Phase 6's case for the
+hook had two halves, and neither survived.
+
+* **The 197 KB gz intercept was the server's host in the client.** The
+  `tr-view` template depended on the benchmark's i18n crate
+  (`templates/tr/i18n`) with default features, and that crate's default is
+  `ssr`. With `ssr` on, the generated module's `host::HOST` is
+  `host_std::HOST`, and `tr-view`'s boot names it — so the `hydrate` client
+  linked jiff with its bundled time-zone database, Unicode normalisation
+  and `std::io`'s error strings. `twiggy diff` of a 120-site pair
+  (`idlit-view` → `tr-view`, names kept): four data segments of 43,147,
+  42,452, 31,211 and 17,129 B found only in `tr-view`, 11,004 B of
+  `jiff::tz` code, and the zone-name table (`Africa/Abidjan…`, 8,504 B) in
+  the wasm; `cargo tree -i jiff` on the client names the path. No message
+  text: the canary is absent from that wasm. The `tr` template has the same
+  declaration but picks its host by the app's own feature, so it linked
+  nothing extra.
+* **The fix:** `default-features = false` on the i18n crate in both
+  templates. Nothing in the examples or `mf2 init` has the slip — no
+  example's i18n crate defaults to `ssr`. For `tr` it is a no-op, measured:
+  `cargo xtask size` passes (B1 22,108 B gz, B5 12.6, whole app 45,519),
+  and the 1,860-site `tr` client built with and without the line has the
+  same length and is 2 B gz apart. (Against the last recorded run those
+  figures are +0.2 KB; the line is not the cause, and the commits since
+  Phase 6 were not bisected.)
+* **Refuted on the way:** that the intercept came from the *variety* of leaf
+  types (`Tr` and `TrArgs` making more distinct block types than `&str`
+  does). At 465 sites, every no-argument view leaf converted to `TrArgs`:
+  445,999 → 445,106 B gz, −0.2 %. The size was a fixed cost from the start:
+  tr-view − idlit-view was 196.9, 199.8, 205.1 and 215.0 KB gz at 120, 465,
+  930 and 1,860 sites; with the fix, 31.0, 33.5, 38.6 and 49.4 KB. (These
+  ad-hoc figures are `gzip -9` of the file and are compared only with each
+  other; the xtask's gzip differs by ≈ 2–3 KB on the same file.)
+* **B5 re-measured, `cargo xtask b5 --view`** (1,860 / 3,720 sites, fixed
+  template), 17 minutes for all six builds — Phase 6's run took about
+  twelve hours:
+
+  | workload | template | bindgen gz | opt raw | opt gz |
+  |---|---|---:|---:|---:|
+  | 1,860 sites | tr-view | 580,969 | 2,071,085 | 600,670 |
+  | 1,860 sites | idlit-view | 527,540 | 2,012,739 | 550,187 |
+  | 1,860 sites | dummy | 627,842 | 2,443,752 | 643,780 |
+  | 3,720 sites | tr-view | 971,681 | 3,739,896 | 1,006,726 |
+  | 3,720 sites | idlit-view | 895,064 | 3,689,170 | 934,183 |
+  | 3,720 sites | dummy | 1,090,396 | 4,553,690 | 1,130,013 |
+
+  | baseline | marginal B gz/site | fixed B gz | budget |
+  |---|---:|---:|---|
+  | **`idlit-view`** | **11.9** | **28,423** | ≤ 40 — met |
+  | `dummy` | −43.1 | 37,067 | not a bound for this pair (phase-6-results §A7) |
+
+  The baseline reproduces Phase 6's to the byte at 1,860 sites (550,187).
+  The margin moves 11.4 → 11.9 because the fix took 167,864 B gz off
+  tr-view at 1,860 sites and 166,920 at 3,720 (Phase 6: 768,534 and
+  1,173,646) — 944 B over 1,860 sites. The fixed cost is now of B1's
+  order (22.1 KB on the `String` path, plus the view glue), not ten times
+  it.
+* **The compile time did not reproduce.** The app crate alone (touched and
+  rebuilt; fat LTO, `CARGO_BUILD_JOBS=3`, one run each, load 1.9–5.6):
+
+  | sites | idlit-view | tr-view, Phase 6's template | tr-view, fixed |
+  |---:|---:|---:|---:|
+  | 120 | 3.8 s | 4.2 s | 4.4 s |
+  | 465 | 8.7 s | 9.7 s | 10.3 s |
+  | 930 | 17.4 s | 18.9 s | 30.8 s (load 5.6) |
+  | 1,860 | 29.3 s | 37.5 s | 43.8 s |
+
+  Linear in the sites, and within 1.5× of the `&str` baseline under load —
+  not two hours. Phase 6's tr-view wasm reproduces within 403 B raw
+  (2,461,523 against 2,461,120), so it was the same build; why it took hours
+  then was not established, and nothing here depends on it.
+* **`--cfg erase_components`** (P0.1's figure), `RUSTFLAGS="--cfg
+  erase_components" cargo xtask b5 --view --out …` (fixed template; 337 s
+  for the six builds):
+
+  | workload | template | bindgen gz | opt raw | opt gz |
+  |---|---|---:|---:|---:|
+  | 1,860 sites | tr-view | 236,325 | 701,562 | 244,007 |
+  | 1,860 sites | idlit-view | 200,218 | 629,702 | 211,499 |
+  | 1,860 sites | dummy | 198,367 | 679,068 | 210,687 |
+  | 3,720 sites | tr-view | 301,627 | 972,373 | 307,272 |
+  | 3,720 sites | idlit-view | 259,890 | 901,651 | 274,255 |
+  | 3,720 sites | dummy | 252,901 | 997,247 | 269,844 |
+
+  | baseline | marginal B gz/site | fixed B gz |
+  |---|---:|---:|
+  | **`idlit-view`** | **0.3** | 31,999 |
+  | `dummy` | 2.2 | 29,212 |
+
+  With components erased, a description in a view position costs what a
+  `&str` does, and every application is 59–76 % smaller (tr-view at 1,860
+  sites: 600,670 → 244,007 B gz). So what is left of the 11.9 B lives in
+  the typed (non-erased) view path, and Leptos' own switch removes it.
+* **Why no proposal.** A leaf hook could remove at most part of the 11.9 B
+  gz a site costs on the whole mix — the formatting and the registry are
+  ours whatever tachys offers — against a budget of 40; the compile time it
+  was to cut is not there; and under `erase_components` a description
+  already costs what a `&str` does (0.3 B gz). There is nothing measured
+  to put to the tachys maintainers, so nothing is put. The nightly `b5` job keeps measuring
+  the view margin, and the workspace's move to Leptos 0.9 (A7) will show
+  any change tachys 0.3 makes to it.
+* **Also fixed:** `cargo xtask b5 --out` with a relative path failed in the
+  i18n crate's build script, which runs in another directory; the path is
+  made absolute first.
+* **Corrected elsewhere:** phase-6-results §A7 (a pointer here), 04 §1, 06
+  §3 (B5's row).
 
 ## Exit (master plan §9, P7)
 

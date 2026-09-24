@@ -22,7 +22,8 @@ commit with the harness green.
 What A7 still owes is not a budget but a **proposal**: the tachys leaf hook
 P0.1 asked Phase 6 to design, and the `--cfg erase_components` figure beside
 it. §A7 says why the run itself is the argument for that hook, and
-[15](15-phase-7-work-order.md) A8 carries it.
+[15](15-phase-7-work-order.md) A8 carries it. *(Phase 7 A8: the argument was
+a benchmark bug — §A7's correction note; no proposal.)*
 
 ## A1 — `leptos-mf2`, and where the description types live
 
@@ -236,6 +237,18 @@ gets a link. A site that omits the map entirely still works: the switch
 redirects through `/i18n/<tag>`.
 
 ## A7 — B5 on the whole mix
+
+> **Corrected by Phase 7 A8** ([15](15-phase-7-work-order.md) §"A8"). The
+> `tr-view` client below linked the **server's** host — jiff's time-zone
+> database, Unicode normalisation — because the template left its i18n
+> crate's default `ssr` feature on. That, not tachys, is the 197 KB
+> intercept. With the template fixed: **11.9 B gz** per site, a fixed cost
+> of **28,423 B gz**, and `tr-view` at 600,670 / 1,006,726 B gz, so the
+> description beats the `String` path at *both* scales (by 130 KB and
+> 274 KB). The two-hour compile did not reproduce (37.5 s at 1,860 sites).
+> The figures below are kept as Phase 6 measured them; the readings that
+> depend on them — the intercept as tachys', the compile time as evidence
+> for a leaf hook — are withdrawn.
 
 **Met: 11.4 B gz per call site**, against a budget of 40 and against P0.1's
 24.5 — and the run says something more interesting than the number.

@@ -19,9 +19,13 @@
 name = "tr"
 description = "mf2-two: tr! per call site, formatted through one shared helper (budget B5)."
 support = "support.rs"
+# `default-features = false` on the i18n crate, whose default is `ssr`: the
+# client must not build the server's half. (This template picks its host by
+# the app's own feature, so here it cost nothing; `tr-view`, which uses the
+# generated `host::HOST`, shipped the server host — 15 A8.)
 dependencies = [
     'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
-    'workload-i18n = { path = "{{template_dir}}/i18n" }',
+    'workload-i18n = { path = "{{template_dir}}/i18n", default-features = false }',
 ]
 prelude = "use workload_i18n::tr;"
 boot = "crate::support::boot();"

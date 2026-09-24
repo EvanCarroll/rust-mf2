@@ -19,10 +19,15 @@
 name = "tr-view"
 description = "mf2-two with the real leaf: a description renders itself in the view positions (budget B5, the whole mix)."
 support = "support.rs"
+# `default-features = false` on the i18n crate: its default is `ssr`, and with
+# `ssr` on, the generated module's `host::HOST` is the *server's* host — jiff's
+# bundled time-zone database and Unicode normalisation, ≈ 170 KB gz that the
+# client of every real application leaves out. Phase 6 measured it that way
+# and read the difference as tachys' (plans/15-phase-7-work-order.md A8).
 dependencies = [
     'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
     'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2" }',
-    'workload-i18n = { path = "{{template_dir}}/../tr/i18n" }',
+    'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',
 ]
 prelude = "use workload_i18n::tr;"
 boot = "crate::support::boot();"
