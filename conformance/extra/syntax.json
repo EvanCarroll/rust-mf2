@@ -1,0 +1,80 @@
+{
+  "$schema": "../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Syntax coverage",
+  "description": "Normative statements of spec/syntax.md that the WG suite does not test: mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/coverage.toml).",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "[S1] An input declaration cannot bind a variable its own function's options use (syntax.md, Declarations).",
+      "src": ".input {$foo :x opt=$foo} {{_}}",
+      "expErrors": [
+        {
+          "type": "duplicate-declaration"
+        }
+      ]
+    },
+    {
+      "description": "[S2] A backslash in text must begin an escape sequence (syntax.md, Text).",
+      "src": "unescaped \\ backslash",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    },
+    {
+      "description": "[S2] …nor escape a character that is not backslash, brace or bar.",
+      "src": "bad \\x escape",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    },
+    {
+      "description": "[S3] A backslash in a quoted literal must begin an escape sequence (syntax.md, Literals).",
+      "src": "{|a\\x|}",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    },
+    {
+      "description": "[S4] Markup must end with a right brace (syntax.md, Markup).",
+      "src": "unterminated {#tag",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    },
+    {
+      "description": "[S4] …close markup too.",
+      "src": "unterminated {/tag",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    },
+    {
+      "description": "[S5] A repeated attribute name is valid; attributes do not affect output (syntax.md, Attributes).",
+      "src": "{a @c @c=d}",
+      "exp": "a"
+    },
+    {
+      "description": "[S6] A quoted literal cannot contain U+0000 (syntax.md, Literals).",
+      "src": "{|a\u0000b|}",
+      "expErrors": [
+        {
+          "type": "syntax-error"
+        }
+      ]
+    }
+  ]
+}

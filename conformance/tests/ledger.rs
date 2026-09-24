@@ -86,11 +86,12 @@ fn committed_ledger_is_a_bijection_with_the_suite() {
 }
 
 #[test]
-fn suite_with_extra_has_485_tests_in_17_files() {
-    // The vendored 462 and conformance/extra/functions/unit.json's 23.
+fn suite_with_extra_has_612_tests_in_22_files() {
+    // The vendored 462, conformance/extra/functions/unit.json's 23, and the
+    // 127 the spec coverage matrix added (Phase 7 A12).
     let suite = suite();
-    assert_eq!(suite.files().len(), 17);
-    assert_eq!(suite.tests().len(), 485);
+    assert_eq!(suite.files().len(), 22);
+    assert_eq!(suite.tests().len(), 612);
     assert_eq!(
         suite.files().last().map(|(f, n)| (f.as_str(), *n)),
         Some(("u-options.json", 10))
@@ -220,7 +221,7 @@ fn duplicating_a_suite_test_is_red() {
     let copy = tests[5].clone();
     tests.push(copy);
     let mutated = Suite::from_values(files).unwrap();
-    assert_eq!(mutated.tests().len(), 486);
+    assert_eq!(mutated.tests().len(), 613);
     let v = check(&mutated, &committed_ledger());
     assert_eq!(v.len(), 1, "{v:?}");
     assert!(matches!(&v[0], Violation::MissingEntry { key, index: 114 } if key.nth == 1));

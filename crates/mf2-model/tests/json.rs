@@ -255,7 +255,7 @@ fn malformed_input_is_rejected() {
 }
 
 #[test]
-fn duplicate_names_cannot_be_serialized() {
+fn duplicate_option_names_cannot_be_serialized() {
     let mut options = Options::new();
     options.push("a".into(), OptionValue::Literal(lit("1")));
     options.push("a".into(), OptionValue::Literal(lit("2")));
@@ -265,14 +265,27 @@ fn duplicate_names_cannot_be_serialized() {
     };
     assert!(serde_json::to_string(&f).is_err());
 
-    let a = attrs(&[("x", None), ("x", Some("1"))]);
-    assert!(serde_json::to_string(&a).is_err());
-
     // Distinct spellings are distinct JSON keys, even if NFC-equal.
     let mut options = Options::new();
     options.push("\u{e9}".into(), OptionValue::Literal(lit("1")));
     options.push("e\u{301}".into(), OptionValue::Literal(lit("2")));
     assert!(serde_json::to_string(&options).is_ok());
+}
+
+/// A repeated attribute name is valid syntax, and all but the last
+/// occurrence are ignored (`syntax.md`, "Attributes"): JSON writes the last.
+#[test]
+fn a_repeated_attribute_name_serializes_its_last_occurrence() {
+    let a = attrs(&[("x", None), ("y", Some("2")), ("x", Some("1"))]);
+    assert_eq!(
+        serde_json::to_value(&a).expect("serializable"),
+        json!({"y": {"type": "literal", "value": "2"}, "x": {"type": "literal", "value": "1"}})
+    );
+    let a = attrs(&[("x", Some("1")), ("x", None)]);
+    assert_eq!(
+        serde_json::to_value(&a).expect("serializable"),
+        json!({"x": true})
+    );
 }
 
 #[test]

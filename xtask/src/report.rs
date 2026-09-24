@@ -4,7 +4,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use mf2_conformance::{Harness, LEDGER_PATH, Ledger, REPORT_PATH, report};
+use mf2_conformance::spec::SPEC_DIR;
+use mf2_conformance::{Harness, LEDGER_PATH, Ledger, REPORT_PATH, coverage, report};
 
 use crate::error::{Error, Result};
 use crate::pin::Pin;
@@ -130,9 +131,41 @@ pub(crate) fn check(root: &Path, ledger: Option<&Path>, report_path: Option<&Pat
         },
         report_path.display()
     );
-    if violations.is_empty() {
-        Ok(())
-    } else {
+    let gaps = write_coverage(root, &suite, &report_path)?;
+    if !violations.is_empty() {
         Err(Error::LedgerViolations(violations.len()))
+    } else if gaps > 0 {
+        Err(Error::CoverageGaps(gaps))
+    } else {
+        Ok(())
     }
+}
+
+/// The spec coverage matrix (plans/01-conformance.md §5): check
+/// `conformance/coverage.toml` against the spec and the tree, and write
+/// `COVERAGE.md` beside the report. Returns the number of gaps.
+fn write_coverage(
+    root: &Path,
+    suite: &mf2_conformance::Suite,
+    report_path: &Path,
+) -> Result<usize> {
+    let statements = coverage::statements(&root.join(SPEC_DIR))?;
+    let matrix = coverage::Coverage::load(root)?;
+    let gaps = coverage::check(&statements, &matrix, suite, root);
+    let path = report_path.with_file_name("COVERAGE.md");
+    let rendered = coverage::render(&statements, &matrix, suite, coverage::pin(root).as_deref());
+    fs::write(&path, rendered).map_err(|source| Error::IoAt {
+        path: path.clone(),
+        source,
+    })?;
+    for g in gaps.iter().take(50) {
+        eprintln!("  coverage: {g}");
+    }
+    eprintln!(
+        "conformance-report: {} normative statements, {} gap(s); wrote {}",
+        statements.len(),
+        gaps.len(),
+        path.display()
+    );
+    Ok(gaps.len())
 }

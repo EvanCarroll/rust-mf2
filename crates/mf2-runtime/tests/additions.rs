@@ -10,6 +10,8 @@
     clippy::trivially_copy_pass_by_ref
 )]
 
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
 use mf2_catalog::writer::{self, Options as WriterOptions};
 use mf2_catalog::{Catalog, Dir, MsgId};
 use mf2_runtime::functions::{NUMBER, STRING};
@@ -632,4 +634,78 @@ fn digits_operands() {
         "other"
     ); // shows 1.0
     assert_eq!(ok(&R, "{1.04 :cat maximumFractionDigits=0}", &[]), "one");
+}
+
+/// `{:probe}`: counts its calls and remembers whether it was shown a `u:`
+/// option. formatting.md: every expression is evaluated at most once
+/// (call-by-need, not call-by-name), and `u:` options may be taken out of
+/// the options a handler gets — ours always are.
+struct Probe {
+    calls: AtomicUsize,
+    saw_u: AtomicBool,
+}
+
+impl Function for Probe {
+    fn resolve<'a>(
+        &self,
+        _cx: &FnContext<'_>,
+        operand: Option<&Value<'a>>,
+        options: &Options<'_, 'a>,
+        _errs: &mut dyn ErrorSink,
+    ) -> Option<Value<'a>> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        if options.iter().any(|(name, _)| name.starts_with("u:")) {
+            self.saw_u.store(true, Ordering::SeqCst);
+        }
+        match operand {
+            Some(Value::Str(s)) => Some(Value::Str(s)),
+            _ => Some(Value::Str("")),
+        }
+    }
+
+    fn format(&self, _cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+        if let Value::Str(s) = value {
+            out.push_str(s);
+        }
+    }
+
+    fn selectable(&self, _value: &Value<'_>) -> bool {
+        true
+    }
+
+    fn matches(
+        &self,
+        _cx: &FnContext<'_>,
+        value: &Value<'_>,
+        key: &str,
+        _errs: &mut dyn ErrorSink,
+    ) -> bool {
+        matches!(value, Value::Str(s) if *s == key)
+    }
+}
+
+#[test]
+fn a_declaration_is_resolved_once_and_a_handler_sees_no_u_options() {
+    static PROBE: Probe = Probe {
+        calls: AtomicUsize::new(0),
+        saw_u: AtomicBool::new(false),
+    };
+    static PROBED: [(&str, &dyn Function); 2] = [("probe", &PROBE), ("string", &STRING)];
+    static PROBE_REGISTRY: Registry = Registry::new(&PROBED);
+
+    // One declaration used as the selector, twice as a placeholder, as an
+    // operand and as an option value: one call, and no `u:` option seen.
+    let src = ".local $x = {a :probe u:id=i u:dir=ltr} .match $x \
+               a {{{$x} {$x} {$x :string} {b :string k=$x}}} * {{other}}";
+    let (s, e) = run(&PROBE_REGISTRY, &cx(), src, &[]);
+    assert!(e.is_empty(), "{e:?}");
+    assert_eq!(s, "a a a b");
+    assert_eq!(PROBE.calls.load(Ordering::SeqCst), 1);
+    assert!(!PROBE.saw_u.load(Ordering::SeqCst));
+
+    // A declaration nothing uses is never resolved.
+    let (s, e) = run(&PROBE_REGISTRY, &cx(), ".local $y = {a :probe} {{ok}}", &[]);
+    assert!(e.is_empty(), "{e:?}");
+    assert_eq!(s, "ok");
+    assert_eq!(PROBE.calls.load(Ordering::SeqCst), 1);
 }

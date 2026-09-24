@@ -1,0 +1,515 @@
+{
+  "$schema": "../../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Numeric function options",
+  "description": "Every option (and option value) that spec/functions/number.md makes REQUIRED on :number, :integer, :percent, :currency and :unit, with its output, plus numeric selection and the exact literal match serialization: mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; plans/15-phase-7-work-order.md A12). The WG suite asserts few outputs for these options. Option semantics are ECMA-402's Intl.NumberFormat (number.md takes its option names and meanings from it); the exp values are CLDR 48.2.1 en data (ar for the cardinal rules).",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "[N1] :number signDisplay=exceptZero on a nonzero value.",
+      "src": "{5 :number signDisplay=exceptZero}",
+      "exp": "+5"
+    },
+    {
+      "description": "[N2] :number signDisplay=negative on a negative value.",
+      "src": "{-5 :number signDisplay=negative}",
+      "exp": "-5"
+    },
+    {
+      "description": "[N3] :number minimumIntegerDigits.",
+      "src": "{5 :number minimumIntegerDigits=3}",
+      "exp": "005"
+    },
+    {
+      "description": "[N4] :number maximumFractionDigits.",
+      "src": "{1.23456 :number maximumFractionDigits=2}",
+      "exp": "1.23"
+    },
+    {
+      "description": "[N5] :number minimumSignificantDigits.",
+      "src": "{5 :number minimumSignificantDigits=3}",
+      "exp": "5.00"
+    },
+    {
+      "description": "[N6] :number maximumSignificantDigits.",
+      "src": "{1.2345 :number maximumSignificantDigits=2}",
+      "exp": "1.2"
+    },
+    {
+      "description": "[N7] :number trailingZeroDisplay=auto keeps the zeros.",
+      "src": "{5 :number minimumFractionDigits=2 trailingZeroDisplay=auto}",
+      "exp": "5.00"
+    },
+    {
+      "description": "[N8] :number trailingZeroDisplay=stripIfInteger on an integer.",
+      "src": "{5 :number minimumFractionDigits=2 trailingZeroDisplay=stripIfInteger}",
+      "exp": "5"
+    },
+    {
+      "description": "[N9] stripIfInteger leaves a value with a fraction alone.",
+      "src": "{5.1 :number minimumFractionDigits=2 trailingZeroDisplay=stripIfInteger}",
+      "exp": "5.10"
+    },
+    {
+      "description": "[N10] roundingPriority=auto (the default): significant digits win.",
+      "src": "{1.2345 :number maximumFractionDigits=2 maximumSignificantDigits=2}",
+      "exp": "1.2"
+    },
+    {
+      "description": "[N11] roundingPriority=morePrecision.",
+      "src": "{1.2345 :number maximumFractionDigits=2 maximumSignificantDigits=2 roundingPriority=morePrecision}",
+      "exp": "1.23"
+    },
+    {
+      "description": "[N12] roundingPriority=lessPrecision.",
+      "src": "{1.2345 :number maximumFractionDigits=2 maximumSignificantDigits=2 roundingPriority=lessPrecision}",
+      "exp": "1.2"
+    },
+    {
+      "description": "[N13] roundingIncrement=5 at two fraction digits.",
+      "src": "{1.23 :number minimumFractionDigits=2 maximumFractionDigits=2 roundingIncrement=5}",
+      "exp": "1.25"
+    },
+    {
+      "description": "[N14] roundingIncrement=5 with no fraction digits (the maximum defaults to the minimum).",
+      "src": "{8 :number roundingIncrement=5}",
+      "exp": "10"
+    },
+    {
+      "description": "[N15] roundingIncrement=100.",
+      "src": "{1234 :number roundingIncrement=100 useGrouping=never}",
+      "exp": "1200"
+    },
+    {
+      "description": "[N16] A rounding increment needs equal minimum and maximum fraction digits (ECMA-402 throws): Bad Option, the increment ignored.",
+      "src": "{1.23 :number maximumFractionDigits=2 roundingIncrement=5}",
+      "exp": "1.23",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[N17] 3 is not a roundingIncrement value: Bad Option, ignored.",
+      "src": "{5 :number roundingIncrement=3}",
+      "exp": "5",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[N18] :number roundingMode=ceil on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=ceil}",
+      "exp": "-2"
+    },
+    {
+      "description": "[N19] :number roundingMode=floor on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=floor}",
+      "exp": "-3"
+    },
+    {
+      "description": "[N20] :number roundingMode=expand on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=expand}",
+      "exp": "-3"
+    },
+    {
+      "description": "[N21] :number roundingMode=trunc on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=trunc}",
+      "exp": "-2"
+    },
+    {
+      "description": "[N22] :number roundingMode=halfCeil on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=halfCeil}",
+      "exp": "-2"
+    },
+    {
+      "description": "[N23] :number roundingMode=halfFloor on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=halfFloor}",
+      "exp": "-3"
+    },
+    {
+      "description": "[N24] :number roundingMode=halfExpand on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=halfExpand}",
+      "exp": "-3"
+    },
+    {
+      "description": "[N25] :number roundingMode=halfTrunc on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=halfTrunc}",
+      "exp": "-2"
+    },
+    {
+      "description": "[N26] :number roundingMode=halfEven on -2.5.",
+      "src": "{-2.5 :number maximumFractionDigits=0 roundingMode=halfEven}",
+      "exp": "-2"
+    },
+    {
+      "description": "[N27] :number roundingMode=ceil on 2.4.",
+      "src": "{2.4 :number maximumFractionDigits=0 roundingMode=ceil}",
+      "exp": "3"
+    },
+    {
+      "description": "[N28] :number roundingMode=floor on 2.4.",
+      "src": "{2.4 :number maximumFractionDigits=0 roundingMode=floor}",
+      "exp": "2"
+    },
+    {
+      "description": "[N29] :number roundingMode=expand on 2.4.",
+      "src": "{2.4 :number maximumFractionDigits=0 roundingMode=expand}",
+      "exp": "3"
+    },
+    {
+      "description": "[N30] :number roundingMode=trunc on 2.4.",
+      "src": "{2.4 :number maximumFractionDigits=0 roundingMode=trunc}",
+      "exp": "2"
+    },
+    {
+      "description": "[N31] An implementation limit: significant digits start at 1. Bad Option, ignored.",
+      "src": "{5 :number maximumSignificantDigits=0}",
+      "exp": "5",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[N32] select=plural, explicitly.",
+      "src": ".input {$n :number select=plural} .match $n one {{one}} * {{other}}",
+      "exp": "one",
+      "params": [
+        {
+          "name": "n",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "description": "[N33] select=exact: no plural category is used.",
+      "src": ".input {$n :number select=exact} .match $n one {{one}} * {{other}}",
+      "exp": "other",
+      "params": [
+        {
+          "name": "n",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "description": "[N34] select=ordinal uses CLDR's ordinal rules (en).",
+      "src": ".input {$n :number select=ordinal} .match $n one {{st}} two {{nd}} few {{rd}} * {{th}}",
+      "exp": "nd",
+      "params": [
+        {
+          "name": "n",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "description": "[N35] select=ordinal uses CLDR's ordinal rules (en).",
+      "src": ".input {$n :number select=ordinal} .match $n one {{st}} two {{nd}} few {{rd}} * {{th}}",
+      "exp": "rd",
+      "params": [
+        {
+          "name": "n",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "description": "[N36] select=ordinal uses CLDR's ordinal rules (en).",
+      "src": ".input {$n :number select=ordinal} .match $n one {{st}} two {{nd}} few {{rd}} * {{th}}",
+      "exp": "th",
+      "params": [
+        {
+          "name": "n",
+          "value": 11
+        }
+      ]
+    },
+    {
+      "description": "[N37] select=ordinal uses CLDR's ordinal rules (en).",
+      "src": ".input {$n :number select=ordinal} .match $n one {{st}} two {{nd}} few {{rd}} * {{th}}",
+      "exp": "st",
+      "params": [
+        {
+          "name": "n",
+          "value": 21
+        }
+      ]
+    },
+    {
+      "description": "[N38] Plural selection uses CLDR's cardinal rules (ar: 3 is few).",
+      "src": ".input {$n :number} .match $n zero {{zero}} one {{one}} two {{two}} few {{few}} many {{many}} * {{other}}",
+      "exp": "few",
+      "params": [
+        {
+          "name": "n",
+          "value": 3
+        }
+      ],
+      "locale": "ar"
+    },
+    {
+      "description": "[N39] ar: 11 is many.",
+      "src": ".input {$n :number} .match $n zero {{zero}} one {{one}} two {{two}} few {{few}} many {{many}} * {{other}}",
+      "exp": "many",
+      "params": [
+        {
+          "name": "n",
+          "value": 11
+        }
+      ],
+      "locale": "ar"
+    },
+    {
+      "description": "[N40] Exact literal match serialization: an integer is written without grouping.",
+      "src": ".input {$n :number} .match $n 1000 {{exact}} * {{other}}",
+      "exp": "exact",
+      "params": [
+        {
+          "name": "n",
+          "value": 1000
+        }
+      ]
+    },
+    {
+      "description": "[N41] Negative zero serializes as 0 (the integer production has no -0).",
+      "src": ".local $n = {-0 :number} .match $n 0 {{exact}} * {{other}}",
+      "exp": "exact"
+    },
+    {
+      "description": "[N42] A negative integer serializes with a minus sign.",
+      "src": ".input {$n :number} .match $n -5 {{exact}} * {{other}}",
+      "exp": "exact",
+      "params": [
+        {
+          "name": "n",
+          "value": -5
+        }
+      ]
+    },
+    {
+      "description": "[N43] 1.0 is an integer: it serializes as 1.",
+      "src": ".local $n = {|1.0| :number} .match $n 1 {{exact}} * {{other}}",
+      "exp": "exact"
+    },
+    {
+      "description": "[N44] :integer minimumIntegerDigits.",
+      "src": "{5 :integer minimumIntegerDigits=2}",
+      "exp": "05"
+    },
+    {
+      "description": "[N45] :integer maximumSignificantDigits.",
+      "src": "{1234 :integer maximumSignificantDigits=2 useGrouping=never}",
+      "exp": "1200"
+    },
+    {
+      "description": "[N46] :integer signDisplay=never.",
+      "src": "{-5 :integer signDisplay=never}",
+      "exp": "5"
+    },
+    {
+      "description": "[N47] :integer select=ordinal.",
+      "src": ".input {$n :integer select=ordinal} .match $n one {{st}} two {{nd}} few {{rd}} * {{th}}",
+      "exp": "nd",
+      "params": [
+        {
+          "name": "n",
+          "value": 22
+        }
+      ]
+    },
+    {
+      "description": "[N48] :integer useGrouping=min2.",
+      "src": "{1234 :integer useGrouping=min2}",
+      "exp": "1234"
+    },
+    {
+      "description": "[N49] :percent minimumFractionDigits.",
+      "src": "{0.12 :percent minimumFractionDigits=1}",
+      "exp": "12.0%"
+    },
+    {
+      "description": "[N50] :percent maximumFractionDigits.",
+      "src": "{0.12345 :percent maximumFractionDigits=1}",
+      "exp": "12.3%"
+    },
+    {
+      "description": "[N51] :percent minimumSignificantDigits.",
+      "src": "{0.12 :percent minimumSignificantDigits=3}",
+      "exp": "12.0%"
+    },
+    {
+      "description": "[N52] :percent maximumSignificantDigits.",
+      "src": "{0.1234 :percent maximumSignificantDigits=2}",
+      "exp": "12%"
+    },
+    {
+      "description": "[N53] :percent trailingZeroDisplay=stripIfInteger.",
+      "src": "{0.12 :percent minimumFractionDigits=2 trailingZeroDisplay=stripIfInteger}",
+      "exp": "12%"
+    },
+    {
+      "description": "[N54] :percent roundingPriority=morePrecision.",
+      "src": "{0.012345 :percent maximumFractionDigits=2 maximumSignificantDigits=2 roundingPriority=morePrecision}",
+      "exp": "1.23%"
+    },
+    {
+      "description": "[N55] :percent roundingPriority=lessPrecision.",
+      "src": "{0.012345 :percent maximumFractionDigits=2 maximumSignificantDigits=2 roundingPriority=lessPrecision}",
+      "exp": "1.2%"
+    },
+    {
+      "description": "[N56] :percent roundingMode=floor.",
+      "src": "{0.125 :percent roundingMode=floor}",
+      "exp": "12%"
+    },
+    {
+      "description": "[N57] :percent roundingMode=ceil.",
+      "src": "{0.125 :percent roundingMode=ceil}",
+      "exp": "13%"
+    },
+    {
+      "description": "[N58] :percent signDisplay=exceptZero on zero.",
+      "src": "{0 :percent signDisplay=exceptZero}",
+      "exp": "0%"
+    },
+    {
+      "description": "[N59] :percent useGrouping=never.",
+      "src": "{12.345 :percent useGrouping=never}",
+      "exp": "1235%"
+    },
+    {
+      "description": "[N60] :percent useGrouping=auto (the default).",
+      "src": "{12.345 :percent}",
+      "exp": "1,235%"
+    },
+    {
+      "description": "[N61] :currency useGrouping=never.",
+      "src": "{1234.5 :currency currency=USD useGrouping=never}",
+      "exp": "$1234.50"
+    },
+    {
+      "description": "[N62] :currency minimumIntegerDigits.",
+      "src": "{5 :currency currency=USD minimumIntegerDigits=2}",
+      "exp": "$05.00"
+    },
+    {
+      "description": "[N63] :currency fractionDigits=auto: the currency's own digits.",
+      "src": "{42 :currency currency=USD fractionDigits=auto}",
+      "exp": "$42.00"
+    },
+    {
+      "description": "[N64] :currency minimumSignificantDigits.",
+      "src": "{5 :currency currency=USD minimumSignificantDigits=4}",
+      "exp": "$5.000"
+    },
+    {
+      "description": "[N65] :currency maximumSignificantDigits.",
+      "src": "{1234.5 :currency currency=USD maximumSignificantDigits=2 useGrouping=never}",
+      "exp": "$1200"
+    },
+    {
+      "description": "[N66] :currency roundingPriority=morePrecision.",
+      "src": "{1.2345 :currency currency=USD maximumSignificantDigits=2 roundingPriority=morePrecision}",
+      "exp": "$1.23"
+    },
+    {
+      "description": "[N67] :currency roundingPriority=lessPrecision.",
+      "src": "{1.2345 :currency currency=USD maximumSignificantDigits=2 roundingPriority=lessPrecision}",
+      "exp": "$1.2"
+    },
+    {
+      "description": "[N68] :currency roundingIncrement.",
+      "src": "{1.23 :currency currency=USD roundingIncrement=5}",
+      "exp": "$1.25"
+    },
+    {
+      "description": "[N69] :currency roundingMode=ceil.",
+      "src": "{1.001 :currency currency=USD roundingMode=ceil}",
+      "exp": "$1.01"
+    },
+    {
+      "description": "[N70] :currency roundingMode=halfEven.",
+      "src": "{1.125 :currency currency=USD roundingMode=halfEven}",
+      "exp": "$1.12"
+    },
+    {
+      "description": "[N71] :currency currencySign=standard (the default).",
+      "src": "{5 :currency currency=USD currencySign=standard}",
+      "exp": "$5.00"
+    },
+    {
+      "description": "[N72] :currency currencyDisplay=symbol (the default).",
+      "src": "{5 :currency currency=USD currencyDisplay=symbol}",
+      "exp": "$5.00"
+    },
+    {
+      "description": "[N73] The currency option MUST NOT override an operand's currency: Bad Option, ignored.",
+      "src": ".local $n = {42 :currency currency=EUR} {{{$n :currency currency=USD}}}",
+      "exp": "€42.00",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[N74] The spec's stripIfInteger example.",
+      "src": "{5.00 :currency currency=USD trailingZeroDisplay=stripIfInteger}",
+      "exp": "$5"
+    },
+    {
+      "description": "[N75] The spec's stripIfInteger example, with a fraction.",
+      "src": "{5.01 :currency currency=USD trailingZeroDisplay=stripIfInteger}",
+      "exp": "$5.01"
+    },
+    {
+      "description": "[N76] :unit signDisplay=always.",
+      "src": "{5 :unit unit=meter signDisplay=always}",
+      "exp": "+5 m"
+    },
+    {
+      "description": "[N77] :unit useGrouping=auto (the default).",
+      "src": "{1234 :unit unit=meter}",
+      "exp": "1,234 m"
+    },
+    {
+      "description": "[N78] :unit minimumIntegerDigits.",
+      "src": "{5 :unit unit=meter minimumIntegerDigits=2}",
+      "exp": "05 m"
+    },
+    {
+      "description": "[N79] :unit minimumSignificantDigits.",
+      "src": "{5 :unit unit=meter minimumSignificantDigits=2}",
+      "exp": "5.0 m"
+    },
+    {
+      "description": "[N80] :unit maximumSignificantDigits.",
+      "src": "{1.2345 :unit unit=meter maximumSignificantDigits=2}",
+      "exp": "1.2 m"
+    },
+    {
+      "description": "[N81] :unit roundingPriority=morePrecision.",
+      "src": "{1.2345 :unit unit=meter maximumFractionDigits=2 maximumSignificantDigits=2 roundingPriority=morePrecision}",
+      "exp": "1.23 m"
+    },
+    {
+      "description": "[N82] :unit roundingIncrement.",
+      "src": "{7 :unit unit=meter roundingIncrement=5}",
+      "exp": "5 m"
+    },
+    {
+      "description": "[N83] :unit roundingMode=floor.",
+      "src": "{2.5 :unit unit=meter maximumFractionDigits=0 roundingMode=floor}",
+      "exp": "2 m"
+    }
+  ]
+}

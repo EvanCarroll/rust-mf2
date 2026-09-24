@@ -30,7 +30,7 @@
 use std::sync::{Arc, OnceLock};
 
 use leptos::prelude::*;
-use leptos_mf2::{Flat, RequestI18n, Setup, TrArgs, markup};
+use leptos_mf2::{ArgValue, Flat, RequestI18n, Setup, TrArgs, markup};
 use mf2::{Dir, MarkupKind, MarkupPart, Registry, markup_key};
 use mf2_runtime::BidiStrategy;
 use serde_json::Value;
@@ -165,7 +165,7 @@ fn render(
         let markup = if names.is_empty() {
             Vec::new()
         } else {
-            markers(&rich_html(description, &names))
+            markers(&rich_html(description, &catalog, &names))
         };
         Rendered { text, markup }
     })
@@ -175,19 +175,41 @@ fn render(
 /// HTML.
 ///
 /// `TrDyn` has no rich form — its arguments are matched by name at run time,
-/// which is the one shape `tr_rich` does not wrap — so a dynamic test with
-/// markup records nothing and says so through an empty list.
-fn rich_html(description: &Description, names: &[String]) -> String {
+/// which is the one shape `tr_rich` does not wrap — so a dynamic test is
+/// lowered to slot order first, by the catalog's own NAMES, the way
+/// `Formatter::write_named` matches them: a slot no argument names is
+/// [`ArgValue::Unset`], an argument no slot names is dropped. That is the
+/// same message with the same values, so its markup is what the named path
+/// would have produced.
+fn rich_html(description: &Description, catalog: &mf2::Catalog, names: &[String]) -> String {
     let args: TrArgs = match description {
         Description::Tr(t) => TrArgs::from(*t),
         Description::Args(t) => t.clone(),
-        Description::Dyn(_) => return String::new(),
+        Description::Dyn(t) => positional(t, catalog),
     };
     let handlers: Vec<_> = names
         .iter()
         .map(|name| (markup_key(name), markup(Flat(recorder))))
         .collect();
     RenderHtml::to_html(mf2::tr_rich(args, handlers.into()))
+}
+
+/// `t`'s arguments in the slot order of its message in `catalog`.
+///
+/// Names compare as written: the suite's names that are not NFC belong to
+/// tests without markup, which never come here.
+fn positional(t: &mf2::TrDyn, catalog: &mf2::Catalog) -> TrArgs {
+    let slots = catalog.names(t.id());
+    let values: Vec<ArgValue> = (0..slots.external_count())
+        .map(|slot| {
+            let name = slots.external(slot).and_then(|r| catalog.text(r));
+            t.args()
+                .iter()
+                .find(|(n, _)| Some(n.as_str()) == name)
+                .map_or(ArgValue::Unset, |(_, v)| v.clone())
+        })
+        .collect();
+    mf2::tr_args_n(t.id(), values.into())
 }
 
 /// One marker element per markup part: the kind, the name, and every option
@@ -259,10 +281,10 @@ fn judge_markup(test: &SuiteTest, got: &[Marker]) -> Result<(), String> {
         return Ok(());
     }
     if got.is_empty() {
-        // A dynamic call site has no rich form; the suite has none of these
-        // today, and if one appears it should say so rather than pass.
+        // Every call site renders markup (a dynamic one through
+        // `positional`), so no markers is a renderer that dropped them.
         return Err(format!(
-            "expected {} markup part(s), and the call site has no rich form",
+            "expected {} markup part(s), and none rendered",
             want.len()
         ));
     }

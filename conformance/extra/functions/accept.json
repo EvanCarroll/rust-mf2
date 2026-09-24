@@ -1,0 +1,120 @@
+{
+  "$schema": "../../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Default functions accept their options",
+  "description": "mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers): every value of every REQUIRED option of every numeric default function is accepted without an error (spec/functions/README.md, \"accept\"). They assert no errors and no output: accepting an option does not fix what it prints.",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "[A1] :number select: every value.",
+      "src": "{1 :number select=plural} {1 :number select=ordinal} {1 :number select=exact}"
+    },
+    {
+      "description": "[A2] :number signDisplay: every value.",
+      "src": "{1 :number signDisplay=auto} {1 :number signDisplay=always} {1 :number signDisplay=exceptZero} {1 :number signDisplay=negative} {1 :number signDisplay=never}"
+    },
+    {
+      "description": "[A3] :number useGrouping: every value.",
+      "src": "{12345 :number useGrouping=auto} {12345 :number useGrouping=always} {12345 :number useGrouping=never} {12345 :number useGrouping=min2}"
+    },
+    {
+      "description": "[A4] :number digit size options.",
+      "src": "{1 :number minimumIntegerDigits=2} {1 :number minimumFractionDigits=1} {1 :number maximumFractionDigits=2} {1 :number minimumSignificantDigits=2} {1 :number maximumSignificantDigits=3}"
+    },
+    {
+      "description": "[A5] :number trailingZeroDisplay and roundingPriority: every value.",
+      "src": "{1 :number trailingZeroDisplay=auto} {1 :number trailingZeroDisplay=stripIfInteger} {1 :number roundingPriority=auto} {1 :number roundingPriority=morePrecision} {1 :number roundingPriority=lessPrecision}"
+    },
+    {
+      "description": "[A6] :number roundingIncrement: every value.",
+      "src": "{1 :number roundingIncrement=1} {1 :number roundingIncrement=2} {1 :number roundingIncrement=5} {1 :number roundingIncrement=10} {1 :number roundingIncrement=20} {1 :number roundingIncrement=25} {1 :number roundingIncrement=50} {1 :number roundingIncrement=100} {1 :number roundingIncrement=200} {1 :number roundingIncrement=250} {1 :number roundingIncrement=500} {1 :number roundingIncrement=1000} {1 :number roundingIncrement=2000} {1 :number roundingIncrement=2500} {1 :number roundingIncrement=5000}"
+    },
+    {
+      "description": "[A7] :number roundingMode: every value.",
+      "src": "{1.5 :number roundingMode=ceil} {1.5 :number roundingMode=floor} {1.5 :number roundingMode=expand} {1.5 :number roundingMode=trunc} {1.5 :number roundingMode=halfCeil} {1.5 :number roundingMode=halfFloor} {1.5 :number roundingMode=halfExpand} {1.5 :number roundingMode=halfTrunc} {1.5 :number roundingMode=halfEven}"
+    },
+    {
+      "description": "[A8] :integer select and signDisplay: every value.",
+      "src": "{1 :integer select=plural} {1 :integer select=ordinal} {1 :integer select=exact} {1 :integer signDisplay=auto} {1 :integer signDisplay=always} {1 :integer signDisplay=exceptZero} {1 :integer signDisplay=negative} {1 :integer signDisplay=never}"
+    },
+    {
+      "description": "[A9] :integer useGrouping (every value) and digit size options.",
+      "src": "{12345 :integer useGrouping=auto} {12345 :integer useGrouping=always} {12345 :integer useGrouping=never} {12345 :integer useGrouping=min2} {1 :integer minimumIntegerDigits=2} {12345 :integer maximumSignificantDigits=2}"
+    },
+    {
+      "description": "[A10] :percent signDisplay and useGrouping: every value.",
+      "src": "{0.5 :percent signDisplay=auto} {0.5 :percent signDisplay=always} {0.5 :percent signDisplay=exceptZero} {0.5 :percent signDisplay=negative} {0.5 :percent signDisplay=never} {123.45 :percent useGrouping=auto} {123.45 :percent useGrouping=always} {123.45 :percent useGrouping=never} {123.45 :percent useGrouping=min2}",
+      "tags": [
+        ":percent"
+      ]
+    },
+    {
+      "description": "[A11] :percent digit size options and trailingZeroDisplay.",
+      "src": "{0.5 :percent minimumFractionDigits=1} {0.5 :percent maximumFractionDigits=2} {0.5 :percent minimumSignificantDigits=2} {0.5 :percent maximumSignificantDigits=3} {0.5 :percent trailingZeroDisplay=auto} {0.5 :percent trailingZeroDisplay=stripIfInteger}",
+      "tags": [
+        ":percent"
+      ]
+    },
+    {
+      "description": "[A12] :percent roundingPriority and roundingMode: every value.",
+      "src": "{0.5 :percent roundingPriority=auto} {0.5 :percent roundingPriority=morePrecision} {0.5 :percent roundingPriority=lessPrecision} {0.015 :percent roundingMode=ceil} {0.015 :percent roundingMode=floor} {0.015 :percent roundingMode=expand} {0.015 :percent roundingMode=trunc} {0.015 :percent roundingMode=halfCeil} {0.015 :percent roundingMode=halfFloor} {0.015 :percent roundingMode=halfExpand} {0.015 :percent roundingMode=halfTrunc} {0.015 :percent roundingMode=halfEven}",
+      "tags": [
+        ":percent"
+      ]
+    },
+    {
+      "description": "[A13] :currency currencySign and currencyDisplay: every value.",
+      "src": "{1 :currency currency=EUR currencySign=accounting} {1 :currency currency=EUR currencySign=standard} {1 :currency currency=EUR currencyDisplay=narrowSymbol} {1 :currency currency=EUR currencyDisplay=symbol} {1 :currency currency=EUR currencyDisplay=name} {1 :currency currency=EUR currencyDisplay=code} {1 :currency currency=EUR currencyDisplay=never}",
+      "tags": [
+        ":currency"
+      ]
+    },
+    {
+      "description": "[A14] :currency useGrouping (every value), minimumIntegerDigits, fractionDigits (auto and digit sizes), significant digits.",
+      "src": "{12345 :currency currency=EUR useGrouping=auto} {12345 :currency currency=EUR useGrouping=always} {12345 :currency currency=EUR useGrouping=never} {12345 :currency currency=EUR useGrouping=min2} {1 :currency currency=EUR minimumIntegerDigits=2} {1 :currency currency=EUR fractionDigits=auto} {1 :currency currency=EUR fractionDigits=0} {1 :currency currency=EUR fractionDigits=3} {1 :currency currency=EUR minimumSignificantDigits=2} {1 :currency currency=EUR maximumSignificantDigits=3}",
+      "tags": [
+        ":currency"
+      ]
+    },
+    {
+      "description": "[A15] :currency trailingZeroDisplay and roundingPriority: every value.",
+      "src": "{1 :currency currency=EUR trailingZeroDisplay=auto} {1 :currency currency=EUR trailingZeroDisplay=stripIfInteger} {1 :currency currency=EUR roundingPriority=auto} {1 :currency currency=EUR roundingPriority=morePrecision} {1 :currency currency=EUR roundingPriority=lessPrecision}",
+      "tags": [
+        ":currency"
+      ]
+    },
+    {
+      "description": "[A16] :currency roundingIncrement: every value.",
+      "src": "{1 :currency currency=EUR roundingIncrement=1} {1 :currency currency=EUR roundingIncrement=2} {1 :currency currency=EUR roundingIncrement=5} {1 :currency currency=EUR roundingIncrement=10} {1 :currency currency=EUR roundingIncrement=20} {1 :currency currency=EUR roundingIncrement=25} {1 :currency currency=EUR roundingIncrement=50} {1 :currency currency=EUR roundingIncrement=100} {1 :currency currency=EUR roundingIncrement=200} {1 :currency currency=EUR roundingIncrement=250} {1 :currency currency=EUR roundingIncrement=500} {1 :currency currency=EUR roundingIncrement=1000} {1 :currency currency=EUR roundingIncrement=2000} {1 :currency currency=EUR roundingIncrement=2500} {1 :currency currency=EUR roundingIncrement=5000}",
+      "tags": [
+        ":currency"
+      ]
+    },
+    {
+      "description": "[A17] :currency roundingMode: every value.",
+      "src": "{1.005 :currency currency=EUR roundingMode=ceil} {1.005 :currency currency=EUR roundingMode=floor} {1.005 :currency currency=EUR roundingMode=expand} {1.005 :currency currency=EUR roundingMode=trunc} {1.005 :currency currency=EUR roundingMode=halfCeil} {1.005 :currency currency=EUR roundingMode=halfFloor} {1.005 :currency currency=EUR roundingMode=halfExpand} {1.005 :currency currency=EUR roundingMode=halfTrunc} {1.005 :currency currency=EUR roundingMode=halfEven}",
+      "tags": [
+        ":currency"
+      ]
+    },
+    {
+      "description": "[A18] :unit unitDisplay and signDisplay: every value.",
+      "src": "{1 :unit unit=meter unitDisplay=short} {1 :unit unit=meter unitDisplay=narrow} {1 :unit unit=meter unitDisplay=long} {1 :unit unit=meter signDisplay=auto} {1 :unit unit=meter signDisplay=always} {1 :unit unit=meter signDisplay=exceptZero} {1 :unit unit=meter signDisplay=negative} {1 :unit unit=meter signDisplay=never}"
+    },
+    {
+      "description": "[A19] :unit useGrouping (every value) and digit size options.",
+      "src": "{12345 :unit unit=meter useGrouping=auto} {12345 :unit unit=meter useGrouping=always} {12345 :unit unit=meter useGrouping=never} {12345 :unit unit=meter useGrouping=min2} {1 :unit unit=meter minimumIntegerDigits=2} {1 :unit unit=meter minimumFractionDigits=1} {1 :unit unit=meter maximumFractionDigits=2} {1 :unit unit=meter minimumSignificantDigits=2} {1 :unit unit=meter maximumSignificantDigits=3}"
+    },
+    {
+      "description": "[A20] :unit roundingPriority and roundingMode: every value.",
+      "src": "{1 :unit unit=meter roundingPriority=auto} {1 :unit unit=meter roundingPriority=morePrecision} {1 :unit unit=meter roundingPriority=lessPrecision} {1.5 :unit unit=meter roundingMode=ceil} {1.5 :unit unit=meter roundingMode=floor} {1.5 :unit unit=meter roundingMode=expand} {1.5 :unit unit=meter roundingMode=trunc} {1.5 :unit unit=meter roundingMode=halfCeil} {1.5 :unit unit=meter roundingMode=halfFloor} {1.5 :unit unit=meter roundingMode=halfExpand} {1.5 :unit unit=meter roundingMode=halfTrunc} {1.5 :unit unit=meter roundingMode=halfEven}"
+    },
+    {
+      "description": "[A21] :unit roundingIncrement: every value.",
+      "src": "{1 :unit unit=meter roundingIncrement=1} {1 :unit unit=meter roundingIncrement=2} {1 :unit unit=meter roundingIncrement=5} {1 :unit unit=meter roundingIncrement=10} {1 :unit unit=meter roundingIncrement=20} {1 :unit unit=meter roundingIncrement=25} {1 :unit unit=meter roundingIncrement=50} {1 :unit unit=meter roundingIncrement=100} {1 :unit unit=meter roundingIncrement=200} {1 :unit unit=meter roundingIncrement=250} {1 :unit unit=meter roundingIncrement=500} {1 :unit unit=meter roundingIncrement=1000} {1 :unit unit=meter roundingIncrement=2000} {1 :unit unit=meter roundingIncrement=2500} {1 :unit unit=meter roundingIncrement=5000}"
+    }
+  ]
+}

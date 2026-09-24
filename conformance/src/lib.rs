@@ -12,6 +12,7 @@
 
 pub mod abnf;
 pub mod check;
+pub mod coverage;
 mod error;
 pub mod goldens;
 pub mod harness;

@@ -1,0 +1,126 @@
+{
+  "$schema": "../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Unicode namespace options",
+  "description": "mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers): u:id and u:dir set from a variable, or to a value outside their definition (spec/u-namespace.md).",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "[U1] u:id from a variable whose value is a string.",
+      "src": "hello {world :string u:id=$id}",
+      "params": [
+        {
+          "name": "id",
+          "value": "foo"
+        }
+      ],
+      "exp": "hello world",
+      "expParts": [
+        {
+          "type": "text",
+          "value": "hello "
+        },
+        {
+          "type": "string",
+          "id": "foo",
+          "value": "world"
+        }
+      ],
+      "tags": [
+        "u:id"
+      ]
+    },
+    {
+      "description": "[U2] u:id from a variable whose value cannot be resolved to a string (a :test:select value is not formattable): Bad Option, and the option is ignored.",
+      "src": ".local $id = {1 :test:select} {{{world :string u:id=$id}}}",
+      "exp": "world",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ],
+      "tags": [
+        "u:id"
+      ]
+    },
+    {
+      "description": "[U3] u:dir from a variable whose value is one of the defined strings.",
+      "src": "hello {world :string u:dir=$d}",
+      "params": [
+        {
+          "name": "d",
+          "value": "rtl"
+        }
+      ],
+      "bidiIsolation": "default",
+      "exp": "hello ⁧world⁩",
+      "expParts": [
+        {
+          "type": "text",
+          "value": "hello "
+        },
+        {
+          "type": "bidiIsolation",
+          "value": "⁧"
+        },
+        {
+          "type": "string",
+          "dir": "rtl",
+          "value": "world"
+        },
+        {
+          "type": "bidiIsolation",
+          "value": "⁩"
+        }
+      ],
+      "tags": [
+        "u:dir"
+      ]
+    },
+    {
+      "description": "[U4] u:dir with a literal outside ltr, rtl, auto, inherit: Bad Option, and the option is ignored (the :string value's direction is unknown, so it is isolated with FSI).",
+      "src": "hello {world :string u:dir=up}",
+      "bidiIsolation": "default",
+      "exp": "hello ⁨world⁩",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ],
+      "tags": [
+        "u:dir"
+      ]
+    },
+    {
+      "description": "[U5] u:dir=inherit is a defined value: no error.",
+      "src": "hello {world :string u:dir=inherit}",
+      "bidiIsolation": "default",
+      "tags": [
+        "u:dir"
+      ]
+    },
+    {
+      "description": "[U6] u:dir from a variable whose value is not one of the defined strings: Bad Option, and the option is ignored.",
+      "src": "hello {world :string u:dir=$d}",
+      "params": [
+        {
+          "name": "d",
+          "value": "up"
+        }
+      ],
+      "bidiIsolation": "default",
+      "exp": "hello ⁨world⁩",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ],
+      "tags": [
+        "u:dir"
+      ]
+    }
+  ]
+}

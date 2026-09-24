@@ -417,3 +417,58 @@ fn offset_keeps_the_sign_of_a_nonzero_side() {
         assert_eq!(ok(src, &[]), want, "{src}");
     }
 }
+
+/// u-namespace.md, `u:dir`: removed from the resolved options before the
+/// handler is called (and `u:id` with it); the value stays on the resolved
+/// value, so it still isolates — directly and through a declaration.
+#[test]
+fn u_options_are_removed_before_the_handler() {
+    use mf2_runtime::{ErrorSink, FnContext, Options, Sink, Value};
+
+    /// Formats the names of the options it was given.
+    struct Names;
+    impl Function for Names {
+        fn resolve<'a>(
+            &self,
+            _cx: &FnContext<'_>,
+            _operand: Option<&Value<'a>>,
+            options: &Options<'_, 'a>,
+            _errs: &mut dyn ErrorSink,
+        ) -> Option<Value<'a>> {
+            let mut names: Vec<&str> = options.iter().map(|(n, _)| n).collect();
+            names.sort_unstable();
+            Some(Value::Boxed(Box::new(names.join(","))))
+        }
+        fn format(&self, _cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
+            if let Some(s) = value.downcast_ref::<String>() {
+                out.push_str(s);
+            }
+        }
+    }
+    static NAMES: [(&str, &dyn Function); 1] = [("names", &Names)];
+    static R: Registry = Registry::new(&NAMES);
+
+    let run = |src: &str| {
+        let cat = catalog(src, Dir::Ltr);
+        let mut cx = FormatContext::new(&HOST);
+        cx.bidi = BidiStrategy::Default;
+        let f = Formatter::new(&cat, &R, &cx);
+        let mut out = String::new();
+        let mut errs = Vec::new();
+        f.write_named(MsgId::from_raw(0), &[], &mut out, &mut errs);
+        assert!(errs.is_empty(), "{src}: {errs:?}");
+        out
+    };
+    // The handler saw `a` and `b` only; `u:dir=rtl` still isolated the value.
+    assert_eq!(
+        run("{1 :names a=1 u:dir=rtl u:id=x b=2}"),
+        "\u{2067}a,b\u{2069}"
+    );
+    // Without `u:dir` the handler's `Auto` direction gives FSI: the control.
+    assert_eq!(run("{1 :names a=1 b=2}"), "\u{2068}a,b\u{2069}");
+    // Through a declaration the value keeps its direction.
+    assert_eq!(
+        run(".local $x = {1 :names u:dir=rtl} {{{$x}}}"),
+        "\u{2067}\u{2069}"
+    );
+}

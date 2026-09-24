@@ -1064,6 +1064,2153 @@ L7d = "pass"
 L7cd = "pass"
 
 [[test]]
+file  = "extra/formatting.json"
+index = 0
+hash  = "63634cb9"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 1
+hash  = "a15b489a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 2
+hash  = "6cef8d2d"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = { status = "pass", via = "dyn" }
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = { status = "pass", via = "dyn" }
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 3
+hash  = "80dc64d0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = { status = "pass", via = "dyn" }
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = { status = "pass", via = "dyn" }
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 4
+hash  = "b2691917"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 5
+hash  = "0b3735f5"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 6
+hash  = "00612f91"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 7
+hash  = "31d6ec22"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/formatting.json"
+index = 8
+hash  = "5fa98c36"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 0
+hash  = "5282d74b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 1
+hash  = "c05464a8"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 2
+hash  = "7dc8eda9"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L5d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L6d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7cd = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 3
+hash  = "68ff32eb"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 4
+hash  = "f0882cd6"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 5
+hash  = "22a900b8"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 6
+hash  = "a537fa7f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 7
+hash  = "5ec0cd4d"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 8
+hash  = "df5c29d9"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L5d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L6d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7cd = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 9
+hash  = "3bac401b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:45:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 10
+hash  = "f8a4cf93"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:46:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 11
+hash  = "8be20941"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:47:47: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 12
+hash  = "a3c646a8"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:48:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 13
+hash  = "186946e0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 14
+hash  = "aebba1c1"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:50:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:50:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:50:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:50:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 15
+hash  = "5d780c10"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:51:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:51:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:51:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:51:45: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 16
+hash  = "6200cee0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:52:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:52:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:52:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:52:49: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 17
+hash  = "cfea3be4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:53:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:53:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:53:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:53:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 18
+hash  = "9ee143fa"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:54:49: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:54:49: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:54:49: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:54:49: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 19
+hash  = "986d4004"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:55:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:55:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:55:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:55:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/accept.json"
+index = 20
+hash  = "a2badeb9"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:56:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:56:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:56:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:56:45: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 0
+hash  = "6e41bb29"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 1
+hash  = "ee9cf526"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 2
+hash  = "e8c26d6f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 3
+hash  = "6ad79967"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 4
+hash  = "2bf25d2f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 5
+hash  = "0947f941"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 6
+hash  = "3292ead0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 7
+hash  = "6ccc9327"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 8
+hash  = "5225b243"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 9
+hash  = "547efda4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 10
+hash  = "dec9b5eb"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 11
+hash  = "73fc0517"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 12
+hash  = "b3057ea6"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 13
+hash  = "f238ad4b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 14
+hash  = "f3eb24ae"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 15
+hash  = "55337899"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 16
+hash  = "da010c86"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 17
+hash  = "24a07cad"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 18
+hash  = "9c508ee7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 19
+hash  = "f1a35edd"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 20
+hash  = "3302281a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 21
+hash  = "2bb2d67b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 22
+hash  = "3c4c562a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 23
+hash  = "94da432f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 24
+hash  = "cc41d158"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 25
+hash  = "d38f2656"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 26
+hash  = "864e92d7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 27
+hash  = "8f240f51"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 28
+hash  = "06525bca"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 29
+hash  = "bb43a25b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 30
+hash  = "22049304"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 31
+hash  = "6365a8c7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 32
+hash  = "7a44d6cd"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 33
+hash  = "f36aa85c"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 34
+hash  = "3f74d511"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 35
+hash  = "1ac39de4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 36
+hash  = "cd041ae4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 37
+hash  = "926cad5f"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 38
+hash  = "b24f2942"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 39
+hash  = "ebf967d1"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 40
+hash  = "606f2bdc"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 41
+hash  = "80c2ae04"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 42
+hash  = "b9e14f09"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 43
+hash  = "e2ee6ce9"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 44
+hash  = "3d23a626"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 45
+hash  = "46d909f0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 46
+hash  = "770431ae"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 47
+hash  = "cbed955e"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L5d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L6d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7d = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+L7cd = { status = "degraded", kind = "unsupported-operation", detail = "a locale-only option value needs fn-number" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 48
+hash  = "fe0e9577"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:103:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:103:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:103:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:103:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 49
+hash  = "69c58a4c"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:104:60: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:104:60: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:104:60: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:104:60: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 50
+hash  = "ae4dd5b1"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:105:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:105:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:105:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:105:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 51
+hash  = "d81bbf1d"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:106:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:106:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:106:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:106:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 52
+hash  = "4f42f468"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:107:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:107:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:107:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:107:57: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 53
+hash  = "844a987e"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:108:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:108:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:108:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:108:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 54
+hash  = "5b00dfd4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:109:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:109:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:109:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:109:61: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 55
+hash  = "db8bb163"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:110:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:110:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:110:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:110:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 56
+hash  = "483c73dd"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:111:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:111:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:111:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:111:58: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 57
+hash  = "e63d6087"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:112:54: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:112:54: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:112:54: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:112:54: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 58
+hash  = "df6ffcc6"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:113:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:113:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:113:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:113:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 59
+hash  = "32c6d91a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":percent needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:114:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:114:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:114:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:114:59: :percent needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 60
+hash  = "70f73f74"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:115:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:115:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:115:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:115:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 61
+hash  = "c375fd45"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:116:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:116:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:116:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:116:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 62
+hash  = "067d2dbb"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:117:55: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:117:55: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:117:55: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:117:55: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 63
+hash  = "57c64829"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:118:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:118:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:118:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:118:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 64
+hash  = "3d4a11c7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:119:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:119:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:119:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:119:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 65
+hash  = "887f0c59"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:120:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:120:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:120:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:120:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 66
+hash  = "51f6ddb8"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:121:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:121:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:121:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:121:59: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 67
+hash  = "984fa512"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:122:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:122:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:122:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:122:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 68
+hash  = "1b6430de"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:123:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:123:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:123:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:123:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 69
+hash  = "c3472dd5"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:124:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:124:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:124:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:124:58: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 70
+hash  = "fe9a07a0"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:125:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:125:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:125:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:125:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 71
+hash  = "f82c120b"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:126:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:126:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:126:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:126:54: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 72
+hash  = "4f017896"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:127:67: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:127:67: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:127:67: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:127:67: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 73
+hash  = "d4bcb1cb"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:128:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:128:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:128:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:128:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 74
+hash  = "da95bd2c"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":currency needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:129:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:129:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:129:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:129:57: :currency needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 75
+hash  = "872d154a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:130:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:130:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:130:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:130:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 76
+hash  = "06f518e7"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:131:57: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:131:57: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:131:57: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:131:57: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 77
+hash  = "ae5eeed5"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:132:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:132:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:132:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:132:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 78
+hash  = "8bd93a1e"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:133:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:133:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:133:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:133:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 79
+hash  = "af2ee1ef"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:134:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:134:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:134:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:134:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 80
+hash  = "141de840"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:135:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:135:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:135:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:135:59: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 81
+hash  = "a556bddf"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:136:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:136:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:136:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:136:54: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/functions/numeric-options.json"
+index = 82
+hash  = "7a393305"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = { status = "degraded", kind = "unknown-function", detail = ":unit needs fn-number" }
+L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:137:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:137:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:137:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:137:56: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
 file  = "extra/functions/unit.json"
 index = 0
 hash  = "b1c8a81b"
@@ -1499,6 +3646,272 @@ L5d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: 
 L6d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L7d = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
 L7cd = { status = "degraded", kind = "build-reject", detail = "en-US.json:49:44: :unit needs the `fn-number` feature, which this build does not have; a message may never add formatting code to the wasm by itself" }
+
+[[test]]
+file  = "extra/syntax.json"
+index = 0
+hash  = "8ee8c659"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 1
+hash  = "ea7938c3"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 2
+hash  = "5c1b7413"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 3
+hash  = "d9cb68d1"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 4
+hash  = "e64d728c"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 5
+hash  = "263d1500"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 6
+hash  = "6cff2fa1"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/syntax.json"
+index = 7
+hash  = "be5a28ac"
+nth   = 0
+L1 = "pass"
+L2 = "n/a"
+L3 = "n/a"
+L4 = "pass"
+L5 = "pass"
+L6 = "n/a"
+L7 = "n/a"
+L7c = "n/a"
+L4d = "pass"
+L5d = "pass"
+L6d = "n/a"
+L7d = "n/a"
+L7cd = "n/a"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 0
+hash  = "a269c56a"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 1
+hash  = "5f532fc3"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 2
+hash  = "20441718"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 3
+hash  = "288933e4"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 4
+hash  = "d15e0207"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
+
+[[test]]
+file  = "extra/u-options.json"
+index = 5
+hash  = "caf92f54"
+nth   = 0
+L1 = "pass"
+L2 = "pass"
+L3 = "pass"
+L4 = "pass"
+L5 = "pass"
+L6 = "pass"
+L7 = "pass"
+L7c = "pass"
+L4d = "pass"
+L5d = "pass"
+L6d = "pass"
+L7d = "pass"
+L7cd = "pass"
 
 [[test]]
 file  = "fallback.json"

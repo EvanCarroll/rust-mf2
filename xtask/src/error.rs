@@ -120,6 +120,9 @@ pub(crate) enum Error {
     #[error("the conformance ledger has {0} violation(s)")]
     LedgerViolations(usize),
 
+    #[error("the spec coverage matrix has {0} gap(s) (conformance/COVERAGE.md)")]
+    CoverageGaps(usize),
+
     #[error("{0} already exists; pass --force to overwrite it")]
     LedgerExists(PathBuf),
 }

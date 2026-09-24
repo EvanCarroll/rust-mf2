@@ -1,7 +1,7 @@
 //! Conformance layer L5 on generated input (`plans/01-conformance.md` §3;
 //! `plans/13-phase-5b-work-order.md` A8).
 //!
-//! The suite is 485 messages a working group wrote. This crate is however
+//! The suite is 612 hand-written messages (the WG's and ours). This crate is however
 //! many the ABNF generator produces, steered towards the runtime's functions
 //! exactly as layer L4's generated cases are — compiled into a corpus by
 //! `mf2-build`, called through `tr!`, and held to what L4's runner makes of

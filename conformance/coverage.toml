@@ -1,0 +1,1539 @@
+# The spec coverage matrix (plans/01-conformance.md §5; the rules are in
+# conformance/src/coverage.rs). One [[statement]] per normative statement.
+
+[[statement]]
+id = "data-model/README.md#e8dece27"
+says = "An input declaration's name is the name of the variable its expression reads."
+tests = [
+    "crates/mf2-model/tests/json.rs::malformed_input_is_rejected",
+    "crates/mf2-model/tests/json.rs::every_node_kind_round_trips",
+]
+
+[[statement]]
+id = "data-model/README.md#5372aa26"
+says = "A pattern holds only non-empty strings, expressions and markup."
+tests = [
+    "crates/mf2-model/src/pattern.rs::empty_text_is_dropped",
+    "crates/mf2-model/tests/json.rs::relaxations_and_unknown_fields_are_accepted",
+    "crates/mf2-model/tests/json.rs::malformed_input_is_rejected",
+]
+
+[[statement]]
+id = "data-model/README.md#f738771f"
+says = "Code must not assume the expression and markup kinds are a closed set."
+na = { kind = "by-construction", reason = "`Expression` and `PatternPart` are `#[non_exhaustive]` (crates/mf2-model/src/expression.rs, pattern.rs), so every match outside mf2-model needs a wildcard arm; the compiler enforces it." }
+
+[[statement]]
+id = "data-model/README.md#d2624963"
+says = "An implementation may add interfaces or fields to the data model."
+na = { kind = "permission", reason = "Not taken: the model's JSON is exactly the schema's shape." }
+
+[[statement]]
+id = "data-model/README.md#d0b39e70"
+says = "Unknown fields in the data model are ignored."
+tests = [
+    "crates/mf2-model/tests/json.rs::relaxations_and_unknown_fields_are_accepted",
+]
+
+[[statement]]
+id = "data-model/README.md#4997c907"
+says = "A valid message's data model uses no values outside the defined sets."
+note = "L2 validates every valid suite message's JSON against the vendored message.json, whose `type`/`kind` fields are `const`/`enum`."
+tests = [
+    "crates/mf2-model/tests/json.rs::every_node_kind_serializes_to_the_schema_shape",
+    "conformance/tests/layers.rs::every_harnessed_layer_passes_but_the_ledgers_xfails",
+]
+
+[[statement]]
+id = "data-model/README.md#08917eef"
+says = "An invalid message's data model may use extended values."
+na = { kind = "permission", reason = "Not taken: a message with a syntax error has no model, and a data-model-invalid one uses only the defined values." }
+
+[[statement]]
+id = "errors.md#2cef59b5"
+says = "Syntax and Data Model Errors are reported as early as possible"
+note = "At catalog-compile time: the one-message compile (L4) and mf2-build (L5) refuse the message with exactly the expected kinds, so it never reaches a formatter."
+tests = [
+    "syntax-errors.json@e66c6e0b",
+    "data-model-errors.json@54ee8d28",
+    "conformance/tests/layers.rs::every_harnessed_layer_passes_but_the_ledgers_xfails",
+]
+
+[[statement]]
+id = "errors.md#9957dad0"
+says = "during selection and formatting, expression handlers emit only Message Function Errors"
+note = "The suite's error lists are compared exactly: the resolution errors (unresolved-variable, unknown-function) come from the evaluator, the handler adds only bad-operand / bad-option. No handler in the tree reports a resolution error (none of crates/mf2-runtime/src/functions, mf2-fn-number, mf2-fn-datetime, the test functions names one)."
+tests = [
+    "fallback.json@a267f9e0",
+    "fallback.json@d45e5d6d",
+    "pattern-selection.json@08af8fe0",
+]
+
+[[statement]]
+id = "errors.md#9d0627b3"
+says = "formatting a message with errors gives a way to discover and identify at least one of them"
+note = "Every format call takes an error sink and reports each error's kind."
+tests = [
+    "fallback.json@9e95263f",
+    "fallback.json@f80ed7d7",
+    "crates/mf2-runtime/tests/format.rs::fallbacks",
+]
+
+[[statement]]
+id = "errors.md#85a53be8"
+says = "a valid message always yields a formatted result"
+tests = [
+    "fallback.json@a267f9e0",
+    "fallback.json@b86981fb",
+    "fallback.json@f80ed7d7",
+    "crates/mf2/tests/call_site.rs::a_missing_value_is_an_unresolved_variable_not_a_panic",
+]
+
+[[statement]]
+id = "errors.md#73db194f"
+says = "the result and the errors may come from one method or several"
+note = "One method: `write_named` / `parts_named` write the result and report the errors in the same call."
+tests = [
+    "crates/mf2-runtime/tests/format.rs::fallbacks",
+]
+
+[[statement]]
+id = "errors.md#2a459a7a"
+says = "an implementation that does not report every error puts Syntax and Data Model Errors first"
+note = "A message with a Syntax or Data Model Error is refused at compile time with exactly those kinds and is never formatted, so no later error can be reported instead (L4 `check_rejected`, L5)."
+tests = [
+    "syntax-errors.json@e66c6e0b",
+    "data-model-errors.json@54ee8d28",
+]
+
+[[statement]]
+id = "errors.md#2bf27a82"
+says = "a selector that fails to resolve or match matches only the catch-all, with a Bad Selector error"
+tests = [
+    "pattern-selection.json@d3cb78b8",
+    "pattern-selection.json@ec9cee88",
+    "pattern-selection.json@ef73fddc",
+    "pattern-selection.json@b81002b7",
+]
+
+[[statement]]
+id = "errors.md#f2c35626"
+says = "function handlers should be able to report every Message Function Error type"
+note = "The public `Function` trait gets an `ErrorSink` taking every `FormatError`; the cited tests show bad-option and bad-operand from `:test:function` (written against the public trait), bad-variant-key from `:number`, unsupported-operation from `:unit`."
+tests = [
+    "fallback.json@d45e5d6d",
+    "fallback.json@8d6f73b5",
+    "crates/mf2-runtime/tests/format.rs::selection",
+    "extra/functions/unit.json@f617da7f",
+]
+
+[[statement]]
+id = "errors.md#8c38b5e0"
+says = "implementation-defined Message Function Error types are allowed"
+na = { kind = "permission", reason = "mf2-two defines none: a handler failure outside the spec's kinds is the generic Message Function Error (`FormatError::MessageFunctionError`)." }
+
+[[statement]]
+id = "formatting.md#a0d957dc"
+says = "attributes change nothing in the output and are never shown to a function handler"
+note = "the `Function` trait has no attribute parameter; a stripped catalog drops attributes altogether (crates/mf2-catalog/tests/vectors.rs::v2_stripped_drops_the_attribute_and_says_so)"
+tests = [
+    "syntax.json@4b741a70",
+    "syntax.json@6aaa78b9",
+    "functions/number.json@b55d10ee",
+    "extra/formatting.json@31d6ec22",
+    "extra/formatting.json@5fa98c36",
+]
+
+[[statement]]
+id = "formatting.md#90e7e3ad"
+says = "an expression may be left unresolved until selection or formatting uses it"
+note = "taken: declarations resolve on first use; an unused one is never resolved"
+tests = [
+    "crates/mf2-runtime/tests/format.rs::declarations_resolve_once",
+    "crates/mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options",
+]
+
+[[statement]]
+id = "formatting.md#aa5d4187"
+says = "a resolved expression sees every earlier declaration it depends on as already evaluated, in source order"
+tests = [
+    "syntax.json@2e37dce1",
+    "syntax.json@536d3c07",
+    "syntax.json@9d982234",
+    "pattern-selection.json@ca78a7ae",
+]
+
+[[statement]]
+id = "formatting.md#abb9cbf2"
+says = "each expression of a message is evaluated at most once"
+tests = [
+    "crates/mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options",
+    "crates/mf2-runtime/tests/format.rs::declarations_resolve_once",
+]
+
+[[statement]]
+id = "formatting.md#ad1ac949"
+says = "lazy evaluation is call-by-need, never call-by-name"
+tests = [
+    "crates/mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options",
+]
+
+[[statement]]
+id = "formatting.md#cfd074c1"
+says = "function handlers should not mutate external program state"
+na = { kind = "by-construction", reason = "the built-in handlers are pure: `Function::resolve` takes `&self` and a read-only `FnContext`, and the client crates forbid unsafe code; what a user-written handler does is the user's" }
+
+[[statement]]
+id = "formatting.md#aef6bf89"
+says = "the formatting context may carry extra fields"
+note = "taken: `FormatContext` also carries the bidi strategy and the time zone"
+tests = [
+    "crates/mf2-runtime/tests/additions.rs::the_context_time_zone",
+]
+
+[[statement]]
+id = "formatting.md#835a9e23"
+says = "a resolved value should carry the direction of its formatted text and whether it needs isolating"
+note = "`Function::dir` gives the direction; `u:dir` other than `inherit` marks it for isolation"
+tests = [
+    "u-options.json@cfc540ad",
+    "u-options.json@f09114e5",
+    "crates/mf2-runtime/tests/format.rs::bidi",
+    "crates/mf2-runtime/tests/format.rs::parts_output",
+]
+
+[[statement]]
+id = "formatting.md#5c0222d5"
+says = "each resolved option value records whether a literal set it directly or a variable supplied it"
+tests = [
+    "functions/number.json@dc094682",
+    "functions/number.json@13b2a1fb",
+    "functions/number.json@957f9f17",
+    "functions/integer.json@a7dea2fb",
+]
+
+[[statement]]
+id = "formatting.md#a9cdcaff"
+says = "the form of resolved values, and how far they are resolved, is up to the implementation"
+na = { kind = "permission", reason = "a freedom of form with nothing to observe; ours is `mf2_runtime::Value`" }
+
+[[statement]]
+id = "formatting.md#97a9ec3a"
+says = "an expression that is only a variable may get extra processing"
+note = "taken: an unannotated numeric argument is formatted as a number (the unannotated-number hook, `fn-number`)"
+tests = [
+    "syntax.json@2153b600",
+    "syntax.json@8a3aac3e",
+    "crates/mf2-runtime/tests/additions.rs::unannotated_numbers_through_the_hook",
+]
+
+[[statement]]
+id = "formatting.md#fe6b561c"
+says = "a literal operand or option value means the same quoted or unquoted"
+tests = [
+    "functions/number.json@0b30bef7",
+    "functions/number.json@4142cda5",
+    "syntax.json@f53ca702",
+    "syntax.json@23aa1e4e",
+]
+
+[[statement]]
+id = "formatting.md#50b300b9"
+says = "`u:` options a function uses may be taken out of the options its handler receives"
+note = "taken: `u:id` and `u:dir` never reach a handler"
+tests = [
+    "crates/mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options",
+]
+
+[[statement]]
+id = "formatting.md#408b62f1"
+says = "a handler may get extra arguments, kept minimal and safe"
+note = "taken: `FnContext` also gives the host services, the catalog (for locale data) and the time zone, all read-only"
+tests = [
+    "crates/mf2-runtime/tests/additions.rs::the_context_time_zone",
+]
+
+[[statement]]
+id = "formatting.md#c75c6f62"
+says = "the result of a function call is never a literal option value"
+tests = [
+    "extra/formatting.json@00612f91",
+]
+
+[[statement]]
+id = "formatting.md#23c4139d"
+says = "handlers may be given a way to report more detail about internal failures"
+na = { kind = "permission", reason = "not taken: errors are the closed `FormatError` kinds with no payload (the client path is fmt-free)" }
+
+[[statement]]
+id = "formatting.md#b630931b"
+says = "a failure because the operand's type, value or format is wrong should be a Bad Operand"
+tests = [
+    "functions/number.json@b65f5bfb",
+    "functions/datetime.json@d45520ae",
+    "functions/date.json@4de6ed9e",
+    "extra/functions/unit.json@7f8e9ec4",
+]
+
+[[statement]]
+id = "formatting.md#15fba86d"
+says = "an implementation may define functions of its own"
+na = { kind = "permission", reason = "not taken: mf2-two ships only the spec's functions; the `:test:*` functions belong to the harness" }
+
+[[statement]]
+id = "formatting.md#c4900edb"
+says = "users may be allowed to define custom functions"
+note = "taken: the public `Function` trait; the suite's `:test:*` functions are written against it and nothing else"
+tests = [
+    "pattern-selection.json@ca78a7ae",
+    "fallback.json@d45e5d6d",
+    "crates/mf2-runtime/tests/additions.rs::measure_values",
+]
+
+[[statement]]
+id = "formatting.md#49eb3b31"
+says = "custom handlers must be able to return values usable as operands and option values of later expressions"
+tests = [
+    "pattern-selection.json@ca78a7ae",
+    "pattern-selection.json@2f0a618f",
+    "crates/mf2-runtime/tests/additions.rs::measure_values",
+    "extra/formatting.json@63634cb9",
+    "extra/formatting.json@a15b489a",
+]
+
+[[statement]]
+id = "formatting.md#c1d2a866"
+says = "a handler's resolved value may differ from its operand"
+note = "taken: `:integer` rounds, `:offset` adds"
+tests = [
+    "functions/integer.json@8820118c",
+    "functions/offset.json@b1845a3e",
+]
+
+[[statement]]
+id = "formatting.md#3bb4062c"
+says = "a resolved value may be of an implementation's own type"
+note = "taken: `Value::Number`, `Value::Measure`, `Value::DateTime`, and a handler's own `Value::Boxed`"
+tests = [
+    "pattern-selection.json@ca78a7ae",
+    "crates/mf2-runtime/tests/additions.rs::measure_values",
+]
+
+[[statement]]
+id = "formatting.md#c274e513"
+says = "a resolved value may carry resolved options"
+note = "taken: numeric and date/time values carry their options into later expressions"
+tests = [
+    "functions/number.json@5e31a9c3",
+    "functions/offset.json@b25047cd",
+    "pattern-selection.json@2f0a618f",
+]
+
+[[statement]]
+id = "formatting.md#cc588f43"
+says = "the options a value carries may differ from those written on the function"
+na = { kind = "permission", reason = "a freedom with no required observable; ours carry the options written plus those the function implies (e.g. `:integer`'s rounding)" }
+
+[[statement]]
+id = "formatting.md#aacf66ff"
+says = "a handler should report Bad Operand for an operand value or type it does not support"
+tests = [
+    "functions/datetime.json@d45520ae",
+    "functions/currency.json@a336093d",
+    "extra/functions/unit.json@bd05a7b5",
+    "functions/number.json@f71af316",
+]
+
+[[statement]]
+id = "formatting.md#e0d00b46"
+says = "handlers get minimal, read-only access to the formatting context, and should run in bounded time"
+na = { kind = "by-construction", reason = "`FnContext` is a `Copy` view with getters only (locale, `u:dir`, host, catalog, time zone); the built-in handlers do bounded work per value — the `format` fuzz target runs them" }
+
+[[statement]]
+id = "formatting.md#bccd37b4"
+says = "implementation-defined functions should live in an implementation-defined namespace"
+na = { kind = "by-construction", reason = "mf2-two defines no functions beyond the spec's, so there is nothing to namespace; the harness's own are under `test:`" }
+
+[[statement]]
+id = "formatting.md#50b300b9-1"
+says = "`u:` options a markup uses may be taken out of its resolved options"
+note = "taken: `u:id` becomes the part's id and is not among its options; `u:dir` on markup is a Bad Option and dropped"
+tests = [
+    "crates/mf2-runtime/tests/format.rs::parts_output",
+]
+
+[[statement]]
+id = "formatting.md#1b9d2ea2"
+says = "resolving markup always succeeds; option errors do not stop it"
+tests = [
+    "u-options.json@38bf2de9",
+    "syntax.json@05da8c1c",
+    "extra/formatting.json@6cef8d2d",
+]
+
+[[statement]]
+id = "formatting.md#f59567cf"
+says = "the order of options is not significant"
+tests = [
+    "extra/formatting.json@b2691917",
+    "extra/formatting.json@0b3735f5",
+]
+
+[[statement]]
+id = "formatting.md#ed63b922"
+says = "option resolution always yields a (possibly empty) map; its errors are never fatal"
+tests = [
+    "extra/formatting.json@6cef8d2d",
+    "extra/formatting.json@80dc64d0",
+    "extra/functions/unit.json@c774ddf2",
+]
+
+[[statement]]
+id = "formatting.md#da8b9b00"
+says = "text, a literal and markup never resolve to a fallback value"
+tests = [
+    "syntax.json@03c223ff",
+    "syntax.json@33f343a9",
+    "u-options.json@38bf2de9",
+    "extra/formatting.json@6cef8d2d",
+]
+
+[[statement]]
+id = "formatting.md#ac16cef0"
+says = "every variant has as many keys as there are selectors"
+tests = [
+    "data-model-errors.json@e929bec7",
+    "data-model-errors.json@8478a655",
+    "crates/mf2-syntax/tests/validate.rs::variant_key_mismatch_one_per_variant",
+]
+
+[[statement]]
+id = "formatting.md#e7119080"
+says = "any selection method will do if its observable result matches the spec's"
+note = "the condition is what is tested: the suite's selection cases"
+tests = [
+    "pattern-selection.json@ca2d83f6",
+    "pattern-selection.json@aac64334",
+    "pattern-selection.json@ef73fddc",
+    "pattern-selection.json@29f00964",
+]
+
+[[statement]]
+id = "formatting.md#ad216241"
+says = "the formatted result may take whatever form suits it"
+note = "taken: a string, and a flat sequence of parts (`Formatter::parts`)"
+tests = [
+    "crates/mf2-runtime/tests/format.rs::parts_output",
+    "u-options.json@9ef12b40",
+]
+
+[[statement]]
+id = "formatting.md#c1718a3c"
+says = "result types should suit users, including further processing of the result"
+note = "parts for programs, elements for Leptos views, a string for plain text"
+tests = [
+    "crates/mf2-runtime/tests/format.rs::parts_output",
+    "crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
+]
+
+[[statement]]
+id = "formatting.md#e9824492"
+says = "users should be encouraged to treat a formatted string as opaque, for display only"
+na = { kind = "not-implementation", reason = "concerns what the documentation tells users, not behaviour; the user documentation (Phase 7 A13) must say it" }
+
+[[statement]]
+id = "formatting.md#c8b58eeb"
+says = "markup formats to an empty string by default when formatting to a string"
+tests = [
+    "syntax.json@70e081ad",
+    "syntax.json@71214608",
+    "syntax.json@864c9a7c",
+]
+
+[[statement]]
+id = "formatting.md#cf7a225a"
+says = "how markup is represented may be made customisable"
+note = "taken: leptos-mf2 renders markup as elements through per-name handlers"
+tests = [
+    "crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
+    "conformance/tests/l6.rs::the_markup_half_is_not_vacuous",
+]
+
+[[statement]]
+id = "formatting.md#173bc687"
+says = "in string output a fallback value is written as `{`, its representation, `}`"
+tests = [
+    "fallback.json@9e95263f",
+    "fallback.json@d45e5d6d",
+    "fallback.json@8d6f73b5",
+    "fallback.json@f80ed7d7",
+]
+
+[[statement]]
+id = "formatting.md#35298619"
+says = "a formatted value that mixes directions should be made to display correctly on its own (e.g. with marks)"
+note = "CLDR's own marks are kept: `ar` and `he` numbers and units carry U+200E around signs and percent (conformance/goldens/)"
+tests = [
+    "crates/mf2-fn-number/tests/cldr.rs::panel",
+    "conformance/tests/goldens.rs::goldens_are_current",
+]
+
+[[statement]]
+id = "formatting.md#d22b98bc"
+says = "the Default Bidi Strategy is the default when formatting a message to a single string"
+note = "`FormatContext::new` defaults to `BidiStrategy::Default`; the L4 runner formats the suite's `default` cases with an unmodified `FormatContext::new`. leptos-mf2's `to_string()` and `String::from` are isolated; `to_plain_string()` is the plain form (04 §9, revised in Phase 7 A12)"
+tests = [
+    "u-options.json@c0679749",
+    "bidi.json@d37df91b",
+    "crates/mf2-runtime/tests/format.rs::bidi",
+    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+]
+
+[[statement]]
+id = "formatting.md#40ece2ba"
+says = "other bidi isolation strategies may be offered"
+note = "taken: leptos-mf2 picks Default or none by position (04 §9)"
+tests = [
+    "crates/leptos-mf2/tests/render.rs::an_attribute_is_isolated_or_plain_by_its_name",
+    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+]
+
+[[statement]]
+id = "formatting.md#1eb6c6cf"
+says = "a strategy that does no bidi processing may be offered"
+note = "taken: `BidiStrategy::None`"
+tests = [
+    "fallback.json@9e95263f",
+    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+]
+
+[[statement]]
+id = "formatting.md#1f43af71"
+says = "a value's direction should not be found by inspecting its formatted characters"
+note = "Arabic text through `:string` in an Arabic message is isolated with FSI (direction unknown), not RLI: nothing reads the characters"
+tests = [
+    "u-options.json@5381ca2c",
+    "bidi.json@184904b5",
+]
+
+[[statement]]
+id = "functions/README.md#00a3c799"
+says = "the default functions are required for conformance, with some only recommended"
+note = "Every default function is implemented, the Draft ones (:unit, :datetime, :date, :time) included, all-features configuration."
+tests = [
+    "functions/string.json@801ad7e7",
+    "functions/number.json@eb030f6c",
+    "functions/integer.json@7b80d94c",
+    "functions/offset.json@b1845a3e",
+    "functions/currency.json@8e4bdfeb",
+    "functions/percent.json@d5ec1f2a",
+    "extra/functions/unit.json@230ed89d",
+    "functions/datetime.json@d851315b",
+    "functions/date.json@eb118a51",
+    "functions/time.json@3946cf86",
+]
+
+[[statement]]
+id = "functions/README.md#b69182e5"
+says = "accepting a function means never reporting Unknown Function for its name"
+tests = [
+    "functions/string.json@801ad7e7",
+    "functions/number.json@eb030f6c",
+    "functions/integer.json@7b80d94c",
+    "functions/offset.json@b1845a3e",
+    "functions/currency.json@8e4bdfeb",
+    "functions/percent.json@d5ec1f2a",
+    "extra/functions/unit.json@230ed89d",
+    "functions/datetime.json@d851315b",
+    "functions/date.json@eb118a51",
+    "functions/time.json@3946cf86",
+]
+
+[[statement]]
+id = "functions/README.md#eddae6aa"
+says = "accepting an option means no Bad Option for its name on its function, nor for any of its defined values"
+tests = [
+    "extra/functions/accept.json@5282d74b",
+    "extra/functions/accept.json@c05464a8",
+    "extra/functions/accept.json@7dc8eda9",
+    "extra/functions/accept.json@68ff32eb",
+    "extra/functions/accept.json@f0882cd6",
+    "extra/functions/accept.json@22a900b8",
+    "extra/functions/accept.json@a537fa7f",
+    "extra/functions/accept.json@5ec0cd4d",
+    "extra/functions/accept.json@df5c29d9",
+    "extra/functions/accept.json@3bac401b",
+    "extra/functions/accept.json@f8a4cf93",
+    "extra/functions/accept.json@8be20941",
+    "extra/functions/accept.json@a3c646a8",
+    "extra/functions/accept.json@186946e0",
+    "extra/functions/accept.json@aebba1c1",
+    "extra/functions/accept.json@5d780c10",
+    "extra/functions/accept.json@6200cee0",
+    "extra/functions/accept.json@cfea3be4",
+    "extra/functions/accept.json@9ee143fa",
+    "extra/functions/accept.json@986d4004",
+    "extra/functions/accept.json@a2badeb9",
+    "functions/offset.json@b1845a3e",
+    "functions/offset.json@e8b761cc",
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::time_zone_input",
+]
+
+[[statement]]
+id = "functions/README.md#41007a0d"
+says = "an unsupported option or option value may report Unsupported Operation"
+note = "Taken up in two places: `:unit usage=…` (conversion not implemented) and grouping that needs locale data in a build without `fn-number`."
+tests = [
+    "extra/functions/unit.json@f617da7f",
+    "crates/mf2-runtime/tests/format.rs::neutral_grouping_is_unsupported",
+]
+
+[[statement]]
+id = "functions/README.md#344bda2b"
+says = "an option is labelled either required or recommended"
+na = { kind = "not-implementation", reason = "Defines the two labels; what an implementation must do with each is the next statements' (functions/README.md#7f317cc7, #7e4425db, #5416e79d)." }
+
+[[statement]]
+id = "functions/README.md#7f317cc7"
+says = "every required default function, and every required option of it, is accepted"
+note = ":string (no options), :number, :integer, :offset, :currency, :percent: every option and every defined value, with no error, all-features configuration."
+tests = [
+    "functions/string.json@801ad7e7",
+    "functions/offset.json@b1845a3e",
+    "functions/offset.json@e8b761cc",
+    "extra/functions/accept.json@5282d74b",
+    "extra/functions/accept.json@c05464a8",
+    "extra/functions/accept.json@7dc8eda9",
+    "extra/functions/accept.json@68ff32eb",
+    "extra/functions/accept.json@f0882cd6",
+    "extra/functions/accept.json@22a900b8",
+    "extra/functions/accept.json@a537fa7f",
+    "extra/functions/accept.json@5ec0cd4d",
+    "extra/functions/accept.json@df5c29d9",
+    "extra/functions/accept.json@3bac401b",
+    "extra/functions/accept.json@f8a4cf93",
+    "extra/functions/accept.json@8be20941",
+    "extra/functions/accept.json@a3c646a8",
+    "extra/functions/accept.json@186946e0",
+    "extra/functions/accept.json@aebba1c1",
+    "extra/functions/accept.json@5d780c10",
+    "extra/functions/accept.json@6200cee0",
+]
+
+[[statement]]
+id = "functions/README.md#aca40b3c"
+says = "recommended default functions should be accepted"
+note = "The Draft functions (:unit, :datetime, :date, :time) are all accepted."
+tests = [
+    "extra/functions/unit.json@230ed89d",
+    "functions/datetime.json@d851315b",
+    "functions/date.json@eb118a51",
+    "functions/time.json@3946cf86",
+]
+
+[[statement]]
+id = "functions/README.md#7e4425db"
+says = "for each recommended function accepted, all its required options are accepted"
+tests = [
+    "extra/functions/accept.json@cfea3be4",
+    "extra/functions/accept.json@9ee143fa",
+    "extra/functions/accept.json@986d4004",
+    "extra/functions/accept.json@a2badeb9",
+    "extra/functions/unit.json@60a55d02",
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::time_zone_input",
+]
+
+[[statement]]
+id = "functions/README.md#5416e79d"
+says = "options marked recommended should be accepted"
+note = "`usage` on :unit is accepted (no Bad Option) and reports Unsupported Operation, since conversion is not implemented; `calendar` on the date/time functions is accepted and applied by the ICU4X backend."
+tests = [
+    "extra/functions/unit.json@f617da7f",
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+]
+
+[[statement]]
+id = "functions/README.md#0d22ddfc"
+says = "functions the spec does not define may be accepted"
+note = "Any function registered in the `Registry` is accepted; the suite's `:test:*` functions are."
+tests = [
+    "pattern-selection.json@fd075e44",
+    "fallback.json@d45e5d6d",
+    "crates/mf2-runtime/tests/additions.rs::percent_on_the_public_core",
+]
+
+[[statement]]
+id = "functions/README.md#dfd22731"
+says = "users should be able to register and use their own functions and handlers"
+note = "`Registry::new` over `(name, &dyn Function)`; the suite's test functions are written against the public trait only (conformance/l4-runner/src/test_functions.rs)."
+tests = [
+    "pattern-selection.json@fd075e44",
+    "crates/mf2-runtime/tests/additions.rs::percent_on_the_public_core",
+    "crates/mf2-runtime/tests/additions.rs::measure_values",
+]
+
+[[statement]]
+id = "functions/README.md#2df828a1"
+says = "functions outside the spec should have an implementation- or user-defined namespace"
+na = { kind = "not-implementation", reason = "Binds whoever names a non-spec function. mf2-two names none: its registries hold only the spec's function names, and the suite's own are `test:*`." }
+
+[[statement]]
+id = "functions/README.md#5241d824"
+says = "extra non-spec options on default functions are allowed"
+na = { kind = "permission", reason = "Not taken up: every option name the default handlers read is the spec's (crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs, crates/mf2-fn-datetime/src/options.rs); other names are ignored." }
+
+[[statement]]
+id = "functions/README.md#c9287be8"
+says = "any such extra option has an implementation-specific namespace"
+na = { kind = "by-construction", reason = "mf2-two adds no option to a default function (functions/README.md#5241d824), so there is no extra option to namespace; the option tables that would hold one are crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs and crates/mf2-fn-datetime/src/options.rs." }
+
+[[statement]]
+id = "functions/README.md#78d013bf"
+says = "non-spec values for spec options may be accepted"
+na = { kind = "permission", reason = "Not taken up: a value outside an option's defined set is Bad Option and the option is ignored (functions/number.json #28, extra/functions/unit.json #18, crates/mf2-fn-datetime/tests/format.rs::bad_option_values)." }
+
+[[statement]]
+id = "functions/README.md#3bc8d67c"
+says = "implementation-specific option values for default functions are discouraged"
+note = "None supported: an undefined value is Bad Option."
+tests = [
+    "functions/number.json@6cdbd394",
+    "functions/offset.json@dc5b6f4d",
+    "extra/functions/unit.json@c774ddf2",
+    "crates/mf2-fn-datetime/tests/format.rs::bad_option_values",
+]
+
+[[statement]]
+id = "functions/README.md#87b6fe28"
+says = "operands and options may take values of implementation-defined types"
+note = "Taken up: numeric arguments (integer, float, decimal), date/time arguments, an application's measure value, and a digit size option given as a number."
+tests = [
+    "functions/number.json@79b869e5",
+    "crates/mf2-runtime/tests/additions.rs::date_time_arguments",
+    "crates/mf2/tests/call_site.rs::an_application_value_reaches_a_function_as_its_measure",
+]
+
+[[statement]]
+id = "functions/README.md#031a6f58"
+says = "later spec versions may add options and values to the default functions"
+na = { kind = "not-implementation", reason = "About future versions of the specification." }
+
+[[statement]]
+id = "functions/README.md#2c57bf1c"
+says = "messages should not use options the spec does not define"
+na = { kind = "not-implementation", reason = "Advice to message authors; the implementation ignores an undefined option (crates/mf2-fn-datetime/tests/format.rs::unknown_options_are_ignored)." }
+
+[[statement]]
+id = "functions/datetime.md#caf88e49"
+says = ":datetime accepts dateFields, dateLength, timePrecision, timeZoneStyle (each listed value) and the override options"
+note = "Every value of every option, through the neutral backend (format.rs) and ICU4X (icu.rs). The WG suite's datetime.json asserts no output."
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::defaults",
+    "crates/mf2-fn-datetime/tests/icu.rs::en_options",
+    "crates/mf2-fn-datetime/tests/format.rs::override_options_from_variables",
+]
+
+[[statement]]
+id = "functions/datetime.md#795bb546"
+says = ":datetime's options other than the override options must be literals (a variable: Bad Option, ignored)"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::literal_only_options",
+    "crates/mf2-fn-datetime/tests/format.rs::override_options_from_variables",
+]
+
+[[statement]]
+id = "functions/datetime.md#8daf06f6"
+says = ":date accepts fields and length (each listed value) and the override options"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::defaults",
+    "crates/mf2-fn-datetime/tests/icu.rs::en_options",
+]
+
+[[statement]]
+id = "functions/datetime.md#6ca125fc"
+says = ":date's fields and length must be literals"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::literal_only_options",
+]
+
+[[statement]]
+id = "functions/datetime.md#82cc4c92"
+says = "a variable annotated by :date may be reported when used as an operand or option value"
+na = { kind = "permission", reason = "Not taken: a :date value is a valid operand of a later date/time expression, which starts from its own defaults (format.rs `inheritance`)." }
+
+[[statement]]
+id = "functions/datetime.md#af636b41"
+says = ":time accepts precision and timeZoneStyle (each listed value) and the override options"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::defaults",
+    "crates/mf2-fn-datetime/tests/icu.rs::zones",
+]
+
+[[statement]]
+id = "functions/datetime.md#8fd81d9e"
+says = ":time's precision and timeZoneStyle must be literals"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::literal_only_options",
+]
+
+[[statement]]
+id = "functions/datetime.md#9c217d1b"
+says = "a variable annotated by :time may be reported when used as an operand or option value"
+na = { kind = "permission", reason = "Not taken: a :time value is a valid operand of a later date/time expression (format.rs `inheritance`)." }
+
+[[statement]]
+id = "functions/datetime.md#620ed9c1"
+says = "ISO 8601 forms outside the spec's regular expression may also be accepted"
+na = { kind = "permission", reason = "Not taken: only the regular expression's forms are date/time literals; `mf2-fn-datetime/src/literal.rs` `not_literals` pins the rejected ones (no T-less times, no comma fractions, no zone names)." }
+
+[[statement]]
+id = "functions/datetime.md#afa94118"
+says = "a date without a time is taken at 00:00:00"
+tests = [
+    "crates/mf2-fn-datetime/src/literal.rs::literals",
+    "crates/mf2-fn-datetime/tests/format.rs::literal_only_options",
+]
+
+[[statement]]
+id = "functions/datetime.md#43c19c36"
+says = "a value without an offset is floating (a local date-time, not an instant)"
+tests = [
+    "crates/mf2-fn-datetime/src/literal.rs::literals",
+    "crates/mf2-fn-datetime/tests/format.rs::conversions",
+    "crates/mf2-fn-datetime/tests/format.rs::the_context_zone",
+]
+
+[[statement]]
+id = "functions/datetime.md#8a35cd2d"
+says = ":datetime, :date and :time accept timeZone: input, UTC, a zone name, an offset"
+note = "No existing test sets timeZone on :date; the proposed one does."
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::time_zone_input",
+    "crates/mf2-fn-datetime/tests/format.rs::conversions",
+    "crates/mf2-fn-datetime/src/options.rs::zone_values",
+    "crates/mf2-fn-datetime/tests/format.rs::the_time_zone_option_on_date",
+]
+
+[[statement]]
+id = "functions/datetime.md#f3f60be8"
+says = "an operand with a zone or offset is converted to the timeZone option's zone"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::conversions",
+    "crates/mf2-fn-datetime/tests/format.rs::the_context_zone",
+    "crates/mf2-fn-datetime/tests/icu.rs::zones",
+]
+
+[[statement]]
+id = "functions/datetime.md#cf86ea5d"
+says = "where that conversion is unsupported, Bad Option and a fallback value may be used instead"
+note = "Taken when the host has no data for the named zone."
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::without_zone_data",
+]
+
+[[statement]]
+id = "functions/datetime.md#4bd12332"
+says = ":datetime and :time accept hour12=true|false"
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/format.rs::override_options_from_variables",
+    "crates/mf2-fn-datetime/tests/icu.rs::en_options",
+]
+
+[[statement]]
+id = "functions/datetime.md#da20d945"
+says = "the three date/time functions should accept calendar (a Unicode calendar identifier)"
+note = "Taken. The neutral backend records the calendar and ignores it; ICU4X formats in it."
+tests = [
+    "crates/mf2-fn-datetime/tests/format.rs::every_option_value",
+    "crates/mf2-fn-datetime/tests/icu.rs::locales_and_calendars",
+    "crates/mf2-fn-datetime/src/literal.rs::uvalues",
+]
+
+[[statement]]
+id = "functions/number.md#4de35659"
+says = ":number accepts select, signDisplay, useGrouping, the five digit-size options, trailingZeroDisplay, roundingPriority, roundingIncrement and roundingMode, each with every listed value"
+note = "signDisplay auto/always/never and useGrouping always/min2/never are in localize.rs; the rounding modes also at the decimal level (decimal.rs). Increments other than 5 and 100 are exercised only below the option parser (decimal.rs `increments`)."
+tests = [
+    "extra/functions/numeric-options.json@6e41bb29",
+    "extra/functions/numeric-options.json@ee9cf526",
+    "extra/functions/numeric-options.json@e8c26d6f",
+    "extra/functions/numeric-options.json@6ad79967",
+    "extra/functions/numeric-options.json@2bf25d2f",
+    "extra/functions/numeric-options.json@0947f941",
+    "extra/functions/numeric-options.json@3292ead0",
+    "extra/functions/numeric-options.json@6ccc9327",
+    "extra/functions/numeric-options.json@5225b243",
+    "extra/functions/numeric-options.json@547efda4",
+    "extra/functions/numeric-options.json@dec9b5eb",
+    "extra/functions/numeric-options.json@73fc0517",
+    "extra/functions/numeric-options.json@b3057ea6",
+    "extra/functions/numeric-options.json@f238ad4b",
+    "extra/functions/numeric-options.json@f3eb24ae",
+    "extra/functions/numeric-options.json@55337899",
+    "extra/functions/numeric-options.json@da010c86",
+    "extra/functions/numeric-options.json@24a07cad",
+    "extra/functions/numeric-options.json@9c508ee7",
+    "extra/functions/numeric-options.json@f1a35edd",
+    "extra/functions/numeric-options.json@3302281a",
+    "extra/functions/numeric-options.json@2bb2d67b",
+    "extra/functions/numeric-options.json@3c4c562a",
+    "extra/functions/numeric-options.json@94da432f",
+    "extra/functions/numeric-options.json@cc41d158",
+    "extra/functions/numeric-options.json@d38f2656",
+    "extra/functions/numeric-options.json@864e92d7",
+    "extra/functions/numeric-options.json@8f240f51",
+    "extra/functions/numeric-options.json@06525bca",
+    "extra/functions/numeric-options.json@bb43a25b",
+    "extra/functions/numeric-options.json@6365a8c7",
+    "extra/functions/numeric-options.json@7a44d6cd",
+    "extra/functions/numeric-options.json@f36aa85c",
+    "functions/number.json@0b30bef7",
+    "crates/mf2-fn-number/tests/localize.rs::signs",
+    "crates/mf2-fn-number/tests/localize.rs::separators_and_grouping",
+    "crates/mf2-runtime/src/number/decimal.rs::rounding_modes",
+]
+
+[[statement]]
+id = "functions/number.md#ee2f031a"
+says = ":integer accepts select, signDisplay, useGrouping, minimumIntegerDigits and maximumSignificantDigits"
+tests = [
+    "functions/integer.json@5bf13ea7",
+    "functions/integer.json@08ba577c",
+    "functions/offset.json@b25047cd",
+    "extra/functions/numeric-options.json@e2ee6ce9",
+    "extra/functions/numeric-options.json@3d23a626",
+    "extra/functions/numeric-options.json@46d909f0",
+    "extra/functions/numeric-options.json@770431ae",
+    "extra/functions/numeric-options.json@cbed955e",
+    "crates/mf2-fn-number/tests/cldr.rs::minimum_grouping_digits",
+]
+
+[[statement]]
+id = "functions/number.md#605b8f0e"
+says = ":offset accepts add and subtract"
+tests = [
+    "functions/offset.json@b1845a3e",
+    "functions/offset.json@e8b761cc",
+    "functions/offset.json@0a7e4a30",
+    "functions/offset.json@2d29ef50",
+]
+
+[[statement]]
+id = "functions/number.md#ac348cf6"
+says = "the currency option must not override the currency an operand already has"
+note = "Bad Option, and the operand's currency is kept."
+tests = [
+    "crates/mf2-fn-number/tests/measure.rs::currency_options_and_inheritance",
+    "extra/functions/numeric-options.json@4f017896",
+]
+
+[[statement]]
+id = "functions/number.md#298cd14f"
+says = "an operand's currency is a well-formed 3-letter code or an implementation-defined currency type"
+note = "A code that is not 3ALPHA is Bad Option and then Bad Operand (measure.rs); an application operand gives its currency as `MeasureUnit::Currency([u8; 3])`, the implementation-defined type."
+tests = [
+    "crates/mf2-fn-number/tests/measure.rs::currency_options_and_inheritance",
+    "functions/currency.json@f1753e8d",
+]
+
+[[statement]]
+id = "functions/number.md#cc02f1e1"
+says = "option values without data may be aliased internally"
+note = "Taken: a currency without catalog data shows its code as symbol and name, with CLDR's default digits (UTS #35's fallback); a narrow symbol CLDR lacks is the symbol."
+tests = [
+    "crates/mf2-fn-number/tests/measure.rs::currency_options_and_inheritance",
+]
+
+[[statement]]
+id = "functions/number.md#1bd13b3f"
+says = ":currency accepts currency, currencySign, currencyDisplay, useGrouping, minimumIntegerDigits, fractionDigits, the significant digits, trailingZeroDisplay, roundingPriority, roundingIncrement and roundingMode"
+note = "currencyDisplay narrowSymbol/name/code/never, currencySign=accounting and fractionDigits=n are in measure.rs; the other roundingMode values of :currency share :number's code path (options.rs OPTIONS table)."
+tests = [
+    "crates/mf2-fn-number/tests/measure.rs::currency_like_intl",
+    "crates/mf2-fn-number/tests/measure.rs::currency_options_and_inheritance",
+    "extra/functions/numeric-options.json@70f73f74",
+    "extra/functions/numeric-options.json@c375fd45",
+    "extra/functions/numeric-options.json@067d2dbb",
+    "extra/functions/numeric-options.json@57c64829",
+    "extra/functions/numeric-options.json@3d4a11c7",
+    "extra/functions/numeric-options.json@887f0c59",
+    "extra/functions/numeric-options.json@51f6ddb8",
+    "extra/functions/numeric-options.json@984fa512",
+    "extra/functions/numeric-options.json@1b6430de",
+    "extra/functions/numeric-options.json@c3472dd5",
+    "extra/functions/numeric-options.json@fe9a07a0",
+    "extra/functions/numeric-options.json@f82c120b",
+    "extra/functions/numeric-options.json@d4bcb1cb",
+    "extra/functions/numeric-options.json@da95bd2c",
+]
+
+[[statement]]
+id = "functions/number.md#f03c42e6"
+says = ":percent accepts signDisplay, useGrouping, the four fraction/significant digit options, trailingZeroDisplay, roundingPriority and roundingMode"
+note = "The WG suite's percent.json asserts no output for its option tests."
+tests = [
+    "extra/functions/numeric-options.json@fe0e9577",
+    "extra/functions/numeric-options.json@69c58a4c",
+    "extra/functions/numeric-options.json@ae4dd5b1",
+    "extra/functions/numeric-options.json@d81bbf1d",
+    "extra/functions/numeric-options.json@4f42f468",
+    "extra/functions/numeric-options.json@844a987e",
+    "extra/functions/numeric-options.json@5b00dfd4",
+    "extra/functions/numeric-options.json@db8bb163",
+    "extra/functions/numeric-options.json@483c73dd",
+    "extra/functions/numeric-options.json@e63d6087",
+    "extra/functions/numeric-options.json@df6ffcc6",
+    "extra/functions/numeric-options.json@32c6d91a",
+    "crates/mf2-fn-number/tests/localize.rs::percent",
+]
+
+[[statement]]
+id = "functions/number.md#bb71675a"
+says = ":unit is proposed as a recommended formatter for numbers with a unit of measurement"
+note = "Implemented."
+tests = [
+    "extra/functions/unit.json@230ed89d",
+    "extra/functions/unit.json@60a55d02",
+    "crates/mf2-fn-number/tests/measure.rs::unit_like_intl",
+]
+
+[[statement]]
+id = "functions/number.md#a3302ab3"
+says = ":unit accepts unit, unitDisplay, signDisplay, useGrouping, the five digit-size options, roundingPriority, roundingIncrement and roundingMode"
+tests = [
+    "extra/functions/unit.json@230ed89d",
+    "extra/functions/unit.json@60a55d02",
+    "extra/functions/unit.json@1b6cd584",
+    "extra/functions/unit.json@03ef7521",
+    "extra/functions/unit.json@4eba58ec",
+    "extra/functions/numeric-options.json@872d154a",
+    "extra/functions/numeric-options.json@06f518e7",
+    "extra/functions/numeric-options.json@ae5eeed5",
+    "extra/functions/numeric-options.json@8bd93a1e",
+    "extra/functions/numeric-options.json@af2ee1ef",
+    "extra/functions/numeric-options.json@141de840",
+    "extra/functions/numeric-options.json@a556bddf",
+    "extra/functions/numeric-options.json@7a393305",
+]
+
+[[statement]]
+id = "functions/number.md#9cf4c5e6"
+says = ":unit should accept usage (a Unicode unit usage)"
+note = "Accepted (no Bad Option) and answered with Unsupported Operation: no conversion is performed."
+tests = [
+    "extra/functions/unit.json@f617da7f",
+    "crates/mf2-fn-number/tests/measure.rs::unit_errors",
+]
+
+[[statement]]
+id = "functions/number.md#776ec4b9"
+says = "usage may convert to the locale's preferred unit"
+na = { kind = "permission", reason = "Not taken: no unit conversion (no unit-preference data in the catalog); usage reports Unsupported Operation (extra/functions/unit.json)." }
+
+[[statement]]
+id = "functions/number.md#fd78db9b"
+says = "an unsupported conversion reports Unsupported Operation"
+tests = [
+    "extra/functions/unit.json@f617da7f",
+    "crates/mf2-fn-number/tests/measure.rs::unit_errors",
+]
+
+[[statement]]
+id = "functions/number.md#a180b307"
+says = "a unit is never replaced without converting the value"
+tests = [
+    "extra/functions/unit.json@22b6f5be",
+    "extra/functions/unit.json@f617da7f",
+    "crates/mf2-fn-number/tests/measure.rs::unit_errors",
+]
+
+[[statement]]
+id = "functions/number.md#eff598ea"
+says = "digit size options may have implementation limits"
+note = "Taken: 0–99 (the ABNF's own range), and significant digits at least 1; beyond a limit, Bad Option and the option ignored."
+tests = [
+    "extra/functions/numeric-options.json@22049304",
+]
+
+[[statement]]
+id = "functions/number.md#52727388"
+says = "a digit size option may also take implementation-defined types"
+note = "Taken: an integer or float argument with an integral value 0–99 is a digit size."
+tests = [
+    "functions/number.json@79b869e5",
+]
+
+[[statement]]
+id = "functions/number.md#d664648e"
+says = "a digit size beyond a limit may be replaced by an implementation-defined value instead of being ignored"
+na = { kind = "permission", reason = "Not taken: an out-of-limit digit size is Bad Option and ignored (NEW:N31)." }
+
+[[statement]]
+id = "functions/number.md#02767c2a"
+says = "select must be set by a literal"
+tests = [
+    "functions/number.json@13b2a1fb",
+    "functions/number.json@957f9f17",
+    "functions/integer.json@a7dea2fb",
+    "functions/integer.json@a087bc3b",
+]
+
+[[statement]]
+id = "functions/number.md#591c2e66"
+says = "select from a variable, or carried in by an operand, is Bad Option and the value then does not select"
+tests = [
+    "functions/number.json@81d35d1e",
+    "functions/number.json@35bc9bbe",
+    "functions/integer.json@9d88b99b",
+    "functions/integer.json@166f6c9d",
+]
+
+[[statement]]
+id = "functions/number.md#35b2a378"
+says = "plural selection should use CLDR's cardinal rules"
+tests = [
+    "extra/functions/numeric-options.json@926cad5f",
+    "extra/functions/numeric-options.json@b24f2942",
+    "crates/mf2-runtime/tests/format.rs::selection",
+    "crates/mf2-locale-data/tests/cldr_samples.rs::every_cldr_sample_passes_the_client_evaluator",
+]
+
+[[statement]]
+id = "functions/number.md#2c6839e2"
+says = "ordinal selection should use CLDR's ordinal rules"
+note = "Until now only the goldens (conformance/tests/goldens.rs, a snapshot) exercised select=ordinal end to end."
+tests = [
+    "extra/functions/numeric-options.json@f36aa85c",
+    "extra/functions/numeric-options.json@3f74d511",
+    "extra/functions/numeric-options.json@1ac39de4",
+    "extra/functions/numeric-options.json@cd041ae4",
+    "extra/functions/numeric-options.json@770431ae",
+    "crates/mf2-locale-data/tests/cldr_samples.rs::every_cldr_sample_passes_the_client_evaluator",
+]
+
+[[statement]]
+id = "functions/number.md#3ab3f1f0"
+says = "an integer value with none of the min-fraction, min-integer or significant-digit options serializes for exact matching as a plain integer (no grouping, no -0)"
+tests = [
+    "extra/functions/numeric-options.json@ebf967d1",
+    "extra/functions/numeric-options.json@606f2bdc",
+    "extra/functions/numeric-options.json@80c2ae04",
+    "extra/functions/numeric-options.json@b9e14f09",
+    "functions/integer.json@b81a74e9",
+    "functions/offset.json@b5aa6db3",
+]
+
+[[statement]]
+id = "functions/string.md#1f1bcdc8"
+says = "message authors should write messages in NFC"
+note = "Addressed to authors; mf2-build helps with the `non-nfc-source` lint (warn by default), whose drift test is cited."
+tests = [
+    "crates/mf2-build/tests/drift.rs::every_lint_fires_on_its_own_drift_and_nothing_else_does",
+]
+
+[[statement]]
+id = "syntax.md#0190f0e8"
+says = "An input declaration may annotate the external value with a function."
+tests = [
+    "functions/string.json@801ad7e7",
+    "pattern-selection.json@ea618211",
+]
+
+[[statement]]
+id = "syntax.md#6bda7d6a"
+says = "A variable cannot be declared twice."
+tests = [
+    "data-model-errors.json@f460a593",
+    "data-model-errors.json@7c16f692",
+    "data-model-errors.json@fa116fdd",
+    "data-model-errors.json@971b2126",
+]
+
+[[statement]]
+id = "syntax.md#50b1957e"
+says = "A declaration cannot bind a variable already used in an earlier declaration."
+tests = [
+    "data-model-errors.json@c0557fa5",
+    "data-model-errors.json@2cfbbf29",
+    "data-model-errors.json@dfe2e439",
+    "data-model-errors.json@41ee6625",
+]
+
+[[statement]]
+id = "syntax.md#81e6488a"
+says = "An input declaration cannot bind a variable used in its own function's options."
+tests = [
+    "crates/mf2-syntax/tests/validate.rs::duplicate_declaration_both_rules",
+    "extra/syntax.json@8ee8c659",
+]
+
+[[statement]]
+id = "syntax.md#39f6c8fd"
+says = "A local declaration cannot bind a variable used in its own expression."
+tests = [
+    "data-model-errors.json@266e4fc5",
+    "data-model-errors.json@a09134f5",
+]
+
+[[statement]]
+id = "syntax.md#98fe86f7"
+says = "A local declaration may shadow an external value not used by an earlier declaration."
+tests = [
+    "syntax.json@5865ed8a",
+]
+
+[[statement]]
+id = "syntax.md#e339fd1f"
+says = "A pattern may be empty."
+tests = [
+    "syntax.json@5ba88f35",
+]
+
+[[statement]]
+id = "syntax.md#72d8a14f"
+says = "A pattern may hold any number of placeholders."
+tests = [
+    "syntax.json@2153b600",
+    "syntax.json@536d3c07",
+]
+
+[[statement]]
+id = "syntax.md#23db3b73"
+says = "A quoted pattern may be empty."
+tests = [
+    "syntax.json@db289402",
+    "syntax.json@a666b2a9",
+]
+
+[[statement]]
+id = "syntax.md#a0d88f95"
+says = "In text, backslash and both braces are written escaped."
+tests = [
+    "syntax.json@c57601a1",
+    "syntax.json@67c19404",
+    "syntax-errors.json@9595f989",
+    "syntax-errors.json@6cb6a83e",
+    "extra/syntax.json@ea7938c3",
+    "extra/syntax.json@5c1b7413",
+]
+
+[[statement]]
+id = "syntax.md#3466288a"
+says = "Whitespace in text is kept exactly in the output."
+tests = [
+    "syntax.json@b371dfad",
+    "syntax.json@e1ba47d5",
+    "bidi.json@6617e538",
+]
+
+[[statement]]
+id = "syntax.md#b1a9b3f1"
+says = "Every variant has as many keys as there are selectors (Variant Key Mismatch)."
+tests = [
+    "data-model-errors.json@e929bec7",
+    "data-model-errors.json@8478a655",
+    "crates/mf2-syntax/tests/validate.rs::variant_key_mismatch_one_per_variant",
+]
+
+[[statement]]
+id = "syntax.md#d953ab86"
+says = "Some variant has only catch-all keys (Missing Fallback Variant)."
+tests = [
+    "data-model-errors.json@b635166e",
+    "data-model-errors.json@5f898267",
+    "data-model-errors.json@17e4a33f",
+    "crates/mf2-syntax/tests/validate.rs::missing_fallback_variant",
+]
+
+[[statement]]
+id = "syntax.md#28adbba3"
+says = "Every selector reaches, directly or through locals, a declaration with a function (Missing Selector Annotation)."
+tests = [
+    "data-model-errors.json@ab6dfed0",
+    "data-model-errors.json@14334891",
+    "data-model-errors.json@d18b52a3",
+    "pattern-selection.json@d0f3f956",
+]
+
+[[statement]]
+id = "syntax.md#c63b266d"
+says = "No two variants have the same keys (Duplicate Variant)."
+tests = [
+    "data-model-errors.json@54ee8d28",
+    "data-model-errors.json@2b453e62",
+    "data-model-errors.json@337cd300",
+    "functions/string.json@322fda01",
+]
+
+[[statement]]
+id = "syntax.md#e19fd7e4"
+says = "A matcher has at least one selector."
+tests = [
+    "syntax-errors.json@864b96ac",
+    "syntax-errors.json@7916c104",
+]
+
+[[statement]]
+id = "syntax.md#1141aa7c"
+says = "A matcher may have more selectors."
+tests = [
+    "pattern-selection.json@ca2d83f6",
+    "pattern-selection.json@aac64334",
+    "pattern-selection.json@ff3c553e",
+]
+
+[[statement]]
+id = "syntax.md#d3304978"
+says = "A variant is keys followed by a valid quoted pattern."
+tests = [
+    "syntax-errors.json@957c1b74",
+    "syntax-errors.json@a454da5a",
+    "syntax-errors.json@2d12c193",
+    "syntax.json@f02c177f",
+]
+
+[[statement]]
+id = "syntax.md#0911a690"
+says = "A variant's key count equals the matcher's selector count."
+tests = [
+    "data-model-errors.json@e929bec7",
+    "data-model-errors.json@8478a655",
+]
+
+[[statement]]
+id = "syntax.md#dd25a8e8"
+says = "Literal keys compare as their NFC form."
+tests = [
+    "functions/string.json@322fda01",
+    "functions/string.json@f7c6e2fb",
+    "functions/string.json@8f460789",
+    "functions/string.json@c50e81ca",
+]
+
+[[statement]]
+id = "syntax.md#5e29ea80"
+says = "An expression is delimited by braces."
+tests = [
+    "syntax.json@03c223ff",
+    "syntax-errors.json@7aea82ef",
+    "syntax-errors.json@bc143515",
+    "syntax-errors.json@abcd10ac",
+]
+
+[[statement]]
+id = "syntax.md#0ca16a54"
+says = "An expression is not empty."
+tests = [
+    "syntax-errors.json@34fedf34",
+    "syntax-errors.json@54cb9b75",
+]
+
+[[statement]]
+id = "syntax.md#3291df59"
+says = "An expression may carry attributes."
+tests = [
+    "syntax.json@4b741a70",
+    "syntax.json@e937dd6b",
+    "syntax.json@988760da",
+    "syntax.json@6aaa78b9",
+]
+
+[[statement]]
+id = "syntax.md#8c4480d8"
+says = "A function may take options."
+tests = [
+    "syntax.json@6eb2bc0c",
+    "syntax.json@3a152569",
+    "bidi.json@fc0ae220",
+]
+
+[[statement]]
+id = "syntax.md#6298b0d6"
+says = "Option names are unique within a function; a repeat is a Duplicate Option Name."
+tests = [
+    "data-model-errors.json@e86518b4",
+    "data-model-errors.json@5d47dcba",
+    "crates/mf2-syntax/tests/validate.rs::duplicate_option_names_in_functions_and_markup",
+]
+
+[[statement]]
+id = "syntax.md#5e53b614"
+says = "Markup is delimited by braces."
+tests = [
+    "syntax.json@70e081ad",
+    "syntax.json@25fe4426",
+    "extra/syntax.json@e64d728c",
+    "extra/syntax.json@263d1500",
+]
+
+[[statement]]
+id = "syntax.md#5c832409"
+says = "Markup may carry attributes."
+tests = [
+    "syntax.json@d37166e6",
+]
+
+[[statement]]
+id = "syntax.md#69096575"
+says = "Open and standalone markup may take options."
+tests = [
+    "syntax.json@74e355ec",
+    "syntax.json@864c9a7c",
+    "syntax.json@05da8c1c",
+]
+
+[[statement]]
+id = "syntax.md#69096575-1"
+says = "Close markup may take options."
+tests = [
+    "syntax.json@0e4c53ed",
+]
+
+[[statement]]
+id = "syntax.md#92763d8b"
+says = "An attribute may have a literal value after `=`, with optional whitespace around it."
+tests = [
+    "syntax.json@f5b086a0",
+    "syntax.json@3a253843",
+    "syntax.json@3ed073dc",
+    "syntax.json@c031124a",
+]
+
+[[statement]]
+id = "syntax.md#4f77a4c6"
+says = "Attribute names should be unique; of repeats, only the last counts."
+note = "A repeated attribute is accepted (the message stays valid) and has no effect on output. The model keeps every repeat, and its JSON serializer refuses them — see the report; S5 fails at L2 until that changes."
+tests = [
+    "extra/syntax.json@6cff2fa1",
+]
+
+[[statement]]
+id = "syntax.md#c515a120"
+says = "A literal may hold any code point but U+0000."
+tests = [
+    "syntax.json@34a65b59",
+    "syntax.json@e4aae6c0",
+    "syntax.json@e914778f",
+    "extra/syntax.json@be5a28ac",
+]
+
+[[statement]]
+id = "syntax.md#6aad5831"
+says = "In a quoted literal, backslash and `|` are written escaped."
+tests = [
+    "syntax.json@e2f95f33",
+    "syntax.json@e914778f",
+    "extra/syntax.json@d9cb68d1",
+]
+
+[[statement]]
+id = "syntax.md#c04bb509"
+says = "A literal matching the unquoted-literal production may be written unquoted."
+tests = [
+    "syntax.json@03c223ff",
+    "syntax.json@d4dd1531",
+    "syntax.json@0fe328e4",
+]
+
+[[statement]]
+id = "syntax.md#4f268586"
+says = "Quoted and unquoted literals with the same code points are the same value."
+tests = [
+    "syntax.json@e75c8e0b",
+    "syntax.json@ccd689f7",
+    "functions/string.json@801ad7e7",
+    "functions/string.json@f8488e24",
+]
+
+[[statement]]
+id = "syntax.md#b1888c6d"
+says = "Bidi marks around a name or unquoted literal are not part of it when matching."
+tests = [
+    "bidi.json@ab5ba0c6",
+    "bidi.json@da947d51",
+    "bidi.json@a6eae073",
+    "bidi.json@184904b5",
+]
+
+[[statement]]
+id = "syntax.md#e47ace97"
+says = "Implementers and message authors should choose names by the listed identifier guidelines."
+na = { kind = "not-implementation", reason = "Addressed to whoever chooses names; the only names this implementation defines are the spec's own function and option names." }
+
+[[statement]]
+id = "syntax.md#eeee6b85"
+says = "Tools such as linters should warn when user-chosen names break those guidelines."
+note = "the `nonstandard-name` lint of `mf2 check` and the build: a warning by default (05 §5), UAX #31 with `-` and `.` added to Continue and `_` to Start, and UTS #39's Identifier_Status and single-script check"
+tests = [
+    "crates/mf2-build/tests/drift.rs::every_lint_fires_on_its_own_drift_and_nothing_else_does",
+    "crates/mf2-build/src/check.rs::each_reason_is_reported",
+]
+
+[[statement]]
+id = "syntax.md#a8c39aba"
+says = "A generated message escapes only what the syntax requires."
+tests = [
+    "crates/mf2-syntax/tests/serialize.rs::canonical_forms",
+]
+
+[[statement]]
+id = "syntax.md#37296203"
+says = "Messages with right-to-left text should use isolates or marks to display well in plain-text editors."
+na = { kind = "not-implementation", reason = "Addressed to message authors; the parser accepts every mechanism listed (bidi.json)." }
+
+[[statement]]
+id = "u-namespace.md#97dd0218"
+says = "an implementation with structured (non-string) output should support u:id"
+note = "Supported: the id appears on expression and markup parts."
+tests = [
+    "u-options.json@9ef12b40",
+    "u-options.json@8adebb5f",
+    "u-options.json@a04c611d",
+]
+
+[[statement]]
+id = "u-namespace.md#609501c6"
+says = "u:id takes a literal, or a variable whose value is or resolves to a string"
+note = "A value that is not a string (or a custom value exposing one) is Bad Option and u:id is dropped (crates/mf2-runtime/src/eval.rs `resolve_options`)."
+tests = [
+    "u-options.json@8adebb5f",
+    "extra/u-options.json@a269c56a",
+    "extra/u-options.json@5f532fc3",
+]
+
+[[statement]]
+id = "u-namespace.md#dd71affe"
+says = "u:dir should be supported"
+tests = [
+    "u-options.json@cfc540ad",
+    "u-options.json@c0679749",
+    "u-options.json@f09114e5",
+    "u-options.json@5cad5209",
+]
+
+[[statement]]
+id = "u-namespace.md#53005db8"
+says = "u:dir is taken out of the resolved options before the handler is called"
+tests = [
+    "crates/mf2-runtime/tests/format.rs::u_options_are_removed_before_the_handler",
+    "u-options.json@a04c611d",
+]
+
+[[statement]]
+id = "u-namespace.md#a726cd95"
+says = "u:dir takes ltr, rtl, auto or inherit, as a literal or a variable's string value"
+tests = [
+    "u-options.json@8adebb5f",
+    "u-options.json@cfc540ad",
+    "u-options.json@c0679749",
+    "extra/u-options.json@20441718",
+    "extra/u-options.json@288933e4",
+    "extra/u-options.json@d15e0207",
+    "extra/u-options.json@caf92f54",
+]

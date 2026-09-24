@@ -302,6 +302,26 @@ tests).
   `errors.md`, `u-namespace.md` and `functions/*.md` to the test(s) that cover
   it. Gaps get tests under `conformance/extra/` **written in the WG schema**, so
   they run through the same six layers and can be offered upstream.
+
+  *As built (Phase 7 A12).* A **normative statement** is a sentence of the
+  pinned `spec/**/*.md` that uses a BCP 14 key word in capitals (the eleven
+  of `intro.md`) —
+  fenced code skipped, a quoted mention of a key word excepted — so the data
+  model and the function documents are in, with the others: 164 at the pin.
+  Its id is `<file>#<first 4 bytes of the SHA-256 of the whitespace-collapsed
+  sentence, hex>` (`-1`, `-2`, … on a repeat within a file), stable across a
+  `spec-sync` while the sentence is unchanged; the exact rules are
+  `conformance/src/coverage.rs`' module doc. The matrix is `conformance/coverage.toml`: one entry per id,
+  with `says` (a paraphrase — the spec text is not quoted) and either `tests`
+  (suite keys `file@hash[#nth]`, or `path::fn` for a Rust test, or a path for
+  a browser check) or `na = { kind, reason }`, where `kind = "permission"` is
+  allowed only on a MAY. `conformance/src/coverage.rs` checks it — a missing,
+  stale, duplicate, undecided, not-a-permission, empty or dangling entry is a
+  gap — and renders `conformance/COVERAGE.md`; `cargo xtask
+  conformance-report` fails on any gap and rewrites the file. The tests of
+  `conformance/tests/coverage.rs` hold the matrix complete, `COVERAGE.md`
+  current, the sentence splitter lossless (no key word outside an extracted
+  statement) and each kind of gap detected.
 * **Grammar-driven generation** — a generator derived from the vendored
   `message.abnf` emits random well-formed messages. Properties: L1 lossless CST,
   L2 round trip, L3 lossless, L4 never panics and is deterministic across native

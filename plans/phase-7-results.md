@@ -108,3 +108,146 @@ installed on the development machine.
   remove it (a live switch never wrote the cookie either, since Phase 6), so
   a reload returns to the language in the address. Under `static-locale` the
   switch removes it before navigating, as before.
+
+## A12 — spec coverage
+
+The master plan's exit asks for no normative statement of the pinned spec
+without a covering test. Built: the statement rule, the matrix, its checker,
+127 new tests in the WG schema, two defects fixed, and owner questions 10 and
+11 built. [01](01-conformance.md) §5 describes the matrix as built.
+
+### The matrix
+
+* **164 normative statements** at the pin (`syntax.md` 40, `formatting.md`
+  45, `errors.md` 9, `u-namespace.md` 5, `data-model/README.md` 7,
+  `functions/README.md` 19, `functions/number.md` 22,
+  `functions/datetime.md` 16, `functions/string.md` 1), every one with an
+  entry in `conformance/coverage.toml`, rendered to `conformance/COVERAGE.md`.
+  `cargo xtask conformance-report`: *164 normative statements, 0 gap(s)*.
+* An entry is either `tests` or `na = { kind, reason }`; `na` is for a
+  statement that binds no implementation (addressed to message authors or
+  function authors, or a MAY not taken — `kind = "permission"`, allowed only
+  on a MAY). The checker rejects an entry naming a test that does not exist,
+  so every citation is live.
+* `conformance/tests/coverage.rs`: the matrix complete, `COVERAGE.md`
+  current, the sentence splitter lossless (a paragraph scan finds no key
+  word outside an extracted statement) and one mutation per kind of gap.
+
+### New tests (`conformance/extra/`, WG schema)
+
+127, in `syntax.json` (8), `formatting.json` (9), `u-options.json` (6),
+`functions/accept.json` (21: every value of every REQUIRED option of the
+numeric functions) and `functions/numeric-options.json` (83: outputs for the
+options the WG suite asserts none for, ordinal selection, exact-match
+serialization). Every layer runs them; the suite is now 612 tests in 22
+files (462 the WG's, 150 ours).
+
+| Layer | pass / applicable | degraded |
+|---|---:|---:|
+| L1, L4, L5 | 612 / 612 | |
+| L2 | 470 / 470 | |
+| L3, L6, L7, L7c | 444 / 444 | |
+| L4d, L5d | 493 / 612 | 119 (+50) |
+| L6d, L7d, L7cd | 325 / 444 | 119 (+50) |
+
+The 50 new degradations are the default configuration's two known ones —
+Unknown Function for a gated function, neutral digits without `fn-number`
+— on numeric-option tests. Commands: `cargo xtask conformance-report`
+(L1–L6d); `cargo xtask l7-web --browser chromium,firefox --promote` (L7
+columns, 480 cells promoted from `xfail`; `l7: 34/34 assertions`);
+`cargo xtask l6-web` (`l6: 20/20 assertions`, both engines).
+
+### Defects the matrix found, fixed
+
+1. **A repeated attribute name could not be written as the data model.**
+   `{a @c @c=d}` is valid (unique attribute names are only a SHOULD; all but
+   the last are ignored), but `mf2-model`'s JSON serializer refused it, so
+   L2 would have failed on it. It now writes the last occurrence, and
+   `Attributes::get` returns the last
+   (`a_repeated_attribute_name_serializes_its_last_occurrence`).
+2. **The harness's `:test:function` refused a `:test:function` value as its
+   `decimalPlaces` option**, which `test/README.md` says resolves to its
+   input (`conformance/l4-runner/src/test_functions.rs`; `formatting.json`
+   #0 covers it).
+3. **L6 could not judge markup on a dynamic call site.** `formatting.json` #2
+   (`{#tag foo=$x}content{/tag}`, `$x` unset) has to go through `TrDyn`,
+   which has no rich form, so L6 reported its markup as missing. The harness
+   now lowers a `TrDyn` to slot order by the catalog's NAMES — a slot no
+   argument names is `ArgValue::Unset` — and renders that through
+   `tr_rich`; the markup it judges is the same message with the same values.
+   L6 443 → 444 of 444 (`cargo run -p mf2-conformance --example failures --
+   L6`); the run before the fix is the negative control. This was the
+   harness, not the library: a `TrDyn` with markup renders its text; only
+   a rich view of it is missing, and nothing asks for one.
+
+### Rust tests for what no WG-schema test can see
+
+`mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options`,
+`mf2-runtime/tests/format.rs::u_options_are_removed_before_the_handler`
+(negative control: `u:` options pushed to the handler's list — both fail),
+`mf2-fn-datetime/tests/format.rs::the_time_zone_option_on_date`.
+
+### A reading recorded: `u:id`
+
+`u-namespace.md` requires `u:id`'s value to be a literal or a variable whose
+resolved value "is either a string or can be resolved to a string without
+error". mf2-two reads it narrowly (`str_of` in
+`crates/mf2-runtime/src/eval.rs`): a string, an exact decimal given as its
+text, or a custom value that exposes a string. An integer or float argument
+is a Bad Option and `u:id` is dropped — the formatted number is not the
+resolved value, and taking it would make an id depend on the locale.
+`extra/u-options.json` covers the string case (U1) and a value that cannot
+become a string (U2, a `:test:select` value); **no test asserts the number
+case**, which is this reading rather than a requirement.
+
+### Owner question 10: a string is isolated by default
+
+`to_string()` and `String::from` on `Tr`, `TrArgs`, `TrRich` and `TrDyn` now
+use the Default Bidi Strategy; `to_plain_string()` is new and plain;
+`to_display_string()` stays, as a synonym of `to_string()` (04 §9, revised).
+View positions are unchanged. Test:
+`crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not`
+(`to_string`, `String::from` and `to_display_string` isolated,
+`to_plain_string` plain); it replaces
+`a_string_is_plain_and_a_text_child_is_isolated`, which asserted the
+opposite. Negative control, run: `to_string()` put back to plain, the new
+test fails at its `to_string` assertion (`"Hello, Ada!"` against the
+isolated form). Nothing in the examples
+or `tools/e2e` consumed a plain `String`: `demo-ssr`'s `echo` puts its
+`to_string()` back into the page, where isolation is right.
+
+**Size** (`cargo xtask size`, whose template formats every site to a
+`String` through `to_string()`, so it is the path that changed): B1 22,108 →
+**22,100 B gz** (−8), B5 **12.6 B gz** a site (unchanged), whole app at
+1,860 sites **45,519 B gz** (unchanged) — all met. The only difference on
+the client is which of the two formatters the method passes.
+
+### Owner question 11: the `nonstandard-name` lint
+
+`crates/mf2-build/src/lint.rs` / `check.rs`, a warning by default, `allow`
+permitted (05 §5). It checks every variable, option, function, markup and
+attribute name of a message, on its NFC form, each side of a namespace
+alone:
+
+1. a UAX #31 identifier under MF2's profile — Start is XID_Start plus `_`,
+   Continue is XID_Continue plus `-` and `.` (`unicode-ident`);
+2. every character Identifier_Status=Allowed (UTS #39 General Security
+   Profile, `unicode-security`);
+3. a single script by UTS #39's resolved script set, so kana with kanji is
+   one script and Latin with a Cyrillic `а` is two (`unicode-security`).
+
+Tests: the seeded drift in `tests/drift.rs` (`$nаme` with U+0430 in both
+locales: the lint fires, nothing else errors, and `allow` silences it); unit
+tests in `check.rs` for names that pass (`a-b.c`, `_x`, `número`, `名前`,
+`ひらがな漢字`, `имя`) and one per reason (U+2140, U+01C5, U+0430). Negative
+control: the check forced to find nothing — the drift test fails
+("nonstandard-name … did not fire"). The 6,400-message reference workload
+raises none (`the_reference_workload_is_clean`). *Added to the plan's list:*
+attribute names (05 §5 says so).
+
+**What `unicode-security` costs** (05 §5 asked for it to "measure
+acceptable"): it is a dependency of `mf2-build` only, so of the build and
+the `mf2` CLI, never of a client crate. `cargo build --release -p mf2-cli`
+with the lint as built and with its two UTS #39 checks and the dependency
+removed: `target/release/mf2` 11,848,664 → **11,890,464 B (+41,800,
++0.35 %)**. Its compile time was not measured separately. Kept.

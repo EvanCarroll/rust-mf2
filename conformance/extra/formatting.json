@@ -1,0 +1,94 @@
+{
+  "$schema": "../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
+  "scenario": "Formatting",
+  "description": "Normative statements of spec/formatting.md that the WG suite does not test: mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers).",
+  "defaultTestProperties": {
+    "bidiIsolation": "none",
+    "locale": "en-US",
+    "expErrors": []
+  },
+  "tests": [
+    {
+      "description": "[F1] A custom function's resolved value as an option value (formatting.md, Function Handler): a :test:function value used as an option value is its Input (test/README.md), so decimalPlaces is 1.",
+      "src": ".local $dp = {1 :test:function} {{{1 :test:function decimalPlaces=$dp}}}",
+      "exp": "1.0"
+    },
+    {
+      "description": "[F2] A built-in function's resolved value as an option value: a :number value is a digit size option.",
+      "src": ".local $n = {2 :number} {{{4.2 :number minimumFractionDigits=$n}}}",
+      "exp": "4.20"
+    },
+    {
+      "description": "[F3] Markup resolution always succeeds (formatting.md, Markup Resolution): an option whose variable is unresolved is left out, with Bad Option, and the markup is still there.",
+      "src": "{#tag foo=$x}content{/tag}",
+      "exp": "content",
+      "expParts": [
+        {
+          "type": "markup",
+          "kind": "open",
+          "name": "tag"
+        },
+        {
+          "type": "text",
+          "value": "content"
+        },
+        {
+          "type": "markup",
+          "kind": "close",
+          "name": "tag"
+        }
+      ],
+      "expErrors": [
+        {
+          "type": "unresolved-variable"
+        },
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[F4] Option resolution errors are not fatal (formatting.md, Option Resolution): the unresolved option is left out and the expression formats without it.",
+      "src": "hello {4.2 :number minimumFractionDigits=$x}",
+      "exp": "hello 4.2",
+      "expErrors": [
+        {
+          "type": "unresolved-variable"
+        },
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[F5a] The order of options is not significant (formatting.md, Option Resolution); with F5b.",
+      "src": "{4.2 :number minimumFractionDigits=2 signDisplay=always}",
+      "exp": "+4.20"
+    },
+    {
+      "description": "[F5b] The same options in the other order format the same (F5a).",
+      "src": "{4.2 :number signDisplay=always minimumFractionDigits=2}",
+      "exp": "+4.20"
+    },
+    {
+      "description": "[F6] A function's result is not a literal option value (formatting.md, Function Resolution): select set from a :string value is a Bad Option.",
+      "src": ".local $sel = {exact :string} {{{1 :number select=$sel}}}",
+      "exp": "1",
+      "expErrors": [
+        {
+          "type": "bad-option"
+        }
+      ]
+    },
+    {
+      "description": "[F7] An attribute is not an option (formatting.md, Formatting): one named like a :number option changes nothing.",
+      "src": "{1 :number @minimumFractionDigits=2}",
+      "exp": "1"
+    },
+    {
+      "description": "[F8] An attribute never reaches the function handler: @fails=format does not make :test:function fail.",
+      "src": "{1 :test:function @fails=format}",
+      "exp": "1"
+    }
+  ]
+}

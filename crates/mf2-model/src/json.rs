@@ -273,14 +273,24 @@ impl Serialize for Options<'_> {
 }
 
 impl Serialize for Attributes<'_> {
+    /// A repeated name writes only its last occurrence: the syntax allows
+    /// the repeat (unique names are only a SHOULD) and "all but the last
+    /// attribute with the same identifier are ignored" (`syntax.md`,
+    /// "Attributes"), while a JSON object holds a name once. The model keeps
+    /// every occurrence, as written.
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        if has_duplicate(&self.0.iter().map(|(k, _)| k.as_ref())) {
-            return Err(ser::Error::custom(
-                "duplicate attribute name: a JSON object cannot hold both attributes",
-            ));
-        }
-        let mut map = s.serialize_map(Some(self.len()))?;
-        for (k, v) in self.iter() {
+        let names = self.0.iter().map(|(k, _)| k.as_ref());
+        let last = |i: usize, k: &str| !self.0[i + 1..].iter().any(|(j, _)| j.as_ref() == k);
+        let kept: Vec<usize> = if has_duplicate(&names) {
+            (0..self.len())
+                .filter(|&i| last(i, self.0[i].0.as_ref()))
+                .collect()
+        } else {
+            (0..self.len()).collect()
+        };
+        let mut map = s.serialize_map(Some(kept.len()))?;
+        for i in kept {
+            let (k, v) = &self.0[i];
             match v {
                 Some(l) => map.serialize_entry(k, l)?,
                 None => map.serialize_entry(k, &true)?,

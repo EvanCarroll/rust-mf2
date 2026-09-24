@@ -1509,3 +1509,27 @@ fn another_backend() {
     let (s, e) = run_in(&NR, &std_utc(), "{|2006-01-02T15:04:06| :t}", &[]);
     assert_eq!((s.as_str(), e.as_slice()), ("15:04", &[][..]));
 }
+
+#[test]
+fn the_time_zone_option_on_date() {
+    let cx = zones_utc();
+    // The date of an instant is its date in the zone the option names.
+    assert_eq!(
+        ok_in(&cx, "{|2006-01-01T23:30:00Z| :date timeZone=|+05:00|}", &[]),
+        "2006-01-02"
+    );
+    assert_eq!(
+        ok_in(
+            &cx,
+            "{|2006-01-02T00:30:00Z| :date timeZone=|America/New_York|}",
+            &[]
+        ),
+        "2006-01-01"
+    );
+    // `input` on a floating date: Bad Operand, the context's zone.
+    let (s, e) = run(&cx, "{|2006-01-02| :date timeZone=input}", &[]);
+    assert_eq!(
+        (s.as_str(), e.as_slice()),
+        ("2006-01-02", &[BadOperand][..])
+    );
+}

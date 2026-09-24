@@ -97,13 +97,15 @@ impl Function for TestFunction {
         };
         if let Some(dp) = options.get("decimalPlaces") {
             // "a numerical integer value 0 or 1 or their corresponding string
-            // representations '0' or '1'".
+            // representations '0' or '1'" — and a `:test:function` value
+            // used as an option value is its `Input` (test/README.md).
             let n = match dp.value {
                 Value::Int(n) => Some(*n),
                 Value::Number(n) if n.is_integer() => n.to_i64(),
-                other => match other.as_str() {
-                    Some("0") => Some(0),
-                    Some("1") => Some(1),
+                other => match (other.downcast_ref::<TestValue>(), other.as_str()) {
+                    (Some(t), _) if t.input.is_integer() => t.input.to_i64(),
+                    (_, Some("0")) => Some(0),
+                    (_, Some("1")) => Some(1),
                     _ => None,
                 },
             };

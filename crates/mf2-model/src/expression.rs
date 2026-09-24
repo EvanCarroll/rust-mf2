@@ -308,12 +308,13 @@ impl<'a> Attributes<'a> {
         self.0.iter().map(|(k, v)| (k.as_ref(), v.as_ref()))
     }
 
-    /// The value of the first attribute named exactly `name`: `None` if there
-    /// is none, `Some(None)` if it has no value.
+    /// The value of the last attribute named exactly `name` — all but the
+    /// last are ignored (`syntax.md`, "Attributes"): `None` if there is
+    /// none, `Some(None)` if it has no value.
     pub fn get(&self, name: &str) -> Option<Option<&Literal<'a>>> {
         self.0
             .iter()
-            .find(|(k, _)| k == name)
+            .rfind(|(k, _)| k == name)
             .map(|(_, v)| v.as_ref())
     }
 
@@ -402,7 +403,8 @@ mod tests {
         a.push("x".into(), Some(lit("1")));
         a.push("flag".into(), Some(lit("2")));
         assert_eq!(a.len(), 3);
-        assert_eq!(a.get("flag"), Some(None));
+        // The last of a repeated name is the one that counts.
+        assert_eq!(a.get("flag"), Some(Some(&lit("2"))));
         assert_eq!(a.get("x"), Some(Some(&lit("1"))));
         assert_eq!(a.get("y"), None);
         let all: alloc::vec::Vec<(&str, Option<&Literal<'_>>)> = a.iter().collect();
