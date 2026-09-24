@@ -74,7 +74,9 @@ whose interactive parts are islands.
    untouched. The extra build step must fail loudly when its features and
    the i18n crate's disagree, rather than publish catalogs the wasm rejects.
    A6 now measures the gain rather than deciding. Recorded in 04 §8 and
-   05 §4. The question as it was put: Phase 5a's
+   05 §4. *Revised by question 6:* A6 measured no gain, and the wasm is
+   unchanged by a translation edit in the one-crate layout too, so the
+   split is the default only where it is required (client-only). The question as it was put: Phase 5a's
    `Emit::Catalogs` keeps the generated module free of catalog names so that
    an edit leaves the client untouched; Phase 6 did not use it, because the
    example is one crate. If the answer is "never", the split becomes the
@@ -99,8 +101,14 @@ whose interactive parts are islands.
    benchmarks tracked per commit.
 
 6. **Whether the two-crate layout is still the default for a
-   server-rendered application** — **open**; asked in §"A6 — measured
-   before building", which has the evidence.
+   server-rendered application** — **answered (owner, 2026-09-23): no, one
+   crate.** Splitting the catalogs out saves no rebuild (cargo rebuilds
+   the i18n crate and the app either way) and the one-crate wasm is already
+   unchanged by a translation edit; the evidence is in §"A6 — measured
+   before building". Server-rendered and islands applications keep one i18n
+   crate (`Emit::Both`); a client-only application keeps its catalogs apart
+   (`Emit::Module` + `mf2 compile --site`), where the feature-mismatch
+   check applies. A6 is rescoped accordingly. Recorded in 04 §8 and 05 §4.
 
 Still to ask when it comes up: A8 ends with a proposal *put to the tachys
 maintainers*, which is outward-facing — whether an agent may post it or
@@ -117,13 +125,13 @@ only draft it for the owner to post.
 | **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 — **done** | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. *As built: all 324 runtime-valid tests, not 297 — one page per locale the suite uses (below).* | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
 | **A5** The churn follow-up — **done** | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost *(flat, below: all three conversions and the argument effect leaked ≈ 70 B a churned row, and now leave nothing)* |
-| **A6** The dev loop | What a translation edit costs a running `cargo leptos watch`, with and without `Emit::Catalogs` — and the split made the default regardless (owner question 2: a translation edit never invalidates the wasm): `demo-ssr` and `demo-islands` emit their catalogs apart, `mf2 init` scaffolds it, and a feature mismatch between the build step and the i18n crate is an error at build time. | both numbers; the examples on the split; [05](05-tooling.md) §4 updated |
+| **A6** The dev loop | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
 | **A11** The WCAG 2.2 AA audit | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check |
 | **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
-| **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with catalogs emitted apart as the default (owner question 2): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
+| **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
@@ -386,8 +394,9 @@ only draft it for the owner to post.
 
 ## A6 — measured before building: the split saves nothing under cargo
 
-**A6 is on hold for owner question 6 (below).** Nothing was built or
-committed but this section; what follows is what was observed.
+**Owner question 6 is answered (below): one crate stays the default for
+server-rendered apps.** Nothing was built for A6 before the answer; what
+follows is what was observed, and the A6 row says what remains.
 
 * **The recompile happens either way.** In `examples/demo-csr`, whose i18n
   crate already emits `Emit::Module`, a one-line edit to a French text,
@@ -429,17 +438,12 @@ committed but this section; what follows is what was observed.
   server to embed catalogs in (`demo-csr`, `mf2 compile --site`), and so
   where the feature-mismatch check owner question 2 asked for matters.
 
-**Owner question 6, open: should a server-rendered application still get
-the two-crate layout by default**, now that it saves no rebuild time and
-the wasm is unchanged by a translation edit in both? Recommended: no —
-one crate stays the default for server-rendered apps, the two-crate
-layout stays where it is required (client-only), 05 §4 and the Phase 5a
-note are corrected, and A6 becomes: `watch-additional-files` in the
-examples, the mismatch check on `mf2 compile --site`, and these numbers.
-The alternative that would really cut the rebuild — the i18n crate not
-rerunning on a translation edit at all — needs the functions a
-translation may use to be known without reading the translations; that
-is a design change, not part of A6.
+**Owner question 6 — answered (owner, 2026-09-23): no.** One crate stays
+the default for server-rendered and islands apps; the two-crate layout
+stays where it is required (client-only). The alternative that would really
+cut the rebuild — the i18n crate not rerunning on a translation edit at all
+— needs the functions a translation may use to be known without reading the
+translations; that is a design change, not part of A6, and not scheduled.
 
 ## Exit (master plan §9, P7)
 
@@ -454,5 +458,5 @@ is a design change, not part of A6.
 - [ ] islands, CSR and lazy routes each demonstrated by the example and
       asserted by a browser check
 - [ ] a server-only component's wasm cost measured at zero
-- [x] owner questions 1–5 answered (2026-09-23) and recorded in 04, 01 and the master plan
+- [x] owner questions 1–6 answered (2026-09-23) and recorded in 04, 05, 01 and the master plan
 - [ ] `plans/phase-7-results.md` and the Phase 8 work order written

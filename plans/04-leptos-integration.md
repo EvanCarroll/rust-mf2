@@ -414,11 +414,16 @@ rich messages are rare, so erasure is cheaper than monomorphisation.
 **What the documentation leads with (owner, 2026-09-23).** SSR +
 hydrate first — the live switch with no reload is the headline, and it is
 how most Leptos applications are built — then islands, as the smallest
-download, with `cargo xtask islands-zero`'s measurement. In every mode the
-**catalogs are emitted apart from the module by default**: a translation
-edit never invalidates the wasm, so a fix leaves every reader's cached
-client alone (05 §4). The build step that publishes the catalogs must
-reject features that disagree with the i18n crate's.
+download, with `cargo xtask islands-zero`'s measurement. In every mode a
+translation edit leaves the wasm byte-identical, so a fix leaves every
+reader's cached client alone (05 §4). An application with a server gets
+**one i18n crate** (`Emit::Both`), which already achieves that — the
+catalog names in its module are server-only (owner, 2026-09-23, Phase 7
+question 6, which revised question 2's "catalogs apart by default" after
+A6 measured it). A client-only application publishes its catalogs apart
+(`Emit::Module` + `mf2 compile --site`), because it has no server to embed
+them in; that publishing step must reject features that disagree with the
+i18n crate's.
 
 **Islands (Phase 7 A1).** Leptos' island script calls the entry point and
 walks the document for islands in the same turn —

@@ -403,19 +403,26 @@ Measured behaviour and costs:
   no early cut-off); 8–23 s per debug `cargo leptos build` for a 2,000-site app.
   Outputs stay deterministic. Accepted until P7's dev hot reload.
 
-  **The mitigation is implemented (P5a, owner question 1):
-  `Build::emit(Emit::Module | Emit::Catalogs)`.** The i18n crate emits the
-  manifest and the module; a crate only the server binary depends on emits the
-  catalogs and the table that embeds them. Nothing in the module then names a
-  catalog, so a text edit in any locale rewrites **nothing** in the i18n
-  crate's `OUT_DIR` and cargo recompiles neither it nor anything above it.
-  It costs one more crate and a second parse of the corpus per build (+355 ms
-  release, +2.1 s debug for the reference workload), which is why it was
-  the application's choice rather than the default. **It becomes the
-  default (owner, 2026-09-23): a translation edit never invalidates the
-  wasm.** Phase 7 A6 moves the examples and `mf2 init` onto it and measures
-  what it saves a running `cargo leptos watch`. An mtime-only touch rewrites
-  nothing either way: every output is written only when its bytes change.
+  **`Build::emit(Emit::Module | Emit::Catalogs)` does not mitigate it**
+  (P5a, owner question 1; measured in Phase 7 A6). The i18n crate emits the
+  manifest and the module; a crate only the server binary depends on emits
+  the catalogs and the table that embeds them. A text edit then rewrites
+  nothing in the i18n crate's `OUT_DIR` — but its build script still has to
+  rerun to see the edit, and cargo rebuilds a crate whose build script
+  reran, and everything above it, whatever the script wrote. P5a's "cargo
+  recompiles neither it nor anything above it" was reasoned, not timed, and
+  was wrong: under `cargo leptos watch` on `examples/demo-ssr` both layouts
+  recompiled the i18n crate and the app in both builds, ≈ 3 s an edit
+  either way, and the wasm was byte-identical in both (the one-crate
+  module's catalog names are behind `ssr`). **So one crate (`Emit::Both`)
+  stays the default for an application with a server** (owner,
+  2026-09-23, Phase 7 question 6); the split is for a client-only
+  application, which has no server to embed catalogs in (`Emit::Module` +
+  `mf2 compile --site`). Cutting the rebuild itself would need the i18n
+  crate not to rerun on a translation edit — the functions a translation
+  may use known without reading translations — a design change not yet
+  planned. An mtime-only touch rewrites nothing either way: every output is
+  written only when its bytes change.
 * **`cargo leptos watch` does not watch `locales/`**: `mf2 init` writes
   `watch-additional-files = ["<i18n crate>/locales"]` into
   `[package.metadata.leptos]`, and the docs say why.
