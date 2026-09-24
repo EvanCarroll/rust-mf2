@@ -6,8 +6,29 @@ the command that produced it; where a figure moved a budget or a ledger
 status, the commit that moved it says why (master plan §11).
 
 The tasks' own records (A1–A9) are in the work order, under each task's
-heading; this file gathers them at the phase exit. It starts with the one
-document the work order asks to be written *here*: A11's audit.
+heading; this file gathers them at the phase exit. After the exit's status
+it starts with the one document the work order asks to be written *here*:
+A11's audit.
+
+## Status at exit
+
+**Every exit criterion is met** (2026-09-24), and `current_phase = "P7"` is
+in the exit commit with the harness green.
+
+| Exit criterion | Verdict |
+|---|---|
+| L7 and L7c green in both configurations, every L7d and L7cd cell recorded, none `xfail`; `current_phase = "P7"` with the harness green | **met** — L7 and L7c 444/444, L7d and L7cd 325/444 + 119 documented degradations (L6d's), in Chromium and Firefox, `l7: 34/34 assertions` over 16 pages per engine (`cargo xtask l7-web --browser chromium,firefox`, verify only); L6 in the same two engines `20/20` (`cargo xtask l6-web`); `cargo xtask ci` green, its report 612 entries at P7, no `xfail` |
+| the WCAG 2.2 AA audit of the examples passes | **met**, one part not done — a screen reader (§A11) |
+| no normative spec statement without a covering test | **met** — 164 statements, 0 gaps (§A12, `COVERAGE.md`) |
+| user documentation and `mark-fallback-lang` | **met** — §A13, §A14; per-commit benchmarks (A15) withdrawn by owner question 12 |
+| islands, CSR and lazy routes demonstrated by the example and asserted in a browser | **met** — `islands.mjs`, `csr.mjs`, `lazy.mjs`, Chromium and Firefox (work order A1–A3) |
+| a server-only component costs zero wasm | **met** — `cargo xtask islands-zero`: identical code, data within 16 B (work order A1) |
+| owner questions 1–12 answered and recorded | **met** — 2026-09-23 and 2026-09-24, in 04, 05, 01 and the master plan |
+| this file and the Phase 8 work order | **met** — [16](16-phase-8-work-order.md) (A10) |
+
+The L7 and L6 runs at exit are the first since A13 and A14; they moved no
+cell. Every browser figure is
+Chromium and Firefox; WebKit is not installed on the development machine.
 
 ## A11 — the WCAG 2.2 AA audit of the examples
 

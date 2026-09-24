@@ -197,7 +197,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13**, **A14** and **A10** (2026-09-24); what they found is below the table. **A15 is withdrawn** (owner question 12). What remains is the exit (below).
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13**, **A14** and **A10** (2026-09-24); what they found is below the table. **A15 is withdrawn** (owner question 12). **The exit is met** (2026-09-24, below; [phase-7-results](phase-7-results.md) §"Status at exit").
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -1065,10 +1065,11 @@ built (it says the feature does nothing), and the feature's comment in
 
 ## Exit (master plan §9, P7)
 
-- [ ] L7 and L7c green in both configurations, every L7d and L7cd cell
+- [x] L7 and L7c green in both configurations, every L7d and L7cd cell
       recorded — `pass`, or `degraded` with its kind — none `xfail`;
       `current_phase = "P7"` in the exit commit with the harness green
-      *(A4: every cell recorded, none `xfail`; the bump is the exit's)*
+      *(L7, L7c 444/444; L7d, L7cd 325/444 + 119 documented degradations;
+      `cargo xtask ci` and `cargo xtask l7-web` green at P7, 2026-09-24)*
 - [x] the WCAG 2.2 AA audit of the examples passes (A11; the audit is in
       [phase-7-results](phase-7-results.md), a screen reader not run)
 - [x] no normative spec statement without a covering test (A12; 164
