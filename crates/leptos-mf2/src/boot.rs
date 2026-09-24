@@ -59,7 +59,7 @@ use crate::error::LoadError;
 use crate::links::{CATALOG_LINK_LOCALE_ATTR, CATALOG_ROUTE, PRELOAD_ATTR};
 #[cfg(feature = "csr")]
 use crate::links::{CSR_INDEX_ATTR, CSR_INDEX_URL, LOCALE_STORAGE_KEY};
-#[cfg(all(feature = "static-locale", not(feature = "csr")))]
+#[cfg(not(feature = "csr"))]
 use crate::links::{LOCALE_COOKIE, LOCALE_QUERY};
 #[cfg(any(feature = "hydrate", not(feature = "static-locale")))]
 use crate::registry;
@@ -155,9 +155,13 @@ pub async fn preload_locale(tag: &str) -> Result<(), LoadError> {
 ///
 /// On failure the active catalog is untouched.
 ///
-/// A client-only application also remembers `tag`
-/// ([`LOCALE_STORAGE_KEY`](crate::links::LOCALE_STORAGE_KEY)), so that its
-/// next boot starts in it.
+/// The choice is remembered for the next visit. A server-rendered page
+/// writes the cookie the server negotiates from
+/// ([`LOCALE_COOKIE`](crate::links::LOCALE_COOKIE)) and takes a `?lang=`
+/// out of the address, which would otherwise outrank it on a reload; a
+/// client-only application writes
+/// [`LOCALE_STORAGE_KEY`](crate::links::LOCALE_STORAGE_KEY), which its next
+/// boot reads first.
 ///
 /// Under `static-locale` (strategy C, the default for islands) nothing
 /// follows the locale, so a switch is instead the cookie the server reads
@@ -172,6 +176,13 @@ pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
     switch_live(tag).await?;
     #[cfg(feature = "csr")]
     remember_locale(tag);
+    #[cfg(not(feature = "csr"))]
+    if let Some(window) = web_sys::window() {
+        // Best effort: the page has switched, and a cookie the browser
+        // refuses only costs the next visit its choice.
+        let _ = write_locale_cookie(&window, tag);
+        drop_locale_query(&window);
+    }
     Ok(())
 }
 
@@ -201,6 +212,26 @@ fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
 /// The cookie the server negotiates from, and a navigation.
 #[cfg(all(feature = "static-locale", not(feature = "csr")))]
 fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
+    write_locale_cookie(window, tag)?;
+    let location = window.location();
+    // A locale in the address outranks the cookie, so it goes; changing the
+    // query navigates, and an unchanged one needs a reload.
+    match location
+        .search()
+        .ok()
+        .and_then(|search| without_param(&search, LOCALE_QUERY))
+    {
+        Some(search) => location.set_search(&search),
+        None => location.reload(),
+    }
+    .map_err(|_| LoadError::Fetch)
+}
+
+/// The cookie the server negotiates from, with the attributes `mf2-axum`'s
+/// `CookieLocale` writes by default. A server-rendered page's switch, live
+/// or not, is remembered here.
+#[cfg(not(feature = "csr"))]
+fn write_locale_cookie(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     let document = window.document().ok_or(LoadError::Fetch)?;
     let secure = window.location().protocol().is_ok_and(|p| p == "https:");
     let cookie = [
@@ -219,23 +250,35 @@ fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
         &JsValue::from_str(&cookie),
     )
     .map_err(|_| LoadError::Fetch)?;
+    Ok(())
+}
+
+/// After a live switch: the address without its `?lang=`, in place. The
+/// query source outranks the cookie, so a reload of `?lang=en` after a
+/// switch to French would otherwise come back in English. No navigation:
+/// the page is already in the new locale.
+#[cfg(all(not(feature = "static-locale"), not(feature = "csr")))]
+fn drop_locale_query(window: &web_sys::Window) {
     let location = window.location();
-    // A locale in the address outranks the cookie, so it goes; changing the
-    // query navigates, and an unchanged one needs a reload.
-    match location
+    let Some(search) = location
         .search()
         .ok()
         .and_then(|search| without_param(&search, LOCALE_QUERY))
-    {
-        Some(search) => location.set_search(&search),
-        None => location.reload(),
+    else {
+        return;
+    };
+    let (Ok(path), Ok(hash)) = (location.pathname(), location.hash()) else {
+        return;
+    };
+    let url = [path.as_str(), search.as_str(), hash.as_str()].concat();
+    if let Ok(history) = window.history() {
+        let _ = history.replace_state_with_url(&JsValue::NULL, "", Some(&url));
     }
-    .map_err(|_| LoadError::Fetch)
 }
 
 /// `search` (`?a=1&lang=fr&b=2`) without the pairs named `name`, or `None`
 /// if it has none.
-#[cfg(all(feature = "static-locale", not(feature = "csr")))]
+#[cfg(not(feature = "csr"))]
 fn without_param(search: &str, name: &str) -> Option<String> {
     let query = search.strip_prefix('?').unwrap_or(search);
     let named = |pair: &&str| pair.split('=').next() == Some(name);

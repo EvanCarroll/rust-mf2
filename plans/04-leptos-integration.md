@@ -355,7 +355,11 @@ A catalog from another deploy still reloads (F6). `tools/e2e/checks/demo.mjs`
 asserts the failure path (`failed-boot-*`).
 
 **Switching**: `i18n.set_locale("fr")` → fetch → validate → swap the
-thread-local → notify → update `<html lang dir>` and the cookie. On failure the
+thread-local → notify → update `<html lang dir>` and the cookie. *(Until
+Phase 7 A13 the live switch wrote no cookie and left a `?lang=` in the
+address, so a reload came back in the old locale; it now writes the
+`mf2_locale` cookie `CookieLocale` reads by default and removes the query
+with `history.replaceState`. `demo.mjs` asserts both, and the reload.)* On failure the
 old catalog stays and the error is returned. `i18n.preload_locale()` lets a
 language menu warm the cache on hover. A manifest-hash mismatch (deploy skew)
 triggers a reload, never a misread. **How the client learns another locale's

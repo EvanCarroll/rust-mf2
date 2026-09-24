@@ -301,6 +301,35 @@ export async function run(ctx) {
 
   assert('console-is-still-silent', console_.length === 0, console_.slice(0, 4));
 
+  // ------------------------------------------- a live switch is kept ---
+
+  // The page was loaded as `/?lang=en`. A live switch must leave the next
+  // visit in the chosen locale: it writes the cookie the server negotiates
+  // from, and takes the `?lang=` out of the address, which outranks it.
+  await chooseLocale(page, 'fr');
+  await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, { timeout: 5000 });
+  const kept = await context.cookies(baseUrl);
+  const cookie = kept.find((c) => c.name === 'mf2_locale');
+  assert('live-switch-writes-the-cookie', cookie?.value === 'fr', kept);
+  assert('live-switch-drops-the-query', !new URL(page.url()).searchParams.has('lang'), page.url());
+  await page.reload({ waitUntil: 'load' });
+  await hydrated(page);
+  assert(
+    'live-switch-survives-a-reload',
+    (await page.getAttribute('html', 'lang')) === 'fr',
+    await page.getAttribute('html', 'lang'),
+  );
+  await chooseLocale(page, 'en');
+  await page.waitForFunction(() => document.documentElement.lang === 'en', undefined, { timeout: 5000 });
+  await page.reload({ waitUntil: 'load' });
+  await hydrated(page);
+  assert(
+    'switching-back-survives-a-reload',
+    (await page.getAttribute('html', 'lang')) === 'en',
+    await page.getAttribute('html', 'lang'),
+  );
+  assert('console-is-silent-after-reloads', console_.length === 0, console_.slice(0, 4));
+
   // ----------------------------------------------------------- canary ---
 
   const bundle = await context.request.get(`${baseUrl}/pkg/demo_ssr.js`);
