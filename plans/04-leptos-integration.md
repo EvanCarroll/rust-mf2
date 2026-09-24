@@ -531,7 +531,7 @@ chosen locale.
   | Position | Strategy | Why |
   |---|---|---|
   | text child, `AttributeValue` (`title`, `placeholder`, `aria-label`, `alt`), markup parts, `TextProp`, `Signal<String>`, `Oco` | **Default** (isolated) | a person reads it, and an interpolated name must not scramble the sentence around it |
-  | `IntoProperty` (`prop:value`), `to_string()`, `String::from` | **None** (plain) | a program consumes it: a server function, a comparison, the clipboard, `format!` |
+  | `IntoProperty` (`prop:value`), `to_string()`, `String::from` | **None** (plain) | a program consumes it: a server function, a comparison, the clipboard, `format!` — *`to_string()` and `String::from` superseded by the Phase 7 revision below* |
 
   The split follows *who reads the text*, not which Rust type carries it:
   `TextProp` and `Signal<String>` are display props, while a bare `String`
@@ -561,10 +561,32 @@ chosen locale.
   nothing per call site. A developer gets plain text where a program reads it
   without knowing the marks exist. A **text child** has no name to decide by
   (a `<textarea>`'s starting text, a `<script>` body), so it stays isolated,
-  and the documented way to get it plain is `move || tr!(…).to_string()`
+  and the documented way to get it plain is `move || tr!(…).to_plain_string()`
   (plain, and it follows a switch through `track_locale`; ≈ 546 B a live
-  consumer against ≈ 113 B for a text node, Phase 7 A5). A per-site
+  consumer against ≈ 113 B for a text node, Phase 7 A5; `to_string()` until
+  the revision below). A per-site
   `plain(…)` wrapper for view positions was offered and not chosen.
+
+  **Revised (Phase 7 A12, owner, 2026-09-24): a string is isolated by
+  default, as the spec requires.** `formatting.md` makes the Default Bidi
+  Strategy the default "when formatting a message as a single string", and
+  the spec coverage matrix found `to_string()` / `String::from` plain by
+  default — a departure from a MUST that Phase 6 had decided on usability
+  grounds without it being put as a spec question. Now:
+
+  | API | Strategy |
+  |---|---|
+  | `to_string()`, `String::from`, `to_display_string()` (kept, a synonym) | **Default** (isolated) — the spec's default for a single string |
+  | `to_plain_string()` (new) | **None** (plain) — the call a developer makes when a program consumes the text: a server function, a comparison, the clipboard, `format!` |
+
+  View positions are unchanged: a text child is isolated, an attribute
+  follows its name (above), `IntoProperty` is plain — there the library picks
+  among the strategies the spec allows (`MAY` supply others, including one
+  that does nothing) by position, and a developer does not format a string.
+  Users who hand a translated `String` to code switch to
+  `to_plain_string()`, or get invisible U+2066–U+2069 in it; an RTL reader
+  gets correct text wherever a `String` ends up displayed. The user
+  documentation (A13) says so.
 
 ## 10. Version policy
 

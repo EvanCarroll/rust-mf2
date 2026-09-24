@@ -156,6 +156,26 @@ whose interactive parts are islands.
    the form, a row of language links, a warning beside the dropdown
    (G13), or leaving it and recording the failure.
 
+10. **Whether a translation formatted to a `String` carries the isolating
+    marks by default** — **answered (owner, 2026-09-24): yes, as the spec
+    requires.** `to_string()` and `String::from` use the Default Bidi
+    Strategy; a new `to_plain_string()` is the plain form for text a
+    program consumes; `to_display_string()` stays, as a synonym. View
+    positions are unchanged. Recorded in 04 §9 ("Revised (Phase 7 A12)").
+    The question as it was put: A12's coverage matrix found that
+    `formatting.md` makes the Default Bidi Strategy the default "when
+    formatting a message as a single string", while Phase 6 (owner question
+    2) had made `to_string()` plain for usability; the options were marks by
+    default with a plain method, keeping it plain and recording the
+    departure, or plain on the server only.
+
+11. **Whether `mf2 check` and the build warn about non-standard or
+    confusable names** — **answered (owner, 2026-09-24): build the
+    warning.** `syntax.md` says linters SHOULD warn when user-chosen names
+    break UAX #31 / UTS #39. A `nonstandard-name` lint, a warning by
+    default, build-time only. Recorded in 05 §5. The question as it was
+    put: build it, or record the SHOULD as not done.
+
 The question this order held back for A8 — whether an agent may post a
 proposal to the tachys maintainers or only draft it — did not arise: A8
 found nothing to propose (§"A8").
@@ -176,7 +196,7 @@ found nothing to propose (§"A8").
 | **A8** The tachys leaf hook — **done: the reason not to** | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. *As found: neither half of the case survived measurement. The 197 KB was the server's host linked into the benchmark's client (a template bug, fixed); the fixed cost is 28 KB gz, the margin 11.9 B gz, and ≈ 0 under `erase_components`; the two-hour compile did not reproduce (below).* | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view — **done**, *decided by owner question 8* | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position could only be overridden per request. *Decided: an attribute's strategy follows its name* ([04](04-leptos-integration.md) §9's second table). `AttributeValue`'s `to_html`, `build` and `hydrate` and the registry's `Target::Attribute` rewrite on a switch all choose `TextUse` from the key through **one** function (ASCII case-insensitive; `data-` by prefix); `IntoProperty`, text children and markup are unchanged. The `TextUse` and `Target` docs and the `with_bidi` doc say so. The closure form for a plain text child goes in the user documentation (A13). | a native `ssr` render test: a message with an argument in `value=` and `data-x=` has no U+2066–U+2069, in `title=` it has them, and the name match ignores case; a browser check on an example page asserts the same after hydration **and** after a live switch (the registry path); negative control: with the rule forced to `Displayed`, both fail; `cargo xtask size` passes, with the B1 change recorded |
 | **A11** The WCAG 2.2 AA audit — **done** | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
-| **A12** Spec coverage | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. | the matrix complete; zero uncovered normative statements |
+| **A12** Spec coverage — **in progress** (§"A12 — in progress" below) | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. *Added by owner questions 10 and 11:* `to_string()` / `String::from` isolated by default and a new `to_plain_string()` (04 §9); the `nonstandard-name` lint (05 §5). | the matrix complete; zero uncovered normative statements; `cargo xtask conformance-report` checks it (and writes `COVERAGE.md`); the two additions built, each with a test and a negative control |
 | **A13** User documentation | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
@@ -842,6 +862,85 @@ done — is [phase-7-results](phase-7-results.md) §A11. In short:
 * **Not done:** a screen reader (none installed; outside the permitted
   network). The accessibility tree stands in for it.
 
+## A12 — in progress: what the working tree holds (2026-09-24)
+
+Uncommitted, deliberately: owner questions 10 and 11 were asked partway, and
+the answers were recorded before any more work (this commit is the plans
+only). `git status` shows the rest; the next session picks it up from here.
+
+**Built and passing:**
+
+* **The checker** — `conformance/src/coverage.rs`: a *normative statement*
+  is a sentence of `spec/**/*.md` using a BCP 14 key word in capitals (a
+  quoted mention excepted; fenced code skipped); its id is
+  `<file>#<sha256[..4] of the whitespace-collapsed sentence>`, stable across
+  a `spec-sync` while the sentence is unchanged. **164 statements** at the
+  pin (syntax 40, formatting 45, errors 9, u-namespace 5, data-model 7,
+  functions README 19, number 22, datetime 16, string 1). The matrix is
+  `conformance/coverage.toml` (one entry per id: `says` — a paraphrase, the
+  spec text is never quoted — and `tests` or `na = { kind, reason }`,
+  `permission` only on a MAY); `check` reports missing, stale, duplicate,
+  undecided and dangling entries; `render` writes `conformance/COVERAGE.md`.
+  `cargo xtask conformance-report` now also checks the matrix and writes
+  `COVERAGE.md` (`xtask/src/report.rs`, `Error::CoverageGaps`).
+  `conformance/tests/coverage.rs`: the matrix complete, `COVERAGE.md`
+  current, no key word lost by the sentence splitter (a paragraph scan
+  against the extraction), and one mutation per `Gap`.
+  `cargo run -p mf2-conformance --example statements [-- --missing]` lists
+  statements for writing entries.
+* **The matrix**, all 164 entries (mapped by four research agents, each
+  citation checked against the tree): 1 statement still cites a test that
+  does not exist (`NEWRS:nonstandard-name`, owner question 11).
+* **127 new tests in the WG schema** under `conformance/extra/`:
+  `syntax.json` (8), `formatting.json` (9), `u-options.json` (6),
+  `functions/accept.json` (21: every value of every REQUIRED option of the
+  numeric functions, errors only) and `functions/numeric-options.json` (83:
+  outputs for the options the WG suite asserts none for, ordinal selection,
+  exact-match serialization). `cargo xtask conformance-report --promote`
+  added their ledger entries: **L1–L5 all pass** (L2/L3 `n/a` for the
+  syntax-error ones), 50 `degraded` in each of L4d/L5d/L6d.
+* **Two defects the matrix found, fixed:** (1) a valid message with a
+  repeated attribute name (`{a @c @c=d}`; unique names are only a SHOULD,
+  and all but the last are ignored) could not be written as the spec's JSON
+  data model — `mf2-model`'s serializer refused it, so L2 would have failed;
+  it now writes the last occurrence, and `Attributes::get` returns the last
+  (`crates/mf2-model/src/json.rs`, `expression.rs`; test
+  `a_repeated_attribute_name_serializes_its_last_occurrence`). (2) the
+  harness's `:test:function` rejected a `:test:function` value as its
+  `decimalPlaces` option, which `test/README.md` says resolves to its
+  `Input` (`conformance/l4-runner/src/test_functions.rs`; `formatting.json`
+  #0 covers it).
+* **Three Rust tests** for what no WG-schema test can see:
+  `mf2-runtime/tests/additions.rs::a_declaration_is_resolved_once_and_a_handler_sees_no_u_options`,
+  `mf2-runtime/tests/format.rs::u_options_are_removed_before_the_handler`
+  (negative control run: `u:` options pushed to the handler's list — both
+  fail), `mf2-fn-datetime/tests/format.rs::the_time_zone_option_on_date`.
+
+**What remains, in order:**
+
+1. `extra/formatting.json` #2 (markup whose option variable is unresolved)
+   is `xfail` at **L6** — red under rule 4 (`until = "P6"`). Find why
+   (`cargo run -p mf2-conformance --example failures -- L6`) and fix it.
+2. The browser columns: every new runtime-valid test is `xfail` at L7, L7c,
+   L7d and L7cd — `cargo xtask l7-web --promote` in Chromium and Firefox,
+   and L6's browser half (`cargo xtask l6-web`).
+3. The hard-coded suite counts (`conformance/tests/layers.rs` 485 / 324,
+   `conformance/tests/ledger.rs` `suite_with_extra_has_485_tests_in_17_files`)
+   move with the 127 tests; the report's.
+4. Owner question 10: `to_string()` / `String::from` isolated,
+   `to_plain_string()` plain (`crates/leptos-mf2`; `render.rs`'s
+   `a_string_is_plain_and_a_text_child_is_isolated` changes; the examples
+   and `tools/e2e/checks` that read a plain `String`), `cargo xtask size`
+   with the change recorded; then cite its test in the entry for
+   `formatting.md`'s Default Bidi Strategy statement.
+5. Owner question 11: the `nonstandard-name` lint (05 §5) in
+   `crates/mf2-build/src/lint.rs`, seeded in `tests/drift.rs`; replace
+   `NEWRS:nonstandard-name` in `coverage.toml` with its test.
+6. 01 §5 describes the matrix as built (the statement rule, the id,
+   `coverage.toml`, the checker); `cargo xtask ci` green; the results in
+   `phase-7-results.md` §A12, including the reading recorded for `u:id`
+   (only a string value is accepted; a number variable is Bad Option).
+
 ## Exit (master plan §9, P7)
 
 - [ ] L7 and L7c green in both configurations, every L7d and L7cd cell
@@ -856,5 +955,5 @@ done — is [phase-7-results](phase-7-results.md) §A11. In short:
 - [ ] islands, CSR and lazy routes each demonstrated by the example and
       asserted by a browser check
 - [ ] a server-only component's wasm cost measured at zero
-- [x] owner questions 1–9 answered (2026-09-23; 7, 8 and 9 on 2026-09-24) and recorded in 04, 05, 01 and the master plan
+- [x] owner questions 1–11 answered (2026-09-23; 7–11 on 2026-09-24) and recorded in 04, 05, 01 and the master plan
 - [ ] `plans/phase-7-results.md` and the Phase 8 work order written
