@@ -20,6 +20,7 @@
 // A command returns its error once, at the top; the variants stay readable.
 #![allow(clippy::result_large_err)]
 
+mod cargo;
 mod check;
 mod compile;
 mod dump;
@@ -70,14 +71,19 @@ struct Cli {
 pub(crate) struct FeatureArgs {
     /// Comma-separated client features (`fn-number,fn-datetime`), as the
     /// application declares them on its i18n crate.
-    #[arg(long, value_name = "LIST", default_value = "")]
-    features: String,
+    #[arg(long, value_name = "LIST")]
+    features: Option<String>,
 }
 
 impl FeatureArgs {
-    /// What the arguments name.
+    /// What the arguments name; none if `--features` is absent.
     pub(crate) fn features(&self) -> mf2_build::Features {
-        mf2_build::Features::parse(&self.features)
+        self.given().unwrap_or_default()
+    }
+
+    /// What `--features` names, if it was given at all.
+    pub(crate) fn given(&self) -> Option<mf2_build::Features> {
+        self.features.as_deref().map(mf2_build::Features::parse)
     }
 }
 

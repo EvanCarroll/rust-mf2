@@ -58,12 +58,15 @@ fn main() {
 [[hooks]]
 stage = "post_build"
 command = "sh"
-command_arguments = ["-c", "mf2 -C i18n compile --features fn-number --site \"$TRUNK_STAGING_DIR/i18n\""]
+command_arguments = ["-c", "mf2 -C i18n compile --site \"$TRUNK_STAGING_DIR/i18n\""]
 ```
 
 The i18n crate's build script emits `Emit::Module`: the wasm never names a
 catalog, so a translation edit changes the catalogs and the index but not
-the wasm. `--features` in the hook must be the i18n crate's own.
+the wasm. `mf2 compile --site` builds the catalogs for the i18n crate's
+features as cargo resolves them, so the functions the wasm has and the ones
+the catalogs use cannot drift apart; a `--features` that disagrees with
+cargo's fails the build, naming both lists.
 
 **Which locale.** The one the reader chose last time (`localStorage`,
 `mf2_locale`), else the first of `navigator.languages` the build has — `fr-CA`

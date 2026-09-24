@@ -34,6 +34,12 @@ pub const BUILTINS: [(&str, Option<&str>); 10] = [
     ("time", Some("fn-datetime")),
 ];
 
+/// The features that decide what a catalog may hold: which functions a
+/// message may call, and which locale data the catalog carries for them.
+/// The wasm and the catalogs must agree on these; the others (`intl`,
+/// `datetime-intl`, the host features) change only the client code.
+pub const CATALOG_FEATURES: [&str; 3] = ["fn-number", "fn-datetime", "datetime-icu"];
+
 impl Features {
     /// The set cargo passed this `build.rs`: every `CARGO_FEATURE_*` in the
     /// environment, back in its `kebab-case` spelling.
@@ -74,6 +80,13 @@ impl Features {
         Features {
             names: names.into_iter().map(Into::into).collect(),
         }
+    }
+
+    /// Only the [`CATALOG_FEATURES`] of this set: what `mf2 compile --site`
+    /// compares with the i18n crate's.
+    #[must_use]
+    pub fn for_catalogs(&self) -> Features {
+        Features::from_names(CATALOG_FEATURES.into_iter().filter(|f| self.has(f)))
     }
 
     /// Whether `name` is on.
@@ -155,6 +168,15 @@ mod tests {
         assert!(features.fn_number());
         assert!(features.fn_datetime());
         assert!(features.datetime_icu());
+    }
+
+    #[test]
+    fn only_some_features_change_a_catalog() {
+        let features = Features::parse("default,ssr,intl,datetime-intl,fn-datetime,fn-number");
+        assert_eq!(
+            features.for_catalogs().names().collect::<Vec<_>>(),
+            ["fn-datetime", "fn-number"]
+        );
     }
 
     #[test]

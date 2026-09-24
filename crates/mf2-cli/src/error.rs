@@ -50,6 +50,32 @@ pub(crate) enum Error {
         source: mf2_catalog::DecodeError,
     },
 
+    /// `cargo metadata` could not say what the i18n crate's features are.
+    #[error("{dir}: cargo metadata: {message}")]
+    Cargo {
+        /// The i18n crate.
+        dir: PathBuf,
+        /// What went wrong.
+        message: String,
+    },
+
+    /// `--features` and the i18n crate disagree on which functions exist,
+    /// so the catalogs would be built for another wasm than the one cargo
+    /// builds.
+    #[error(
+        "--features names {given} but cargo resolves {resolved} for {krate}; \
+         the catalogs must be built for the functions the wasm is built with \
+         (drop --features to take cargo's)"
+    )]
+    FeatureMismatch {
+        /// The i18n crate's package name.
+        krate: String,
+        /// The catalog features `--features` names.
+        given: String,
+        /// The catalog features cargo resolves for the crate.
+        resolved: String,
+    },
+
     /// An argument names something that is not there.
     #[error("{0}")]
     Usage(String),

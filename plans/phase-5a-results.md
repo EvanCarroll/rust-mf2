@@ -389,6 +389,16 @@ baked data crates in, and `build-cost` itself grew from 11.2 to 16.7 MB.
 
 ## Owner question 1 — server-only catalog embedding
 
+> **Corrected in Phase 7 (A6).** The claim below that, with the catalogs
+> apart, cargo recompiles neither the i18n crate nor anything above it was
+> reasoned from the unchanged `OUT_DIR` and never timed. It is wrong: the
+> build script must rerun to see the edit, and cargo rebuilds a crate whose
+> build script reran, and its dependents, whatever the script wrote. Timed
+> under `cargo leptos watch`, both layouts cost the same (≈ 3 s an edit on
+> `examples/demo-ssr`). One crate stays the default for an application with
+> a server; the split is for client-only applications. See
+> [15](15-phase-7-work-order.md) §"A6" and [05](05-tooling.md) §4.
+
 **Recommendation: adopt the split, as an option the application chooses.**
 
 `Build::emit(Emit::Module | Emit::Catalogs)` is implemented. The i18n crate

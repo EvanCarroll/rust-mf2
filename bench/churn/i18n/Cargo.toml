@@ -8,8 +8,8 @@ license = "MIT"
 publish = false
 
 [features]
-# `row-n` formats a number. **Keep this list and the `--features` that
-# `cargo xtask churn` passes to `mf2 compile --site` the same.**
+# `row-n` formats a number. `mf2 compile --site` (`cargo xtask churn`) reads
+# these from cargo.
 default = ["fn-number"]
 # The generated module names these whether or not the corpus uses them.
 fn-number = ["mf2/fn-number"]

@@ -19,10 +19,6 @@ use std::path::Path;
 use crate::cmd;
 use crate::error::{Error, Result};
 
-/// The i18n crate's features: `mf2 compile --site` must publish the
-/// catalogs for the functions the wasm was built with.
-const I18N_FEATURES: &str = "fn-number";
-
 pub(crate) fn run(root: &Path, engines: &str, build: bool) -> Result<()> {
     let out = root.join("target/churn");
     let site = out.join("site");
@@ -102,8 +98,6 @@ fn build_site(root: &Path, out: &Path, site: &Path) -> Result<()> {
             OsStr::new("-C"),
             OsStr::new("bench/churn/i18n"),
             OsStr::new("compile"),
-            OsStr::new("--features"),
-            OsStr::new(I18N_FEATURES),
             OsStr::new("--site"),
             i18n.as_os_str(),
         ],

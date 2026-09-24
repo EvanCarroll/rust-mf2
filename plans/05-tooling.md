@@ -423,9 +423,12 @@ Measured behaviour and costs:
   may use known without reading translations — a design change not yet
   planned. An mtime-only touch rewrites nothing either way: every output is
   written only when its bytes change.
-* **`cargo leptos watch` does not watch `locales/`**: `mf2 init` writes
-  `watch-additional-files = ["<i18n crate>/locales"]` into
-  `[package.metadata.leptos]`, and the docs say why.
+* **`cargo leptos watch` does not watch `locales/`**: the application needs
+  `watch-additional-files = ["<i18n crate>/locales"]` in its
+  `[package.metadata.leptos]`. `mf2 init` cannot write it (the application's
+  manifest is not its to edit) and prints it as a next step instead; the
+  examples with a server set it (Phase 7 A6, asserted by an edit under
+  `cargo leptos watch`).
 * **Relocated target directories** (a CI cache restored elsewhere, a container
   mounting another path) leave the i18n crate fresh with a dead baked path; the
   proc-macro then looks for the same `build/<pkg>-<hash>/out/manifest.mf2m`
@@ -471,7 +474,7 @@ for `tr!` invocations); suspicious bidi (unpaired isolates in literal text).
 |---|---|
 | `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs` |
 | `mf2 check` | all lints, machine-readable output for CI (`--format json`) |
-| `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8) |
+| `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8). With `--site` the functions are the i18n crate's features as `cargo metadata` resolves them (only `fn-number`, `fn-datetime` and `datetime-icu` change a catalog); a `--features` that names others fails, with both lists, and writes nothing — so the catalogs are built for the wasm's functions without the list being written twice (Phase 7 A6). DIR must be a cargo package |
 | `mf2 fmt` | canonical formatting of `.mf2` resources |
 | `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |

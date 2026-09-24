@@ -8,6 +8,7 @@ use clap::Args as ClapArgs;
 use mf2_build::{Build, Config};
 
 use crate::FeatureArgs;
+use crate::cargo::resolved_features;
 use crate::error::{Error, Result};
 
 /// `mf2 compile`.
@@ -21,6 +22,8 @@ pub(crate) struct Args {
     /// Instead, write only what a static host serves: the catalogs and
     /// `index.json`, which a client-only application reads to find them
     /// (a trunk hook points this at its staging directory's `i18n/`).
+    /// The functions are the i18n crate's cargo features; `--features`, if
+    /// given, must agree with them.
     #[arg(long, value_name = "DIR", conflicts_with = "out")]
     site: Option<PathBuf>,
     /// The crate path the generated module re-exports as `__mf2`.
@@ -33,9 +36,13 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
+    let features = match &args.site {
+        Some(_) => site_features(dir, &args.features)?,
+        None => args.features.features(),
+    };
     let build = Build::at(dir, &args.out)
         .config(config)
-        .features(args.features.features())
+        .features(features)
         .facade(&args.facade);
     // A site gets the catalogs and the index only, so the build itself
     // writes nothing (`check` runs every stage but the write).
@@ -71,4 +78,32 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         written.len()
     );
     Ok(())
+}
+
+/// The features a site's catalogs are built for: the i18n crate's, as cargo
+/// resolves them — the wasm is built from the same crate, and a catalog
+/// built for other functions is one the wasm rejects or misformats.
+fn site_features(dir: &Path, args: &FeatureArgs) -> Result<mf2_build::Features> {
+    let (krate, resolved) = resolved_features(dir)?;
+    if let Some(given) = args.given()
+        && given.for_catalogs() != resolved.for_catalogs()
+    {
+        return Err(Error::FeatureMismatch {
+            krate,
+            given: list(&given),
+            resolved: list(&resolved),
+        });
+    }
+    Ok(resolved)
+}
+
+/// The catalog features of `features`, for a message.
+fn list(features: &mf2_build::Features) -> String {
+    let catalog = features.for_catalogs();
+    let names: Vec<&str> = catalog.names().collect();
+    if names.is_empty() {
+        "no function features".to_owned()
+    } else {
+        format!("[{}]", names.join(", "))
+    }
 }

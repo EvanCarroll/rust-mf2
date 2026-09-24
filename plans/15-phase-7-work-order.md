@@ -116,7 +116,7 @@ only draft it for the owner to post.
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4 and A5 are done** (2026-09-23); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -125,7 +125,7 @@ only draft it for the owner to post.
 | **A3** Lazy routes — **done** | `hydrate_lazy` exercised by the example under `cargo leptos --split`: a route in its own chunk, rendering descriptions, switching live, and freeing its registry slots when it unmounts. | P0.2's lazy-route assertions, against this library rather than the probe's glue |
 | **A4** Layer L7 — **done** | The suite in a page whose interactive parts are islands, **and** in a client-only page: the same 297 cases, the same twin switch, with the ledger columns of owner question 4 (`L7`/`L7d` islands, `L7c`/`L7cd` client-only). The ledger checker currently *rejects* an `L7` column (`conformance/tests/ledger.rs`); that test changes with the columns. *As built: all 324 runtime-valid tests, not 297 — one page per locale the suite uses (below).* | L7 and L7c green in both configurations, every L7d and L7cd cell `pass` or `degraded` |
 | **A5** The churn follow-up — **done** | P0.11 left one thing to Phase 6 and Phase 6 left it here (A3 found and fixed a leak in the same family — below): what the **conversions** (`TextProp`, `Signal<String>`, `to_string()` under an observer) cost inside a list that churns. The registry is flat under churn; a derived conversion subscribes to the locale trigger and is dropped with its component, which is the same shape as strategy A's leak. | measured under P0.11's churn, and either flat or documented with its cost *(flat, below: all three conversions and the argument effect leaked ≈ 70 B a churned row, and now leave nothing)* |
-| **A6** The dev loop | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
+| **A6** The dev loop — **done** | *Rescoped by owner question 6.* The two numbers (measured: below). `watch-additional-files = ["i18n/locales"]` in `demo-ssr` and `demo-islands`, which ignore a locale edit under `cargo leptos watch` today. Server-rendered apps and `mf2 init` stay on one crate (`Emit::Both`); `mf2 init` says a client-only app publishes with `mf2 compile --site`. **The mismatch check:** `mf2 compile --site` fails when its function features (`fn-number`, `fn-datetime`, `datetime-icu`) differ from those cargo resolves for the i18n crate (`cargo metadata`), and without `--features` takes cargo's — so `demo-csr`'s `Trunk.toml` no longer repeats the list. [05](05-tooling.md) §4 and §6 updated; `phase-5a-results` gets a pointer to the correction. | both numbers recorded (done); the examples watch `locales/`, asserted by an edit under `cargo leptos watch`; a mismatched `--features` fails `mf2 compile --site` with both lists named, and has a test |
 | **A7** `tachys_0_3` | Leptos 0.9's glue beside `tachys_0_2.rs`, behind a feature, when 0.9 is released; 0.9 betas tracked in CI as allowed-to-fail from now. | the 0.9 beta job runs; the module exists when 0.9 does |
 | **A8** The tachys leaf hook | What P0.1 asked Phase 6 to *propose* and Phase 6 only gathered evidence for: a tachys leaf that lets a description reuse `&str`'s state and async path. Phase 6 §A7 has the case — a 197 KB gz intercept against the leanest baseline, and an application crate that takes over two hours to compile where the `String` path takes minutes, both from instantiating tachys' view machinery per site. With it, P0.1's `--cfg erase_components` figure. | the proposal written and put to the tachys maintainers, or the reason not to |
 | **A9** The bidi override in a view | Phase 6 answered owner question 2 for every position and gave the `String` direction an override (`to_display_string`); a **view** position can only be overridden per request. If a call site needs it per site, `Plain<D>` is the shape ([04](04-leptos-integration.md) §9). | decided, and built if the answer is yes |
@@ -444,6 +444,44 @@ stays where it is required (client-only). The alternative that would really
 cut the rebuild — the i18n crate not rerunning on a translation edit at all
 — needs the functions a translation may use to be known without reading the
 translations; that is a design change, not part of A6, and not scheduled.
+
+## A6 — the dev loop: what was built and measured
+
+* **The examples watch `locales/`.** `demo-ssr` and `demo-islands` set
+  `watch-additional-files = ["i18n/locales"]`. Asserted by
+  `tools/watch-edit.sh EXAMPLE PORT` (2026-09-23): it starts `cargo leptos
+  watch`, edits fr's `reset` text, requires the restarted server to serve
+  the edit (`?lang=fr`), then the revert. demo-ssr: served 4.0 s after the
+  edit; demo-islands: 5.1 s (debug, `CARGO_BUILD_JOBS=2`, under load — the
+  first run also rebuilt what the new `mf2-build` touched). The control,
+  demo-ssr with the line removed (`… expect-ignored`): no rebuild in 90 s
+  after the same edit. Not in `cargo xtask ci`; it needs a full cargo-leptos
+  build of each example.
+* **`mf2 compile --site` takes the i18n crate's features from cargo.** It
+  runs `cargo metadata` on the crate in `-C DIR` and builds the catalogs for
+  the features the resolve gives it. `--features`, if given, must agree on
+  `fn-number`, `fn-datetime` and `datetime-icu` (`mf2_build::CATALOG_FEATURES`
+  — the only ones `mf2-build` reads for a catalog); otherwise it fails with
+  both lists and the crate's name, before writing anything:
+  `--features names [fn-datetime, fn-number] but cargo resolves [fn-number]
+  for demo-csr-i18n; …`. A `DIR` that is not a cargo package fails too.
+  `mf2 compile` without `--site` is unchanged. Test:
+  `compile_site_builds_for_the_i18n_crates_features_and_rejects_others`
+  (`crates/mf2-cli/tests/commands.rs`); negative control, the comparison
+  disabled: the test fails at the mismatch assertion.
+* **The list is written once.** `demo-csr`'s `Trunk.toml` hook and `cargo
+  xtask churn` no longer pass `--features`. `trunk build` of demo-csr
+  published the same catalogs as before (`fr.87bf7771890c4b05.mf2b`, …) and
+  `csr.mjs` passed 78/78 in Chromium and Firefox; the churn harness's
+  catalogs, published with and without `--features fn-number`, are
+  byte-identical.
+* **`mf2 init`** prints a fourth step for a client-only application:
+  `Emit::Module` in `build.rs`, and `mf2 -C <dir> compile --site
+  <site>/i18n`. 05 §4 had said it *writes* `watch-additional-files`; it
+  prints it (the application's manifest is not its to edit), and 05 now
+  says so.
+* **Plans.** 05 §4 and §6 updated; `phase-5a-results` owner question 1
+  points to the correction.
 
 ## Exit (master plan §9, P7)
 

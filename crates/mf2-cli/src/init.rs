@@ -75,10 +75,16 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
          \x20 2. call `{}::tr!(\"id\", name = value)` from anywhere that depends on it;\n\
          \x20 3. add this to the application's [package.metadata.leptos], so that\n\
          \x20    `cargo leptos watch` sees a translation change:\n\
-         \x20      watch-additional-files = [\"{}/locales\"]",
+         \x20      watch-additional-files = [\"{}/locales\"]\n\
+         \x20 4. only for a client-only application (no server to embed the\n\
+         \x20    catalogs in): emit `mf2_build::Emit::Module` in build.rs, and\n\
+         \x20    publish the catalogs beside the wasm with\n\
+         \x20      mf2 -C {} compile --site <site>/i18n\n\
+         \x20    which builds them for this crate's features as cargo resolves them.",
         args.name,
         dir.display(),
         args.name.replace('-', "_"),
+        dir.display(),
         dir.display()
     );
     Ok(())

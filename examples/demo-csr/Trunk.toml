@@ -12,13 +12,13 @@ wasm_bindgen = "0.2.128"
 # The catalogs and their index, into the staged site's `i18n/`, after the
 # wasm is built and before the site is moved into `dist/`. `mf2` is this
 # repository's CLI (`crates/mf2-cli`); an application outside it would run an
-# installed `mf2` instead. `--features` must be the i18n crate's features
-# (`i18n/Cargo.toml`): the wasm and the catalogs are built from the same
-# corpus, and must be built for the same functions.
+# installed `mf2` instead. The catalogs are built for the i18n crate's
+# features, which `mf2` asks cargo for, so the wasm and the catalogs have the
+# same functions without the list being written twice.
 [[hooks]]
 stage = "post_build"
 command = "sh"
 command_arguments = [
     "-c",
-    "cargo run --quiet --manifest-path ../../Cargo.toml -p mf2-cli -- -C i18n compile --features fn-number --site \"$TRUNK_STAGING_DIR/i18n\"",
+    "cargo run --quiet --manifest-path ../../Cargo.toml -p mf2-cli -- -C i18n compile --site \"$TRUNK_STAGING_DIR/i18n\"",
 ]

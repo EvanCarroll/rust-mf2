@@ -69,6 +69,10 @@ bin-default-features = false
 lib-features = ["hydrate"]
 lib-default-features = false
 lib-profile-release = "wasm-release"
+# `cargo leptos watch` watches the crate's own sources only; without this a
+# translation edit is not seen until something else changes. The i18n
+# crate's build script reruns on it and the server restarts with the edit.
+watch-additional-files = ["i18n/locales"]
 
 [profile.wasm-release]
 inherits = "release"

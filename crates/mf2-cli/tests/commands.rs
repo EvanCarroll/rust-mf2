@@ -85,6 +85,20 @@ fn ok(output: &Output) -> String {
     stdout(output)
 }
 
+/// Makes `dir` a cargo package, the i18n crate `mf2 compile --site` reads
+/// its features from, with `default` as its default features.
+fn i18n_crate(dir: &Path, default: &str) {
+    let manifest = format!(
+        "[package]\nname = \"cli-i18n\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
+         [features]\ndefault = [{default}]\nfn-number = []\nfn-datetime = []\n\
+         datetime-icu = [\"fn-datetime\"]\nintl = []\n\n\
+         # Not a member of the repository's workspace.\n[workspace]\n"
+    );
+    std::fs::write(dir.join("Cargo.toml"), manifest).expect("write");
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    std::fs::write(dir.join("src/lib.rs"), "").expect("write");
+}
+
 #[test]
 fn check_reports_what_it_finds_and_exits_zero_on_a_clean_corpus() {
     let dir = corpus("cli-check");
@@ -145,6 +159,7 @@ fn compile_writes_a_catalog_per_locale_and_the_generated_module() {
 #[test]
 fn compile_site_writes_the_catalogs_and_their_index_and_nothing_else() {
     let dir = corpus("cli-compile-site");
+    i18n_crate(&dir, "\"fn-number\"");
     let site = dir.join("site/i18n");
     let args = [
         "compile",
@@ -196,6 +211,79 @@ fn compile_site_writes_the_catalogs_and_their_index_and_nothing_else() {
         .filter(|e| e.path().extension().is_some_and(|x| x == "mf2b"))
         .count();
     assert_eq!(catalogs, 4, "the stale catalog is gone");
+}
+
+#[test]
+fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("cli-compile-site-features");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("locales/en")).expect("mkdir");
+    std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
+    // `:percent` is a build error without `fn-number`.
+    std::fs::write(
+        dir.join("locales/en/main.mf2"),
+        "@locale en\n---\n\nshare = {$n :percent}\n",
+    )
+    .expect("write");
+    let site = dir.join("site/i18n");
+    let site = site.to_str().expect("utf-8");
+
+    // Not a cargo package: nothing to take the functions from.
+    let out = run(
+        &dir,
+        &["compile", "--features", "fn-number", "--site", site],
+    );
+    assert!(!out.status.success(), "{}", stdout(&out));
+    assert!(stderr(&out).contains("no Cargo.toml"), "{}", stderr(&out));
+
+    // Without `--features`, cargo's: `fn-number` is a default, so `:percent`
+    // builds.
+    i18n_crate(&dir, "\"fn-number\"");
+    ok(&run(&dir, &["compile", "--site", site]));
+    // The same list, or one that differs only in what no catalog depends on,
+    // is accepted.
+    ok(&run(
+        &dir,
+        &["compile", "--features", "fn-number,intl", "--site", site],
+    ));
+
+    // One that differs is rejected, naming both lists, and writes nothing.
+    std::fs::remove_dir_all(dir.join("site")).expect("rm");
+    let out = run(
+        &dir,
+        &[
+            "compile",
+            "--features",
+            "fn-number,fn-datetime",
+            "--site",
+            site,
+        ],
+    );
+    assert!(!out.status.success(), "{}", stdout(&out));
+    let err = stderr(&out);
+    assert!(
+        err.contains("--features names [fn-datetime, fn-number]")
+            && err.contains("cargo resolves [fn-number] for cli-i18n"),
+        "{err}"
+    );
+    assert!(!dir.join("site").exists());
+
+    // Cargo's features are the crate's as the build enables them: with
+    // `fn-number` no longer a default, `--features fn-number` disagrees…
+    i18n_crate(&dir, "");
+    let out = run(
+        &dir,
+        &["compile", "--features", "fn-number", "--site", site],
+    );
+    assert!(
+        stderr(&out).contains("cargo resolves no function features"),
+        "{}",
+        stderr(&out)
+    );
+    // …and without `--features` the build fails on `:percent`, as cargo's
+    // build of the crate would.
+    let out = run(&dir, &["compile", "--site", site]);
+    assert!(!out.status.success(), "{}", stdout(&out));
 }
 
 #[test]
