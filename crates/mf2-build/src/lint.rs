@@ -137,6 +137,11 @@ lints! {
     DynamicCurrency = ("dynamic-currency", Warn, Allow);
     /// The same for `:unit`.
     DynamicUnit = ("dynamic-unit", Warn, Allow);
+    /// A variable, option, function, markup or attribute name that is not a
+    /// Unicode identifier under MF2's profile of UAX #31, uses a character
+    /// UTS #39's General Security Profile does not allow, or mixes scripts —
+    /// `syntax.md` asks linters to warn on exactly these.
+    NonstandardName = ("nonstandard-name", Warn, Allow);
 }
 
 impl fmt::Display for Lint {

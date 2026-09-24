@@ -7,7 +7,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use mf2_locale_data::plural::{PluralKind, plural_rules};
-use mf2_model::{Declaration, FunctionRef, Key, Message, OptionValue, Pattern, PatternPart};
+use mf2_model::{
+    Attributes, Declaration, FunctionRef, Key, Message, OptionValue, Options, Pattern, PatternPart,
+};
 use mf2_syntax::Analysis;
 
 use crate::config::{Config, Missing};
@@ -55,6 +57,7 @@ pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report:
             markup(&mut at, model, &analysis);
             bidi(&mut at, model);
             normalization(&mut at, model);
+            names(&mut at, model, &analysis);
             plural_categories(&mut at, model, &source.tag);
             if locale != corpus.source_index {
                 against_source(&mut at, corpus, model, &analysis);
@@ -325,6 +328,112 @@ fn normalization(at: &mut At<'_, '_>, model: &Message<'_>) {
     }
 }
 
+// ────────────────────────────────── names ────────────────────────────────
+
+/// Names chosen by users that `syntax.md` asks a linter to warn on: not an
+/// identifier under the Unicode Default Identifier Syntax (UAX #31), or not
+/// allowed by the General Security Profile (UTS #39) — a character outside
+/// `Identifier_Status=Allowed`, or scripts mixed in one name.
+///
+/// MF2's own names are the profile: `-` and `.` continue a name and `_`
+/// starts one (UAX #31 permits both kinds of addition), and a namespace's
+/// `:` separates two names, each checked alone. Names compare under NFC, so
+/// the NFC form is what is checked; a name is reported once per message.
+fn names(at: &mut At<'_, '_>, model: &Message<'_>, analysis: &Analysis<'_>) {
+    let mut found: Vec<(&'static str, &str)> = Vec::new();
+    for name in analysis.externals.iter().chain(&analysis.locals) {
+        found.push(("variable", &name.nfc));
+    }
+    for name in &analysis.functions {
+        found.push(("function", &name.nfc));
+    }
+    for name in &analysis.markup {
+        found.push(("markup", &name.nfc));
+    }
+    for declaration in model.declarations() {
+        match declaration {
+            Declaration::Input(input) => add(
+                &mut found,
+                input.value.function.as_ref().map(|f| &f.options),
+                &input.value.attributes,
+            ),
+            Declaration::Local(local) => add(
+                &mut found,
+                local.value.function().map(|f| &f.options),
+                local.value.attributes(),
+            ),
+        }
+    }
+    for pattern in patterns(model) {
+        for part in pattern {
+            match part {
+                PatternPart::Expression(e) => {
+                    add(&mut found, e.function().map(|f| &f.options), e.attributes());
+                }
+                PatternPart::Markup(m) => add(&mut found, Some(&m.options), &m.attributes),
+                _ => {}
+            }
+        }
+    }
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    for (kind, name) in found {
+        let name = nfc(name);
+        let Some(why) = name.split(':').find_map(nonstandard) else {
+            continue;
+        };
+        if seen.insert(name.to_string()) {
+            at.say(
+                Lint::NonstandardName,
+                at.offset_of(&name),
+                format!("the {kind} name `{name}` {why}"),
+            );
+        }
+    }
+}
+
+/// Adds the option and attribute names of one expression or markup.
+fn add<'m>(
+    found: &mut Vec<(&'static str, &'m str)>,
+    options: Option<&'m Options<'_>>,
+    attributes: &'m Attributes<'_>,
+) {
+    for (name, _) in options.into_iter().flat_map(Options::iter) {
+        found.push(("option", name));
+    }
+    for (name, _) in attributes.iter() {
+        found.push(("attribute", name));
+    }
+}
+
+/// Why `name` (one side of a namespace) is not a standard identifier, or
+/// `None` when it is one.
+fn nonstandard(name: &str) -> Option<&'static str> {
+    use unicode_security::{GeneralSecurityProfile, MixedScript};
+    let mut chars = name.chars();
+    let start = chars.next()?;
+    let identifier = (unicode_ident::is_xid_start(start) || start == '_')
+        && chars.all(|c| unicode_ident::is_xid_continue(c) || c == '-' || c == '.');
+    if !identifier {
+        Some("is not a Unicode identifier (UAX #31)")
+    } else if !name.chars().all(GeneralSecurityProfile::identifier_allowed) {
+        Some("uses a character the General Security Profile does not allow (UTS #39)")
+    } else if !name.is_single_script() {
+        Some("mixes scripts (UTS #39)")
+    } else {
+        None
+    }
+}
+
+/// `name` in NFC, borrowed when it already is.
+fn nfc(name: &str) -> std::borrow::Cow<'_, str> {
+    use unicode_normalization::UnicodeNormalization;
+    if non_nfc(name) {
+        std::borrow::Cow::Owned(name.nfc().collect())
+    } else {
+        std::borrow::Cow::Borrowed(name)
+    }
+}
+
 // ────────────────────────────── plural categories ────────────────────────
 
 /// A plural `.match` that does not mention every category the target locale
@@ -592,5 +701,44 @@ pub fn non_nfc(source: &str) -> bool {
         IsNormalized::Yes => false,
         IsNormalized::No => true,
         IsNormalized::Maybe => source.nfc().ne(source.chars()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::nonstandard;
+
+    #[test]
+    fn mf2_names_are_standard_under_the_profile() {
+        for name in [
+            "name",
+            "_x",
+            "a-b.c",
+            "x1",
+            "número",
+            "名前",
+            "ひらがな漢字",
+            "имя",
+        ] {
+            assert_eq!(nonstandard(name), None, "{name}");
+        }
+    }
+
+    #[test]
+    fn each_reason_is_reported() {
+        // Valid MF2 name-start, not XID_Start: U+2140 DOUBLE-STRUCK N-ARY
+        // SUMMATION.
+        assert_eq!(
+            nonstandard("\u{2140}x"),
+            Some("is not a Unicode identifier (UAX #31)")
+        );
+        // XID_Start, but Identifier_Status=Restricted: U+01C5 LATIN CAPITAL
+        // LETTER D WITH SMALL LETTER Z WITH CARON (not NFKC-stable).
+        assert_eq!(
+            nonstandard("\u{1c5}x"),
+            Some("uses a character the General Security Profile does not allow (UTS #39)")
+        );
+        // Latin with U+0430 CYRILLIC SMALL LETTER A.
+        assert_eq!(nonstandard("n\u{430}me"), Some("mixes scripts (UTS #39)"));
     }
 }

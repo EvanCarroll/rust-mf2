@@ -234,6 +234,16 @@ fn drifts() -> Vec<Drift> {
             mutate: |files, _, _| edit(files, "en", "plain = Save", "plain = \u{2066}Save"),
         },
         Drift {
+            lint: Lint::NonstandardName,
+            what: "a variable name that mixes scripts",
+            // The second letter is U+0430 CYRILLIC SMALL LETTER A: valid MF2,
+            // and indistinguishable from `$name` on the page.
+            mutate: |files, _, _| {
+                edit(files, "en", "{$name}", "{$n\u{430}me}");
+                edit(files, "pl", "{$name}", "{$n\u{430}me}");
+            },
+        },
+        Drift {
             lint: Lint::UnusedId,
             what: "an id no source file names",
             // The scan is the command line's; the lint is checked directly

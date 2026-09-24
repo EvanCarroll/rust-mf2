@@ -107,6 +107,11 @@ sha2 = "0.11.0"
 toml = "1.1.6"
 # no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.
 unicode-normalization = { version = "0.1.25", default-features = false }
+# mf2-build's `nonstandard-name` lint (plans/05-tooling.md §5): UAX #31's
+# XID_Start / XID_Continue, and UTS #39's Identifier_Status and script sets.
+# Build-time only; never a dependency of a client-path crate.
+unicode-ident = "1.0.26"
+unicode-security = "0.1.2"
 # mf2-locale-data (build side): General_Category for CLDR's currency-spacing
 # test on currency symbols (plans/02-catalog-format.md §4.6).
 unicode-properties = { version = "0.1.4", default-features = false, features = ["general-category"] }

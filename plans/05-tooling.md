@@ -469,12 +469,16 @@ source but dropped by a translation; unused ids (found by scanning the workspace
 for `tr!` invocations); suspicious bidi (unpaired isolates in literal text).
 `nonstandard-name` (Phase 7 A12, owner, 2026-09-24; `syntax.md` asks
 linters to warn on names that break UAX #31 / UTS #39): a variable, option,
-function or markup name the corpus uses that is not a UAX #31 identifier
-under MF2's profile (`-` and `.` added to Continue, `_` to Start) or that
-mixes scripts (UTS #39's General Security Profile, mixed-script
-confusables). A warning, configurable like the others; build-time only,
-with its Unicode data from a crate (`unicode-ident`, and `unicode-security`
-if it measures acceptable), never in the client.
+function, markup or attribute name the corpus uses that is not a UAX #31
+identifier under MF2's profile (`-` and `.` added to Continue, `_` to Start;
+each side of a namespace's `:` checked alone), that uses a character outside
+UTS #39's Identifier_Status=Allowed, or that mixes scripts (UTS #39's
+resolved script set, so Japanese kana with kanji is one script). Checked on
+the NFC form; one warning per name per message. A warning, configurable like
+the others; build-time only, with its Unicode data from `unicode-ident` and
+`unicode-security` (measured in [phase-7-results](phase-7-results.md) §A12),
+never in the client. *As built (Phase 7 A12): attribute names were added to
+the list — they are names users choose as much as option names are.*
 
 ## 6. `mf2-cli` (clap)
 
