@@ -98,6 +98,10 @@ whose interactive parts are islands.
    master plan's exit), user documentation, `mark-fallback-lang`, and
    benchmarks tracked per commit.
 
+6. **Whether the two-crate layout is still the default for a
+   server-rendered application** — **open**; asked in §"A6 — measured
+   before building", which has the evidence.
+
 Still to ask when it comes up: A8 ends with a proposal *put to the tachys
 maintainers*, which is outward-facing — whether an agent may post it or
 only draft it for the owner to post.
@@ -379,6 +383,63 @@ only draft it for the owner to post.
   demo-csr. All three ran in Chromium and Firefox. L6 and L7 were not
   re-run: their pages use no conversion, and demo-islands' `<Title>` is
   rendered by the server. WebKit was not run (not installed).
+
+## A6 — measured before building: the split saves nothing under cargo
+
+**A6 is on hold for owner question 6 (below).** Nothing was built or
+committed but this section; what follows is what was observed.
+
+* **The recompile happens either way.** In `examples/demo-csr`, whose i18n
+  crate already emits `Emit::Module`, a one-line edit to a French text,
+  then `cargo build -v --target wasm32-unknown-unknown`: `Dirty
+  demo-csr-i18n: the file i18n/locales has changed`, the i18n crate
+  recompiled, then `Dirty demo-csr: the dependency demo-csr-i18n was
+  rebuilt`. The build script has to rerun to see the edit, and cargo
+  rebuilds a crate whose build script reran, and everything above it,
+  whatever the script wrote (no early cut-off — P0.9 said so for the
+  one-crate layout). Phase 5a's "cargo recompiles neither it nor anything
+  above it" (05 §4, phase-5a-results owner question 1) was reasoned from the
+  unchanged `OUT_DIR` and never timed; it is wrong.
+* **Both numbers**, `examples/demo-ssr` under `cargo leptos watch`
+  (debug, `CARGO_BUILD_JOBS=2`, load 1.2–2.8), from writing the edit to the
+  restarted server listening; runs alternated one-crate, split, one-crate:
+
+  | Layout | four edits (s) | recompiled per edit |
+  |---|---|---|
+  | one crate (`Emit::Both`), run 1 | 3.47, 3.12, 2.91, 2.93 | `demo-i18n` ×2, `demo-ssr` ×2 |
+  | catalogs apart (`Module` + `Catalogs`) | 4.79, 3.78, 3.68, 2.95 | `demo-i18n` ×2, `demo-ssr` ×2, `demo-catalogs` ×1 |
+  | one crate, run 2 | 2.97, 2.93, 2.91, 2.81 | `demo-i18n` ×2, `demo-ssr` ×2 |
+
+  Every edit was served (`curl '/?lang=fr'`). The split did the same work
+  plus one crate. The split layout was a temporary change (a `catalogs/`
+  crate, `Emit::Module` in `i18n/build.rs`, `demo_catalogs::CATALOGS` in
+  `main.rs`), reverted. Script: a `cargo leptos watch` under `ts`, a `sed`
+  on `reset = …` in `fr/main.mf2`, waiting for the next `listening on`.
+* **The wasm was byte-identical in every run and in both layouts** —
+  `demo_ssr.wasm` sha256 `faea698c1dea…` before and after all twelve
+  edits, one-crate and split alike. The one-crate module already puts every
+  catalog name behind `ssr` (P0.9 found the same), so a translation edit
+  never changed the wasm there either: owner question 2's goal holds
+  without the split, for an application with a server.
+* **Also found:** neither `demo-ssr` nor `demo-islands` sets
+  `watch-additional-files`, so `cargo leptos watch` ignores a locale edit in
+  both (it had to be added for the measurement). That needs fixing whatever
+  the answer.
+* Where the split *is* needed: a client-only application, which has no
+  server to embed catalogs in (`demo-csr`, `mf2 compile --site`), and so
+  where the feature-mismatch check owner question 2 asked for matters.
+
+**Owner question 6, open: should a server-rendered application still get
+the two-crate layout by default**, now that it saves no rebuild time and
+the wasm is unchanged by a translation edit in both? Recommended: no —
+one crate stays the default for server-rendered apps, the two-crate
+layout stays where it is required (client-only), 05 §4 and the Phase 5a
+note are corrected, and A6 becomes: `watch-additional-files` in the
+examples, the mismatch check on `mf2 compile --site`, and these numbers.
+The alternative that would really cut the rebuild — the i18n crate not
+rerunning on a translation edit at all — needs the functions a
+translation may use to be known without reading the translations; that
+is a design change, not part of A6.
 
 ## Exit (master plan §9, P7)
 
