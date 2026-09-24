@@ -24,6 +24,12 @@
 //! schema.org `inLanguage` so that the locale is machine-readable as well as
 //! rendered.
 
+// The whole app is one view type, and `hydrate_lazy`'s future holds it: in a
+// release build its layout query nests past rustc's default depth of 128
+// ("queries overflow the depth limit"), so `cargo leptos build --split
+// --release` did not compile. Debug builds were unaffected.
+#![recursion_limit = "256"]
+
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
 use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
