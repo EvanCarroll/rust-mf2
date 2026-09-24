@@ -1067,7 +1067,9 @@ code:
   writing the user documentation, A13): there is no zone cookie and no
   re-render; an instant formats in the zone it carries
   (`DateTimeValue::with_zone`), else `Setup::with_time_zone`'s default,
-  else UTC, identically on both sides. Left to the Phase 8 work order.*
+  else UTC, identically on both sides. The owner confirmed the cookie
+  design (2026-09-24); it is built in Phase 8
+  ([16](16-phase-8-work-order.md) A7), designed here before code.*
 * **"Now"** never enters a message implicitly; date arguments are always explicit.
 
 ## 7. Spec obligations with structural impact

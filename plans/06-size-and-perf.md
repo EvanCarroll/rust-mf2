@@ -416,8 +416,11 @@ commit that also explains the change.
 No per-commit history of these numbers is kept (owner, 2026-09-24): the
 gates fail on a regression, and the comparison that is kept is the A/B
 against `leptos-fluent`, measured once at migration and committed as a
-snapshot with its commit ([master plan](00-master-plan.md) §9 P8). A later
-commit is audited against that snapshot on the owner's request.
+snapshot with its commit ([master plan](00-master-plan.md) §9 P8), on the
+reference-workload application of §2 — built on `leptos-fluent` and
+converted by Phase 8's own tools (owner, 2026-09-24;
+[16](16-phase-8-work-order.md) A5). A later commit is audited against that
+snapshot on the owner's request.
 
 Benchmarks (`criterion` native; a small wasm timing harness in the browser) cover
 load, simple lookup, pattern format, select format, and locale switch with 2,000

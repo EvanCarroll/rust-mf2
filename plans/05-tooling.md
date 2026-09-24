@@ -401,7 +401,9 @@ Measured behaviour and costs:
 * **Every locale change recompiles the i18n crate and all its dependents** in
   both builds — even a translation-only edit or an mtime-only touch (cargo has
   no early cut-off); 8–23 s per debug `cargo leptos build` for a 2,000-site app.
-  Outputs stay deterministic. Accepted until P7's dev hot reload.
+  Outputs stay deterministic. Accepted: the push of a recompiled catalog to
+  open pages that would avoid it was deferred until after v1 (owner,
+  2026-09-24; master plan §9 "Later").
 
   **`Build::emit(Emit::Module | Emit::Catalogs)` does not mitigate it**
   (P5a, owner question 1; measured in Phase 7 A6). The i18n crate emits the
@@ -491,9 +493,9 @@ the list — they are names users choose as much as option names are.*
 | `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
-| `mf2 export` / `import` | flat JSON now; XLIFF 2 later |
-| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map |
-| `mf2 watch` | recompile on change; with `mf2-axum`'s dev mode, pushes the new catalog to open pages |
+| `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6) |
+| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4) |
+| `mf2 watch` | recompile on change. *The push of the new catalog to open pages through an `mf2-axum` dev mode is deferred until after v1 (owner, 2026-09-24)* |
 
 Every command but `convert` ships in P5a. Three details the implementation
 settled:

@@ -197,7 +197,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13** and **A14** (2026-09-24); what they found is below the table. **A15 is withdrawn** (owner question 12); A10 is next.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13**, **A14** and **A10** (2026-09-24); what they found is below the table. **A15 is withdrawn** (owner question 12). What remains is the exit (below).
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -215,7 +215,7 @@ found nothing to propose (§"A8").
 | **A13** User documentation — **done** (§"A13" below) | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
 | **A14** `mark-fallback-lang` — **done** (§"A14 — design" below; [phase-7-results](phase-7-results.md) §A14) | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed (done), built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit — **withdrawn** (owner question 12) | ~~The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI.~~ Replaced by the `leptos-fluent` A/B, measured once at migration and committed as a snapshot (master plan §9 P8); A10 carries it into the Phase 8 work order. | — |
-| **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`, including the `leptos-fluent` A/B of owner question 12. | written |
+| **A10** The Phase 8 work order — **done** ([16](16-phase-8-work-order.md)) | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`, including the `leptos-fluent` A/B of owner question 12. *Four owner questions came up writing it and are answered there (2026-09-24): dev hot reload deferred until after v1, the time-zone cookie built, XLIFF 2 vendored, the A/B on the reference application.* | written |
 
 ## A1 — islands: what was built and measured
 
@@ -1075,8 +1075,11 @@ built (it says the feature does nothing), and the feature's comment in
       statements, 0 gaps)
 - [x] user documentation (A13) and `mark-fallback-lang` (A14) done
       *(per-commit benchmarks, A15, withdrawn by owner question 12)*
-- [ ] islands, CSR and lazy routes each demonstrated by the example and
-      asserted by a browser check
-- [ ] a server-only component's wasm cost measured at zero
+- [x] islands, CSR and lazy routes each demonstrated by the example and
+      asserted by a browser check (A1 `islands.mjs`, A2 `csr.mjs`, A3
+      `lazy.mjs`, all in Chromium and Firefox)
+- [x] a server-only component's wasm cost measured at zero (A1, `cargo
+      xtask islands-zero`: identical code, data within 16 B)
 - [x] owner questions 1–12 answered (2026-09-23; 7–12 on 2026-09-24) and recorded in 04, 05, 01 and the master plan
-- [ ] `plans/phase-7-results.md` and the Phase 8 work order written
+- [x] `plans/phase-7-results.md` and the Phase 8 work order written
+      ([16](16-phase-8-work-order.md), A10)

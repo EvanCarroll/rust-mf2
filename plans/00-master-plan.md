@@ -26,7 +26,13 @@ companion documents elaborate it and MUST NOT contradict it.
 | [phase-4-results](phase-4-results.md) | Phase 4 measurements: the function families, the `intl` option |
 | [12-phase-5a-work-order](12-phase-5a-work-order.md) | Phase 5a work order (done) |
 | [phase-5a-results](phase-5a-results.md) | Phase 5a measurements: the build pipeline, the CLI, B7/B8, both owner questions |
-| [13-phase-5b-work-order](13-phase-5b-work-order.md) | task-level work order for the next phase: the macros |
+| [13-phase-5b-work-order](13-phase-5b-work-order.md) | Phase 5b work order (done): the macros |
+| [phase-5b-results](phase-5b-results.md) | Phase 5b measurements: the call-site types, the macro, L5, B5 |
+| [14-phase-6-work-order](14-phase-6-work-order.md) | Phase 6 work order (done): Leptos and Axum, layer L6 |
+| [phase-6-results](phase-6-results.md) | Phase 6 measurements: rendering, hydration, the registry, `mf2-axum`, L6, the size gate |
+| [15-phase-7-work-order](15-phase-7-work-order.md) | Phase 7 work order: islands, CSR, lazy routes, layer L7, accessibility, documentation |
+| [phase-7-results](phase-7-results.md) | Phase 7 measurements: the WCAG 2.2 AA audit, spec coverage, the documentation, `mark-fallback-lang` |
+| [16-phase-8-work-order](16-phase-8-work-order.md) | task-level work order for the next phase: migration from Fluent, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
 
 ---
 
@@ -238,7 +244,7 @@ ledger; a phase cannot exit with its layer red.
 | D10 | Leptos: latest stable (0.8.x); 0.9 tracked against its betas, glue isolated in one module with the line-specific methods switched by feature (owner, 2026-09-24) | decided |
 | D11 | License: **MIT**. Publish to crates.io late (P9). Dependencies and vendored material MUST be MIT-compatible (ICU4X and the WG suite are Unicode-3.0 — fine; GPL code is excluded, including as a test oracle) | **decided by owner** |
 | D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
-| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
+| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24) | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
 | D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **settled: own buffer** — decided by owner (2026-09-21); the A5b gate holds on every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12 clean vs a panic import, 0 vs 0.5 allocations; [phase-3-results](phase-3-results.md) §A5b) |
 
@@ -372,8 +378,10 @@ everything before it).
 ### P7 — Delivery modes and hardening
 * CSR (`demo-csr`), islands (`demo-islands`, including rich messages inside
   islands), `static-locale`, `mark-fallback-lang`, `<LocaleSwitcher>`, head
-  helpers, dev hot reload (design owned by this phase's work order: `mf2 watch` +
-  an `mf2-axum` dev endpoint), Leptos 0.9 glue (against the betas until released), user documentation,
+  helpers, the dev loop (`cargo leptos watch` sees a locale edit; *the push
+  of a recompiled catalog to open pages — `mf2 watch` + an `mf2-axum` dev
+  endpoint — was not built, and is deferred until after v1, owner
+  2026-09-24*), Leptos 0.9 glue (against the betas until released), user documentation,
   coverage matrix complete
   ([01](01-conformance.md) §5).
 * **Exit**: L6 green (SSR + hydrate, lazy routes) and **L7** green — the
@@ -384,9 +392,15 @@ everything before it).
 
 ### P8 — Migration and interchange
 * `mf2 convert --from fluent`; a call-site migration guide (and codemod where
-  mechanical) from closure-per-site macros to `tr!`; XLIFF 2 export/import.
+  mechanical) from closure-per-site macros to `tr!`; XLIFF 2 export/import,
+  against the standard vendored under `third_party/` (owner, 2026-09-24).
+* The reader's time zone ([03](03-runtime.md) §6's cookie and re-render
+  after hydration), planned for P6 and not built there; the cookie design
+  confirmed (owner, 2026-09-24).
 * **The A/B against `leptos-fluent`**, measured **once**, at migration: the
-  same application's client size (and the speed figures that apply) on
+  reference-workload application ([06](06-size-and-perf.md) §2), built on
+  `leptos-fluent` and converted by this phase's tools (owner, 2026-09-24) —
+  its client size (and the speed figures that apply) on
   `leptos-fluent` and on this library, reported with the commit it measured
   and committed as a snapshot — "at this commit, this is what we had". It
   is not re-run per commit; a later commit is audited against the snapshot
@@ -395,14 +409,19 @@ everything before it).
 * **Exit**: a Fluent corpus of reference-workload shape converts with a report of
   zero unmapped constructs; converted catalogs format identically to the Fluent
   originals on a sampled argument set; the `leptos-fluent` A/B measured,
-  reported and its snapshot committed.
+  reported and its snapshot committed; XLIFF 2 export and import validated
+  against the vendored schema; dates in the reader's time zone. Work order:
+  [16](16-phase-8-work-order.md).
 
 ### P9 — Release
 * Name verification, API review, semver policy tied to Leptos lines, docs.rs,
   changelog, MSRV statement, release automation.
 
 ### Later, deliberately not now
-Per-route catalog chunks (bits already reserved); editor tooling (tree-sitter
+Per-route catalog chunks (bits already reserved); dev hot reload — `mf2
+watch` pushing a recompiled catalog to open pages without a rebuild (owner,
+2026-09-24; Phase 7 A6 measured the rebuild loop at 4–5 s on the example);
+editor tooling (tree-sitter
 grammar, LSP diagnostics from `mf2-syntax`); ICU MessageFormat 1 import; server
 push of catalog updates in production; catalog text as JS strings — a lazy
 `JsString` cache, then possibly a v2 catalog container using the JS String
@@ -441,7 +460,10 @@ catalog's NAMES section, up to 1.1 % of a catalog's brotli size
   [09-phase-2-work-order](09-phase-2-work-order.md) (done),
   [10-phase-3-work-order](10-phase-3-work-order.md) (done),
   [11-phase-4-work-order](11-phase-4-work-order.md) (done),
-  [12-phase-5a-work-order](12-phase-5a-work-order.md) (next) and
-  [13-phase-5b-work-order](13-phase-5b-work-order.md).
+  [12-phase-5a-work-order](12-phase-5a-work-order.md) (done),
+  [13-phase-5b-work-order](13-phase-5b-work-order.md) (done),
+  [14-phase-6-work-order](14-phase-6-work-order.md) (done),
+  [15-phase-7-work-order](15-phase-7-work-order.md) and
+  [16-phase-8-work-order](16-phase-8-work-order.md) (next).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.
