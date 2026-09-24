@@ -527,6 +527,29 @@ chosen locale.
   the choice is which of two `&'static FormatContext`s a library function
   passes to `Formatter::new`.
 
+  **Refined (Phase 7 A9, owner, 2026-09-24): an attribute is decided by its
+  name.** The table above put every `AttributeValue` on the isolated side,
+  but some attributes are read by a program, not a person: `value=` is
+  submitted with a form, `download=` is a file name, `data-*` is read by
+  scripts. An attribute's name reaches every place its text is made —
+  `to_html(key)`, `build(el, key)`, `hydrate(key, el)` and the registry's
+  `Target::Attribute(el, key)` on a switch — so the library picks the
+  strategy from it, identically on server and client:
+
+  | Attribute | Strategy |
+  |---|---|
+  | `value`, `href`, `src`, `srcset`, `action`, `formaction`, `poster`, `cite`, `download`, `id`, `name`, `for`, `form`, `list`, `class`, `type`, `data-*` | **None** (plain) |
+  | every other name — `title`, `alt`, `aria-*`, `placeholder`, `label`, `content`, … | **Default** (isolated) |
+
+  The rule is an ASCII case-insensitive match on the name, a fixed cost with
+  nothing per call site. A developer gets plain text where a program reads it
+  without knowing the marks exist. A **text child** has no name to decide by
+  (a `<textarea>`'s starting text, a `<script>` body), so it stays isolated,
+  and the documented way to get it plain is `move || tr!(…).to_string()`
+  (plain, and it follows a switch through `track_locale`; ≈ 546 B a live
+  consumer against ≈ 113 B for a text node, Phase 7 A5). A per-site
+  `plain(…)` wrapper for view positions was offered and not chosen.
+
 ## 10. Version policy
 
 Target the latest **stable** Leptos (0.8.x today). Track 0.9 betas in CI as
