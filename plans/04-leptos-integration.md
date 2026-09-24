@@ -499,6 +499,20 @@ chosen locale.
 * A reference `<LocaleSwitcher>`: a labelled native control, each language named
   in its own language with its own `lang` attribute, flexbox layout, no inline
   SVG.
+
+  **Decided (Phase 7 A11, owner, 2026-09-24): a choice applies on a button,
+  never on `change`.** The keyboard fires a `<select>`'s `change` on every
+  arrow key, so switching on it changed the page's language per keypress —
+  and under `static-locale` reloaded it, dropping focus (WCAG 3.2.2, F37).
+  The switcher is a `<form method="get">`: the `<select
+  name=LOCALE_QUERY>` inside its `<label>` (no fixed `id`, so a page may
+  have two), and a submit button whose text the application supplies. With
+  no client code the form's `GET ?lang=…` is the switch (`QueryParam`
+  negotiates it, and the cookie follows), so it works before the wasm
+  loads, after a failed boot, and on an islands page without an island.
+  Under `hydrate` and `csr` the submit is intercepted and becomes the live
+  `set_locale`. A reader pays one extra action; an application supplies one
+  more message.
 * Head helpers: `<link rel="alternate" hreflang>` for path-prefix strategies;
   guidance for schema.org `inLanguage` on pages that emit structured data.
 * Bidi: the spec's Default Bidi Strategy is on by default so interpolated names
