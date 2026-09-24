@@ -198,7 +198,7 @@ found nothing to propose (§"A8").
 | **A11** The WCAG 2.2 AA audit — **done** | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
 | **A12** Spec coverage — **done** (§"A12" below; [phase-7-results](phase-7-results.md) §A12) | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. *Added by owner questions 10 and 11:* `to_string()` / `String::from` isolated by default and a new `to_plain_string()` (04 §9); the `nonstandard-name` lint (05 §5). | the matrix complete; zero uncovered normative statements; `cargo xtask conformance-report` checks it (and writes `COVERAGE.md`); the two additions built, each with a test and a negative control |
 | **A13** User documentation — **done** (§"A13" below) | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
-| **A14** `mark-fallback-lang` | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed, built, and asserted in a browser (hydration included) |
+| **A14** `mark-fallback-lang` — **designed** (§"A14 — design" below), not built | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed (done), built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
 
@@ -918,6 +918,135 @@ The whole record is [phase-7-results](phase-7-results.md) §A13. In short:
 * **Found, not built:** the reader's time zone (03 §6's cookie) — an
   instant formats in UTC unless the value or `Setup` names a zone. The
   documentation says so; it is left to the Phase 8 order (A10).
+
+## A14 — design (2026-09-24; not built)
+
+Written before any code, as the row asks. What exists: the catalog's
+FALLBACK section (02 §2.6) names, per message, the locale its text came
+from — the source locale included, since `missing = "fallback"` ends every
+chain there (`mf2-build` `catalog::write`); `Catalog::fallback_locale(id)`
+reads it (binary search), `Catalog::dir()` is the page's direction, and the
+generated `LOCALES` (in `Setup::locales`) holds every lender's direction,
+because a lender is always one of the build's locales. The feature
+`mark-fallback-lang` is declared in `leptos-mf2` and `mf2` and does
+nothing.
+
+**What is marked.** A description in a **view position** whose message
+the catalog in force borrowed: the text child (`Tr`, `TrArgs`, `TrDyn`)
+and the rich fragment (`TrRich`). It renders as
+`<span lang="{lender}">…</span>`, with `dir="{ltr|rtl}"` added when the
+lender's direction differs from the catalog's (English borrowed into an
+Arabic page must not be laid out right to left; WCAG does not ask for it,
+correct rendering does). The tag is the lender's as written, even where it
+shares a language with the page (`fr` inside `fr-CA` is valid and says what
+the catalog knows). A message the catalog did not borrow renders exactly as
+today — a bare text node, no element — so the feature costs a page
+nothing until a translation is missing.
+
+*Rejected: a `<span>` around every message*, with `lang` set only when
+borrowed. It would make the structure independent of the catalog, but
+put an element around every translated string on every page (bytes, CSS
+selectors such as `p > span`, and RCDATA breakage — below — on every
+message instead of only on borrowed ones).
+
+**What cannot be marked, and is documented rather than built.** HTML marks
+the language of an attribute only through its element's `lang`, which
+would re-label the element's content too; and a `String` carries no markup.
+So `title=`, `aria-label=`, `alt=`, `placeholder=`, properties,
+`to_string()`/`String::from`, `TextProp`, `Signal<String>` and `Oco` stay
+unmarked. `docs/accessibility.md` says so and points at
+`missing-translation` and `mf2 stats`, which remain the way to see the gap.
+Two elements hold only text: in `<title>` and `<textarea>` (RCDATA) a span
+is shown as literal markup, so there the string forms are the way
+(`leptos_meta`'s `<Title text=…>`, `prop:value`), and the docs say so.
+`<option>` is safe either way: a parser that drops the span leaves the
+text, which hydration adopts (below). `<LocaleOption>`'s name is the one
+message whose language the element knows better than the catalog (its
+`lang=tag` is right, a lender's tag would not be); it is left to the
+lint — the names are meant to be defined in every locale, and
+`missing-translation` warns when one is not.
+
+**The server** (`to_html_with_buf`, both tachys lines). Unborrowed: as
+today. Borrowed: the `<!>` separator exactly when tachys would write one
+before a text (position `NextChildAfterText`), then
+`<span lang=… [dir=…]>`, the text escaped by the same rule
+`<&str as RenderHtml>` uses inside it with position `FirstChild` (an empty
+text writes the same `' '`), `</span>`, and the position left at
+`NextChildAfterText` — **the same position a text leaves**, so whatever
+follows writes and walks identically whether the description was wrapped
+or not. `TrRich`: the builder's root fragment becomes one tachys
+`span().attr("lang").attr("dir")` view holding it; tachys writes and
+hydrates that, as it does the handlers' elements.
+
+**Hydration adopts the shape the server wrote; it does not ask the
+catalog** (§3's rule for text, kept). `adopt_text` walks the cursor as it
+does now (child or sibling, then over the separator) and looks at the node
+it lands on: a `Text` is adopted as today; an `Element` is adopted as the
+wrapper, its first child as the text node (created and appended when the
+span is empty in the DOM); anything else is today's one-line mismatch and
+degradation. The position is set to `NextChildAfterText` in every case,
+matching the server. A client that builds (CSR, a template clone,
+`FROM_SERVER = false`, a list row added later) reads the catalog and
+wraps or not. `TrRich` hydrates through tachys, against the same catalog
+the boot gate guarantees for its structure already (§6).
+
+**The retained state and a switch.** The text node keeps its identity for
+the life of the view: the wrapper comes and goes **around** it. Under the
+feature, `TrState` and the registry's `Target::Text` share one
+`Rc<Cell<Option<Element>>>` (the wrapper, if any); the slot's write
+becomes "set the text, then fit the wrapper" against the new catalog's
+`fallback_locale(msg_id)`:
+
+| before → after | DOM change |
+|---|---|
+| none → none | the text only (today) |
+| none → borrowed | a span is created, inserted before the text in its parent (if mounted), and the text moved into it |
+| borrowed → borrowed | `lang` / `dir` set or removed if they changed |
+| borrowed → none | the text inserted before the span, the span removed |
+
+`Mountable` (`mount`, `unmount`, `insert_before_this`) acts on the outer
+node — the wrapper if present, else the text. `rebuild` (a closure that
+switched messages) takes the same path, so it works under `static-locale`
+too, where there is no switch but a rebuilt description can change lender.
+`TrRich`'s switch is already a fragment rebuild; a changed root (wrapped ↔
+not) is a different `AnyView` type, which tachys replaces. Nothing here
+changes a build without the feature: every added field, branch and import
+is behind `cfg(feature = "mark-fallback-lang")`, and `cargo xtask size`
+must show B1 unmoved.
+
+**One lookup.** The text functions gain a form that hands the body the
+lender beside the text — `Option<Lender>`, the lender's tag and a `dir`
+that is `Some` only when it differs from the catalog's — computed where the catalog is
+already in hand (`format_with`, the registry's `Slot::apply`), so no
+position looks the catalog up twice.
+
+**Tests (the row's "done when").**
+
+* **native, `ssr`** (`crates/leptos-mf2/tests/render.rs`, the feature on):
+  a catalog with `fr` borrowing one plain and one rich message from `en`
+  renders both inside `<span lang="en">`; an `ar` catalog borrowing from
+  `en` adds `dir="ltr"`; an own message has no span; the text around a
+  wrapped message separates exactly as around an unwrapped one (a wrapped
+  message between two text children); an attribute and `to_string()` are
+  unmarked. Negative control: the same test with the feature off fails.
+* **browser** (`tools/e2e/checks/demo.mjs`, two engines): `demo-ssr` turns
+  the feature on and gains one sentence left untranslated in `ar` on
+  purpose — a demonstration of the feature, said so in its source; if the
+  example's check denies `missing-translation`, that one message is
+  allowed explicitly. Assert: served `?lang=ar` has the span with
+  `lang="en" dir="ltr"`; hydration logs no `mf2:` mismatch and the span is
+  the same node after hydration; a live switch to `fr` removes the span
+  and keeps the text node; back to `ar` restores it; the a11y scan still
+  passes. Negative control: with `adopt_text`'s element branch removed,
+  the check fails on the mismatch line. `demo-csr` (the build path): the
+  same sentence in `ar` is wrapped after mount and after a switch.
+* **size:** `cargo xtask size` unchanged with the feature off (it is off
+  in the gated build); the example client's delta with it on, measured and
+  recorded in the results.
+
+`docs/accessibility.md` §"Untranslated text" is rewritten when it is
+built (it says the feature does nothing), and the feature's comment in
+`crates/leptos-mf2/Cargo.toml` with it.
 
 ## Exit (master plan §9, P7)
 

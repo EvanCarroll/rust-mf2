@@ -500,6 +500,14 @@ chosen locale.
   ([02](02-catalog-format.md) F7); the `mark-fallback-lang` feature (opt-in) renders them
   inside `<span lang="…">`, identically on server and client. `mf2 stats`
   reports fallback counts so the gap is visible either way.
+
+  **Designed (Phase 7 A14, 2026-09-24; [15](15-phase-7-work-order.md)
+  §"A14 — design").** Only a *borrowed* message in a view position is
+  wrapped (with `dir` when the lender's direction differs); an own message
+  stays a bare text node. Hydration adopts the shape the server wrote
+  rather than asking the catalog; on a switch the wrapper comes and goes
+  around a text node that keeps its identity. Attributes and strings cannot
+  carry a `lang` of their own and are documented as unmarked.
 * A reference `<LocaleSwitcher>`: a labelled native control, each language named
   in its own language with its own `lang` attribute, flexbox layout, no inline
   SVG.
