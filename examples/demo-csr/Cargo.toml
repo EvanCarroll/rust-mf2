@@ -19,7 +19,9 @@ demo-csr-i18n = { path = "i18n" }
 leptos = { version = "0.8.20", features = ["csr"] }
 leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["csr"] }
 leptos_meta = "0.8.6"
-mf2 = { path = "../../crates/mf2", features = ["csr"] }
+# `mark-fallback-lang`: borrowed text is marked with its language (the note,
+# untranslated in Arabic on purpose).
+mf2 = { path = "../../crates/mf2", features = ["csr", "mark-fallback-lang"] }
 wasm-bindgen = "0.2.128"
 
 [profile.release]

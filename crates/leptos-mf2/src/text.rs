@@ -20,6 +20,8 @@ use mf2_runtime::{Formatter, MsgId, NoErrors, Sink};
 
 use crate::TrDyn;
 use crate::catalog;
+#[cfg(feature = "mark-fallback-lang")]
+use crate::lang::Lender;
 use crate::state::{self, TextUse};
 use crate::tr::{Tr, TrArgs, TrRich};
 
@@ -250,6 +252,48 @@ pub(crate) fn with_active_text<D: Description, R>(
             body,
         ),
         None => body(""),
+    }
+}
+
+/// [`with_text`] for a text child, handing `body` the message's lender
+/// beside its text — found against the catalog already in hand, so the
+/// position looks the catalog up once (`mark-fallback-lang`).
+#[cfg(feature = "mark-fallback-lang")]
+pub(crate) fn with_marked_text<D: Description, R>(
+    description: &D,
+    catalog: &Catalog,
+    body: impl FnOnce(&str, Option<Lender<'_>>) -> R,
+) -> R {
+    let lender = Lender::of(catalog, description.msg_id());
+    format_with(
+        description,
+        catalog,
+        TextUse::Displayed,
+        None,
+        None,
+        |text| body(text, lender),
+    )
+}
+
+/// [`with_active_text`] for a text child, with the lender beside the text.
+#[cfg(feature = "mark-fallback-lang")]
+pub(crate) fn with_active_marked_text<D: Description, R>(
+    description: &D,
+    body: impl FnOnce(&str, Option<Lender<'_>>) -> R,
+) -> R {
+    match catalog::current() {
+        Some(cx) => {
+            let lender = Lender::of(cx.catalog(), description.msg_id());
+            format_with(
+                description,
+                cx.catalog(),
+                TextUse::Displayed,
+                cx.registry(),
+                cx.bidi(),
+                |text| body(text, lender),
+            )
+        }
+        None => body("", None),
     }
 }
 

@@ -35,11 +35,12 @@ static-locale = []
 # the catalog borrowed from a fallback locale renders inside a `<span lang>`,
 # identically on server and client.
 #
-# **Declared, not implemented** (Phase 6 A8). It changes the rendered
-# *structure* of a message, which is the one thing hydration cannot disagree
-# about, so it needs its own design rather than a flag that half works.
-# Turning it on today does nothing; `mf2 stats` reports fallback counts
-# meanwhile, so the gap is visible either way.
+# Only a borrowed message in a view position (a text child, a rich
+# fragment) is wrapped, so a page with no missing translation is unchanged;
+# `dir` is added when the lender's direction differs from the page's.
+# Attributes and strings cannot carry a `lang` of their own and stay
+# unmarked (`docs/accessibility.md`). Off, nothing of it is compiled
+# (`plans/15-phase-7-work-order.md` §"A14 — design").
 mark-fallback-lang = []
 # The tachys 0.3 line (Leptos 0.9), against its betas until 0.9 is released
 # (`plans/04-leptos-integration.md` §§3, 10): the glue's two
@@ -71,6 +72,10 @@ web-sys = { workspace = true, optional = true }
 mf2 = { workspace = true, features = ["compile", "host-std"] }
 # `tests/churn.rs` runs the client's effects natively.
 any_spawner = { workspace = true, features = ["futures-executor"] }
+# `tests/fallback_lang.rs` writes catalogs that borrow a message from another
+# locale, which `compile_str` (one locale, nothing missing) never does.
+mf2-catalog = { workspace = true, features = ["writer"] }
+mf2-syntax.workspace = true
 
 [[test]]
 name = "render"
@@ -79,6 +84,10 @@ required-features = ["ssr"]
 [[test]]
 name = "churn"
 required-features = ["csr"]
+
+[[test]]
+name = "fallback_lang"
+required-features = ["ssr", "mark-fallback-lang"]
 
 [package.metadata.docs.rs]
 features = ["leptos", "ssr"]

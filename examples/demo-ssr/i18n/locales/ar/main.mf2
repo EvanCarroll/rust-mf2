@@ -32,6 +32,11 @@ echo-label = اكتب شيئا
 
 not-found = هذه الصفحة غير موجودة.
 
+note-label = ملاحظة:
+# `untranslated` is missing here on purpose (see `en`): the catalog borrows
+# it from English, which is what `mark-fallback-lang` marks. `mf2 check`
+# reports it as `missing-translation`, a warning.
+
 [nav]
 label = الصفحات
 home = الرئيسية

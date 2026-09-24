@@ -22,7 +22,9 @@ leptos = { version = "0.8.20", default-features = false }
 leptos-mf2 = { path = "../../crates/leptos-mf2" }
 leptos_meta = "0.8.6"
 leptos_router = "0.8.15"
-mf2 = { path = "../../crates/mf2", features = ["fn-number", "fn-datetime", "datetime-icu"] }
+# `mark-fallback-lang`: borrowed text is marked with its language (the note
+# on the home page, untranslated in Arabic on purpose).
+mf2 = { path = "../../crates/mf2", features = ["fn-number", "fn-datetime", "datetime-icu", "mark-fallback-lang"] }
 
 axum = { version = "0.8.9", optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }

@@ -182,7 +182,7 @@ found nothing to propose (§"A8").
 
 ## Part A — tasks (A1–A3 in order; A4–A9 and A11–A15 as their inputs exist; A10 last)
 
-**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12** and **A13** (2026-09-24); what they found is below the table.
+**A1, A2, A3, A4, A5 and A6 are done** (2026-09-23), **A7**, **A8**, **A9**, **A11**, **A12**, **A13** and **A14** (2026-09-24); what they found is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -198,7 +198,7 @@ found nothing to propose (§"A8").
 | **A11** The WCAG 2.2 AA audit — **done** | The master plan's exit: every example page (`demo-ssr` both routes, `demo-islands`, `demo-csr`) in every locale, RTL included, audited against WCAG 2.2 AA — automated (an axe-style scan in `tools/e2e`) and by hand for what a scanner cannot see (focus order, `lang` of parts, the switcher with a screen reader). | the audit written, every finding fixed or recorded with its reason, the automated part a browser check. *Measured before building (below); what remains:* the switcher of owner question 9 (with a render test and browser assertions that an arrow key changes nothing, the button switches — live under `hydrate`/`csr`, by navigation with the wasm blocked — and that no fixed `id` is left); the example fixes the section lists; `tools/e2e/checks/a11y.mjs` asserting the scan, the contrast figures, reflow, and the switcher's keyboard behaviour in two engines, each with a negative control; the written audit in `plans/phase-7-results.md` |
 | **A12** Spec coverage — **done** (§"A12" below; [phase-7-results](phase-7-results.md) §A12) | The master plan's exit: no normative statement of the pinned spec without a covering test ([01](01-conformance.md) §5's coverage matrix, complete). A statement the WG suite does not cover gets a test in `conformance/extra/`. *Added by owner questions 10 and 11:* `to_string()` / `String::from` isolated by default and a new `to_plain_string()` (04 §9); the `nonstandard-name` lint (05 §5). | the matrix complete; zero uncovered normative statements; `cargo xtask conformance-report` checks it (and writes `COVERAGE.md`); the two additions built, each with a test and a negative control |
 | **A13** User documentation — **done** (§"A13" below) | What a user needs to adopt the library, leading with SSR + hydrate and then islands (owner question 1), with one i18n crate for server-rendered apps and catalogs published apart for client-only ones (owner questions 2 and 6): install, `mf2 init`, the call site, the delivery modes, the switcher, accessibility. | written, and every code sample in it compiled by CI |
-| **A14** `mark-fallback-lang` — **designed** (§"A14 — design" below), not built | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed (done), built, and asserted in a browser (hydration included) |
+| **A14** `mark-fallback-lang` — **done** (§"A14 — design" below; [phase-7-results](phase-7-results.md) §A14) | WCAG 3.1.2: text the catalog borrowed from a fallback locale renders inside `<span lang>`, identically on server and client — declared since Phase 6, doing nothing ([04](04-leptos-integration.md) §9). It changes a message's rendered *structure*, so it needs its own design before code. | designed (done), built, and asserted in a browser (hydration included) |
 | **A15** Benchmarks per commit | The size and speed numbers of [06](06-size-and-perf.md) recorded for every commit in CI, so a regression is seen when it lands rather than at a phase exit. | the CI job runs and keeps its history |
 | **A10** The Phase 8 work order | Written from Phase 7's findings into `plans/16-phase-8-work-order.md`. | written |
 
@@ -919,7 +919,7 @@ The whole record is [phase-7-results](phase-7-results.md) §A13. In short:
   instant formats in UTC unless the value or `Setup` names a zone. The
   documentation says so; it is left to the Phase 8 order (A10).
 
-## A14 — design (2026-09-24; not built)
+## A14 — design (2026-09-24; built as written — [phase-7-results](phase-7-results.md) §A14)
 
 Written before any code, as the row asks. What exists: the catalog's
 FALLBACK section (02 §2.6) names, per message, the locale its text came
@@ -1060,6 +1060,7 @@ built (it says the feature does nothing), and the feature's comment in
       statements, 0 gaps)
 - [ ] user documentation (A13), `mark-fallback-lang` (A14) and per-commit
       benchmarks (A15) done
+      *(A13 and A14 done; A15 remains)*
 - [ ] islands, CSR and lazy routes each demonstrated by the example and
       asserted by a browser check
 - [ ] a server-only component's wasm cost measured at zero

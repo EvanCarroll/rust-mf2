@@ -56,8 +56,12 @@ pub(crate) const NONE: u32 = u32::MAX;
 /// attribute, its key — which is what the argument effect below holds.
 #[derive(Clone)]
 pub(crate) enum Target {
-    /// A text child.
-    Text(Text),
+    /// A text child — with `mark-fallback-lang`, and the wrapper its view
+    /// state shares, which a write fits to the message's lender.
+    Text(
+        Text,
+        #[cfg(feature = "mark-fallback-lang")] crate::lang::Wrapper,
+    ),
     /// An attribute of an element (`title`, `placeholder`, `value`), whose
     /// name decides its isolation ([`state::attribute_use`]).
     Attribute(Element, Box<str>),
@@ -70,7 +74,7 @@ impl Target {
     /// What the text in this position is for, which decides bidi isolation.
     fn text_use(&self) -> TextUse {
         match self {
-            Target::Text(_) => TextUse::Displayed,
+            Target::Text(..) => TextUse::Displayed,
             Target::Attribute(_, key) => state::attribute_use(key),
             Target::Property(..) => TextUse::Plain,
         }
@@ -79,12 +83,27 @@ impl Target {
     /// Writes `text` where this target is.
     fn write(&self, text: &str) {
         match self {
-            Target::Text(node) => Rndr::set_text(node, text),
+            Target::Text(node, ..) => Rndr::set_text(node, text),
             Target::Attribute(el, key) => Rndr::set_attribute(el, key, text),
             Target::Property(el, key) => {
                 Rndr::set_property_or_value(el, key, &wasm_bindgen::JsValue::from_str(text));
             }
         }
+    }
+
+    /// Formats `desc` against `catalog` and writes it here — every write
+    /// the registry makes goes through this. With `mark-fallback-lang`, a
+    /// text child also fits its wrapper to the message's lender.
+    fn render(&self, desc: &Stored, catalog: &Catalog) {
+        #[cfg(feature = "mark-fallback-lang")]
+        if let Target::Text(node, wrapper) = self {
+            text::with_marked_text(desc, catalog, |text, lender| {
+                Rndr::set_text(node, text);
+                wrapper.fit(node, lender);
+            });
+            return;
+        }
+        text::with_text(desc, catalog, self.text_use(), |text| self.write(text));
     }
 }
 
@@ -131,9 +150,7 @@ impl Slot {
     )]
     fn apply(&self, catalog: &Catalog) {
         match self {
-            Slot::Value { target, desc, .. } => {
-                text::with_text(desc, catalog, target.text_use(), |text| target.write(text));
-            }
+            Slot::Value { target, desc, .. } => target.render(desc, catalog),
             #[cfg(not(feature = "static-locale"))]
             Slot::Rich(node) => {
                 if let Ok(mut node) = node.try_borrow_mut() {
@@ -273,9 +290,7 @@ pub(crate) fn replace(index: &mut u32, target: impl FnOnce() -> Option<Target>, 
                 // The argument effect writes the text as it subscribes.
                 *index = insert(target, desc);
             } else {
-                text::with_text(&desc, &catalog, target.text_use(), |text| {
-                    target.write(text);
-                });
+                target.render(&desc, &catalog);
             }
         }
         #[cfg(not(feature = "static-locale"))]
@@ -293,9 +308,7 @@ pub(crate) fn replace(index: &mut u32, target: impl FnOnce() -> Option<Target>, 
         {
             *stored = desc;
             *args = args_effect(target, stored);
-            text::with_text(stored, &catalog, target.text_use(), |text| {
-                target.write(text);
-            });
+            target.render(stored, &catalog);
         }
     });
 }
@@ -364,10 +377,7 @@ fn args_effect(target: &Target, desc: &Stored) -> Option<ArgsEffect> {
     // to the sources; the write it makes is the one `build` just made.
     Some(ArgsEffect(RenderEffect::new(move |_| {
         if let Some(catalog) = catalog::active() {
-            let use_ = target.text_use();
-            text::with_text(&desc, &catalog, use_, |text| {
-                target.write(text);
-            });
+            target.render(&desc, &catalog);
         }
     })))
 }

@@ -12,6 +12,7 @@
 //! | the search field's `placeholder` | a description as an attribute |
 //! | the hotkey line | markup as elements: the reason nothing mounts before the catalog |
 //! | the counter | a signal-valued argument |
+//! | the note | a sentence untranslated in Arabic on purpose: built inside `<span lang="en" dir="ltr">` there (`mark-fallback-lang`) |
 //! | the switcher | a live switch, remembered in `localStorage` |
 //!
 //! Layout is flexbox, the SVG is an external file, and the page carries
@@ -64,6 +65,16 @@ fn App() -> impl IntoView {
                     </label>
                     <p id="hotkey">
                         {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                    </p>
+                </section>
+
+                <section class="card">
+                    // Left untranslated in Arabic on purpose: borrowed from
+                    // English, it is built inside `<span lang="en" dir="ltr">`
+                    // there (`mark-fallback-lang`, WCAG 3.1.2), and a switch
+                    // adds or removes the span around the same text node.
+                    <p id="untranslated">
+                        {tr!("note-label")} " " {tr!("untranslated")}
                     </p>
                 </section>
 

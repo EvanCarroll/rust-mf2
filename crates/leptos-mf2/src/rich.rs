@@ -53,7 +53,15 @@ pub(crate) fn fragment_with(
     };
     let mut errors = NoErrors;
     rich.parts(&formatter, &mut builder, &mut errors as &mut dyn ErrorSink);
-    builder.finish()
+    let root = builder.finish();
+    // Borrowed: the fragment inside one `<span lang [dir]>`, which tachys
+    // writes and hydrates like the handlers' elements, and replaces on a
+    // switch that changes whether it is there.
+    #[cfg(feature = "mark-fallback-lang")]
+    if let Some(lender) = crate::lang::Lender::of(catalog, rich.id()) {
+        return alloc::vec![lender.wrap(root)];
+    }
+    root
 }
 
 /// The fragment `rich` renders to against `catalog`, as installed — what a

@@ -16,7 +16,10 @@
 //!    `target/leptos-beta/target`, which is kept between runs.
 //! 3. **On the beta.** `leptos-mf2` checked for `ssr` natively and for
 //!    `hydrate` and `csr` on `wasm32-unknown-unknown`, then its `render`
-//!    (`ssr`) and `churn` (`csr`) tests, all with `tachys-0-3`.
+//!    (`ssr`) and `churn` (`csr`) tests, all with `tachys-0-3`; then
+//!    `mark-fallback-lang`, whose server glue has a 0.3 form of its own (the
+//!    separator follows `flags.hydrate`): `hydrate` checked and the
+//!    `fallback_lang` test (`ssr`).
 //!
 //! `--no-tachys-0-3` runs step 3 without the feature: the negative control,
 //! which must fail on a 0.9 pre-release (the two `to_html_with_buf` impls).
@@ -66,14 +69,30 @@ pub(crate) fn run(root: &Path, with_feature: bool) -> Result<()> {
         }
     };
     let (ssr, hydrate, csr) = (features("ssr"), features("hydrate"), features("csr"));
+    let (ssr_lang, hydrate_lang) = (
+        features("ssr,mark-fallback-lang"),
+        features("hydrate,mark-fallback-lang"),
+    );
     let wasm = "wasm32-unknown-unknown";
     let base_args = ["-p", "leptos-mf2", "--no-default-features", "--features"];
-    let steps: [Vec<&str>; 5] = [
+    let steps: [Vec<&str>; 7] = [
         [&["check"][..], &base_args, &[&ssr]].concat(),
         [&["check", "--target", wasm][..], &base_args, &[&hydrate]].concat(),
         [&["check", "--target", wasm][..], &base_args, &[&csr]].concat(),
         [&["test"][..], &base_args, &[&ssr, "--test", "render"]].concat(),
         [&["test"][..], &base_args, &[&csr, "--test", "churn"]].concat(),
+        [
+            &["check", "--target", wasm][..],
+            &base_args,
+            &[&hydrate_lang],
+        ]
+        .concat(),
+        [
+            &["test"][..],
+            &base_args,
+            &[&ssr_lang, "--test", "fallback_lang"],
+        ]
+        .concat(),
     ];
     let cargo = cargo();
     for (i, step) in steps.iter().enumerate() {
@@ -87,8 +106,8 @@ pub(crate) fn run(root: &Path, with_feature: bool) -> Result<()> {
         }
     }
     eprintln!(
-        "==> leptos-beta: leptos-mf2 checks for ssr, hydrate and csr and passes render and \
-         churn on the pre-release{}",
+        "==> leptos-beta: leptos-mf2 checks for ssr, hydrate and csr and passes render, \
+         churn and fallback_lang on the pre-release{}",
         if with_feature {
             ", with `tachys-0-3`"
         } else {

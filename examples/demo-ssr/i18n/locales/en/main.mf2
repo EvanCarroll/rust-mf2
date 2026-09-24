@@ -34,6 +34,12 @@ echo-label = Type something
 
 not-found = This page does not exist.
 
+# Left untranslated in `ar` on purpose: the Arabic catalog borrows it from
+# English, and `mark-fallback-lang` renders it inside
+# `<span lang="en" dir="ltr">` (WCAG 3.1.2). The one gap in this corpus.
+note-label = Note:
+untranslated = This sentence has not been translated into every language yet.
+
 [nav]
 label = Pages
 home = Home

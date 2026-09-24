@@ -18,6 +18,11 @@
 //     `data-*`, which programs read, and around the name in `title=` — as
 //     served, as hydrated, and as the registry rewrites them on a switch
 //     (04 §9);
+//   * text the catalog borrowed from another locale is inside
+//     `<span lang [dir]>` (`mark-fallback-lang`, WCAG 3.1.2): as served,
+//     adopted by hydration as the same node, removed by a switch to a
+//     locale that has its own text and put back by a switch home — around
+//     a text node that keeps its identity throughout (Phase 7 A14);
 //   * no message text is in the client bundle (B6).
 
 import {
@@ -109,6 +114,19 @@ export async function run(ctx) {
   const arabicHtml = arabic.text();
   assert('query-beats-everything', attr(arabicHtml, HTML) === 'ar', attr(arabicHtml, HTML));
   assert('rtl-locale-sets-dir', attr(arabicHtml, DIR) === 'rtl', attr(arabicHtml, DIR));
+
+  // `mark-fallback-lang`: the note is untranslated in Arabic on purpose, so
+  // the Arabic page borrows it from English and says so; English and French
+  // have their own text and no span.
+  const note = (html) => html.match(/<p[^>]*\bid="untranslated"[^>]*>([\s\S]*?)<\/p>/)?.[1] || '';
+  const arNote = note(arabicHtml);
+  assert(
+    'served-borrowed-text-is-marked',
+    /<span lang="en" dir="ltr">This sentence has not been translated/.test(arNote),
+    arNote,
+  );
+  assert('served-own-text-is-not-marked', !/<span/.test(note(englishHtml)), note(englishHtml));
+  assert('served-own-french-is-not-marked', !/<span/.test(note(frenchHtml)), note(frenchHtml));
 
   // The preload link is the boot data.
   const preload = englishHtml.match(PRELOAD)?.[0];
@@ -330,6 +348,10 @@ export async function run(ctx) {
   );
   assert('console-is-silent-after-reloads', console_.length === 0, console_.slice(0, 4));
 
+  // --------------------------------------------- borrowed text ---
+
+  await borrowedText(browser, baseUrl, assert, data);
+
   // ----------------------------------------------------------- canary ---
 
   const bundle = await context.request.get(`${baseUrl}/pkg/demo_ssr.js`);
@@ -385,6 +407,77 @@ export async function run(ctx) {
   assert('failed-boot-says-why-once', failed.mf2.length === 1, failed.mf2);
   assert('failed-boot-does-not-trap', failed.other.length === 0, failed.other);
   await failing.close();
+}
+
+/**
+ * `mark-fallback-lang` in the browser (Phase 7 A14). The server wrote the
+ * Arabic page's note inside `<span lang="en" dir="ltr">`; hydration must
+ * adopt that span — the same node, no `mf2:` mismatch — and a switch must
+ * fit the span around a text node that keeps its identity.
+ */
+async function borrowedText(browser, baseUrl, assert, data) {
+  const context = await browser.newContext();
+  // Before hydration: the span and its text node as the server wrote them.
+  await context.addInitScript(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const span = document.querySelector('#untranslated span');
+      window.__servedSpan = span;
+      window.__servedText = span?.firstChild ?? null;
+    });
+  });
+  const page = await context.newPage();
+  const messages = [];
+  watchConsole(page, messages);
+  await page.goto(`${baseUrl}/?lang=ar`, { waitUntil: 'load' });
+  await hydrated(page);
+
+  const probe = () =>
+    page.evaluate(() => {
+      const p = document.querySelector('#untranslated');
+      const span = p?.querySelector('span');
+      const text = window.__servedText;
+      return {
+        span: span ? { lang: span.getAttribute('lang'), dir: span.getAttribute('dir') } : null,
+        sameSpan: span != null && span === window.__servedSpan,
+        textKept: text != null && text.isConnected && p.contains(text),
+        textInSpan: span != null && text?.parentNode === span,
+        text: p?.textContent.replace(/\s+/g, ' ').trim(),
+      };
+    });
+
+  const hydratedNote = await probe();
+  assert('hydration-adopts-the-span', hydratedNote.sameSpan && hydratedNote.textInSpan, hydratedNote);
+  assert(
+    'hydrated-span-keeps-lang-and-dir',
+    hydratedNote.span?.lang === 'en' && hydratedNote.span?.dir === 'ltr',
+    hydratedNote.span,
+  );
+  const mismatch = messages.filter((m) => m.text.startsWith('mf2:'));
+  assert('hydration-reports-no-mismatch', mismatch.length === 0, mismatch.map((m) => m.text));
+
+  await chooseLocale(page, 'fr');
+  await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, { timeout: 5000 });
+  const frNote = await probe();
+  assert('switch-removes-the-span', frNote.span === null, frNote);
+  assert('switch-keeps-the-text-node', frNote.textKept, frNote);
+  assert('switch-writes-the-own-text', /^Remarque/.test(frNote.text || ''), frNote.text);
+
+  await chooseLocale(page, 'ar');
+  await page.waitForFunction(() => document.documentElement.lang === 'ar', undefined, { timeout: 5000 });
+  const arNote = await probe();
+  assert(
+    'switch-back-restores-the-span',
+    arNote.span?.lang === 'en' && arNote.span?.dir === 'ltr' && arNote.textInSpan,
+    arNote,
+  );
+  assert('switch-back-keeps-the-text-node', arNote.textKept, arNote);
+  assert('switch-back-equals-hydrated', arNote.text === hydratedNote.text, {
+    hydrated: hydratedNote.text,
+    back: arNote.text,
+  });
+  assert('borrowed-text-console-is-silent', messages.length === 0, messages.slice(0, 4));
+  data.borrowedText = { hydrated: hydratedNote, fr: frNote, ar: arNote };
+  await context.close();
 }
 
 const BIDI_MARKS = /[\u2066-\u2069]/;

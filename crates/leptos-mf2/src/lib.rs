@@ -87,6 +87,9 @@ pub use components::{
 #[cfg(feature = "leptos")]
 pub mod links;
 
+#[cfg(all(feature = "leptos", feature = "mark-fallback-lang"))]
+mod lang;
+
 #[cfg(feature = "leptos")]
 mod registry;
 #[cfg(feature = "leptos")]

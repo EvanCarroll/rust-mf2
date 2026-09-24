@@ -23,6 +23,12 @@ people-online =
 add-one = Add one
 reset = Reset
 
+# Left untranslated in `ar` on purpose: the Arabic catalog borrows it from
+# English, and `mark-fallback-lang` renders it inside
+# `<span lang="en" dir="ltr">` (WCAG 3.1.2). The one gap in this corpus.
+note-label = Note:
+untranslated = This sentence has not been translated into every language yet.
+
 [language]
 label = Language
 # The switcher's button: a choice applies only when it is pressed.

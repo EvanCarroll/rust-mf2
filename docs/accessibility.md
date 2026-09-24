@@ -105,8 +105,34 @@ default in `mf2.toml`) shows the source language's text in its place.
 Other options are `"id"` (the message's id, so the gap is visible) and
 `"empty"`. That borrowed text is in a different language from the page,
 and WCAG 3.1.2 asks for such a passage to be marked with its own `lang`.
-**The library does not mark it yet.** The `mark-fallback-lang` feature is
-declared for this and currently does nothing. Until it does:
+Turn on `mark-fallback-lang` and the library does it:
+
+```toml file=calls/Cargo.toml merge
+[dependencies]
+leptos-mf2 = { version = "0.1", features = ["mark-fallback-lang"] }
+```
+
+A message the page's catalog borrowed then renders inside a `<span>`
+naming the language it came from. In an Arabic page, an English sentence
+becomes `<span lang="en" dir="ltr">…</span>`: a screen reader reads it
+with an English voice, and it lays out left to right. `dir` is added only
+when the two languages' directions differ. A translated message is still
+a bare text node, so the feature changes nothing on a page with no
+missing translation. The server writes the span, hydration keeps the one
+it wrote, and a live switch adds or removes it around the same text.
+
+Some places cannot be marked, and stay as they are:
+
+* **Attributes** (`title`, `aria-label`, `alt`, `placeholder`). HTML
+  gives an attribute a language only through its element's `lang`, which
+  would relabel the element's content as well.
+* **Strings** (`to_string()`, `String::from`, `TextProp`,
+  `Signal<String>`). A string has no markup to carry a `lang`.
+* **`<title>` and `<textarea>`.** They hold only text, so a span in them
+  would be shown as literal markup. Use the string forms there, which are
+  unmarked: `leptos_meta`'s `<Title text=…>`, and `prop:value`.
+
+For those, the answer is to translate the message. Either way:
 
 * `mf2 -C i18n check` warns about every missing translation
   (`missing-translation`), and `mf2 -C i18n stats` counts them per

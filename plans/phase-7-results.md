@@ -81,7 +81,9 @@ installed on the development machine.
   its own `lang`. The Latin inside Arabic text — "Leptos", "wasm", "Esc",
   "Ada" — is proper names and technical terms, which 3.1.2 exempts. Text a
   catalog borrows from a fallback locale is A14's (`mark-fallback-lang`);
-  the examples have none.
+  the examples had none at this audit. *Since A14:* `demo-ssr` and
+  `demo-csr` leave one sentence untranslated in `ar` on purpose, rendered
+  inside `<span lang="en" dir="ltr">`, and the scan still passes (§A14).
 * **2.5.8 Target Size (Minimum):** axe's rule passes.
 
 ### What the fix cost
@@ -318,3 +320,92 @@ app at 1,860 sites **45,517 B gz** — all met.
 a re-render after hydration; neither exists. An instant formats in its own
 zone, else `Setup::with_time_zone`'s, else UTC, identically on both sides.
 The call-site page says so. Left to the Phase 8 work order.
+
+## A14 — `mark-fallback-lang`
+
+Built to the design in [15](15-phase-7-work-order.md) §"A14 — design",
+without departures. WCAG 3.1.2: a message the catalog in force borrowed
+from another locale renders, in a view position, inside
+`<span lang="{lender}">`, with `dir` when the lender's direction differs
+from the catalog's. An own message is a bare text node, as before.
+
+**Where it lives.** `crates/leptos-mf2/src/lang.rs` (new): the lender
+(`Catalog::fallback_locale` plus the lender's direction from `LOCALES`,
+found once where the catalog is already in hand), the server's opening
+tag, the rich fragment's wrapper (one tachys `span` around the builder's
+fragment), and the client's `Wrapper`, an `Rc<Cell<Option<Element>>>`
+that the view state and the registry's `Target::Text` share. The glue
+(`glue/view.rs`) writes, builds and hydrates the text types through it
+under the feature, and leaves the feature-off bodies as they were. The
+registry's four "format, then write" sites became one `Target::render`,
+which under the feature fits the wrapper, so a switch, a rebuild (also
+under `static-locale`) and an argument effect all take the same path.
+
+**Tests.**
+
+* Native, `ssr` — `crates/leptos-mf2/tests/fallback_lang.rs`, catalogs
+  written with a FALLBACK entry (`mf2_catalog::writer`): 7 tests. A
+  borrowed plain message is `<span lang="en">Save</span>`; borrowed into
+  `ar` it gains `dir="ltr"`; an own message has no span; a borrowed rich
+  message is wrapped whole; `a<!>Save<!>b` becomes
+  `a<!><span lang="en">Save</span><!>b` (the separators do not move); an
+  empty borrowed text keeps tachys' `' '`; `title=` and `to_string()` are
+  unmarked. Negative control, run: the same file with the feature off —
+  5 fail (every span assertion), the 2 "unchanged" tests pass.
+* Browser, `demo-ssr` (debug, `--split`; Chromium and Firefox; WebKit not
+  installed). The note on the home page, `note-label` then `untranslated`,
+  is left untranslated in `ar` on purpose (said in the corpus and the
+  view). `demo.mjs` 144 → **170/170**: served `?lang=ar` has
+  `<span lang="en" dir="ltr">`, `en` and `fr` have none; hydration adopts
+  the same span and text node and logs nothing; a switch to `fr` removes
+  the span and keeps the text node; back to `ar` wraps that node again,
+  with the hydrated page's text. Negative control, run: `Wrapper::adopt`
+  refusing an element — Chromium 82/85, failing
+  `hydration-reports-no-mismatch` on the `mf2:` mismatch line, and the two
+  that follow from it. `a11y.mjs` 720/720 and `lazy.mjs` 66/66 with the
+  note in place.
+* Browser, `demo-csr` (the build path; `trunk build`). `csr.mjs` 78 →
+  **88/88**: no span in `fr`; a switch to `ar` wraps the text node `fr`
+  built; mounting in `ar` after a reload builds it wrapped; a switch back
+  to `fr` unwraps it and keeps the node.
+* CI: `cargo xtask ci` lints the feature's client half (`hydrate`, and
+  `csr,static-locale`) and its server half with the test, and runs the
+  test. `cargo xtask leptos-beta` also checks `hydrate` with the feature and
+  runs `fallback_lang` on the 0.9 pre-release, where the separator follows
+  `flags.hydrate` — run: passes on leptos 0.9.0-beta / tachys 0.3.0-beta2,
+  `fallback_lang` 7/7. `cargo xtask docs`: every sample compiled, the new
+  one included.
+
+**Size.** `cargo xtask size` (the feature is off in the gated build): B1
+**22,102 B gz**, unchanged from A13; B5 12.6 B gz a site; the whole app at
+1,860 sites 45,517 B gz — all met. The example's client with the feature
+on, `demo-ssr` `cargo leptos build --release --split`, measured by
+alternating the one feature in its manifest:
+
+| file | off (raw / gz / br) | on (raw / gz / br) | Δ br |
+|---|---:|---:|---:|
+| `demo_ssr.wasm` | 727,792 / 306,012 / 243,536 | 733,706 / 308,696 / 245,427 | +1,891 |
+| the lazy route's chunk | 13,506 / 6,858 / 5,993 | 13,315 / 6,728 / 5,875 | −118 |
+| `demo_ssr.js` | 22,497 / 6,611 / 5,750 | 22,613 / 6,636 / 5,773 | +23 |
+| **total** | 763,795 / 319,481 / 255,279 | 769,634 / 322,060 / 257,075 | **+1,796** |
+
+gzip −9 and brotli q11 (Node's zlib). A third build with only the rich
+wrapper compiled out puts the main module's share at +933 B br for the
+text path and +958 B br for the rich wrapper (a new element type behind
+`AnyView`). Opt-in, so no budget moves; an application that turns it on
+pays about 2.6 KB gz, inside B1's 30 KB with 22.1 KB used.
+
+**Found and fixed: the example's release build did not compile.**
+`cargo leptos build --split --release` in `examples/demo-ssr` (the
+README's command) failed at the committed tree with "queries overflow
+the depth limit" (the app's view type inside `hydrate_lazy`'s future);
+debug builds, which every browser check uses, were unaffected. The
+compiler's suggestion, `#![recursion_limit = "256"]`, fixes it; committed
+apart, before this change.
+
+**Documented.** `docs/accessibility.md` §"Untranslated text" (how to turn
+it on, what it renders, and what cannot be marked: attributes, strings,
+`<title>` and `<textarea>`); its sample is compiled by `cargo xtask docs`
+as a `merge` into the `calls` project, so the docs build the feature for
+`ssr` and `hydrate`. The feature's comments in `leptos-mf2`'s and `mf2`'s
+manifests, and 04 §9.

@@ -33,8 +33,10 @@ use tachys::html::attribute::any_attribute::AnyAttribute;
 use tachys::html::attribute::{Attribute, AttributeValue};
 use tachys::html::property::IntoProperty;
 use tachys::hydration::Cursor;
+#[cfg(not(feature = "mark-fallback-lang"))]
+use tachys::renderer::CastFrom;
+use tachys::renderer::Rndr;
 use tachys::renderer::types::{Element, Text as TextNode};
-use tachys::renderer::{CastFrom, Rndr};
 use tachys::view::add_attr::AddAnyAttr;
 use tachys::view::any_view::AnyViewState;
 use tachys::view::iterators::VecState;
@@ -44,6 +46,8 @@ use tachys::view::iterators::VecState;
 use tachys::view::RenderFlags; // `tachys-0-3` needs Leptos 0.9; for Leptos 0.8, turn it off
 use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTemplate};
 
+#[cfg(feature = "mark-fallback-lang")]
+use crate::lang::{self, Wrapper};
 #[cfg(not(feature = "static-locale"))]
 use crate::registry::Relocalize;
 use crate::registry::{self, Target};
@@ -54,9 +58,15 @@ use crate::{Tr, TrArgs, TrDyn, TrRich};
 
 /// The retained state of a rendered description: the registry slot, and
 /// nothing else. Four bytes, and `Drop` frees the slot in O(1) (D7).
+///
+/// With `mark-fallback-lang`, also the wrapper the slot shares: the text
+/// node keeps its identity for the life of the view, and a `<span lang>`
+/// comes and goes around it.
 pub struct TrState {
     slot: u32,
     node: TextNode,
+    #[cfg(feature = "mark-fallback-lang")]
+    wrapper: Wrapper,
 }
 
 impl Drop for TrState {
@@ -65,20 +75,38 @@ impl Drop for TrState {
     }
 }
 
+/// Without `mark-fallback-lang` the node is the text; with it, the wrapper
+/// when there is one — every method acts on the outer node.
 impl Mountable for TrState {
     fn unmount(&mut self) {
+        #[cfg(feature = "mark-fallback-lang")]
+        if let Some(mut wrapper) = self.wrapper.get() {
+            wrapper.unmount();
+            return;
+        }
         self.node.unmount();
     }
 
     fn mount(&mut self, parent: &Element, marker: Option<&tachys::renderer::types::Node>) {
+        #[cfg(feature = "mark-fallback-lang")]
+        Rndr::insert_node(parent, &self.wrapper.outer(&self.node), marker);
+        #[cfg(not(feature = "mark-fallback-lang"))]
         Rndr::insert_node(parent, self.node.as_ref(), marker);
     }
 
     fn insert_before_this(&self, child: &mut dyn Mountable) -> bool {
+        #[cfg(feature = "mark-fallback-lang")]
+        if let Some(wrapper) = self.wrapper.get() {
+            return wrapper.insert_before_this(child);
+        }
         self.node.insert_before_this(child)
     }
 
     fn elements(&self) -> Vec<Element> {
+        #[cfg(feature = "mark-fallback-lang")]
+        if let Some(wrapper) = self.wrapper.get() {
+            return alloc::vec![wrapper];
+        }
         Vec::new()
     }
 }
@@ -99,7 +127,19 @@ fn with_text<D: Description, R>(description: &D, use_: TextUse, body: impl FnOnc
 /// traps and the whole page stops hydrating (P0.10). Here the mismatch is
 /// reported once and a detached text node is used instead, so this one
 /// message is wrong and everything after it still hydrates.
+#[cfg(not(feature = "mark-fallback-lang"))]
 fn adopt_text(cursor: &Cursor, position: &PositionState, text: &str) -> TextNode {
+    let node = walk(cursor, position);
+    if let Some(text_node) = TextNode::cast_from(node.clone()) {
+        return text_node;
+    }
+    hydration_mismatch(&node);
+    Rndr::create_text_node(text)
+}
+
+/// Moves the cursor to a text's node — child or sibling, then over the
+/// separator — and leaves the position where a text leaves it.
+fn walk(cursor: &Cursor, position: &PositionState) -> tachys::renderer::types::Node {
     if position.get() == Position::FirstChild {
         cursor.child();
     } else {
@@ -109,13 +149,104 @@ fn adopt_text(cursor: &Cursor, position: &PositionState, text: &str) -> TextNode
     if matches!(position.get(), Position::NextChildAfterText) {
         cursor.sibling();
     }
-    let node = cursor.current();
     position.set(Position::NextChildAfterText);
-    if let Some(text_node) = TextNode::cast_from(node.clone()) {
+    cursor.current()
+}
+
+/// [`adopt_text`] under `mark-fallback-lang`: the shape the server wrote is
+/// adopted, not asked of the catalog (§3) — a text as it is, or a
+/// `<span lang>` as the wrapper with its text inside. The cursor stays on
+/// the outer node, so what follows walks as it would after a text.
+#[cfg(feature = "mark-fallback-lang")]
+fn adopt_marked(
+    cursor: &Cursor,
+    position: &PositionState,
+    text: &str,
+    wrapper: &Wrapper,
+) -> TextNode {
+    let node = walk(cursor, position);
+    if let Some(text_node) = wrapper.adopt(node.clone()) {
         return text_node;
     }
     hydration_mismatch(&node);
     Rndr::create_text_node(text)
+}
+
+/// A text child built on the client, wrapped when its message is borrowed.
+#[cfg(feature = "mark-fallback-lang")]
+fn build_marked<D: Description>(description: D) -> TrState {
+    let wrapper = Wrapper::default();
+    let node = text::with_active_marked_text(&description, |text, lender| {
+        let node = Rndr::create_text_node(text);
+        wrapper.fit(&node, lender);
+        node
+    });
+    let slot = registry::insert(
+        Target::Text(node.clone(), wrapper.clone()),
+        description.into_stored(),
+    );
+    TrState {
+        slot,
+        node,
+        wrapper,
+    }
+}
+
+/// A text child hydrated: from the server, the shape it wrote; from a
+/// template clone, the catalog's text, fitted.
+#[cfg(feature = "mark-fallback-lang")]
+fn hydrate_marked<const FROM_SERVER: bool, D: Description>(
+    description: D,
+    cursor: &Cursor,
+    position: &PositionState,
+) -> TrState {
+    let wrapper = Wrapper::default();
+    let node = if FROM_SERVER {
+        adopt_marked(cursor, position, "", &wrapper)
+    } else {
+        text::with_active_marked_text(&description, |text, lender| {
+            let node = adopt_marked(cursor, position, text, &wrapper);
+            Rndr::set_text(&node, text);
+            wrapper.fit(&node, lender);
+            node
+        })
+    };
+    let slot = registry::insert(
+        Target::Text(node.clone(), wrapper.clone()),
+        description.into_stored(),
+    );
+    TrState {
+        slot,
+        node,
+        wrapper,
+    }
+}
+
+/// A text child on the server. Unborrowed, `write` — tachys' own `&str`
+/// rules — is the whole of it. Borrowed: the separator exactly when tachys
+/// would write one before a text (`separator`), the span, the text written
+/// as a first child, and the position a text leaves, so that whatever
+/// follows writes and hydrates the same either way.
+#[cfg(feature = "mark-fallback-lang")]
+fn html_marked<D: Description>(
+    description: &D,
+    buf: &mut String,
+    position: &mut Position,
+    separator: bool,
+    write: impl FnOnce(&str, &mut String, &mut Position),
+) {
+    text::with_active_marked_text(description, |text, lender| match lender {
+        None => write(text, buf, position),
+        Some(lender) => {
+            if separator {
+                buf.push_str("<!>");
+            }
+            lang::write_open(buf, lender);
+            write(text, buf, &mut Position::FirstChild);
+            buf.push_str("</span>");
+            *position = Position::NextChildAfterText;
+        }
+    });
 }
 
 /// One diagnostic, then degrade (§3). Not a panic, and not `format!`: the
@@ -149,6 +280,7 @@ macro_rules! render_description {
         impl Render for $ty {
             type State = TrState;
 
+            #[cfg(not(feature = "mark-fallback-lang"))]
             fn build(self) -> Self::State {
                 let node = with_text(&self, TextUse::Displayed, |text| {
                     Rndr::create_text_node(text)
@@ -157,13 +289,18 @@ macro_rules! render_description {
                 TrState { slot, node }
             }
 
+            #[cfg(feature = "mark-fallback-lang")]
+            fn build(self) -> Self::State {
+                build_marked(self)
+            }
+
             fn rebuild(self, state: &mut Self::State) {
                 let node = &state.node;
-                registry::replace(
-                    &mut state.slot,
-                    || Some(Target::Text(node.clone())),
-                    self.into_stored(),
-                );
+                #[cfg(feature = "mark-fallback-lang")]
+                let target = || Some(Target::Text(node.clone(), state.wrapper.clone()));
+                #[cfg(not(feature = "mark-fallback-lang"))]
+                let target = || Some(Target::Text(node.clone()));
+                registry::replace(&mut state.slot, target, self.into_stored());
             }
         }
 
@@ -192,6 +329,24 @@ macro_rules! render_description {
                 mark_branches: bool,
                 extra_attrs: Vec<AnyAttribute>,
             ) {
+                #[cfg(feature = "mark-fallback-lang")]
+                html_marked(
+                    &self,
+                    buf,
+                    position,
+                    matches!(*position, Position::NextChildAfterText),
+                    |text, buf, position| {
+                        <&str as RenderHtml>::to_html_with_buf(
+                            text,
+                            buf,
+                            position,
+                            escape,
+                            mark_branches,
+                            extra_attrs,
+                        );
+                    },
+                );
+                #[cfg(not(feature = "mark-fallback-lang"))]
                 with_text(&self, TextUse::Displayed, |text| {
                     <&str as RenderHtml>::to_html_with_buf(
                         text,
@@ -212,11 +367,38 @@ macro_rules! render_description {
                 flags: RenderFlags,
                 extra_attrs: Vec<AnyAttribute>,
             ) {
+                #[cfg(feature = "mark-fallback-lang")]
+                html_marked(
+                    &self,
+                    buf,
+                    position,
+                    flags.hydrate && matches!(*position, Position::NextChildAfterText),
+                    |text, buf, position| {
+                        <&str as RenderHtml>::to_html_with_buf(
+                            text,
+                            buf,
+                            position,
+                            flags,
+                            extra_attrs,
+                        );
+                    },
+                );
+                #[cfg(not(feature = "mark-fallback-lang"))]
                 with_text(&self, TextUse::Displayed, |text| {
                     <&str as RenderHtml>::to_html_with_buf(text, buf, position, flags, extra_attrs);
                 });
             }
 
+            #[cfg(feature = "mark-fallback-lang")]
+            fn hydrate<const FROM_SERVER: bool>(
+                self,
+                cursor: &Cursor,
+                position: &PositionState,
+            ) -> Self::State {
+                hydrate_marked::<FROM_SERVER, _>(self, cursor, position)
+            }
+
+            #[cfg(not(feature = "mark-fallback-lang"))]
             fn hydrate<const FROM_SERVER: bool>(
                 self,
                 cursor: &Cursor,

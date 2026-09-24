@@ -31,6 +31,9 @@ echo-label = Saisissez quelque chose
 
 not-found = Cette page n'existe pas.
 
+note-label = Remarque :
+untranslated = Cette phrase n'a pas encore été traduite dans toutes les langues.
+
 [nav]
 label = Pages
 home = Accueil

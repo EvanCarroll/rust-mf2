@@ -99,6 +99,36 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // `mark-fallback-lang` (Phase 7 A14) compiles a second shape of the text
+    // glue — the adopted wrapper, the fitted span — that no other step
+    // builds. Lint its client half with and without `static-locale`, whose
+    // unregistered nodes fit the wrapper through a rebuild.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "hydrate,mark-fallback-lang",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "csr,static-locale,mark-fallback-lang",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
     // The client half's conversions under churn (Phase 7 A5): natively, with
     // `csr`, which `--workspace` never builds (it unifies `ssr`). The browser
@@ -112,6 +142,30 @@ const STEPS: &[&[&str]] = &[
         "csr",
         "--test",
         "churn",
+    ],
+    // The server's half of `mark-fallback-lang`, with its test and the
+    // test's catalogs that borrow; the browser's is `demo.mjs`.
+    &[
+        "clippy",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "ssr,mark-fallback-lang",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "test",
+        "-p",
+        "leptos-mf2",
+        "--no-default-features",
+        "--features",
+        "ssr,mark-fallback-lang",
+        "--test",
+        "fallback_lang",
     ],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`

@@ -17,6 +17,11 @@
 //     title, the reactive argument and schema.org's `inLanguage`, sets `dir`
 //     for Arabic, is remembered, and a reload comes back in it; switching
 //     back gives the same page as booting in that locale;
+//   * text the catalog borrowed is built inside `<span lang [dir]>`
+//     (`mark-fallback-lang`): the note, untranslated in Arabic on purpose,
+//     is wrapped when the page mounts in Arabic and when a switch reaches
+//     Arabic — around the text node French built — and unwrapped when a
+//     switch leaves it (Phase 7 A14);
 //   * a failed boot (no catalog, no index) logs one `mf2:` line and mounts
 //     nothing, rather than trapping or rendering an empty page;
 //   * no message text is in the client bundle (B6).
@@ -119,6 +124,8 @@ async function firstVisit(ctx, base, index) {
     catalogs.map((t) => t.name),
   );
   const frPage = NORMALISE(await page.evaluate(() => document.body.innerText));
+  const frNote = await note(page, true);
+  assert('own-text-is-not-marked', frNote.span === null && frNote.text.includes('Cette phrase'), frNote);
 
   // A signal-valued argument.
   const three = await page.textContent('#people');
@@ -144,6 +151,13 @@ async function firstVisit(ctx, base, index) {
   const arPeople = NORMALISE(await page.textContent('#people'));
   assert('switch-reaches-the-argument', arPeople !== NORMALISE(four) && /هنا/.test(arPeople), arPeople);
   assert('switch-reaches-in-language', (await inLanguage(page)) === 'ar', await inLanguage(page));
+  const arNote = await note(page);
+  assert(
+    'switch-marks-borrowed-text',
+    arNote.span?.lang === 'en' && arNote.span?.dir === 'ltr' && arNote.textInSpan,
+    arNote,
+  );
+  assert('switch-keeps-the-text-node', arNote.textKept, arNote);
   const stored = await page.evaluate(() => localStorage.getItem('mf2_locale'));
   assert('switch-is-remembered', stored === 'ar', stored);
   assert('console-is-silent', worth(console_).length === 0, worth(console_).slice(0, 4));
@@ -159,12 +173,20 @@ async function firstVisit(ctx, base, index) {
     /^تُبنى/.test(NORMALISE(await page.textContent('#tagline'))),
     await page.textContent('#tagline'),
   );
+  const mountedNote = await note(page, true);
+  assert(
+    'mount-marks-borrowed-text',
+    mountedNote.span?.lang === 'en' && mountedNote.span?.dir === 'ltr' && mountedNote.textInSpan,
+    mountedNote,
+  );
 
   // Back to French: the same page as booting in French.
   await chooseLocale(page, 'fr');
   await until(page, () => document.documentElement.lang === 'fr');
   await sleep(50);
   const backToFr = NORMALISE(await page.evaluate(() => document.body.innerText));
+  const backNote = await note(page);
+  assert('switch-unmarks-own-text', backNote.span === null && backNote.textKept, backNote);
   assert('switching-back-is-booting-there', backToFr === frPage, {
     booted: frPage.slice(0, 120),
     switched: backToFr.slice(0, 120),
@@ -244,6 +266,26 @@ async function canary(ctx) {
 }
 
 /** The application has mounted: its nodes are registered. */
+/**
+ * The note's span, if any, and whether the text node remembered by the
+ * last `note(page, true)` is still the one on the page.
+ */
+async function note(page, remember = false) {
+  return page.evaluate((remember) => {
+    const p = document.querySelector('#untranslated');
+    const span = p?.querySelector('span');
+    // The message's text node: inside the span, else the last text child.
+    const text = span ? span.firstChild : [...(p?.childNodes ?? [])].filter((n) => n.nodeType === 3).pop();
+    if (remember) window.__noteText = text;
+    return {
+      span: span ? { lang: span.getAttribute('lang'), dir: span.getAttribute('dir') } : null,
+      textInSpan: span != null && span.firstChild === text && text?.nodeType === 3,
+      textKept: text != null && text === window.__noteText && text.isConnected,
+      text: (p?.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    };
+  }, remember);
+}
+
 async function mounted(page) {
   await until(page, () => (window.wasmBindings?.mf2_live_nodes() ?? 0) > 0);
   await sleep(50);
