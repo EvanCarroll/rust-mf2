@@ -29,6 +29,8 @@ mf2-syntax.workspace = true
 # span, parsed by syn, and the diff before `--write`.
 proc-macro2 = { workspace = true, features = ["span-locations"] }
 quote.workspace = true
+# `export --format xliff` / `import` of XLIFF 2 (plans/05 §6.3).
+quick-xml.workspace = true
 serde_json.workspace = true
 similar.workspace = true
 syn = { workspace = true, features = ["full"] }

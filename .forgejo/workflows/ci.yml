@@ -72,7 +72,9 @@ jobs:
   ci:
     # PLACEHOLDER: the remote host is not decided yet (plans/07, "The owner's
     # part"). Replace this label with one the chosen host's runner offers. The
-    # runner needs git, curl, a C linker (cc) and node (for upload-artifact).
+    # runner needs git, curl, a C linker (cc), node (for upload-artifact) and
+    # xmllint (libxml2; `mf2-cli`'s tests validate every XLIFF export against
+    # the vendored schema, plans/05-tooling.md §6.3, and fail without it).
     runs-on: PLACEHOLDER-runner-label
     env:
       CARGO_TERM_COLOR: always

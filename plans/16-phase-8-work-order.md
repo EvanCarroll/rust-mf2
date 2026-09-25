@@ -127,9 +127,9 @@ three phases left unbuilt: dates in the reader's time zone.
 ## Part A — tasks (A1 and A2 first, then A3; A0 before any other task; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
 **A0 and A5 are done** (2026-09-25; what was built is below the table).
-**A6 (a) and (b) are done** (2026-09-25): XLIFF 2.1 vendored, the mapping
-designed in 05 §6.3 with owner question 7 answered (below the table); (c),
-the build, is next.
+**A6 is done** (2026-09-25): XLIFF 2.1 vendored, the mapping designed in
+05 §6.3 with owner question 7 answered, and `mf2 export --format xliff` /
+`mf2 import` built (below the table). A7 is next.
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -456,6 +456,39 @@ call sites and builds. What was built is below the table.
   unchanged data model keeps its bytes. The hard case went to the owner
   (question 7): the target language's plural forms. `quick-xml` is the one
   new dependency, of `mf2-cli` only.
+* **(c) Built** (2026-09-25): `mf2 export --format xliff LOCALE` and `mf2
+  import LOCALE FILE` telling XLIFF from flat JSON by content
+  (`crates/mf2-cli/src/exchange/xliff.rs`: the document built from the
+  tree and the import held against it; `…/xliff/variants.rs`: owner
+  question 7's forms; `…/xliff/xml.rs`: the document, read and written
+  with `quick-xml` 0.42). `mf2-build` makes `slice::selector_function`
+  public for it rather than have a second declaration walk.
+* **The reference workload** (seed 1): the three target locales export as
+  documents of 799,126 (`pl`), 824,039 (`en-XA`) and 802,692 B (`ar-XB`);
+  1,642 / 1,614 / 1,670 units, 14 `mf2:select` groups and 123 sections
+  each, 16 `<pc>`. `ar-XB` offers 56 units without a target: its 14
+  selects' Arabic forms `zero`, `two`, `few` and `many`. Every document
+  validates; each imported back leaves every resource **byte-identical**
+  (`tests/xliff.rs`, `the_reference_workload_round_trips_byte_identical`).
+* **Tests** (`crates/mf2-cli/tests/xliff.rs`, the command line): the
+  mapping's shape; a translated `few` landing before the catch-all and
+  two new messages landing in their section in source order, then
+  `mf2 check` and `mf2 fmt --check` clean and a second round trip
+  changing nothing; a flat JSON locale; one test per code, named after
+  it, checked against 05 §6.3's table. Every export is validated with
+  `xmllint --schema third_party/xliff/schemas/xliff_core_2.0.xsd`, and a
+  missing `xmllint` fails the test rather than skipping it — CI's runner
+  needs it (`.forgejo/workflows/ci.yml` says so). **Negative controls:**
+  three documents the schema forbids (a unit without `id`, an unknown
+  element, `canResegment="maybe"`) fail `xmllint`; with the `<data>`
+  comparison switched off (a test-only switch), an edited code is
+  written into the translation, so the refusal is that comparison's.
+* **Departures, in 05 §6.3:** a message the target locale lacks **is
+  written** where the source has it (file, section, order), where the
+  design had §6's "reported, not invented" — an XLIFF document says where
+  it belongs, and without it no new message could ever be translated;
+  a hex id is `x:…`, not `x…`, which a real id could equal, and only an
+  ASCII `NMTOKEN` is used as it is.
 
 ## Standing: Leptos 0.9
 
@@ -477,7 +510,7 @@ then move and ask about 0.8.)
       compiled (A4)
 - [x] the `leptos-fluent` A/B measured on the reference application,
       reported, and its snapshot committed with the commit it measured (A5)
-- [ ] XLIFF 2 vendored, its mapping designed, export and import built and
+- [x] XLIFF 2 vendored, its mapping designed, export and import built and
       validated against the schema (A6)
 - [ ] dates in the reader's time zone, asserted in a browser (A7)
 - [ ] `cargo xtask ci` green; the conformance harness green at

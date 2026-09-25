@@ -1,5 +1,7 @@
 //! `mf2 export` / `mf2 import`: flat JSON, the shape every
-//! translation-management system speaks.
+//! translation-management system speaks, and XLIFF 2, the standard a
+//! translation tool protects placeholders in ([`xliff`];
+//! `plans/05-tooling.md` §6.3).
 //!
 //! Export writes `{id: source}` sorted by id. Import reads one back into the
 //! container the locale already uses: a `.mf2` resource keeps its sections,
@@ -9,12 +11,25 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use clap::Args as ClapArgs;
-use mf2_build::config::Layout;
+mod xliff;
+
+use clap::{Args as ClapArgs, ValueEnum};
+use mf2_build::config::{Config, Layout};
 use mf2_build::loader::{Loader, json, resource};
 use mf2_resource::{parse, serialize_with};
 
 use crate::error::{Error, Result, read, write};
+
+/// What `mf2 export` writes.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, ValueEnum)]
+pub(crate) enum ExportFormat {
+    /// `{id: source}`, the locale's own messages.
+    #[default]
+    Json,
+    /// An XLIFF 2 document: the source locale's messages, with the locale's
+    /// translations as targets.
+    Xliff,
+}
 
 /// `mf2 export`.
 #[derive(Debug, ClapArgs)]
@@ -25,6 +40,9 @@ pub(crate) struct ExportArgs {
     /// Where to write it; standard output by default.
     #[arg(long, short, value_name = "FILE")]
     out: Option<PathBuf>,
+    /// The format.
+    #[arg(long, value_enum, default_value_t)]
+    format: ExportFormat,
 }
 
 /// `mf2 import`.
@@ -33,7 +51,7 @@ pub(crate) struct ImportArgs {
     /// The locale to read into.
     #[arg(value_name = "LOCALE")]
     locale: String,
-    /// The flat JSON to read.
+    /// The flat JSON or XLIFF 2 document to read (told apart by content).
     #[arg(value_name = "FILE")]
     file: PathBuf,
     /// Say what would change and write nothing.
@@ -44,6 +62,28 @@ pub(crate) struct ImportArgs {
 pub(crate) fn export(dir: &Path, args: &ExportArgs) -> Result<()> {
     let layout = Layout::new(dir);
     let path = locale_path(&layout, &args.locale)?;
+    if args.format == ExportFormat::Xliff {
+        let source = Config::load(dir)?.source_locale;
+        if source == args.locale {
+            return Err(Error::Usage(format!(
+                "{source} is the source locale: an XLIFF document is a translation into another"
+            )));
+        }
+        let source_path = locale_path(&layout, &source)?;
+        let (text, count) = xliff::export(&source_path, &source, &path, &args.locale)?;
+        match &args.out {
+            Some(file) => {
+                write(file, &text)?;
+                eprintln!(
+                    "mf2 export: {count} messages of {source} with {}'s translations to {}",
+                    args.locale,
+                    file.display()
+                );
+            }
+            None => print!("{text}"),
+        }
+        return Ok(());
+    }
     let loaded = mf2_build::loader::for_path(&path).load(&path)?;
     let text = json::write(
         loaded
@@ -68,7 +108,32 @@ pub(crate) fn export(dir: &Path, args: &ExportArgs) -> Result<()> {
 
 pub(crate) fn import(dir: &Path, args: &ImportArgs) -> Result<()> {
     let layout = Layout::new(dir);
-    let incoming: BTreeMap<String, String> = json::read(&read(&args.file)?)
+    let text = read(&args.file)?;
+    if xliff::xml::is_xliff(&text) {
+        let source = Config::load(dir)?.source_locale;
+        let source_path = locale_path(&layout, &source)?;
+        let path = locale_path(&layout, &args.locale)?;
+        let (changed, added) = xliff::import(
+            &source_path,
+            &source,
+            &path,
+            &args.locale,
+            &text,
+            args.dry_run,
+            xliff::Checks::default(),
+        )?;
+        eprintln!(
+            "mf2 import: {changed} message(s) {}, {added} added, in {}",
+            if args.dry_run {
+                "would change"
+            } else {
+                "changed"
+            },
+            args.locale
+        );
+        return Ok(());
+    }
+    let incoming: BTreeMap<String, String> = json::read(&text)
         .map_err(|e| Error::Usage(format!("{}: {}", args.file.display(), e.message)))?
         .into_iter()
         .map(|pair| (pair.id, pair.source))

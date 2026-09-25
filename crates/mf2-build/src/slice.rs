@@ -123,7 +123,7 @@ pub(crate) fn selector_kinds(select: &SelectMessage<'_>) -> (bool, bool) {
 ///
 /// `depth` bounds that chain: a cycle is a Duplicate Declaration, which
 /// validation refuses, but nothing here should loop on a model built in code.
-pub(crate) fn selector_function<'m>(
+pub fn selector_function<'m>(
     select: &'m SelectMessage<'_>,
     name: &str,
     depth: u32,
@@ -133,7 +133,7 @@ pub(crate) fn selector_function<'m>(
 
 /// The same for any message: the function `$name` carries by the time a
 /// pattern can use it, or `None` if it reaches the pattern unannotated.
-pub(crate) fn declared_function<'m>(
+pub fn declared_function<'m>(
     declarations: &'m [Declaration<'m>],
     name: &str,
     depth: u32,

@@ -493,7 +493,7 @@ the list — they are names users choose as much as option names are.*
 | `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
-| `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6; the mapping is §6.3) |
+| `mf2 export` / `import` | flat JSON, and XLIFF 2 (`export --format xliff`; `import` tells the two apart by content) against the standard vendored under `third_party/` (owner, 2026-09-24; built in Phase 8, [16](16-phase-8-work-order.md) A6; the mapping is §6.3) |
 | `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4; the mapping is §6.1, the call-site rules §6.2) |
 | `mf2 watch` | recompile on change. *The push of the new catalog to open pages through an `mf2-axum` dev mode is deferred until after v1 (owner, 2026-09-24)* |
 
@@ -514,7 +514,7 @@ settled:
 * **`import` writes a translation back into the container it came from**,
   keeping every section, comment and property; an id the locale does not have
   is reported, not invented, because which section it belongs in is the
-  translator's decision.
+  translator's decision. (An XLIFF document says which: §6.3.)
 
 ### 6.1 `mf2 convert --from fluent` — the mapping
 
@@ -890,9 +890,19 @@ LOCALE; LOCALE equal to the source locale is refused (there is nothing to
 translate). `--format json` stays the default. `mf2 import LOCALE FILE`
 reads either format, told apart by content (an XML document whose root is
 `xliff`); the document's `trgLang` must be LOCALE, else nothing is written.
-`--dry-run` and the rule of §6 hold: the container keeps every section,
-comment and property, and an id the locale does not have is reported, not
-invented.
+`--dry-run` and the rule of §6 hold for what the locale has: the container
+keeps every section, comment and property. *As built — a departure:* a
+message the target locale does not have yet **is** written, where the
+source has it — in the target's file of the source file's name, in the
+section of the same id, after the nearest message before it in the
+source that the target has (a file or section the target lacks is
+added, at the end), with no comment or property of its own. §6's rule
+reports such an id because flat JSON says nothing about where it
+belongs; an XLIFF document carries the file and the section, so nothing
+is guessed, and without it a translation of a new message — the common
+case, and the one owner question 7's four Polish forms describe — could
+never land. A flat JSON target gains the id at its end. A
+`translate="no"` unit never writes anything.
 
 **Structure.**
 
@@ -910,9 +920,12 @@ invented.
 | `@do-not-translate` (on the resource, a section or an entry) | `translate="no"` on the file, group or unit it attaches to |
 
 An XLIFF `id` is an `NMTOKEN`: a message id is used as it is when it is
-one and contains no `:` (every id of the reference workload), otherwise
-`x` followed by its UTF-8 in lowercase hex; `name` always carries the id
-as written. Group and unit ids are separate scopes in XLIFF, and sections
+an ASCII one (letters, digits, `.`, `_`, `-`; every id of the reference
+workload), otherwise `x:` followed by its UTF-8 in lowercase hex — the
+`:` keeps the two forms apart (*as built:* the design said `x` and hex,
+which a real id such as `x6869` could equal; and ASCII only, since
+XML's name characters beyond it differ between XML 1.0 editions and so
+between validators); `name` always carries the id as written. Group and unit ids are separate scopes in XLIFF, and sections
 are prefixed `s:`, so no two can meet.
 
 **Inside a pattern.** Text is text; a character XML cannot carry is
@@ -931,7 +944,21 @@ so a tool shows `{$count}` where it stands:
 Codes keep XLIFF's defaults — copy, delete and reorder allowed — because a
 translation may drop `{$count}` in `one`, repeat it, or move it. Import
 accepts `<pc>` and an `<sc>`/`<ec>` pair interchangeably (a tool may
-convert one into the other, XLIFF 4.7.7).
+convert one into the other, XLIFF 4.7.7), and a code with `copyOf` in
+place of its data (a copy of a code of the unit).
+
+*As built* (Phase 8 A6 (c)): a unit has one `<data>` per distinct
+expression text, `d1`, `d2`, … in order of first appearance, the
+source's first; its codes are numbered in the source, and a code of the
+target that is the same code (kind and data) as one of the source's
+keeps that one's id, as XLIFF asks, while a code only the target has
+takes the next number. A close markup pairs with the innermost open one
+when their names match, which keeps every `<pc>` properly nested;
+anything that does not pair so is isolated. A note, and a `disp`, are
+never read back, so a character XML cannot carry is written there as
+U+FFFD; everywhere else it is a `<cp>`. A carriage return is written
+`&#xD;` (and in an attribute, a tab or line feed as a reference too), so
+a parser's normalization gives back exactly the text.
 
 **What is not in the document.** Declarations (`.input`, `.local`) and
 selectors are not text and are not written: a target message keeps its
@@ -947,13 +974,15 @@ declarations, its keys and those patterns. A message whose data model is
 unchanged keeps its bytes, so **an export imported back changes nothing**;
 a changed one is written by the serializer in `mf2 fmt`'s form. A refused
 unit leaves its message as it was and is reported, with the file's and the
-unit's ids; the command exits non-zero when anything was refused.
+unit's ids — and a refused unit of a `.match` message leaves the whole
+message as it was. The command exits non-zero when anything was refused,
+after writing what was not.
 
 | Finding | Code |
 |---|---|
 | a `<data>` that differs from the export's — an edited protected code | **`xliff-code-edited`** |
 | a code whose `dataRef` names no data of its unit, or a code with neither `dataRef` nor `copyOf` (a brand-new code, XLIFF 4.7.2.4.2: it has no MF2 meaning) | **`xliff-unknown-code`** |
-| a file, group or unit id, or a variant's keys, the export does not have (the document is stale, or the id is not in the locale) | **`xliff-unknown-unit`** |
+| a file, group or unit id, or a variant's keys (a unit's `name`), the export does not have (the document is stale, or the id is not in the source locale) | **`xliff-unknown-unit`** |
 | a `translate="no"` unit whose target differs from its source | **`xliff-do-not-translate`** |
 | a `.match` message whose catch-all (`*`) variant has no target — it cannot be written | **`xliff-incomplete`** |
 | not well-formed XML, not XLIFF 2, or no `trgLang` | **`xliff-malformed`** |
@@ -991,7 +1020,8 @@ form it has:
   them), every unit shows the source's all-`*` variant, and a
   `<note category="comment">` says the source selects differently.
 * A unit left empty adds no variant; the catch-all must have a target
-  (`xliff-incomplete`). So a Polish translation of an English one/other
+  (`xliff-incomplete`). A new variant goes before the target's catch-all,
+  where a person would write it. So a Polish translation of an English one/other
   message comes back with four variants, an unchanged export comes back
   as it went, and a form the translator did not fill is simply absent —
   the reader gets the catch-all for it, as MF2 would.

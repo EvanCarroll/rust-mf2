@@ -13,7 +13,7 @@
 //! | `stats` | coverage, catalog sizes raw/gz/br, the locale data entry by entry, the pins |
 //! | `dump` | a catalog back to MF2 source or data-model JSON |
 //! | `pseudo` | `en-XA` and `ar-XB` from the source locale |
-//! | `export` / `import` | flat JSON, which every translation-management system speaks |
+//! | `export` / `import` | flat JSON, which every translation-management system speaks, and XLIFF 2 |
 //! | `watch` | recompile when a locale file changes |
 //! | `convert` | a one-shot migration from Fluent `.ftl` files |
 
@@ -107,9 +107,10 @@ enum Command {
     Dump(dump::Args),
     /// Write the pseudo-locales `en-XA` and `ar-XB` from the source locale.
     Pseudo(pseudo::Args),
-    /// Write one locale as flat JSON.
+    /// Write one locale as flat JSON, or as an XLIFF 2 document against the
+    /// source locale.
     Export(exchange::ExportArgs),
-    /// Read a locale back from flat JSON.
+    /// Read a locale back from flat JSON or an XLIFF 2 document.
     Import(exchange::ImportArgs),
     /// Recompile whenever a locale file changes.
     Watch(watch::Args),

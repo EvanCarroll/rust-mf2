@@ -116,6 +116,9 @@ unic-langid = "0.9.6"
 # `mf2 convert --from leptos-fluent` (plans/05-tooling.md §6.2): the diff it
 # shows before `--write`.
 similar = "3.2.0"
+# `mf2 export --format xliff` / `mf2 import` (plans/05-tooling.md §6.3): XLIFF 2
+# read and written; a dependency of mf2-cli only.
+quick-xml = "0.42.0"
 sha2 = "0.11.0"
 toml = "1.1.6"
 # no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.
