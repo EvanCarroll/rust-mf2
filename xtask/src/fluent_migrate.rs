@@ -190,7 +190,7 @@ pub(crate) fn run(root: &Path, build: bool) -> Result<()> {
 }
 
 /// The report holds exactly what the guide finishes by hand.
-fn check_report(report: &serde_json::Value, app: &Path) -> Result<()> {
+pub(crate) fn check_report(report: &serde_json::Value, app: &Path) -> Result<()> {
     let mut found: BTreeMap<(String, String), usize> = BTreeMap::new();
     for d in report["diagnostics"].as_array().into_iter().flatten() {
         let file = d["file"].as_str().unwrap_or("");

@@ -644,7 +644,7 @@ fn has_extension(path: &str, extension: &str) -> bool {
 
 /// `text` with every dependency on one of [`OUR_CRATES`] turned into a path
 /// dependency on the working tree, keeping its features.
-fn local_dependencies(root: &Path, file: &Path, text: &str) -> Result<String> {
+pub(crate) fn local_dependencies(root: &Path, file: &Path, text: &str) -> Result<String> {
     let mut manifest: toml::Table = text
         .parse()
         .map_err(|e| fail(format!("{}: not TOML: {e}", file.display())))?;

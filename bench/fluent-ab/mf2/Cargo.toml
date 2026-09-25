@@ -1,0 +1,79 @@
+# The migrated application's manifest, finished by hand as
+# docs/migrating-from-leptos-fluent.md says: `leptos-fluent` gives way to the
+# translation crate (`mf2 init --no-messages`, then `mf2 convert`) and
+# `leptos-mf2`, on the Leptos line `leptos-fluent` is on (0.8), and `ssr` and
+# `hydrate` forward to them. `cargo xtask fluent-ab` copies it over the
+# converted application, `{{ROOT}}` replaced with the repository's path (our
+# crates are not published yet, so they are path dependencies, as the
+# documentation's own builds make them).
+#
+# Everything else — the profile, `[package.metadata.leptos]`, the versions —
+# is the `fluent-view` manifest's, so that the two builds differ only in the
+# translation library (and the package's name, so that the two can share a
+# target directory).
+
+[workspace]
+members = [".", "i18n"]
+resolver = "3"
+
+[package]
+name = "workload-app-mf2"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = "0.8.20"
+leptos_router = "0.8.15"
+leptos_axum = { version = "0.8.10", optional = true }
+axum = { version = "0.8.9", optional = true }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"], optional = true }
+wasm-bindgen = "0.2.128"
+leptos-mf2 = { path = "{{ROOT}}/crates/leptos-mf2", default-features = false, features = ["leptos-0-8"] }
+mf2 = { path = "{{ROOT}}/crates/mf2" }
+mf2-axum = { path = "{{ROOT}}/crates/mf2-axum", default-features = false, features = ["leptos-0-8"], optional = true }
+workload-i18n = { path = "i18n" }
+
+[features]
+hydrate = ["leptos/hydrate", "leptos-mf2/hydrate", "mf2/hydrate", "workload-i18n/hydrate"]
+ssr = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:leptos_axum",
+    "dep:mf2-axum",
+    "leptos/ssr",
+    "leptos_router/ssr",
+    "leptos-mf2/ssr",
+    "mf2/ssr",
+    "workload-i18n/ssr",
+]
+# The A/B's timing hooks (`src/ab.rs`), in the build the browser times and
+# never in the build whose size is measured.
+ab-bench = []
+
+# Size-optimised client wasm (plans/06-size-and-perf.md §3); measure after
+# `wasm-opt -Oz`.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[package.metadata.leptos]
+output-name = "workload-app-mf2"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+watch-additional-files = ["i18n/locales"]

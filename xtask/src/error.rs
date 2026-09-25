@@ -26,6 +26,9 @@ pub(crate) enum Error {
     /// The converted reference application is not what it must be.
     #[error("fluent-migrate: {0}")]
     FluentMigrate(String),
+    /// The `leptos-fluent` A/B could not be built or measured.
+    #[error("fluent-ab: {0}")]
+    FluentAb(String),
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
     #[error("leptos-0-8: {0}")]
     Leptos08(String),

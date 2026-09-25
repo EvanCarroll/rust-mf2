@@ -12,6 +12,7 @@ mod cmd;
 mod codegen_matrix;
 mod docs;
 mod error;
+mod fluent_ab;
 mod fluent_migrate;
 mod fsx;
 mod fuzz_seed;
@@ -179,6 +180,26 @@ enum Command {
         #[arg(long)]
         no_build: bool,
     },
+    /// The `leptos-fluent` A/B, measured once as a snapshot (Phase 8, A5):
+    /// the reference application on `leptos-fluent` and the same
+    /// application migrated by `mf2 convert`, built as they ship, checked to
+    /// show the same text, then sized and timed alternately in the browser
+    /// (tools/e2e/checks/fluent-ab.mjs; bench/fluent-ab/README.md).
+    FluentAb {
+        /// Engines, comma-separated.
+        #[arg(long, default_value = "chromium,firefox", value_name = "ENGINES")]
+        browser: String,
+        /// Fresh first visits per application per engine.
+        #[arg(long, default_value_t = 10)]
+        runs: u32,
+        /// Measure what target/fluent-ab/ already holds (no build).
+        #[arg(long)]
+        no_build: bool,
+        /// Also write the snapshot to bench/fluent-ab/ (a clean tree only:
+        /// the snapshot names the commit it measured).
+        #[arg(long)]
+        snapshot: bool,
+    },
     /// A server-only component costs the client nothing (Phase 7, A1): the
     /// islands example's client, built with and without one more server-only
     /// component full of call sites, must be the same size.
@@ -295,6 +316,20 @@ fn run(command: Command) -> Result<()> {
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
         Command::FluentMigrate { no_build } => fluent_migrate::run(&root, !no_build),
+        Command::FluentAb {
+            browser,
+            runs,
+            no_build,
+            snapshot,
+        } => fluent_ab::run(
+            &root,
+            &fluent_ab::Options {
+                build: !no_build,
+                browser,
+                runs,
+                snapshot,
+            },
+        ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
