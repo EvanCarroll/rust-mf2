@@ -1,0 +1,17 @@
+text-escapes = Braces, backslashes and a leading dot: {"{"}, \ and {"}"}
+leading-dot = {"."}hidden
+leading-space = {"  "}two spaces
+string-literal = Quote: {"A\"B"}
+number-literals = {007} {1.50} {-0} {12}
+variable = Hello, {$name}!
+nested-placeable = {{$name}}
+message-reference = See: {text-escapes}
+message-attribute-reference = Label: {entry-attributes.aria-label}
+chained-reference = {message-reference}
+term-reference = Made by {-term-plain}
+term-arguments = {-term-args(noun: "files", count: 3)}
+-term-args = {$count} {$noun}
+term-in-term = {-term-outer}
+-term-outer = [{-term-args(noun: "rows", count: 2)}]
+term-message-reference = {-term-with-message(name: "Ann")}
+-term-with-message = {variable}

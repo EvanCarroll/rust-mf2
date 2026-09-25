@@ -1,0 +1,75 @@
+@locale en
+---
+select-plural =
+  .input {$count :number}
+  .match $count
+  one {{One file}}
+  * {{{$count} files}}
+select-string =
+  .input {$gender :string}
+  .match $gender
+  masculine {{his}}
+  feminine {{her}}
+  * {{their}}
+select-number-key =
+  .input {$count :number}
+  .match $count
+  0 {{No files}}
+  one {{One file}}
+  * {{{$count} files}}
+select-default-number =
+  .input {$count :number}
+  .match $count
+  one {{One file}}
+  0 {{No files}}
+  * {{No files}}
+select-number-function =
+  .input {$score :number minimumFractionDigits=1}
+  .match $score
+  1.0 {{Exactly one}}
+  one {{One-ish}}
+  * {{{$score}}}
+select-ordinal =
+  .input {$place :number select=ordinal}
+  .match $place
+  one {{{$place}st}}
+  two {{{$place}nd}}
+  few {{{$place}rd}}
+  * {{{$place}th}}
+select-two-annotations =
+  .input {$n :number}
+  .local $n-2 = {$n :number select=ordinal}
+  .match $n $n-2
+  one * {{one}}
+  * one {{first-ish}}
+  * * {{other-ish}}
+select-nested =
+  .input {$gender :string}
+  .input {$count :number}
+  .match $gender $count
+  feminine one {{She has a cat}}
+  feminine * {{She has cats}}
+  * one {{They have a cat}}
+  * * {{They have cats}}
+select-siblings =
+  .input {$a :string}
+  .input {$b :number}
+  .match $a $b
+  x one {{X and one}}
+  x * {{X and many}}
+  * one {{Y and one}}
+  * * {{Y and many}}
+select-in-text =
+  .input {$kind :string}
+  .match $kind
+  a {{Before A after.}}
+  * {{Before B after.}}
+select-only-other =
+  .input {$count :string}
+  .match $count
+  * {{Always this}}
+select-string-literal = this
+select-number-literal = singular
+select-term-attribute = The it is here.
+select-term-variable = a single thing
+select-number-literal-function = two point oh

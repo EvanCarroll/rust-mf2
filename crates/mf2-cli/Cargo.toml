@@ -16,11 +16,14 @@ icu-blob = ["mf2-build/icu-blob"]
 
 [dependencies]
 clap.workspace = true
+fluent-syntax.workspace = true
+icu_locale_core = { workspace = true, features = ["alloc"] }
 mf2-build.workspace = true
 mf2-catalog = { workspace = true, features = ["decode", "manifest"] }
 mf2-locale-data.workspace = true
 mf2-model = { workspace = true, features = ["serde"] }
 mf2-resource.workspace = true
+mf2-runtime.workspace = true
 mf2-syntax.workspace = true
 serde_json.workspace = true
 thiserror = { workspace = true, features = ["std"] }

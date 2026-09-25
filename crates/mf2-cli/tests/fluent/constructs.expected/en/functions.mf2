@@ -1,0 +1,16 @@
+@locale en
+---
+number-plain = {$n :number}
+number-options = {$n :number minimumIntegerDigits=2 minimumFractionDigits=1 maximumFractionDigits=3 minimumSignificantDigits=1 maximumSignificantDigits=5}
+number-grouping = {$n :number useGrouping=never} {$n :number}
+number-percent = {$ratio :percent}
+number-currency = {$amount :currency currency=EUR currencyDisplay=code fractionDigits=2}
+number-cardinal = {$n :number}
+number-literal-operand = {5 :number minimumFractionDigits=2}
+datetime-default = {$when :date length=short}
+datetime-date-style = {$when :date fields=year-month-day-weekday length=long}
+datetime-both-styles = {$when :datetime dateLength=short timePrecision=minute}
+datetime-fields = {$when :date fields=month-day-weekday length=long}
+datetime-time-fields = {$when :time precision=minute timeZone=UTC hour12=false}
+datetime-zone-name = {$when :time precision=second timeZoneStyle=short}
+datetime-literal = {2026-09-24 :date length=short}

@@ -1,0 +1,26 @@
+# The resource comment: the first of two.
+#
+# The second, joined to the first with an empty comment line.
+@locale en
+---
+
+# A group comment: detached, never a section.
+
+# A standalone comment: a blank line follows it.
+
+# An attached comment: it becomes the entry's.
+entry-value = A message with a value
+entry-attributes = A message with attributes
+entry-attributes.title = Its title
+entry-attributes.aria-label = Its label
+
+# The comment of a message with attributes only goes on its first entry.
+entry-attributes-only.placeholder = Type here
+entry-attributes-only.title = Only attributes
+
+#
+
+entry-multiline =
+  First line
+  \  indented line
+  last line

@@ -87,6 +87,10 @@ three phases left unbuilt: dates in the reader's time zone.
 
 ## Part A — tasks (A1 and A2 first, then A3; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
+**A1 is built** (2026-09-24) but not done: its last criterion — A2's corpus
+converts with zero unmapped constructs — waits for A2. What was built is
+below the table.
+
 | Task | Deliverable | Done when |
 |---|---|---|
 | **A1** `mf2 convert --from fluent` | The one-shot converter of [05](05-tooling.md) §6, in `mf2-cli`, parsing Fluent with the **`fluent-syntax`** crate (an existing, maintained parser — no parser of our own, so D1's rule does not arise). `.ftl` files in, `.mf2` resources out in the layout `mf2 init` makes, in `mf2 fmt`'s canonical form; Fluent comments (`#`, `##`, `###`) kept as the resource's comments — a group comment as a detached comment, not a `[section]`, since a section would rename the ids under it (05 §6.1). **The mapping table**, written into 05 §6.1 before the code (*written 2026-09-24*), with a stable code for every construct it cannot map. A report of those codes, as text and `--format json`, and a non-zero exit when one is found. `fluent-syntax` is a dependency of `mf2-cli` only — never of `mf2-build`, so no application's build script gains it. | the mapping written; a hand-written **construct corpus** under `crates/mf2-cli/tests/` holding every entry and expression kind of `fluent-syntax`'s AST, each converted or reported with its code, one test per code; A2's corpus converts with **zero** unmapped constructs; the converted resources pass `mf2 check` with no error; negative control: a construct removed from the mapping is reported, and the test naming it fails |
@@ -97,6 +101,39 @@ three phases left unbuilt: dates in the reader's time zone.
 | **A6** XLIFF 2 export and import | *Owner question 3.* **(a) Vendored:** `cargo xtask xliff-sync` fetches the newest OASIS Standard of the XLIFF 2 core — the specification and its XML schema(s) — into `third_party/xliff/` with a `PIN` (upstream, version, date, digests, licence). The licence is read **before** anything is copied; if it does not permit redistribution, the `PIN` records that and the files are cached under `target/xtask-cache/` instead, as `third_party/w3c-message-resource` does for its draft. **(b) The mapping, designed before code** in a new section of 05 (as Phase 7 A14 did): a message ↔ a `<unit>`; text ↔ `<segment>` `<source>` / `<target>`; placeholders and markup ↔ inline codes the translation tool protects, round-tripping the expression exactly; `@param`, comments and `@do-not-translate` ↔ notes and `translate="no"`; and the hard case — a `.match` message whose **target locale has other plural categories than the source** (English one/other, Arabic six) — decided and written down. A choice there that changes what a translator sees is put to the owner. **(c) Built:** `mf2 export --format xliff` and `mf2 import` of an XLIFF file, beside flat JSON, with `import`'s existing rule (the container keeps every section, comment and property; an unknown id is reported, not invented). | the design written; the reference workload exported and imported back leaves every resource **byte-identical**; every export validates against the vendored schema (`xmllint --schema` in the test, on the development machine and in CI's image); a translated target lands in the right message and variant; an edited protected code is refused with a report; negative controls for the validation and the refusal |
 | **A7** The reader's time zone | *Owner question 2; [03](03-runtime.md) §6.* **Designed before code** in 03 §6 and [04](04-leptos-integration.md) §6: the cookie (`mf2_tz`, the IANA name from `Intl.DateTimeFormat().resolvedOptions().timeZone`, `CookieLocale`'s attributes), validated with `TimeZone::named`; `mf2-axum` puts it in the request's formatting context; the page states the zone it was rendered in, so the client knows whether to correct; which nodes are corrected after hydration (those whose message formats an instant without a zone of its own) and how, without a hydration mismatch (the text changes *after* hydration, through the registry, as a switch does); the order of precedence among the value's own zone, the reader's, `Setup::with_time_zone` and UTC; client-only (the reader's zone at mount, no cookie needed); islands and `static-locale` (what can be corrected, and what the documentation says is not). Every added byte behind `fn-datetime`. | a native test: the cookie sets the request's zone, a malformed or unknown one is ignored; a browser check on `demo-ssr` with Playwright's `timezoneId` in two zones, two engines: a first visit served in UTC is corrected after hydration with no `mf2:` mismatch, the cookie is written, a reload is served in the reader's zone and nothing changes after hydration; `demo-csr` mounts in the reader's zone; negative control: the correction disabled fails the first-visit assertion; `cargo xtask size` with B1 unmoved (the gated build has no `fn-datetime`), the example's delta with it recorded; `docs/call-sites.md` §"Dates" rewritten |
 | **A8** The Phase 9 work order | Written from Phase 8's findings into `plans/17-phase-9-work-order.md`, with `plans/phase-8-results.md`. | written |
+
+## A1 — the Fluent converter: what was built
+
+* **`mf2 convert --from fluent DIR`** in `crates/mf2-cli/src/convert.rs`
+  (discovery, layout, never overwriting), `convert/fluent.rs` (inlining and
+  selectors), `convert/fluent/hoist.rs` (the `.match` product),
+  `convert/fluent/number.rs` (a field-for-field replica of `fluent-bundle`'s
+  `FluentNumberOptions` and its `merge`, because key reachability is
+  `FluentNumber` equality) and `convert/fluent/datetime.rs`. Messages are
+  built as `mf2-model` values and written by `mf2-syntax`'s serializer, so
+  escaping and the `{{…}}` quoting of a leading `.` are the serializer's; a
+  debug assertion reads every message back and compares.
+* **The construct corpus**, `crates/mf2-cli/tests/fluent/constructs/`: every
+  entry and expression kind of `fluent-syntax` 0.12's AST, three locales
+  (`pt_BR` for the tag rule, `fr` for `*[0]` before `[one]`), a
+  subdirectory. Its expected output is `constructs.expected/`; the only
+  findings are the seven `fluent-datetime-approximate` warnings its
+  `DATETIME`s must give. The output passes `mf2 check --features
+  fn-number,fn-datetime` with no error and `mf2 fmt --check` with no change.
+* **Tests:** one per code, named after it (`tests/convert.rs`; a unit test
+  fails if a code of `report.rs` has no test or is not in 05 §6.1); the
+  golden comparison and **the negative control** in `src/convert.rs`
+  (`NUMBER` removed from the mapping: its sites are reported as
+  `fluent-unknown-function` and the comparison fails); never overwriting;
+  errors leaving only their entry out.
+* **Decisions the mapping did not state**, now in 05 §6.1 (*as built*): a
+  `NUMBER` selector keeps only `select=ordinal` and `minimumFractionDigits`;
+  a select with only a default stays a one-variant `.match` so its argument
+  survives; a number key that is not an MF2 `number-literal` is written as
+  its value; comment tabs become spaces; `fluent-junk` also covers U+0000.
+  Two more known differences for A3: a selector's `.input` formats a bare
+  `{$n}` through it, and `fluent-bundle`'s term-in-term argument reset is
+  not reproduced.
 
 ## Standing: Leptos 0.9
 

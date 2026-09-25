@@ -1,0 +1,16 @@
+@locale en
+---
+text-escapes = Braces, backslashes and a leading dot: \{, \\ and \}
+leading-dot = {{.hidden}}
+leading-space = \  two spaces
+string-literal = Quote: A"B
+number-literals = {7} {1.50} {-0} {12}
+variable = Hello, {$name}!
+nested-placeable = {$name}
+message-reference = See: Braces, backslashes and a leading dot: \{, \\ and \}
+message-attribute-reference = Label: Its label
+chained-reference = See: Braces, backslashes and a leading dot: \{, \\ and \}
+term-reference = Made by Term text
+term-arguments = {3} files
+term-in-term = [{2} rows]
+term-message-reference = Hello, Ann!

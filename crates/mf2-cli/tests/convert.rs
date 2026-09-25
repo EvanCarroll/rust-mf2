@@ -1,0 +1,530 @@
+//! `mf2 convert --from fluent` (Phase 8 A1; `plans/05-tooling.md` §6.1),
+//! run as a user runs it.
+//!
+//! The construct corpus under `tests/fluent/constructs/` holds every entry
+//! and expression kind of `fluent-syntax`'s AST; its expected output is
+//! `tests/fluent/constructs.expected/`, compared in the crate's own tests
+//! (`src/convert.rs`, with the negative control). Here: the command end to
+//! end, and one test per code, named after it.
+
+use std::fmt::Write as _;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+
+use serde_json::Value;
+
+fn mf2() -> PathBuf {
+    PathBuf::from(env!("CARGO_BIN_EXE_mf2"))
+}
+
+fn run(dir: &Path, args: &[&str]) -> Output {
+    Command::new(mf2())
+        .arg("-C")
+        .arg(dir)
+        .args(args)
+        .output()
+        .expect("the mf2 binary runs")
+}
+
+fn text(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
+/// A fresh directory for one test.
+fn scratch(name: &str) -> PathBuf {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join("convert")
+        .join(name);
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir");
+    dir
+}
+
+/// Writes `files` (`locale/path.ftl` → text) under `<dir>/ftl`.
+fn ftl(dir: &Path, files: &[(&str, &str)]) -> PathBuf {
+    let root = dir.join("ftl");
+    for (path, body) in files {
+        let full = root.join(path);
+        std::fs::create_dir_all(full.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&full, body).expect("write");
+    }
+    root
+}
+
+/// What `mf2 convert --format json` reported, and whether it exited 0.
+struct Converted {
+    ok: bool,
+    diagnostics: Vec<Value>,
+    out: PathBuf,
+}
+
+impl Converted {
+    fn one(&self, code: &str) -> &Value {
+        let found: Vec<&Value> = self
+            .diagnostics
+            .iter()
+            .filter(|d| d["code"] == code)
+            .collect();
+        assert_eq!(found.len(), 1, "{code}: {:#?}", self.diagnostics);
+        found[0]
+    }
+
+    fn file(&self, rel: &str) -> String {
+        std::fs::read_to_string(self.out.join("locales").join(rel)).unwrap_or_default()
+    }
+}
+
+fn convert(name: &str, files: &[(&str, &str)]) -> Converted {
+    let dir = scratch(name);
+    let input = ftl(&dir, files);
+    let out = dir.join("out");
+    let output = run(
+        &out,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            input.to_str().expect("utf-8"),
+            "--format",
+            "json",
+        ],
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
+        panic!(
+            "JSON on stdout: {e}\n{}\n{}",
+            text(&output.stdout),
+            text(&output.stderr)
+        )
+    });
+    Converted {
+        ok: output.status.success(),
+        diagnostics: json["diagnostics"].as_array().cloned().unwrap_or_default(),
+        out,
+    }
+}
+
+/// Asserts a finding's level, place and entry.
+fn at(d: &Value, level: &str, line: u64, column: u64, id: Option<&str>) {
+    assert_eq!(d["level"], level, "{d:#}");
+    assert_eq!(
+        (d["line"].as_u64(), d["column"].as_u64()),
+        (Some(line), Some(column)),
+        "{d:#}"
+    );
+    assert_eq!(d["id"].as_str(), id, "{d:#}");
+}
+
+fn copy_dir(from: &Path, to: &Path) {
+    std::fs::create_dir_all(to).expect("mkdir");
+    for entry in std::fs::read_dir(from).expect("read_dir").flatten() {
+        let path = entry.path();
+        let target = to.join(entry.file_name());
+        if path.is_dir() {
+            copy_dir(&path, &target);
+        } else {
+            std::fs::copy(&path, &target).expect("copy");
+        }
+    }
+}
+
+#[test]
+fn the_construct_corpus_converts_checks_and_is_canonical() {
+    let dir = scratch("constructs");
+    let corpus = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fluent/constructs");
+    let output = run(
+        &dir,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            corpus.to_str().expect("utf-8"),
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "{}{}",
+        text(&output.stdout),
+        text(&output.stderr)
+    );
+    let report = text(&output.stdout);
+    assert!(report.contains("0 error(s), 7 warning(s)"), "{report}");
+    assert!(
+        report.contains("note: the output needs the client feature(s) fn-datetime, fn-number"),
+        "{report}"
+    );
+
+    let expected = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fluent/constructs.expected");
+    for locale in std::fs::read_dir(&expected).expect("expected").flatten() {
+        for file in std::fs::read_dir(locale.path())
+            .expect("a locale")
+            .flatten()
+        {
+            let rel = file
+                .path()
+                .strip_prefix(&expected)
+                .expect("under")
+                .to_path_buf();
+            assert_eq!(
+                std::fs::read_to_string(dir.join("locales").join(&rel)).ok(),
+                std::fs::read_to_string(file.path()).ok(),
+                "{}",
+                rel.display()
+            );
+        }
+    }
+
+    // What it writes is a corpus `mf2 check` accepts and `mf2 fmt` would
+    // not change.
+    std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
+    let check = run(&dir, &["check", "--features", "fn-number,fn-datetime"]);
+    assert!(check.status.success(), "{}", text(&check.stdout));
+    assert!(
+        text(&check.stdout).contains("0 error(s)")
+            || text(&check.stdout).contains("nothing to report")
+    );
+    let fmt = run(&dir, &["fmt", "--check"]);
+    assert!(fmt.status.success(), "{}", text(&fmt.stdout));
+
+    // A second run would overwrite: it stops before writing anything.
+    let before = std::fs::read_to_string(dir.join("locales/en/selects.mf2")).expect("written");
+    std::fs::write(dir.join("locales/en/selects.mf2"), "edited").expect("write");
+    let again = run(
+        &dir,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            corpus.to_str().expect("utf-8"),
+        ],
+    );
+    assert!(!again.status.success());
+    assert!(
+        text(&again.stderr).contains("already exists"),
+        "{}",
+        text(&again.stderr)
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.join("locales/en/selects.mf2")).expect("still there"),
+        "edited"
+    );
+    assert_ne!(before, "edited");
+}
+
+#[test]
+fn errors_leave_the_entry_out_and_the_rest_is_written() {
+    let c = convert(
+        "partial",
+        &[(
+            "en/main.ftl",
+            "good = Fine\nbad = {missing}\nalso-good = Also fine\n",
+        )],
+    );
+    assert!(!c.ok);
+    let main = c.file("en/main.mf2");
+    assert!(main.contains("good = Fine"), "{main}");
+    assert!(main.contains("also-good = Also fine"), "{main}");
+    assert!(!main.contains("bad"), "{main}");
+}
+
+#[test]
+fn a_locale_in_a_copied_tree_keeps_its_files_apart() {
+    // Two locales, the same file names: each goes to its own directory.
+    let dir = scratch("two-locales");
+    let corpus = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fluent/constructs");
+    copy_dir(&corpus.join("fr"), &dir.join("ftl/de"));
+    copy_dir(&corpus.join("fr"), &dir.join("ftl/fr"));
+    let out = dir.join("out");
+    let output = run(
+        &out,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            dir.join("ftl").to_str().expect("utf-8"),
+        ],
+    );
+    assert!(output.status.success(), "{}", text(&output.stdout));
+    let de = std::fs::read_to_string(out.join("locales/de/selects.mf2")).expect("de");
+    assert!(de.starts_with("@locale de\n"), "{de}");
+    assert!(out.join("locales/fr/selects.mf2").is_file());
+}
+
+#[test]
+fn a_tab_in_a_comment_does_not_cost_the_file() {
+    let c = convert(
+        "comment-tab",
+        &[("en/main.ftl", "# Column\tlayout\nm = Text\t with a tab\n")],
+    );
+    assert!(c.ok, "{:#?}", c.diagnostics);
+    let main = c.file("en/main.mf2");
+    assert!(main.contains("# Column layout\n"), "{main}");
+    assert!(main.contains("m = Text\\t with a tab"), "{main}");
+}
+
+// One test per code (§6.1, "The codes"), named after it.
+
+#[test]
+fn fluent_junk() {
+    let c = convert("junk", &[("en/main.ftl", "ok = Fine\nbroken = {\n")]);
+    assert!(!c.ok);
+    // At the parser's own position: where it expected an expression.
+    at(c.one("fluent-junk"), "error", 3, 1, None);
+    assert!(c.file("en/main.mf2").contains("ok = Fine"));
+}
+
+#[test]
+fn fluent_missing_reference() {
+    let c = convert(
+        "missing",
+        &[("en/main.ftl", "msg = Before {-nowhere} after\n")],
+    );
+    assert!(!c.ok);
+    at(
+        c.one("fluent-missing-reference"),
+        "error",
+        1,
+        16,
+        Some("msg"),
+    );
+    assert!(!c.file("en/main.mf2").contains("msg"));
+
+    let c = convert(
+        "missing-attribute",
+        &[("en/main.ftl", "a = A\n    .x = X\nb = {a.y}\n")],
+    );
+    at(c.one("fluent-missing-reference"), "error", 3, 6, Some("b"));
+}
+
+#[test]
+fn fluent_cyclic_reference() {
+    let c = convert("cycle", &[("en/main.ftl", "a = A {b}\nb = B {a}\n")]);
+    assert!(!c.ok);
+    // Converting `a` meets `a` again inside `b`, and converting `b` meets
+    // `b` inside `a`; findings are sorted by position.
+    let cycles: Vec<&Value> = c
+        .diagnostics
+        .iter()
+        .filter(|d| d["code"] == "fluent-cyclic-reference")
+        .collect();
+    assert_eq!(cycles.len(), 2, "{:#?}", c.diagnostics);
+    at(cycles[0], "error", 1, 8, Some("b"));
+    at(cycles[1], "error", 2, 8, Some("a"));
+}
+
+#[test]
+fn fluent_number_operand() {
+    let c = convert(
+        "number-operand",
+        &[("en/main.ftl", "n = {NUMBER(\"five\")}\n")],
+    );
+    assert!(!c.ok);
+    at(c.one("fluent-number-operand"), "error", 1, 6, Some("n"));
+}
+
+#[test]
+fn fluent_currency_missing() {
+    let c = convert(
+        "currency",
+        &[("en/main.ftl", "price = {NUMBER($p, style: \"currency\")}\n")],
+    );
+    assert!(!c.ok);
+    at(
+        c.one("fluent-currency-missing"),
+        "error",
+        1,
+        10,
+        Some("price"),
+    );
+}
+
+#[test]
+fn fluent_datetime_option() {
+    let c = convert(
+        "datetime-option",
+        &[("en/main.ftl", "d = {DATETIME($d, era: \"long\")}\n")],
+    );
+    assert!(!c.ok);
+    at(c.one("fluent-datetime-option"), "error", 1, 6, Some("d"));
+}
+
+#[test]
+fn fluent_date_selector() {
+    let c = convert(
+        "date-selector",
+        &[("en/main.ftl", "d = {DATETIME($d) ->\n   *[other] x\n}\n")],
+    );
+    assert!(!c.ok);
+    at(c.one("fluent-date-selector"), "error", 1, 6, Some("d"));
+}
+
+#[test]
+fn fluent_unknown_function() {
+    let c = convert("unknown-function", &[("en/main.ftl", "p = {PLATFORM()}\n")]);
+    assert!(!c.ok);
+    at(c.one("fluent-unknown-function"), "error", 1, 6, Some("p"));
+}
+
+#[test]
+fn fluent_mixed_keys() {
+    let c = convert(
+        "mixed-keys",
+        &[(
+            "en/main.ftl",
+            "m = {$x ->\n    [one] a\n    [male] b\n   *[other] c\n}\n",
+        )],
+    );
+    assert!(!c.ok);
+    at(c.one("fluent-mixed-keys"), "error", 2, 6, Some("m"));
+}
+
+#[test]
+fn fluent_variant_limit() {
+    // Nine independent two-way selects: 512 variants.
+    let mut body = String::from("big =");
+    for i in 0..9 {
+        let _ = write!(body, " {{$v{i} ->\n    [a] a\n   *[b] b\n}}");
+    }
+    body.push('\n');
+    let c = convert("variant-limit", &[("en/main.ftl", &body)]);
+    assert!(!c.ok);
+    at(c.one("fluent-variant-limit"), "error", 1, 1, Some("big"));
+}
+
+#[test]
+fn fluent_file_collision() {
+    let c = convert(
+        "file-collision",
+        &[("en/a/b.ftl", "one = One\n"), ("en/a.b.ftl", "two = Two\n")],
+    );
+    assert!(!c.ok);
+    // Path order is by component: `a/b.ftl` comes first and is kept.
+    let d = c.one("fluent-file-collision");
+    at(d, "error", 1, 1, None);
+    assert!(
+        d["file"]
+            .as_str()
+            .is_some_and(|f| f.ends_with("en/a.b.ftl")),
+        "{d:#}"
+    );
+    assert!(c.file("en/a.b.mf2").contains("one = One"));
+}
+
+#[test]
+fn fluent_duplicate_id() {
+    let c = convert(
+        "duplicate-id",
+        &[
+            ("en/a.ftl", "same = First\n"),
+            ("en/b.ftl", "other = Other\nsame = Second\n"),
+        ],
+    );
+    assert!(!c.ok);
+    at(c.one("fluent-duplicate-id"), "error", 2, 1, Some("same"));
+    assert!(c.file("en/a.mf2").contains("same = First"));
+    assert!(!c.file("en/b.mf2").contains("Second"));
+}
+
+#[test]
+fn fluent_locale() {
+    let c = convert(
+        "locale",
+        &[("en/main.ftl", "a = A\n"), ("12/main.ftl", "a = A\n")],
+    );
+    assert!(!c.ok);
+    let d = c.one("fluent-locale");
+    at(d, "error", 1, 1, None);
+    assert_eq!(d["locale"], "12");
+    assert!(c.file("en/main.mf2").contains("a = A"));
+}
+
+#[test]
+fn fluent_unbound_term_variable() {
+    // The term lives in another file, which the finding names.
+    let c = convert(
+        "unbound",
+        &[
+            ("en/terms.ftl", "-t = Hi {$who}\n"),
+            ("en/main.ftl", "m = {-t}\n"),
+        ],
+    );
+    assert!(c.ok);
+    let d = c.one("fluent-unbound-term-variable");
+    at(d, "warn", 1, 11, Some("m"));
+    assert!(
+        d["file"].as_str().is_some_and(|f| f.ends_with("terms.ftl")),
+        "{d:#}"
+    );
+    // Faithful: `fluent-bundle` writes the reference as text.
+    assert!(
+        c.file("en/main.mf2").contains(r"m = Hi \{$who\}"),
+        "{}",
+        c.file("en/main.mf2")
+    );
+}
+
+#[test]
+fn fluent_term_positional() {
+    let c = convert(
+        "positional",
+        &[("en/main.ftl", "-t = Term\nm = {-t(\"x\")}\n")],
+    );
+    assert!(c.ok);
+    at(c.one("fluent-term-positional"), "warn", 2, 7, Some("m"));
+    assert!(c.file("en/main.mf2").contains("m = Term"));
+}
+
+#[test]
+fn fluent_number_option() {
+    let c = convert(
+        "number-option",
+        &[(
+            "en/main.ftl",
+            "n = {NUMBER($n, minimumFractionDigits: \"2\", bogus: 1)}\n",
+        )],
+    );
+    assert!(c.ok);
+    let found: Vec<&Value> = c
+        .diagnostics
+        .iter()
+        .filter(|d| d["code"] == "fluent-number-option")
+        .collect();
+    assert_eq!(found.len(), 2, "{:#?}", c.diagnostics);
+    at(found[0], "warn", 1, 17, Some("n"));
+    at(found[1], "warn", 1, 45, Some("n"));
+    assert!(c.file("en/main.mf2").contains("n = {$n :number}"));
+}
+
+#[test]
+fn fluent_unreachable_variant() {
+    // `[1]` after `[one]` in English: `fluent-bundle` takes `one` first.
+    let c = convert(
+        "unreachable",
+        &[(
+            "en/main.ftl",
+            "m = {$n ->\n    [one] one\n    [1] never\n   *[other] other\n}\n",
+        )],
+    );
+    assert!(c.ok);
+    at(c.one("fluent-unreachable-variant"), "warn", 3, 6, Some("m"));
+    assert!(!c.file("en/main.mf2").contains("never"));
+}
+
+#[test]
+fn fluent_datetime_approximate() {
+    let c = convert(
+        "datetime-approximate",
+        &[("en/main.ftl", "d = {DATETIME($d, dateStyle: \"short\")}\n")],
+    );
+    assert!(c.ok);
+    at(
+        c.one("fluent-datetime-approximate"),
+        "warn",
+        1,
+        6,
+        Some("d"),
+    );
+    assert!(
+        c.file("en/main.mf2")
+            .contains("d = {$d :date length=short}")
+    );
+}

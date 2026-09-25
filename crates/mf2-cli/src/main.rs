@@ -15,6 +15,7 @@
 //! | `pseudo` | `en-XA` and `ar-XB` from the source locale |
 //! | `export` / `import` | flat JSON, which every translation-management system speaks |
 //! | `watch` | recompile when a locale file changes |
+//! | `convert` | a one-shot migration from Fluent `.ftl` files |
 
 #![forbid(unsafe_code)]
 // A command returns its error once, at the top; the variants stay readable.
@@ -23,6 +24,7 @@
 mod cargo;
 mod check;
 mod compile;
+mod convert;
 mod dump;
 mod error;
 mod exchange;
@@ -111,6 +113,9 @@ enum Command {
     Import(exchange::ImportArgs),
     /// Recompile whenever a locale file changes.
     Watch(watch::Args),
+    /// Convert a Fluent project's `.ftl` files to `.mf2` resources, once;
+    /// exit 1 if anything could not be converted.
+    Convert(convert::Args),
 }
 
 fn main() -> ExitCode {
@@ -137,6 +142,7 @@ fn run(cli: &Cli) -> Result<()> {
         Command::Export(args) => exchange::export(&cli.dir, args),
         Command::Import(args) => exchange::import(&cli.dir, args),
         Command::Watch(args) => watch::run(&cli.dir, args),
+        Command::Convert(args) => convert::run(&cli.dir, args),
     }
 }
 

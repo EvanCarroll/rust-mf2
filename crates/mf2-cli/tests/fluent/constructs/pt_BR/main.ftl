@@ -1,0 +1,2 @@
+# A locale directory written with `_` is read as a BCP 47 tag with `-`.
+menu-open = Abrir

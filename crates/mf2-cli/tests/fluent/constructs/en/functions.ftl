@@ -1,0 +1,14 @@
+number-plain = {NUMBER($n)}
+number-options = {NUMBER($n, minimumIntegerDigits: 2, minimumFractionDigits: 1, maximumFractionDigits: 3, minimumSignificantDigits: 1, maximumSignificantDigits: 5)}
+number-grouping = {NUMBER($n, useGrouping: "false")} {NUMBER($n, useGrouping: "true")}
+number-percent = {NUMBER($ratio, style: "percent")}
+number-currency = {NUMBER($amount, style: "currency", currency: "EUR", currencyDisplay: "code", minimumFractionDigits: 2, maximumFractionDigits: 2)}
+number-cardinal = {NUMBER($n, type: "cardinal")}
+number-literal-operand = {NUMBER(5, minimumFractionDigits: 2)}
+datetime-default = {DATETIME($when)}
+datetime-date-style = {DATETIME($when, dateStyle: "full")}
+datetime-both-styles = {DATETIME($when, dateStyle: "short", timeStyle: "short")}
+datetime-fields = {DATETIME($when, weekday: "long", month: "long", day: "numeric")}
+datetime-time-fields = {DATETIME($when, hour: "numeric", minute: "2-digit", hour12: "false", timeZone: "UTC")}
+datetime-zone-name = {DATETIME($when, timeStyle: "medium", timeZoneName: "short")}
+datetime-literal = {DATETIME("2026-09-24")}

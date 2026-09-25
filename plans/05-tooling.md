@@ -538,7 +538,10 @@ in the frontmatter. Output is `mf2 fmt`'s canonical form (§6), so
 `mf2 fmt --check` reports nothing on it. An existing `.mf2` is not
 overwritten: the command stops before writing anything and names it.
 `--format json` gives the report as `mf2 check` gives its own
-(`{"diagnostics": [{level, locale, file, line, column, id, code, message}]}`).
+(`{"diagnostics": [{level, locale, file, line, column, id, code, message}]}`),
+plus `inlined` (id → the terms and messages copied into it), `features` and
+`entries` (per locale); the text form ends with one `note:` line per copied
+term or message and one naming the features.
 The exit status is non-zero when the report has an error; everything else
 is still written, so the rest of a corpus can be checked while the errors are
 fixed by hand.
@@ -560,11 +563,12 @@ per code.
 | its `Attribute`s | one entry each, `id.attr` (Fluent ids have no `.`, so an attribute id can never collide with a message id) | — |
 | a message with attributes only | the `id.attr` entries alone | — |
 | `Entry::Term` | no entry: terms are private in Fluent (`fluent-bundle` cannot format one by id), so each is **inlined** where referenced (below); a term's comment goes with it | — |
+| a comment's tab or other control character (the resource syntax cannot hold one in a comment) | a tab becomes a space, any other is dropped — losing it is better than losing the file (as built) | — |
 | `Entry::Comment` attached to a message (`#`) | that entry's comment | — |
 | `Entry::Comment` standing alone (`#`, blank line after) | a detached comment at the same place (the resource model's `Detached`) | — |
 | `Entry::GroupComment` (`##`) | a detached comment, its text kept. **Not a `[section]`**: a section prefixes every following id, which would rename the messages under it and break every call site; a Fluent group has no effect on ids | — |
 | `Entry::ResourceComment` (`###`) | the resource's comment, above `---`; several are joined with a line of `#` between them | — |
-| `Entry::Junk` | nothing | **`fluent-junk`** (error; at the parser's own range) |
+| `Entry::Junk` | nothing | **`fluent-junk`** (error; at the parser's own range). *As built,* the code also covers text no MF2 message or resource can hold (U+0000), which `fluent-syntax` accepts |
 | `PatternElement::TextElement` | text, escaped by the serializer (`{`, `}`, `\`; a leading `.` or whitespace by the resource's rules) | — |
 | `Placeable` holding a `Placeable` | the inner one | — |
 | `StringLiteral` in a placeable | its unescaped text, merged into the surrounding text (`fluent-bundle` does not isolate a string literal, and `{ "{" }` is Fluent's only way to write a brace) | — |
@@ -602,8 +606,15 @@ the better answer (`fluent-variant-limit`).
   term attribute (`{ -brand.gender -> … }`, Fluent's grammatical-gender idiom),
   a term variable bound to a literal — is **evaluated at conversion**: the
   variant `fluent-bundle` would pick is kept and the select disappears.
-* `NUMBER($x, …)` → `.input {$x :number …}` (options by the table below;
-  `type: "ordinal"` → `select=ordinal`).
+* `NUMBER($x, …)` → `.input {$x :number …}`, keeping **only**
+  `select=ordinal` (from `type: "ordinal"`) and `minimumFractionDigits`:
+  those are the options that reach `fluent-bundle`'s plural operands (the
+  rule set, and the padding of `v` and `f`). A rounding option
+  (`maximumFractionDigits`, the significant digits) does not reach them, so
+  carrying it would make MF2 select on a rounded value Fluent never sees
+  (1.2 under `maximumFractionDigits: 0` is `other` in Fluent, `one` in MF2).
+  A placeholder `NUMBER` keeps every option (the table below). *(As built,
+  Phase 8 A1.)*
 * A bare `$x` has no type in Fluent — `fluent-bundle` matches a plural category
   if the argument is a number, a key's string if it is a string. The converter
   **infers it from the keys**: `:number` if any key is a number or a plural
@@ -619,9 +630,15 @@ the better answer (`fluent-variant-limit`).
   ordinal `NUMBER` of `$n`) gets `.input` for the first and
   `.local $n-2 = {$n :number select=ordinal}` for the next, the suffix the
   smallest integer that collides with no name in the message.
+* A select left with only its default (`{ $count -> *[other] … }`) stays a
+  one-variant `.match` rather than being folded into its pattern: folding
+  would drop `$count` from the message's arguments, and every call site that
+  passes it would stop compiling. *(As built.)*
 
 *The keys.* An identifier key is an unquoted MF2 key; a number key is written
-as Fluent wrote it. Fluent's default `*[k]` becomes `*`, plus an explicit `k`
+as Fluent wrote it when that is an MF2 `number-literal` (`1.50` keeps its
+digits), else as the value `fluent-bundle` reads (`007` → `7`); a number
+literal placeholder likewise. Fluent's default `*[k]` becomes `*`, plus an explicit `k`
 variant with the same pattern **only when `k` is a number** — MF2 prefers an
 exact number to a category, so dropping it could change the result (`*[0]`
 before `[one]` in French); an identifier or category `k` adds nothing `*` does
@@ -709,6 +726,15 @@ differs):
   literal, message or term reference, and it isolates a referenced message's
   placeables by *that* message's element count; MF2's Default Bidi Strategy
   isolates every placeholder of the flattened message.
+* A selector's `.input` annotates the variable for the whole message, so a
+  bare `{$n}` in a variant formats through it (`:number`, with
+  `minimumFractionDigits` if the `NUMBER` selector had it); `fluent-bundle`
+  writes the argument as given.
+* A term reference inside a term: `fluent-bundle` clears the term's
+  arguments when the inner reference returns (its `local_args = None`), so a
+  variable *after* it in the outer term reads the message's arguments. The
+  converter keeps the outer term's, as the `VariableReference` row says —
+  the other reading is a `fluent-bundle` defect, not Fluent's meaning.
 
 **The codes**, stable like `mf2 check`'s lint names (a code's meaning never
 changes; a retired one is not reused). *Errors* — the construct is not
