@@ -77,6 +77,22 @@ of the tree, which a public repository or package cannot carry.
    is **A7**. The question as it was put: the owner by one command, or CI
    on a pushed tag with a stored token.
 
+5. **How much of the lower-level crates 1.0 promises** — **answered
+   (owner, 2026-09-25): only what applications use.** Promised and
+   documented: what applications and custom-function authors use (the
+   build step, the Leptos and Axum setup, `tr!` and its argument types,
+   the runtime's function interface, the stand-alone parser and data
+   model). The internals our own crates share — `mf2-build`'s pipeline
+   modules that `mf2-cli` and the conformance crate reach into, the
+   compiled catalog's layout types, the raw locale-data tables — stay
+   `pub` but `#[doc(hidden)]`, and `docs/versioning.md`'s exemption names
+   them. A1's exact inter-crate requirements are what make that safe. The
+   work is **A2**. The question as it was put (found by A2's listing:
+   `mf2-build` 1,495 lines of `cargo public-api` output, `mf2-catalog`
+   1,379, `mf2-locale-data` 1,213, most of it plumbing): promise only what
+   applications use, promise everything public today, or make the
+   internals private by restructuring first.
+
 ## Part A — tasks (A0 first; A1–A3 in any order; A4 after A1; A5 after A2; A6 and A7 after A4; A8 last)
 
 | Task | Deliverable | Done when |
@@ -258,6 +274,37 @@ of the tree, which a public repository or package cannot carry.
   directory was removed by something outside this task (the build failed
   on missing files; the spec cache went with it). The run was repeated
   and passed; `spec-sync` refills the cache.
+
+## A2 — the API review for 1.0: progress (not done)
+
+* **Done and committed:** `with_zone` converts an instant, and
+  `DateTimeValue::wall_time` names a zoned wall time (the date functions
+  move a value with an offset to its zone's offset; test in
+  `crates/mf2/tests/call_site.rs`, negative control shown); the
+  `unknown-option` lint (`mf2_build::features::OPTIONS`, held against the
+  formatter by `conformance/tests/options_lint.rs`; every corpus
+  re-checked — none fires; the WG suite's two are its deliberate `foo` on
+  `:offset`). `cargo xtask ci` green before both commits.
+* **Measured** (2026-09-25; `cargo-public-api` 0.52.0 from crates.io, the
+  installed nightly, `-s`): the listings are 8,374 lines for 15 library
+  crates (`mf2-cli` is a binary: its listing is the command tree, still to
+  build). Feature sets used, matching `cargo xtask msrv`'s: `mf2`
+  `compile,fn-number,datetime-icu,host-std,ssr,static-locale,
+  mark-fallback-lang` **plus `leptos-mf2/leptos-0-9`** (the facade alone
+  with `ssr` names no Leptos line; applications also depend on
+  `leptos-mf2`, whose default turns it on, as the guide says);
+  `leptos-mf2` `ssr,fn-datetime,static-locale,mark-fallback-lang`;
+  `mf2-host-web` on `wasm32-unknown-unknown`. Missing docs under
+  `-W missing_docs`: 137 (`mf2-locale-data` 91, `mf2-catalog` 45,
+  `leptos-mf2` 1).
+* **Items only the macro and the generated module use** (from
+  `mf2-macros/src/expand.rs` and `mf2-build/src/codegen.rs`; no doc or
+  example names them): `tr`, `tr_args0`–`tr_args4`, `tr_args_n`,
+  `tr_rich`, `markup`, `MsgId::from_raw`, `ArgValue::str_static`.
+* **Left:** owner question 5's hiding, crate by crate; `#[non_exhaustive]`
+  on what may grow; error conventions; `#![warn(missing_docs)]` and the
+  137; `api.txt` per crate with `cargo xtask api` (write) / `--check` in
+  `cargo xtask ci`, and the negative control; the task record.
 
 ## Standing
 
