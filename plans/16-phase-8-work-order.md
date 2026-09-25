@@ -111,10 +111,25 @@ three phases left unbuilt: dates in the reader's time zone.
    support both equally; then, with 0.9 the default, drop 0.8 or keep it as
    an opt-in.
 
+7. **Which variants a message that changes with a number offers a
+   translator whose language has other plural forms than the source's** —
+   **answered (owner, 2026-09-25): the target language's forms.** A Polish
+   translator of an English one/other message gets four entries, an Arabic
+   one six, each showing the English text MF2 would pick for it; an
+   existing translation keeps its own variants, plus empty entries for the
+   forms it lacks. Translators need no MF2; English text repeats, and two
+   counts multiply (up to 36 entries in Arabic). Recorded in 05 §6.3. The
+   question as it was put: the target language's forms, English's forms
+   only (a translator cannot add the forms their language needs), or the
+   whole message in one entry with its select syntax locked (translators
+   must know MF2).
+
 ## Part A — tasks (A1 and A2 first, then A3; A0 before any other task; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
 **A0 and A5 are done** (2026-09-25; what was built is below the table).
-**A6 (a) is done** (2026-09-25): XLIFF 2.1 vendored (below the table).
+**A6 (a) and (b) are done** (2026-09-25): XLIFF 2.1 vendored, the mapping
+designed in 05 §6.3 with owner question 7 answered (below the table); (c),
+the build, is next.
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -429,6 +444,18 @@ call sites and builds. What was built is below the table.
   authoritative), `schemas/` with W3C's `xml.xsd` the core schema imports;
   not `change_tracking.xsd` (no owner or notice, imported by nothing core)
   or the `.pdf`. 25 files, 1,953,918 bytes.
+* **(b) Designed** (2026-09-25), 05 §6.3: core only (validates against
+  `xliff_core_2.0.xsd` alone); a resource file ↔ `<file>`, a section ↔
+  `<group type="mf2:section">`, a message ↔ `<unit>`, a `.match` message ↔
+  `<group type="mf2:select">` with a unit per variant; every expression an
+  inline code whose `<data>` is its exact MF2 text (`ph`; markup `pc`, or
+  isolated `sc`/`ec`); comments, `@param` and other properties ↔ notes;
+  `@do-not-translate` ↔ `translate="no"`; declarations and selectors not in
+  the document at all. Import re-exports the tree in memory and refuses,
+  per unit and with a code, what does not match it (six codes); an
+  unchanged data model keeps its bytes. The hard case went to the owner
+  (question 7): the target language's plural forms. `quick-xml` is the one
+  new dependency, of `mf2-cli` only.
 
 ## Standing: Leptos 0.9
 

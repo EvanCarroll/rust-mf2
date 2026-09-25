@@ -493,7 +493,7 @@ the list — they are names users choose as much as option names are.*
 | `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
-| `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6) |
+| `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6; the mapping is §6.3) |
 | `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4; the mapping is §6.1, the call-site rules §6.2) |
 | `mf2 watch` | recompile on change. *The push of the new catalog to open pages through an `mf2-axum` dev mode is deferred until after v1 (owner, 2026-09-24)* |
 
@@ -873,6 +873,128 @@ asks for with `move_tr!` or a closure. Isolation follows MF2's Default Bidi
 Strategy and numbers are localized (§6.1's accepted differences). Nothing
 else: every `String` stays a `String`, every `Signal<String>` a
 `Signal<String>`, and an argument is evaluated exactly as often as before.
+
+### 6.3 `mf2 export` / `import` in XLIFF 2 — the mapping
+
+*Designed before code (Phase 8 A6, 2026-09-25), from XLIFF 2.1, the OASIS
+Standard vendored in `third_party/xliff/` (D13). Only the core is used: no
+module, so a document validates against `schemas/xliff_core_2.0.xsd` alone
+and any XLIFF 2 tool can read it.* The flat JSON of §6 stays; XLIFF is the
+format a translation tool can **protect** in: what is text is text, and
+everything MF2 means by `{…}` is an inline code the translator moves or
+drops but cannot edit.
+
+**Commands.** `mf2 export --format xliff LOCALE [--out FILE]` writes one
+document with `srcLang` the manifest's `source_locale` and `trgLang`
+LOCALE; LOCALE equal to the source locale is refused (there is nothing to
+translate). `--format json` stays the default. `mf2 import LOCALE FILE`
+reads either format, told apart by content (an XML document whose root is
+`xliff`); the document's `trgLang` must be LOCALE, else nothing is written.
+`--dry-run` and the rule of §6 hold: the container keeps every section,
+comment and property, and an id the locale does not have is reported, not
+invented.
+
+**Structure.**
+
+| MF2 / resource | XLIFF 2 |
+|---|---|
+| the document | `<xliff version="2.1" srcLang trgLang xml:space="preserve">` — a message's whitespace is significant everywhere |
+| a source resource file (`locales/<src>/<name>.mf2`; a flat JSON locale is one file) | `<file id="f1"…` in path order, `original="<name>.mf2"`, `canResegment="no"` (a message is not split into sentences) |
+| the resource's comment | the file's `<note category="comment">` |
+| a section `[hotkeys]` | `<group id="s:hotkeys" name="hotkeys" type="mf2:section">`, its comment a note of the group |
+| a message without `.match` | `<unit id=… name="<full id>">` with one `<segment>`: `<source>` the source locale's pattern, `<target>` the target locale's when it has the message (`state="translated"`), none when it does not |
+| a message with `.match` | `<group id=… name="<full id>" type="mf2:select">`, one `<unit>` per variant, `id="<message id>:<n>"` in the group's order, `name` its keys as MF2 writes them (`one`, `*`, `=0 *`) — *which variants: the target locale's, below* |
+| an entry's comment | `<note category="comment">` of its unit (or group) |
+| `@param $count - …` | `<note category="param">$count - …</note>`, as written |
+| any other property `@name value` | `<note category="property">@name value</note>` (context only) |
+| `@do-not-translate` (on the resource, a section or an entry) | `translate="no"` on the file, group or unit it attaches to |
+
+An XLIFF `id` is an `NMTOKEN`: a message id is used as it is when it is
+one and contains no `:` (every id of the reference workload), otherwise
+`x` followed by its UTF-8 in lowercase hex; `name` always carries the id
+as written. Group and unit ids are separate scopes in XLIFF, and sections
+are prefixed `s:`, so no two can meet.
+
+**Inside a pattern.** Text is text; a character XML cannot carry is
+`<cp hex="…"/>`. Every expression is an inline code whose original data —
+the expression exactly as `mf2-syntax`'s serializer writes it — is a
+`<data>` of the unit's `<originalData>`, and whose `disp` is that same text,
+so a tool shows `{$count}` where it stands:
+
+| MF2 | Inline code |
+|---|---|
+| a placeholder `{$count}`, `{$d :datetime}`, `{|literal|}` | `<ph id dataRef disp>` |
+| markup `{#b}` … `{/b}` closed in the same pattern and properly nested | `<pc id dataRefStart dataRefEnd dispStart dispEnd type="fmt">` |
+| standalone markup `{#br/}` | `<ph … type="fmt">` |
+| an open without its close, or a close without its open (valid MF2) | `<sc isolated="yes">` / `<ec isolated="yes">` |
+
+Codes keep XLIFF's defaults — copy, delete and reorder allowed — because a
+translation may drop `{$count}` in `one`, repeat it, or move it. Import
+accepts `<pc>` and an `<sc>`/`<ec>` pair interchangeably (a tool may
+convert one into the other, XLIFF 4.7.7).
+
+**What is not in the document.** Declarations (`.input`, `.local`) and
+selectors are not text and are not written: a target message keeps its
+own, and a new one takes the source's. Import never reads MF2 syntax from
+the document except through a code's data.
+
+**Import, and what it refuses.** Import exports the current tree in
+memory and compares: the document's `<file>`, group and unit ids, each
+unit's `<originalData>` and each variant's keys must be what that export
+writes. Then each unit's `<target>` is read back into a pattern (text, and
+each code replaced by its data) and the target message is rebuilt from its
+declarations, its keys and those patterns. A message whose data model is
+unchanged keeps its bytes, so **an export imported back changes nothing**;
+a changed one is written by the serializer in `mf2 fmt`'s form. A refused
+unit leaves its message as it was and is reported, with the file's and the
+unit's ids; the command exits non-zero when anything was refused.
+
+| Finding | Code |
+|---|---|
+| a `<data>` that differs from the export's — an edited protected code | **`xliff-code-edited`** |
+| a code whose `dataRef` names no data of its unit, or a code with neither `dataRef` nor `copyOf` (a brand-new code, XLIFF 4.7.2.4.2: it has no MF2 meaning) | **`xliff-unknown-code`** |
+| a file, group or unit id, or a variant's keys, the export does not have (the document is stale, or the id is not in the locale) | **`xliff-unknown-unit`** |
+| a `translate="no"` unit whose target differs from its source | **`xliff-do-not-translate`** |
+| a `.match` message whose catch-all (`*`) variant has no target — it cannot be written | **`xliff-incomplete`** |
+| not well-formed XML, not XLIFF 2, or no `trgLang` | **`xliff-malformed`** |
+
+A unit with no `<target>`, or an empty one, is untranslated: it adds no
+variant and changes no message. The `state` of a segment is the tool's and
+is not read.
+
+**Validation.** Every export in the tests is checked with `xmllint --noout
+--schema third_party/xliff/schemas/xliff_core_2.0.xsd` (core only; `type`
+values are `mf2:…`, the core's `userDefinedValue`). XML is read and written
+with `quick-xml`, a dependency of `mf2-cli` only.
+
+**Which variants a `.match` message offers** — *owner question 7 of
+[16](16-phase-8-work-order.md).*
+**Answered (owner, 2026-09-25): the target language's forms.** A
+translator never needs to know MF2 to give their language every plural
+form it has:
+
+* A selector that selects by plural category — `:number` or `:integer`
+  without `select=exact` (cardinal), or with `select=ordinal` (ordinal) —
+  offers the **target locale's** CLDR categories for that kind, in CLDR's
+  order, except `other`, which is the catch-all `*`; before them, the
+  source's exact-number keys (`=0`, `0`), in the source's order. Any other
+  selector (`:string`, `select=exact`) offers the source's keys.
+* More than one selector: every combination, in order (Arabic with two
+  counts: up to 36 units — accepted).
+* When the target already has the message, its variants come first, as
+  they stand and in its order; then every combination above it lacks,
+  with no target.
+* Each unit's `<source>` is the source variant MF2 would pick for those
+  keys: the most specific source variant whose every key equals the unit's
+  or is `*` (Polish `few` and `many` show English `*`, "{$count} files").
+  When the target's selectors are not the source's (another number of
+  them), every unit shows the source's all-`*` variant, and a
+  `<note category="comment">` says the source selects differently.
+* A unit left empty adds no variant; the catch-all must have a target
+  (`xliff-incomplete`). So a Polish translation of an English one/other
+  message comes back with four variants, an unchanged export comes back
+  as it went, and a form the translator did not fill is simply absent —
+  the reader gets the catch-all for it, as MF2 would.
 
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 
