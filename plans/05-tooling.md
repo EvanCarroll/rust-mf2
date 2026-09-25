@@ -494,7 +494,7 @@ the list — they are names users choose as much as option names are.*
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
 | `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6) |
-| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4) |
+| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4; the mapping is §6.1) |
 | `mf2 watch` | recompile on change. *The push of the new catalog to open pages through an `mf2-axum` dev mode is deferred until after v1 (owner, 2026-09-24)* |
 
 Every command but `convert` ships in P5a. Three details the implementation
@@ -515,6 +515,213 @@ settled:
   keeping every section, comment and property; an id the locale does not have
   is reported, not invented, because which section it belongs in is the
   translator's decision.
+
+### 6.1 `mf2 convert --from fluent` — the mapping
+
+*Designed before code (Phase 8 A1, 2026-09-24), from `fluent-syntax` 0.12.0's
+AST and `fluent-bundle` 0.16.0's resolver, both read at those versions.*
+`fluent-bundle` is what a `leptos-fluent` application formats with, so
+**"faithful" means: for the same arguments, the converted message selects
+the variant `fluent-bundle` selects and writes the same text around it.**
+How each side then renders a number, a date or an isolate is not the
+mapping's business; A3 measures those differences, and the known ones are
+listed at the end of this section.
+
+**Command.** `mf2 convert --from fluent FTL_DIR` reads `FTL_DIR/<locale>/**.ftl`
+(`fluent-templates`' layout; that `leptos-fluent` projects use it is A4's to confirm from its documentation) and writes
+`<dir>/locales/<tag>/<name>.mf2` — the layout `mf2 init` makes, `<dir>` being
+the global `--dir`. A file in a subdirectory is flattened, its path parts
+joined by `.` (`menus/file.ftl` → `menus.file.mf2`), since the loader reads a
+locale's directory flat. A file's name never enters its ids, on either side.
+`<tag>` is the directory name with `_` read as `-`; `@locale <tag>` is written
+in the frontmatter. Output is `mf2 fmt`'s canonical form (§6), so
+`mf2 fmt --check` reports nothing on it. An existing `.mf2` is not
+overwritten: the command stops before writing anything and names it.
+`--format json` gives the report as `mf2 check` gives its own
+(`{"diagnostics": [{level, locale, file, line, column, id, code, message}]}`).
+The exit status is non-zero when the report has an error; everything else
+is still written, so the rest of a corpus can be checked while the errors are
+fixed by hand.
+
+**Positions.** `fluent-syntax`'s AST has no spans, but parsing a `&str` makes
+every identifier and text element a slice of the source, so a construct's byte
+offset is its slice's start minus the source's (safe pointer-to-address
+arithmetic, no `unsafe`); line and column follow. A construct with no slice of
+its own (a `Placeable`) is reported at the first slice inside it. A parse error
+has its own range (`ParserError::pos`).
+
+**Mapping.** Each row is an AST kind of `fluent-syntax` 0.12.0; the construct
+corpus under `crates/mf2-cli/tests/` has one case for every row and one test
+per code.
+
+| Fluent construct | MF2 | Code when not mapped |
+|---|---|---|
+| `Entry::Message` with a value | entry `id = <value>` | — |
+| its `Attribute`s | one entry each, `id.attr` (Fluent ids have no `.`, so an attribute id can never collide with a message id) | — |
+| a message with attributes only | the `id.attr` entries alone | — |
+| `Entry::Term` | no entry: terms are private in Fluent (`fluent-bundle` cannot format one by id), so each is **inlined** where referenced (below); a term's comment goes with it | — |
+| `Entry::Comment` attached to a message (`#`) | that entry's comment | — |
+| `Entry::Comment` standing alone (`#`, blank line after) | a detached comment at the same place (the resource model's `Detached`) | — |
+| `Entry::GroupComment` (`##`) | a detached comment, its text kept. **Not a `[section]`**: a section prefixes every following id, which would rename the messages under it and break every call site; a Fluent group has no effect on ids | — |
+| `Entry::ResourceComment` (`###`) | the resource's comment, above `---`; several are joined with a line of `#` between them | — |
+| `Entry::Junk` | nothing | **`fluent-junk`** (error; at the parser's own range) |
+| `PatternElement::TextElement` | text, escaped by the serializer (`{`, `}`, `\`; a leading `.` or whitespace by the resource's rules) | — |
+| `Placeable` holding a `Placeable` | the inner one | — |
+| `StringLiteral` in a placeable | its unescaped text, merged into the surrounding text (`fluent-bundle` does not isolate a string literal, and `{ "{" }` is Fluent's only way to write a brace) | — |
+| `NumberLiteral` in a placeable | a literal placeholder of the text `fluent-bundle` writes for it, computed at conversion (`{ 007 }` → `{|7|}`, `{ 1.50 }` → `{|1.50|}`) | — |
+| `VariableReference` in a message | `{$name}` (Fluent names are valid MF2 names) | — |
+| `VariableReference` in a term body, bound by the reference's arguments | the bound literal, as the rows above | — |
+| … unbound (`fluent-bundle` writes `{$name}` as text, without an error) | the text `{$name}`, escaped | **`fluent-unbound-term-variable`** (warning: converted faithfully, but it is almost certainly a bug in the original) |
+| `MessageReference` (`{ other }`, `{ other.attr }`) | the referenced value or attribute, **inlined**, recursively; its variables are the referring message's, as in `fluent-bundle` | — |
+| … to a missing message, attribute or value | nothing | **`fluent-missing-reference`** (error) |
+| … a cycle | nothing | **`fluent-cyclic-reference`** (error) |
+| `TermReference` (`{ -brand }`, `{ -brand(case: "gen") }`) | the term's value (or, if `fluent-bundle` would render it, an attribute), inlined, with the named arguments bound; a positional argument is ignored, as `fluent-bundle` ignores it | missing term: **`fluent-missing-reference`**; positional argument: **`fluent-term-positional`** (warning) |
+| `FunctionReference` `NUMBER(…)` in a placeable | `{$x :number …}`, or `:percent` / `:currency` by `style`, options by the table below | operand not a variable or number literal (`fluent-bundle` returns an error for it): **`fluent-number-operand`** (error) |
+| `FunctionReference` `DATETIME(…)` | `:date` / `:time` / `:datetime` by the table below | an option with no MF2 counterpart: **`fluent-datetime-option`** (error) |
+| any other `FunctionReference` | nothing — a custom Fluent function has no MF2 counterpart the converter can know | **`fluent-unknown-function`** (error) |
+| `Expression::Select` | hoisted into the message's `.match` (below) | see below |
+| a message whose `.match` would exceed 256 variants | nothing | **`fluent-variant-limit`** (error) |
+| a file whose flattened name collides with another's | the first, in path order | **`fluent-file-collision`** (error) |
+| an id defined twice in one locale (in one file or two) | the first, in path order — which `fluent-bundle`'s `add_resource` keeps depends on the application's load order, so it is not guessed | **`fluent-duplicate-id`** (error) |
+| a locale directory whose name is not a well-formed BCP 47 tag | nothing | **`fluent-locale`** (error) |
+
+**Selection.** MF2 has one `.match` per message; Fluent puts a select
+expression anywhere in a pattern, and inside another's variant. Every select
+expression is **hoisted**: each becomes one selector, and the message's
+variants are the product of their keys, each variant's pattern being the
+Fluent pattern with every select replaced by the chosen variant's pattern. A
+select nested inside a variant contributes keys only under that variant; under
+the others its column is `*`. Two selects on the same selector and the same
+keys are one column (they always choose alike). Keys keep Fluent's order, `*`
+last. The product is capped at 256 variants — beyond that, hand conversion is
+the better answer (`fluent-variant-limit`).
+
+*The selector.*
+
+* A selector that is constant at conversion — a string or number literal, a
+  term attribute (`{ -brand.gender -> … }`, Fluent's grammatical-gender idiom),
+  a term variable bound to a literal — is **evaluated at conversion**: the
+  variant `fluent-bundle` would pick is kept and the select disappears.
+* `NUMBER($x, …)` → `.input {$x :number …}` (options by the table below;
+  `type: "ordinal"` → `select=ordinal`).
+* A bare `$x` has no type in Fluent — `fluent-bundle` matches a plural category
+  if the argument is a number, a key's string if it is a string. The converter
+  **infers it from the keys**: `:number` if any key is a number or a plural
+  category other than `other`; `:string` if every key is an identifier that
+  is not one of those (`other` is Fluent's usual default for a gender or a
+  kind too); both at once is **`fluent-mixed-keys`** (error), since the
+  argument decides at run time and the converter cannot know it. The
+  documented consequence: a string argument whose keys look like plural
+  categories is converted as a number (A3 checks the rule on the corpus).
+* `DATETIME(…)` as a selector: **`fluent-date-selector`** (error; MF2 dates do
+  not select). Any other function: `fluent-unknown-function`.
+* One variable selected under two different annotations (a cardinal and an
+  ordinal `NUMBER` of `$n`) gets `.input` for the first and
+  `.local $n-2 = {$n :number select=ordinal}` for the next, the suffix the
+  smallest integer that collides with no name in the message.
+
+*The keys.* An identifier key is an unquoted MF2 key; a number key is written
+as Fluent wrote it. Fluent's default `*[k]` becomes `*`, plus an explicit `k`
+variant with the same pattern **only when `k` is a number** — MF2 prefers an
+exact number to a category, so dropping it could change the result (`*[0]`
+before `[one]` in French); an identifier or category `k` adds nothing `*` does
+not already cover.
+
+*Source order against best match.* `fluent-bundle` takes the **first**
+variant in source order whose key matches; MF2 takes the **best** (an exact
+number before a category). They differ only where a Fluent variant can never be
+reached, and the converter drops exactly those, each with
+**`fluent-unreachable-variant`** (warning — the output is faithful, the
+original had dead text):
+
+* a key repeated in one select (the later one);
+* a number key after a category key that the number's plural category equals
+  — cardinal or ordinal as the selector is, in the resource's locale, with
+  `mf2-locale-data`'s rules (`[one] … [1] …` in English);
+* a number key under a `NUMBER` with any option set away from its default:
+  `fluent-bundle` compares a key with the argument **including their number
+  options** (`FluentNumber`'s `PartialEq`), so `[1]` never matches
+  `NUMBER($n, minimumFractionDigits: 1)`; and conversely `[1.0]` matches only
+  a `NUMBER` whose only option is `minimumFractionDigits: 1`.
+
+**`NUMBER` options** (`FluentNumberOptions::merge`; an option of the wrong type
+or an unknown name is ignored by `fluent-bundle`, so it is dropped with
+**`fluent-number-option`**, a warning):
+
+| `NUMBER` option | MF2 |
+|---|---|
+| `style: "decimal"` / absent | `:number` |
+| `style: "percent"` | `:percent` |
+| `style: "currency"` + `currency: "EUR"` | `:currency currency=EUR`; without `currency`: **`fluent-currency-missing`** (error) |
+| `currencyDisplay: "symbol" \| "code" \| "name"` | the same value |
+| `useGrouping: "false"` | `useGrouping=never` (any other string means true: omitted) |
+| `minimumIntegerDigits`, `minimumFractionDigits`, `maximumFractionDigits`, `minimumSignificantDigits`, `maximumSignificantDigits` | the same name and value; under `:currency`, equal minimum and maximum fraction digits become `fractionDigits`, unequal ones are **`fluent-number-option`** |
+| `type: "ordinal"` | `select=ordinal` (formatting ignores it on both sides) |
+| `type: "cardinal"` | omitted |
+
+**`DATETIME` options** (Fluent's are `Intl.DateTimeFormat`'s; MF2's `:date`,
+`:time` and `:datetime` take semantic fields and lengths, so this mapping is
+the nearest one, not an identity). The function is `:date` when only date
+options are present, `:time` when only time options are, `:datetime` when
+both are; with no options, `Intl`'s default (numeric year, month and day) →
+`:date length=short`.
+
+| `DATETIME` option | MF2 |
+|---|---|
+| `dateStyle: full \| long \| medium \| short` | `length` (`dateLength`) `long` (with `fields=year-month-day-weekday` for `full`) / `long` / `medium` / `short` |
+| `timeStyle: full \| long \| medium \| short` | `precision` (`timePrecision`) `second` + `timeZoneStyle=long` / `second` + `timeZoneStyle=short` / `second` / `minute` |
+| `weekday`, `year`, `month`, `day` (no `dateStyle`) | `fields` (`dateFields`) from the set present: `weekday`, `day-weekday`, `month-day`, `month-day-weekday`, `year-month-day`, `year-month-day-weekday`; another set (`year` alone, `year` + `month`, …) is **`fluent-datetime-option`**. Length from `month` (`long` → `long`, `short` → `medium`, `narrow`, `numeric`, `2-digit` → `short`), else from `weekday` (`long` → `long`, else `medium`) |
+| `hour`, `minute`, `second` (no `timeStyle`) | `precision` = the finest present; a set not starting at `hour` is **`fluent-datetime-option`** |
+| `timeZoneName` | `long`, `longGeneric` → `timeZoneStyle=long`; the others → `short` |
+| `timeZone` | `timeZone`, the same value |
+| `hour12` / `hourCycle` | `hour12=true` / `false` (`h11`, `h12` → true; `h23`, `h24` → false) |
+| `era`, `fractionalSecondDigits`, `dayPeriod`, anything else | **`fluent-datetime-option`** |
+
+A `DATETIME` whose operand is neither a variable nor a string literal is
+**`fluent-datetime-option`** too. `fluent-bundle`
+0.16 has no `DATETIME` built in (only `NUMBER`), so A3 has no oracle for these
+rows; they are checked by the construct corpus, and the report counts every
+converted `DATETIME` with **`fluent-datetime-approximate`** (warning) so that
+nobody mistakes the nearest form for an identity.
+
+**Features.** A converted corpus that uses `:percent` or `:currency` needs
+`fn-number`, and one that uses a date function needs `fn-datetime` (§5,
+*gated function*). The report ends with the features the output needs, so the
+`mf2 check` that follows is not a surprise.
+
+**What conversion loses by design.** Inlining is a copy: after conversion a
+term such as `-brand` lives in every message that used it, and a later edit to
+it is an edit to each. The report counts inlined terms and references per
+id so that this is visible, and the migration guide (A4) says so.
+
+**Known differences by construction, for A3 to count** (not mapping errors —
+the converted message selects the same variant; the text of a placeholder
+differs):
+
+* `fluent-bundle` writes a number with `f64`'s `Display` (no grouping, no
+  locale symbols; `minimumFractionDigits` pads). `:number`, and an unannotated
+  number with `fn-number` on, localize and group.
+* `style: "percent"` does not multiply by 100 in `fluent-bundle`
+  (`as_string` ignores `style`); `:percent` does. Currency likewise prints a
+  bare number in `fluent-bundle`.
+* Isolation: `fluent-bundle` wraps a placeable in FSI/PDI only when the
+  pattern has more than one element and the placeable is not a string
+  literal, message or term reference, and it isolates a referenced message's
+  placeables by *that* message's element count; MF2's Default Bidi Strategy
+  isolates every placeholder of the flattened message.
+
+**The codes**, stable like `mf2 check`'s lint names (a code's meaning never
+changes; a retired one is not reused). *Errors* — the construct is not
+converted, the exit status is non-zero: `fluent-junk`,
+`fluent-missing-reference`, `fluent-cyclic-reference`,
+`fluent-number-operand`, `fluent-currency-missing`,
+`fluent-datetime-option`, `fluent-date-selector`, `fluent-unknown-function`,
+`fluent-mixed-keys`, `fluent-variant-limit`, `fluent-file-collision`,
+`fluent-duplicate-id`, `fluent-locale`. *Warnings* — converted faithfully,
+but a person should look: `fluent-unbound-term-variable`,
+`fluent-term-positional`, `fluent-number-option`,
+`fluent-unreachable-variant`, `fluent-datetime-approximate`. A2's corpus
+MUST convert with none of either.
 
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 
