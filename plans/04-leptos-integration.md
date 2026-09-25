@@ -670,7 +670,11 @@ L6 on 0.8; `cargo xtask docs` compiles Getting started's application on
 0.8 as well (`hello-0-8`). `leptos-fluent` 0.3.1 requires Leptos < 0.9, so
 the `fluent-view` template and its converted twin `fluent-converted` stay
 on 0.8. `leptos-mf2`'s major version follows its default
-Leptos line.
+Leptos line. *The first release is 1.0.0 on the 0.9 beta (owner,
+2026-09-25): a later 0.9 pre-release or the release is a patch, a new line
+an opt-in in a minor, a change of default line or a dropped line 2.0 —
+written for users in `docs/versioning.md` ([17](17-phase-9-work-order.md)
+A3).*
 
 `leptos-mf2` and `mf2-host-web` only *call* `js-sys` / `web-sys` APIs and define
 no `#[wasm_bindgen]` items of their own (the `hydrate` export belongs to the

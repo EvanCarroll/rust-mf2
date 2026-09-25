@@ -32,7 +32,9 @@ companion documents elaborate it and MUST NOT contradict it.
 | [phase-6-results](phase-6-results.md) | Phase 6 measurements: rendering, hydration, the registry, `mf2-axum`, L6, the size gate |
 | [15-phase-7-work-order](15-phase-7-work-order.md) | Phase 7 work order: islands, CSR, lazy routes, layer L7, accessibility, documentation |
 | [phase-7-results](phase-7-results.md) | Phase 7 measurements: the WCAG 2.2 AA audit, spec coverage, the documentation, `mark-fallback-lang` |
-| [16-phase-8-work-order](16-phase-8-work-order.md) | task-level work order for the next phase: migration from Fluent, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
+| [16-phase-8-work-order](16-phase-8-work-order.md) | Phase 8 work order: migration from Fluent, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
+| [phase-8-results](phase-8-results.md) | Phase 8 record: status at exit, the A/B and oracle figures, findings carried to Phase 9 |
+| [17-phase-9-work-order](17-phase-9-work-order.md) | task-level work order for the next phase: the release — 1.0.0, the specification text out of the tree, `cargo xtask release` |
 
 ---
 
@@ -226,8 +228,9 @@ Measured against `leptos-fluent` once, at migration:
 Upstream pinned at `5c4ddb27` (2026-08-31; LDML 48.2 + 7 commits, 3 of them
 normative), vendored. 462 tests, 16 files. Since upstream #1112 (inside the
 pin) the **spec text** may not be redistributed publicly without Unicode's
-permission; the tests remain Unicode-3.0 — an open owner decision before any
-public remote ([01](01-conformance.md) §1). L1 syntax → L2 data model → L3 catalog (lossless) → L4 runtime
+permission; the tests remain Unicode-3.0 — so the spec text leaves the tree and
+is fetched on demand by `spec-sync` (owner, 2026-09-25; [01](01-conformance.md)
+§1, [17](17-phase-9-work-order.md) A0). L1 syntax → L2 data model → L3 catalog (lossless) → L4 runtime
 from the catalog, native **and** wasm → L5 macros → L6 Leptos SSR + hydrate. One
 ledger; a phase cannot exit with its layer red.
 
@@ -245,9 +248,9 @@ ledger; a phase cannot exit with its layer red.
 | D8 | Build orchestration: i18n crate + `build.rs` + generated `tr!` wrapper (manifest path **and hash** baked in; relocation fallback; catalog names only under `ssr`) | **settled** — P0.9: correct rebuilds for every edit scenario under cargo, `cargo leptos build` and `watch`; +0.2–0.3 s per 2,000 sites; rust-analyzer expands it ([05](05-tooling.md) §4) |
 | D9 | Catalog storage: client thread-local; server per-request context looked up **at render time**, so `Tr` is the same 4-byte `Copy` value everywhere. Conversions to derived reactive types (`TextProp`, `Signal<String>`) capture the request catalog under `ssr`, because third parties (leptos_meta's `<Title>`) may evaluate them outside the request owner | **verified** — P0.2: render-time lookup reached the context in all four `SsrMode`s; the narrowed capture fixed the one miss ([04](04-leptos-integration.md) §5) |
 | D10 | Leptos: **0.9 is the default line, beta or not** (0.9.0-beta at 2026-09-24); 0.8 kept as an opt-in feature, built and tested in CI beside it; glue isolated in one module with the line-specific methods switched by feature (owner, 2026-09-24; replaces "latest stable, 0.9 tracked against its betas") | decided |
-| D11 | License: **MIT**. Publish to crates.io late (P9). Dependencies and vendored material MUST be MIT-compatible (ICU4X and the WG suite are Unicode-3.0 — fine; GPL code is excluded, including as a test oracle) | **decided by owner** |
-| D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
-| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24): XLIFF 2.1, the newest OASIS Standard (2.2 is a Committee Specification), `third_party/xliff/`, `cargo xtask xliff-sync` — OASIS's notice permits verbatim copies with the notice kept and forbids modifying them, which a read-only `third_party/` satisfies | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
+| D11 | License: **MIT**. Publish to crates.io late (P9) — **1.0.0**, at the end of P9, on the Leptos 0.9 beta, every crate versioned together, published by the owner with one command (owner, 2026-09-25; [17](17-phase-9-work-order.md)). Dependencies and vendored material MUST be MIT-compatible (ICU4X and the WG suite are Unicode-3.0 — fine; GPL code is excluded, including as a test oracle) | **decided by owner** |
+| D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early. *Re-verified 2026-09-25: all 16 library names free; an unrelated `mf2_i18n*` family of nine crates now exists, `mf2_i18n_leptos` among them* | working assumption; checked again at release ([17](17-phase-9-work-order.md) A1, A7) |
+| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24): XLIFF 2.1, the newest OASIS Standard (2.2 is a Committee Specification), `third_party/xliff/`, `cargo xtask xliff-sync` — OASIS's notice permits verbatim copies with the notice kept and forbids modifying them, which a read-only `third_party/` satisfies | decided; `spec/` itself (upstream license change #1112 — [01](01-conformance.md) §1) **leaves the tree and is fetched on demand** into a git-ignored cache; `test/` stays vendored (owner, 2026-09-25; [17](17-phase-9-work-order.md) A0) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
 | D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **settled: own buffer** — decided by owner (2026-09-21); the A5b gate holds on every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12 clean vs a panic import, 0 vs 0.5 allocations; [phase-3-results](phase-3-results.md) §A5b) |
 
@@ -424,6 +427,13 @@ everything before it).
 ### P9 — Release
 * Name verification, API review, semver policy tied to Leptos lines, docs.rs,
   changelog, MSRV statement, release automation.
+* Decided (owner, 2026-09-25): the first release is **1.0.0**, published at
+  the end of this phase on the Leptos 0.9 beta; the specification text
+  leaves the tree first; `cargo xtask release` checks everything and runs as
+  a dry run in CI, and the publish itself is the owner's, by that command.
+* **Exit**: every task of [17](17-phase-9-work-order.md) done, the release
+  dry run green in CI, `current_phase = "P9"` with the harness green. Work
+  order: [17](17-phase-9-work-order.md).
 
 ### Later, deliberately not now
 Per-route catalog chunks (bits already reserved); dev hot reload — `mf2
@@ -471,7 +481,8 @@ catalog's NAMES section, up to 1.1 % of a catalog's brotli size
   [12-phase-5a-work-order](12-phase-5a-work-order.md) (done),
   [13-phase-5b-work-order](13-phase-5b-work-order.md) (done),
   [14-phase-6-work-order](14-phase-6-work-order.md) (done),
-  [15-phase-7-work-order](15-phase-7-work-order.md) and
-  [16-phase-8-work-order](16-phase-8-work-order.md) (next).
+  [15-phase-7-work-order](15-phase-7-work-order.md) (done),
+  [16-phase-8-work-order](16-phase-8-work-order.md) and
+  [17-phase-9-work-order](17-phase-9-work-order.md) (next).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.

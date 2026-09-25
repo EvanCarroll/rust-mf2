@@ -30,7 +30,9 @@ source of truth and links to everything else.
 | — | [phase-6-results.md](phase-6-results.md) | the Phase 6 measurements: the crate and why the description types live in it, rendering and hydration, the registry and the switch, `mf2-axum`, layer L6 in Rust and in two engines, the example, the size gate, and B5 on the whole mix |
 | 15 | [15-phase-7-work-order.md](15-phase-7-work-order.md) | Phase 7 tasks (done): islands, CSR, lazy routes, layer L7, the dev loop, the WCAG audit, spec coverage, documentation, `mark-fallback-lang` |
 | — | [phase-7-results.md](phase-7-results.md) | the Phase 7 record: status at exit, the WCAG 2.2 AA audit, the coverage matrix, the user documentation, `mark-fallback-lang` (A1–A9 are recorded in the work order) |
-| 16 | [16-phase-8-work-order.md](16-phase-8-work-order.md) | **doing the work next** — Phase 8 tasks: `mf2 convert --from fluent`, the call-site codemod and guide, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
+| 16 | [16-phase-8-work-order.md](16-phase-8-work-order.md) | Phase 8 tasks (done): `mf2 convert --from fluent`, the call-site codemod and guide, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
+| — | [phase-8-results.md](phase-8-results.md) | the Phase 8 record: status at exit, the A/B and oracle figures, what the phase found and did not fix (tasks recorded in the work order) |
+| 17 | [17-phase-9-work-order.md](17-phase-9-work-order.md) | **doing the work next** — Phase 9 tasks: the release — 1.0.0, the specification text out of the tree, the API review, the version policy, packaging, docs.rs, `cargo xtask release` |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans
