@@ -19,6 +19,8 @@ people-online =
   many {{{$count} شخصا هنا}}
   *    {{{$count} شخص هنا}}
 
+published = نشر في {$when :datetime dateLength=long}
+
 add-one = أضف واحدا
 reset = إعادة تعيين
 

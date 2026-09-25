@@ -32,21 +32,31 @@ use http::request::Parts;
 use leptos::prelude::{provide_context, use_context};
 use leptos_axum::ResponseOptions;
 
-use crate::negotiate::{Negotiated, Negotiator};
+use crate::negotiate::{Negotiated, Negotiator, cookie};
 
 /// Negotiates this request's locale, provides its catalog, and sets
 /// `Content-Language`, `Vary` and every sink's header on the response.
+///
+/// It also reads the reader's time zone from the `mf2_tz` cookie the client
+/// writes (`plans/03-runtime.md` §6.1): a zone this server knows renders the
+/// request's dates in it, and the page says so; a malformed or unknown one
+/// is ignored. Without `leptos-mf2`'s `fn-datetime` feature no zone is read.
 ///
 /// Returns what was negotiated, which the shell reads for `<html lang dir>`.
 /// With no request in context — route-list generation, the file handler in a
 /// bare owner — the default locale is used and no header is set.
 pub fn provide_locale(negotiator: &Negotiator) -> Negotiated {
-    let negotiated = match use_context::<Parts>() {
-        Some(parts) => negotiator.negotiate(&parts),
+    let parts = use_context::<Parts>();
+    let negotiated = match &parts {
+        Some(parts) => negotiator.negotiate(parts),
         None => negotiator.negotiate(&mock_parts()),
     };
-    // The catalog, for every `Tr` this request renders.
-    leptos_mf2::provide_locale(negotiated.tag);
+    // The reader's time zone, if the cookie names one this server can use.
+    let zone = parts.as_ref().and_then(|parts| {
+        cookie(parts, leptos_mf2::links::TIME_ZONE_COOKIE).and_then(leptos_mf2::reader_time_zone)
+    });
+    // The catalog, for every `Tr` this request renders, in the reader's zone.
+    leptos_mf2::provide_locale_in_zone(negotiated.tag, zone);
     // The answer, serialized for the shell to read.
     provide_context(negotiated.clone());
 
@@ -54,8 +64,20 @@ pub fn provide_locale(negotiator: &Negotiator) -> Negotiated {
         if let Ok(value) = HeaderValue::from_str(negotiated.tag) {
             response.insert_header(CONTENT_LANGUAGE, value);
         }
-        if let Some(vary) = negotiator.vary() {
+        let vary = negotiator.vary();
+        // A page rendered in the cookie's zone depends on `Cookie`.
+        let cookie_named = vary
+            .as_ref()
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|v| {
+                v.split(',')
+                    .any(|n| n.trim().eq_ignore_ascii_case("cookie"))
+            });
+        if let Some(vary) = vary {
             response.append_header(VARY, vary);
+        }
+        if zone.is_some() && !cookie_named {
+            response.append_header(VARY, HeaderValue::from_static("cookie"));
         }
         for (name, value) in negotiator.store(&negotiated) {
             response.append_header(name, value);

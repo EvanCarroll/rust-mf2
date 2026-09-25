@@ -243,14 +243,16 @@ pub(crate) fn with_active_text<D: Description, R>(
     body: impl FnOnce(&str) -> R,
 ) -> R {
     match catalog::current() {
-        Some(cx) => format_with(
-            description,
-            cx.catalog(),
-            use_,
-            cx.registry(),
-            cx.bidi(),
-            body,
-        ),
+        Some(cx) => cx.in_zone(|| {
+            format_with(
+                description,
+                cx.catalog(),
+                use_,
+                cx.registry(),
+                cx.bidi(),
+                body,
+            )
+        }),
         None => body(""),
     }
 }
@@ -284,14 +286,16 @@ pub(crate) fn with_active_marked_text<D: Description, R>(
     match catalog::current() {
         Some(cx) => {
             let lender = Lender::of(cx.catalog(), description.msg_id());
-            format_with(
-                description,
-                cx.catalog(),
-                TextUse::Displayed,
-                cx.registry(),
-                cx.bidi(),
-                |text| body(text, lender),
-            )
+            cx.in_zone(|| {
+                format_with(
+                    description,
+                    cx.catalog(),
+                    TextUse::Displayed,
+                    cx.registry(),
+                    cx.bidi(),
+                    |text| body(text, lender),
+                )
+            })
         }
         None => body("", None),
     }

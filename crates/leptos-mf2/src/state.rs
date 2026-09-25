@@ -97,7 +97,8 @@ pub struct Setup {
     pub source_locale: &'static str,
     /// The generated `LOCALES`.
     pub locales: &'static [(&'static str, Dir)],
-    /// The default time zone (`plans/03-runtime.md` §6).
+    /// The time zone a date is shown in when its message names none and
+    /// the reader's zone is not known yet (`plans/03-runtime.md` §6.1).
     pub time_zone: TimeZone,
 }
 
@@ -121,7 +122,8 @@ impl Setup {
         }
     }
 
-    /// The same with another default time zone.
+    /// The same with another default time zone. The reader's zone, once
+    /// known, comes first (`plans/03-runtime.md` §6.1).
     #[must_use]
     pub const fn with_time_zone(mut self, zone: TimeZone) -> Setup {
         self.time_zone = zone;
@@ -260,7 +262,15 @@ pub(crate) fn context_for(use_: TextUse, bidi: Option<BidiStrategy>) -> Option<F
         TextUse::Plain => BidiStrategy::None,
         TextUse::Displayed => bidi.unwrap_or(BidiStrategy::Default),
     };
-    cx.time_zone = runtime.setup.time_zone;
+    // The reader's zone, when this thread knows it (`crate::zone`).
+    #[cfg(any(feature = "ssr", feature = "fn-datetime"))]
+    {
+        cx.time_zone = crate::zone::current().unwrap_or(runtime.setup.time_zone);
+    }
+    #[cfg(not(any(feature = "ssr", feature = "fn-datetime")))]
+    {
+        cx.time_zone = runtime.setup.time_zone;
+    }
     Some(cx)
 }
 

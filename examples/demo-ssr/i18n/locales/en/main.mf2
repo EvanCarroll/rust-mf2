@@ -24,7 +24,7 @@ people-online =
 # this locale wants it.
 hotkey = Press {#kbd}Esc{/kbd} to close the dialog
 
-published = Published {$when :datetime dateStyle=long timeStyle=short}
+published = Published {$when :datetime dateLength=long}
 
 add-one = Add one
 reset = Reset

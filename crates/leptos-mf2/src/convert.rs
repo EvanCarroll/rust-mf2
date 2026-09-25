@@ -36,11 +36,14 @@ use crate::{Tr, TrArgs, TrDyn, TrRich};
 fn reader<D: Description>(description: D) -> impl Fn() -> String + Send + Sync + 'static {
     #[cfg(feature = "ssr")]
     {
-        // D9, as P0.2 narrowed it: capture inside the request owner.
-        let catalog = crate::catalog::active();
-        move || match &catalog {
-            Some(catalog) => text::with_text(&description, catalog, TextUse::Displayed, |t| {
-                String::from(t)
+        // D9, as P0.2 narrowed it: capture inside the request owner — the
+        // catalog, and the reader's time zone with it.
+        let request = crate::catalog::current();
+        move || match &request {
+            Some(request) => request.in_zone(|| {
+                text::with_text(&description, request.catalog(), TextUse::Displayed, |t| {
+                    String::from(t)
+                })
             }),
             None => String::new(),
         }

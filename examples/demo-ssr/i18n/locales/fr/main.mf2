@@ -21,7 +21,7 @@ people-online =
 # point of markup.
 hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
 
-published = Publié le {$when :datetime dateStyle=long timeStyle=short}
+published = Publié le {$when :datetime dateLength=long}
 
 add-one = Ajouter un
 reset = Réinitialiser

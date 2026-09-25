@@ -12,6 +12,7 @@
 //! | the search field's `placeholder` | a description as an attribute |
 //! | the hotkey line | markup as elements: the reason nothing mounts before the catalog |
 //! | the counter | a signal-valued argument |
+//! | the published line | a date, through the browser's `Intl.DateTimeFormat`, in the reader's time zone |
 //! | the note | a sentence untranslated in Arabic on purpose: built inside `<span lang="en" dir="ltr">` there (`mark-fallback-lang`) |
 //! | the switcher | a live switch, remembered in `localStorage` |
 //!
@@ -21,6 +22,7 @@
 use leptos::prelude::*;
 use leptos_meta::{Title, provide_meta_context};
 use leptos_mf2::{LocaleOption, LocaleSwitcher, html_lang};
+use mf2::DateTimeValue;
 
 use demo_csr_i18n::tr;
 
@@ -36,6 +38,10 @@ fn App() -> impl IntoView {
         html_lang().0
     };
     let count = RwSignal::new(3);
+    // A fixed instant, so that the browser check can compare it. With no
+    // server there is nothing to correct: the page mounts in the reader's
+    // zone.
+    let published = DateTimeValue::instant(1_767_225_600_000);
     view! {
         <Title text=tr!("app-title") />
 
@@ -91,6 +97,9 @@ fn App() -> impl IntoView {
                             {tr!("reset")}
                         </button>
                     </div>
+                    <p id="published">
+                        {published.map(|when| tr!("published", when = when))}
+                    </p>
                 </section>
             </main>
 

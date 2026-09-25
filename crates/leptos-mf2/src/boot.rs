@@ -253,6 +253,32 @@ fn write_locale_cookie(window: &web_sys::Window, tag: &str) -> Result<(), LoadEr
     Ok(())
 }
 
+/// The reader's time zone, for the server to render the next page in
+/// ([`TIME_ZONE_COOKIE`](crate::links::TIME_ZONE_COOKIE)), with the locale
+/// cookie's attributes. Behind the feature, like everything of the
+/// reader's zone, so a build without dates compiles none of it.
+#[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+pub(crate) fn write_zone_cookie(window: &web_sys::Window, zone: &str) {
+    let Some(document) = window.document() else {
+        return;
+    };
+    let secure = window.location().protocol().is_ok_and(|p| p == "https:");
+    let cookie = [
+        crate::links::TIME_ZONE_COOKIE,
+        "=",
+        zone,
+        "; path=/; max-age=31536000; samesite=lax",
+        if secure { "; secure" } else { "" },
+    ]
+    .concat();
+    // Best effort: a refused cookie only costs the next page its zone.
+    let _ = js_sys::Reflect::set(
+        &document,
+        &JsValue::from_str("cookie"),
+        &JsValue::from_str(&cookie),
+    );
+}
+
 /// After a live switch: the address without its `?lang=`, in place. The
 /// query source outranks the cookie, so a reload of `?lang=en` after a
 /// switch to French would otherwise come back in English. No navigation:
@@ -440,6 +466,23 @@ where
             // (P0.10). Served HTML, un-hydrated, is the better failure.
             return;
         }
+        // Dates: hydrate in the zone the page was rendered in, then correct
+        // to the reader's (`crate::zone`).
+        #[cfg(feature = "fn-datetime")]
+        {
+            crate::zone::before_hydration(false);
+            if lazy {
+                // `hydrate_lazy` itself, awaited rather than spawned, so
+                // that the correction runs when it has hydrated.
+                leptos::mount::hydrate_from_async(tachys::dom::body(), app)
+                    .await
+                    .forget();
+            } else {
+                leptos::mount::hydrate_body(app);
+            }
+            crate::zone::after_hydration();
+        }
+        #[cfg(not(feature = "fn-datetime"))]
         if lazy {
             leptos::mount::hydrate_lazy(app);
         } else {
@@ -485,8 +528,12 @@ where
 /// the same rule as [`hydrate_body`].
 #[cfg(feature = "hydrate")]
 pub fn hydrate_islands() {
-    // Synchronously, before the walk that follows this function: the owner.
+    // Synchronously, before the walk that follows this function: the owner,
+    // and the reader's time zone, which each island is corrected to as it
+    // hydrates (`crate::zone`).
     leptos::mount::hydrate_islands();
+    #[cfg(feature = "fn-datetime")]
+    crate::zone::before_hydration(true);
     let boot = wasm_bindgen_futures::future_to_promise(async {
         match load_page_catalog().await {
             Ok(()) => {
@@ -646,6 +693,8 @@ pub async fn load_client_catalog() -> Result<(), LoadError> {
     let dir = catalog.dir();
     catalog::set_active(catalog);
     set_document_lang(tag, dir);
+    #[cfg(feature = "fn-datetime")]
+    crate::zone::mount_in_reader_zone();
     Ok(())
 }
 

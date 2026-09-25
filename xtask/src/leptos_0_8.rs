@@ -11,9 +11,9 @@
 //!    beside the default features must fail, naming `default-features =
 //!    false`.
 //! 2. **On 0.8:** `leptos-mf2` linted for `ssr` natively (every target, with
-//!    `mark-fallback-lang`) and for `hydrate` and `csr` on
-//!    `wasm32-unknown-unknown`; its `render`, `churn` and `fallback_lang`
-//!    tests; `mf2-axum`'s tests; and conformance layer L6 (the `layers` and
+//!    `mark-fallback-lang`) and for `hydrate` (also with `fn-datetime`) and
+//!    `csr` on `wasm32-unknown-unknown`; its `render`, `time_zone`, `churn`
+//!    and `fallback_lang` tests; `mf2-axum`'s tests; and conformance layer L6 (the `layers` and
 //!    `l6` tests of `mf2-conformance`).
 //!
 //! `--negative-control` runs step 2 on a copy of the tracked tree (under
@@ -63,7 +63,7 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
     let wasm = "wasm32-unknown-unknown";
     let deny = ["--", "-D", "warnings"];
     let mf2 = ["-p", "leptos-mf2", "--no-default-features", "--features"];
-    let steps: [Vec<&str>; 9] = [
+    let steps: [Vec<&str>; 11] = [
         [
             &["clippy"][..],
             &mf2,
@@ -92,7 +92,21 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
             &deny,
         ]
         .concat(),
+        // The reader's time zone (Phase 8 A7): the client's correction.
+        [
+            &["clippy", "--target", wasm][..],
+            &mf2,
+            &["hydrate,leptos-0-8,fn-datetime"],
+            &deny,
+        ]
+        .concat(),
         [&["test"][..], &mf2, &["ssr,leptos-0-8", "--test", "render"]].concat(),
+        [
+            &["test"][..],
+            &mf2,
+            &["ssr,leptos-0-8", "--test", "time_zone"],
+        ]
+        .concat(),
         [&["test"][..], &mf2, &["csr,leptos-0-8", "--test", "churn"]].concat(),
         [
             &["test"][..],
@@ -142,8 +156,8 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
         ));
     }
     eprintln!(
-        "==> leptos-0-8: leptos-mf2 lints for ssr, hydrate and csr and passes render, churn and \
-         fallback_lang; mf2-axum's tests and layer L6 pass — all on Leptos 0.8"
+        "==> leptos-0-8: leptos-mf2 lints for ssr, hydrate and csr and passes render, time_zone, \
+         churn and fallback_lang; mf2-axum's tests and layer L6 pass — all on Leptos 0.8"
     );
     Ok(())
 }

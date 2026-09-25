@@ -203,25 +203,61 @@ A date needs the `fn-datetime` feature and a backend (`datetime-icu`, or
 
 ```mf2 file=calls/i18n/locales/en/main.mf2
 [post]
-published = Published {$when :datetime dateStyle=long timeStyle=short}
+published = Published {$when :datetime dateLength=long}
 ```
 
 ```rust file=calls/src/lib.rs
 #[component]
 pub fn Published(epoch_ms: i64) -> impl IntoView {
     // `instant` is `None` past the years a date can hold.
-    let when = DateTimeValue::instant(epoch_ms).map(|when| when.with_zone("Europe/Paris"));
+    let when = DateTimeValue::instant(epoch_ms);
     view! { <p>{when.map(|when| tr!("post.published", when = when))}</p> }
 }
 ```
 
-An instant is formatted in the zone it carries (`with_zone`). Without one,
-it is formatted in the application's default zone, which is UTC unless the
-setup names another (`hello_i18n::setup().with_time_zone(…)`). The library
-does not learn the reader's time zone: a page rendered on the server does
-not know it, and the server and the browser must produce the same text. A
-floating value (`DateTimeValue::floating`) has no zone and is formatted as
-it is.
+The options are MessageFormat 2's, not JavaScript's: `dateFields`,
+`dateLength` and `timePrecision` on `:datetime`, `fields` and `length` on
+`:date`, `precision` on `:time`, and `timeZoneStyle` to show the zone. An
+option a function does not have is ignored without an error, so
+`dateStyle=long` silently gives the default length.
+
+**Dates are shown in the reader's time zone**, with no code in the
+application:
+
+* In the browser, the library asks for the reader's zone
+  (`Intl.DateTimeFormat().resolvedOptions().timeZone`).
+* A server cannot know it on a reader's **first visit**, so that page is
+  rendered in UTC — or in the zone `setup().with_time_zone(…)` names. When
+  the page has hydrated, the library rewrites the dates that come out
+  differently in the reader's zone, and only those; the rest of the page is
+  not touched. It then remembers the zone in a cookie, `mf2_tz`.
+* **Every later page** is rendered in the reader's zone from the start:
+  `mf2-axum` reads the cookie, and the page says which zone it was rendered
+  in, so nothing changes after hydration. A zone the server's time zone
+  database does not know, or a malformed cookie, is ignored.
+* A **client-only** application renders in the reader's zone from its
+  first frame, and writes no cookie.
+
+So a reader on a first visit may see a date change once, just after the
+page becomes interactive. A message that must show one particular zone —
+an event's local time, say — names it, and the reader's zone does not
+apply:
+
+```mf2 file=calls/i18n/locales/en/main.mf2
+starts = Doors open {$when :time timeZone=|Europe/Paris| timeZoneStyle=short}
+```
+
+The zone, in order: the one the message names (`timeZone=input` means the
+value's own, and an instant's own zone is UTC); else the reader's, once
+known; else `with_time_zone`'s; else UTC. A floating value
+(`DateTimeValue::floating`) is a wall time with no zone and is shown as it
+is.
+
+**Islands.** Dates inside islands are corrected like any others. A date in
+a component that stays on the server (not an island) is not sent to the
+browser as code, so it cannot be corrected: on a reader's first visit it
+stays in UTC (or `with_time_zone`'s zone) until the next page, which the
+cookie renders in the reader's zone.
 
 ### Arguments that change
 

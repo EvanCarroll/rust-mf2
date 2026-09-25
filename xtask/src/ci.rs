@@ -123,6 +123,47 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // `fn-datetime` (Phase 8 A7) compiles the reader's time zone: the boot's
+    // correction and the glue's hydration queue for `hydrate` — with and
+    // without `static-locale`, where the queue, not the registry, holds the
+    // nodes — and the mount's zone for `csr`. The server's half is in
+    // `--workspace`, which unifies the feature in through `mf2`.
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--features",
+        "hydrate,fn-datetime",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--features",
+        "hydrate,fn-datetime,static-locale,mark-fallback-lang",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "clippy",
+        "--target",
+        "wasm32-unknown-unknown",
+        "-p",
+        "leptos-mf2",
+        "--features",
+        "csr,fn-datetime",
+        "--",
+        "-D",
+        "warnings",
+    ],
     &["test", "--workspace"],
     // The client half's conversions under churn (Phase 7 A5): natively, with
     // `csr`, which `--workspace` never builds (it unifies `ssr`). The browser

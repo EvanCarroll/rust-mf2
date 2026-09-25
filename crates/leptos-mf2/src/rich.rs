@@ -65,8 +65,12 @@ pub(crate) fn fragment_with(
 }
 
 /// The fragment `rich` renders to against `catalog`, as installed — what a
-/// locale switch rebuilds, so nothing calls it under `static-locale`.
-#[cfg(not(feature = "static-locale"))]
+/// locale switch rebuilds, and the reader's-zone correction; under
+/// `static-locale` only the latter.
+#[cfg(any(
+    not(feature = "static-locale"),
+    all(feature = "hydrate", feature = "fn-datetime")
+))]
 pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
     fragment_with(rich, catalog, None, None)
 }
@@ -74,7 +78,7 @@ pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
 /// The fragment against whatever this render reads.
 pub(crate) fn active_fragment(rich: &TrRich) -> Vec<AnyView> {
     match crate::catalog::current() {
-        Some(cx) => fragment_with(rich, cx.catalog(), cx.registry(), cx.bidi()),
+        Some(cx) => cx.in_zone(|| fragment_with(rich, cx.catalog(), cx.registry(), cx.bidi())),
         None => Vec::new(),
     }
 }

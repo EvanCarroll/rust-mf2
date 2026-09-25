@@ -129,7 +129,10 @@ three phases left unbuilt: dates in the reader's time zone.
 **A0 and A5 are done** (2026-09-25; what was built is below the table).
 **A6 is done** (2026-09-25): XLIFF 2.1 vendored, the mapping designed in
 05 §6.3 with owner question 7 answered, and `mf2 export --format xliff` /
-`mf2 import` built (below the table). A7 is next.
+`mf2 import` built (below the table).
+**A7 is done** (2026-09-25): dates in the reader's time zone, designed in
+03 §6.1 and 04 §6, built, and asserted in two engines (below the table).
+A8 is next.
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -490,6 +493,105 @@ call sites and builds. What was built is below the table.
   a hex id is `x:…`, not `x…`, which a real id could equal, and only an
   ASCII `NMTOKEN` is used as it is.
 
+## A7 — the reader's time zone: what was built
+
+* **Designed** (2026-09-25) in 03 §6.1 (precedence, the cookie, its
+  validation, the page's statement, cost) and 04 §6 (the client's side,
+  mode by mode), then built as designed but for one mechanism, recorded
+  there: the correction takes its nodes from a queue the hydration glue
+  fills, not from a walk of the registry, because under `static-locale`
+  most nodes never register.
+* **`leptos-mf2`** — a new feature, `fn-datetime`, which `mf2`'s
+  `fn-datetime` turns on; `src/zone.rs`: the formatting zone per thread
+  (read by `state::context_for`; on a server set around each format from
+  `RequestI18n`, which gains `with_time_zone`), `reader_time_zone` (a
+  well-formed IANA name the installed host knows; nothing without the
+  feature), and the correction. `provide_locale_in_zone` and
+  `request_time_zone` on the server; `<CatalogPreload/>` carries
+  `data-mf2-zone` when the request was rendered in a reader's zone. On the
+  client: `hydrate_body` / `hydrate_lazy` hydrate in the page's zone
+  (`hydrate_lazy` becomes `hydrate_from_async`, awaited), then switch to
+  the browser's zone, rewrite each adopted node whose text differs between
+  the two (each markup node rebuilt), fire the conversions' trigger and
+  write `mf2_tz`; a node hydrating later is compared as it hydrates;
+  `hydrate_islands` switches before the island walk; `mount_to_body`
+  mounts in the browser's zone. The server-side conversions capture the
+  request's zone with its catalog.
+* **`mf2-axum`** — `provide_locale` reads `mf2_tz`, validates it with
+  `reader_time_zone`, renders in it, and adds `Vary: cookie` when it
+  honoured one and no source already names `Cookie`.
+* **Tests.** `leptos-mf2` `tests/time_zone.rs` (8; each expected text is
+  the runtime's own format in the expected zone, so the tests hold with
+  whichever date backend a workspace build unifies in): Setup's zone
+  without a reader's, the reader's over Setup's, the message's `timeZone` over the
+  reader's, a conversion read after the request keeps its zone, the
+  statement on the preload link only when rendered in a reader's zone,
+  `reader_time_zone`'s refusals (unknown, malformed, over 64 bytes), and
+  that the four zones used give four different texts.
+  `mf2-axum` `tests/time_zone.rs` (4): the cookie sets the zone, the date
+  and the statement, with `Vary: cookie`; five malformed or unknown values
+  ignored; no cookie, nothing changes; `Cookie` named once in `Vary`.
+  **Browser** — `tools/e2e/checks/zone.mjs`, Chromium 143 and Firefox 155,
+  `America/New_York` and `Asia/Kolkata`: **40/40**. A first visit is
+  served in UTC with no statement; after hydration the date is the text
+  the server renders for the reader's zone and, beyond what hydration
+  writes on every load, the only text written (`MutationObserver` from
+  before the first byte); no `mf2:` message; the cookie holds the
+  browser's name for the zone (Chromium: `Asia/Calcutta`); a reload is
+  served in that zone, states it, and writes nothing more. **Negative
+  control:** a browser reporting UTC as its zone gets no correction, and
+  the first-visit assertion fails on it. `demo-csr` (which gains a date,
+  through `datetime-intl`) mounts in the reader's zone. `demo.mjs` now
+  runs its hydration assertions in a UTC browser (on this machine, in
+  CDT, the correction was — rightly — a text change after hydration).
+  Re-run on the final code (debug builds, load 2.3): `zone` 40/40, `demo`
+  170/170, `lazy` 66/66, `csr` 88/88, `islands` 58/58, `a11y` 720/720.
+  **CI:** `cargo xtask ci` lints `leptos-mf2` for `hydrate,fn-datetime`,
+  `hydrate,fn-datetime,static-locale,mark-fallback-lang` and
+  `csr,fn-datetime` (nothing linted the feature before, and the first run
+  found a lint); `cargo xtask leptos-0-8` lints `hydrate,fn-datetime` and
+  runs `time_zone` on Leptos 0.8. Both green; `cargo xtask docs` green.
+* **Found on the way** (for A8):
+  * The Phase 7 documentation said an instant is shown in the zone it
+    carries (`with_zone`). It never was: datetime.md makes the formatting
+    context's zone `timeZone`'s default and a zoned value is converted to
+    it unless the message says `timeZone=input` — as built since Phase 4.
+    03 §6.1 and `docs/call-sites.md` now say so.
+  * `DateTimeValue::with_zone` relabels a wall time rather than converting
+    an instant: `instant(t).with_zone("Europe/Paris")` is t's UTC wall time
+    labelled Paris, which `timeZone=input` then shows unconverted. The
+    documentation's sample used exactly that; it no longer does. Not
+    changed here.
+  * `dateStyle` / `timeStyle` are `Intl`'s option names, not MF2's
+    (`dateLength`, `dateFields`, `timePrecision`, …); MF2 ignores an
+    unknown option without an error, so `demo-ssr` (since Phase 6) and the
+    documentation's sample showed the default length. Both now say
+    `dateLength=long`. `mf2 check` does not warn about an option a
+    function does not have.
+  * On every load, before and after this task, hydration writes the
+    counter's text (its argument effect) and the `data-greeting`
+    attribute on `demo-ssr`'s home page — seen by the `MutationObserver`;
+    `zone.mjs` measures against it rather than assuming none.
+  * **Not asserted in a browser:** the islands path (no example has a date
+    in an island; adding one to `demo-islands` would move
+    `islands-zero`'s measured figure) — built and linted, documented.
+* **Size** (2026-09-25, `cargo xtask size`; sizes are load-independent):
+  **B1 unmoved.** The gated build has no `fn-datetime`, and its 1,860-site
+  `tr` client, rebuilt in the same tree from the previous commit's
+  `leptos-mf2` and from this one, is byte-identical (SHA-256 `5602cefe…`).
+  The gate itself reads B1 25,835 B gz, B5 8.4 B gz a site, 41,506 B gz at
+  1,860 sites, all met. (A run from a worktree of the previous commit read
+  26,002 B gz: its `tr` builds were 117 B smaller raw after `wasm-opt`
+  because the worktree's paths are longer, and B1 is fitted from two
+  gzipped builds, so it moves with them — A0's 25,891 was another tree
+  state again. A comparison of this gate across trees needs one tree.)
+  **`demo-ssr` with it** (release, `--split`, the main module; the feature
+  forwarded by `mf2`'s `fn-datetime` against the same tree with the
+  forwarding removed): wasm 730,754 → 736,557 B raw (+5,803), 304,509 →
+  306,821 B gz (+2,312), 243,838 → 245,518 B br (+1,680); JS 23,090 →
+  23,366 B raw (+276), +99 B gz, +89 B br.
+
+
 ## Standing: Leptos 0.9
 
 *Superseded by owner question 6 (2026-09-24):* 0.9 is the default now,
@@ -512,7 +614,7 @@ then move and ask about 0.8.)
       reported, and its snapshot committed with the commit it measured (A5)
 - [x] XLIFF 2 vendored, its mapping designed, export and import built and
       validated against the schema (A6)
-- [ ] dates in the reader's time zone, asserted in a browser (A7)
+- [x] dates in the reader's time zone, asserted in a browser (A7)
 - [ ] `cargo xtask ci` green; the conformance harness green at
       `current_phase = "P8"` (Phase 8 adds no layer, so every column stays
       as Phase 7 left it)

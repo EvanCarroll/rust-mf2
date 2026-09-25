@@ -17,6 +17,8 @@ people-online =
   many {{{$count} personnes sont ici}}
   *    {{{$count} personnes sont ici}}
 
+published = Publié le {$when :datetime dateLength=long}
+
 add-one = Ajouter un
 reset = Réinitialiser
 

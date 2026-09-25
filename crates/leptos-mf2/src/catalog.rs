@@ -148,12 +148,17 @@ pub use store::{
 ///   the default one;
 /// * `bidi` — the suite's per-test `bidiIsolation`, and an application that
 ///   wants a subtree rendered without the isolating marks (§9).
+///
+/// The request's **time zone** is the reader's, when the `mf2_tz` cookie
+/// named one this server knows (`plans/03-runtime.md` §6.1); `mf2-axum`
+/// sets it.
 #[cfg(feature = "ssr")]
 #[derive(Clone)]
 pub struct RequestI18n {
     catalog: Arc<Catalog>,
     registry: Option<&'static mf2_runtime::Registry>,
     bidi: Option<mf2_runtime::BidiStrategy>,
+    time_zone: Option<mf2_runtime::TimeZone>,
 }
 
 #[cfg(feature = "ssr")]
@@ -165,6 +170,7 @@ impl RequestI18n {
             catalog,
             registry: None,
             bidi: None,
+            time_zone: None,
         }
     }
 
@@ -184,6 +190,15 @@ impl RequestI18n {
         self
     }
 
+    /// …in the reader's time zone, `zone` — which
+    /// [`reader_time_zone`](crate::reader_time_zone) accepted. It outranks
+    /// `Setup::with_time_zone`, and a zone the message names outranks it.
+    #[must_use]
+    pub fn with_time_zone(mut self, zone: mf2_runtime::TimeZone) -> RequestI18n {
+        self.time_zone = Some(zone);
+        self
+    }
+
     /// Installs it for this request.
     pub fn provide(self) {
         reactive_graph::owner::provide_context(self);
@@ -194,15 +209,36 @@ impl RequestI18n {
 /// `tag` was not built. Returns the tag actually used.
 #[cfg(feature = "ssr")]
 pub fn provide_locale(tag: &str) -> &'static str {
+    provide_locale_in_zone(tag, None)
+}
+
+/// [`provide_locale`], with the reader's time zone when it is known — what
+/// `mf2-axum` calls with the `mf2_tz` cookie's zone
+/// (`plans/03-runtime.md` §6.1).
+#[cfg(feature = "ssr")]
+pub fn provide_locale_in_zone(tag: &str, zone: Option<mf2_runtime::TimeZone>) -> &'static str {
     let found = state::locales()
         .iter()
         .find(|(t, _)| *t == tag)
         .map(|(t, _)| *t);
     let tag = found.unwrap_or_else(state::source_locale);
     if let Some(c) = catalog(tag) {
-        RequestI18n::new(c).provide();
+        let request = RequestI18n::new(c);
+        match zone {
+            Some(zone) => request.with_time_zone(zone),
+            None => request,
+        }
+        .provide();
     }
     tag
+}
+
+/// The reader's time zone this request renders in, if it knows one — what
+/// the page states on its preload link.
+#[cfg(feature = "ssr")]
+#[must_use]
+pub fn request_time_zone() -> Option<mf2_runtime::TimeZone> {
+    current().and_then(|c| c.time_zone)
 }
 
 /// The catalog this render reads, on the server: the request's, else the
@@ -258,6 +294,13 @@ impl Resolved {
     pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
         None
     }
+
+    /// Likewise: the client's zone is the thread's (`crate::zone`), set at
+    /// boot, so there is nothing to scope.
+    #[allow(clippy::unused_self)]
+    pub(crate) fn in_zone<R>(&self, body: impl FnOnce() -> R) -> R {
+        body()
+    }
 }
 
 #[cfg(feature = "ssr")]
@@ -272,6 +315,11 @@ impl RequestI18n {
 
     pub(crate) fn bidi(&self) -> Option<mf2_runtime::BidiStrategy> {
         self.bidi
+    }
+
+    /// Runs `body` in this request's time zone (`crate::zone`).
+    pub(crate) fn in_zone<R>(&self, body: impl FnOnce() -> R) -> R {
+        crate::zone::scoped(self.time_zone, body)
     }
 }
 

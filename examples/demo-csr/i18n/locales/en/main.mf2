@@ -20,6 +20,9 @@ people-online =
   one {{{$count} person is here}}
   *   {{{$count} people are here}}
 
+# A date, in the reader's time zone: the browser's, read at mount.
+published = Published {$when :datetime dateLength=long}
+
 add-one = Add one
 reset = Reset
 

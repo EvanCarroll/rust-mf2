@@ -9,7 +9,9 @@
 //     negotiates again (04 §11 item 3);
 //   * `Content-Language` and a `Vary` that names every header a source read;
 //   * the catalog is immutable, precompressed, and the bare tag redirects;
-//   * hydration changes no text and logs nothing (P0.10);
+//   * hydration changes no text and logs nothing (P0.10) — in a browser in
+//     UTC, the zone a first visit is served in (`zone.mjs` asserts the
+//     reader's-zone correction elsewhere);
 //   * a locale switch updates every live node, `<html lang dir>`, and the
 //     `<title>` — and switching back gives exactly the server's text;
 //   * a signal-valued argument still re-formats after a switch;
@@ -190,7 +192,10 @@ export async function run(ctx) {
 
   // ---------------------------------------------------------- browser ---
 
-  const context = await browser.newContext();
+  // In UTC, the zone a first visit is served in: a reader elsewhere sees the
+  // date corrected after hydration, by design, which `zone.mjs` asserts.
+  // Here hydration itself must change nothing, whatever the machine's zone.
+  const context = await browser.newContext({ timezoneId: 'UTC' });
   await captureSsrSnapshot(context);
   const page = await context.newPage();
   const console_ = [];

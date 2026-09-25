@@ -22,7 +22,7 @@ people-online =
 
 hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
 
-published = نشر في {$when :datetime dateStyle=long timeStyle=short}
+published = نشر في {$when :datetime dateLength=long}
 
 add-one = أضف واحدا
 reset = إعادة تعيين

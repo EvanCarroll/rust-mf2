@@ -29,6 +29,8 @@ The browser checks, against a running server:
 cd ../../tools/e2e
 node run.mjs demo --base-url http://127.0.0.1:3702 --browser chromium,firefox
 node run.mjs lazy --base-url http://127.0.0.1:3702 --browser chromium,firefox
+# dates in the reader's time zone (also needs demo-csr's dist/, below)
+node run.mjs zone --base-url http://127.0.0.1:3702 --browser chromium,firefox
 # the WCAG 2.2 AA audit: all three examples (demo-islands running on 3704)
 node run.mjs a11y --base-url http://127.0.0.1:3702 --browser chromium,firefox
 ```
@@ -50,7 +52,7 @@ example cannot share one with libraries that are built both ways.
 | the search field's `placeholder` | a description as an attribute value |
 | "N people are here" | a **signal-valued** argument: the call site writes `count = count`, and the effect that watches it is the library's, not one per site (04 §4) |
 | the hotkey line | **markup as elements** — and in French the `<kbd>` lands at the *end* of the sentence, where French puts it, without the view knowing anything about word order (04 §7) |
-| the published line | a date through `:datetime`, formatted by ICU4X from the catalog's own `icu.blob` |
+| the published line | a date through `:datetime`, formatted by ICU4X from the catalog's own `icu.blob` — in the reader's time zone: a first visit is served in UTC and corrected after hydration, and the `mf2_tz` cookie makes every later page right from the server |
 | the echo line | a plain `String` built in an event handler — no bidi isolation in it, because a program consumes it (04 §9) |
 | the switcher | `<LocaleSwitcher>`: a labelled native control, each language named in its own language with its own `lang`, applied by its button — live once hydrated, the form's `GET ?lang=` before (WCAG 3.2.2) |
 | the counter's line | `role="status"`: announced when a button changes it, focus left on the button (4.1.3) |

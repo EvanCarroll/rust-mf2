@@ -16,7 +16,9 @@ compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
 fn-number = ["dep:mf2-fn-number"]
 # Dates and times (plans/03-runtime.md §5.1): :datetime, :date, :time and
 # unannotated date/time values — mf2-fn-datetime.
-fn-datetime = ["dep:mf2-fn-datetime"]
+# With the Leptos layer, also the reader's time zone (leptos-mf2's
+# `fn-datetime`).
+fn-datetime = ["dep:mf2-fn-datetime", "leptos-mf2/fn-datetime"]
 # The date backends (plans/03-runtime.md §5.1–§5.2), each implying
 # `fn-datetime`: `datetime-icu` — ICU4X on client and server, data from the
 # catalog's `icu.blob` (which `compile_str` then emits); `datetime-intl` — the

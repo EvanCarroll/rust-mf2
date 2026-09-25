@@ -381,7 +381,45 @@ switch time only. The measurement on the reference workload goes in
 [phase-6-results](phase-6-results.md) for the owner to pick the default from;
 nothing in the library prefers one.
 
-**Time zone** for date functions: see [03-runtime](03-runtime.md) §6.
+**Time zone** for date functions: the precedence, the cookie, its
+validation and the page's statement are [03-runtime](03-runtime.md) §6.1.
+The client's side (Phase 8 A7, designed 2026-09-25):
+
+* **Formatting zone on the client** is one `thread_local!` beside the
+  active catalog, read where the `FormatContext` is built
+  (`state::context_for`); on the server the request's zone is set around
+  each format from `RequestI18n` (a format is synchronous, so a scoped
+  thread-local is exact and costs no second context lookup).
+* **`hydrate_body` / `hydrate_lazy`.** The boot reads P, the page's zone
+  (`data-mf2-zone`, else `Setup`'s), and R, the reader's
+  (`reader_time_zone` of the browser's name). Hydration runs in **P**, so
+  everything formatted while hydrating — a markup message's structure, a
+  `<Title>`, a `String` — agrees with the served HTML, and no `mf2:`
+  mismatch can arise. If R is known and its name is not P's, then **after**
+  the synchronous hydration: the zone becomes R; each text, attribute and
+  property node hydration adopted is formatted in P and in R and written
+  only where the two differ, and each markup node is rebuilt (tachys
+  rewrites only the text that changed); the conversions' trigger fires, so a
+  `TextProp` or `<Title>` re-reads; the cookie is written. A node that
+  hydrates later — a lazy route's chunk, a `Suspense` — is compared the
+  same way as it hydrates. After that, P is not used again. *(As built:
+  the nodes come from a queue the hydration glue fills while the page
+  hydrates, not from a walk of the registry, because under `static-locale`
+  most nodes never register; `hydrate_lazy` is `hydrate_from_async`,
+  awaited, so that "after" is after the lazy chunks too.)*
+* **Which nodes change:** exactly those whose text depends on the zone,
+  measured by the comparison; every other node is not written at all (the
+  browser check observes it with a `MutationObserver`).
+* **`mount_to_body`** (client-only): the zone is R before anything mounts.
+  No cookie, no statement — there is no server.
+* **`hydrate_islands`**: there is no moment after hydration (the island
+  walk is Leptos'), so the zone is R before the walk and each island's node
+  is compared as it hydrates — written in place after being adopted, which
+  moves no hydration cursor. This needs no registry slot, so it holds under
+  `static-locale` too. **Server-only components are never hydrated**: on a
+  first visit their dates stay in P until the next page load, which the
+  cookie then renders in R. The documentation says so.
+* **A live switch** afterwards formats in R like everything else.
 
 ## 7. Markup → elements
 

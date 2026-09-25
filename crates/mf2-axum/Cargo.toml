@@ -25,5 +25,10 @@ leptos_0_8 = { workspace = true, optional = true }
 leptos_axum_0_8 = { workspace = true, optional = true }
 mf2-catalog.workspace = true
 
+# `tests/time_zone.rs` compiles a date message and formats it through the
+# native host, as a server does.
+[dev-dependencies]
+mf2 = { workspace = true, features = ["compile", "host-std", "fn-datetime"] }
+
 [lints]
 workspace = true

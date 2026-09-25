@@ -125,6 +125,8 @@ mod rich;
 mod state;
 #[cfg(feature = "leptos")]
 mod text;
+#[cfg(feature = "leptos")]
+mod zone;
 
 pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
 pub use dynamic::{TrDyn, tr_dyn};
@@ -162,8 +164,13 @@ pub use error::LoadError;
 #[cfg(feature = "ssr")]
 pub use catalog::{
     CatalogEntry, RequestI18n, catalog, catalog_entries, catalog_file, catalog_name,
-    default_catalog, install_catalogs, provide_locale,
+    default_catalog, install_catalogs, provide_locale, provide_locale_in_zone, request_time_zone,
 };
+
+/// The reader's time zone (`plans/03-runtime.md` §6.1): whether a name the
+/// browser or the `mf2_tz` cookie gave can be used.
+#[cfg(feature = "leptos")]
+pub use zone::reader_time_zone;
 
 /// The client's active catalog and its change notifier.
 #[cfg(all(feature = "leptos", not(feature = "ssr")))]

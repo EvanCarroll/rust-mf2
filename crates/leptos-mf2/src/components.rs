@@ -64,6 +64,11 @@ pub fn html_lang() -> (String, &'static str) {
 ///
 /// It renders only on the server: the client reads this link, it does not
 /// write it, and the shell's `<head>` is not hydrated.
+///
+/// When the request was rendered in the reader's time zone, the link says
+/// which (`data-mf2-zone`), so that the client knows whether its dates need
+/// correcting (`plans/03-runtime.md` §6.1). Absent, the page was rendered in
+/// `Setup`'s zone.
 #[component]
 pub fn CatalogPreload() -> impl IntoView {
     #[cfg(feature = "ssr")]
@@ -71,6 +76,8 @@ pub fn CatalogPreload() -> impl IntoView {
         let href = crate::catalog::active()
             .and_then(|catalog| crate::catalog::catalog_name(catalog.locale()))
             .map(catalog_href);
+        let zone = crate::catalog::request_time_zone()
+            .and_then(|zone| crate::zone::zone_name(&zone).map(String::from));
         href.map(|href| {
             view! {
                 <link
@@ -79,6 +86,7 @@ pub fn CatalogPreload() -> impl IntoView {
                     crossorigin="anonymous"
                     href=href
                     data-mf2=""
+                    data-mf2-zone=zone
                 />
             }
         })

@@ -47,7 +47,10 @@ use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTem
 
 #[cfg(feature = "mark-fallback-lang")]
 use crate::lang::{self, Wrapper};
-#[cfg(not(feature = "static-locale"))]
+#[cfg(any(
+    not(feature = "static-locale"),
+    all(feature = "hydrate", feature = "fn-datetime")
+))]
 use crate::registry::Relocalize;
 use crate::registry::{self, Target};
 use crate::rich;
@@ -210,7 +213,7 @@ fn hydrate_marked<const FROM_SERVER: bool, D: Description>(
             node
         })
     };
-    let slot = registry::insert(
+    let slot = registry::insert_hydrated(
         Target::Text(node.clone(), wrapper.clone()),
         description.into_stored(),
     );
@@ -416,7 +419,8 @@ macro_rules! render_description {
                         node
                     })
                 };
-                let slot = registry::insert(Target::Text(node.clone()), self.into_stored());
+                let slot =
+                    registry::insert_hydrated(Target::Text(node.clone()), self.into_stored());
                 TrState { slot, node }
             }
 
@@ -523,7 +527,7 @@ macro_rules! attribute_description {
                         Rndr::set_attribute(el, key, text);
                     });
                 }
-                let slot = registry::insert(
+                let slot = registry::insert_hydrated(
                     Target::Attribute(el.clone(), key.into()),
                     self.into_stored(),
                 );
@@ -568,9 +572,24 @@ macro_rules! attribute_description {
             type Cloneable = Self;
             type CloneableOwned = Self;
 
+            #[cfg(not(all(feature = "hydrate", feature = "fn-datetime")))]
             fn hydrate<const FROM_SERVER: bool>(self, el: &Element, key: &str) -> Self::State {
                 let _ = FROM_SERVER;
                 IntoProperty::build(self, el, key)
+            }
+
+            /// As `build`, but seen by the reader's-zone correction.
+            #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+            fn hydrate<const FROM_SERVER: bool>(self, el: &Element, key: &str) -> Self::State {
+                let _ = FROM_SERVER;
+                with_text(&self, TextUse::Plain, |text| {
+                    Rndr::set_property_or_value(el, key, &wasm_bindgen::JsValue::from_str(text));
+                });
+                let slot = registry::insert_hydrated(
+                    Target::Property(el.clone(), key.into()),
+                    self.into_stored(),
+                );
+                TrAttrState::new(slot, el)
             }
 
             fn build(self, el: &Element, key: &str) -> Self::State {
@@ -668,7 +687,10 @@ pub(crate) struct RichNode {
     state: VecState<AnyViewState>,
 }
 
-#[cfg(not(feature = "static-locale"))]
+#[cfg(any(
+    not(feature = "static-locale"),
+    all(feature = "hydrate", feature = "fn-datetime")
+))]
 impl Relocalize for RichNode {
     fn relocalize(&mut self, catalog: &mf2_catalog::Catalog) {
         rich::fragment(&self.desc, catalog).rebuild(&mut self.state);
@@ -806,8 +828,19 @@ impl RenderHtml for TrRich {
         cursor: &Cursor,
         position: &PositionState,
     ) -> Self::State {
-        let state = rich::active_fragment(&self).hydrate::<FROM_SERVER>(cursor, position);
-        TrRichState::new(self, state)
+        // After the reader's-zone correction has switched zones, a message
+        // hydrating now still shows the page's zone: it hydrates in that
+        // one and is then rebuilt (`crate::zone`).
+        #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+        let fragment = crate::zone::scoped(crate::zone::hydrating_zone(), || {
+            rich::active_fragment(&self)
+        });
+        #[cfg(not(all(feature = "hydrate", feature = "fn-datetime")))]
+        let fragment = rich::active_fragment(&self);
+        let state = TrRichState::new(self, fragment.hydrate::<FROM_SERVER>(cursor, position));
+        #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+        crate::zone::hydrated_rich(state.node.clone());
+        state
     }
 
     fn into_owned(self) -> Self::Owned {

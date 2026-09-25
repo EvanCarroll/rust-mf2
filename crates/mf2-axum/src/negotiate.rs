@@ -103,20 +103,19 @@ impl LocaleSource for CookieLocale {
     }
 
     fn candidates<'r>(&self, parts: &'r Parts, out: &mut Vec<Cow<'r, str>>) {
-        let Some(header) = parts.headers.get(COOKIE).and_then(|v| v.to_str().ok()) else {
-            return;
-        };
-        for pair in header.split(';') {
-            let pair = pair.trim_start();
-            let Some((name, value)) = pair.split_once('=') else {
-                continue;
-            };
-            if name.trim() == self.name {
-                out.push(Cow::Borrowed(value.trim()));
-                return;
-            }
+        if let Some(value) = cookie(parts, self.name) {
+            out.push(Cow::Borrowed(value));
         }
     }
+}
+
+/// The value of the first cookie named `name` in the request, trimmed.
+pub(crate) fn cookie<'r>(parts: &'r Parts, name: &str) -> Option<&'r str> {
+    let header = parts.headers.get(COOKIE).and_then(|v| v.to_str().ok())?;
+    header.split(';').find_map(|pair| {
+        let (n, value) = pair.trim_start().split_once('=')?;
+        (n.trim() == name).then(|| value.trim())
+    })
 }
 
 impl LocaleSink for CookieLocale {

@@ -1069,7 +1069,67 @@ code:
   (`DateTimeValue::with_zone`), else `Setup::with_time_zone`'s default,
   else UTC, identically on both sides. The owner confirmed the cookie
   design (2026-09-24); it is built in Phase 8
-  ([16](16-phase-8-work-order.md) A7), designed here before code.*
+  ([16](16-phase-8-work-order.md) A7), designed below before code.*
+
+### 6.1 The reader's time zone (Phase 8 A7, designed 2026-09-25)
+
+**Precedence.** A date/time is shown in the first of:
+
+1. the expression's `timeZone` option (§5.4): a zone the message names, or
+   `input` — the value's own zone (`DateTimeValue::with_zone`, an offset);
+2. **the reader's zone**, when it is known (below);
+3. `Setup::with_time_zone`'s zone;
+4. UTC.
+
+2–4 are the formatting context's zone, which datetime.md makes
+`timeZone`'s default; a value's own zone is converted to it unless the
+message says `input` (as built since Phase 4; the Phase 7 user
+documentation said an instant was shown in the zone it carries, which was
+never so — A7 found it writing its test, and `docs/call-sites.md` is
+corrected). So `Setup::with_time_zone` becomes the zone used *until the
+reader's is known* — a first visit's server render, and a client whose host
+has no zone data. An application that wants a fixed zone for some date says
+so in the message, where it belongs; a whole-application opt-out is not
+built (nothing asks for it). The order is the same on server and client.
+
+**What "the reader's zone" is.** The browser's
+`Intl.DateTimeFormat().resolvedOptions().timeZone`, an IANA name, accepted
+by one function on both sides, `leptos_mf2::reader_time_zone(name)`: it must
+be a well-formed name (`TimeZone::named`: RFC 9557 syntax, ≤ 64 bytes)
+**and** the installed host must know it (`Host::zone_offset(name, 0)` is
+`Some` — the server's tz database through `mf2-host-std`, the browser's
+through `mf2-host-web`). Anything else is ignored, never an error. A client
+whose host has no zone data (the neutral date backend without
+`time-zones`) cannot format in a named zone (§5.4), so it keeps the page's
+zone and writes no cookie.
+
+**The cookie** `mf2_tz` holds that name, with `mf2_locale`'s attributes
+(`path=/; max-age=31536000; samesite=lax`, `secure` over HTTPS). Only the
+client writes it, and only when the page was rendered in another zone than
+the reader's — a first visit, or a reader who has travelled. `mf2-axum`'s
+`provide_locale` reads it, validates it with `reader_time_zone`, and puts
+the zone in the request's formatting context (`RequestI18n`); when it
+honoured one it adds `Vary: Cookie`. Without `leptos-mf2`'s `fn-datetime`
+feature `reader_time_zone` accepts nothing, so an application without dates
+reads no zone and states none.
+
+**The page states its zone.** `<CatalogPreload/>` — already in every
+server-rendered shell — carries `data-mf2-zone="<name>"` when the request
+was rendered in a reader's zone, and nothing otherwise, which means
+`Setup`'s zone (the client has the same `Setup`). No application code, and
+a page served from a cache corrects itself, because it says what it was
+rendered in.
+
+**The correction** is in 04 §6 (the client's side). In short: hydrate in
+the page's zone, then switch the formatting zone to the reader's and bring
+up to date, through the node registry, exactly the nodes whose text
+changes — found by formatting each in both zones, not guessed from its
+arguments (a zoned value, a literal with an offset, a floating value shown
+with its zone name all come out right).
+
+**Cost.** On the client every byte of it is behind `leptos-mf2`'s new
+`fn-datetime` feature, which `mf2`'s `fn-datetime` turns on; a server
+compiles the request zone under `ssr` regardless (no client bytes).
 * **"Now"** never enters a message implicitly; date arguments are always explicit.
 
 ## 7. Spec obligations with structural impact

@@ -29,6 +29,18 @@ pub const ISLANDS_GATE: &str = "mf2_islands_gate";
 /// reload (D7 strategy C).
 pub const LOCALE_COOKIE: &str = "mf2_locale";
 
+/// The cookie that carries the reader's time zone, an IANA name
+/// (`plans/03-runtime.md` §6.1). The client writes it when a page was
+/// rendered in another zone than the reader's; `mf2-axum` reads it and
+/// renders the next page in that zone. Its attributes are
+/// [`LOCALE_COOKIE`]'s.
+pub const TIME_ZONE_COOKIE: &str = "mf2_tz";
+
+/// The attribute of the preload link ([`PRELOAD_ATTR`]) that states the
+/// time zone the page was rendered in, when it was a reader's. Absent, the
+/// page was rendered in `Setup`'s zone.
+pub const ZONE_ATTR: &str = "data-mf2-zone";
+
 /// The query parameter `mf2-axum`'s `QueryParam` reads by default. It ranks
 /// above the cookie, so a `static-locale` switch removes it from the address
 /// before reloading — otherwise the reload would negotiate the old locale.

@@ -60,6 +60,13 @@ static-locale = []
 # unmarked (`docs/accessibility.md`). Off, nothing of it is compiled
 # (`plans/15-phase-7-work-order.md` §"A14 — design").
 mark-fallback-lang = []
+# Dates in the reader's time zone (`plans/03-runtime.md` §6.1,
+# `plans/04-leptos-integration.md` §6): the client reads the browser's zone,
+# corrects a page rendered in another after hydrating, and writes the
+# `mf2_tz` cookie the server renders the next page in. `mf2`'s `fn-datetime`
+# turns it on; off, no byte of it is in the client, and a server reads no
+# zone.
+fn-datetime = []
 
 [dependencies]
 mf2-catalog.workspace = true
@@ -84,7 +91,7 @@ web-sys = { workspace = true, optional = true }
 # catalog with `mf2::compile_str` and format it through the native host, which
 # is how a server uses this crate.
 [dev-dependencies]
-mf2 = { workspace = true, features = ["compile", "host-std"] }
+mf2 = { workspace = true, features = ["compile", "host-std", "fn-datetime"] }
 # `tests/churn.rs` runs the client's effects natively.
 any_spawner = { workspace = true, features = ["futures-executor"] }
 # `tests/fallback_lang.rs` writes catalogs that borrow a message from another
@@ -94,6 +101,10 @@ mf2-syntax.workspace = true
 
 [[test]]
 name = "render"
+required-features = ["ssr"]
+
+[[test]]
+name = "time_zone"
 required-features = ["ssr"]
 
 [[test]]

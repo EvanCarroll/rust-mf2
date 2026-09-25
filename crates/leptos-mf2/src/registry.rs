@@ -105,6 +105,32 @@ impl Target {
         }
         text::with_text(desc, catalog, self.text_use(), |text| self.write(text));
     }
+
+    /// Rewrites this node if its text in the zone now in force differs from
+    /// its text in `page`, the zone it was rendered in — the reader's-zone
+    /// correction (`crate::zone`). A node whose text does not depend on the
+    /// zone is not written at all.
+    #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+    pub(crate) fn correct_zone(
+        &self,
+        desc: &Stored,
+        catalog: &Catalog,
+        page: mf2_runtime::TimeZone,
+    ) {
+        let use_ = self.text_use();
+        let before = crate::zone::scoped(Some(page), || {
+            text::with_text(desc, catalog, use_, |t: &str| {
+                alloc::string::String::from(t)
+            })
+        });
+        text::with_text(desc, catalog, use_, |now| {
+            // The lender does not depend on the zone, so a marked text's
+            // wrapper already fits: only the text changes.
+            if now != before {
+                self.write(now);
+            }
+        });
+    }
 }
 
 /// A node that rebuilds itself rather than rewriting one string: a rich
@@ -113,7 +139,10 @@ impl Target {
 /// Only a build that runs in a browser calls it — a server renders each
 /// request once — so elsewhere it is registered and never used. Under
 /// `static-locale` nothing follows the locale, so nothing implements it.
-#[cfg(not(feature = "static-locale"))]
+#[cfg(any(
+    not(feature = "static-locale"),
+    all(feature = "hydrate", feature = "fn-datetime")
+))]
 #[cfg_attr(not(any(feature = "hydrate", feature = "csr")), allow(dead_code))]
 pub(crate) trait Relocalize {
     /// Rebuilds against `catalog`.
@@ -244,6 +273,14 @@ pub(crate) fn insert(target: Target, desc: Stored) -> u32 {
     }
     let args = args_effect(&target, &desc);
     add(Slot::Value { target, desc, args })
+}
+
+/// [`insert`] for a node that has just hydrated, holding the server's text:
+/// the reader's-zone correction sees it first (`crate::zone`).
+pub(crate) fn insert_hydrated(target: Target, desc: Stored) -> u32 {
+    #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+    crate::zone::hydrated(&target, &desc);
+    insert(target, desc)
 }
 
 /// Registers a rich message's fragment (§7). Not under `static-locale`,
