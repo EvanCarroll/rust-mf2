@@ -468,7 +468,12 @@ but `fn-number` is off, so digits render without locale symbols; `unpaired-marku
 — an open without a close or the reverse; a plural `.match` that does not mention every
 category the *target* locale has; source text not in NFC; placeholder present in
 source but dropped by a translation; unused ids (found by scanning the workspace
-for `tr!` invocations); suspicious bidi (unpaired isolates in literal text).
+for `tr!` invocations); suspicious bidi (unpaired isolates in literal text);
+`unknown-option` (Phase 9 A2) — an option a built-in function does not
+define (`dateStyle` on `:datetime`), which MF2 ignores without an error;
+options in a namespace are not checked. The lists are `mf2_build::OPTIONS`,
+held against what the formatter reads by the conformance crate's
+`options_lint` test.
 `nonstandard-name` (Phase 7 A12, owner, 2026-09-24; `syntax.md` asks
 linters to warn on names that break UAX #31 / UTS #39): a variable, option,
 function, markup or attribute name the corpus uses that is not a UAX #31

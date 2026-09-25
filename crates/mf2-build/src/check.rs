@@ -14,7 +14,7 @@ use mf2_syntax::Analysis;
 
 use crate::config::{Config, Missing};
 use crate::corpus::LocaleSource;
-use crate::features::Features;
+use crate::features::{Features, defines_option};
 use crate::lint::{Level, Lint};
 use crate::loader::Record;
 use crate::manifest::Built;
@@ -163,6 +163,17 @@ fn options(at: &mut At<'_, '_>, model: &Message<'_>) {
     let mut check = |function: Option<&FunctionRef<'_>>| {
         let Some(function) = function else { return };
         for (name, value) in function.options.iter() {
+            if defines_option(&function.name, name) == Some(false) {
+                at.say(
+                    Lint::UnknownOption,
+                    at.offset_of(name),
+                    format!(
+                        ":{} has no option {name}; it is ignored, and the message \
+                         formats as if it were not there",
+                        function.name
+                    ),
+                );
+            }
             let literal = match value {
                 OptionValue::Literal(literal) => Some(literal.value.as_ref()),
                 OptionValue::Variable(_) => None,

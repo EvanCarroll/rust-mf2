@@ -218,8 +218,9 @@ pub fn Published(epoch_ms: i64) -> impl IntoView {
 The options are MessageFormat 2's, not JavaScript's: `dateFields`,
 `dateLength` and `timePrecision` on `:datetime`, `fields` and `length` on
 `:date`, `precision` on `:time`, and `timeZoneStyle` to show the zone. An
-option a function does not have is ignored without an error, so
-`dateStyle=long` silently gives the default length.
+option a function does not have is ignored when the message formats, so
+`dateStyle=long` gives the default length; `mf2 check` warns about it
+(`unknown-option`).
 
 **Dates are shown in the reader's time zone**, with no code in the
 application:

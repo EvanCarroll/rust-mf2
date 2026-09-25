@@ -126,6 +126,10 @@ lints! {
     NonNfcSource = ("non-nfc-source", Warn, Allow);
     /// A placeholder the source has and a translation dropped.
     DroppedPlaceholder = ("dropped-placeholder", Warn, Allow);
+    /// An option a built-in function does not define — `dateStyle` on
+    /// `:datetime`, say. MF2 ignores it, so the message formats as though it
+    /// were not there, and nothing at run time says so.
+    UnknownOption = ("unknown-option", Warn, Allow);
     /// An id no `tr!` in the workspace names.
     UnusedId = ("unused-id", Warn, Allow);
     /// Unpaired bidi isolates in literal text.

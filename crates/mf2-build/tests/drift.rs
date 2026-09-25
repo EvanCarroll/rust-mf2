@@ -175,6 +175,19 @@ fn drifts() -> Vec<Drift> {
             },
         },
         Drift {
+            lint: Lint::UnknownOption,
+            what: "an option the function does not define",
+            // `Intl`'s name, not MF2's (`dateLength`): ignored at run time.
+            mutate: |files, _, _| {
+                edit(
+                    files,
+                    "en",
+                    "unit=kilometer}",
+                    "unit=kilometer unitStyle=long}",
+                );
+            },
+        },
+        Drift {
             lint: Lint::DynamicSelect,
             what: "`select` taken from a variable",
             mutate: |files, _, _| edit(files, "en", "{$n :integer}", "{$n :integer select=$how}"),

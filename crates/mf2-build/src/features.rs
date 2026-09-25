@@ -34,6 +34,130 @@ pub const BUILTINS: [(&str, Option<&str>); 10] = [
     ("time", Some("fn-datetime")),
 ];
 
+/// The options each built-in function defines, for the `unknown-option`
+/// lint: MF2 ignores an option a function does not have, so a misspelled or
+/// borrowed name (`dateStyle` on `:datetime`) changes nothing and says
+/// nothing at run time. Options in a namespace (`u:dir`, `ns:name`) are not
+/// listed here: every function accepts `u:`'s, and another namespace's are
+/// an implementation's own.
+///
+/// These are the names the runtime and the function crates read; the
+/// conformance crate's `options_lint` test holds each list against what a
+/// formatter actually reads.
+pub const OPTIONS: [(&str, &[&str]); 10] = [
+    ("string", &[]),
+    (
+        "number",
+        &[
+            "select",
+            "signDisplay",
+            "useGrouping",
+            "minimumIntegerDigits",
+            "minimumFractionDigits",
+            "maximumFractionDigits",
+            "minimumSignificantDigits",
+            "maximumSignificantDigits",
+            "trailingZeroDisplay",
+            "roundingPriority",
+            "roundingIncrement",
+            "roundingMode",
+        ],
+    ),
+    (
+        "integer",
+        &[
+            "select",
+            "signDisplay",
+            "useGrouping",
+            "minimumIntegerDigits",
+            "maximumSignificantDigits",
+        ],
+    ),
+    ("offset", &["add", "subtract"]),
+    (
+        "percent",
+        &[
+            "signDisplay",
+            "useGrouping",
+            "minimumFractionDigits",
+            "maximumFractionDigits",
+            "minimumSignificantDigits",
+            "maximumSignificantDigits",
+            "trailingZeroDisplay",
+            "roundingPriority",
+            "roundingMode",
+        ],
+    ),
+    (
+        "currency",
+        &[
+            "currency",
+            "currencyDisplay",
+            "currencySign",
+            "fractionDigits",
+            "useGrouping",
+            "minimumIntegerDigits",
+            "minimumSignificantDigits",
+            "maximumSignificantDigits",
+            "trailingZeroDisplay",
+            "roundingPriority",
+            "roundingIncrement",
+            "roundingMode",
+        ],
+    ),
+    (
+        "unit",
+        &[
+            "unit",
+            "unitDisplay",
+            "usage",
+            "signDisplay",
+            "useGrouping",
+            "minimumIntegerDigits",
+            "minimumFractionDigits",
+            "maximumFractionDigits",
+            "minimumSignificantDigits",
+            "maximumSignificantDigits",
+            "roundingPriority",
+            "roundingIncrement",
+            "roundingMode",
+        ],
+    ),
+    (
+        "datetime",
+        &[
+            "dateFields",
+            "dateLength",
+            "timePrecision",
+            "timeZoneStyle",
+            "timeZone",
+            "hour12",
+            "calendar",
+        ],
+    ),
+    ("date", &["fields", "length", "timeZone", "calendar"]),
+    (
+        "time",
+        &[
+            "precision",
+            "timeZoneStyle",
+            "timeZone",
+            "hour12",
+            "calendar",
+        ],
+    ),
+];
+
+/// Whether the built-in function `function` defines the option `option`;
+/// `None` if `function` is not a built-in or `option` is in a namespace.
+pub fn defines_option(function: &str, option: &str) -> Option<bool> {
+    if option.contains(':') {
+        return None;
+    }
+    let (_, names) = OPTIONS.iter().find(|(name, _)| *name == function)?;
+    Some(names.contains(&option))
+}
+
 /// The features that decide what a catalog may hold: which functions a
 /// message may call, and which locale data the catalog carries for them.
 /// The wasm and the catalogs must agree on these; the others (`intl`,
