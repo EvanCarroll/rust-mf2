@@ -12,6 +12,9 @@ first, what the phase found that it did not fix, and where each finding goes.
 
 ## Status at exit
 
+**Every exit criterion is met** (2026-09-25), and `current_phase = "P8"` is
+in the exit commit with the harness green.
+
 | Exit criterion | Verdict |
 |---|---|
 | Leptos 0.9 the default, 0.8 an opt-in built and tested in CI | **met** (A0) — `leptos-0-9` default, `leptos-0-8` opt-in on `leptos-mf2` and `mf2-axum`; `cargo xtask leptos-0-8` a nightly job, not allowed to fail, with its negative control (E0050/E0425) |
@@ -21,7 +24,7 @@ first, what the phase found that it did not fix, and where each finding goes.
 | the `leptos-fluent` A/B measured, reported, its snapshot committed with the commit it measured | **met** (A5) — `bench/fluent-ab/SNAPSHOT.md`, of `391ef2a` |
 | XLIFF 2 vendored, mapping designed, export and import built and validated against the schema | **met** (A6; owner questions 3 and 7) — XLIFF 2.1; every export validates with `xmllint`; the reference workload round-trips byte-identical |
 | dates in the reader's time zone, asserted in a browser | **met** (A7; owner question 2) — `zone.mjs` 40/40 in Chromium and Firefox |
-| `cargo xtask ci` green; the harness green at `current_phase = "P8"` | **open** — the exit commit, next (Phase 8 adds no layer; every column stays as Phase 7 left it) |
+| `cargo xtask ci` green; the harness green at `current_phase = "P8"` | **met** (2026-09-25) — `cargo xtask ci` green, its report 612 entries at P8, no `xfail`, 164 normative statements, 0 gaps; Phase 8 adds no layer, and no cell moved |
 | this file and the Phase 9 work order | **met** — [17](17-phase-9-work-order.md) (A8), with four owner answers about the release |
 
 ## The figures

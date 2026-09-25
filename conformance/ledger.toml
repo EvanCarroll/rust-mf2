@@ -17,7 +17,7 @@
 # [[note]]: a fact recorded once (id, status, reason); an "open" note is an obligation
 # not yet met and names the phase whose exit closes it (until).
 
-current_phase = "P7"
+current_phase = "P8"
 
 [[note]]
 id     = "unpaired-surrogates"

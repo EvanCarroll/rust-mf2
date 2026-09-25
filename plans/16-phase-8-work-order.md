@@ -134,7 +134,8 @@ three phases left unbuilt: dates in the reader's time zone.
 03 §6.1 and 04 §6, built, and asserted in two engines (below the table).
 **A8 is done** (2026-09-25): [phase-8-results](phase-8-results.md) and
 [17](17-phase-9-work-order.md), with four owner answers about the release.
-The exit's last item — `cargo xtask ci` and `current_phase = "P8"` — is next.
+**The exit is met** (2026-09-25, below; [phase-8-results](phase-8-results.md)
+§"Status at exit").
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -617,7 +618,8 @@ then move and ask about 0.8.)
 - [x] XLIFF 2 vendored, its mapping designed, export and import built and
       validated against the schema (A6)
 - [x] dates in the reader's time zone, asserted in a browser (A7)
-- [ ] `cargo xtask ci` green; the conformance harness green at
+- [x] `cargo xtask ci` green; the conformance harness green at
       `current_phase = "P8"` (Phase 8 adds no layer, so every column stays
-      as Phase 7 left it)
+      as Phase 7 left it) *(2026-09-25: 612 entries at P8, no `xfail`, 164
+      normative statements, 0 gaps; no cell moved)*
 - [x] `plans/phase-8-results.md` and the Phase 9 work order written (A8)

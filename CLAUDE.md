@@ -9,9 +9,9 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    feature flags, decisions D1–D14, phases, risks).
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
-3. Find your task in the current work order. **Current phase: Phase 8**
-   (migration and interchange) → `plans/16-phase-8-work-order.md`.
-   Phases 1–7 are done (`crates/mf2-model`, `crates/mf2-syntax`,
+3. Find your task in the current work order. **Current phase: Phase 9**
+   (release) → `plans/17-phase-9-work-order.md`.
+   Phases 1–8 are done (`crates/mf2-model`, `crates/mf2-syntax`,
    `crates/mf2-catalog`, `crates/mf2-runtime` and its hosts,
    `mf2-locale-data`, `mf2-fn-number`, `mf2-fn-datetime` with both date
    backends, the `intl` client option, the `mf2` facade with the call-site
@@ -21,7 +21,10 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    `conformance/l6-web`, and `examples/demo-ssr`; islands, CSR and lazy
    routes, `examples/demo-islands` and `examples/demo-csr`, layer L7 in
    `conformance/l7-web`, the coverage matrix, and the user documentation in
-   `docs/`; `plans/phase-1-results.md` … `plans/phase-7-results.md`).
+   `docs/`; `mf2 convert --from fluent` / `--from leptos-fluent`, XLIFF 2
+   export and import, the `leptos-fluent` A/B in `bench/fluent-ab/`, and
+   dates in the reader's time zone; `plans/phase-1-results.md` …
+   `plans/phase-8-results.md`).
 
 ## Boundary — this repository is self-contained
 
