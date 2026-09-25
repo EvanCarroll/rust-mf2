@@ -91,6 +91,65 @@ of the tree, which a public repository or package cannot carry.
 | **A7** `cargo xtask release` | *Owner question 4.* One command, `cargo xtask release [--publish]`. Without `--publish` (and in CI, on every change): `cargo xtask ci` green, the names still free or ours, version and changelog agree, A1's metadata test, A2's API listings unchanged or committed, A4's package audit, the docs.rs build, the MSRV build, `cargo publish --workspace --dry-run`, and the tree clean. With `--publish`, **run by the owner only**: the same checks, then `cargo publish --workspace` with cargo's own stored login — the command stores and reads no token of its own, and refuses in CI (a `CI` environment variable). It prints the tag to create; it never pushes. | the dry run green in CI (`.forgejo/workflows/ci.yml`); each check's refusal shown once (a negative control per check: a dirty tree, a missing changelog entry, a taken name simulated, an unaudited file); `--publish` under `CI=true` refuses; the owner has what is needed to publish |
 | **A8** The Phase 9 results and what follows v1 | `plans/phase-9-results.md`; the master plan's "Later" list reviewed into a post-1.0 order. | written |
 
+## A0 — the specification text out of the tree: what was built
+
+* **`cargo xtask spec-sync`** vendors `test/` and `LICENSE` as before and
+  writes `spec/` to `target/xtask-cache/message-format-wg-spec/spec/`
+  (git-ignored), then a `COMMIT` stamp beside it, last, so a partial
+  write is never taken for a whole one. Each spec file must match the
+  SHA-256 in the `PIN`'s new `digests` field — 14 files, recorded by the
+  first sync after the move (the fetched text was byte-identical to the
+  copy that left the tree); a new `--rev` re-records them. `--check` also
+  fills the cache, and refuses a PIN with no digests. A `spec/` found
+  under `third_party/message-format-wg/` counts as not upstream's
+  (`--check` fails on it; a sync removes it). The digest helpers moved
+  from `xliff_sync.rs` to `pin.rs`, shared by both.
+* **One gate for every reader:** `conformance/src/spec.rs`'s `spec_dir`
+  / `spec_path` / `read_spec` refuse a missing cache or one stamped with
+  another commit (`Error::SpecMissing`, naming the command). Behind it:
+  the L5 build script, the three generated-case tests and `l4gen`'s, the
+  L2 schema check (`Harness::load`), the coverage matrix (its test, the
+  `statements` example, `conformance-report`), `fuzz-seed`, `l4-wasi`,
+  the `differential` example. `cargo xtask ci` checks the cache before
+  its first step instead of failing minutes in, at the build script.
+* **CI:** every job of `ci.yml` (7) and `nightly.yml` (6) runs
+  `cargo xtask spec-sync --check` straight after the toolchain.
+* **Nothing committed quotes the text.** Every tracked file outside
+  `third_party/` was compared with the spec's Markdown for shared runs of
+  10 words or more (a one-off script, not committed), then
+  `coverage.toml` and `COVERAGE.md` for runs of 6 or more. One `says`
+  field shared 8 words with `errors.md` and was reworded (COVERAGE.md
+  regenerated, 164 statements, 0 gaps). Three prose quotations — in
+  `mf2-fn-datetime/src/function.rs`, `mf2-model/src/json.rs` and
+  `plans/phase-7-results.md` — were paraphrased. What remains matches
+  by construction and is not prose: regular expressions and number
+  lists (the datetime literal grammar, the rounding increments), test
+  messages taken from the suite, the BCP 14 key-word list, and one
+  11-word description of error 103 (`mf2-syntax/src/code.rs`, held
+  against `plans/05-tooling.md`'s table).
+* **Shown** (2026-09-25): `spec-sync --check` green; with one digest
+  altered in the `PIN`, both `spec-sync` and `--check` refuse it naming
+  the file and both digests, and write nothing; with the cache moved
+  aside, the L5 build script, the coverage test and `conformance-report`
+  each fail naming `cargo xtask spec-sync` (and `spec.rs`'s unit test
+  holds the missing, unstamped and stale cases); `cargo xtask ci` green
+  in the working tree; `spec/` absent from `git ls-files`. In a fresh
+  clone: `cargo xtask ci` refuses up front naming the command, then after
+  `spec-sync --check` green (`git status` clean after it).
+  The clone's first `cargo xtask ci` failed elsewhere:
+  `mf2-locale-data`'s `icu_blob` `vectors`. The clone has no lock file,
+  so it resolved `icu_time_data` 2.3.1, a time-zone data patch released
+  after the working tree's lock (2.3.0), and the zones vector moved
+  (16,755 → 16,857 B). Nothing A0 did caused it; a `cargo update` in the
+  working tree would have shown the same. Taken: the vector and 02 §4.9's
+  zone sizes updated to 2.3.1 (+102 B raw per locale, 18.3–21.0 KB gz,
+  B4's 25 KB met), in its own commit. After that, `cargo xtask ci` green
+  in the clone and in the working tree. That this vector moves with
+  every tz data release matters to A4 (a package's tests run against
+  what crates.io resolves), and is left there.
+* **Not done here:** the old commits still hold the text; rewriting them
+  is the owner's (owner question 1).
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -103,7 +162,7 @@ of the tree, which a public repository or package cannot carry.
 
 ## Exit (master plan §9, P9)
 
-- [ ] the specification text out of the tree, fetched on demand; the suite still vendored (A0)
+- [x] the specification text out of the tree, fetched on demand; the suite still vendored (A0)
 - [ ] the 16 names verified and every package's metadata complete (A1)
 - [ ] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
 - [ ] the version policy written, the MSRV measured and held in CI (A3)
