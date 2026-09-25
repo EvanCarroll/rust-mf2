@@ -1,6 +1,7 @@
 //! `third_party/*/PIN` files: ordered `key = value` fields; a value continues on
 //! following lines that start with whitespace.
 
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -61,6 +62,18 @@ impl Pin {
             })
     }
 
+    /// The `digests` field — `<sha256>  <path>` lines, as `sha256sum` writes
+    /// them — by path; `None` when the PIN has no such field.
+    pub(crate) fn digests(&self) -> Result<Option<BTreeMap<String, String>>> {
+        let Ok(text) = self.get("digests") else {
+            return Ok(None);
+        };
+        parse_digests(text).map(Some).map_err(|message| Error::Pin {
+            path: self.path.clone(),
+            message,
+        })
+    }
+
     /// Sets `key`, keeping its position; a new key goes after `after` (or last).
     pub(crate) fn set(&mut self, key: &str, value: &str, after: Option<&str>) {
         if let Some(slot) = self.fields.iter_mut().find(|(k, _)| k == key) {
@@ -97,9 +110,40 @@ impl Pin {
     }
 }
 
+/// `<sha256>  <path>` lines by path.
+fn parse_digests(text: &str) -> std::result::Result<BTreeMap<String, String>, String> {
+    let mut out = BTreeMap::new();
+    for line in text.lines().filter(|l| !l.trim().is_empty()) {
+        let (digest, path) = line
+            .split_once("  ")
+            .ok_or_else(|| format!("digests: malformed line {line:?}"))?;
+        out.insert(path.trim().to_owned(), digest.trim().to_owned());
+    }
+    Ok(out)
+}
+
+/// Lower-case hex SHA-256 of `bytes`.
+pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(bytes)
+        .iter()
+        .fold(String::new(), |mut s, b| {
+            let _ = write!(s, "{b:02x}");
+            s
+        })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Pin;
+    use super::{Pin, parse_digests};
+
+    #[test]
+    fn digests_are_sha256sum_lines() {
+        let d = parse_digests("ab  schemas/a.xsd\ncd  b.html").unwrap();
+        assert_eq!(d["schemas/a.xsd"], "ab");
+        assert_eq!(d["b.html"], "cd");
+        assert!(parse_digests("nospace").is_err());
+    }
 
     #[test]
     fn round_trips_the_house_layout() {

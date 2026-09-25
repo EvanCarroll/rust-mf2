@@ -9,14 +9,16 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use mf2_conformance::coverage::{self, Coverage};
-use mf2_conformance::spec::SPEC_DIR;
+use mf2_conformance::spec::spec_dir;
 
 fn main() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("repository root");
     let missing_only = std::env::args().any(|a| a == "--missing");
-    let statements = coverage::statements(&root.join(SPEC_DIR)).expect("the spec reads");
+    let statements = spec_dir(root)
+        .and_then(|dir| coverage::statements(&dir))
+        .unwrap_or_else(|e| panic!("{e}"));
     let have: BTreeSet<String> = if missing_only {
         Coverage::load(root)
             .map(|c| c.entries.into_iter().map(|e| e.id).collect())

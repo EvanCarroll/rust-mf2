@@ -117,6 +117,12 @@ pub(crate) enum Error {
     SpecMismatch { commit: String, count: usize },
 
     #[error(
+        "the MF2 specification text fetched at {commit} does not match the digests in \
+         third_party/message-format-wg/PIN: {detail}; nothing was written"
+    )]
+    SpecDigest { commit: String, detail: String },
+
+    #[error(
         "resource-sync is blocked: the W3C Message Resource draft states no license \
          (third_party/w3c-message-resource/PIN), so nothing may be vendored from it until \
          the owner confirms one; nothing was fetched"

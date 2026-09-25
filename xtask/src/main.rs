@@ -49,14 +49,17 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Re-vendor third_party/message-format-wg (spec/, test/, LICENSE) from upstream
-    /// at the PIN commit, or at --rev, and print the added/removed/changed tests.
+    /// Re-vendor third_party/message-format-wg (test/, LICENSE) from upstream at the
+    /// PIN commit, or at --rev, and print the added/removed/changed tests; fetch
+    /// spec/ (not redistributable) into target/xtask-cache/message-format-wg-spec,
+    /// checked against the PIN's digests.
     SpecSync {
         /// Upstream commit to vendor (full sha); defaults to the PIN commit.
         #[arg(long, value_name = "SHA", conflicts_with = "check")]
         rev: Option<String>,
         /// Re-fetch the pinned commit and compare it byte-for-byte with the vendored
-        /// tree; exit non-zero on any difference. Never writes into `third_party/`.
+        /// tree; exit non-zero on any difference. Never writes into `third_party/`
+        /// (the spec cache is filled, as without it).
         #[arg(long)]
         check: bool,
     },

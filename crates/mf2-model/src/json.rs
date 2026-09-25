@@ -274,9 +274,8 @@ impl Serialize for Options<'_> {
 
 impl Serialize for Attributes<'_> {
     /// A repeated name writes only its last occurrence: the syntax allows
-    /// the repeat (unique names are only a SHOULD) and "all but the last
-    /// attribute with the same identifier are ignored" (`syntax.md`,
-    /// "Attributes"), while a JSON object holds a name once. The model keeps
+    /// the repeat (unique names are only a SHOULD) and only the last of a
+    /// repeated attribute counts (`syntax.md`, "Attributes"), while a JSON object holds a name once. The model keeps
     /// every occurrence, as written.
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         let names = self.0.iter().map(|(k, _)| k.as_ref());

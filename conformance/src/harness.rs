@@ -99,7 +99,7 @@ fn default_outcome(column: Column, test: &SuiteTest) -> DefaultOutcome {
 impl Harness {
     /// Loads what the harnesses need from the repository at `root`.
     pub fn load(root: &Path) -> Result<Self> {
-        let path = spec_path(root, DATA_MODEL_SCHEMA);
+        let path = spec_path(root, DATA_MODEL_SCHEMA)?;
         let text = fs::read_to_string(&path).map_err(|source| Error::IoAt {
             path: path.clone(),
             source,

@@ -70,10 +70,15 @@ with a lazy route), [`examples/demo-islands`](examples/demo-islands) and
 
 * Plans and decisions: [`plans/`](plans/README.md). Start with
   [`plans/00-master-plan.md`](plans/00-master-plan.md).
-* Current work order: [`plans/15-phase-7-work-order.md`](plans/15-phase-7-work-order.md).
-* Vendored, pinned inputs (read-only): [`third_party/`](third_party/).
+* Current work order: [`plans/17-phase-9-work-order.md`](plans/17-phase-9-work-order.md).
+* Vendored, pinned inputs (read-only): [`third_party/`](third_party/). The MF2
+  specification text is not among them: its license does not allow public
+  redistribution, so `cargo xtask spec-sync` fetches it, at the pinned commit
+  and checked against recorded digests, into `target/xtask-cache/`. The
+  conformance tests need it; run the command once after cloning.
 
 ```sh
+cargo xtask spec-sync          # fetch the MF2 specification text (once)
 cargo check --workspace        # the toolchain is pinned in rust-toolchain.toml
 cargo xtask ci                 # everything the `ci` job runs, locally
 cargo xtask docs               # compile every sample in docs/

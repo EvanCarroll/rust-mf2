@@ -9,7 +9,9 @@
 # conformance report, which runs layers L1-L5
 # over the suite), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
-# sources, install the toolchain and publish conformance/REPORT.md.
+# sources, install the toolchain, fetch the MF2 specification text into its
+# cache (it is not vendored — upstream #1112; every job does this first,
+# plans/17-phase-9-work-order.md A0) and publish conformance/REPORT.md.
 #
 # Job `parser-gate`: the D1 gate (plans/05-tooling.md §1) — mf2-syntax against
 # ox_mf2_parser, same process, release build — so a later regression is
@@ -113,6 +115,11 @@ jobs:
           rustup toolchain install
           rustup show active-toolchain
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: cargo xtask ci
         run: cargo xtask ci
 
@@ -161,6 +168,11 @@ jobs:
           fi
           rustup toolchain install
           rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: D1 gate (release build, median of 31, exit 1 on failure)
         run: cargo run --release -p parser-gate -- --gate
@@ -212,6 +224,11 @@ jobs:
           fi
           rustup toolchain install
           rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: B7 on the committed corpus (brotli 11; exit 1 on a failed threshold)
         run: |
@@ -272,6 +289,11 @@ jobs:
           # among them) named in rust-toolchain.toml.
           rustup toolchain install
           rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: Install binaryen and twiggy (pinned)
         run: |
@@ -355,6 +377,11 @@ jobs:
           rustup toolchain install
           rustup show active-toolchain
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: The generated module in every feature combination, and B6
         run: cargo xtask codegen-matrix
 
@@ -399,6 +426,11 @@ jobs:
           rustup toolchain install
           rustup show active-toolchain
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: Every documentation sample, compiled (server and wasm32)
         run: cargo xtask docs
 
@@ -440,6 +472,11 @@ jobs:
           fi
           rustup toolchain install
           rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: Install wasmtime (pinned, into target/tools)
         run: |

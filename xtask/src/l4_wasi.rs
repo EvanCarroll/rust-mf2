@@ -21,7 +21,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 
 use mf2_conformance::abnf::Grammar;
-use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::spec::{ABNF, read_spec};
 use mf2_conformance::{TestKind, l4gen};
 
 use crate::cmd;
@@ -77,7 +77,7 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
     }
     let golden_cases = cases.len() - suite_cases;
     if let Some(n) = generated.filter(|&n| n > 0) {
-        let text = fsx::read_to_string(&spec_path(root, ABNF))?;
+        let text = read_spec(root, ABNF)?;
         let grammar = Grammar::parse(&text).map_err(|e| Error::L4(e.to_string()))?;
         let step = (GEN_NIGHTLY / n).max(1);
         for i in 0..n {

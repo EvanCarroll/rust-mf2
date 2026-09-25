@@ -15,12 +15,10 @@ use std::ffi::OsStr;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-use sha2::{Digest, Sha256};
-
 use crate::cmd;
 use crate::error::{Error, Result};
 use crate::fsx;
-use crate::pin::Pin;
+use crate::pin::{Pin, sha256_hex};
 
 /// The cache directory under the repository root.
 pub(crate) fn cache_dir(root: &Path) -> PathBuf {
@@ -44,7 +42,7 @@ pub(crate) fn run(root: &Path, list: bool, check: bool) -> Result<()> {
         .split_whitespace()
         .map(str::to_owned)
         .collect();
-    let digests = parse_digests(pin.get("digests").unwrap_or(""))?;
+    let digests = pin.digests()?.unwrap_or_default();
 
     // The release's ZIP, not the files beside it: the served `.html` is
     // rewritten on every request (the CDN obfuscates each e-mail address
@@ -67,7 +65,7 @@ pub(crate) fn run(root: &Path, list: bool, check: bool) -> Result<()> {
         fetched.insert(rel.clone(), bytes);
     }
     for (rel, bytes) in &fetched {
-        let got = hex(&Sha256::digest(bytes));
+        let got = sha256_hex(bytes);
         if let Some(want) = digests.get(rel)
             && *want != got
         {
@@ -105,9 +103,9 @@ pub(crate) fn run(root: &Path, list: bool, check: bool) -> Result<()> {
         }
     };
 
-    let mut listing = format!("{}  {package}\n", hex(&Sha256::digest(&package_bytes)));
+    let mut listing = format!("{}  {package}\n", sha256_hex(&package_bytes));
     for (rel, bytes) in &fetched {
-        let _ = writeln!(listing, "{}  {rel}", hex(&Sha256::digest(bytes)));
+        let _ = writeln!(listing, "{}  {rel}", sha256_hex(bytes));
     }
     pin.set("digests", listing.trim_end(), Some("files"));
     if vendor {
@@ -207,25 +205,6 @@ fn unzip(zip: &Path, flag: &str, entry: Option<&str>) -> Result<Vec<u8>> {
     cmd::run_capture(OsStr::new("unzip"), &args, Path::new("."), &[])
 }
 
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().fold(String::new(), |mut s, b| {
-        let _ = write!(s, "{b:02x}");
-        s
-    })
-}
-
-/// `<sha256>  <path>` lines, as `sha256sum` writes them.
-fn parse_digests(text: &str) -> Result<BTreeMap<String, String>> {
-    let mut out = BTreeMap::new();
-    for line in text.lines().filter(|l| !l.trim().is_empty()) {
-        let (digest, path) = line
-            .split_once("  ")
-            .ok_or_else(|| Error::Xliff(format!("PIN digests: malformed line {line:?}")))?;
-        out.insert(path.trim().to_owned(), digest.trim().to_owned());
-    }
-    Ok(out)
-}
-
 fn vendored(dir: &Path) -> Result<BTreeMap<String, Vec<u8>>> {
     let mut local = BTreeMap::new();
     for entry in std::fs::read_dir(dir).map_err(|source| Error::IoAt {
@@ -279,7 +258,7 @@ fn compare(
 
 #[cfg(test)]
 mod tests {
-    use super::{links, parse_digests};
+    use super::links;
 
     #[test]
     fn reads_an_apache_index() {
@@ -287,13 +266,5 @@ mod tests {
             <a href="../">up</a> <a href="v2.0/">v2.0/</a> <a href="v2.1/">v2.1/</a>
             <a href="https://www.oasis-open.org/">x</a> <a href="v2.1/">again</a>"#;
         assert_eq!(links(html), ["?C=N;O=D", "/xliff/", "v2.0/", "v2.1/"]);
-    }
-
-    #[test]
-    fn digests_are_sha256sum_lines() {
-        let d = parse_digests("ab  schemas/a.xsd\ncd  b.html").unwrap();
-        assert_eq!(d["schemas/a.xsd"], "ab");
-        assert_eq!(d["b.html"], "cd");
-        assert!(parse_digests("nospace").is_err());
     }
 }

@@ -213,8 +213,7 @@ columns, 480 cells promoted from `xfail`; `l7: 34/34 assertions`);
 ### A reading recorded: `u:id`
 
 `u-namespace.md` requires `u:id`'s value to be a literal or a variable whose
-resolved value "is either a string or can be resolved to a string without
-error". mf2-two reads it narrowly (`str_of` in
+resolved value is a string, or turns into one without an error. mf2-two reads it narrowly (`str_of` in
 `crates/mf2-runtime/src/eval.rs`): a string, an exact decimal given as its
 text, or a custom value that exposes a string. An integer or float argument
 is a Bad Option and `u:id` is dropped — the formatted number is not the

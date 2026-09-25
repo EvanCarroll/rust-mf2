@@ -825,14 +825,14 @@ impl Steer<'_> {
 mod tests {
     use super::{LOCALES, case};
     use crate::abnf::Grammar;
-    use crate::spec::{ABNF, spec_path};
+    use crate::spec::{ABNF, read_spec};
 
     fn grammar() -> Grammar {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .expect("conformance/ has a parent")
             .to_path_buf();
-        let text = std::fs::read_to_string(spec_path(&root, ABNF)).expect("message.abnf");
+        let text = read_spec(&root, ABNF).unwrap_or_else(|e| panic!("{e}"));
         Grammar::parse(&text).expect("the spec's ABNF parses")
     }
 

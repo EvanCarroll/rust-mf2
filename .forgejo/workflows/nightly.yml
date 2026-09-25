@@ -110,6 +110,11 @@ jobs:
           rustup toolchain install nightly --profile minimal
           cargo install --locked cargo-fuzz
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: Generated input, 1,000,000 messages
         run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
 
@@ -234,6 +239,11 @@ jobs:
           rustup toolchain install
           cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: Install the browser harness and the three engines
         run: |
           set -eu
@@ -309,6 +319,11 @@ jobs:
           tar -xzf "$tools/binaryen.tar.gz" -C "$tools"
           echo "$tools/$name/bin" >> "$GITHUB_PATH"
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: The size gate — B1 fixed, B5 per site, and the whole app
         run: cargo xtask size | tee size.md
 
@@ -381,6 +396,11 @@ jobs:
           rustup target add wasm32-unknown-unknown
           cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
 
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
       - name: Install the browser harness and two engines
         run: |
           set -eu
@@ -450,6 +470,11 @@ jobs:
           rustup toolchain install
           rustup target add wasm32-unknown-unknown
           cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: Install the browser harness and two engines
         run: |
@@ -528,6 +553,11 @@ jobs:
           fi
           rustup toolchain install
           rustup target add wasm32-unknown-unknown
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
 
       - name: leptos-mf2, mf2-axum and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8

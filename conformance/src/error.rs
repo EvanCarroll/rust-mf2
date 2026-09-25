@@ -45,6 +45,13 @@ pub enum Error {
 
     #[error("{path}: {message}")]
     Spec { path: PathBuf, message: String },
+
+    /// The specification text is not in the cache, or is from another pin.
+    #[error(
+        "the MF2 specification text is not available ({reason}); \
+         run `cargo xtask spec-sync` to fetch it into {dir}"
+    )]
+    SpecMissing { dir: PathBuf, reason: String },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

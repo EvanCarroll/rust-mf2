@@ -11,11 +11,10 @@
 //! optionally `MF2_GEN_SEED`) for longer runs, e.g.
 //! `MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated`.
 
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use mf2_conformance::abnf::{Generator, Grammar};
-use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::spec::{ABNF, read_spec};
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -25,7 +24,7 @@ fn root() -> PathBuf {
 }
 
 fn grammar() -> Grammar {
-    let text = fs::read_to_string(spec_path(&root(), ABNF)).expect("message.abnf");
+    let text = read_spec(&root(), ABNF).unwrap_or_else(|e| panic!("{e}"));
     Grammar::parse(&text).expect("the spec's ABNF parses")
 }
 

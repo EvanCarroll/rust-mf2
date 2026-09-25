@@ -71,7 +71,7 @@ tests = [
 
 [[statement]]
 id = "errors.md#9d0627b3"
-says = "formatting a message with errors gives a way to discover and identify at least one of them"
+says = "formatting a message that has errors lets the caller find out about, and tell apart, at least one of them"
 note = "Every format call takes an error sink and reports each error's kind."
 tests = [
     "fallback.json@9e95263f",

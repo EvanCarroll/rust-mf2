@@ -44,7 +44,7 @@ fn generate() -> Result<(), Box<dyn std::error::Error>> {
         .ancestors()
         .nth(2)
         .ok_or("this crate sits two directories below the root")?;
-    let abnf = spec_path(root, ABNF);
+    let abnf = spec_path(root, ABNF)?;
     println!("cargo::rerun-if-changed={}", abnf.display());
     let grammar = Grammar::parse(&std::fs::read_to_string(&abnf)?)?;
 

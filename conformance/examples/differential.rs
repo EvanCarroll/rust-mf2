@@ -179,8 +179,8 @@ fn main() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("root");
-    let text = std::fs::read_to_string(mf2_conformance::spec::spec_path(root, "message.abnf"))
-        .expect("message.abnf");
+    let text = mf2_conformance::spec::read_spec(root, mf2_conformance::spec::ABNF)
+        .unwrap_or_else(|e| panic!("{e}"));
     let g = Grammar::parse(&text).expect("ABNF");
     let mut rng = Rng::new(42);
     let mut ox = Ox::spawn();

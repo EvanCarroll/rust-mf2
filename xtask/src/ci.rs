@@ -1,6 +1,7 @@
 //! `cargo xtask ci`: exactly what `.forgejo/workflows/ci.yml` runs, in order,
 //! stopping at the first failure. No network access beyond what cargo itself
-//! needs to resolve dependencies.
+//! needs to resolve dependencies: the specification text must already be in
+//! its cache (`cargo xtask spec-sync`, which CI runs first).
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -206,6 +207,9 @@ const STEPS: &[&[&str]] = &[
 ];
 
 pub(crate) fn run(root: &Path) -> Result<()> {
+    // The spec text is not vendored (upstream #1112): without the cache the
+    // first build script to read it would stop the run minutes in. Say so now.
+    mf2_conformance::spec::spec_dir(root)?;
     let cargo = cargo();
     for step in STEPS {
         let shown = format!("cargo {}", step.join(" "));

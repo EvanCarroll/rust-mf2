@@ -2,5 +2,23 @@ upstream = https://github.com/unicode-org/message-format-wg
 commit   = 5c4ddb27e726fd7881c1787a632efba83ab0d850
 date     = 2026-08-31
 relation = tag LDML48.2 + 3 commits
-contents = spec/ test/ LICENSE (verbatim; never hand-edit)
+contents = test/ LICENSE (verbatim; never hand-edit). spec/ is NOT vendored: since
+           upstream #1112 its text may not be distributed publicly without
+           Unicode's permission. spec-sync fetches it into
+           target/xtask-cache/message-format-wg-spec/ and checks it against
+           the digests below (plans/17-phase-9-work-order.md A0)
+digests  = ebf7e7dc303af2efa5338f7cf60d9f7d52e74943b6c689165da0101ef4cd501c  spec/README.md
+           8eb08451c5d22f03fe0f8c0c9eb8e11f0f00b64ceb93f21bdf617052385d50fd  spec/appendices.md
+           d4915d9ce3473e51e558d75d16e73efd1aeb89381eeeeb1e6a9bcda631021e48  spec/data-model/README.md
+           185ee0f30b8ab875d5ffc89d12f30c10127cb07090d1cf4653de72d51cddd5d3  spec/data-model/message.json
+           8d6841d956a9e2cc86c1de3d464398dfd91c46f8dfbbd8a1014e9a2e21b29587  spec/errors.md
+           2e33a4306540ea0c153361317a8f39342fb76276beb2e7446f73c08c8579e90e  spec/formatting.md
+           54826d6f1ccecb62bede6b393f4f298e965cfb10363a06af459ae07b098cc44b  spec/functions/README.md
+           d6e4058e3a444416fdc5eb07758939c04497513c5f4fa32d07b53e39e09dc65a  spec/functions/datetime.md
+           c48d4ec28c9bb7a104266ebf3d28aa171b9260a92f8cfa9d65730b5595da4b5a  spec/functions/number.md
+           8b74c29eeb07b56c172aee9263bcee4c18fdf9fe240383eef691249e60f965dc  spec/functions/string.md
+           9336837c41277fd32e3c962fa78b0ed7609e454011db5c1e7d8ee9f373a123e0  spec/intro.md
+           5dcad699587cf982225d008e6dc5d3e2028bfb184c73c7f6ddd2e079c1b72829  spec/message.abnf
+           9f4cf87490069c9a615fe5b01681a848055ea9eddec7e6491ae09ab47fea9039  spec/syntax.md
+           733e8b8d23ea5f54ea66f4580543795ea9e41e6742906d27b932f7ee8ffb7e81  spec/u-namespace.md
 refresh  = cargo xtask spec-sync [--rev <sha>]   (update conformance/ledger.toml in the same commit)

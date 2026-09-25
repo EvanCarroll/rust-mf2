@@ -4,7 +4,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use mf2_conformance::spec::SPEC_DIR;
+use mf2_conformance::spec::spec_dir;
 use mf2_conformance::{Harness, LEDGER_PATH, Ledger, REPORT_PATH, coverage, report};
 
 use crate::error::{Error, Result};
@@ -149,7 +149,7 @@ fn write_coverage(
     suite: &mf2_conformance::Suite,
     report_path: &Path,
 ) -> Result<usize> {
-    let statements = coverage::statements(&root.join(SPEC_DIR))?;
+    let statements = coverage::statements(&spec_dir(root)?)?;
     let matrix = coverage::Coverage::load(root)?;
     let gaps = coverage::check(&statements, &matrix, suite, root);
     let path = report_path.with_file_name("COVERAGE.md");

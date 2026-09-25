@@ -20,13 +20,12 @@
 //! The seed is `generated.rs`'s, so case `n` starts from the same message.
 
 use std::collections::BTreeSet;
-use std::fs;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
 
 use mf2_conformance::abnf::Grammar;
 use mf2_conformance::l4gen;
-use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::spec::{ABNF, read_spec};
 use mf2_l4_runner::{Case, Record};
 
 fn root() -> PathBuf {
@@ -37,7 +36,7 @@ fn root() -> PathBuf {
 }
 
 fn grammar() -> Grammar {
-    let text = fs::read_to_string(spec_path(&root(), ABNF)).expect("message.abnf");
+    let text = read_spec(&root(), ABNF).unwrap_or_else(|e| panic!("{e}"));
     Grammar::parse(&text).expect("the spec's ABNF parses")
 }
 

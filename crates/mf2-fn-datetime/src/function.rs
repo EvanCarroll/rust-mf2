@@ -167,9 +167,8 @@ fn resolve<'a>(
         errs.error(FormatError::BadOperand);
         return None;
     };
-    // Only the override options travel from the operand (datetime.md:
-    // "Any operand options not matching the date/time override options are
-    // ignored").
+    // Only the override options travel from the operand; datetime.md drops
+    // every other option an operand carries.
     let inherited = d.options;
     let mut o = parts(kind, own);
     o.hour12 = own.hour12.or(inherited.hour12);

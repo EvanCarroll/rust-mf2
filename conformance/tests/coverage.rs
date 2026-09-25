@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use mf2_conformance::coverage::{
     self, COVERAGE_MD, Coverage, Entry, Gap, KEYWORDS, Na, NaKind, Statement,
 };
-use mf2_conformance::spec::SPEC_DIR;
+use mf2_conformance::spec::spec_dir;
 use mf2_conformance::{Suite, load_suite};
 
 fn root() -> PathBuf {
@@ -23,7 +23,9 @@ fn root() -> PathBuf {
 fn inputs() -> (Vec<Statement>, Coverage, Suite) {
     let root = root();
     (
-        coverage::statements(&root.join(SPEC_DIR)).expect("the spec reads"),
+        spec_dir(&root)
+            .and_then(|dir| coverage::statements(&dir))
+            .unwrap_or_else(|e| panic!("{e}")),
         Coverage::load(&root).expect("conformance/coverage.toml parses"),
         load_suite(&root).expect("the suite loads"),
     )
@@ -58,7 +60,7 @@ fn coverage_md_is_current() {
 /// is inside some extracted statement: the sentence splitter loses none.
 #[test]
 fn the_extraction_loses_no_key_word() {
-    let spec = root().join(SPEC_DIR);
+    let spec = spec_dir(&root()).unwrap_or_else(|e| panic!("{e}"));
     let statements = coverage::statements(&spec).expect("the spec reads");
     // The files with statements, and those that have none.
     let files: BTreeSet<&str> = statements

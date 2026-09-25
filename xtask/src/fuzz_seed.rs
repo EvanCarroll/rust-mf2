@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{CldrVersion, Dir, Manifest};
 use mf2_conformance::abnf::Grammar;
-use mf2_conformance::spec::{ABNF, spec_path};
+use mf2_conformance::spec::{ABNF, read_spec};
 use mf2_conformance::{TestKind, l4gen};
 use mf2_l4_runner::{ArgSpec, Case};
 use mf2_runtime::BidiStrategy;
@@ -153,7 +153,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         )?;
         n += 1;
     }
-    let text = crate::fsx::read_to_string(&spec_path(root, ABNF))?;
+    let text = read_spec(root, ABNF)?;
     let grammar = Grammar::parse(&text).map_err(|e| Error::L4(e.to_string()))?;
     for i in 0..400u64 {
         let g = l4gen::case(&grammar, 0x6d66_3274_776f + i).map_err(Error::L4)?;

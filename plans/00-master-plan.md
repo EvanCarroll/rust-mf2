@@ -126,7 +126,7 @@ mf2-two/
 ├── plans/                      this directory
 ├── docs/                       user docs; resource-format.md; migration guides
 ├── third_party/                vendored, read-only, pinned
-│   ├── message-format-wg/      spec/ + test/ + LICENSE + PIN
+│   ├── message-format-wg/      test/ + LICENSE + PIN (spec/ fetched into a cache; D13)
 │   ├── w3c-message-resource/   resource-format draft: explainer, ABNF, data model, schema + PIN
 │   ├── cldr-json/              the subset we consume + PIN
 │   └── xliff/                  XLIFF 2.1 core (OASIS Standard): specification + schemas/ + PIN
@@ -226,7 +226,7 @@ Measured against `leptos-fluent` once, at migration:
 ## 7. Conformance (summary — full text in [01](01-conformance.md))
 
 Upstream pinned at `5c4ddb27` (2026-08-31; LDML 48.2 + 7 commits, 3 of them
-normative), vendored. 462 tests, 16 files. Since upstream #1112 (inside the
+normative); the suite vendored. 462 tests, 16 files. Since upstream #1112 (inside the
 pin) the **spec text** may not be redistributed publicly without Unicode's
 permission; the tests remain Unicode-3.0 — so the spec text leaves the tree and
 is fetched on demand by `spec-sync` (owner, 2026-09-25; [01](01-conformance.md)

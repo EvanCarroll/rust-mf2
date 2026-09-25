@@ -25,14 +25,24 @@ The spec is effectively frozen (three small commits in eight months), so the pin
 is cheap to keep current.
 
 **Vendoring.** `third_party/message-format-wg/` holds a verbatim copy of upstream
-`spec/`, `test/` and `LICENSE`, plus a `PIN` file (sha, date, URL). It is
-vendored, not a submodule, so every agent and every CI job works offline and the
-spec text itself (~4.6k lines of Markdown, a 121-line ABNF, the data-model JSON
-Schema) is greppable inside the repo. The directory is read-only: nothing under
-it is ever hand-edited.
+`test/` and `LICENSE`, plus a `PIN` file (sha, date, URL, and the SHA-256 of
+every `spec/` file). It is vendored, not a submodule, so the suite works
+offline. The directory is read-only: nothing under it is ever hand-edited.
 
-`cargo xtask spec-sync [--rev <sha>]` refreshes it and prints the added, removed
-and changed tests; the ledger (§4) MUST be updated in the same commit.
+The **spec text** (~4.6k lines of Markdown, a 121-line ABNF, the data-model
+JSON Schema) is not vendored (License, above; Phase 9 A0). `cargo xtask
+spec-sync` fetches it at the pin into `target/xtask-cache/message-format-wg-spec/`
+(git-ignored), refusing any file whose digest differs from the `PIN`'s, and
+stamps the cache with the commit. Everything that reads it — the ABNF-driven
+generators, the L2 schema check, the coverage matrix — goes through
+`conformance/src/spec.rs`, which fails naming the command when the cache is
+missing or from another pin; nothing skips. Every CI job runs
+`cargo xtask spec-sync --check` first. Nothing committed quotes the text: the
+coverage matrix's `says` fields are paraphrases.
+
+`cargo xtask spec-sync [--rev <sha>]` refreshes both and prints the added, removed
+and changed tests; the ledger (§4) MUST be updated in the same commit. A new
+`--rev` re-records the digests.
 
 ## 2. What the suite contains (at the pin)
 
@@ -97,7 +107,7 @@ catalog test, whatever file it came from.
 | Layer | Crate under test | For each test… | Extra invariants |
 |---|---|---|---|
 | **L1 syntax** | `mf2-syntax` | Parse `src`. A Syntax Error is reported **iff** `expErrors` contains `syntax-error`. | CST is lossless: `cst.to_string() == src` byte-for-byte. Never panics. Every diagnostic span is in bounds and on a char boundary. |
-| **L2 data model** | `mf2-syntax` → `mf2-model` | Lower to the spec's interchange data model; run validation. The set of Data Model Errors equals the data-model subset of `expErrors`. | Model → JSON validates against the vendored `spec/data-model/message.json`. `parse(serialize(m)) == m`. `serialize(m)` is itself L1-clean. |
+| **L2 data model** | `mf2-syntax` → `mf2-model` | Lower to the spec's interchange data model; run validation. The set of Data Model Errors equals the data-model subset of `expErrors`. | Model → JSON validates against the pinned `spec/data-model/message.json` (from the cache). `parse(serialize(m)) == m`. `serialize(m)` is itself L1-clean. |
 | **L3 catalog** | `mf2-catalog` | Compile every L2-clean message into a binary catalog, decode it, and rebuild a data model. It MUST equal the L2 model — **the binary format is lossless over the full data model**, which is what proves it is not a subset. | Decoder never panics or reads out of bounds on truncated / bit-flipped input (fuzzed). Reader is `forbid(unsafe_code)`, without exception ([02](02-catalog-format.md) F5). |
 | **L4 runtime** | `mf2-runtime` + function crates | Compile `src` to a one-message catalog, format it **from the catalog** with `params`, `locale`, `bidiIsolation`. Assert `exp`, `expParts`, `expErrors` (absent/empty ⇒ no errors allowed). | Runs on **native and wasm** with byte-identical results. The wasm run is `wasm32-wasip1` under wasmtime: suite catalogs are compiled natively beforehand and embedded, so the wasm executes only the client path (reader + runtime + functions) with a pure-Rust `Host`. (The browser target, `wasm32-unknown-unknown` with `mf2-host-web`, is exercised by L6 — and, for the `intl` build, by `cargo xtask l4-web` in three engines, below.) There is no "format from AST" code path anywhere — the shipped path is the only path, so it is the tested path. |
 | **L5 macros** | `mf2-build` + `mf2-macros` | The suite becomes generated i18n crates — one per locale the suite uses (`en-US`, `und`, `fr`, `ar`), each single-locale, each built from the vendored suite by its own `build.rs` so no copy of it exists to drift (`conformance/l5/`). Message id = `suite.<file>.t<index>` (e.g. `suite.syntax.t078`; the file's path, dotted). Each test → a `#[test]` that calls `tr!` with `params` and asserts **the same `exp` / `expParts` / `expErrors` as L4**. For syntax- and data-model-error tests the assertion is that `mf2-build` rejects the message with the expected kind. | Proves compile-time variable extraction and slot lowering for every syntax form (`.input`, `.local` shadowing, variables used only in options / selectors / markup options). `trybuild` compile-fail cases: unknown id, missing arg, extra arg, unknown markup handler. Tests whose `params` deliberately mismatch the message (e.g. `unresolved-variable`) go through the dynamic named-args API and are marked `dyn` in the ledger. |
