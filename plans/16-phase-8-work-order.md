@@ -101,10 +101,11 @@ three phases left unbuilt: dates in the reader's time zone.
 
 ## Part A — tasks (A1 and A2 first, then A3; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
-**A1, A2 and A3 are done** (2026-09-24): A2's corpus converts with no
+**A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
-originals but for four owner-approved classes (owner question 5). What was
-built is below the table.
+originals but for four owner-approved classes (owner question 5); the
+reference application on `leptos-fluent` converts to exactly the expected
+call sites and builds. What was built is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -237,21 +238,92 @@ built is below the table.
   `*[other]` default hides the latter: only a select whose default is not
   `other` shows it.
 
+## A4 — the call-site codemod: what was built
+
+* **The rules, before code** (05 §6.2, from `leptos-fluent` 0.3.1's
+  docs.rs pages — which also confirmed §6.1's `locales/<lang>/*.ftl`).
+  A call is classified by where it stands: in a **view position** (a
+  `view!` child or attribute/prop value that is the whole call) `tr!` and
+  `move_tr!` become the description, `tr!(…)`; in a **`String` position**
+  `tr!(…)` becomes `tr!(…).to_string()`; a `move_tr!` elsewhere, or with an
+  argument that may change (not a literal or a path), becomes its own
+  documented expansion `Signal::derive(move || tr!(…).to_string())`. Every
+  type and every evaluation of an argument stays as it was. Nine rules,
+  twelve report codes, every one an error ("a migration is finished when
+  the report is empty").
+* **`mf2 convert --from leptos-fluent APP_DIR`** in
+  `crates/mf2-cli/src/convert/leptos_fluent.rs` (discovery: the `.ftl`
+  directory from `--locales`, the initializer's `locales:`, or
+  `APP_DIR/locales`; the source locale's converted messages, against which
+  every call is checked; the diff by default, `--write` to apply),
+  `…/call.rs` (the macro forms, parsed with `syn`) and `…/rewrite.rs` (the
+  walk over `proc-macro2` tokens — every macro's arguments, `view!`
+  included — and the byte-range edits). A file that does not name
+  `leptos_fluent` is not touched, so a second run changes nothing. `mf2 init
+  --no-messages` makes the translation crate without the starter messages
+  a conversion would collide with.
+* **Departures, recorded in 05 §6.2 and the table above:** an argument
+  name that is not a Rust identifier is written quoted (`tr!` accepts it),
+  not reported; the reference comparison is exact, against a template, not
+  "after rustfmt" (which does not format inside `view!`).
+* **The reference application.** Two templates in
+  `bench/workload-gen/templates/`: `fluent-view` (the workload's call
+  sites in `leptos-fluent`'s idiom, `leptos_fluent!` in a provider — a new
+  template field, `provider`, wraps the router in it; ids by a new
+  placeholder, `{{fluent_id}}`) and `fluent-converted` (`tr-view` with the
+  five documented differences as its own rows: Fluent ids; unquoted
+  argument names; an argument read from a signal keeps `move_tr!`'s
+  `Signal::derive` expansion — 103 of 1,860 sites; deferred labels are
+  `fn() -> String` closures — 149; a sentence with an element is its three
+  messages — 8). Existing templates' output is byte-identical to the
+  previous commit's (checked against a binary built from it).
+  `fluent-view` type-checks against `leptos-fluent` 0.3.1 for the server
+  and for wasm (checked once, at 120 sites, in a scratch directory; A5
+  builds it for real).
+* **Tests.** `cargo test -p mf2-cli`: the whole reference application,
+  in memory, rewritten, **byte for byte** `fluent-converted`'s in every
+  file with a call site (61 files), the only findings the initializer and
+  the `use` beside it; **negative control:** with `move-tr-view` switched
+  off its sites are reported (`leptos-fluent-call`) and the comparison
+  fails. One test per rule (`rule_*`) and per code (`leptos_fluent_*`) in
+  `tests/convert.rs`, each list checked against the enum and 05 §6.2.
+* **`cargo xtask fluent-migrate`** (nightly, after the size gate): the
+  same end to end through the command line on disk — the report must be
+  exactly the initializer, its `use` and three manifest lines — then the
+  hand-finishing the guide describes (the manifest, the initializer's
+  module, the entry points, taken from `fluent-converted`), after which the
+  migrated application is `fluent-converted` in every file, and the build:
+  client (`wasm32`, `hydrate`) and server (`ssr`). Run 2026-09-24: green —
+  the report as expected, 64 files byte for byte, both builds.
+* **The guide**, `docs/migrating-from-leptos-fluent.md`: Getting started's
+  application as it would be on `leptos-fluent`, the commands, the
+  rewritten file, the report and each code's hand-finish, the finished
+  file, and what changes for the reader (A3's accepted differences, terms
+  copied). `cargo xtask docs` gained two attributes: **`before`** — code
+  before a migration, never compiled, but only accepted in a project whose
+  `run=` commands convert it, and written before they run, so the page's
+  `generated` block must be exactly what `mf2 convert` wrote — and
+  **`status=N`** for a `run=` block whose commands must exit with N (the
+  conversion exits 1 while work is left). The finished application is
+  checked for the server and for wasm like every other page's.
+
 ## Standing: Leptos 0.9
 
-If Leptos 0.9 is released during Phase 8, `cargo xtask leptos-beta` says so
-(a pin resolving to a release). D10 then moves the workspace to it, and
-whether 0.8 stays supported is put to the owner (04 §10), before any other
-task continues. Until then the nightly job keeps the 0.9 glue honest.
+*Superseded by owner question 6 (2026-09-24):* 0.9 is the default now,
+beta or not, and 0.8 an opt-in tested in CI — A0. A5 uses the newest
+`leptos-fluent` for Leptos 0.9; if none exists, the A/B runs both sides on
+the 0.8 feature and the snapshot says so. (Was: wait for 0.9's release,
+then move and ask about 0.8.)
 
 ## Exit (master plan §9, P8)
 
+- [ ] Leptos 0.9 the default, 0.8 an opt-in built and tested in CI (A0)
 - [x] a Fluent corpus of reference-workload shape converts with a report of
       zero unmapped constructs (A1, A2)
 - [x] converted catalogs format identically to the Fluent originals on a
       sampled argument set — or differ only in classes the owner approved,
       each counted (A3; owner question 5)
-- [ ] the call-site codemod and the migration guide, the guide's samples
+- [x] the call-site codemod and the migration guide, the guide's samples
       compiled (A4)
 - [ ] the `leptos-fluent` A/B measured on the reference application,
       reported, and its snapshot committed with the commit it measured (A5)

@@ -21,6 +21,16 @@
 //! one that makes the i18n crate. Nothing is hidden: there are no elided
 //! lines, and a code block with no `file=` is refused.
 //!
+//! A block marked `before` shows code *before* a migration to this library
+//! — `leptos-fluent` code, which this workspace does not depend on, so it
+//! is never compiled. It is not exempt from checking: its file is written
+//! before the project's `run=` commands, a `before` block is only accepted
+//! in a project that has them, and those commands (`mf2 convert --from
+//! leptos-fluent`) turn it into what the page's `generated` blocks show. A
+//! `run=` block marked `status=N` holds commands that must exit with N — a
+//! conversion that leaves work for a person exits 1, which is what the page
+//! explains next.
+//!
 //! The applications are assembled under `target/docs/projects`, their
 //! dependencies on this repository's crates pointed at the working tree (the
 //! pages write them as the first release will publish them), and each is
@@ -45,6 +55,7 @@ const PAGES: &[&str] = &[
     "docs/delivery-modes.md",
     "docs/switching.md",
     "docs/accessibility.md",
+    "docs/migrating-from-leptos-fluent.md",
     "README.md",
 ];
 
@@ -137,6 +148,16 @@ const PROJECTS: &[Project] = &[
         checks: SSR_AND_HYDRATE,
         site: false,
     },
+    // migrating-from-leptos-fluent.md: Getting started's application as it
+    // would be on leptos-fluent, converted, then finished by hand. Its server
+    // is hello's, unchanged; its i18n crate is made by the page's commands.
+    Project {
+        name: "migrate",
+        base: Some("hello"),
+        remove: &["src/lib.rs", "i18n"],
+        checks: SSR_AND_HYDRATE,
+        site: false,
+    },
     Project {
         name: "csr",
         base: Some("hello"),
@@ -157,8 +178,11 @@ struct Block {
     lang: String,
     file: Option<String>,
     run: Option<String>,
+    /// The exit status every command of a `run=` block must have.
+    status: i32,
     generated: bool,
     merge: bool,
+    before: bool,
     text: String,
 }
 
@@ -316,19 +340,30 @@ fn parse(page: &'static str, text: &str) -> Result<Vec<Block>> {
             lang,
             file: None,
             run: None,
+            status: 0,
             generated: false,
             merge: false,
+            before: false,
             text: String::new(),
         };
         for word in words {
             match word.split_once('=') {
                 Some(("file", path)) => block.file = Some(path.to_owned()),
                 Some(("run", project)) => block.run = Some(project.to_owned()),
+                Some(("status", n)) => {
+                    block.status = n.parse().map_err(|_| {
+                        fail(format!(
+                            "{}: `status={n}` is not an exit status",
+                            block.at()
+                        ))
+                    })?;
+                }
                 None if word == "generated" => block.generated = true,
                 None if word == "merge" => block.merge = true,
+                None if word == "before" => block.before = true,
                 _ => {
                     return Err(fail(format!(
-                        "{}: unknown attribute `{word}` (file=, run=, generated, merge)",
+                        "{}: unknown attribute `{word}` (file=, run=, status=, generated, merge, before)",
                         block.at()
                     )));
                 }
@@ -416,6 +451,23 @@ fn validate(blocks: &[Block]) -> Result<()> {
         if block.generated && block.file.is_none() {
             return Err(fail(format!("{}: `generated` needs file=", block.at())));
         }
+        if block.status != 0 && block.run.is_none() {
+            return Err(fail(format!(
+                "{}: `status=` belongs on a `run=` block",
+                block.at()
+            )));
+        }
+        if block.before {
+            let project = block.file.as_deref().and_then(project_of).map(|(p, _)| p);
+            let converted =
+                project.is_some_and(|p| blocks.iter().any(|b| b.run.as_deref() == Some(p)));
+            if !converted || block.generated || block.merge {
+                return Err(fail(format!(
+                    "{}: `before` is for a file=… of a project whose `run=` commands convert it",
+                    block.at()
+                )));
+            }
+        }
     }
     Ok(())
 }
@@ -449,20 +501,48 @@ fn assemble(
         source,
     })?;
 
+    // The code before a migration, which the commands convert.
+    let mut before: BTreeMap<&str, Vec<&Block>> = BTreeMap::new();
+    for block in blocks.iter().filter(|b| b.before) {
+        if let Some((p, path)) = block.file.as_deref().and_then(project_of)
+            && p == project.name
+        {
+            before.entry(path).or_default().push(block);
+        }
+    }
+    for (path, parts) in &before {
+        let text = parts
+            .iter()
+            .map(|b| b.text.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        fsx::write(&dir.join(path), text.as_bytes())?;
+    }
+
     for block in blocks
         .iter()
         .filter(|b| b.run.as_deref() == Some(project.name))
     {
         for line in commands(block) {
             let args: Vec<&OsStr> = line.split_whitespace().skip(1).map(OsStr::new).collect();
-            run_inherit(mf2.as_os_str(), &args, &dir)
-                .map_err(|e| fail(format!("{}: `{line}` failed: {e}", block.at())))?;
+            let status = std::process::Command::new(mf2)
+                .args(&args)
+                .current_dir(&dir)
+                .status()
+                .map_err(|e| fail(format!("{}: `{line}` did not run: {e}", block.at())))?;
+            if status.code() != Some(block.status) {
+                return Err(fail(format!(
+                    "{}: `{line}` exited with {status}, not {}",
+                    block.at(),
+                    block.status
+                )));
+            }
         }
     }
 
     // path → the blocks that make it, in page order.
     let mut files: BTreeMap<&str, Vec<&Block>> = BTreeMap::new();
-    for block in blocks {
+    for block in blocks.iter().filter(|b| !b.before) {
         if let Some((p, path)) = block.file.as_deref().and_then(project_of)
             && p == project.name
         {
