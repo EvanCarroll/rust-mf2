@@ -61,6 +61,9 @@ exclude = [
 [workspace.package]
 version = "1.0.0"
 edition = "2024"
+# The MSRV, measured (plans/17-phase-9-work-order.md A3; `cargo xtask msrv`):
+# the 16 published crates inherit it. Raising it is a minor release.
+rust-version = "1.88"
 license = "MIT"
 publish = false
 

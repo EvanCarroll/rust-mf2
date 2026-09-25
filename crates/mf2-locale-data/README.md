@@ -14,6 +14,9 @@ The user guide — getting started, call sites, delivery modes, switching
 language, accessibility and migrating from `leptos-fluent` — is in the
 `docs/` directory of the mf2-two repository.
 
+Versions: every mf2-two crate is released together, and 1.x keeps the
+promise `docs/versioning.md` states; the minimum Rust version is 1.88.
+
 ## License
 
 MIT (`LICENSE`) for the code. The tables in `data/` are derived from

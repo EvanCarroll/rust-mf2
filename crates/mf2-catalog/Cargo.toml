@@ -3,6 +3,7 @@ name = "mf2-catalog"
 description = "The .mf2b binary catalog: a no_std client reader and (features) the writer, the model-rebuilding decoder and the manifest file."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

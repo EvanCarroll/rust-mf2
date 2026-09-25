@@ -58,6 +58,13 @@
 # runtime's functions, with generated arguments). wasmtime is pinned (49.0.0)
 # and installed into target/tools with `cargo install --locked`, as locally.
 #
+# Job `msrv`: the 16 published crates on the Rust they state as
+# `rust-version` (plans/17-phase-9-work-order.md, A3; docs/versioning.md).
+# `cargo xtask msrv` installs that toolchain with rustup and checks the
+# library targets natively and for wasm32-unknown-unknown, on both Leptos
+# lines; `--below` must see the release before it fail, so a lower MSRV
+# that would do is noticed.
+#
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
 # "disable GHES check", checked 2026-09-20); the code.forgejo.org/actions
@@ -496,3 +503,52 @@ jobs:
             target/l4-wasi/native.txt
             target/l4-wasi/wasi.txt
           if-no-files-found: error
+
+  msrv:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: The 16 on their rust-version (natively and wasm32, both Leptos lines)
+        run: cargo xtask msrv
+
+      - name: The release before it must fail
+        run: cargo xtask msrv --below

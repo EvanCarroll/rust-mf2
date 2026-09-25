@@ -3,6 +3,7 @@ name = "mf2-resource"
 description = "The W3C Message Resource container for MessageFormat 2: parser, serializer and data model, generic over the message type (no_std)."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

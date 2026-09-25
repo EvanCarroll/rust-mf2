@@ -84,11 +84,11 @@ of the tree, which a public repository or package cannot carry.
 | **A0** The specification text out of the tree | *Owner question 1; 01 §1.* `cargo xtask spec-sync` vendors `test/` and `LICENSE` as now and fetches `spec/` **at the pinned commit** into a git-ignored cache (`target/xtask-cache/`, as `w3c-message-resource` is), verified against digests the `PIN` records; `SPEC_DIR` becomes the cache (one line, as its comment promises); `spec/` is removed from the tree. Every consumer of `SPEC_DIR` that runs without the cache (the ABNF-driven generators, the coverage matrix, the data-model schema check) fails with a message naming `cargo xtask spec-sync`, never skips. CI's jobs run `spec-sync` first (a PIN-named upstream, through the xtask — inside the boundary). Nothing vendored or generated **quotes** the text: `coverage.toml`'s `says` fields and `COVERAGE.md` are our paraphrases, checked once and recorded. | `spec/` absent from the tree and from `git ls-files`; `cargo xtask ci` green from a clean clone after `spec-sync`; without the cache, the first consumer fails naming the command; negative control: a digest altered in the `PIN` is refused |
 | **A1** Names and package metadata | *D12.* The 16 names re-checked on crates.io the day of the release (A7 checks again). Each published crate: `description`, `readme` (a short README per crate, pointing to `docs/`), `keywords`, `categories`, `rust-version` (A3), `repository` / `homepage` **only when the owner names a public remote** (none exists; left out, not invented). `license`: `MIT`, and for a crate that ships data derived from CLDR (`mf2-locale-data`'s `data/`) `MIT AND Unicode-3.0` with Unicode's licence text in the package. `[workspace.package] version = "1.0.0"`; `publish` on for the 16, off for everything else (conformance, bench, examples, tools, xtask, fuzz). Every dependency between our crates is an exact requirement (`=1.0.0`), since the generated module, the macro and the runtime share `#[doc(hidden)]` items that A3's policy exempts from semver. | `cargo metadata` shows exactly the 16 publishable, each with the fields above; a test in `xtask` holds that list, the version and the exact inter-crate requirements; negative control: a library crate with `publish` off, or a caret requirement between two of ours, fails it |
 | **A2** The API review for 1.0 | *Owner question 3.* Every public item of the 16 crates, reviewed against what applications and the generated code need, before it is promised. For each crate: the public API listed (`cargo public-api`, from crates.io, on the nightly rustdoc JSON — rustup) and committed under `crates/<name>/api.txt`; items only the macro or the generated module use are `#[doc(hidden)]` and named in A3's exemption; enums and structs that may grow are `#[non_exhaustive]`; error types follow the conventions (`thiserror`, `src/error.rs`, `#[from]`); `#![warn(missing_docs)]`, then none missing. **Fixed here:** `DateTimeValue::with_zone` converts an instant (a value that is a wall time says so in its constructor's name), with a test that `instant(t).with_zone("Europe/Paris")` under `timeZone=input` shows Paris time; `mf2 check` warns on an option a function does not define (a new lint, with a seeded-drift case), and every existing corpus is re-checked. Each change the review makes is listed in the task record with why. A change to a user-visible behaviour, or a removal an application would notice, goes to the owner. | `api.txt` committed for every crate and diffed by `cargo xtask ci` (a change to it must be committed with it); no missing docs; the two fixes with their tests; negative control: an item made public without updating `api.txt` fails CI |
-| **A3** The version policy, and the MSRV | *Owner question 3; 04 §10.* `docs/versioning.md`, written before A7 depends on it: 1.x's promise — the public API of the 16 crates, the `tr!` forms, the `mf2` CLI's commands and flags, the resource format as `mf2 fmt` writes it; **not** promised — `#[doc(hidden)]` items, the `.mf2b` catalog format and the manifest (master plan non-goal: a server and client from one build agree through `manifest_hash`), CLI report wording, and exact figures. Leptos lines: 0.9 the default and 0.8 an opt-in in 1.x; a Leptos 0.9 pre-release or its release taken in a patch; a new line (0.10) added as an opt-in feature in a minor; **changing the default line or dropping one is 2.0** (04 §10's rule). The W3C Message Resource draft: a change upstream is followed with `mf2 fmt` able to migrate, and a change that would reject a file 1.0 accepted is 2.0. **MSRV** measured, not assumed: the oldest stable Rust that builds the 16 crates for native and `wasm32-unknown-unknown` with their feature sets (edition 2024 needs 1.85; Leptos 0.9.0-beta states 1.88), written as `rust-version`, and a CI job on that toolchain. Raising it is a minor, said in the changelog. | the document written and linked from `docs/README.md` and every crate README; `rust-version` set; the MSRV job green, and the version below it measured failing; `cargo-semver-checks` (crates.io) wired into `cargo xtask release` against the published version from the second release on |
+| **A3** The version policy, and the MSRV | *Owner question 3; 04 §10.* `docs/versioning.md`, written before A7 depends on it: 1.x's promise — the public API of the 16 crates, the `tr!` forms, the `mf2` CLI's commands and flags, the resource format as `mf2 fmt` writes it; **not** promised — `#[doc(hidden)]` items, the `.mf2b` catalog format and the manifest (master plan non-goal: a server and client from one build agree through `manifest_hash`), CLI report wording, and exact figures. Leptos lines: 0.9 the default and 0.8 an opt-in in 1.x; a Leptos 0.9 pre-release or its release taken in a patch; a new line (0.10) added as an opt-in feature in a minor; **changing the default line or dropping one is 2.0** (04 §10's rule). The W3C Message Resource draft: a change upstream is followed with `mf2 fmt` able to migrate, and a change that would reject a file 1.0 accepted is 2.0. **MSRV** measured, not assumed: the oldest stable Rust that builds the 16 crates for native and `wasm32-unknown-unknown` with their feature sets (edition 2024 needs 1.85; Leptos 0.9.0-beta states 1.88), written as `rust-version`, and a CI job on that toolchain. Raising it is a minor, said in the changelog. | the document written and linked from `docs/README.md` and every crate README; `rust-version` set; the MSRV job green, and the version below it measured failing; `cargo-semver-checks` (crates.io) wired into `cargo xtask release` against the published version from the second release on — *moved to A7 (A3's record): the command it wires into is A7's* |
 | **A4** Packages that build from crates.io alone | `cargo package --workspace` (and `cargo publish --workspace --dry-run`, which verifies each package against the others in dependency order) green for the 16. Each package's file list audited and committed as `crates/<name>/package.txt`: no `third_party/` text, no `plans/`, no file outside the crate; sizes recorded (crates.io's 10 MB limit; `mf2-locale-data`'s `data/` is 7.3 MB raw). **`mf2-cli`'s tests that `include_str!` `plans/05-tooling.md`** move to a place that is not packaged (an `xtask` test, or `exclude`d from the package), keeping the check. A package's own `cargo test` from its unpacked `.crate` passes, or the test that cannot is excluded from the package and still run in the workspace. | the dry run green; `package.txt` committed for each and diffed by CI; negative control: a file from `third_party/message-format-wg/spec` added to a package's `include` fails the audit |
 | **A5** docs.rs | `[package.metadata.docs.rs]` in each crate, with a feature set that compiles (the Leptos modes `ssr` / `hydrate` / `csr` and the lines `leptos-0-9` / `leptos-0-8` are exclusive: the docs show `ssr` on 0.9, and say which items the other modes add); `#[cfg_attr(docsrs, doc(cfg(…)))]` on feature-gated items. `cargo xtask docs-rs` builds every crate as docs.rs does (nightly, `--cfg docsrs`, its target list) with `rustdoc::broken_intra_doc_links` denied. Each crate's front page says what it is for and links the user guide. | `cargo xtask docs-rs` green in CI; every crate's front page non-empty; negative control: a broken intra-doc link fails it |
 | **A6** The changelog and release notes | `CHANGELOG.md` (one file for the workspace, since every crate is versioned together): 1.0.0 — what is in it (full MF2 at `5c4ddb27`, the delivery modes, Fluent migration, XLIFF 2, the reader's time zone, budgets as measured), and **known limitations**: Leptos 0.9 is a beta; WebKit and a screen reader were not run; a date inside an island is not asserted in a browser; the W3C Message Resource format is a draft. The root `README.md` gains install lines for 1.0. | written; `cargo xtask release` refuses a version with no changelog entry |
-| **A7** `cargo xtask release` | *Owner question 4.* One command, `cargo xtask release [--publish]`. Without `--publish` (and in CI, on every change): `cargo xtask ci` green, the names still free or ours, version and changelog agree, A1's metadata test, A2's API listings unchanged or committed, A4's package audit, the docs.rs build, the MSRV build, `cargo publish --workspace --dry-run`, and the tree clean. With `--publish`, **run by the owner only**: the same checks, then `cargo publish --workspace` with cargo's own stored login — the command stores and reads no token of its own, and refuses in CI (a `CI` environment variable). It prints the tag to create; it never pushes. | the dry run green in CI (`.forgejo/workflows/ci.yml`); each check's refusal shown once (a negative control per check: a dirty tree, a missing changelog entry, a taken name simulated, an unaudited file); `--publish` under `CI=true` refuses; the owner has what is needed to publish |
+| **A7** `cargo xtask release` | *Owner question 4.* One command, `cargo xtask release [--publish]`. Without `--publish` (and in CI, on every change): `cargo xtask ci` green, the names still free or ours, version and changelog agree, A1's metadata test, `cargo-semver-checks` (crates.io) against the published version from the second release on (from A3), A2's API listings unchanged or committed, A4's package audit, the docs.rs build, the MSRV build, `cargo publish --workspace --dry-run`, and the tree clean. With `--publish`, **run by the owner only**: the same checks, then `cargo publish --workspace` with cargo's own stored login — the command stores and reads no token of its own, and refuses in CI (a `CI` environment variable). It prints the tag to create; it never pushes. | the dry run green in CI (`.forgejo/workflows/ci.yml`); each check's refusal shown once (a negative control per check: a dirty tree, a missing changelog entry, a taken name simulated, an unaudited file; `cargo-semver-checks` shown skipping on 1.0.0, which has nothing published to compare with, and refusing a simulated break against a local baseline); `--publish` under `CI=true` refuses; the owner has what is needed to publish |
 | **A8** The Phase 9 results and what follows v1 | `plans/phase-9-results.md`; the master plan's "Later" list reviewed into a post-1.0 order. | written |
 
 ## A0 — the specification text out of the tree: what was built
@@ -206,6 +206,59 @@ of the tree, which a public repository or package cannot carry.
 * **Not here:** `rust-version` is A3's (measured, then set; the test gains
   the field then). No public remote exists, so no `repository`.
 
+## A3 — the version policy and the MSRV: what was built
+
+* **MSRV measured: Rust 1.88.** Over the lock's resolve, the highest
+  `rust-version` any normal or build dependency of the 16 declares is
+  1.88 (Leptos 0.9.0-beta and 0.8, `tachys`, `server_fn`, `config`,
+  `either_of`, `encoding_rs`, …). On 1.88 the 16 check in five feature
+  sets (below). On 1.87 cargo refuses up front, naming those packages;
+  with `--ignore-rust-version`, our own crates fail too (`let` chains in
+  `mf2-catalog`, `<[T]>::as_chunks`, both stable from 1.88) — so 1.88 is
+  where both the dependencies and our code put it, and lowering it would
+  need both changed.
+* **`rust-version = "1.88"`** in `[workspace.package]`; the 16 inherit it
+  (`rust-version.workspace = true`), nothing else does. A1's metadata test
+  gains the field: every one of the 16 states it, equal to `mf2`'s
+  (negative controls: one missing, one at 1.85). With `rust-version` set,
+  resolver 3 prefers dependency versions that declare ≤ 1.88; the lock
+  already met that, so nothing moved.
+* **`cargo xtask msrv`** (`xtask/src/msrv.rs`): reads the MSRV from
+  `cargo metadata`, installs that toolchain with rustup (with
+  `wasm32-unknown-unknown`) and runs `cargo check` of the library targets
+  into `target/msrv/<toolchain>`: (1) natively on 0.9, all 16 with every
+  server feature at once (`ssr`, both function crates, `datetime-icu`,
+  `compile`, `icu-blob`, `serde`, `extract`, `decode`, `fixed-decimal`,
+  `static-locale`, `mark-fallback-lang`); (2) natively on 0.8,
+  `leptos-mf2` and `mf2-axum`; (3) wasm32 `hydrate` with ICU4X dates;
+  (4) wasm32 `csr` with `intl` and `Intl` dates; (5) wasm32 `hydrate` on
+  0.8. Library targets only: tests and dev-dependencies may use a newer
+  Rust, as an application never builds them. `--below` is the negative
+  control: the release before must fail step 1.
+* **Shown** (2026-09-25): `cargo xtask msrv` green on 1.88 (all five);
+  `cargo xtask msrv --below` sees 1.87 refused and passes. CI: a new job
+  `msrv` in `ci.yml` runs both.
+* **`docs/versioning.md`**, linked from `docs/README.md` (and listed
+  among `cargo xtask docs`'s sample-free pages) and from every crate
+  README: released together at one version; what 1.x promises (the public
+  API, the `tr!` forms, the CLI's commands and flags, the resource format
+  as `mf2 fmt` writes it) and what it does not (`#[doc(hidden)]` items,
+  `.mf2b` and the manifest — rebuild server and client together — report
+  wording, figures); the Leptos lines as a table (a 0.9 pre-release or
+  release a patch, a new line an opt-in in a minor, a changed default or
+  dropped line 2.0); the Message Resource draft (followed with `mf2 fmt`
+  able to migrate; a rejection of a 1.0 file waits for 2.0); MSRV 1.88,
+  raised only in a minor, said in the changelog. It states only what holds
+  now: the API listings (A2) and `cargo-semver-checks` (A7) are not named
+  there until they exist.
+* **Moved to A7:** `cargo-semver-checks` in `cargo xtask release` — A3's
+  criterion wired it into a command A7 builds. Its row and criterion now
+  carry it.
+* **Recorded:** while the first 1.88 run was building, the whole `target/`
+  directory was removed by something outside this task (the build failed
+  on missing files; the spec cache went with it). The run was repeated
+  and passed; `spec-sync` refills the cache.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -221,7 +274,7 @@ of the tree, which a public repository or package cannot carry.
 - [x] the specification text out of the tree, fetched on demand; the suite still vendored (A0)
 - [x] the 16 names verified and every package's metadata complete (A1; `rust-version` comes with A3's measurement)
 - [ ] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
-- [ ] the version policy written, the MSRV measured and held in CI (A3)
+- [x] the version policy written, the MSRV measured and held in CI (A3)
 - [ ] the packages audited and verified from crates.io's point of view (A4)
 - [ ] the documentation builds as docs.rs builds it (A5)
 - [ ] the changelog with 1.0.0 and its known limitations (A6)

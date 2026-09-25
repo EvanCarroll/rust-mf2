@@ -7,6 +7,7 @@ name = "mf2-macros"
 description = "The tr! proc-macro: a call site checked against the manifest at compile time and lowered to a positional description of the message."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

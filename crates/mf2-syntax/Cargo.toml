@@ -3,6 +3,7 @@ name = "mf2-syntax"
 description = "MessageFormat 2 syntax: a lossless-CST parser with recovery, lowering to the data model, validation, serializer and analysis (no_std)."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

@@ -3,6 +3,7 @@ name = "mf2-axum"
 description = "Locale negotiation and catalog serving for an Axum + Leptos application: an ordered list of typed sources and sinks, Content-Language and Vary, and /i18n/* served immutable from the catalogs embedded in the server binary."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

@@ -32,6 +32,10 @@ pub(crate) enum Error {
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
     #[error("leptos-0-8: {0}")]
     Leptos08(String),
+    /// The 16 do not build on their `rust-version`, or the release before
+    /// it builds them too.
+    #[error("msrv: {0}")]
+    Msrv(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

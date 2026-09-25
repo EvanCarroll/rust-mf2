@@ -60,7 +60,7 @@ const PAGES: &[&str] = &[
 ];
 
 /// Pages under `docs/` with no samples of their own.
-const INDEX_PAGES: &[&str] = &["docs/README.md"];
+const INDEX_PAGES: &[&str] = &["docs/README.md", "docs/versioning.md"];
 
 /// This repository's crates, as a documented manifest names them.
 const OUR_CRATES: &[(&str, &str)] = &[

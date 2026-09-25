@@ -3,6 +3,7 @@ name = "mf2"
 description = "Unicode MessageFormat 2 for Leptos: the one crate an application names — re-exports of the mf2-two crates and their feature flags, and compile_str for ad-hoc messages."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

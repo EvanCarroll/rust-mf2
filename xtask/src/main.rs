@@ -24,6 +24,7 @@ mod l6_web;
 mod l7_web;
 mod leptos_0_8;
 mod locale_data;
+mod msrv;
 // A test only until `cargo xtask release` (A7) runs it too.
 #[cfg(test)]
 mod packages;
@@ -189,6 +190,15 @@ enum Command {
         #[arg(long)]
         negative_control: bool,
     },
+    /// The MSRV (Phase 9, A3): the 16 published crates checked on the
+    /// `rust-version` they state, natively and for wasm32-unknown-unknown,
+    /// on both Leptos lines.
+    Msrv {
+        /// The negative control: the release before the MSRV, which must
+        /// fail.
+        #[arg(long)]
+        below: bool,
+    },
     /// The reference application migrated from leptos-fluent (Phase 8, A4):
     /// `fluent-view` converted by `mf2 convert --from leptos-fluent`, its
     /// call sites compared with `fluent-converted` byte for byte, finished
@@ -351,6 +361,7 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
+        Command::Msrv { below } => msrv::run(&root, below),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

@@ -9,6 +9,9 @@
 //! strips it from the package, which is the only way to publish one that
 //! closes a cycle (`mf2-fn-number` → `mf2` → `mf2-fn-number`). Which of their
 //! tests then travel with the package is A4's.
+//!
+//! Every one of the 16 states the one `rust-version` (A3): the MSRV
+//! `[workspace.package]` records and `cargo xtask msrv` measures.
 
 use serde_json::Value;
 
@@ -61,21 +64,32 @@ fn problems(metadata: &Value) -> Vec<String> {
             out.push(format!("{name}: publishable, but not one of the 16"));
         }
     }
+    let msrv = packages
+        .iter()
+        .find(|p| p["name"] == "mf2")
+        .and_then(|p| p["rust_version"].as_str());
     for package in packages {
         let Some(name) = package["name"].as_str() else {
             continue;
         };
         if PUBLISHED.contains(&name) {
-            package_problems(name, package, &mut out);
+            package_problems(name, package, msrv, &mut out);
         }
     }
     out
 }
 
-fn package_problems(name: &str, package: &Value, out: &mut Vec<String>) {
+fn package_problems(name: &str, package: &Value, msrv: Option<&str>, out: &mut Vec<String>) {
     let text = |key: &str| package[key].as_str().filter(|s| !s.trim().is_empty());
     if text("version") != Some(VERSION) {
         out.push(format!("{name}: version is not {VERSION}"));
+    }
+    match (text("rust_version"), msrv) {
+        (None, _) => out.push(format!("{name}: no `rust-version`")),
+        (Some(v), Some(m)) if v != m => {
+            out.push(format!("{name}: rust-version {v}, not the workspace's {m}"));
+        }
+        _ => {}
     }
     for key in ["description", "readme"] {
         if text(key).is_none() {
@@ -231,6 +245,8 @@ mod tests {
         let p = package(&mut m, "mf2-model");
         p["version"] = "0.1.0".into();
         p["keywords"] = serde_json::json!(["1st"]);
+        package(&mut m, "mf2-syntax")["rust_version"] = Value::Null;
+        package(&mut m, "mf2-macros")["rust_version"] = "1.85".into();
         let mut found = problems(&m);
         found.sort();
         assert_eq!(
@@ -239,8 +255,10 @@ mod tests {
                 "mf2-locale-data: 0 keywords (1 to 5)",
                 "mf2-locale-data: license is not `MIT AND Unicode-3.0`",
                 "mf2-locale-data: no `readme`",
+                "mf2-macros: rust-version 1.85, not the workspace's 1.88",
                 "mf2-model: keyword \"1st\" is not one crates.io accepts",
                 "mf2-model: version is not 1.0.0",
+                "mf2-syntax: no `rust-version`",
             ]
         );
     }

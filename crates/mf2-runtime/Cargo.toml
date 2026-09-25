@@ -3,6 +3,7 @@ name = "mf2-runtime"
 description = "The MessageFormat 2 evaluator of mf2-two: formats from a .mf2b catalog (no_std, fmt-free, panic-free): resolution, selection, fallback, bidi, parts, markup, the registry and the core functions."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

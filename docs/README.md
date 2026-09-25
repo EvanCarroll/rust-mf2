@@ -13,6 +13,7 @@ language switch is live. The wasm contains none of the text.
 | [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |
 | [Accessibility](accessibility.md) | what the library does for WCAG 2.2 AA, and what the application does |
 | [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md) | `mf2 convert --from leptos-fluent`: the messages and the call sites converted in one command, and what is left to finish by hand |
+| [Versions](versioning.md) | what 1.x promises and what it does not, the Leptos lines, the minimum Rust version (1.88) |
 
 Every `rust`, `toml` and `mf2` block on these pages is part of a small
 application, and `cargo xtask docs` compiles each of them, for the server

@@ -3,6 +3,7 @@ name = "mf2-host-web"
 description = "The browser Host of mf2-runtime: NFC through String.prototype.normalize and float text through String(x), via js-sys; with `datetime-intl`, dates through Intl.DateTimeFormat and time-zone offsets from the browser's zone data; with `intl`, numbers through Intl.NumberFormat and Intl.PluralRules."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

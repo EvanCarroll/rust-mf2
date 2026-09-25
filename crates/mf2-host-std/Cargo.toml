@@ -3,6 +3,7 @@ name = "mf2-host-std"
 description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through ryu, time-zone offsets through jiff's bundled IANA database."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"

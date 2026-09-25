@@ -3,6 +3,7 @@ name = "mf2-model"
 description = "The Unicode MessageFormat 2 interchange data model, MsgId, the shared error kinds and the Frontend trait (no_std)."
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = true
 readme = "README.md"
