@@ -191,11 +191,24 @@ pub(crate) fn place<'a>(
     if let ZoneOption::Named(n) = target
         && zone_name(d, context) == Some(n)
     {
-        // Already there; learn the offset if the host can tell.
-        if d.offset.is_none()
-            && let Some((t, o)) = search(host, n, wall)
-        {
-            *d = moved(t, o, d.zone, d.options)?;
+        // Already there; learn the offset if the host can tell. A value with
+        // an offset is an instant, and its wall time is the zone's only at
+        // the zone's offset: an instant labelled with a zone it was never
+        // converted to (`DateTime::in_zone` on a UTC instant) is moved to it.
+        match d.offset {
+            None => {
+                if let Some((t, o)) = search(host, n, wall) {
+                    *d = moved(t, o, d.zone, d.options)?;
+                }
+            }
+            Some(o) => {
+                let t = wall - i64::from(o) * 1000;
+                if let Some(at) = offset_at(host, n, t)
+                    && at != o
+                {
+                    *d = moved(t, at, d.zone, d.options)?;
+                }
+            }
         }
         if keep.is_some() {
             d.zone = keep;

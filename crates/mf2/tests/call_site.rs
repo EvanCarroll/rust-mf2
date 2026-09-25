@@ -170,6 +170,40 @@ fn a_date_argument_is_borrowed_into_the_runtime() {
 }
 
 #[test]
+fn an_instant_with_a_zone_is_shown_at_that_zones_wall_time() {
+    // 2026-01-01T00:00:00Z: 01:00 in Paris.
+    const NEW_YEAR: i64 = 1_767_225_600_000;
+    static DATES: [(&str, &dyn Function); 1] = [("datetime", &mf2::fn_datetime::DATETIME)];
+    static WITH_DATES: Registry = Registry::new(&DATES);
+    let instant = || DateTimeValue::instant(NEW_YEAR).expect("an instant");
+    let show = |source: &str, value: DateTimeValue| {
+        let c = compiled(source);
+        let f = Formatter::new(&c.catalog, &WITH_DATES, &CX);
+        let mut out = String::new();
+        let mut errors = Vec::new();
+        tr_args1(Compiled::ID, ArgValue::from(value)).write(&f, &mut out, &mut errors);
+        assert!(errors.is_empty(), "{source}: {errors:?}");
+        out
+    };
+    // The message naming the zone converts the instant: the reference.
+    let paris = show("{$when :datetime timeZone=|Europe/Paris|}", instant());
+    let utc = show("{$when :datetime timeZone=|UTC|}", instant());
+    assert_ne!(paris, utc);
+    // The value carrying the zone, shown in its own: the same Paris wall
+    // time — not UTC's wall time labelled Paris.
+    let own = "{$when :datetime timeZone=input}";
+    assert_eq!(show(own, instant().with_zone("Europe/Paris")), paris);
+
+    // A wall time in Paris is already Paris's: 01:00 there is the same
+    // instant, and in UTC it is midnight.
+    let date = Date::new(2026, 1, 1).expect("a real date");
+    let one = Time::new(1, 0, 0, 0).expect("a real time");
+    let wall = || DateTimeValue::wall_time(date, one, "Europe/Paris");
+    assert_eq!(show(own, wall()), paris);
+    assert_eq!(show("{$when :datetime timeZone=|UTC|}", wall()), utc);
+}
+
+#[test]
 fn an_application_value_reaches_a_function_as_its_measure() {
     /// An application's own money type — the `Custom` variant's reason to
     /// exist.

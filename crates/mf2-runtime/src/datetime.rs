@@ -268,7 +268,13 @@ impl<'a> DateTime<'a> {
         })
     }
 
-    /// The same value, in the IANA zone `zone`.
+    /// The same value, in the IANA zone `zone`. A value with an offset is
+    /// an instant, and stays one: a date/time function shows it at the
+    /// zone's wall time, converting through [`Host::zone_offset`] when the
+    /// offset is not the zone's. A floating value's wall time is placed in
+    /// `zone`.
+    ///
+    /// [`Host::zone_offset`]: crate::Host::zone_offset
     #[must_use]
     pub const fn in_zone(self, zone: &'a str) -> Self {
         DateTime {

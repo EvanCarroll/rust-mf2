@@ -97,7 +97,20 @@ impl DateTimeValue {
         }
     }
 
-    /// The same value in the IANA zone `zone`.
+    /// The wall time `date` `time` in the IANA zone `zone` — 09:00 in
+    /// Paris, whatever instant that is. A date/time function finds its
+    /// offset through the host's zone data, and converts it from there to
+    /// the zone it shows.
+    #[must_use]
+    pub fn wall_time(date: Date, time: Time, zone: impl Into<Text>) -> DateTimeValue {
+        DateTimeValue::floating(date, time).with_zone(zone)
+    }
+
+    /// The same instant, in the IANA zone `zone`: `timeZone=input` shows it
+    /// at that zone's wall time, which a date/time function works out
+    /// through the host's zone data. A floating value has no instant to
+    /// convert: its wall time is placed in `zone`, as
+    /// [`DateTimeValue::wall_time`] does.
     #[must_use]
     pub fn with_zone(mut self, zone: impl Into<Text>) -> DateTimeValue {
         self.zone = Some(zone.into());

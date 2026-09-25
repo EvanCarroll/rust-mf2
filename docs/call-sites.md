@@ -248,10 +248,15 @@ starts = Doors open {$when :time timeZone=|Europe/Paris| timeZoneStyle=short}
 ```
 
 The zone, in order: the one the message names (`timeZone=input` means the
-value's own, and an instant's own zone is UTC); else the reader's, once
-known; else `with_time_zone`'s; else UTC. A floating value
-(`DateTimeValue::floating`) is a wall time with no zone and is shown as it
-is.
+value's own, and an instant's own zone is UTC unless it was given one);
+else the reader's, once known; else `with_time_zone`'s; else UTC. A
+floating value (`DateTimeValue::floating`) is a wall time with no zone and
+is shown as it is.
+
+A value can carry a zone of its own, for `timeZone=input` to show:
+`DateTimeValue::instant(t).with_zone("Europe/Paris")` is the instant `t`,
+shown at Paris's wall time; `DateTimeValue::wall_time(date, time,
+"Europe/Paris")` is that wall time in Paris, whatever instant it is.
 
 **Islands.** Dates inside islands are corrected like any others. A date in
 a component that stays on the server (not an island) is not sent to the
