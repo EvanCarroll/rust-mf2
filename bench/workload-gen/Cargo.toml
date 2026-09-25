@@ -8,6 +8,8 @@ publish.workspace = true
 
 [dependencies]
 clap.workspace = true
+# `stats --format ftl` measures the Fluent files by parsing them.
+fluent-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }
 serde_json.workspace = true
 thiserror = { workspace = true, features = ["std"] }

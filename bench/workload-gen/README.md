@@ -16,10 +16,10 @@ cargo xtask gen-workload <COMMAND> [OPTIONS]        # = cargo run --release -p w
 
 | Command | Does |
 |---|---|
-| `all [-t TEMPLATE]… [--out DIR]` | locales, flat JSON, `sites.json`, one app crate per template (default `-t literal -t closure`; default `--out target/workload`) |
-| `locales [--out DIR]` | locales and flat JSON only |
+| `all [-t TEMPLATE]… [--out DIR] [--format mf2,ftl]` | locales, flat JSON, `sites.json`, one app crate per template (default `-t literal -t closure`; default `--out target/workload`) |
+| `locales [--out DIR] [--format mf2,ftl]` | locales and flat JSON only |
 | `corpora [--check] [--out DIR] [--suite DIR]` | writes `bench/corpora/workload-<N>.json` and `bench/corpora/suite.json`; `--check` compares instead and exits 1 if stale |
-| `stats [--json FILE]` | prints the shape table; exits 1 if a checked row is outside plans/06 §2's tolerances. `--json` measures an existing flat corpus |
+| `stats [--json FILE \| --format ftl \| --ftl DIR]` | prints the shape table; exits 1 if a checked row is outside plans/06 §2's tolerances. `--json` measures an existing flat corpus; `--format ftl` measures the Fluent files instead of the `.mf2` ones, `--ftl DIR` Fluent files on disk (`DIR/<tag>/*.ftl`) |
 | `canaries [--grep]` | prints the B6 canaries (`--grep`: just the three patterns) |
 | `templates [--dump NAME --out DIR]` | lists built-in templates, or copies one as a starting point |
 
@@ -43,14 +43,17 @@ Knobs (every command except `templates`):
 
 ```
 DIR/.workload-gen              marker (knobs); DIR is refused if non-empty without it
-DIR/locales/<tag>/<ns>.mf2     18 files per locale: en, pl, en-XA, ar-XB
+DIR/locales/<tag>/<ns>.mf2     18 files per locale: en, pl, en-XA, ar-XB (--format mf2, the default)
+DIR/ftl/<tag>/<ns>.ftl         the same as Fluent (--format ftl; see "Fluent" below)
 DIR/json/<tag>.json            the same messages, flat {id: source}, sorted by id (= MsgId order)
 DIR/sites.json                 one object per call site: site, component, route, shape, mode, index, id, args
 DIR/app-<template>/            a standalone cargo-leptos crate (own [workspace])
 ```
 
-Rewriting a directory replaces `locales/`, `json/` and each app's `src/` and
-`style/`, and keeps each app's `target/`.
+`--format` takes `mf2`, `ftl` or both (`--format mf2,ftl`); the JSON is always
+written, and what one format writes does not depend on whether the other is
+asked for. Rewriting a directory replaces `locales/`, `ftl/`, `json/` and each
+app's `src/` and `style/`, and keeps each app's `target/`.
 
 ## Locales
 
@@ -79,6 +82,50 @@ their share is lower). Values use two continuation forms:
   both removed), keeping the space before the backslash.
 
 No other resource escapes are produced; MF2 text never contains `{ } \`.
+
+## Fluent (`--format ftl`, Phase 8 A2)
+
+The same workload as Fluent, for the migration tools of Phase 8
+(`mf2 convert --from fluent`, the `leptos-fluent` A/B): one `.ftl` per
+source file per locale, pseudo-locales included, from the same message
+bodies the `.mf2` files render (`src/fluent.rs`) — the same messages, text,
+argument names and plural selections. Where Fluent cannot say it the same
+way:
+
+* **Ids**: Fluent identifiers have no `.`, so each `.` becomes `-`
+  (`chat.input.send` → `chat-input-send`); generation fails if two ids
+  would meet. A section is a group comment naming it (`## chat.input`),
+  which does not touch ids. The canary's Fluent id is
+  `app-canary-zq7-canary-msg` — the dotted grep pattern does not find it.
+* **Plural selects**: `{ $count -> [one] … *[other] … }`, the locale's own
+  categories as keys (`pl`: `[one] [few] [many] *[other]`); no `NUMBER`, as
+  the model has no annotation on a count.
+* **Markup** (plans/16 A5's like-with-like rule): Fluent has none, so a
+  sentence with an element is split around it, as an application without
+  markup must write it — a message with no value and three attributes,
+  `.before`, `.<element>` (its text) and `.after`, always all three, an
+  empty part written `{ "" }`. The parts are trimmed at the split: the view
+  puts the element and the spaces. 8 of the 1,600 messages.
+* **`@param`** becomes the entry comment's `# Variables:` block
+  (`#   $count (Number) - …`), the Fluent convention.
+* **Functions** (`--number`, `--datetime`): `:number` → `NUMBER` with the
+  same options; `:datetime` → the nearest `DATETIME`
+  (`dateStyle`/`timeStyle`, or `month`/`day`/`hour`), which
+  `mf2 convert` reports as approximate — there is no identity (plans/05
+  §6.1).
+* **Comments** are sized to 60 % of the `en` bytes as Fluent writes them
+  (its `# Variables:` and `##` lines count), so their text differs from
+  the `.mf2` files'.
+
+`stats --format ftl` parses every file with `fluent-syntax` (an error or a
+`Junk` entry fails it) and measures the table below on what it parsed: a
+message's variables are its distinct variable references, text length is
+the bytes `fluent-syntax`'s serializer writes after `id =`, and a split
+sentence counts as a message with markup. Seed 1: every checked row within
+tolerance (text mean 27.77 B, comments 60.04 % of `en`). Converted by
+`mf2 convert --from fluent`, the four locales give 6,464 entries and no
+finding; every message but the 22 selects and split sentences exports as
+the same MF2 source as the `.mf2` workload (`crates/mf2-cli/tests/convert.rs`).
 
 ## Shape (plans/06 §2) and how it is measured
 

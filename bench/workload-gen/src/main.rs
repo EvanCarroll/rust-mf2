@@ -6,7 +6,7 @@ use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand};
 use workload_gen::model::canary;
-use workload_gen::{Error, Knobs, Template, Workload, locale, repo_root, stats, suite};
+use workload_gen::{Error, Format, Knobs, Template, Workload, locale, repo_root, stats, suite};
 
 /// Deterministic generator of the mf2-two reference workload
 /// (plans/06-size-and-perf.md §2).
@@ -21,7 +21,7 @@ struct Cli {
 enum Command {
     /// Write locales, flat JSON, sites.json and one app crate per template.
     All(AllArgs),
-    /// Write locales/<tag>/*.mf2 and json/<tag>.json only.
+    /// Write locales/<tag>/*.mf2 (or ftl/<tag>/*.ftl) and json/<tag>.json only.
     Locales(OutArgs),
     /// Write bench/corpora/workload-<N>.json and bench/corpora/suite.json.
     Corpora(CorporaArgs),
@@ -40,6 +40,11 @@ struct OutArgs {
     /// Output directory [default: <repo>/target/workload].
     #[arg(long)]
     out: Option<PathBuf>,
+    /// Resource files to write besides the flat JSON: `mf2`
+    /// (locales/<tag>/*.mf2), `ftl` (ftl/<tag>/*.ftl, the same messages as
+    /// Fluent), or both (`mf2,ftl`).
+    #[arg(long, value_enum, value_delimiter = ',', default_values_t = vec![Format::Mf2])]
+    format: Vec<Format>,
 }
 
 #[derive(Debug, Args)]
@@ -72,8 +77,16 @@ struct StatsArgs {
     #[command(flatten)]
     knobs: Knobs,
     /// Measure an existing flat JSON corpus instead of generating one.
-    #[arg(long)]
+    #[arg(long, conflicts_with_all = ["ftl", "format"])]
     json: Option<PathBuf>,
+    /// Measure existing Fluent files (`<DIR>/<tag>/*.ftl`, parsed with
+    /// `fluent-syntax`) instead of generating them.
+    #[arg(long, value_name = "DIR", conflicts_with = "format")]
+    ftl: Option<PathBuf>,
+    /// Which resource files to measure: `mf2` or `ftl` (the call sites are
+    /// measured either way).
+    #[arg(long, value_enum)]
+    format: Option<Format>,
 }
 
 #[derive(Debug, Args)]
@@ -108,7 +121,7 @@ fn run(cli: Cli) -> Result<(), Error> {
                 .map(|t| Template::resolve(t))
                 .collect::<Result<Vec<_>, _>>()?;
             let out = args.out.out.unwrap_or_else(default_out);
-            let files = workload_gen::generate(&args.out.knobs, &templates)?;
+            let files = workload_gen::generate_as(&args.out.knobs, &args.out.format, &templates)?;
             files.write_to(&out, &args.out.knobs.summary())?;
             println!("wrote {} files to {}", files.len(), out.display());
             for t in &templates {
@@ -121,7 +134,7 @@ fn run(cli: Cli) -> Result<(), Error> {
         }
         Command::Locales(args) => {
             let out = args.out.unwrap_or_else(default_out);
-            let files = workload_gen::generate(&args.knobs, &[])?;
+            let files = workload_gen::generate_as(&args.knobs, &args.format, &[])?;
             files.write_to(&out, &args.knobs.summary())?;
             println!("wrote {} files to {}", files.len(), out.display());
         }
@@ -140,7 +153,11 @@ fn run(cli: Cli) -> Result<(), Error> {
                     stats::corpus(&mut report, &corpus);
                     report
                 }
-                None => workload_gen::report(&args.knobs)?,
+                None => match (&args.ftl, args.format) {
+                    (Some(dir), _) => workload_gen::report_ftl_dir(&args.knobs, dir)?,
+                    (None, Some(Format::Ftl)) => workload_gen::report_ftl(&args.knobs)?,
+                    (None, _) => workload_gen::report(&args.knobs)?,
+                },
             };
             print!("{}", report.render());
             if !report.passed() {

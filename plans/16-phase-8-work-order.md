@@ -87,9 +87,8 @@ three phases left unbuilt: dates in the reader's time zone.
 
 ## Part A — tasks (A1 and A2 first, then A3; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
-**A1 is built** (2026-09-24) but not done: its last criterion — A2's corpus
-converts with zero unmapped constructs — waits for A2. What was built is
-below the table.
+**A1 and A2 are done** (2026-09-24): A2's corpus converts with no finding,
+which was A1's last criterion. What was built is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -135,6 +134,45 @@ below the table.
   `{$n}` through it, and `fluent-bundle`'s term-in-term argument reset is
   not reproduced.
 
+## A2 — the Fluent corpus: what was built
+
+* **`workload-gen --format ftl`** (`all`, `locales`; `--format mf2,ftl` for
+  both) writes `ftl/<tag>/<ns>.ftl` from the same message bodies the
+  `.mf2` files render (`bench/workload-gen/src/fluent.rs`; the locales now
+  produce bodies once, `locale::bodies`). The `.mf2`, JSON and app output
+  is byte-identical to the previous commit's (checked at three knob sets
+  against a binary built from it).
+* **Decisions the task did not state** (the generator's README, §Fluent):
+  a Fluent id is the dotted id with `-` for `.` (Fluent identifiers have no
+  `.`; generation fails if two ids meet) and a section is a group comment
+  naming it; a sentence with an element is **split into one message with
+  three attributes**, `.before`, `.<element>`, `.after` (always all three,
+  `{ "" }` when empty, trimmed at the split — the view puts the element and
+  the spaces), 8 of 1,600 messages; `@param` becomes the Fluent
+  `# Variables:` comment block; comments are re-sized so they are 60 % of
+  the Fluent `en` bytes.
+* **`stats --format ftl`** (and `--ftl DIR` for files on disk) parses every
+  file with `fluent-syntax` — an error or `Junk` fails it — and measures 06
+  §2's table on the parse. Seed 1: every checked row in tolerance (1 / 2 /
+  3 / 4 variables 14.69 / 5.00 / 1.12 / 0.19 %, selects 0.88 %, text mean
+  27.77 B, id mean 23.53, comments 60.04 % of `en`).
+* **Converted** (`crates/mf2-cli/tests/convert.rs`,
+  `the_reference_workload_converts_with_nothing_unmapped`): four locales,
+  6,464 entries (1,600 − 8 + 3 × 8 each), **no error and no warning**;
+  `mf2 check` 0 errors (the same 18 warnings the `.mf2` workload has);
+  `mf2 fmt --check` unchanged. Exported, 1,578 messages per locale are the
+  `.mf2` source byte for byte; the 14 selects differ only in declaring
+  `:number` for `:integer`; the 8 split sentences are their parts. With
+  `--number 20 --datetime 10`, the report is the 40
+  `fluent-datetime-approximate` warnings the mapping promises, nothing else.
+* **For the tasks after it:** A3 — a converted select annotates `$count`
+  `:number`, not `:integer`, so a decimal count formats differently in its
+  variant text (in the sampled argument set). A4 — the converted call
+  sites name the Fluent ids (`chat-input-send`, and `….before` / `….after`
+  around an element), not `tr-view`'s dotted ids: a documented difference
+  of the comparison. A5 — the B6 grep pattern for the canary id is dotted;
+  on either side of the A/B the id is `app-canary-zq7-canary-msg`.
+
 ## Standing: Leptos 0.9
 
 If Leptos 0.9 is released during Phase 8, `cargo xtask leptos-beta` says so
@@ -144,7 +182,7 @@ task continues. Until then the nightly job keeps the 0.9 glue honest.
 
 ## Exit (master plan §9, P8)
 
-- [ ] a Fluent corpus of reference-workload shape converts with a report of
+- [x] a Fluent corpus of reference-workload shape converts with a report of
       zero unmapped constructs (A1, A2)
 - [ ] converted catalogs format identically to the Fluent originals on a
       sampled argument set — or differ only in classes the owner approved,

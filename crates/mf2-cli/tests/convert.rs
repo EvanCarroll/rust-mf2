@@ -210,6 +210,86 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     assert_ne!(before, "edited");
 }
 
+/// Phase 8 A2's corpus: the reference workload as Fluent, written by
+/// `workload-gen --format ftl`, every locale.
+#[test]
+fn the_reference_workload_converts_with_nothing_unmapped() {
+    use workload_gen::{Format, Knobs, Workload, fluent, locale};
+
+    let dir = scratch("workload");
+    let knobs = Knobs::default();
+    let files = workload_gen::generate_as(&knobs, &[Format::Ftl], &[]).expect("the workload");
+    for (path, bytes) in files.iter() {
+        let full = dir.join(path);
+        std::fs::create_dir_all(full.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&full, bytes).expect("write");
+    }
+    let out = dir.join("out");
+    let output = run(
+        &out,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            dir.join("ftl").to_str().expect("utf-8"),
+            "--format",
+            "json",
+        ],
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("a JSON report");
+    assert!(output.status.success(), "{}", text(&output.stderr));
+    assert_eq!(json["diagnostics"], Value::Array(Vec::new()), "{json:#}");
+    // 1,600 messages, of which 8 are sentences split around an element, each
+    // into three.
+    for tag in ["en", "pl", "en-XA", "ar-XB"] {
+        assert_eq!(json["entries"][tag], 1600 - 8 + 3 * 8, "{tag}");
+    }
+
+    std::fs::write(out.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
+    let check = run(&out, &["check"]);
+    assert!(
+        text(&check.stdout).contains(" 0 error(s)"),
+        "{}",
+        text(&check.stdout)
+    );
+    assert!(run(&out, &["fmt", "--check"]).status.success());
+
+    // Every message says what the `.mf2` original says: the same source text
+    // under the Fluent id, except that a plural select declares `:number`
+    // (Fluent has no integer) and a split sentence is its three parts.
+    let wl = Workload::generate(&knobs).expect("the plan");
+    let ids = fluent::ids(&wl).expect("the ids");
+    for loc in locale::locales(&knobs).expect("the locales") {
+        let exported = run(&out, &["export", loc.tag]);
+        assert!(exported.status.success(), "{}", text(&exported.stderr));
+        let converted: Value = serde_json::from_slice(&exported.stdout).expect("flat JSON");
+        let original = locale::sources(&wl, &loc);
+        let (mut same, mut selects, mut split) = (0, 0, 0);
+        for (j, message) in wl.messages.iter().enumerate() {
+            let what = format!("{} {}", loc.tag, message.id);
+            if !message.markup.is_empty() {
+                for part in ["before", message.markup[0], "after"] {
+                    let id = format!("{}.{part}", ids[j]);
+                    assert!(converted[&id].is_string(), "{what}: {id}");
+                }
+                split += 1;
+            } else if message.is_select() {
+                let want = original[j].replacen(" :integer}", " :number}", 1);
+                assert_eq!(converted[&ids[j]].as_str(), Some(want.as_str()), "{what}");
+                selects += 1;
+            } else {
+                assert_eq!(
+                    converted[&ids[j]].as_str(),
+                    Some(original[j].as_str()),
+                    "{what}"
+                );
+                same += 1;
+            }
+        }
+        assert_eq!((same, selects, split), (1578, 14, 8), "{}", loc.tag);
+    }
+}
+
 #[test]
 fn errors_leave_the_entry_out_and_the_rest_is_written() {
     let c = convert(

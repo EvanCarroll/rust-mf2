@@ -747,7 +747,8 @@ converted, the exit status is non-zero: `fluent-junk`,
 but a person should look: `fluent-unbound-term-variable`,
 `fluent-term-positional`, `fluent-number-option`,
 `fluent-unreachable-variant`, `fluent-datetime-approximate`. A2's corpus
-MUST convert with none of either.
+MUST convert with none of either (it does: 6,464 entries in four locales, no
+finding — [16](16-phase-8-work-order.md) §A2).
 
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 

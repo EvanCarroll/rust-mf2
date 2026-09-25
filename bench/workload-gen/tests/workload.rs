@@ -1,12 +1,12 @@
 //! Integration tests for the workload generator: determinism, shape, scale,
 //! `.mf2` ↔ JSON consistency, message well-formedness, corpora freshness,
-//! templates and canaries.
+//! templates and canaries; the same workload as Fluent.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use workload_gen::model::canary;
-use workload_gen::{Knobs, SitePlan, Template, Workload, suite};
+use workload_gen::{Format, Knobs, SitePlan, Template, Workload, suite};
 
 fn builtins() -> Vec<Template> {
     ["literal", "closure"]
@@ -476,4 +476,213 @@ plain = "tr_args({{index}}, [{{args}}])"
     )
     .unwrap();
     assert!(Template::resolve(bad.to_str().unwrap()).is_err());
+}
+
+// ---- Fluent (`--format ftl`, plans/16 A2) ----
+
+fn ftl_files(knobs: &Knobs) -> workload_gen::Files {
+    workload_gen::generate_as(knobs, &[Format::Ftl], &[]).unwrap()
+}
+
+#[test]
+fn ftl_is_reproducible_and_measures_as_the_table() {
+    let knobs = Knobs::default();
+    let a = ftl_files(&knobs);
+    assert_eq!(a, ftl_files(&knobs), "same seed, different bytes");
+    // 4 locales × (18 files + 1 JSON); no `.mf2` asked for.
+    assert_eq!(a.len(), 4 * 19);
+    assert!(a.iter().all(|(p, _)| !p.starts_with("locales/")));
+    let c = ftl_files(&Knobs {
+        seed: 2,
+        ..Knobs::default()
+    });
+    assert_ne!(a.get("ftl/en/chat.ftl"), c.get("ftl/en/chat.ftl"));
+
+    // Asking for both formats changes neither.
+    let both = workload_gen::generate_as(&knobs, &[Format::Mf2, Format::Ftl], &[]).unwrap();
+    let mf2 = workload_gen::generate(&knobs, &[]).unwrap();
+    for (path, bytes) in both.iter() {
+        let alone = if path.starts_with("ftl/") { &a } else { &mf2 };
+        assert_eq!(alone.get(path), Some(bytes), "{path}");
+    }
+    assert_eq!(both.len(), a.len() + mf2.len() - 4);
+
+    // The shape, measured by parsing what was generated…
+    let report = workload_gen::report_ftl(&knobs).unwrap();
+    println!("{}", report.render());
+    assert!(report.passed(), "{:?}", report.failures());
+    // …and what was written.
+    let dir = tmp("ftl-stats");
+    a.write_to(&dir, &knobs.summary()).unwrap();
+    let on_disk = workload_gen::report_ftl_dir(&knobs, &dir.join("ftl")).unwrap();
+    assert!(on_disk.passed(), "{:?}", on_disk.failures());
+    // The same rows, locales in directory order.
+    let rows = |r: &workload_gen::stats::Report| -> BTreeSet<String> {
+        r.rows
+            .iter()
+            .take_while(|r| r.label != "call sites")
+            .map(|r| format!("{} {} {}", r.label, r.target, r.actual))
+            .collect()
+    };
+    assert_eq!(rows(&on_disk), rows(&report));
+}
+
+#[test]
+fn ftl_stats_refuse_what_does_not_parse() {
+    // Negative controls: an unclosed placeable and a stray line are errors
+    // or `Junk`, and the measurement refuses them.
+    for bad in ["a = { $x\n", "a = ok\n}}}\n", "a =\n"] {
+        let err = workload_gen::stats::parse_ftl("bad.ftl", bad).unwrap_err();
+        assert!(err.to_string().contains("bad.ftl"), "{err}");
+    }
+    let knobs = Knobs::default();
+    let dir = tmp("ftl-junk");
+    ftl_files(&knobs).write_to(&dir, &knobs.summary()).unwrap();
+    let path = dir.join("ftl/pl/chat.ftl");
+    let mut text = std::fs::read_to_string(&path).unwrap();
+    text.push_str("broken = { $\n");
+    std::fs::write(&path, text).unwrap();
+    let err = workload_gen::report_ftl_dir(&knobs, &dir.join("ftl")).unwrap_err();
+    assert!(err.to_string().contains("pl/chat.ftl"), "{err}");
+}
+
+/// A Fluent pattern as the MF2 text it stands for: text, and `{$name}` for a
+/// variable reference; `{ "" }` is empty.
+fn ftl_text(pattern: &fluent_syntax::ast::Pattern<&str>) -> String {
+    use fluent_syntax::ast::{Expression, InlineExpression, PatternElement};
+    let mut out = String::new();
+    for element in &pattern.elements {
+        match element {
+            PatternElement::TextElement { value } => out.push_str(value),
+            PatternElement::Placeable {
+                expression: Expression::Inline(InlineExpression::VariableReference { id }),
+            } => {
+                out.push_str("{$");
+                out.push_str(id.name);
+                out.push('}');
+            }
+            PatternElement::Placeable {
+                expression: Expression::Inline(InlineExpression::StringLiteral { value: "" }),
+            } => {}
+            other @ PatternElement::Placeable { .. } => panic!("unexpected {other:?}"),
+        }
+    }
+    out
+}
+
+#[test]
+fn ftl_says_what_the_mf2_says() {
+    use fluent_syntax::ast::{Entry, Expression, PatternElement, VariantKey};
+    use workload_gen::model::{Body, render_pattern};
+    use workload_gen::{fluent, locale};
+
+    let knobs = Knobs::default();
+    let wl = Workload::generate(&knobs).unwrap();
+    let files = ftl_files(&knobs);
+    let ids = fluent::ids(&wl).unwrap();
+    for loc in locale::locales(&knobs).unwrap() {
+        let bodies = locale::bodies(&wl, &loc);
+        let texts: Vec<(String, String)> = files
+            .iter()
+            .filter(|(p, _)| p.starts_with(&format!("ftl/{}/", loc.tag)))
+            .map(|(p, b)| (p.to_owned(), String::from_utf8(b.to_vec()).unwrap()))
+            .collect();
+        assert_eq!(texts.len(), 18);
+        let mut found = BTreeMap::new();
+        for (path, text) in &texts {
+            let resource = fluent_syntax::parser::parse(text.as_str()).unwrap();
+            for entry in resource.body {
+                match entry {
+                    Entry::Message(m) => {
+                        assert!(found.insert(m.id.name, (path.clone(), m)).is_none());
+                    }
+                    Entry::Junk { content } => panic!("{path}: junk {content:?}"),
+                    _ => {}
+                }
+            }
+        }
+        assert_eq!(found.len(), wl.messages.len(), "{}", loc.tag);
+        for (j, message) in wl.messages.iter().enumerate() {
+            let (path, m) = &found[ids[j].as_str()];
+            let what = format!("{} {}", loc.tag, message.id);
+            // The file of the same name, the id with `-` for `.`.
+            let ns = wl.files[message.file].namespace;
+            assert_eq!(path, &format!("ftl/{}/{ns}.ftl", loc.tag), "{what}");
+            assert_eq!(ids[j], message.id.replace('.', "-"));
+            // Every argument in the comment's `Variables:` block.
+            let comment = m.comment.as_ref().map(|c| c.content.join("\n"));
+            for var in &message.vars {
+                let line = format!("  ${} (", var.name);
+                assert!(
+                    comment.as_ref().is_some_and(|c| c.contains(&line)),
+                    "{what}"
+                );
+            }
+            let render = |p: &[workload_gen::model::Part]| {
+                let mut s = String::new();
+                render_pattern(p, &message.vars, &mut s);
+                s
+            };
+            match &bodies[j] {
+                Body::Pattern(p) if !message.markup.is_empty() => {
+                    // Split around the element: before, element, after.
+                    assert!(m.value.is_none(), "{what}");
+                    let names: Vec<&str> = m.attributes.iter().map(|a| a.id.name).collect();
+                    assert_eq!(names, ["before", message.markup[0], "after"], "{what}");
+                    let at = p
+                        .iter()
+                        .position(|x| matches!(x, workload_gen::model::Part::Markup { .. }))
+                        .unwrap();
+                    let workload_gen::model::Part::Markup { inner, .. } = &p[at] else {
+                        unreachable!()
+                    };
+                    let parts = [
+                        render(&p[..at]).trim_end().to_owned(),
+                        inner.clone(),
+                        render(&p[at + 1..]).trim_start().to_owned(),
+                    ];
+                    for (attr, want) in m.attributes.iter().zip(&parts) {
+                        assert_eq!(&ftl_text(&attr.value), want, "{what}");
+                    }
+                }
+                Body::Pattern(p) => {
+                    assert!(m.attributes.is_empty(), "{what}");
+                    assert_eq!(ftl_text(m.value.as_ref().unwrap()), render(p), "{what}");
+                }
+                Body::Select { selector, variants } => {
+                    let value = m.value.as_ref().unwrap();
+                    let [
+                        PatternElement::Placeable {
+                            expression:
+                                Expression::Select {
+                                    selector: s,
+                                    variants: vs,
+                                },
+                        },
+                    ] = value.elements.as_slice()
+                    else {
+                        panic!("{what}: not a lone select");
+                    };
+                    assert_eq!(
+                        s,
+                        &fluent_syntax::ast::InlineExpression::VariableReference {
+                            id: fluent_syntax::ast::Identifier {
+                                name: message.vars[*selector].name
+                            }
+                        },
+                        "{what}"
+                    );
+                    assert_eq!(vs.len(), variants.len(), "{what}");
+                    for (v, (key, pattern)) in vs.iter().zip(variants) {
+                        let VariantKey::Identifier { name } = v.key else {
+                            panic!("{what}: a number key");
+                        };
+                        let want = if key == "*" { "other" } else { key.as_str() };
+                        assert_eq!((name, v.default), (want, key == "*"), "{what}");
+                        assert_eq!(ftl_text(&v.value), render(pattern), "{what}");
+                    }
+                }
+            }
+        }
+    }
 }

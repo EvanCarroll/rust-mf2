@@ -77,19 +77,32 @@ pub fn locales(knobs: &Knobs) -> Result<Vec<Locale>, Error> {
 
 /// MF2 source of every message in `locale`, indexed like `wl.messages`.
 pub fn sources(wl: &Workload, locale: &Locale) -> Vec<String> {
-    wl.messages
+    bodies(wl, locale)
         .iter()
-        .enumerate()
-        .map(|(j, m)| source(wl.knobs.seed, j, m, locale))
+        .zip(&wl.messages)
+        .map(|(body, m)| render_body(body, &m.vars))
         .collect()
 }
 
-fn source(seed: u64, j: usize, message: &Message, locale: &Locale) -> String {
+/// The body of every message in `locale`, indexed like `wl.messages`: what
+/// [`sources`] renders as MF2 and `crate::fluent` as Fluent.
+pub fn bodies(wl: &Workload, locale: &Locale) -> Vec<Body> {
+    wl.messages
+        .iter()
+        .enumerate()
+        .map(|(j, m)| body(wl.knobs.seed, j, m, locale))
+        .collect()
+}
+
+fn body(seed: u64, j: usize, message: &Message, locale: &Locale) -> Body {
     if message.canary {
         // Never pseudo-localised: CI greps for the literal text.
-        return format!("{} {{${}}}", canary::text(locale.tag), canary::VARIABLE);
+        return Body::Pattern(vec![
+            Part::Text(format!("{} ", canary::text(locale.tag))),
+            Part::Var(0),
+        ]);
     }
-    let body = match locale.kind {
+    match locale.kind {
         Kind::Source => message.source.clone(),
         Kind::Real(real) => {
             let mut rng = Rng::stream(seed, real.tag, j as u64);
@@ -97,8 +110,7 @@ fn source(seed: u64, j: usize, message: &Message, locale: &Locale) -> String {
         }
         Kind::Accented => map_patterns(&message.source, pseudo_accent),
         Kind::Rtl => map_patterns(&message.source, rtl_wrap),
-    };
-    render_body(&body, &message.vars)
+    }
 }
 
 fn map_patterns(body: &Body, f: fn(&[Part]) -> Pattern) -> Body {

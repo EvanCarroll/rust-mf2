@@ -4,6 +4,9 @@
 
 use std::collections::BTreeSet;
 
+use fluent_syntax::ast;
+
+use crate::error::Error;
 use crate::model::Workload;
 use crate::output::Files;
 use crate::shape::target;
@@ -201,8 +204,31 @@ pub fn is_kebab_id(id: &str) -> bool {
 
 /// Rows for a flat corpus (`id → source`, any order).
 pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
+    let measured: Vec<Measured> = messages
+        .iter()
+        .map(|(id, s)| Measured {
+            id: id.clone(),
+            class: classify(s),
+            len: s.len(),
+        })
+        .collect();
+    rows(report, &measured, "  of which with inline markup");
+}
+
+/// One message as the corpus rows see it.
+#[derive(Debug, Clone)]
+pub struct Measured {
+    /// The id a call site writes.
+    pub id: String,
+    /// Its classification.
+    pub class: Class,
+    /// Bytes of its source text.
+    pub len: usize,
+}
+
+fn rows(report: &mut Report, messages: &[Measured], markup_label: &str) {
     let n = messages.len();
-    let classes: Vec<Class> = messages.iter().map(|(_, s)| classify(s)).collect();
+    let classes: Vec<&Class> = messages.iter().map(|m| &m.class).collect();
     let by_vars = |k: usize| classes.iter().filter(|c| c.vars == k).count();
     report.info("messages", target::MESSAGES.to_string(), n.to_string());
     report.pct("no variable (simple)", 79.0, by_vars(0), n);
@@ -216,7 +242,7 @@ pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
         ),
     );
     report.info(
-        "  of which with inline markup",
+        markup_label,
         "a few",
         classes.iter().filter(|c| c.markup).count().to_string(),
     );
@@ -236,7 +262,7 @@ pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
         classes.iter().filter(|c| c.vars > 4).count().to_string(),
     );
 
-    let mut lens: Vec<usize> = messages.iter().map(|(_, s)| s.len()).collect();
+    let mut lens: Vec<usize> = messages.iter().map(|m| m.len).collect();
     lens.sort_unstable();
     let m = mean(&lens);
     report.check(
@@ -272,7 +298,7 @@ pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
     let total_kb = lens.iter().sum::<usize>() as f64 / 1000.0;
     report.info("text total", "≈ 43 KB", format!("{total_kb:.1} KB"));
 
-    let ids: Vec<usize> = messages.iter().map(|(id, _)| id.chars().count()).collect();
+    let ids: Vec<usize> = messages.iter().map(|m| m.id.chars().count()).collect();
     let id_mean = mean(&ids);
     report.check(
         "id mean (chars, full dotted id)",
@@ -280,7 +306,7 @@ pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
         format!("{id_mean:.2}"),
         (id_mean - target::ID_MEAN).abs() <= target::ID_MEAN * 0.05,
     );
-    let kebab = messages.iter().filter(|(id, _)| is_kebab_id(id)).count();
+    let kebab = messages.iter().filter(|m| is_kebab_id(&m.id)).count();
     report.check(
         "ids dotted kebab-case",
         n.to_string(),
@@ -289,10 +315,17 @@ pub fn corpus(report: &mut Report, messages: &[(String, String)]) {
     );
 }
 
-/// Rows for the `.mf2` files: file count and comment share per locale.
-pub fn resources(report: &mut Report, files: &Files, tags: &[&str], expected_files: usize) {
+/// Rows for the resource files under `dir/<tag>/` (`locales` for `.mf2`,
+/// `ftl` for Fluent): file count and comment share per locale.
+pub fn resources(
+    report: &mut Report,
+    files: &Files,
+    dir: &str,
+    tags: &[&str],
+    expected_files: usize,
+) {
     for tag in tags {
-        let prefix = format!("locales/{tag}/");
+        let prefix = format!("{dir}/{tag}/");
         let mut count = 0usize;
         let (mut comment, mut total) = (0usize, 0usize);
         for (path, bytes) in files.iter() {
@@ -330,6 +363,128 @@ pub fn resources(report: &mut Report, files: &Files, tags: &[&str], expected_fil
                 format!("{share:.2} %"),
             );
         }
+    }
+}
+
+/// Rows for Fluent files (`path → text`): each parsed with `fluent-syntax`,
+/// which must report no error and leave no `Junk`.
+pub fn ftl_corpus<'a>(
+    report: &mut Report,
+    files: impl IntoIterator<Item = (&'a str, &'a str)>,
+) -> Result<(), Error> {
+    let mut measured = Vec::new();
+    for (path, text) in files {
+        measured.extend(parse_ftl(path, text)?);
+    }
+    rows(report, &measured, "  of which split around an element");
+    Ok(())
+}
+
+/// The messages of one Fluent file, measured: variables are the distinct
+/// variable references, a select is a `.match`, a message with attributes
+/// is a sentence split around an element, and the text length is the bytes
+/// `fluent-syntax`'s serializer writes for the value after `id =`.
+pub fn parse_ftl(path: &str, text: &str) -> Result<Vec<Measured>, Error> {
+    let fail = |message: String| Error::Fluent {
+        file: path.to_owned(),
+        message,
+    };
+    let resource = fluent_syntax::parser::parse(text).map_err(|(_, errors)| {
+        fail(
+            errors
+                .iter()
+                .map(|e| format!("{} at {:?}", e.kind, e.pos))
+                .collect::<Vec<_>>()
+                .join("; "),
+        )
+    })?;
+    let mut out = Vec::new();
+    for entry in &resource.body {
+        match entry {
+            ast::Entry::Junk { content } => return Err(fail(format!("junk: {content:?}"))),
+            ast::Entry::Message(m) => {
+                let mut names = BTreeSet::new();
+                let mut select = false;
+                for pattern in m.value.iter().chain(m.attributes.iter().map(|a| &a.value)) {
+                    walk_pattern(pattern, &mut names, &mut select);
+                }
+                let bare = ast::Message {
+                    comment: None,
+                    ..m.clone()
+                };
+                let written = fluent_syntax::serializer::serialize(&ast::Resource {
+                    body: vec![ast::Entry::Message(bare)],
+                });
+                let len = written
+                    .strip_prefix(m.id.name)
+                    .and_then(|s| s.strip_prefix(" ="))
+                    .map(|s| s.strip_prefix(' ').unwrap_or(s))
+                    .map_or(written.len(), |s| s.trim_end_matches('\n').len());
+                let markup = !m.attributes.is_empty();
+                out.push(Measured {
+                    id: m.id.name.to_owned(),
+                    class: Class {
+                        vars: names.len(),
+                        select,
+                        markup,
+                        placeholder_free: names.is_empty() && !select && !markup,
+                    },
+                    len,
+                });
+            }
+            _ => {}
+        }
+    }
+    Ok(out)
+}
+
+fn walk_pattern<'s>(
+    pattern: &ast::Pattern<&'s str>,
+    names: &mut BTreeSet<&'s str>,
+    select: &mut bool,
+) {
+    for element in &pattern.elements {
+        if let ast::PatternElement::Placeable { expression } = element {
+            walk_expression(expression, names, select);
+        }
+    }
+}
+
+fn walk_expression<'s>(
+    expression: &ast::Expression<&'s str>,
+    names: &mut BTreeSet<&'s str>,
+    select: &mut bool,
+) {
+    match expression {
+        ast::Expression::Select { selector, variants } => {
+            *select = true;
+            walk_inline(selector, names, select);
+            for v in variants {
+                walk_pattern(&v.value, names, select);
+            }
+        }
+        ast::Expression::Inline(inline) => walk_inline(inline, names, select),
+    }
+}
+
+fn walk_inline<'s>(
+    inline: &ast::InlineExpression<&'s str>,
+    names: &mut BTreeSet<&'s str>,
+    select: &mut bool,
+) {
+    match inline {
+        ast::InlineExpression::VariableReference { id } => {
+            names.insert(id.name);
+        }
+        ast::InlineExpression::FunctionReference { arguments, .. } => {
+            for a in &arguments.positional {
+                walk_inline(a, names, select);
+            }
+        }
+        ast::InlineExpression::Placeable { expression } => {
+            walk_expression(expression, names, select);
+        }
+        _ => {}
     }
 }
 

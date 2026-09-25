@@ -58,14 +58,14 @@ impl Files {
     }
 
     /// Directories this set owns and replaces wholesale on write: `locales/`,
-    /// `json/`, and `src/` / `style/` of every generated crate. Build output
+    /// `ftl/`, `json/`, and `src/` / `style/` of every generated crate. Build output
     /// (`<app>/target/`) is never touched.
     fn owned_dirs(&self) -> BTreeSet<String> {
         let mut dirs = BTreeSet::new();
         for path in self.map.keys() {
             let mut parts = path.split('/');
             match (parts.next(), parts.next(), parts.next()) {
-                (Some(top @ ("locales" | "json")), Some(_), _) => {
+                (Some(top @ ("locales" | "ftl" | "json")), Some(_), _) => {
                     dirs.insert(top.to_owned());
                 }
                 (Some(krate), Some(sub @ ("src" | "style")), Some(_)) => {

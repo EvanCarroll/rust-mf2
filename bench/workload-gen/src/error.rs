@@ -47,6 +47,15 @@ pub enum Error {
     #[error("committed corpora are stale: {0}")]
     Stale(String),
 
+    /// A Fluent file did not parse cleanly (an error or a `Junk` entry).
+    #[error("Fluent file {file}: {message}")]
+    Fluent {
+        /// Path of the file.
+        file: String,
+        /// What the parser reported.
+        message: String,
+    },
+
     /// `stats` found the shape outside the tolerances of plans/06 §2.
     #[error("shape outside tolerance: {0}")]
     Shape(String),
