@@ -124,6 +124,8 @@ struct Raw {
     #[serde(default)]
     boot: String,
     #[serde(default)]
+    provider: Option<String>,
+    #[serde(default)]
     args: Args,
     deferred: Deferred,
     site: BTreeMap<String, SiteTable>,
@@ -149,6 +151,10 @@ pub struct Template {
     pub support: String,
     /// Statements run at the start of the `hydrate` entry point.
     pub boot: String,
+    /// A component of the support module that the application's router is
+    /// wrapped in — where a library that keeps its state in a context
+    /// (`leptos-fluent`'s `leptos_fluent!`) is initialized.
+    pub provider: Option<String>,
     args: Args,
     deferred: Deferred,
     sites: BTreeMap<String, SiteTable>,
@@ -191,6 +197,9 @@ impl ArgCtx {
 pub struct SiteCtx {
     /// Message id.
     pub id: String,
+    /// The Fluent id of the message: the dotted id with `-` for `.`, as
+    /// `--format ftl` writes it (`fluent::id`).
+    pub fluent_id: String,
     /// `MsgId` (dense index in sorted-id order).
     pub index: u32,
     /// Source-locale text, escaped for a Rust string literal.
@@ -300,6 +309,7 @@ impl Template {
             prelude: raw.prelude,
             support,
             boot: raw.boot,
+            provider: raw.provider,
             args: raw.args,
             deferred: raw.deferred,
             sites: raw.site,
@@ -380,6 +390,7 @@ impl Template {
         };
         expand(&self.name, snippet, &|k| match k {
             "id" => Some(ctx.id.clone()),
+            "fluent_id" => Some(ctx.fluent_id.clone()),
             "index" => Some(ctx.index.to_string()),
             "text" => Some(ctx.text.clone()),
             "args" => Some(args.clone()),
@@ -429,6 +440,7 @@ impl Template {
             for &mode in shape.modes() {
                 let ctx = SiteCtx {
                     id: "a.b".into(),
+                    fluent_id: "a-b".into(),
                     index: 0,
                     text: "t".into(),
                     args: if mode.has_args() {
@@ -437,7 +449,11 @@ impl Template {
                         Vec::new()
                     },
                     site: 0,
-                    markup: String::new(),
+                    markup: if mode == Mode::Rich {
+                        "kbd".into()
+                    } else {
+                        String::new()
+                    },
                 };
                 self.render_site(shape, mode, &ctx)?;
             }

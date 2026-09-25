@@ -1,0 +1,89 @@
+# Template `fluent-converted`: what `mf2 convert --from leptos-fluent` must
+# make of `fluent-view` (plans/16-phase-8-work-order.md A4; the rules are
+# plans/05-tooling.md §6.2).
+#
+# It is `tr-view` — the reference application on mf2 — with each difference
+# the conversion is documented to leave written as its own row, so that the
+# comparison is exact and the differences are all here, in one diff against
+# `tr-view/template.toml`:
+#
+# 1. ids: the Fluent ids (`{{fluent_id}}`, `.` → `-`), which the converted
+#    messages keep;
+# 2. argument names unquoted (`count = n`); `tr-view` quotes them, which
+#    `tr!` accepts too;
+# 3. an argument read from a signal (`get` and `signal` modes, reactive in
+#    `move_tr!`): the codemod keeps `move_tr!`'s own expansion,
+#    `Signal::derive(move || tr!(…).to_string())`, where `tr-view` passes the
+#    signal or its value to `tr!`;
+# 4. deferred labels: `fn() -> String` closures returning `.to_string()`,
+#    where `tr-view` has a `Tr` constant;
+# 5. a sentence with an element (`rich`): the three messages of the split
+#    sentence, where `tr-view` has the one message with markup.
+#
+# Everything else — the `String` positions with `.to_string()`, the view
+# positions with the description itself, the prelude — is `tr-view`'s.
+# The support module, dependencies and boot are `tr-view`'s too: they are
+# the part of the migration that is finished by hand (the report's
+# initializer), and with them the converted application builds.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "fluent-converted"
+description = "fluent-view as mf2 convert --from leptos-fluent rewrites it: tr-view with the documented differences (plans/16 A4)."
+support = "support.rs"
+dependencies = [
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
+    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2" }',
+    'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',
+]
+prelude = "use workload_i18n::tr;"
+boot = "crate::support::boot();"
+
+[features]
+hydrate = ["workload-i18n/hydrate", "leptos-mf2/hydrate"]
+ssr = ["workload-i18n/ssr", "leptos-mf2/ssr"]
+
+# (2) names unquoted; (3) a signal read with `.get()`, as `fluent-view` does.
+[args]
+sep = ", "
+plain = '{{name}} = {{value}}'
+signal = '{{name}} = {{signal}}.get()'
+
+# (4)
+[deferred]
+type = "fn() -> String"
+view = "({{label}})()"
+string = "({{label}})()"
+
+[site.string]
+none = 'tr!("{{fluent_id}}").to_string()'
+plain = 'tr!("{{fluent_id}}", {{args}}).to_string()'
+
+# (3) and (5)
+[site.child]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", {{args}})'
+get = 'Signal::derive(move || tr!("{{fluent_id}}", {{args}}).to_string())'
+rich = 'view! { {tr!("{{fluent_id}}.before")} " " <{{markup}}>{tr!("{{fluent_id}}.{{markup}}")}</{{markup}}> " " {tr!("{{fluent_id}}.after")} }'
+
+[site.attr]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", {{args}})'
+get = 'Signal::derive(move || tr!("{{fluent_id}}", {{args}}).to_string())'
+
+[site.reactive_prop]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", {{args}})'
+get = 'Signal::derive(move || tr!("{{fluent_id}}", {{args}}).to_string())'
+
+[site.string_prop]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", {{args}})'
+
+# (4)
+[site.deferred]
+none = '|| tr!("{{fluent_id}}").to_string()'
+
+[site.if_else]
+none = 'tr!("{{fluent_id}}").to_string()'
+plain = 'tr!("{{fluent_id}}", {{args}}).to_string()'

@@ -222,6 +222,9 @@ dependencies = ['mf2-probe = { path = "{{template_dir}}/crate" }']  # verbatim [
 prelude = "use mf2_probe::{tr, tr_args, Arg};"   # top of every component module and src/tables.rs
 support = "support.rs"             # copied to src/support.rs (module `crate::support`)
 boot = "crate::support::boot();"   # first statements of `hydrate()`
+provider = "I18nProvider"          # optional: a component of the support module
+                                   # the app's router is wrapped in (a library
+                                   # that keeps its state in a context)
 
 [args]                             # how one argument renders inside {{args}}
 sep = ", "
@@ -253,6 +256,7 @@ attribute value for `attr`; `Into<TextProp>`, `Into<Signal<String>>`,
 | Placeholder | In | Value |
 |---|---|---|
 | `{{id}}` | site | message id (`chat.input.send`) |
+| `{{fluent_id}}` | site | the id `--format ftl` writes (`chat-input-send`) |
 | `{{index}}` | site | `MsgId`: rank of the id in bytewise sorted order |
 | `{{text}}` | site | source text escaped for a `"…"` literal (a `.match`'s catch-all variant) |
 | `{{args}}` | site | the `[args]` items, joined by `sep`, in slot order |
@@ -294,3 +298,14 @@ measured `dummy` 11.4 B gz per site smaller than `idlit`, which is why
 depends on (`i18n/`, pointed at the generated workload through
 `MF2_WORKLOAD_LOCALES`) and names it with `{{template_dir}}`. Use it as
 `-t bench/workload-gen/templates/tr`, which is what `cargo xtask b5` does.
+
+Two directories serve the `leptos-fluent` migration (plans/16 A4, A5):
+**`fluent-view`** — the reference application on `leptos-fluent` 0.3.1, each
+shape in its own idiom (`tr!` where a `String` is wanted, `move_tr!` where
+reactive text is, `|| tr!(…)` in a `fn() -> String` table, a sentence with an
+element split into its three messages), its `leptos_fluent!` in the support
+module's `I18nProvider`, the messages the workload's `ftl/` beside the app;
+and **`fluent-converted`** — what `mf2 convert --from leptos-fluent` must make
+of it: `tr-view` with each documented difference written as its own row
+(its header lists them). `cargo xtask fluent-migrate` converts the one and
+compares it with the other, byte for byte.

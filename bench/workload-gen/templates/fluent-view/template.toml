@@ -1,0 +1,76 @@
+# Template `fluent-view`: the reference application on `leptos-fluent`
+# (plans/16-phase-8-work-order.md A4, A5; plans/06-size-and-perf.md §6).
+#
+# Each call-site shape is written in `leptos-fluent`'s own idiom for it, as
+# its documentation on docs.rs shows (0.3.1): `tr!` where a `String` is
+# wanted, `move_tr!` where reactive text is. The messages are the workload's
+# Fluent files (`--format ftl`, in `../ftl` beside the app), with the Fluent
+# ids (`{{fluent_id}}`). What the workload has and Fluent lacks — markup —
+# is written the way an application without markup must (04 §11 item 1):
+# the sentence split around the element, its three parts `.before`,
+# `.<element>` and `.after` put together in the view.
+#
+# Two uses: A4 converts it with `mf2 convert --from leptos-fluent` and
+# compares the result with `fluent-converted`; A5 builds it, in the
+# workspace `bench/fluent-ab/`, against its converted twin. `leptos-fluent`
+# never enters this repository's own resolve: the generated app is a
+# workspace of its own.
+#
+# Format: see bench/workload-gen/README.md.
+
+name = "fluent-view"
+description = "leptos-fluent in its own idiom: tr! where a String is wanted, move_tr! where reactive text is (the A/B of plans/16 A5)."
+support = "support.rs"
+dependencies = ['leptos-fluent = "0.3.1"']
+prelude = "use leptos_fluent::{move_tr, tr};"
+# `leptos_fluent!` keeps its state in a context, so the router is wrapped in
+# the component that calls it.
+provider = "I18nProvider"
+
+[features]
+ssr = ["leptos-fluent/ssr", "leptos-fluent/axum"]
+
+# A `leptos-fluent` argument map: names are string literals, values
+# `Into<FluentValue>`, so a signal is read with `.get()` inside the reactive
+# `move_tr!`.
+[args]
+sep = ", "
+plain = '"{{name}}" => {{value}}'
+signal = '"{{name}}" => {{signal}}.get()'
+
+# `tr!` needs the context at run time, so a table holds closures.
+[deferred]
+type = "fn() -> String"
+view = "({{label}})()"
+string = "({{label}})()"
+
+[site.string]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", { {{args}} })'
+
+# Reactive text: `move_tr!`. A sentence with an element, split around it.
+[site.child]
+none = 'move_tr!("{{fluent_id}}")'
+plain = 'move_tr!("{{fluent_id}}", { {{args}} })'
+rich = 'view! { {move_tr!("{{fluent_id}}.before")} " " <{{markup}}>{move_tr!("{{fluent_id}}.{{markup}}")}</{{markup}}> " " {move_tr!("{{fluent_id}}.after")} }'
+
+[site.attr]
+none = 'move_tr!("{{fluent_id}}")'
+plain = 'move_tr!("{{fluent_id}}", { {{args}} })'
+
+[site.reactive_prop]
+none = 'move_tr!("{{fluent_id}}")'
+plain = 'move_tr!("{{fluent_id}}", { {{args}} })'
+
+# A `String` prop takes a `String`.
+[site.string_prop]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", { {{args}} })'
+
+[site.deferred]
+none = '|| tr!("{{fluent_id}}")'
+
+# Inside `move || if … { A } else { B }`: each branch a `String`.
+[site.if_else]
+none = 'tr!("{{fluent_id}}")'
+plain = 'tr!("{{fluent_id}}", { {{args}} })'
