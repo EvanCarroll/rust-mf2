@@ -4,7 +4,11 @@ description = "The MessageFormat 2 evaluator of mf2-two: formats from a .mf2b ca
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-runtime"
+keywords = ["messageformat", "mf2", "i18n", "l10n", "formatting"]
+categories = ["internationalization", "localization", "value-formatting", "no-std", "wasm"]
 
 [features]
 # The A/B of owner decision 1 (plans/10 A5b): the numeric code over

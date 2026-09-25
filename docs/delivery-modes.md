@@ -175,7 +175,7 @@ in `leptos-mf2`:
 ```toml file=islands/Cargo.toml merge
 [dependencies]
 leptos = { version = "0.9.0-beta", default-features = false, features = ["islands"] }
-leptos-mf2 = { version = "0.1", features = ["static-locale"] }
+leptos-mf2 = { version = "1", features = ["static-locale"] }
 ```
 
 `static-locale` applies to the server and the client alike. Nothing on
@@ -313,7 +313,7 @@ edition = "2024"
 console_error_panic_hook = "0.1"
 hello-i18n = { path = "i18n", features = ["csr", "fn-number"] }
 leptos = { version = "0.9.0-beta", features = ["csr"] }
-leptos-mf2 = { version = "0.1", features = ["csr"] }
+leptos-mf2 = { version = "1", features = ["csr"] }
 leptos_meta = "0.9.0-beta"
 
 [profile.release]

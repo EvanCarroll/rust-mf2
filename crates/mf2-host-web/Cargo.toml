@@ -4,7 +4,11 @@ description = "The browser Host of mf2-runtime: NFC through String.prototype.nor
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-host-web"
+keywords = ["messageformat", "mf2", "i18n", "wasm", "intl"]
+categories = ["internationalization", "localization", "wasm", "web-programming"]
 
 [features]
 # Each adds a host (a static): a host method is linked whenever its host is

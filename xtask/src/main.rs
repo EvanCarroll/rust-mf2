@@ -24,6 +24,9 @@ mod l6_web;
 mod l7_web;
 mod leptos_0_8;
 mod locale_data;
+// A test only until `cargo xtask release` (A7) runs it too.
+#[cfg(test)]
+mod packages;
 mod pin;
 mod report;
 mod scenarios;

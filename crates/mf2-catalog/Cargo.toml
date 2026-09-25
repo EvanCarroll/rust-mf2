@@ -4,7 +4,11 @@ description = "The .mf2b binary catalog: a no_std client reader and (features) t
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-catalog"
+keywords = ["messageformat", "mf2", "i18n", "catalog", "binary"]
+categories = ["internationalization", "localization", "encoding", "no-std", "wasm"]
 
 [features]
 # The manifest file (`manifest.mf2m`) and `manifest_hash` (build side).

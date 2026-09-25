@@ -1,0 +1,252 @@
+//! The published packages' metadata (plans/17-phase-9-work-order.md, A1):
+//! exactly the 16 library crates are publishable, at one version, each with
+//! what crates.io shows, and every dependency between two of them is an
+//! exact requirement — the generated module, the macro and the runtime share
+//! `#[doc(hidden)]` items that the version policy exempts from semver, so
+//! only the same release of each is known to work with the others.
+//!
+//! A dev-dependency between two of ours may instead be path-only: cargo
+//! strips it from the package, which is the only way to publish one that
+//! closes a cycle (`mf2-fn-number` → `mf2` → `mf2-fn-number`). Which of their
+//! tests then travel with the package is A4's.
+
+use serde_json::Value;
+
+/// The crates published to crates.io (D12), and nothing else.
+const PUBLISHED: [&str; 16] = [
+    "leptos-mf2",
+    "mf2",
+    "mf2-axum",
+    "mf2-build",
+    "mf2-catalog",
+    "mf2-cli",
+    "mf2-fn-datetime",
+    "mf2-fn-number",
+    "mf2-host-std",
+    "mf2-host-web",
+    "mf2-locale-data",
+    "mf2-macros",
+    "mf2-model",
+    "mf2-resource",
+    "mf2-runtime",
+    "mf2-syntax",
+];
+
+/// Every published crate's version (`[workspace.package]`).
+const VERSION: &str = "1.0.0";
+
+/// The licence of a crate that ships data derived from CLDR.
+const CLDR_DATA: [&str; 1] = ["mf2-locale-data"];
+
+/// crates.io's limit on keywords and on categories.
+const MAX_TERMS: usize = 5;
+
+/// Every problem with `metadata` (`cargo metadata --no-deps`), one line each.
+fn problems(metadata: &Value) -> Vec<String> {
+    let mut out = Vec::new();
+    let empty = Vec::new();
+    let packages = metadata["packages"].as_array().unwrap_or(&empty);
+    let publishable: Vec<&str> = packages
+        .iter()
+        .filter(|p| !matches!(p["publish"].as_array(), Some(r) if r.is_empty()))
+        .filter_map(|p| p["name"].as_str())
+        .collect();
+    for name in PUBLISHED {
+        if !publishable.contains(&name) {
+            out.push(format!("{name}: not publishable (`publish = true`)"));
+        }
+    }
+    for name in &publishable {
+        if !PUBLISHED.contains(name) {
+            out.push(format!("{name}: publishable, but not one of the 16"));
+        }
+    }
+    for package in packages {
+        let Some(name) = package["name"].as_str() else {
+            continue;
+        };
+        if PUBLISHED.contains(&name) {
+            package_problems(name, package, &mut out);
+        }
+    }
+    out
+}
+
+fn package_problems(name: &str, package: &Value, out: &mut Vec<String>) {
+    let text = |key: &str| package[key].as_str().filter(|s| !s.trim().is_empty());
+    if text("version") != Some(VERSION) {
+        out.push(format!("{name}: version is not {VERSION}"));
+    }
+    for key in ["description", "readme"] {
+        if text(key).is_none() {
+            out.push(format!("{name}: no `{key}`"));
+        }
+    }
+    let license = if CLDR_DATA.contains(&name) {
+        "MIT AND Unicode-3.0"
+    } else {
+        "MIT"
+    };
+    if text("license") != Some(license) {
+        out.push(format!("{name}: license is not `{license}`"));
+    }
+    for key in ["keywords", "categories"] {
+        let n = package[key].as_array().map_or(0, Vec::len);
+        if !(1..=MAX_TERMS).contains(&n) {
+            out.push(format!("{name}: {n} {key} (1 to {MAX_TERMS})"));
+        }
+    }
+    for keyword in package["keywords"].as_array().into_iter().flatten() {
+        let k = keyword.as_str().unwrap_or_default();
+        let valid = k.len() <= 20
+            && k.starts_with(|c: char| c.is_ascii_alphabetic())
+            && k.chars()
+                .all(|c| c.is_ascii_alphanumeric() || "-_+".contains(c));
+        if !valid {
+            out.push(format!(
+                "{name}: keyword {k:?} is not one crates.io accepts"
+            ));
+        }
+    }
+    // The files the fields name, and the licence texts, beside the manifest.
+    let Some(dir) = package["manifest_path"]
+        .as_str()
+        .and_then(|m| std::path::Path::new(m).parent())
+    else {
+        out.push(format!("{name}: no manifest path"));
+        return;
+    };
+    let mut files = vec!["LICENSE"];
+    if CLDR_DATA.contains(&name) {
+        files.push("LICENSE-UNICODE");
+    }
+    files.extend(text("readme"));
+    for file in files {
+        if !dir.join(file).is_file() {
+            out.push(format!("{name}: no {file} in the crate"));
+        }
+    }
+    for dep in package["dependencies"].as_array().into_iter().flatten() {
+        let Some(on) = dep["name"].as_str().filter(|d| PUBLISHED.contains(d)) else {
+            continue;
+        };
+        let req = dep["req"].as_str().unwrap_or_default();
+        let exact = format!("={VERSION}");
+        let path_only_dev = dep["kind"] == "dev" && req == "*";
+        if req != exact && !path_only_dev {
+            out.push(format!(
+                "{name} → {on}: `{req}`, not `{exact}` (or a path-only dev-dependency)"
+            ));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+
+    use super::{PUBLISHED, problems};
+    use crate::cmd::{cargo, run_capture};
+    use crate::fsx::repo_root;
+
+    fn metadata() -> Value {
+        let args = ["metadata", "--no-deps", "--format-version", "1"];
+        let args: Vec<&std::ffi::OsStr> = args.iter().map(std::ffi::OsStr::new).collect();
+        let out = run_capture(&cargo(), &args, &repo_root(), &[]).unwrap();
+        serde_json::from_slice(&out).unwrap()
+    }
+
+    fn package<'m>(metadata: &'m mut Value, name: &str) -> &'m mut Value {
+        metadata["packages"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|p| p["name"] == name)
+            .unwrap()
+    }
+
+    #[test]
+    fn the_sixteen_are_published_and_complete() {
+        let found = problems(&metadata());
+        assert!(found.is_empty(), "{}", found.join("\n"));
+    }
+
+    // Negative controls: each kind of drift is caught.
+
+    #[test]
+    fn a_library_crate_left_unpublished_is_caught() {
+        let mut m = metadata();
+        package(&mut m, "mf2-runtime")["publish"] = serde_json::json!([]);
+        assert_eq!(
+            problems(&m),
+            ["mf2-runtime: not publishable (`publish = true`)"]
+        );
+    }
+
+    #[test]
+    fn a_published_tool_is_caught() {
+        let mut m = metadata();
+        package(&mut m, "xtask")["publish"] = Value::Null;
+        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 16"]);
+    }
+
+    #[test]
+    fn a_caret_requirement_between_two_of_ours_is_caught() {
+        let mut m = metadata();
+        let deps = package(&mut m, "mf2")["dependencies"]
+            .as_array_mut()
+            .unwrap();
+        let dep = deps
+            .iter_mut()
+            .find(|d| d["name"] == "mf2-runtime")
+            .unwrap();
+        dep["req"] = "^1.0.0".into();
+        assert_eq!(
+            problems(&m),
+            ["mf2 → mf2-runtime: `^1.0.0`, not `=1.0.0` (or a path-only dev-dependency)"]
+        );
+    }
+
+    #[test]
+    fn a_path_only_normal_dependency_is_caught() {
+        let mut m = metadata();
+        let deps = package(&mut m, "mf2")["dependencies"]
+            .as_array_mut()
+            .unwrap();
+        let dep = deps
+            .iter_mut()
+            .find(|d| d["name"] == "mf2-runtime")
+            .unwrap();
+        dep["req"] = "*".into();
+        assert_eq!(problems(&m).len(), 1);
+    }
+
+    #[test]
+    fn missing_fields_and_wrong_licences_are_caught() {
+        let mut m = metadata();
+        let p = package(&mut m, "mf2-locale-data");
+        p["license"] = "MIT".into();
+        p["keywords"] = serde_json::json!([]);
+        p["readme"] = Value::Null;
+        let p = package(&mut m, "mf2-model");
+        p["version"] = "0.1.0".into();
+        p["keywords"] = serde_json::json!(["1st"]);
+        let mut found = problems(&m);
+        found.sort();
+        assert_eq!(
+            found,
+            [
+                "mf2-locale-data: 0 keywords (1 to 5)",
+                "mf2-locale-data: license is not `MIT AND Unicode-3.0`",
+                "mf2-locale-data: no `readme`",
+                "mf2-model: keyword \"1st\" is not one crates.io accepts",
+                "mf2-model: version is not 1.0.0",
+            ]
+        );
+    }
+
+    #[test]
+    fn the_list_is_sorted_and_has_no_duplicates() {
+        assert!(PUBLISHED.windows(2).all(|w| w[0] < w[1]));
+    }
+}

@@ -4,7 +4,11 @@ description = "Locale negotiation and catalog serving for an Axum + Leptos appli
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-axum"
+keywords = ["messageformat", "mf2", "i18n", "axum", "leptos"]
+categories = ["internationalization", "localization", "web-programming::http-server"]
 
 [features]
 # The Leptos line, as leptos-mf2's (`plans/04-leptos-integration.md` §10):

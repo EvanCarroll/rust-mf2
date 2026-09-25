@@ -4,7 +4,11 @@ description = "The MessageFormat 2 build pipeline: loaders, mf2.toml, the manife
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-build"
+keywords = ["messageformat", "mf2", "i18n", "build", "codegen"]
+categories = ["internationalization", "localization", "development-tools::build-utils"]
 
 [features]
 # The per-locale `icu.blob` of the `datetime-icu` backend; pulls ICU4X's baked

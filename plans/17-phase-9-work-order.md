@@ -150,6 +150,62 @@ of the tree, which a public repository or package cannot carry.
 * **Not done here:** the old commits still hold the text; rewriting them
   is the owner's (owner question 1).
 
+## A1 — names and package metadata: what was built
+
+* **Names** re-checked on 2026-09-25 (crates.io's API, one request each):
+  all 16 still 404. A7 checks again on the day.
+* **`[workspace.package] version = "1.0.0"`.** `publish` stays `false`
+  there, so every tool, bench, example and conformance crate keeps
+  inheriting it; the 16 say `publish = true` in their own manifests.
+* **Each of the 16:** `readme = "README.md"` — a new, short README per
+  crate: what it is for, whether an application names it (only `mf2`,
+  `mf2-build`, `mf2-cli`, `leptos-mf2` and `mf2-axum` are named; the
+  others are reached through `mf2`, and say how), the docs.rs link, and
+  the user guide's place (`docs/` in the repository; no URL, since there
+  is no public remote). `keywords` (≤ 5) and `categories` (≤ 5, each
+  checked against crates.io's list of slugs on the day). `documentation`
+  = the crate's docs.rs page, which is where docs.rs will put it (not an
+  invented remote); it also quiets `cargo package`'s "no documentation,
+  homepage or repository" warning. `repository` / `homepage`: left out.
+  The descriptions were already there and are unchanged.
+* **Licences:** `MIT` for 15; `MIT AND Unicode-3.0` for `mf2-locale-data`,
+  the only crate that ships CLDR-derived data (`data/`; the rest name CLDR
+  in comments or read the catalog's entries at run time). Every crate has
+  `LICENSE`, a symlink to the root's, and `mf2-locale-data` also
+  `LICENSE-UNICODE`, a symlink to `third_party/cldr-json/LICENSE` — one
+  source each, packaged as files (A4's audit: these two symlinks are the
+  intended exceptions to "no file outside the crate").
+* **Every dependency between two of ours is `=1.0.0`**, set once on the
+  `[workspace.dependencies]` entry (the 16 now carry `path` and
+  `version`; the unpublished ones, `path` only).
+* **`mf2 init` and the docs name `"1"`, not `"0.1"`:** the version the
+  generated translation crate and the guide's manifests ask for
+  (`crates/mf2-cli/src/init.rs`; `getting-started`, `delivery-modes`,
+  `accessibility`). `cargo xtask docs` replaces our versions with paths,
+  so it is unaffected.
+* **The test**, `xtask/src/packages.rs` (test-only until A7's `release`
+  runs it): over `cargo metadata --no-deps`, exactly the 16 publishable;
+  each at 1.0.0 with a description, a README that exists, the licence
+  above and its files, 1–5 keywords valid for crates.io, 1–5
+  categories; every normal and build dependency between two of ours
+  `=1.0.0`. Five negative-control tests on edited metadata (a library
+  crate unpublished; a tool published; a caret requirement; a path-only
+  normal dependency; a missing README, a wrong licence, no keywords, an
+  invalid keyword and a wrong version together), and
+  two shown on the real tree (`publish = false` in `mf2-runtime`; its
+  workspace requirement made `1.0.0`): each refused naming the crate.
+* **Found for A4 — dev-dependency cycles.** A dev-dependency between two
+  of ours may also be **path-only**, and the test allows it: cargo strips
+  such a dev-dependency from the package, and it is the only form in which
+  one that closes a cycle can be published. `cargo package` on the 16
+  stopped at `mf2-fn-datetime`: its dev-dependency on `mf2` (which depends
+  on it) cannot resolve, since `mf2` is packaged after it. The same holds
+  for `mf2-fn-number` and `leptos-mf2`, each a dev-dependency on `mf2`.
+  Making those path-only means their tests that use `mf2` do not run from
+  the unpacked `.crate` — A4 decides each, as its criterion says.
+* **Not here:** `rust-version` is A3's (measured, then set; the test gains
+  the field then). No public remote exists, so no `repository`.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -163,7 +219,7 @@ of the tree, which a public repository or package cannot carry.
 ## Exit (master plan §9, P9)
 
 - [x] the specification text out of the tree, fetched on demand; the suite still vendored (A0)
-- [ ] the 16 names verified and every package's metadata complete (A1)
+- [x] the 16 names verified and every package's metadata complete (A1; `rust-version` comes with A3's measurement)
 - [ ] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
 - [ ] the version policy written, the MSRV measured and held in CI (A3)
 - [ ] the packages audited and verified from crates.io's point of view (A4)

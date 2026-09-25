@@ -4,7 +4,11 @@ description = "The W3C Message Resource container for MessageFormat 2: parser, s
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-resource"
+keywords = ["messageformat", "mf2", "i18n", "resource", "parser"]
+categories = ["internationalization", "localization", "parser-implementations", "no-std"]
 
 [features]
 # (De)serialization as JSON in the draft's data-model shape (src/json.rs).

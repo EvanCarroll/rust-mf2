@@ -4,7 +4,11 @@ description = "The `mf2` command: check, compile, fmt, stats, dump, pseudo, expo
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-cli"
+keywords = ["messageformat", "mf2", "i18n", "cli", "xliff"]
+categories = ["internationalization", "localization", "command-line-utilities"]
 
 [[bin]]
 name = "mf2"

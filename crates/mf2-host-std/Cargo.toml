@@ -4,7 +4,11 @@ description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): N
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-host-std"
+keywords = ["messageformat", "mf2", "i18n", "timezone"]
+categories = ["internationalization", "localization"]
 
 [dependencies]
 # Named zones (owner decision 1, plans/03 §5.2): the bundled IANA database,

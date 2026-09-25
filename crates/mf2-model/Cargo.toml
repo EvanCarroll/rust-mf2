@@ -4,7 +4,11 @@ description = "The Unicode MessageFormat 2 interchange data model, MsgId, the sh
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-model"
+keywords = ["messageformat", "mf2", "i18n", "data-model"]
+categories = ["internationalization", "localization", "data-structures", "no-std"]
 
 [features]
 # (De)serialization as JSON that validates against spec/data-model/message.json.

@@ -36,8 +36,8 @@ browser, so what you copy here is what CI builds.
 
 > **Not published yet.** The crates are not on crates.io until the first
 > release. The manifests on these pages name them as that release will:
-> `mf2 = "0.1"`, `leptos-mf2 = "0.1"`, `mf2-axum = "0.1"`,
-> `mf2-build = "0.1"`. Until then, replace each `"0.1"` with a path into a
+> `mf2 = "1"`, `leptos-mf2 = "1"`, `mf2-axum = "1"`,
+> `mf2-build = "1"`. Until then, replace each `"1"` with a path into a
 > checkout, for example `mf2 = { path = "../mf2-two/crates/mf2" }`. This
 > is what `cargo xtask docs` does when it compiles these pages.
 
@@ -101,10 +101,10 @@ datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
 intl = ["mf2/intl"]
 
 [dependencies]
-mf2 = "0.1"
+mf2 = "1"
 
 [build-dependencies]
-mf2-build = "0.1"
+mf2-build = "1"
 ```
 
 The features decide **which formatting functions exist**. A message can
@@ -264,14 +264,14 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 hello-i18n = { path = "i18n", features = ["fn-number", "fn-datetime", "datetime-icu"] }
 leptos = { version = "0.9.0-beta", default-features = false }
-leptos-mf2 = "0.1"
+leptos-mf2 = "1"
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
 
 axum = { version = "0.8", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
 leptos_axum = { version = "0.9.0-beta", optional = true }
-mf2-axum = { version = "0.1", optional = true }
+mf2-axum = { version = "1", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 
@@ -336,11 +336,11 @@ source file, is unchanged:
 ```toml file=hello-0-8/Cargo.toml merge
 [dependencies]
 leptos = { version = "0.8", default-features = false }
-leptos-mf2 = { version = "0.1", default-features = false, features = ["leptos-0-8"] }
+leptos-mf2 = { version = "1", default-features = false, features = ["leptos-0-8"] }
 leptos_meta = "0.8"
 leptos_router = "0.8"
 leptos_axum = { version = "0.8", optional = true }
-mf2-axum = { version = "0.1", default-features = false, features = ["leptos-0-8"], optional = true }
+mf2-axum = { version = "1", default-features = false, features = ["leptos-0-8"], optional = true }
 ```
 
 Asking for both lines at once — `leptos-0-8` with the default features

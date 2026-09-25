@@ -4,7 +4,11 @@ description = "MessageFormat 2 syntax: a lossless-CST parser with recovery, lowe
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-syntax"
+keywords = ["messageformat", "mf2", "i18n", "parser"]
+categories = ["internationalization", "localization", "parser-implementations", "no-std"]
 
 [dependencies]
 mf2-model.workspace = true

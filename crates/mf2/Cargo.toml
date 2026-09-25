@@ -4,7 +4,11 @@ description = "Unicode MessageFormat 2 for Leptos: the one crate an application 
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2"
+keywords = ["messageformat", "mf2", "i18n", "l10n", "leptos"]
+categories = ["internationalization", "localization", "wasm", "web-programming"]
 
 [features]
 default = []

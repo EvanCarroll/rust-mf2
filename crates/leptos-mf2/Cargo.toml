@@ -4,7 +4,11 @@ description = "The call-site description of a message (Tr, TrArgs, TrRich, ArgVa
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/leptos-mf2"
+keywords = ["leptos", "messageformat", "mf2", "i18n", "wasm"]
+categories = ["internationalization", "localization", "web-programming", "wasm", "gui"]
 
 [features]
 # Leptos 0.9, the default line (D10; `plans/04-leptos-integration.md` §10).

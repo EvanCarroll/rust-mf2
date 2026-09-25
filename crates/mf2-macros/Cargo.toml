@@ -8,7 +8,11 @@ description = "The tr! proc-macro: a call site checked against the manifest at c
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-macros"
+keywords = ["messageformat", "mf2", "i18n", "macro", "leptos"]
+categories = ["internationalization", "localization", "development-tools::procedural-macro-helpers"]
 
 [lib]
 proc-macro = true

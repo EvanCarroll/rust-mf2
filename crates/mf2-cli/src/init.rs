@@ -119,10 +119,10 @@ fn cargo_toml(name: &str) -> String {
          intl = [\"mf2/intl\"]\n\
          \n\
          [dependencies]\n\
-         mf2 = \"0.1\"\n\
+         mf2 = \"1\"\n\
          \n\
          [build-dependencies]\n\
-         mf2-build = \"0.1\"\n"
+         mf2-build = \"1\"\n"
     )
 }
 
