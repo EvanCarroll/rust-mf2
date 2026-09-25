@@ -247,7 +247,8 @@ fn deterministic_and_nested() {
 }
 
 /// The vectors of plans/02-catalog-format.md §4.9: size, FNV-1a 64 and the
-/// leading bytes of `en`'s blobs (CLDR 48 as ICU4X 2.3 bakes it).
+/// leading bytes of `en`'s blobs (CLDR 48 as ICU4X 2.3 bakes it; the zones vector follows
+/// `icu_time_data`, which a time-zone data patch release moves — 2.3.1 here).
 #[test]
 fn vectors() {
     for (src, any_calendar, zones, len, hash) in [
@@ -263,8 +264,8 @@ fn vectors() {
             "{$d :time timeZoneStyle=short}",
             false,
             true,
-            16_755,
-            0xa4f9_f2e0_acca_5b75,
+            16_857,
+            0xfdbb_a65d_3af5_6feb,
         ),
     ] {
         let blob = icu_blob("en", &spec(any_calendar, zones, &needs(src))).unwrap();
