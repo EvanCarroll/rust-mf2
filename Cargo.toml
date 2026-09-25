@@ -74,8 +74,8 @@ mf2-build = { path = "crates/mf2-build" }
 mf2-catalog = { path = "crates/mf2-catalog" }
 mf2-cli = { path = "crates/mf2-cli" }
 mf2-conformance = { path = "conformance" }
-leptos-mf2 = { path = "crates/leptos-mf2" }
-mf2-axum = { path = "crates/mf2-axum" }
+leptos-mf2 = { path = "crates/leptos-mf2", default-features = false }
+mf2-axum = { path = "crates/mf2-axum", default-features = false }
 mf2-fn-number = { path = "crates/mf2-fn-number" }
 mf2-fn-datetime = { path = "crates/mf2-fn-datetime" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
@@ -149,23 +149,31 @@ ryu = "1.0.23"
 # mf2-host-web: the browser's normalize() and String(x); no_std (no `std`,
 # no `unsafe-eval`).
 js-sys = { version = "0.3.105", default-features = false }
-# leptos-mf2 (`plans/04-leptos-integration.md` §10): the latest stable Leptos
-# line, the versions P0.2 verified end to end. `tachys` and `reactive_graph`
-# are named directly — the glue module is written against tachys — and unify
-# with the ones `leptos` pulls in. `cargo xtask leptos-beta` moves these three
-# (and the three below) to the 0.9 pre-releases in a copy of the tree.
-leptos = { version = "0.8.20", default-features = false }
-tachys = { version = "0.2.18", default-features = false }
-reactive_graph = { version = "0.2.14", default-features = false }
+# leptos-mf2 (`plans/04-leptos-integration.md` §10): Leptos 0.9, the default
+# line, beta or not (D10); a requirement on a pre-release admits every later
+# one and the release, so a new 0.9 is taken by an ordinary `cargo update`.
+# `tachys` and `reactive_graph` are named directly — the glue module is
+# written against tachys — and unify with the ones `leptos` pulls in.
+leptos = { version = "0.9.0-beta", default-features = false }
+tachys = { version = "0.3.0-beta", default-features = false }
+reactive_graph = { version = "0.3.0-beta", default-features = false }
 oco_ref = "0.2.1"
 any_spawner = "0.3.0"
 # mf2-axum: the server. `leptos_axum` provides the request's `Parts` and a
 # `ResponseOptions` in context, so negotiation needs no tower layer of its own.
 axum = { version = "0.8.9", default-features = false }
 http = "1.5.0"
-leptos_axum = "0.8.10"
-leptos_meta = "0.8.6"
-leptos_router = "0.8.15"
+leptos_axum = "0.9.0-beta"
+leptos_meta = "0.9.0-beta"
+leptos_router = "0.9.0-beta"
+# The Leptos 0.8 line, an opt-in (04 §10): the same crates under the names
+# the `leptos-0-8` features of leptos-mf2, mf2-axum and the conformance
+# harness turn on, in place of the 0.9 ones above. A crate's root renames
+# them back (`extern crate leptos_0_8 as leptos`), so one source serves both.
+leptos_0_8 = { package = "leptos", version = "0.8.20", default-features = false }
+tachys_0_2 = { package = "tachys", version = "0.2.18", default-features = false }
+reactive_graph_0_2 = { package = "reactive_graph", version = "0.2.14", default-features = false }
+leptos_axum_0_8 = { package = "leptos_axum", version = "0.8.10" }
 wasm-bindgen-futures = "0.4.78"
 # The client half: the hydration cursor's nodes, the catalog fetch, one
 # console diagnostic. No `#[wasm_bindgen]` item of ours, so

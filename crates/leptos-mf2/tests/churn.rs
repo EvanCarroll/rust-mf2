@@ -14,6 +14,10 @@
 //! Under `ssr` (the workspace build) there is no trigger, and nothing here.
 #![cfg(not(feature = "ssr"))]
 
+// The Leptos line under test (`plans/04-leptos-integration.md` §10).
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 use std::sync::Arc;

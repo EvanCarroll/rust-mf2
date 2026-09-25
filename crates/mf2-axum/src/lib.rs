@@ -32,6 +32,25 @@
 //! );
 //! ```
 
+// The Leptos line, as in leptos-mf2 (`plans/04-leptos-integration.md` §10):
+// the 0.8 crates, when they are the ones on, renamed back.
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_axum_0_8 as leptos_axum;
+
+#[cfg(all(feature = "leptos-0-8", feature = "leptos-0-9"))]
+compile_error!(
+    "mf2-axum: `leptos-0-8` is on, and so is the default `leptos-0-9`. \
+     For Leptos 0.8, every dependency on leptos-mf2 and mf2-axum needs \
+     `default-features = false` beside `features = [\"leptos-0-8\"]`."
+);
+#[cfg(not(any(feature = "leptos-0-8", feature = "leptos-0-9")))]
+compile_error!(
+    "mf2-axum: no Leptos line. Depend on mf2-axum with its default features \
+     (Leptos 0.9), or turn on `leptos-0-8` for Leptos 0.8."
+);
+
 mod context;
 mod negotiate;
 mod serve;

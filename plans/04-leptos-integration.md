@@ -248,9 +248,9 @@ All tachys-facing code lives in one glue module (`glue/view.rs`). What
 differs between tachys lines is switched inside it by feature: today only the
 two `to_html_with_buf` impls, whose 0.3 form takes `RenderFlags`
 (owner, 2026-09-24 — a second copy of the module would make every later glue
-change twice). *Until Phase 8 A0 the switch was `tachys-0-3`, opting into
-0.9; A0 inverts it — tachys 0.3 (Leptos 0.9) is the default and an opt-in
-feature selects the 0.2 line (Leptos 0.8), owner 2026-09-24, §10.* If a later 0.3 changes more than a few
+change twice). Since Phase 8 A0 tachys 0.3 (Leptos 0.9) is the default and the opt-in
+feature `leptos-0-8` selects the 0.2 line (Leptos 0.8), owner 2026-09-24,
+§10. *(Until A0 the switch was `tachys-0-3`, opting into 0.9.)* If a later 0.3 changes more than a few
 methods, the line-specific part moves into a module of its own.
 
 ## 4. Reactivity to locale change (decision D7; probe P0.11)
@@ -613,7 +613,25 @@ later 0.9 pre-release or release is taken as it appears.
 selects the tachys 0.2 glue (§3), it is documented to users, and CI builds
 and tests it beside 0.9 — not allowed-to-fail. Superseded: "target the
 latest stable, track 0.9 betas nightly as allowed-to-fail, undocumented
-until release" (Phase 7). `leptos-mf2`'s major version follows its default
+until release" (Phase 7).
+
+*As built (Phase 8 A0):* `leptos-mf2` and `mf2-axum` have features
+`leptos-0-9` (default) and `leptos-0-8`; an application on 0.8 writes
+`default-features = false, features = ["leptos-0-8"]` on both. The 0.8
+crates are workspace dependencies under renamed keys (`leptos_0_8`,
+`tachys_0_2`, `reactive_graph_0_2`, `leptos_axum_0_8`) and each crate root
+renames them back (`extern crate leptos_0_8 as leptos`), so one source
+serves both lines and both are in the one lock file. Both lines at once, or
+none, is a `compile_error!` naming what to write. The `mf2` facade picks no
+line: it depends on `leptos-mf2` without default features, so the line is
+the application's own `leptos-mf2` dependency's. The requirement
+`"0.9.0-beta"` admits every later pre-release and the release, so a new 0.9
+arrives by `cargo update`. CI: the nightly job `leptos-0-8` (`cargo xtask
+leptos-0-8`) lints and tests `leptos-mf2`, tests `mf2-axum` and runs layer
+L6 on 0.8; `cargo xtask docs` compiles Getting started's application on
+0.8 as well (`hello-0-8`). `leptos-fluent` 0.3.1 requires Leptos < 0.9, so
+the `fluent-view` template and its converted twin `fluent-converted` stay
+on 0.8. `leptos-mf2`'s major version follows its default
 Leptos line.
 
 `leptos-mf2` and `mf2-host-web` only *call* `js-sys` / `web-sys` APIs and define

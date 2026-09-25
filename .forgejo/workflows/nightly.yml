@@ -51,12 +51,11 @@
 #   ledger's L7 columns (`cargo xtask l7-web`). Then, in the same job,
 #   `cargo xtask churn` (plans/15 A5): no row shape of a churning list may
 #   grow the heap.
-# * `leptos-beta` (a job of its own; plans/15 A7, plans/04 §10): leptos-mf2
-#   on the newest Leptos 0.9 pre-release with the `tachys-0-3` feature —
-#   checked for ssr, hydrate and csr, its render and churn tests run — in a
-#   copy of the tree under target/ (`cargo xtask leptos-beta`). Allowed to
-#   fail (`continue-on-error` on its step): red means a new beta broke the
-#   glue, and the rest of the nightly does not wait on a pre-release.
+# * `leptos-0-8` (a job of its own; plans/16 A0, plans/04 §10): the Leptos
+#   0.8 opt-in — both lines at once refused with the fix named; then, on
+#   0.8, leptos-mf2 linted for ssr, hydrate and csr, its render, churn and
+#   fallback_lang tests, mf2-axum's tests and conformance layer L6
+#   (`cargo xtask leptos-0-8`). Not allowed to fail: 0.8 is supported.
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -487,12 +486,11 @@ jobs:
           path: target/churn/report.json
           if-no-files-found: ignore
 
-  leptos-beta:
-    # plans/15-phase-7-work-order.md A7: the Leptos 0.9 glue against the
-    # newest pre-release, so a new break turns this red the night it lands.
-    # The xtask never edits the checkout: it copies the tracked tree to
-    # target/leptos-beta and moves the Leptos pins there. It first requires
-    # `tachys-0-3` on the checkout's Leptos 0.8 to fail with the fix named.
+  leptos-0-8:
+    # plans/16-phase-8-work-order.md A0: Leptos 0.9 is the default line and
+    # every other job builds on it; this one builds and tests the 0.8
+    # opt-in (`default-features = false, features = ["leptos-0-8"]`). Both
+    # lines are in the one lock file, so it runs in the checkout.
     # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker.
     runs-on: PLACEHOLDER-runner-label
     env:
@@ -531,6 +529,5 @@ jobs:
           rustup toolchain install
           rustup target add wasm32-unknown-unknown
 
-      - name: leptos-mf2 on the Leptos 0.9 pre-release (allowed to fail)
-        continue-on-error: true
-        run: cargo xtask leptos-beta
+      - name: leptos-mf2, mf2-axum and layer L6 on Leptos 0.8
+        run: cargo xtask leptos-0-8

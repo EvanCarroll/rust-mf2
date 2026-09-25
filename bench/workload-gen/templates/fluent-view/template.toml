@@ -22,6 +22,10 @@ name = "fluent-view"
 description = "leptos-fluent in its own idiom: tr! where a String is wanted, move_tr! where reactive text is (the A/B of plans/16 A5)."
 support = "support.rs"
 dependencies = ['leptos-fluent = "0.3.1"']
+# `leptos-fluent` 0.3.1, its newest release, requires Leptos < 0.9, so this
+# application is on 0.8 (plans/04-leptos-integration.md §10), and so is its
+# converted twin.
+leptos = "0.8"
 prelude = "use leptos_fluent::{move_tr, tr};"
 # `leptos_fluent!` keeps its state in a context, so the router is wrapped in
 # the component that calls it.

@@ -106,6 +106,20 @@ impl SiteTable {
     }
 }
 
+/// The Leptos line a template's app is built on (`plans/04-leptos-integration.md`
+/// §10): 0.9, the default, or 0.8 — for a template whose own library has no
+/// 0.9 release yet (`leptos-fluent`), and for what is converted from it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+pub enum LeptosLine {
+    /// Leptos 0.9.
+    #[default]
+    #[serde(rename = "0.9")]
+    V0_9,
+    /// Leptos 0.8.
+    #[serde(rename = "0.8")]
+    V0_8,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Raw {
@@ -125,6 +139,8 @@ struct Raw {
     boot: String,
     #[serde(default)]
     provider: Option<String>,
+    #[serde(default)]
+    leptos: LeptosLine,
     #[serde(default)]
     args: Args,
     deferred: Deferred,
@@ -155,6 +171,8 @@ pub struct Template {
     /// wrapped in — where a library that keeps its state in a context
     /// (`leptos-fluent`'s `leptos_fluent!`) is initialized.
     pub provider: Option<String>,
+    /// The Leptos line the app is built on.
+    pub leptos: LeptosLine,
     args: Args,
     deferred: Deferred,
     sites: BTreeMap<String, SiteTable>,
@@ -310,6 +328,7 @@ impl Template {
             support,
             boot: raw.boot,
             provider: raw.provider,
+            leptos: raw.leptos,
             args: raw.args,
             deferred: raw.deferred,
             sites: raw.site,

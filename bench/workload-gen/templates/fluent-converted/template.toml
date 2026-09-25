@@ -22,7 +22,8 @@
 #
 # Everything else — the `String` positions with `.to_string()`, the view
 # positions with the description itself, the prelude — is `tr-view`'s.
-# The support module, dependencies and boot are `tr-view`'s too: they are
+# The support module, dependencies and boot are `tr-view`'s too (but for
+# the Leptos line, below): they are
 # the part of the migration that is finished by hand (the report's
 # initializer), and with them the converted application builds.
 #
@@ -33,9 +34,12 @@ description = "fluent-view as mf2 convert --from leptos-fluent rewrites it: tr-v
 support = "support.rs"
 dependencies = [
     'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
-    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2" }',
+    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2", default-features = false, features = ["leptos-0-8"] }',
     'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',
 ]
+# `fluent-view`'s Leptos line, 0.8: a converted application is migrated to
+# mf2 first and moves to Leptos 0.9 as a change of its own.
+leptos = "0.8"
 prelude = "use workload_i18n::tr;"
 boot = "crate::support::boot();"
 

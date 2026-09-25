@@ -27,8 +27,8 @@ pub(crate) enum Error {
     #[error("fluent-migrate: {0}")]
     FluentMigrate(String),
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
-    #[error("leptos-beta: {0}")]
-    LeptosBeta(String),
+    #[error("leptos-0-8: {0}")]
+    Leptos08(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

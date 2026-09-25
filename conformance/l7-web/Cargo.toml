@@ -80,9 +80,9 @@ mf2-l7-set-en-us = { path = "sets/en-us" }
 mf2-l7-set-und = { path = "sets/und" }
 mf2-l7-set-fr = { path = "sets/fr" }
 mf2-l7-set-ar = { path = "sets/ar" }
-leptos = { version = "0.8.20", default-features = false }
+leptos = { version = "0.9.0-beta", default-features = false }
 leptos-mf2 = { path = "../../crates/leptos-mf2" }
-tachys = { version = "0.2.18", default-features = false }
+tachys = { version = "0.3.0-beta", default-features = false }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 # The exported `async fn`s lower to promises through this crate.
 wasm-bindgen-futures = { version = "0.4.78", optional = true }

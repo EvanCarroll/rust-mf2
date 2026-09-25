@@ -20,7 +20,7 @@ client = ["mf2/host-web"]
 [dependencies]
 mf2 = { path = "../../../../crates/mf2" }
 mf2-l4-runner = { path = "../../../l4-runner" }
-leptos = { version = "0.8.20", default-features = false }
+leptos = { version = "0.9.0-beta", default-features = false }
 leptos-mf2 = { path = "../../../../crates/leptos-mf2", features = ["leptos"] }
 
 [build-dependencies]

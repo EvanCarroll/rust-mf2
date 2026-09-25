@@ -170,7 +170,7 @@ implementation under test.
 `app-<template>/`, package `workload-app-<template>` (distinct per template, so
 several apps can share one `CARGO_TARGET_DIR` and reuse compiled
 dependencies — with equal names cargo would take one app's artifacts for the
-other's): Leptos 0.8 SSR + hydrate, Axum server (`src/main.rs`),
+other's): Leptos 0.9 (0.8 for a template that says so) SSR + hydrate, Axum server (`src/main.rs`),
 `leptos::mount::hydrate_lazy`, R routes via `#[lazy_route] impl LazyRoute`
 (`Lazy::<RouteN>::new()`) so their components land in separate chunks under
 `cargo leptos build --split`; component k belongs to route `k mod (R+1)`
@@ -225,6 +225,10 @@ boot = "crate::support::boot();"   # first statements of `hydrate()`
 provider = "I18nProvider"          # optional: a component of the support module
                                    # the app's router is wrapped in (a library
                                    # that keeps its state in a context)
+leptos = "0.8"                     # optional: the Leptos line, "0.9" (default) or
+                                   # "0.8"; a template naming leptos-mf2 on 0.8
+                                   # also gives it `default-features = false,
+                                   # features = ["leptos-0-8"]`
 
 [args]                             # how one argument renders inside {{args}}
 sep = ", "

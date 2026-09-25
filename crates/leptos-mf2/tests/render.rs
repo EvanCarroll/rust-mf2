@@ -4,6 +4,12 @@
 //! as a string without a browser; the browser half is conformance L6 and the
 //! `tools/e2e` checks.
 
+// The Leptos line under test (`plans/04-leptos-integration.md` §10).
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate tachys_0_2 as tachys;
+
 use std::sync::Arc;
 
 use leptos::prelude::*;

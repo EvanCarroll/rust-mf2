@@ -263,14 +263,14 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 hello-i18n = { path = "i18n", features = ["fn-number", "fn-datetime", "datetime-icu"] }
-leptos = { version = "0.8", default-features = false }
+leptos = { version = "0.9.0-beta", default-features = false }
 leptos-mf2 = "0.1"
-leptos_meta = "0.8"
-leptos_router = "0.8"
+leptos_meta = "0.9.0-beta"
+leptos_router = "0.9.0-beta"
 
 axum = { version = "0.8", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
-leptos_axum = { version = "0.8", optional = true }
+leptos_axum = { version = "0.9.0-beta", optional = true }
 mf2-axum = { version = "0.1", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
@@ -325,6 +325,26 @@ the same for both builds, so the server and the browser format alike. Here
 they give numbers in each language's own symbols and dates through ICU4X,
 whose data travels in each language's catalog. A feature that is on but
 that no message uses adds nothing to the wasm.
+
+**Leptos 0.9 or 0.8.** `leptos-mf2` and `mf2-axum` are built for Leptos
+0.9 by default. A requirement of `"0.9.0-beta"` takes every later 0.9
+pre-release and the 0.9 release itself with an ordinary `cargo update`.
+An application that stays on Leptos 0.8 names the 0.8 crates and turns
+the default line off in both of ours; the rest of the manifest, and every
+source file, is unchanged:
+
+```toml file=hello-0-8/Cargo.toml merge
+[dependencies]
+leptos = { version = "0.8", default-features = false }
+leptos-mf2 = { version = "0.1", default-features = false, features = ["leptos-0-8"] }
+leptos_meta = "0.8"
+leptos_router = "0.8"
+leptos_axum = { version = "0.8", optional = true }
+mf2-axum = { version = "0.1", default-features = false, features = ["leptos-0-8"], optional = true }
+```
+
+Asking for both lines at once — `leptos-0-8` with the default features
+still on — is a compile error that says what to write.
 
 ## The page
 

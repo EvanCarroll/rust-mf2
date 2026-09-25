@@ -158,7 +158,7 @@ in `leptos-mf2`:
 
 ```toml file=islands/Cargo.toml merge
 [dependencies]
-leptos = { version = "0.8", default-features = false, features = ["islands"] }
+leptos = { version = "0.9.0-beta", default-features = false, features = ["islands"] }
 leptos-mf2 = { version = "0.1", features = ["static-locale"] }
 ```
 
@@ -296,9 +296,9 @@ edition = "2024"
 [dependencies]
 console_error_panic_hook = "0.1"
 hello-i18n = { path = "i18n", features = ["csr", "fn-number"] }
-leptos = { version = "0.8", features = ["csr"] }
+leptos = { version = "0.9.0-beta", features = ["csr"] }
 leptos-mf2 = { version = "0.1", features = ["csr"] }
-leptos_meta = "0.8"
+leptos_meta = "0.9.0-beta"
 
 [profile.release]
 opt-level = "z"

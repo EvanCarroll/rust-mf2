@@ -57,6 +57,33 @@ compile_error!(
 #[cfg(all(feature = "hydrate", feature = "csr"))]
 compile_error!("leptos-mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
 
+// The Leptos line (`plans/04-leptos-integration.md` §10): 0.9 by default,
+// 0.8 as an opt-in whose crates are renamed back here, so that every `use
+// leptos::…` / `tachys::…` / `reactive_graph::…` below — and every path the
+// `view!` macro expands to — names whichever line is on.
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate reactive_graph_0_2 as reactive_graph;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate tachys_0_2 as tachys;
+
+#[cfg(all(feature = "leptos", feature = "leptos-0-8", feature = "leptos-0-9"))]
+compile_error!(
+    "leptos-mf2: `leptos-0-8` is on, and so is the default `leptos-0-9`. \
+     For Leptos 0.8, every dependency on leptos-mf2 and mf2-axum needs \
+     `default-features = false` beside `features = [\"leptos-0-8\"]`."
+);
+#[cfg(all(
+    feature = "leptos",
+    not(feature = "leptos-0-8"),
+    not(feature = "leptos-0-9")
+))]
+compile_error!(
+    "leptos-mf2: no Leptos line. Depend on leptos-mf2 with its default \
+     features (Leptos 0.9), or turn on `leptos-0-8` for Leptos 0.8."
+);
+
 mod arg;
 mod dynamic;
 mod markup;

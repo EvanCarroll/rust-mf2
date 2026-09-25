@@ -45,7 +45,9 @@ three phases left unbuilt: dates in the reader's time zone.
   islands-zero` after the switcher stopped being an island (it runs
   nightly). None of them blocks Phase 8.
 * **Leptos 0.9** is still a beta (0.9.0-beta / tachys 0.3.0-beta2 at
-  2026-09-24), tracked nightly by `cargo xtask leptos-beta`. See §"Standing".
+  2026-09-24), tracked nightly by `cargo xtask leptos-beta` — until A0 made
+  it the default and that job became `cargo xtask leptos-0-8`. See
+  §"Standing".
 
 ## Owner questions
 

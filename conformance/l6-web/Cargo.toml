@@ -60,9 +60,9 @@ hydrate = [
 mf2 = { path = "../../crates/mf2" }
 # The suite's own `:test:*` functions, as L4 and L5 use them.
 mf2-l4-runner = { path = "../l4-runner" }
-leptos = { version = "0.8.20", default-features = false }
+leptos = { version = "0.9.0-beta", default-features = false }
 leptos-mf2 = { path = "../../crates/leptos-mf2" }
-tachys = { version = "0.2.18", default-features = false }
+tachys = { version = "0.3.0-beta", default-features = false }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 # `mf2_set_locale` is an exported `async fn`, which wasm-bindgen lowers to a
 # promise through this crate.

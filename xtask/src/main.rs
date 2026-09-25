@@ -21,7 +21,7 @@ mod l4_wasi;
 mod l4_web;
 mod l6_web;
 mod l7_web;
-mod leptos_beta;
+mod leptos_0_8;
 mod locale_data;
 mod pin;
 mod report;
@@ -157,16 +157,17 @@ enum Command {
         #[arg(long)]
         no_build: bool,
     },
-    /// `leptos-mf2` on the newest Leptos 0.9 pre-release (Phase 7, A7): the
-    /// tracked tree copied to target/leptos-beta with the Leptos pins moved
-    /// to 0.9 / 0.3, checked for ssr, hydrate and csr and its render and
-    /// churn tests run, all with `tachys-0-3`; first, that `tachys-0-3` on
-    /// the working tree's Leptos 0.8 is a compile error naming the fix.
-    LeptosBeta {
-        /// The negative control: the same on the pre-release without
-        /// `tachys-0-3`, which must fail.
+    /// The Leptos 0.8 opt-in (Phase 8, A0): `leptos-0-8` beside the default
+    /// line refused with the fix named; then, on 0.8, `leptos-mf2` linted
+    /// for ssr, hydrate and csr, its render, churn and `fallback_lang`
+    /// tests, `mf2-axum`'s tests and conformance layer L6.
+    #[command(name = "leptos-0-8")]
+    Leptos08 {
+        /// The negative control: the same on a copy of the tree whose glue
+        /// gives `leptos-0-8` the 0.9 form of `to_html_with_buf`, which must
+        /// fail.
         #[arg(long)]
-        no_tachys_0_3: bool,
+        negative_control: bool,
     },
     /// The reference application migrated from leptos-fluent (Phase 8, A4):
     /// `fluent-view` converted by `mf2 convert --from leptos-fluent`, its
@@ -294,7 +295,7 @@ fn run(command: Command) -> Result<()> {
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
         Command::FluentMigrate { no_build } => fluent_migrate::run(&root, !no_build),
-        Command::LeptosBeta { no_tachys_0_3 } => leptos_beta::run(&root, !no_tachys_0_3),
+        Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

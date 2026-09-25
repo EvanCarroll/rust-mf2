@@ -10,6 +10,13 @@
 
 #![forbid(unsafe_code)]
 
+// Layer L6's Leptos line (`plans/04-leptos-integration.md` §10): the 0.8
+// crates, when they are the ones on, renamed back.
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate tachys_0_2 as tachys;
+
 pub mod abnf;
 pub mod check;
 pub mod coverage;

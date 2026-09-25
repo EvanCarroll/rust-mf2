@@ -10,14 +10,18 @@ use crate::rng::Rng;
 use crate::sites::{Shape, SitePlan};
 use crate::template::{ArgCtx, SiteCtx, Template};
 
-/// Dependency versions of the generated app (latest stable on 2026-09-20).
+/// Dependency versions of the generated app (the newest on 2026-09-24; Leptos
+/// 0.9 is the default line, beta or not — D10).
 pub mod versions {
-    /// `leptos` (latest 0.8.x).
-    pub const LEPTOS: &str = "0.8.20";
-    /// `leptos_router`.
-    pub const LEPTOS_ROUTER: &str = "0.8.15";
-    /// `leptos_axum`.
-    pub const LEPTOS_AXUM: &str = "0.8.10";
+    use crate::template::LeptosLine;
+
+    /// `leptos`, `leptos_router` and `leptos_axum` on a Leptos line.
+    pub const fn leptos(line: LeptosLine) -> (&'static str, &'static str, &'static str) {
+        match line {
+            LeptosLine::V0_9 => ("0.9.0-beta", "0.9.0-beta", "0.9.0-beta"),
+            LeptosLine::V0_8 => ("0.8.20", "0.8.15", "0.8.10"),
+        }
+    }
     /// `axum`.
     pub const AXUM: &str = "0.8.9";
     /// `tokio`.
@@ -357,7 +361,8 @@ fn tables_rs(template: &Template, tables: &str) -> String {
 }
 
 fn cargo_toml(wl: &Workload, template: &Template, krate: &str) -> String {
-    use versions::{AXUM, LEPTOS, LEPTOS_AXUM, LEPTOS_ROUTER, TOKIO, WASM_BINDGEN};
+    use versions::{AXUM, TOKIO, WASM_BINDGEN};
+    let (leptos, leptos_router, leptos_axum) = versions::leptos(template.leptos);
     let mut extra = String::new();
     for line in &template.dependencies {
         extra.push_str(line);
@@ -396,9 +401,9 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = "{LEPTOS}"
-leptos_router = "{LEPTOS_ROUTER}"
-leptos_axum = {{ version = "{LEPTOS_AXUM}", optional = true }}
+leptos = "{leptos}"
+leptos_router = "{leptos_router}"
+leptos_axum = {{ version = "{leptos_axum}", optional = true }}
 axum = {{ version = "{AXUM}", optional = true }}
 tokio = {{ version = "{TOKIO}", features = ["rt-multi-thread", "macros"], optional = true }}
 wasm-bindgen = "{WASM_BINDGEN}"

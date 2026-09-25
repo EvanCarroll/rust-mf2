@@ -124,6 +124,15 @@ const PROJECTS: &[Project] = &[
         checks: SSR_AND_HYDRATE,
         site: false,
     },
+    // getting-started.md: the same application kept on Leptos 0.8, the
+    // opt-in line (`plans/16-phase-8-work-order.md` A0).
+    Project {
+        name: "hello-0-8",
+        base: Some("hello"),
+        remove: &[],
+        checks: SSR_AND_HYDRATE,
+        site: false,
+    },
     // call-sites.md, switching.md and accessibility.md: `tr!` in every
     // position, as components of a library over hello's i18n crate.
     Project {

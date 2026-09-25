@@ -6,6 +6,12 @@
 //! assertion that expects a span. The browser half — hydration adopting the
 //! span, a switch adding and removing it — is `tools/e2e/checks/demo.mjs`.
 
+// The Leptos line under test (`plans/04-leptos-integration.md` §10).
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate leptos_0_8 as leptos;
+#[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+extern crate tachys_0_2 as tachys;
+
 use std::sync::Arc;
 
 use leptos::prelude::*;

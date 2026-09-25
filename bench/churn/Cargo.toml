@@ -19,7 +19,7 @@ crate-type = ["cdylib"]
 [dependencies]
 any_spawner = { version = "0.3.0", features = ["wasm-bindgen"] }
 churn-i18n = { path = "i18n" }
-leptos = { version = "0.8.20", features = ["csr"] }
+leptos = { version = "0.9.0-beta", features = ["csr"] }
 leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["csr"] }
 mf2 = { path = "../../crates/mf2", features = ["csr"] }
 wasm-bindgen = "0.2.128"

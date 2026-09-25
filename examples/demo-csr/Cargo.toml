@@ -16,9 +16,9 @@ publish = false
 [dependencies]
 console_error_panic_hook = "0.1.7"
 demo-csr-i18n = { path = "i18n" }
-leptos = { version = "0.8.20", features = ["csr"] }
+leptos = { version = "0.9.0-beta", features = ["csr"] }
 leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["csr"] }
-leptos_meta = "0.8.6"
+leptos_meta = "0.9.0-beta"
 # `mark-fallback-lang`: borrowed text is marked with its language (the note,
 # untranslated in Arabic on purpose).
 mf2 = { path = "../../crates/mf2", features = ["csr", "mark-fallback-lang"] }

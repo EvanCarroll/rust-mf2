@@ -1,6 +1,6 @@
 //! Everything that names tachys (`plans/04-leptos-integration.md` §3), for
-//! the 0.2 line (Leptos 0.8) and, with `tachys-0-3`, the 0.3 line (Leptos
-//! 0.9).
+//! the 0.3 line (Leptos 0.9, the default) and, with `leptos-0-8`, the 0.2
+//! line (Leptos 0.8).
 //!
 //! The two lines differ here in one method: `to_html_with_buf` takes
 //! `escape` and `mark_branches` on 0.2 and one `RenderFlags` on 0.3, with the
@@ -40,10 +40,9 @@ use tachys::renderer::types::{Element, Text as TextNode};
 use tachys::view::add_attr::AddAnyAttr;
 use tachys::view::any_view::AnyViewState;
 use tachys::view::iterators::VecState;
-// With `tachys-0-3` on Leptos 0.8 this import is the first error, and rustc
-// prints its line, so the line says what to do.
-#[cfg(feature = "tachys-0-3")]
-use tachys::view::RenderFlags; // `tachys-0-3` needs Leptos 0.9; for Leptos 0.8, turn it off
+// Only the 0.3 line has `RenderFlags`.
+#[cfg(not(feature = "leptos-0-8"))]
+use tachys::view::RenderFlags;
 use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTemplate};
 
 #[cfg(feature = "mark-fallback-lang")]
@@ -320,7 +319,7 @@ macro_rules! render_description {
                 0
             }
 
-            #[cfg(not(feature = "tachys-0-3"))]
+            #[cfg(feature = "leptos-0-8")]
             fn to_html_with_buf(
                 self,
                 buf: &mut String,
@@ -359,7 +358,7 @@ macro_rules! render_description {
                 });
             }
 
-            #[cfg(feature = "tachys-0-3")]
+            #[cfg(not(feature = "leptos-0-8"))]
             fn to_html_with_buf(
                 self,
                 buf: &mut String,
@@ -769,7 +768,7 @@ impl RenderHtml for TrRich {
         0
     }
 
-    #[cfg(not(feature = "tachys-0-3"))]
+    #[cfg(feature = "leptos-0-8")]
     fn to_html_with_buf(
         self,
         buf: &mut String,
@@ -787,7 +786,7 @@ impl RenderHtml for TrRich {
         );
     }
 
-    #[cfg(feature = "tachys-0-3")]
+    #[cfg(not(feature = "leptos-0-8"))]
     fn to_html_with_buf(
         self,
         buf: &mut String,
