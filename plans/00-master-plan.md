@@ -241,7 +241,7 @@ ledger; a phase cannot exit with its layer red.
 | D7 | Node update strategy: library registry (B) over effect-per-node (A) | **settled: B** — P0.11: 44.8 vs 427 B per node on wasm32, flat heap vs +72 B per churned node, switch 6.8 vs 12–17 ms at 4× throttle |
 | D8 | Build orchestration: i18n crate + `build.rs` + generated `tr!` wrapper (manifest path **and hash** baked in; relocation fallback; catalog names only under `ssr`) | **settled** — P0.9: correct rebuilds for every edit scenario under cargo, `cargo leptos build` and `watch`; +0.2–0.3 s per 2,000 sites; rust-analyzer expands it ([05](05-tooling.md) §4) |
 | D9 | Catalog storage: client thread-local; server per-request context looked up **at render time**, so `Tr` is the same 4-byte `Copy` value everywhere. Conversions to derived reactive types (`TextProp`, `Signal<String>`) capture the request catalog under `ssr`, because third parties (leptos_meta's `<Title>`) may evaluate them outside the request owner | **verified** — P0.2: render-time lookup reached the context in all four `SsrMode`s; the narrowed capture fixed the one miss ([04](04-leptos-integration.md) §5) |
-| D10 | Leptos: latest stable (0.8.x); 0.9 tracked against its betas, glue isolated in one module with the line-specific methods switched by feature (owner, 2026-09-24) | decided |
+| D10 | Leptos: **0.9 is the default line, beta or not** (0.9.0-beta at 2026-09-24); 0.8 kept as an opt-in feature, built and tested in CI beside it; glue isolated in one module with the line-specific methods switched by feature (owner, 2026-09-24; replaces "latest stable, 0.9 tracked against its betas") | decided |
 | D11 | License: **MIT**. Publish to crates.io late (P9). Dependencies and vendored material MUST be MIT-compatible (ICU4X and the WG suite are Unicode-3.0 — fine; GPL code is excluded, including as a test oracle) | **decided by owner** |
 | D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
 | D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24) | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
@@ -391,6 +391,8 @@ everything before it).
   test.
 
 ### P8 — Migration and interchange
+* **First:** Leptos 0.9 made the default line, 0.8 an opt-in (D10; owner,
+  2026-09-24) — [16](16-phase-8-work-order.md) §A0.
 * `mf2 convert --from fluent`; a call-site migration guide (and codemod where
   mechanical) from closure-per-site macros to `tr!`; XLIFF 2 export/import,
   against the standard vendored under `third_party/` (owner, 2026-09-24).

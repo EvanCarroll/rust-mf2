@@ -247,8 +247,10 @@ Implemented **once**, in `leptos-mf2`, for the concrete types:
 All tachys-facing code lives in one glue module (`glue/view.rs`). What
 differs between tachys lines is switched inside it by feature: today only the
 two `to_html_with_buf` impls, whose 0.3 form takes `RenderFlags`
-(`tachys-0-3`; owner, 2026-09-24 — a second copy of the module would make
-every later glue change twice). If a later 0.3 changes more than a few
+(owner, 2026-09-24 — a second copy of the module would make every later glue
+change twice). *Until Phase 8 A0 the switch was `tachys-0-3`, opting into
+0.9; A0 inverts it — tachys 0.3 (Leptos 0.9) is the default and an opt-in
+feature selects the 0.2 line (Leptos 0.8), owner 2026-09-24, §10.* If a later 0.3 changes more than a few
 methods, the line-specific part moves into a module of its own.
 
 ## 4. Reactivity to locale change (decision D7; probe P0.11)
@@ -602,12 +604,17 @@ chosen locale.
 
 ## 10. Version policy
 
-Target the latest **stable** Leptos (0.8.x today). Track 0.9 betas in CI as
-allowed-to-fail, **with** the 0.9 glue written against the beta (the
-`tachys-0-3` feature, §3), so the job is green and a new break in a later
-beta turns it red (owner, 2026-09-24; `cargo xtask leptos-beta`). The
-feature is not documented to users until 0.9 is released.
-`leptos-mf2`'s major version follows Leptos' supported line.
+**Leptos 0.9 is the default line, whether or not it is released** (owner,
+2026-09-24: "that was supposed to be the default"; 0.9.0-beta / tachys
+0.3.0-beta2 is the newest on crates.io at that date). The workspace, the
+examples, the conformance layers and the user documentation build on it; a
+later 0.9 pre-release or release is taken as it appears.
+**Leptos 0.8 stays supported as an opt-in** (owner, 2026-09-24): a feature
+selects the tachys 0.2 glue (§3), it is documented to users, and CI builds
+and tests it beside 0.9 — not allowed-to-fail. Superseded: "target the
+latest stable, track 0.9 betas nightly as allowed-to-fail, undocumented
+until release" (Phase 7). `leptos-mf2`'s major version follows its default
+Leptos line.
 
 `leptos-mf2` and `mf2-host-web` only *call* `js-sys` / `web-sys` APIs and define
 no `#[wasm_bindgen]` items of their own (the `hydrate` export belongs to the
