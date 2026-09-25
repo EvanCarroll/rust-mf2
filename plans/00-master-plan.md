@@ -217,6 +217,8 @@ any locale · 0 extra round trips before
 hydration · no `core::fmt` reachable from the client runtime · unused functions
 absent. Reference-workload ambition: ≈ 105 KB gz total against
 a measured 525 KB gz for the stack it replaces, and +0 per added locale.
+Measured against `leptos-fluent` once, at migration:
+[`bench/fluent-ab/SNAPSHOT.md`](../bench/fluent-ab/SNAPSHOT.md) (Phase 8 A5).
 
 ## 7. Conformance (summary — full text in [01](01-conformance.md))
 

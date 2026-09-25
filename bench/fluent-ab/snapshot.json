@@ -1,0 +1,1412 @@
+{
+  "browser": [
+    {
+      "assertions": [
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/-in-en",
+          "pass": true
+        },
+        {
+          "details": "6187 characters",
+          "id": "same-text-en/",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r1-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r1-in-en",
+          "pass": true
+        },
+        {
+          "details": "6178 characters",
+          "id": "same-text-en/r1",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r2-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r2-in-en",
+          "pass": true
+        },
+        {
+          "details": "6322 characters",
+          "id": "same-text-en/r2",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r3-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r3-in-en",
+          "pass": true
+        },
+        {
+          "details": "6320 characters",
+          "id": "same-text-en/r3",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7110 characters",
+          "id": "same-text-pl/",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r1-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r1-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7049 characters",
+          "id": "same-text-pl/r1",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r2-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r2-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7195 characters",
+          "id": "same-text-pl/r2",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r3-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r3-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7261 characters",
+          "id": "same-text-pl/r3",
+          "pass": true
+        },
+        {
+          "id": "negative-control-en-vs-pl-differ",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000
+          },
+          "id": "fluent-mounted-2000-nodes",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000,
+            "format": {
+              "0": 0.89,
+              "1": 1.386000000014901,
+              "2": 1.8769999999552964
+            },
+            "mount": 41.19999999552965,
+            "switch": 46.099999994039536,
+            "switchBack": 48.400000005960464,
+            "text": "Result than page still screenshots.",
+            "warm": [
+              48.099999994039536,
+              46.20000000298023
+            ]
+          },
+          "id": "fluent-switch-reaches-every-node",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000
+          },
+          "id": "mf2-mounted-2000-nodes",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000,
+            "format": {
+              "0": 0.05899999998509884,
+              "1": 0.5510000000149011,
+              "2": 1.635
+            },
+            "mount": 7.399999998509884,
+            "switch": 9.899999998509884,
+            "switchBack": 11.099999994039536,
+            "text": "Result than page still screenshots.",
+            "warm": [
+              7.800000004470348,
+              33.30000000447035
+            ]
+          },
+          "id": "mf2-switch-reaches-every-node",
+          "pass": true
+        },
+        {
+          "details": [],
+          "id": "no-page-error",
+          "pass": true
+        }
+      ],
+      "browser": "chromium",
+      "data": {
+        "console": [
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "mf2 en /ab"
+          },
+          {
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "type": "error",
+            "where": "fluent en /ab"
+          }
+        ],
+        "fluentTransfer": {
+          "mark": 150.39999999850988,
+          "wasmBytes": 2024266,
+          "wasmEnd": 13.600000001490116
+        },
+        "ids": {
+          "nodes": [
+            "activity-available",
+            "activity-search-token-busy-id-banner",
+            "admin-audio-notification",
+            "admin-badge",
+            "admin-badges-add-token",
+            "admin-badges-bot-date",
+            "admin-badges-id",
+            "admin-badges-moderation",
+            "admin-badges-read-no",
+            "admin-badges-tooltip",
+            "admin-badges-up",
+            "admin-badges-up-missing-header-camera",
+            "admin-copy-count",
+            "admin-done-share-mode-public-header",
+            "admin-download-confirm",
+            "admin-input-close",
+            "admin-input-count",
+            "admin-input-edit-bot-away-info-busy",
+            "admin-input-header-dialog-title-no",
+            "admin-input-join-tag",
+            "admin-input-keyboard-screen-dialog-notice",
+            "admin-input-participant",
+            "admin-input-total-footer-member",
+            "admin-labels-admin-text-bot",
+            "admin-labels-by-reset",
+            "admin-labels-id",
+            "admin-labels-no",
+            "admin-labels-private-keyboard",
+            "admin-labels-report-device",
+            "admin-labels-topic-attachment",
+            "admin-labels-up",
+            "admin-modal-action-video",
+            "admin-modal-back-visibility",
+            "admin-modal-by-keyboard",
+            "admin-modal-code-banner-notice",
+            "admin-modal-failed-result",
+            "admin-modal-hint-dialog",
+            "admin-modal-joined-notification",
+            "admin-modal-off",
+            "admin-modal-plan-connection",
+            "admin-modal-read-ban",
+            "admin-modal-shortcut",
+            "admin-modal-subscription",
+            "admin-modal-tab",
+            "admin-modal-top-theme-next-next",
+            "admin-modal-total",
+            "admin-modal-view-text-topic",
+            "admin-reply-notice-permissions",
+            "admin-room-result-device",
+            "admin-tips-ban-mode-expired-recording"
+          ],
+          "one": {
+            "argument": "title",
+            "id": "actions-joined-busy"
+          },
+          "select": {
+            "argument": "count",
+            "id": "app-form-less-busy-background-connection"
+          },
+          "simple": "activity-available"
+        },
+        "mf2Transfer": {
+          "catalogBytes": 17903,
+          "mark": 126.5,
+          "wasmBytes": 870934,
+          "wasmEnd": 13.700000002980232
+        },
+        "sameText": {
+          "characters": 53622,
+          "equal": true,
+          "locales": [
+            "en",
+            "pl"
+          ],
+          "routes": [
+            "/",
+            "/r1",
+            "/r2",
+            "/r3"
+          ]
+        },
+        "timings": {
+          "fluent": {
+            "format0": {
+              "max": 1.755,
+              "median": 1.183500000014901,
+              "min": 0.725,
+              "n": 10,
+              "values": [
+                0.89,
+                0.77,
+                1.145,
+                1.16,
+                1.2070000000298022,
+                1.5489999999850987,
+                1.3710000000149012,
+                1.405,
+                1.755,
+                0.725
+              ]
+            },
+            "format1": {
+              "max": 2.486000000014901,
+              "median": 2.033999999985099,
+              "min": 1.278999999985099,
+              "n": 10,
+              "values": [
+                1.386000000014901,
+                2.3859999999403954,
+                1.9879999999701976,
+                2.26,
+                1.8319999999552965,
+                2.1259999999403956,
+                1.8210000000149011,
+                2.486000000014901,
+                2.08,
+                1.278999999985099
+              ]
+            },
+            "format2": {
+              "max": 5.198999999985099,
+              "median": 3.1394999999925495,
+              "min": 1.8769999999552964,
+              "n": 10,
+              "values": [
+                1.8769999999552964,
+                4.597000000029802,
+                3.1860000000149014,
+                3.0929999999701976,
+                3.091000000014901,
+                3.61,
+                4.588000000044704,
+                5.198999999985099,
+                2.3180000000447034,
+                2.2220000000298024
+              ]
+            },
+            "hydratedFromNavigation": {
+              "max": 203.69999999552965,
+              "median": 174.54999999701977,
+              "min": 148.80000000447035,
+              "n": 10,
+              "values": [
+                150.39999999850988,
+                148.80000000447035,
+                157.39999999850988,
+                177.09999999403954,
+                171.89999999850988,
+                189.79999999701977,
+                182.09999999403954,
+                191.10000000149012,
+                203.69999999552965,
+                172
+              ]
+            },
+            "hydratedFromWasm": {
+              "max": 182.29999999701977,
+              "median": 158.79999999701977,
+              "min": 135.30000000447035,
+              "n": 10,
+              "values": [
+                136.79999999701977,
+                135.30000000447035,
+                142.20000000298023,
+                157.39999999850988,
+                153.29999999701977,
+                168,
+                160.19999999552965,
+                169.5,
+                182.29999999701977,
+                160.20000000298023
+              ]
+            },
+            "mount": {
+              "max": 76.70000000298023,
+              "median": 57.45000000298023,
+              "min": 36.099999994039536,
+              "n": 10,
+              "values": [
+                41.19999999552965,
+                36.099999994039536,
+                46.19999999552965,
+                54.30000000447035,
+                64.30000000447035,
+                65.19999999552965,
+                60.600000001490116,
+                63.29999999701977,
+                76.70000000298023,
+                46.600000001490116
+              ]
+            },
+            "switch": {
+              "max": 560.3000000044703,
+              "median": 82.40000000223517,
+              "min": 46.099999994039536,
+              "n": 10,
+              "values": [
+                46.099999994039536,
+                560.3000000044703,
+                146.30000000447035,
+                76.80000000447035,
+                83.20000000298023,
+                82.60000000149012,
+                82.20000000298023,
+                94.5,
+                61,
+                54.5
+              ]
+            },
+            "switchBack": {
+              "max": 154,
+              "median": 80.39999999850988,
+              "min": 48.400000005960464,
+              "n": 10,
+              "values": [
+                48.400000005960464,
+                70.79999999701977,
+                154,
+                82.5,
+                91.60000000149012,
+                81.89999999850988,
+                78.89999999850988,
+                95.79999999701977,
+                59.5,
+                57.79999999701977
+              ]
+            }
+          },
+          "mf2": {
+            "format0": {
+              "max": 0.22399999998509884,
+              "median": 0.09349999997764827,
+              "min": 0.05700000002980232,
+              "n": 10,
+              "values": [
+                0.05899999998509884,
+                0.075,
+                0.22399999998509884,
+                0.09199999995529652,
+                0.12299999997019767,
+                0.10300000004470349,
+                0.095,
+                0.12600000001490116,
+                0.065,
+                0.05700000002980232
+              ]
+            },
+            "format1": {
+              "max": 1.643999999985099,
+              "median": 0.7499999999627471,
+              "min": 0.47399999998509884,
+              "n": 10,
+              "values": [
+                0.5510000000149011,
+                0.5619999999552965,
+                1.643999999985099,
+                0.7209999999403953,
+                0.8520000000298024,
+                0.9639999999850989,
+                0.7789999999850988,
+                1.2960000000149012,
+                0.53,
+                0.47399999998509884
+              ]
+            },
+            "format2": {
+              "max": 4.167999999970197,
+              "median": 2.4074999999999998,
+              "min": 1.5629999999701978,
+              "n": 10,
+              "values": [
+                1.635,
+                1.593999999985099,
+                2.618999999985099,
+                2.399000000059605,
+                2.415999999940395,
+                2.4520000000298023,
+                2.709000000059605,
+                4.167999999970197,
+                1.6140000000596046,
+                1.5629999999701978
+              ]
+            },
+            "hydratedFromNavigation": {
+              "max": 210.89999999850988,
+              "median": 149,
+              "min": 126.5,
+              "n": 10,
+              "values": [
+                126.5,
+                133.69999999552965,
+                210.89999999850988,
+                146,
+                160.5,
+                152,
+                152.69999999552965,
+                167.10000000149012,
+                144.5,
+                134.70000000298023
+              ]
+            },
+            "hydratedFromWasm": {
+              "max": 175.5,
+              "median": 129.79999999701977,
+              "min": 101.79999999701977,
+              "n": 10,
+              "values": [
+                112.79999999701977,
+                121.5,
+                175.5,
+                126.39999999850988,
+                141,
+                133.19999999552965,
+                137.79999999701977,
+                147.70000000298023,
+                101.79999999701977,
+                123.70000000298023
+              ]
+            },
+            "mount": {
+              "max": 23.700000002980232,
+              "median": 14.199999999254942,
+              "min": 7.399999998509884,
+              "n": 10,
+              "values": [
+                7.399999998509884,
+                12,
+                23.700000002980232,
+                10.800000004470348,
+                16.600000001490116,
+                12,
+                11.299999997019768,
+                21.799999997019768,
+                16.700000002980232,
+                16.399999998509884
+              ]
+            },
+            "switch": {
+              "max": 15.699999995529652,
+              "median": 10.25,
+              "min": 7.299999997019768,
+              "n": 10,
+              "values": [
+                9.899999998509884,
+                9.5,
+                10,
+                10.5,
+                15.699999995529652,
+                12.700000002980232,
+                12.799999997019768,
+                12,
+                7.299999997019768,
+                7.5
+              ]
+            },
+            "switchBack": {
+              "max": 14.600000001490116,
+              "median": 12.74999999627471,
+              "min": 7.899999998509884,
+              "n": 10,
+              "values": [
+                11.099999994039536,
+                10.800000004470348,
+                13.199999995529652,
+                13.299999997019768,
+                14.5,
+                14.600000001490116,
+                12.399999998509884,
+                13.099999994039536,
+                8.099999994039536,
+                7.899999998509884
+              ]
+            }
+          }
+        }
+      },
+      "version": "143.0.7499.4"
+    },
+    {
+      "assertions": [
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/-in-en",
+          "pass": true
+        },
+        {
+          "details": "6187 characters",
+          "id": "same-text-en/",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r1-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r1-in-en",
+          "pass": true
+        },
+        {
+          "details": "6178 characters",
+          "id": "same-text-en/r1",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r2-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r2-in-en",
+          "pass": true
+        },
+        {
+          "details": "6322 characters",
+          "id": "same-text-en/r2",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "fluent-en/r3-in-en",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "en"
+          },
+          "id": "mf2-en/r3-in-en",
+          "pass": true
+        },
+        {
+          "details": "6320 characters",
+          "id": "same-text-en/r3",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7110 characters",
+          "id": "same-text-pl/",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r1-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r1-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7049 characters",
+          "id": "same-text-pl/r1",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r2-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r2-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7195 characters",
+          "id": "same-text-pl/r2",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "fluent-pl/r3-in-pl",
+          "pass": true
+        },
+        {
+          "details": {
+            "lang": "pl"
+          },
+          "id": "mf2-pl/r3-in-pl",
+          "pass": true
+        },
+        {
+          "details": "7261 characters",
+          "id": "same-text-pl/r3",
+          "pass": true
+        },
+        {
+          "id": "negative-control-en-vs-pl-differ",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000
+          },
+          "id": "fluent-mounted-2000-nodes",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000,
+            "format": {
+              "0": 1.12,
+              "1": 1.68,
+              "2": 2.43
+            },
+            "mount": 47,
+            "switch": 58,
+            "switchBack": 58,
+            "text": "Result than page still screenshots.",
+            "warm": [
+              71,
+              57
+            ]
+          },
+          "id": "fluent-switch-reaches-every-node",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000
+          },
+          "id": "mf2-mounted-2000-nodes",
+          "pass": true
+        },
+        {
+          "details": {
+            "count": 2000,
+            "format": {
+              "0": 0.1,
+              "1": 0.67,
+              "2": 2.42
+            },
+            "mount": 16,
+            "switch": 25,
+            "switchBack": 41,
+            "text": "Result than page still screenshots.",
+            "warm": [
+              10,
+              30
+            ]
+          },
+          "id": "mf2-switch-reaches-every-node",
+          "pass": true
+        },
+        {
+          "details": [],
+          "id": "no-page-error",
+          "pass": true
+        }
+      ],
+      "browser": "firefox",
+      "data": {
+        "console": [],
+        "fluentTransfer": {
+          "mark": 159,
+          "wasmBytes": 2024266,
+          "wasmEnd": 33
+        },
+        "ids": {
+          "nodes": [
+            "activity-available",
+            "activity-search-token-busy-id-banner",
+            "admin-audio-notification",
+            "admin-badge",
+            "admin-badges-add-token",
+            "admin-badges-bot-date",
+            "admin-badges-id",
+            "admin-badges-moderation",
+            "admin-badges-read-no",
+            "admin-badges-tooltip",
+            "admin-badges-up",
+            "admin-badges-up-missing-header-camera",
+            "admin-copy-count",
+            "admin-done-share-mode-public-header",
+            "admin-download-confirm",
+            "admin-input-close",
+            "admin-input-count",
+            "admin-input-edit-bot-away-info-busy",
+            "admin-input-header-dialog-title-no",
+            "admin-input-join-tag",
+            "admin-input-keyboard-screen-dialog-notice",
+            "admin-input-participant",
+            "admin-input-total-footer-member",
+            "admin-labels-admin-text-bot",
+            "admin-labels-by-reset",
+            "admin-labels-id",
+            "admin-labels-no",
+            "admin-labels-private-keyboard",
+            "admin-labels-report-device",
+            "admin-labels-topic-attachment",
+            "admin-labels-up",
+            "admin-modal-action-video",
+            "admin-modal-back-visibility",
+            "admin-modal-by-keyboard",
+            "admin-modal-code-banner-notice",
+            "admin-modal-failed-result",
+            "admin-modal-hint-dialog",
+            "admin-modal-joined-notification",
+            "admin-modal-off",
+            "admin-modal-plan-connection",
+            "admin-modal-read-ban",
+            "admin-modal-shortcut",
+            "admin-modal-subscription",
+            "admin-modal-tab",
+            "admin-modal-top-theme-next-next",
+            "admin-modal-total",
+            "admin-modal-view-text-topic",
+            "admin-reply-notice-permissions",
+            "admin-room-result-device",
+            "admin-tips-ban-mode-expired-recording"
+          ],
+          "one": {
+            "argument": "title",
+            "id": "actions-joined-busy"
+          },
+          "select": {
+            "argument": "count",
+            "id": "app-form-less-busy-background-connection"
+          },
+          "simple": "activity-available"
+        },
+        "mf2Transfer": {
+          "catalogBytes": 17903,
+          "mark": 136,
+          "wasmBytes": 870934,
+          "wasmEnd": 31
+        },
+        "sameText": {
+          "characters": 53622,
+          "equal": true,
+          "locales": [
+            "en",
+            "pl"
+          ],
+          "routes": [
+            "/",
+            "/r1",
+            "/r2",
+            "/r3"
+          ]
+        },
+        "timings": {
+          "fluent": {
+            "format0": {
+              "max": 1.42,
+              "median": 1.005,
+              "min": 0.73,
+              "n": 10,
+              "values": [
+                1.12,
+                1.01,
+                1.21,
+                1.14,
+                1,
+                0.73,
+                0.8,
+                0.75,
+                0.99,
+                1.42
+              ]
+            },
+            "format1": {
+              "max": 3.1,
+              "median": 1.6150000000000002,
+              "min": 1.18,
+              "n": 10,
+              "values": [
+                1.68,
+                1.62,
+                1.61,
+                1.8,
+                1.62,
+                1.19,
+                1.32,
+                1.18,
+                1.59,
+                3.1
+              ]
+            },
+            "format2": {
+              "max": 5.43,
+              "median": 2.5,
+              "min": 1.85,
+              "n": 10,
+              "values": [
+                2.43,
+                2.93,
+                2.62,
+                2.57,
+                3.15,
+                1.93,
+                2.17,
+                1.85,
+                1.94,
+                5.43
+              ]
+            },
+            "hydratedFromNavigation": {
+              "max": 170,
+              "median": 140.5,
+              "min": 122,
+              "n": 10,
+              "values": [
+                159,
+                137,
+                170,
+                157,
+                144,
+                133,
+                130,
+                144,
+                131,
+                122
+              ]
+            },
+            "hydratedFromWasm": {
+              "max": 130,
+              "median": 114.5,
+              "min": 61,
+              "n": 10,
+              "values": [
+                126,
+                111,
+                130,
+                120,
+                118,
+                109,
+                102,
+                121,
+                103,
+                61
+              ]
+            },
+            "mount": {
+              "max": 51,
+              "median": 38.5,
+              "min": 32,
+              "n": 10,
+              "values": [
+                47,
+                39,
+                51,
+                45,
+                46,
+                35,
+                32,
+                34,
+                33,
+                38
+              ]
+            },
+            "switch": {
+              "max": 106,
+              "median": 58.5,
+              "min": 48,
+              "n": 10,
+              "values": [
+                58,
+                60,
+                59,
+                57,
+                68,
+                48,
+                48,
+                60,
+                50,
+                106
+              ]
+            },
+            "switchBack": {
+              "max": 131,
+              "median": 61.5,
+              "min": 48,
+              "n": 10,
+              "values": [
+                58,
+                61,
+                63,
+                62,
+                71,
+                54,
+                48,
+                61,
+                68,
+                131
+              ]
+            }
+          },
+          "mf2": {
+            "format0": {
+              "max": 0.12,
+              "median": 0.09,
+              "min": 0.07,
+              "n": 10,
+              "values": [
+                0.1,
+                0.12,
+                0.1,
+                0.12,
+                0.08,
+                0.07,
+                0.08,
+                0.07,
+                0.1,
+                0.08
+              ]
+            },
+            "format1": {
+              "max": 0.82,
+              "median": 0.625,
+              "min": 0.54,
+              "n": 10,
+              "values": [
+                0.67,
+                0.8,
+                0.82,
+                0.82,
+                0.62,
+                0.54,
+                0.59,
+                0.63,
+                0.62,
+                0.59
+              ]
+            },
+            "format2": {
+              "max": 2.93,
+              "median": 1.6099999999999999,
+              "min": 1.35,
+              "n": 10,
+              "values": [
+                2.42,
+                2.13,
+                2.93,
+                1.99,
+                1.58,
+                1.64,
+                1.57,
+                1.35,
+                1.53,
+                1.49
+              ]
+            },
+            "hydratedFromNavigation": {
+              "max": 159,
+              "median": 129.5,
+              "min": 106,
+              "n": 10,
+              "values": [
+                136,
+                154,
+                147,
+                159,
+                130,
+                123,
+                106,
+                121,
+                128,
+                129
+              ]
+            },
+            "hydratedFromWasm": {
+              "max": 123,
+              "median": 102.5,
+              "min": 49,
+              "n": 10,
+              "values": [
+                105,
+                114,
+                121,
+                123,
+                96,
+                102,
+                49,
+                102,
+                96,
+                103
+              ]
+            },
+            "mount": {
+              "max": 16,
+              "median": 12.5,
+              "min": 8,
+              "n": 10,
+              "values": [
+                16,
+                12,
+                13,
+                11,
+                11,
+                15,
+                12,
+                15,
+                8,
+                15
+              ]
+            },
+            "switch": {
+              "max": 25,
+              "median": 15.5,
+              "min": 11,
+              "n": 10,
+              "values": [
+                25,
+                15,
+                22,
+                19,
+                11,
+                15,
+                14,
+                23,
+                16,
+                13
+              ]
+            },
+            "switchBack": {
+              "max": 41,
+              "median": 20.5,
+              "min": 14,
+              "n": 10,
+              "values": [
+                41,
+                19,
+                24,
+                25,
+                14,
+                17,
+                22,
+                24,
+                19,
+                15
+              ]
+            }
+          }
+        }
+      },
+      "version": "155.0"
+    }
+  ],
+  "command": "cargo xtask fluent-ab --browser chromium,firefox --runs 10",
+  "commit": "391ef2a99b5b38318ef7758ea50d3e4b251d7f3c",
+  "date": "2026-09-25T18:12Z",
+  "load": {
+    "after": "3.20 4.27 5.85",
+    "before": "3.20 4.71 6.25"
+  },
+  "size": {
+    "fluent": {
+      "firstVisit": {
+        "br": 609071,
+        "gz": 983963,
+        "raw": 3443144
+      },
+      "js": {
+        "br": 7087,
+        "gz": 8366,
+        "raw": 47782
+      },
+      "perAddedLocale": {
+        "br": 18853,
+        "gz": 66042,
+        "raw": 252018
+      },
+      "sourceLocaleOnly": {
+        "br": 552514,
+        "gz": 785839,
+        "raw": 2687092
+      },
+      "wasm": {
+        "br": 601984,
+        "gz": 975597,
+        "raw": 3395362
+      }
+    },
+    "mf2": {
+      "catalogs": {
+        "ar-XB": {
+          "br": 18383,
+          "gz": 21237,
+          "raw": 61342
+        },
+        "en": {
+          "br": 17903,
+          "gz": 20563,
+          "raw": 51394
+        },
+        "en-XA": {
+          "br": 21445,
+          "gz": 24485,
+          "raw": 101078
+        },
+        "pl": {
+          "br": 24021,
+          "gz": 27012,
+          "raw": 67825
+        }
+      },
+      "firstVisit": {
+        "br": 448037,
+        "gz": 642980,
+        "raw": 2203137
+      },
+      "js": {
+        "br": 7166,
+        "gz": 8465,
+        "raw": 47937
+      },
+      "wasm": {
+        "br": 422968,
+        "gz": 613952,
+        "raw": 2103806
+      }
+    }
+  },
+  "versions": {
+    "browsers": [
+      "chromium 143.0.7499.4",
+      "firefox 155.0"
+    ],
+    "fluent-bundle": "0.16.0",
+    "fluent-templates": "0.15.1",
+    "leptos (leptos-fluent side)": "0.8.20",
+    "leptos (mf2 side)": "0.8.20",
+    "leptos-fluent": "0.3.1",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "tachys (both sides)": "0.2.18",
+    "wasm-bindgen": "wasm-bindgen 0.2.128",
+    "wasm-opt": "wasm-opt version 120"
+  },
+  "workload": {
+    "richSites": 8,
+    "seed": 1,
+    "sites": 1860
+  }
+}

@@ -420,7 +420,11 @@ snapshot with its commit ([master plan](00-master-plan.md) §9 P8), on the
 reference-workload application of §2 — built on `leptos-fluent` and
 converted by Phase 8's own tools (owner, 2026-09-24;
 [16](16-phase-8-work-order.md) A5). A later commit is audited against that
-snapshot on the owner's request.
+snapshot on the owner's request. **The snapshot:**
+[`bench/fluent-ab/SNAPSHOT.md`](../bench/fluent-ab/SNAPSHOT.md) (commit
+`391ef2a`, 2026-09-25; `cargo xtask fluent-ab`) — a first visit in `en`
+983,963 B gz on `leptos-fluent`, 642,980 B gz on mf2; each added locale
+66,042 B gz in every visitor's wasm there, nothing in the wasm here.
 
 Benchmarks (`criterion` native; a small wasm timing harness in the browser) cover
 load, simple lookup, pattern format, select format, and locale switch with 2,000

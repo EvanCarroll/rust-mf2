@@ -113,7 +113,7 @@ three phases left unbuilt: dates in the reader's time zone.
 
 ## Part A — tasks (A1 and A2 first, then A3; A0 before any other task; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
-**A0 is done** (2026-09-25; what was built is below the table).
+**A0 and A5 are done** (2026-09-25; what was built is below the table).
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -368,6 +368,45 @@ call sites and builds. What was built is below the table.
   conversion exits 1 while work is left). The finished application is
   checked for the server and for wasm like every other page's.
 
+## A5 — the `leptos-fluent` A/B: what was built
+
+* **`cargo xtask fluent-ab`** (`xtask/src/fluent_ab.rs`,
+  `tools/e2e/checks/fluent-ab.mjs`, `bench/fluent-ab/README.md`). The
+  reference workload with `fluent-view`; the mf2 side is a copy of it put
+  through the guide's commands (`mf2 init --no-messages`, `mf2 convert
+  --from leptos-fluent --write`, the report checked as `fluent-migrate`
+  checks it) and finished as the guide says, from `bench/fluent-ab/mf2/`
+  (manifest, entry points, server) and the shell edited in place. Both on
+  **Leptos 0.8**: `leptos-fluent` 0.3.1 (newest, 2025-12-29) requires
+  < 0.9 (§"Standing").
+* **Departure, recorded in the README:** the sizes are the size gate's own
+  pipeline, but the application the browser times is `cargo leptos build
+  --release --split`. The generated applications' lazy routes are
+  `wasm_split` imports (`__wasm_split_placeholder__`) that only the split
+  step resolves, so the gate's unsplit client does not run in a browser —
+  found on the first trial, where neither side hydrated. The snapshot
+  gives both: the whole client from the gate's pipeline, and what a first
+  visit to `/` downloaded of the split build.
+* **Timing hooks** behind an `ab-bench` feature that the sized build
+  leaves off: a `performance.mark` after hydration, `ab_mount`,
+  `ab_format`, `ab_switch`, `ab_preload` — each side through its own
+  library's API, the same message ids on both (chosen from the workload).
+* **The same-text check** compares the whole hydrated `<main>` of `/`,
+  `/r1`, `/r2`, `/r3` in `en` and `pl` (53,622 characters), bidi marks
+  aside, with a control that it sees a locale difference; equal in both
+  engines. 8 sites are the split sentence on both sides.
+* **The snapshot:** `bench/fluent-ab/SNAPSHOT.md` and `snapshot.json`, of
+  commit `391ef2a` (2026-09-25, Chromium 143 and Firefox 155, 10 runs a
+  side, load 3.2, 60/60 assertions). The whole client: 975,597 → 613,952
+  B gz wasm; a first visit in `en` 983,963 B gz on `leptos-fluent` against
+  642,980 B gz (wasm + JS + the `en` catalog) on mf2; each added locale
+  66,042 B gz in every visitor's wasm on `leptos-fluent`, a 21–27 KB gz
+  catalog for its own readers only on mf2. Chromium medians: first frame
+  after the wasm's load 158.8 → 129.8 ms; a simple format 1.18 → 0.09 µs,
+  one argument 2.03 → 0.75, a select 3.14 → 2.41; a switch with 2,000
+  live nodes 82.4 → 10.3 ms. Firefox the same way round (the snapshot has
+  every figure, with its minimum and maximum).
+
 ## Standing: Leptos 0.9
 
 *Superseded by owner question 6 (2026-09-24):* 0.9 is the default now,
@@ -386,7 +425,7 @@ then move and ask about 0.8.)
       each counted (A3; owner question 5)
 - [x] the call-site codemod and the migration guide, the guide's samples
       compiled (A4)
-- [ ] the `leptos-fluent` A/B measured on the reference application,
+- [x] the `leptos-fluent` A/B measured on the reference application,
       reported, and its snapshot committed with the commit it measured (A5)
 - [ ] XLIFF 2 vendored, its mapping designed, export and import built and
       validated against the schema (A6)
