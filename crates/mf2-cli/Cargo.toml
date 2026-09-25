@@ -29,6 +29,9 @@ serde_json.workspace = true
 thiserror = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
+fluent-bundle.workspace = true
+mf2 = { workspace = true, features = ["compile", "fn-number", "host-std"] }
+unic-langid.workspace = true
 workload-gen.workspace = true
 
 [lints]

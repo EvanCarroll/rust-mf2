@@ -730,6 +730,20 @@ differs):
   bare `{$n}` in a variant formats through it (`:number`, with
   `minimumFractionDigits` if the `NUMBER` selector had it); `fluent-bundle`
   writes the argument as given.
+* *Found by A3:* a selector's `:number` selects on the value it shows,
+  rounded to `maximumFractionDigits` (3 by default), so 1.0004 selects
+  `one` in English where `fluent-bundle` selects `other` on the exact value
+  — here the variant differs, and the shown number and the wording agree.
+* *Found by A3:* `fluent-bundle`'s plural rules (`intl_pluralrules`) are
+  older CLDR than `mf2-locale-data`'s: French 1,000,000 is `many` here and
+  `other` there, and it gives an ordinal of a non-integer a category CLDR
+  does not (English 1.5 is `one` there). Only a select whose default is not
+  `other` shows it.
+
+All of these are accepted as what "formats identically" allows (owner,
+2026-09-24; [16](16-phase-8-work-order.md) question 5, with the counts in
+§A3). The last one, not a class of A3's (no sampled pair shows it):
+
 * A term reference inside a term: `fluent-bundle` clears the term's
   arguments when the inner reference returns (its `local_args = None`), so a
   variable *after* it in the outer term reads the message's arguments. The

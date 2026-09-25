@@ -85,10 +85,26 @@ three phases left unbuilt: dates in the reader's time zone.
    master plan (§9 P8) and 06 §6. The question as it was put: the reference
    application, the small demo example ported to `leptos-fluent`, or both.
 
+5. **Which differences between a converted message and its Fluent original
+   count as "formats identically"** — **answered (owner, 2026-09-24): all
+   four classes A3 measured are accepted**, each with its count (§A3 below):
+   numbers are localized where `fluent-bundle` prints `f64`'s text; the
+   invisible bidi isolates follow MF2's Default Bidi Strategy; a decimal
+   with more than three places selects its variant as `:number` rounds it
+   (the shown number and the wording agree); current CLDR plural rules,
+   not `intl_pluralrules`' older ones. Nothing is changed to imitate
+   Fluent. Recorded in the master plan (§9 P8, exit) and 05 §6.1. The
+   question as it was put, class by class: accept, or imitate Fluent's raw
+   numbers / change the isolation strategy / have the converter reproduce
+   Fluent's variant choice / have the converter warn about selects whose
+   default is not `other`.
+
 ## Part A — tasks (A1 and A2 first, then A3; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
-**A1 and A2 are done** (2026-09-24): A2's corpus converts with no finding,
-which was A1's last criterion. What was built is below the table.
+**A1, A2 and A3 are done** (2026-09-24): A2's corpus converts with no
+finding, which was A1's last criterion; converted catalogs format as the
+originals but for four owner-approved classes (owner question 5). What was
+built is below the table.
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -173,6 +189,54 @@ which was A1's last criterion. What was built is below the table.
   of the comparison. A5 — the B6 grep pattern for the canary id is dotted;
   on either side of the A/B the id is `app-canary-zq7-canary-msg`.
 
+## A3 — the `fluent-bundle` oracle: what was built
+
+* **`crates/mf2-cli/tests/fluent_oracle.rs`**, in one process: each
+  original formatted with `fluent-bundle` 0.16.0 (a dev-dependency of
+  `mf2-cli`, with `unic-langid` for its locale; nothing else depends on
+  it), each converted message with `mf2` from catalogs `mf2-build` wrote
+  from `mf2 convert --from fluent`'s output. Corpora: A2's reference
+  workload (1,616 entries × 4 locales) and the construct corpus's mapped
+  part. Settings: isolation on both sides / off on both, and the catalogs
+  built with no function feature (the core `:number`) or with `fn-number`
+  (the construct corpus needs it, so it has only the latter). 8 s, debug.
+* **The argument set.** A variable Fluent reads as a number (a `NUMBER`
+  operand, or a bare selector with a number or category key) gets 41
+  numbers: integers at the plural boundaries of `en`, `pl`, `fr`, `pt` and
+  `ar` (0 … 6, 10 … 15, 21, 22, 25, 99 … 103, 111, 112, 1000, 1001, 12345,
+  10⁶, 1234567, 12345678901), negatives, decimals (0.5, 1.5, 2.25, −1.5,
+  0.1, 1234.5, 1e−7, 1.0004). Any other variable gets those and three
+  strings (Latin, RTL, empty). Each variable sees every value of its set.
+  A `DATETIME` message has no oracle (7 units of the construct corpus,
+  counted).
+* **Classification** (the test's module comment): a pair that differs is
+  explained by isolation marks removed; else by numbers read as tokens
+  (and a currency mark beside one); else, for a different variant, by one
+  of two causes each **checked**, not assumed — Fluent given the value
+  rounded as `:number` rounds it agrees, or a probe message on each side
+  puts the number in different plural categories. Anything else is
+  *unexplained* and fails the test, as does a class outside the approved
+  list. **Negative control:** a Polish `one` variant dropped from one
+  converted message fails it, naming the message and `$count=Int(1)`.
+* **Counts** (pairs; 64,088 per workload setting, 868 per construct
+  setting). *Workload, core:* 42 number rendering (a decimal of more than
+  three places shown rounded), 70 selection by a rounded decimal, and with
+  isolation on 56,204 isolation. *Workload, `fn-number`:* 17,242 number
+  rendering (grouping 11,093; decimal separator 2,951; grouping + decimal
+  separator 500; a sign with a bidi mark in `ar-XB` 1,312; grouping + sign
+  798; at a selector's placeholder 588), 70 selection by a rounded decimal,
+  with isolation on 39,004 isolation. *Constructs, `fn-number`:* 238
+  number rendering (`NUMBER` options, percent and currency that
+  `fluent-bundle` does not apply among them), 9 selection by a rounded
+  decimal, 1 cardinal rules (`fr` 1,000,000: `many` in current CLDR,
+  `other` in `fluent-bundle`), 5 ordinal of a non-integer (`en` 1.5:
+  `one` there, `other` in CLDR), with isolation on 309 isolation. No pair
+  unexplained.
+* **Found beyond 05 §6.1's list** (now in it): the rounded-decimal
+  selection, and the plural-rule differences. The workload's usual
+  `*[other]` default hides the latter: only a select whose default is not
+  `other` shows it.
+
 ## Standing: Leptos 0.9
 
 If Leptos 0.9 is released during Phase 8, `cargo xtask leptos-beta` says so
@@ -184,9 +248,9 @@ task continues. Until then the nightly job keeps the 0.9 glue honest.
 
 - [x] a Fluent corpus of reference-workload shape converts with a report of
       zero unmapped constructs (A1, A2)
-- [ ] converted catalogs format identically to the Fluent originals on a
+- [x] converted catalogs format identically to the Fluent originals on a
       sampled argument set — or differ only in classes the owner approved,
-      each counted (A3)
+      each counted (A3; owner question 5)
 - [ ] the call-site codemod and the migration guide, the guide's samples
       compiled (A4)
 - [ ] the `leptos-fluent` A/B measured on the reference application,

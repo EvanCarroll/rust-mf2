@@ -408,7 +408,10 @@ everything before it).
   (owner, 2026-09-24, replacing Phase 7's per-commit benchmark history).
 * **Exit**: a Fluent corpus of reference-workload shape converts with a report of
   zero unmapped constructs; converted catalogs format identically to the Fluent
-  originals on a sampled argument set; the `leptos-fluent` A/B measured,
+  originals on a sampled argument set, but for the classes of difference the
+  owner approved (2026-09-24: localized numbers, bidi isolates, selection on
+  a rounded decimal, current CLDR plural rules — [16](16-phase-8-work-order.md)
+  §A3); the `leptos-fluent` A/B measured,
   reported and its snapshot committed; XLIFF 2 export and import validated
   against the vendored schema; dates in the reader's time zone. Work order:
   [16](16-phase-8-work-order.md).
