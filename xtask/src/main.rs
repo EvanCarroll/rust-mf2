@@ -29,6 +29,7 @@ mod report;
 mod scenarios;
 mod size;
 mod spec_sync;
+mod xliff_sync;
 
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -66,6 +67,18 @@ enum Command {
     LocaleData,
     /// Vendor the W3C Message Resource draft (blocked until its license is confirmed).
     ResourceSync,
+    /// Vendor the XLIFF 2 core (the OASIS Standard's specification and XML
+    /// schemas) named in `third_party/xliff/PIN`, each file checked against
+    /// the PIN's SHA-256.
+    XliffSync {
+        /// List the published versions and their stages; fetch nothing else.
+        #[arg(long, conflicts_with = "check")]
+        list: bool,
+        /// Re-fetch the pinned files and compare them byte for byte with the
+        /// vendored ones; never writes into `third_party/`.
+        #[arg(long)]
+        check: bool,
+    },
     /// Check conformance/ledger.toml against the vendored suite and write
     /// conformance/REPORT.md.
     ConformanceReport {
@@ -296,6 +309,7 @@ fn run(command: Command) -> Result<()> {
         Command::CldrSync => cldr_sync::run(&root),
         Command::LocaleData => locale_data::run(&root),
         Command::ResourceSync => Err(Error::ResourceSyncBlocked),
+        Command::XliffSync { list, check } => xliff_sync::run(&root, list, check),
         Command::ConformanceReport {
             init,
             force,

@@ -123,6 +123,10 @@ pub(crate) enum Error {
     )]
     ResourceSyncBlocked,
 
+    /// `cargo xtask xliff-sync` could not fetch, check or vendor the standard.
+    #[error("xliff-sync: {0}")]
+    Xliff(String),
+
     #[error("ci step failed: {0}")]
     CiStepFailed(String),
 

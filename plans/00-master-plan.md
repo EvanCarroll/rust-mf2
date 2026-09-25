@@ -126,7 +126,8 @@ mf2-two/
 ├── third_party/                vendored, read-only, pinned
 │   ├── message-format-wg/      spec/ + test/ + LICENSE + PIN
 │   ├── w3c-message-resource/   resource-format draft: explainer, ABNF, data model, schema + PIN
-│   └── cldr-json/              the subset we consume + PIN
+│   ├── cldr-json/              the subset we consume + PIN
+│   └── xliff/                  XLIFF 2.1 core (OASIS Standard): specification + schemas/ + PIN
 ├── crates/
 │   ├── mf2-model/              data model, MsgId, shared error enums        no_std
 │   ├── mf2-syntax/             parser, CST, lowering, validation, serializer no_std
@@ -161,7 +162,7 @@ mf2-two/
 ├── tools/e2e/                  Playwright harness (project-local npm install)
 ├── tools/oracle/               optional JS reference-implementation differ (dev only)
 ├── probes/                     Phase 0 throwaway experiments (deleted in Phase 2, C5; in the first commit)
-├── xtask/                      spec-sync, cldr-sync, resource-sync, conformance-report, l4-wasi, l4-web, size, gen-workload
+├── xtask/                      spec-sync, cldr-sync, resource-sync, xliff-sync, conformance-report, l4-wasi, l4-web, size, gen-workload
 └── .forgejo/workflows/         CI
 ```
 
@@ -246,7 +247,7 @@ ledger; a phase cannot exit with its layer red.
 | D10 | Leptos: **0.9 is the default line, beta or not** (0.9.0-beta at 2026-09-24); 0.8 kept as an opt-in feature, built and tested in CI beside it; glue isolated in one module with the line-specific methods switched by feature (owner, 2026-09-24; replaces "latest stable, 0.9 tracked against its betas") | decided |
 | D11 | License: **MIT**. Publish to crates.io late (P9). Dependencies and vendored material MUST be MIT-compatible (ICU4X and the WG suite are Unicode-3.0 — fine; GPL code is excluded, including as a test oracle) | **decided by owner** |
 | D12 | Crate names as in §4. All 17 (`mf2`, `mf2-*`, `leptos-mf2`) were unregistered on crates.io on 2026-09-20; unrelated `mf2_parser` / `mf2_i18n*` exist. Re-verify at P9; consider reserving early | working assumption |
-| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24) | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
+| D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24): XLIFF 2.1, the newest OASIS Standard (2.2 is a Committee Specification), `third_party/xliff/`, `cargo xtask xliff-sync` — OASIS's notice permits verbatim copies with the notice kept and forbids modifying them, which a read-only `third_party/` satisfies | decided; whether `spec/` itself may stay vendored in a public repository is an **open owner decision** (upstream license change #1112 — [01](01-conformance.md) §1) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
 | D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **settled: own buffer** — decided by owner (2026-09-21); the A5b gate holds on every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12 clean vs a panic import, 0 vs 0.5 allocations; [phase-3-results](phase-3-results.md) §A5b) |
 

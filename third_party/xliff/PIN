@@ -1,0 +1,75 @@
+upstream = https://docs.oasis-open.org/xliff/
+product  = xliff-core
+version  = 2.1
+stage    = os
+package  = xliff-core-v2.1-os.zip
+files    = xliff-core-v2.1-os.html
+           xliff-core-v2.1-os.xml
+           schemas/catalog.xml
+           schemas/fs.sch
+           schemas/fs.xsd
+           schemas/glossary.sch
+           schemas/glossary.xsd
+           schemas/its.sch
+           schemas/its.xsd
+           schemas/itsm.xsd
+           schemas/matches.sch
+           schemas/matches.xsd
+           schemas/metadata.sch
+           schemas/metadata.xsd
+           schemas/resource_data.sch
+           schemas/resource_data.xsd
+           schemas/size_restriction.sch
+           schemas/size_restriction.xsd
+           schemas/validation.sch
+           schemas/validation.xsd
+           schemas/xliff_2_advanced_validation.nvdl
+           schemas/xliff_core_2.0.xsd
+           schemas/xliff_core_2.1.sch
+           schemas/informativeCopiesOf3rdPartySchemas/readme.txt
+           schemas/informativeCopiesOf3rdPartySchemas/w3c/xml.xsd
+digests  = 73efc952aed29a31e8a6af1f985224d49c7bb67e6691fec8c2c994aa3d3d1751  xliff-core-v2.1-os.zip
+           f1ef04271cff326944cdec4f251d116853f937d4a8e3518e650554cd48848946  schemas/catalog.xml
+           3fc86b3dcdef3a6d9d822fbe9162fc226024e7f668f49a8b4bf7447fe86bbcbf  schemas/fs.sch
+           bcbabcfe652c4f1b86c34e42010a5288c3b74f3fe44d6b817a121c3bca83ada9  schemas/fs.xsd
+           c8c108a753181203c676ed4c17df949a4d9e58b2377be564cbf252663356829a  schemas/glossary.sch
+           54797c7fcc6931b0777f4c594f082ef4063d9a2f0152d6b3e8cc7588f5ada26d  schemas/glossary.xsd
+           dbb2caf27591e9915c71dec8c57db8aaef877c5fe83c2fc7062d868bfa481623  schemas/informativeCopiesOf3rdPartySchemas/readme.txt
+           61960fb3131e38022caad5360e2f33a3382578ab3c80cd58bd74320ede61b20c  schemas/informativeCopiesOf3rdPartySchemas/w3c/xml.xsd
+           81849fd787c85b24a5239769f065aae712dc4401d3556245b53d567b8dc8c331  schemas/its.sch
+           a85624c95acc7dd17ca27ec174f24bc284dbd95e26cc68cdd04c053ab6c3903c  schemas/its.xsd
+           ae01e40a6c7ebfa40aba509a3b5d6b7f9830dafa092adcd60fb976aba0d02399  schemas/itsm.xsd
+           d58c0e7a240ea7b82cfd0fa9f23c0eb7e70ac8593d203c4e9dd0af64e3973284  schemas/matches.sch
+           f8d348693907774259e162b9e4ab84fa673aa1655edb1eac8ff605b909e6ee46  schemas/matches.xsd
+           0adbf007c0fcfe2b88c10e61bb78ba75ef4e884ceceb6afe8dff44d38acba079  schemas/metadata.sch
+           f00e5b225bd11bb71cc5494f25bd63a323730d78c1ce79a3c7bc144ef51a47e1  schemas/metadata.xsd
+           1c461cb3bf1ea34b6afb71f93c10fda452232c37c3fd8fd71e678855cc14759a  schemas/resource_data.sch
+           02249bcd1e608209fb51b0348afcee8daeb4a0b6819ac8592307cd076f6c5f10  schemas/resource_data.xsd
+           27aadf5b0fa73048d604330569f57c28f43357dd208e0fa8ab588e62342b3230  schemas/size_restriction.sch
+           e90519360c7ecaaf8c35d246cd30147a804d220119bbc25eb729d19c84062614  schemas/size_restriction.xsd
+           08b1a921794d9e98096d70e1b2b817d95c0d5511e3115ee1188c0064d30f5d1f  schemas/validation.sch
+           80f7d811648d28b117c49a403bd039bc16f3c1e5a1c1ed703428ae2a34e4e4fc  schemas/validation.xsd
+           40d3f5f292a7db57a9b8ccb60aa202b2927d8ec74c5aa88252233b05d24574c2  schemas/xliff_2_advanced_validation.nvdl
+           5686d2dbe9dac95e34d1b06a805e1e0f4999db5d5a67dc8bb8514c780592a84d  schemas/xliff_core_2.0.xsd
+           d4275f2d2574f892624bcd8f83bcc3001c75d623e4eb36896d15d147f16ed7a2  schemas/xliff_core_2.1.sch
+           fdd293f4344920dfde643c578caca94da80261dc74f75baba7215da6e6d10bc1  xliff-core-v2.1-os.html
+           e8c72ec2314e1025f25886cd0ea2b6c10aa2405bd292026383afca2207c44e5b  xliff-core-v2.1-os.xml
+status   = OASIS Standard, 13 February 2018 — the newest OASIS Standard of the XLIFF 2
+           core on 2026-09-25 (`--list`: v2.2 is published only up to cs01, a Committee
+           Specification). The core schema's namespace is still
+           urn:oasis:names:tc:xliff:document:2.0 (schemas/xliff_core_2.0.xsd).
+redistribute = yes
+license  = the OASIS copyright notice (the specification's "Notices", read 2026-09-25,
+           before anything was copied): "This document and translations of it may be
+           copied and furnished to others ... without restriction of any kind, provided
+           that the above copyright notice and this section are included on all such
+           copies"; the document "may not be modified in any way". Every file is
+           vendored verbatim, notice included; the schemas carry "Copyright (c) OASIS
+           Open 2018" and point to the TC's IPR statement.
+           schemas/informativeCopiesOf3rdPartySchemas/w3c/xml.xsd is W3C's
+           http://www.w3.org/2009/01/xml.xsd, which xliff_core_2.0.xsd imports; OASIS
+           ships it as an informative copy (its readme.txt). Not vendored:
+           informativeCopiesOf3rdPartySchemas/extensions/change_tracking.xsd (no owner or
+           notice stated, and nothing core imports it), the .pdf and the .zip (the same
+           content again).
+refresh  = cargo xtask xliff-sync   (--list: the published versions; --check: re-fetch and compare)

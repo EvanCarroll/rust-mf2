@@ -114,6 +114,7 @@ three phases left unbuilt: dates in the reader's time zone.
 ## Part A — tasks (A1 and A2 first, then A3; A0 before any other task; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
 **A0 and A5 are done** (2026-09-25; what was built is below the table).
+**A6 (a) is done** (2026-09-25): XLIFF 2.1 vendored (below the table).
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -406,6 +407,28 @@ call sites and builds. What was built is below the table.
   one argument 2.03 → 0.75, a select 3.14 → 2.41; a switch with 2,000
   live nodes 82.4 → 10.3 ms. Firefox the same way round (the snapshot has
   every figure, with its minimum and maximum).
+
+## A6 — XLIFF 2: what was built
+
+* **(a) Vendored** (2026-09-25): `cargo xtask xliff-sync [--list]
+  [--check]` (`xtask/src/xliff_sync.rs`). `--list` reads OASIS's index:
+  v2.0 and v2.1 have an `os` (OASIS Standard) stage, v2.2 only up to
+  `cs01` — so the newest OASIS Standard is **XLIFF 2.1** (13 February
+  2018; its core schema keeps the 2.0 namespace, `xliff_core_2.0.xsd`).
+  The licence was read from the cache before anything was copied (the
+  OASIS notice: verbatim copies with the notice, no modification) and is
+  quoted in `third_party/xliff/PIN` with `redistribute = yes`; without
+  that field the command stops after fetching. **Departure:** the files
+  are taken from the release's ZIP, not fetched one by one — the `.html`
+  served beside it differs on every request (the CDN rewrites each e-mail
+  address), found when the first `--check` failed. The PIN pins the ZIP's
+  and every vendored file's SHA-256; a changed digest is refused, and
+  `--check` compares the vendored tree byte for byte (both negative
+  controls run: a digest altered in the PIN, a vendored file edited).
+  Vendored: the specification (`.html`, and the `.xml` OASIS calls
+  authoritative), `schemas/` with W3C's `xml.xsd` the core schema imports;
+  not `change_tracking.xsd` (no owner or notice, imported by nothing core)
+  or the `.pdf`. 25 files, 1,953,918 bytes.
 
 ## Standing: Leptos 0.9
 
