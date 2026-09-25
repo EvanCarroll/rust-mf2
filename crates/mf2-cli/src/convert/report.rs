@@ -30,12 +30,25 @@ pub(crate) enum Code {
     NumberOption,
     UnreachableVariant,
     DatetimeApproximate,
+    // `--from leptos-fluent`'s call sites (§6.2): every one an error.
+    LfInitializer,
+    LfContext,
+    LfImport,
+    LfDynamicId,
+    LfIfForm,
+    LfCfg,
+    LfArgumentName,
+    LfCall,
+    LfParse,
+    LfDependency,
+    LfUnknownId,
+    LfArguments,
 }
 
 impl Code {
     /// Every code, errors first.
     #[cfg(test)]
-    pub(crate) const ALL: [Code; 18] = [
+    pub(crate) const ALL: [Code; 30] = [
         Code::Junk,
         Code::MissingReference,
         Code::CyclicReference,
@@ -54,6 +67,18 @@ impl Code {
         Code::NumberOption,
         Code::UnreachableVariant,
         Code::DatetimeApproximate,
+        Code::LfInitializer,
+        Code::LfContext,
+        Code::LfImport,
+        Code::LfDynamicId,
+        Code::LfIfForm,
+        Code::LfCfg,
+        Code::LfArgumentName,
+        Code::LfCall,
+        Code::LfParse,
+        Code::LfDependency,
+        Code::LfUnknownId,
+        Code::LfArguments,
     ];
 
     /// The code as the report writes it.
@@ -77,6 +102,18 @@ impl Code {
             Code::NumberOption => "fluent-number-option",
             Code::UnreachableVariant => "fluent-unreachable-variant",
             Code::DatetimeApproximate => "fluent-datetime-approximate",
+            Code::LfInitializer => "leptos-fluent-initializer",
+            Code::LfContext => "leptos-fluent-context",
+            Code::LfImport => "leptos-fluent-import",
+            Code::LfDynamicId => "leptos-fluent-dynamic-id",
+            Code::LfIfForm => "leptos-fluent-if-form",
+            Code::LfCfg => "leptos-fluent-cfg",
+            Code::LfArgumentName => "leptos-fluent-argument-name",
+            Code::LfCall => "leptos-fluent-call",
+            Code::LfParse => "leptos-fluent-parse",
+            Code::LfDependency => "leptos-fluent-dependency",
+            Code::LfUnknownId => "leptos-fluent-unknown-id",
+            Code::LfArguments => "leptos-fluent-arguments",
         }
     }
 
@@ -124,6 +161,11 @@ pub(crate) struct Report {
 }
 
 impl Report {
+    /// Adds findings that are already distinct (one per construct).
+    pub(crate) fn extend(&mut self, findings: impl IntoIterator<Item = Finding>) {
+        self.findings.extend(findings);
+    }
+
     /// Adds a finding, unless the same one is already there: a construct
     /// inside a term is met once per message that uses the term.
     pub(crate) fn push(&mut self, finding: Finding) {
@@ -189,13 +231,18 @@ impl Report {
                 f.code.level(),
                 f.message
             );
-            match &f.id {
-                Some(id) => {
+            // A Rust file's findings have no locale.
+            match (&f.id, f.locale.is_empty()) {
+                (Some(id), false) => {
                     let _ = write!(out, " (in {id}, locale {})", f.locale);
                 }
-                None => {
+                (None, false) => {
                     let _ = write!(out, " (locale {})", f.locale);
                 }
+                (Some(id), true) => {
+                    let _ = write!(out, " (id {id})");
+                }
+                (None, true) => {}
             }
             let _ = writeln!(out, " [{}]", f.code.name());
         }

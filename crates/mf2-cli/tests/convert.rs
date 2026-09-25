@@ -608,3 +608,509 @@ fn fluent_datetime_approximate() {
             .contains("d = {$d :date length=short}")
     );
 }
+
+// `mf2 convert --from leptos-fluent` (Phase 8 A4; plans/05 §6.2): one test
+// per rule and one per code, on a one-file application.
+
+/// The messages every application below has.
+const APP_FTL: &str = "hello = Hello
+greet = Hello, { $name }!
+count = { $n ->
+    [one] One item
+   *[other] { $n } items
+}
+two = { $a-b } and { $c }
+hint =
+    .before = Press
+";
+
+/// What `mf2 convert --from leptos-fluent --write --format json` did to an
+/// application whose only source file is `src/lib.rs`.
+struct Migrated {
+    ok: bool,
+    diagnostics: Vec<Value>,
+    app: PathBuf,
+    lib: String,
+}
+
+impl Migrated {
+    fn one(&self, code: &str) -> &Value {
+        let found: Vec<&Value> = self
+            .diagnostics
+            .iter()
+            .filter(|d| d["code"] == code)
+            .collect();
+        assert_eq!(found.len(), 1, "{code}: {:#?}", self.diagnostics);
+        found[0]
+    }
+
+    /// Asserts that nothing was reported.
+    fn clean(&self) -> &Self {
+        assert!(
+            self.ok && self.diagnostics.is_empty(),
+            "{:#?}",
+            self.diagnostics
+        );
+        self
+    }
+}
+
+/// Writes an application (`Cargo.toml`, `locales/en/main.ftl`, `src/lib.rs`)
+/// and migrates it.
+fn migrate_with(name: &str, manifest: &str, lib: &str, extra: &[&str]) -> Migrated {
+    let dir = scratch(&format!("lf-{name}"));
+    let app = dir.join("app");
+    for (path, body) in [
+        ("Cargo.toml", manifest),
+        ("locales/en/main.ftl", APP_FTL),
+        ("src/lib.rs", lib),
+    ] {
+        let full = app.join(path);
+        std::fs::create_dir_all(full.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&full, body).expect("write");
+    }
+    let mut args = vec![
+        "convert",
+        "--from",
+        "leptos-fluent",
+        app.to_str().expect("utf-8"),
+        "--i18n-crate",
+        "app-i18n",
+        "--write",
+        "--format",
+        "json",
+    ];
+    args.extend_from_slice(extra);
+    let output = run(&dir.join("i18n"), &args);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
+        panic!(
+            "JSON on stdout: {e}\n{}\n{}",
+            text(&output.stdout),
+            text(&output.stderr)
+        )
+    });
+    Migrated {
+        ok: output.status.success(),
+        diagnostics: json["diagnostics"].as_array().cloned().unwrap_or_default(),
+        lib: std::fs::read_to_string(app.join("src/lib.rs")).expect("the source"),
+        app,
+    }
+}
+
+fn migrate(name: &str, lib: &str) -> Migrated {
+    migrate_with(name, "[package]\nname = \"app\"\n", lib, &[])
+}
+
+#[test]
+fn a_leptos_fluent_application_is_converted_and_its_calls_rewritten() {
+    let m = migrate(
+        "whole",
+        "use leptos_fluent::{move_tr, tr};\n\nfn f() -> String {\n    tr!(\"hello\")\n}\n",
+    );
+    m.clean();
+    assert_eq!(
+        m.lib,
+        "use app_i18n::tr;\n\nfn f() -> String {\n    tr!(\"hello\").to_string()\n}\n"
+    );
+    let main = m
+        .app
+        .parent()
+        .expect("dir")
+        .join("i18n/locales/en/main.mf2");
+    assert!(
+        std::fs::read_to_string(main)
+            .expect("converted")
+            .contains("hello = Hello")
+    );
+}
+
+#[test]
+fn without_write_nothing_is_written_and_the_diff_is_shown() {
+    let dir = scratch("lf-dry");
+    let app = dir.join("app");
+    std::fs::create_dir_all(app.join("src")).expect("mkdir");
+    std::fs::create_dir_all(app.join("locales/en")).expect("mkdir");
+    std::fs::write(app.join("Cargo.toml"), "[package]\nname = \"app\"\n").expect("write");
+    std::fs::write(app.join("locales/en/main.ftl"), APP_FTL).expect("write");
+    let lib = "use leptos_fluent::tr;\nfn f() -> String { tr!(\"hello\") }\n";
+    std::fs::write(app.join("src/lib.rs"), lib).expect("write");
+    let out = run(
+        &dir.join("i18n"),
+        &[
+            "convert",
+            "--from",
+            "leptos-fluent",
+            app.to_str().expect("utf-8"),
+            "--i18n-crate",
+            "app_i18n",
+        ],
+    );
+    let stdout = text(&out.stdout);
+    assert!(out.status.success(), "{stdout}");
+    assert!(
+        stdout.contains("--- a/src/lib.rs\n+++ b/src/lib.rs\n"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("+fn f() -> String { tr!(\"hello\").to_string() }"),
+        "{stdout}"
+    );
+    assert!(stdout.contains("would write "), "{stdout}");
+    assert_eq!(
+        std::fs::read_to_string(app.join("src/lib.rs")).expect("read"),
+        lib
+    );
+    assert!(!dir.join("i18n/locales").exists());
+}
+
+#[test]
+fn a_second_run_changes_nothing() {
+    let m = migrate(
+        "again",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"hello\") }\n",
+    );
+    m.clean();
+    let dir = m.app.parent().expect("dir").to_path_buf();
+    std::fs::remove_dir_all(dir.join("i18n/locales")).expect("rm");
+    let out = run(
+        &dir.join("i18n"),
+        &[
+            "convert",
+            "--from",
+            "leptos-fluent",
+            m.app.to_str().expect("utf-8"),
+            "--i18n-crate",
+            "app_i18n",
+            "--write",
+        ],
+    );
+    assert!(out.status.success(), "{}", text(&out.stdout));
+    assert_eq!(
+        std::fs::read_to_string(m.app.join("src/lib.rs")).expect("read"),
+        m.lib
+    );
+}
+
+#[test]
+fn init_no_messages_leaves_room_for_a_conversion() {
+    let dir = scratch("lf-init");
+    let out = run(&dir, &["init", "--no-messages", "--locale", "fr"]);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(dir.join("Cargo.toml").is_file());
+    assert!(!dir.join("locales/en/main.mf2").exists());
+    assert!(!dir.join("locales/fr/main.mf2").exists());
+}
+
+// One test per rule (§6.2), named after it.
+
+#[test]
+fn rule_tr_string() {
+    let m = migrate(
+        "tr-string",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"hello\") }\nfn g() -> String { tr!(\"hello\").to_string() }\nfn h() -> String { format!(\"{}!\", tr!(\"hello\")) }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib
+            .contains("fn f() -> String { tr!(\"hello\").to_string() }"),
+        "{}",
+        m.lib
+    );
+    assert!(
+        m.lib
+            .contains("fn g() -> String { tr!(\"hello\").to_string() }"),
+        "{}",
+        m.lib
+    );
+    assert!(
+        m.lib
+            .contains("format!(\"{}!\", tr!(\"hello\").to_string())"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_tr_view() {
+    let m = migrate(
+        "tr-view",
+        "use leptos_fluent::tr;\nfn v() { view! { <p>{tr!(\"hello\")}</p> <input placeholder=tr!(\"hello\") title={tr!(\"greet\", {\"name\" => who()})}/> <p>{tr!(\"hello\").len()}</p> } }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib.contains("<p>{tr!(\"hello\")}</p> <input placeholder=tr!(\"hello\") title={tr!(\"greet\", name = who())}/> <p>{tr!(\"hello\").to_string().len()}</p>"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_move_tr_view() {
+    let m = migrate(
+        "move-tr-view",
+        "use leptos_fluent::move_tr;\nfn v() { view! { <p>{move_tr!(\"greet\", {\"name\" => who})}</p> <Label text=move_tr!(\"hello\")/> } }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib
+            .contains("<p>{tr!(\"greet\", name = who)}</p> <Label text=tr!(\"hello\")/>"),
+        "{}",
+        m.lib
+    );
+    assert!(m.lib.starts_with("use app_i18n::tr;"), "{}", m.lib);
+}
+
+#[test]
+fn rule_move_tr_signal() {
+    let m = migrate(
+        "move-tr-signal",
+        "use leptos_fluent::move_tr;\nfn s() { let label = move_tr!(\"hello\"); view! { <p>{move_tr!(\"greet\", {\"name\" => name.get()})}</p> } }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib
+            .contains("let label = Signal::derive(move || tr!(\"hello\").to_string());"),
+        "{}",
+        m.lib
+    );
+    assert!(
+        m.lib.contains(
+            "<p>{Signal::derive(move || tr!(\"greet\", name = name.get()).to_string())}</p>"
+        ),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_closure() {
+    let m = migrate(
+        "closure",
+        "use leptos_fluent::tr;\nfn v() { view! { <p>{move || tr!(\"hello\")}</p> <p title=|| tr!(\"hello\")>{move || tr!(\"greet\", {\"name\" => name.get()})}</p> } }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib.contains("<p>{tr!(\"hello\")}</p> <p title=tr!(\"hello\")>{move || tr!(\"greet\", name = name.get()).to_string()}</p>"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_arguments() {
+    let m = migrate(
+        "arguments",
+        "use leptos_fluent::tr;\nfn f(x: i64) -> String { tr!(\"two\", { \"a-b\" => 1, \"c\" => x, }) + &tr!(\"hello\", {}) }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib
+            .contains("tr!(\"two\", \"a-b\" = 1, c = x).to_string() + &tr!(\"hello\").to_string()"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_context() {
+    let m = migrate(
+        "context",
+        "use leptos_fluent::tr;\nfn f(i18n: u8) -> String { tr!(i18n, \"greet\", {\"name\" => \"Ada\"}) }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib
+            .contains("{ tr!(\"greet\", name = \"Ada\").to_string() }"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_attribute() {
+    let m = migrate(
+        "attribute",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"hint.before\") }\n",
+    );
+    m.clean();
+    assert!(
+        m.lib.contains("tr!(\"hint.before\").to_string()"),
+        "{}",
+        m.lib
+    );
+}
+
+#[test]
+fn rule_import() {
+    let m = migrate(
+        "import",
+        "use leptos_fluent::{move_tr, tr};\nfn f() -> String { leptos_fluent::tr!(\"hello\") }\n",
+    );
+    m.clean();
+    assert_eq!(
+        m.lib,
+        "use app_i18n::tr;\nfn f() -> String { app_i18n::tr!(\"hello\").to_string() }\n"
+    );
+}
+
+// One test per code (§6.2, "Reported, not rewritten"), named after it.
+
+#[test]
+fn leptos_fluent_initializer() {
+    // The `.ftl` directory is the initializer's `locales:`.
+    let dir = scratch("lf-initializer");
+    let app = dir.join("app");
+    std::fs::create_dir_all(app.join("src")).expect("mkdir");
+    std::fs::create_dir_all(app.join("i18n-files/en")).expect("mkdir");
+    std::fs::write(app.join("Cargo.toml"), "[package]\nname = \"app\"\n").expect("write");
+    std::fs::write(app.join("i18n-files/en/main.ftl"), APP_FTL).expect("write");
+    std::fs::write(
+        app.join("src/lib.rs"),
+        "fn p() {\n    leptos_fluent! { locales: \"./i18n-files\", default_language: \"en\" }\n}\n",
+    )
+    .expect("write");
+    let out = run(
+        &dir.join("i18n"),
+        &[
+            "convert",
+            "--from",
+            "leptos-fluent",
+            app.to_str().expect("utf-8"),
+            "--i18n-crate",
+            "x",
+            "--write",
+            "--format",
+            "json",
+        ],
+    );
+    let json: Value = serde_json::from_slice(&out.stdout).expect("JSON");
+    assert!(!out.status.success());
+    let diagnostics = json["diagnostics"].as_array().expect("an array");
+    assert_eq!(diagnostics.len(), 1, "{json:#}");
+    assert_eq!(diagnostics[0]["code"], "leptos-fluent-initializer");
+    at(&diagnostics[0], "error", 2, 5, None);
+    assert!(dir.join("i18n/locales/en/main.mf2").is_file());
+}
+
+#[test]
+fn leptos_fluent_context() {
+    let m = migrate(
+        "context-use",
+        "fn s() {\n    let i18n = expect_context::<leptos_fluent::I18n>();\n}\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-context"), "error", 2, 48, None);
+}
+
+#[test]
+fn leptos_fluent_import() {
+    let m = migrate("import-other", "use leptos_fluent::{tr, I18n};\n");
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-import"), "error", 1, 1, None);
+    assert_eq!(m.lib, "use leptos_fluent::{tr, I18n};\n");
+}
+
+#[test]
+fn leptos_fluent_dynamic_id() {
+    let m = migrate(
+        "dynamic",
+        "use leptos_fluent::tr;\nfn f(id: &str) -> String { tr!(id) }\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-dynamic-id"), "error", 2, 32, None);
+    assert!(m.lib.contains("{ tr!(id) }"));
+}
+
+#[test]
+fn leptos_fluent_if_form() {
+    let m = migrate(
+        "if-form",
+        "use leptos_fluent::tr;\nfn f(c: bool) -> String { tr!(if c { \"hello\" } else { \"greet\" }) }\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-if-form"), "error", 2, 31, None);
+}
+
+#[test]
+fn leptos_fluent_cfg() {
+    let m = migrate(
+        "cfg",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"greet\", #[cfg(x)] {\"name\" => 1}) }\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-cfg"), "error", 2, 33, None);
+}
+
+#[test]
+fn leptos_fluent_argument_name() {
+    let m = migrate(
+        "argument-name",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"greet\", {1 => 2}) }\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-argument-name"), "error", 2, 34, None);
+}
+
+#[test]
+fn leptos_fluent_call() {
+    let m = migrate(
+        "call",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"a\", \"b\", \"c\", \"d\") }\n",
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-call"), "error", 2, 24, None);
+}
+
+#[test]
+fn leptos_fluent_parse() {
+    let m = migrate("parse", "use leptos_fluent::tr;\nfn f() { (\n");
+    assert!(!m.ok);
+    assert_eq!(m.one("leptos-fluent-parse")["level"], "error");
+    assert_eq!(m.lib, "use leptos_fluent::tr;\nfn f() { (\n");
+}
+
+#[test]
+fn leptos_fluent_dependency() {
+    let m = migrate_with(
+        "dependency",
+        "[package]\nname = \"app\"\n\n[dependencies]\nleptos-fluent = \"0.3\"\n",
+        "",
+        &[],
+    );
+    assert!(!m.ok);
+    at(m.one("leptos-fluent-dependency"), "error", 5, 1, None);
+}
+
+#[test]
+fn leptos_fluent_unknown_id() {
+    let m = migrate(
+        "unknown-id",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"nope\") }\n",
+    );
+    assert!(!m.ok);
+    at(
+        m.one("leptos-fluent-unknown-id"),
+        "error",
+        2,
+        24,
+        Some("nope"),
+    );
+    // Still rewritten: the compiler will say the same.
+    assert!(m.lib.contains("tr!(\"nope\").to_string()"));
+}
+
+#[test]
+fn leptos_fluent_arguments() {
+    let m = migrate(
+        "arguments-check",
+        "use leptos_fluent::tr;\nfn f() -> String { tr!(\"greet\", {\"who\" => 1}) }\n",
+    );
+    assert!(!m.ok);
+    let d = m.one("leptos-fluent-arguments");
+    at(d, "error", 2, 20, Some("greet"));
+    let message = d["message"].as_str().expect("a message");
+    assert!(
+        message.contains("`who`") && message.contains("`name`"),
+        "{message}"
+    );
+}

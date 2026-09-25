@@ -7,8 +7,13 @@
 //! non-zero; everything else is still written, so the rest of a corpus can
 //! be checked while the errors are fixed by hand. It never overwrites: an
 //! existing `.mf2` stops it before anything is written.
+//!
+//! `--from leptos-fluent APP_DIR` does the same with the application's
+//! `.ftl` files and rewrites its call sites (§6.2), showing a diff unless
+//! `--write` is given.
 
 pub(crate) mod fluent;
+pub(crate) mod leptos_fluent;
 pub(crate) mod report;
 
 use std::path::{Path, PathBuf};
@@ -25,6 +30,8 @@ use crate::error::{Error, Result, read, write};
 pub(crate) enum Source {
     /// Fluent `.ftl` files, one directory per locale.
     Fluent,
+    /// A `leptos-fluent` application: its `.ftl` files and its call sites.
+    LeptosFluent,
 }
 
 /// `mf2 convert`.
@@ -33,17 +40,47 @@ pub(crate) struct Args {
     /// The format to convert from.
     #[arg(long, value_enum, value_name = "FORMAT")]
     from: Source,
-    /// The directory holding one subdirectory per locale
-    /// (`<DIR>/<locale>/**.ftl`).
+    /// `fluent`: the directory holding one subdirectory per locale
+    /// (`<DIR>/<locale>/**.ftl`). `leptos-fluent`: the application's crate.
     #[arg(value_name = "DIR")]
     input: PathBuf,
     /// How to report.
     #[arg(long, value_enum, default_value_t = Format::Text)]
     format: Format,
+    /// `leptos-fluent`: write the `.mf2` files and the rewritten Rust
+    /// files; without it, show the diff and write nothing.
+    #[arg(long)]
+    write: bool,
+    /// `leptos-fluent`: the `.ftl` directory, if not the initializer's
+    /// `locales:` or `APP_DIR/locales`.
+    #[arg(long, value_name = "DIR")]
+    locales: Option<PathBuf>,
+    /// `leptos-fluent`: the i18n crate the rewritten `use` names, if not
+    /// the package in `--dir`'s Cargo.toml.
+    #[arg(long, value_name = "NAME")]
+    i18n_crate: Option<String>,
 }
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
-    let Source::Fluent = args.from;
+    if args.from == Source::LeptosFluent {
+        return leptos_fluent::run(
+            dir,
+            &leptos_fluent::Request {
+                app: &args.input,
+                write: args.write,
+                locales: args.locales.as_deref(),
+                i18n_crate: args.i18n_crate.as_deref(),
+                format: args.format,
+            },
+        );
+    }
+    if args.write || args.locales.is_some() || args.i18n_crate.is_some() {
+        return Err(Error::Usage(
+            "--write, --locales and --i18n-crate are for --from leptos-fluent; \
+             --from fluent always writes"
+                .to_owned(),
+        ));
+    }
     let mut report = Report::default();
     let outputs = convert_fluent(
         &args.input,

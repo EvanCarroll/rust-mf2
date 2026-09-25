@@ -113,6 +113,9 @@ fluent-syntax = "0.12.0"
 fluent-bundle = "0.16.0"
 # The language identifier `fluent-bundle` takes, at the version it uses.
 unic-langid = "0.9.6"
+# `mf2 convert --from leptos-fluent` (plans/05-tooling.md §6.2): the diff it
+# shows before `--write`.
+similar = "3.2.0"
 sha2 = "0.11.0"
 toml = "1.1.6"
 # no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.

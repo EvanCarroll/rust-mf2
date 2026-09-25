@@ -25,7 +25,14 @@ mf2-model = { workspace = true, features = ["serde"] }
 mf2-resource.workspace = true
 mf2-runtime.workspace = true
 mf2-syntax.workspace = true
+# `convert --from leptos-fluent` (plans/05 §6.2): the call sites, located by
+# span, parsed by syn, and the diff before `--write`.
+proc-macro2 = { workspace = true, features = ["span-locations"] }
+quote.workspace = true
 serde_json.workspace = true
+similar.workspace = true
+syn = { workspace = true, features = ["full"] }
+toml.workspace = true
 thiserror = { workspace = true, features = ["std"] }
 
 [dev-dependencies]

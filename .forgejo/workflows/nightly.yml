@@ -37,7 +37,11 @@
 #   the whole app at the reference scale (`cargo xtask size`). Nightly
 #   because it is six fat-LTO wasm builds. Then `cargo xtask islands-zero`:
 #   the islands example's client with and without one more server-only
-#   component, whose code must be identical (plans/15 A1).
+#   component, whose code must be identical (plans/15 A1). Then
+#   `cargo xtask fluent-migrate` (plans/16 A4): the reference application
+#   on leptos-fluent, converted by `mf2 convert --from leptos-fluent`, its
+#   call sites compared byte for byte with `fluent-converted`, finished as
+#   the migration guide says, and built for the client and the server.
 # * `l6-web` (a job of its own; plans/14 A6b): conformance layer L6 in the
 #   browser — every runtime-valid suite message server-rendered, hydrated in
 #   Chromium and Firefox, switched to the twin locale and back
@@ -313,6 +317,11 @@ jobs:
       # islands application adds no code to the client.
       - name: A server-only component costs the client nothing
         run: cargo xtask islands-zero | tee -a size.md
+
+      # plans/16-phase-8-work-order.md A4: the migration of the reference
+      # application from leptos-fluent, converted and built.
+      - name: The reference application migrated from leptos-fluent
+        run: cargo xtask fluent-migrate
 
       - name: Upload the size report
         if: always()

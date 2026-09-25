@@ -23,6 +23,10 @@ pub(crate) struct Args {
     /// Overwrite files that are already there.
     #[arg(long)]
     force: bool,
+    /// Leave out the starter `locales/<tag>/main.mf2` files, for messages
+    /// that come from elsewhere (`mf2 convert`, `mf2 import`).
+    #[arg(long)]
+    no_messages: bool,
 }
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
@@ -38,7 +42,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let mut locales = vec![args.source_locale.clone()];
     locales.extend(args.locale.iter().cloned());
     locales.dedup();
-    for (i, tag) in locales.iter().enumerate() {
+    for (i, tag) in locales.iter().enumerate().filter(|_| !args.no_messages) {
         let body = if i == 0 {
             format!("@locale {tag}\n---\n\nhello = Hello!\n")
         } else {

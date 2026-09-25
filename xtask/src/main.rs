@@ -12,6 +12,7 @@ mod cmd;
 mod codegen_matrix;
 mod docs;
 mod error;
+mod fluent_migrate;
 mod fsx;
 mod fuzz_seed;
 mod git;
@@ -167,6 +168,16 @@ enum Command {
         #[arg(long)]
         no_tachys_0_3: bool,
     },
+    /// The reference application migrated from leptos-fluent (Phase 8, A4):
+    /// `fluent-view` converted by `mf2 convert --from leptos-fluent`, its
+    /// call sites compared with `fluent-converted` byte for byte, finished
+    /// as the migration guide says, and built for the client and the
+    /// server.
+    FluentMigrate {
+        /// Convert and compare only (no build).
+        #[arg(long)]
+        no_build: bool,
+    },
     /// A server-only component costs the client nothing (Phase 7, A1): the
     /// islands example's client, built with and without one more server-only
     /// component full of call sites, must be the same size.
@@ -282,6 +293,7 @@ fn run(command: Command) -> Result<()> {
         Command::Docs { no_build } => docs::run(&root, !no_build),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
+        Command::FluentMigrate { no_build } => fluent_migrate::run(&root, !no_build),
         Command::LeptosBeta { no_tachys_0_3 } => leptos_beta::run(&root, !no_tachys_0_3),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {

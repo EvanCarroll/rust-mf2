@@ -23,6 +23,9 @@ pub(crate) enum Error {
     /// A sample in the user documentation is malformed or does not compile.
     #[error("docs: {0}")]
     Docs(String),
+    /// The converted reference application is not what it must be.
+    #[error("fluent-migrate: {0}")]
+    FluentMigrate(String),
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
     #[error("leptos-beta: {0}")]
     LeptosBeta(String),
