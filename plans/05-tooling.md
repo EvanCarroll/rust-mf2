@@ -486,7 +486,7 @@ the list — they are names users choose as much as option names are.*
 
 | Command | Purpose |
 |---|---|
-| `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs`. Since Phase 7 A13 the crate is ready for Leptos as written: `ssr`, `hydrate` and `csr` features forwarding `mf2`'s, and a `setup()` for `leptos_mf2::install` / `mf2_axum::install` — what every example had added by hand, and what the user documentation shows verbatim (checked by `cargo xtask docs`) |
+| `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs`. Since Phase 7 A13 the crate is ready for Leptos as written: `ssr`, `hydrate` and `csr` features forwarding `mf2`'s, and a `setup()` for `leptos_mf2::install` / `mf2_axum::install` — what every example had added by hand, and what the user documentation shows verbatim (checked by `cargo xtask docs`). `--no-messages` leaves out the starter `locales/<tag>/main.mf2` files, for a corpus that comes from elsewhere — `mf2 convert` writes into `locales/` and never overwrites (Phase 8 A4) |
 | `mf2 check` | all lints, machine-readable output for CI (`--format json`) |
 | `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8). With `--site` the functions are the i18n crate's features as `cargo metadata` resolves them (only `fn-number`, `fn-datetime` and `datetime-icu` change a catalog); a `--features` that names others fails, with both lists, and writes nothing — so the catalogs are built for the wasm's functions without the list being written twice (Phase 7 A6). DIR must be a cargo package |
 | `mf2 fmt` | canonical formatting of `.mf2` resources |
@@ -494,7 +494,7 @@ the list — they are names users choose as much as option names are.*
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
 | `mf2 export` / `import` | flat JSON; XLIFF 2 in Phase 8, against the standard vendored under `third_party/` (owner, 2026-09-24; [16](16-phase-8-work-order.md) A6) |
-| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4; the mapping is §6.1) |
+| `mf2 convert --from fluent` | one-shot Fluent (`.ftl`) → `.mf2`: selectors → `.match`, `NUMBER`/`DATETIME` → `:number`/`:datetime`, terms and message references inlined, attributes → `id.attr`; reports anything it cannot map. `--from leptos-fluent` also rewrites the project's call sites to `tr!` where the rewrite is mechanical, and reports the rest (Phase 8, [16](16-phase-8-work-order.md) A1, A4; the mapping is §6.1, the call-site rules §6.2) |
 | `mf2 watch` | recompile on change. *The push of the new catalog to open pages through an `mf2-axum` dev mode is deferred until after v1 (owner, 2026-09-24)* |
 
 Every command but `convert` ships in P5a. Three details the implementation
@@ -528,7 +528,7 @@ mapping's business; A3 measures those differences, and the known ones are
 listed at the end of this section.
 
 **Command.** `mf2 convert --from fluent FTL_DIR` reads `FTL_DIR/<locale>/**.ftl`
-(`fluent-templates`' layout; that `leptos-fluent` projects use it is A4's to confirm from its documentation) and writes
+(`fluent-templates`' layout, and the one `leptos-fluent`'s documentation shows: `locales/<lang>/main.ftl` — confirmed by A4 from its docs.rs page, 0.3.1) and writes
 `<dir>/locales/<tag>/<name>.mf2` — the layout `mf2 init` makes, `<dir>` being
 the global `--dir`. A file in a subdirectory is flattened, its path parts
 joined by `.` (`menus/file.ftl` → `menus.file.mf2`), since the loader reads a
@@ -763,6 +763,116 @@ but a person should look: `fluent-unbound-term-variable`,
 `fluent-unreachable-variant`, `fluent-datetime-approximate`. A2's corpus
 MUST convert with none of either (it does: 6,464 entries in four locales, no
 finding — [16](16-phase-8-work-order.md) §A2).
+
+### 6.2 `mf2 convert --from leptos-fluent` — the call sites
+
+*Designed before code (Phase 8 A4, 2026-09-24), from `leptos-fluent`
+0.3.1's documentation on docs.rs: the `macro_rules!` of `tr!` and
+`move_tr!`, the crate page's layout and example, and `leptos_fluent!`'s
+example.* What the macros accept:
+
+* `tr!("id")`, `tr!("id", { "name" => value, … })` — a `String`, formatted
+  when the expression runs; `move_tr!` with the same arguments — a
+  `Signal<String>`, documented as `Signal::derive(move || tr!(…))`;
+* each of those with the context first, `tr!(i18n, "id", …)`;
+* `#[cfg(…)]` attributes before the id or before the argument map;
+* an `if` form choosing between literal ids, `tr!(if c { "a" } else { "b" })`;
+* an id that is any expression, not a literal.
+
+**Command.** `mf2 convert --from leptos-fluent APP_DIR`, `APP_DIR` being the
+application's crate (the directory of its `Cargo.toml`):
+
+1. **The messages.** The `.ftl` directory is `--locales DIR`, else the
+   `locales: "…"` string of the project's `leptos_fluent!` or
+   `static_loader!` (relative to `APP_DIR`, as `leptos-fluent` reads it),
+   else `APP_DIR/locales`. §6.1 converts it into `--dir`'s `locales/`.
+2. **The Rust sources.** Every `.rs` file under `APP_DIR` — except `target/`,
+   hidden directories and `--dir`'s own tree — that names `leptos_fluent`
+   (a `use` or a path) is rewritten by the rules below. A file that does not
+   name it is left alone: its `tr!` is not `leptos-fluent`'s, which also
+   makes a second run change nothing.
+3. **The manifests.** Every `Cargo.toml` line under `APP_DIR` naming
+   `leptos-fluent` or `fluent-templates` is reported.
+
+Without `--write` nothing is written: the command prints a unified diff of
+every Rust file it would change and the list of `.mf2` files it would write,
+then the report. `--write` writes both (a `.mf2` is never overwritten, as
+§6.1). The report is §6.1's — text, or `--format json` with the same
+fields — and the exit status is non-zero when it has an error: **a
+migration is finished when the report is empty.** The i18n crate's name,
+which the `use` rewrite writes, is `--i18n-crate NAME`, else the package
+name in `--dir`'s `Cargo.toml` (`-` read as `_`); `mf2 init --no-messages`
+makes that crate without the starter messages a conversion would collide
+with.
+
+**Edits.** A file is tokenized with `proc-macro2` (span locations on); every
+`tr!` and `move_tr!` is found at any depth — inside `view!` and inside any
+other macro — and its arguments are parsed with `syn`. The rewrite is a
+byte-range edit of the call (and, for the closure rule, of the closure), so
+comments, formatting and every other byte of the file stay as they were. An
+argument's value is copied as its source text, with any call inside it
+rewritten too.
+
+**Positions.** A **view position** is one where Leptos renders the value:
+inside a `view!` (at any nesting of `view!`), a brace block whose whole
+content is the call — `{tr!(…)}`, a child, or an attribute or prop value
+written with braces — or an attribute or prop value written without them
+(`attr=tr!(…)`). Everything else is a **`String` position** — a function
+body, a closure's body, a `match` arm, an `if` branch, another macro's
+arguments — because a `String` is what `leptos-fluent`'s `tr!` gives there.
+A call's arguments are **constant** when every value is a literal, a path
+(`n`, `self::X`), or a reference to one: evaluating them again gives the same
+value, so a closure around the call adds nothing.
+
+| `leptos-fluent` | mf2 | Rule |
+|---|---|---|
+| `tr!(…)` in a `String` position | `tr!(…).to_string()` — the same `String`, formatted when the code runs (not appended when the call is already followed by `.to_string()`) | `tr-string` |
+| `tr!(…)` in a view position | `tr!(…)`: the description renders itself — and now follows a language switch, which the `String` did not | `tr-view` |
+| `move_tr!(…)` in a view position, constant arguments | `tr!(…)`: a description follows the language by itself | `move-tr-view` |
+| `move_tr!(…)` anywhere else, or with arguments that are not constant | `Signal::derive(move \|\| tr!(…).to_string())` — `move_tr!`'s own documented expansion: the same `Signal<String>`, re-reading its arguments. (Passing a signal itself as the argument, `count = count`, is the idiomatic form, and the guide says how; the codemod cannot know that a `.get()` is a signal's) | `move-tr-signal` |
+| `move \|\| tr!(…)` or `\|\| tr!(…)` in a view position, the closure's body exactly the call, constant arguments | `tr!(…)`. With arguments that are not constant the closure stays and its body is a `String` position (`tr-string`) | `closure` |
+| `{ "name" => value, … }` | `name = value, …`; an empty map, nothing. A name that is not a Rust identifier (Fluent allows `-`) is written quoted, `"a-b" = value`, which `tr!` accepts (§3) | `arguments` |
+| `tr!(i18n, …)`, `move_tr!(i18n, …)` | the context dropped (a variable left unused by it is the compiler's to report) | `context` |
+| `"id.attr"` — a Fluent attribute, which `fluent-templates` looks up as `id.attr` | unchanged: §6.1 gave the attribute the id `id.attr` | `attribute` |
+| `use leptos_fluent::tr;`, `use leptos_fluent::{move_tr, tr};` — a private `use` whose only items are `tr` and `move_tr` | `use <i18n crate>::tr;` | `import` |
+| `leptos_fluent::tr!(…)`, `leptos_fluent::move_tr!(…)` | `<i18n crate>::tr!` by the rules above | `import` |
+
+**Checked, still rewritten.** Each call is checked against the converted
+messages of the source locale (`--dir`'s `mf2.toml`, else `en`), so the report
+says what the compiler will say, before it does:
+**`leptos-fluent-unknown-id`** — the id is not a message there (a Fluent
+message with attributes and no value is one); **`leptos-fluent-arguments`**
+— an argument the message does not have (Fluent ignores it; `tr!`
+refuses it), or a variable no argument gives (Fluent writes `{$x}`; `tr!`
+refuses to compile).
+
+**Reported, not rewritten** (at the construct's line and column):
+
+| Construct | Code | What to do (the guide) |
+|---|---|---|
+| `leptos_fluent! { … }`, `static_loader! { … }` — the initializer | **`leptos-fluent-initializer`** | the i18n crate's `setup()`, `leptos_mf2::install` and `mf2_axum::install` |
+| `I18n`, or any `leptos_fluent::` path but the macros — the context, its `language` / `languages` (the language selector) and `tr` / `tr_with_args` (lookups by run-time id) | **`leptos-fluent-context`** | `<LocaleSwitcher>` or the locale API; `msg_id!` and `TrDyn` for a run-time id |
+| a `use leptos_fluent::…` naming anything but `tr` and `move_tr`, a `pub use` or a rename of them, or any `use` when the i18n crate's name is unknown; a `move_tr!` in a file that does not name `leptos_fluent` (it came through a re-export) | **`leptos-fluent-import`** | import the i18n crate's `tr` |
+| a call whose id is not a string literal | **`leptos-fluent-dynamic-id`** | a literal id, or `msg_id!` and `TrDyn` |
+| the `if` forms | **`leptos-fluent-if-form`** | `if c { tr!("a") } else { tr!("b") }`, each branch the same type |
+| `#[cfg(…)]` on the id or the arguments | **`leptos-fluent-cfg`** | a `#[cfg]` on a statement around the call |
+| an argument key that is not a string literal | **`leptos-fluent-argument-name`** | the name, as the message spells it |
+| a call whose arguments are none of the forms above (and, for the negative control, a call a disabled rule would rewrite) | **`leptos-fluent-call`** | by hand |
+| a Rust file that does not tokenize | **`leptos-fluent-parse`** | fix the file; nothing in it was rewritten |
+| a `Cargo.toml` line naming `leptos-fluent` or `fluent-templates` | **`leptos-fluent-dependency`** | a dependency on the i18n crate, and its features |
+| … and the two checks above | `leptos-fluent-unknown-id`, `leptos-fluent-arguments` | the message, or the call |
+
+Every code is an error: each is work left before the application builds
+on mf2. The codes are stable, like §6.1's; one test per code and one per
+rule (`crates/mf2-cli/tests/convert.rs`).
+
+**What the rewrite changes in behaviour, by design.** A `tr!` in a view
+position was a `String` fixed when the view was built; it becomes a
+description, which re-renders on a language switch — the fix `leptos-fluent`
+asks for with `move_tr!` or a closure. Isolation follows MF2's Default Bidi
+Strategy and numbers are localized (§6.1's accepted differences). Nothing
+else: every `String` stays a `String`, every `Signal<String>` a
+`Signal<String>`, and an argument is evaluated exactly as often as before.
 
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 
