@@ -111,8 +111,9 @@ three phases left unbuilt: dates in the reader's time zone.
    support both equally; then, with 0.9 the default, drop 0.8 or keep it as
    an opt-in.
 
-## Part A — tasks (A1 and A2 first, then A3; **A0 next, before any other task**; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
+## Part A — tasks (A1 and A2 first, then A3; A0 before any other task; A4 after A1; A5 after A1, A2 and A4; A6 and A7 as convenient; A8 last)
 
+**A0 is done** (2026-09-25; what was built is below the table).
 **A1, A2, A3 and A4 are done** (2026-09-24): A2's corpus converts with no
 finding, which was A1's last criterion; converted catalogs format as the
 originals but for four owner-approved classes (owner question 5); the
@@ -130,6 +131,53 @@ call sites and builds. What was built is below the table.
 | **A6** XLIFF 2 export and import | *Owner question 3.* **(a) Vendored:** `cargo xtask xliff-sync` fetches the newest OASIS Standard of the XLIFF 2 core — the specification and its XML schema(s) — into `third_party/xliff/` with a `PIN` (upstream, version, date, digests, licence). The licence is read **before** anything is copied; if it does not permit redistribution, the `PIN` records that and the files are cached under `target/xtask-cache/` instead, as `third_party/w3c-message-resource` does for its draft. **(b) The mapping, designed before code** in a new section of 05 (as Phase 7 A14 did): a message ↔ a `<unit>`; text ↔ `<segment>` `<source>` / `<target>`; placeholders and markup ↔ inline codes the translation tool protects, round-tripping the expression exactly; `@param`, comments and `@do-not-translate` ↔ notes and `translate="no"`; and the hard case — a `.match` message whose **target locale has other plural categories than the source** (English one/other, Arabic six) — decided and written down. A choice there that changes what a translator sees is put to the owner. **(c) Built:** `mf2 export --format xliff` and `mf2 import` of an XLIFF file, beside flat JSON, with `import`'s existing rule (the container keeps every section, comment and property; an unknown id is reported, not invented). | the design written; the reference workload exported and imported back leaves every resource **byte-identical**; every export validates against the vendored schema (`xmllint --schema` in the test, on the development machine and in CI's image); a translated target lands in the right message and variant; an edited protected code is refused with a report; negative controls for the validation and the refusal |
 | **A7** The reader's time zone | *Owner question 2; [03](03-runtime.md) §6.* **Designed before code** in 03 §6 and [04](04-leptos-integration.md) §6: the cookie (`mf2_tz`, the IANA name from `Intl.DateTimeFormat().resolvedOptions().timeZone`, `CookieLocale`'s attributes), validated with `TimeZone::named`; `mf2-axum` puts it in the request's formatting context; the page states the zone it was rendered in, so the client knows whether to correct; which nodes are corrected after hydration (those whose message formats an instant without a zone of its own) and how, without a hydration mismatch (the text changes *after* hydration, through the registry, as a switch does); the order of precedence among the value's own zone, the reader's, `Setup::with_time_zone` and UTC; client-only (the reader's zone at mount, no cookie needed); islands and `static-locale` (what can be corrected, and what the documentation says is not). Every added byte behind `fn-datetime`. | a native test: the cookie sets the request's zone, a malformed or unknown one is ignored; a browser check on `demo-ssr` with Playwright's `timezoneId` in two zones, two engines: a first visit served in UTC is corrected after hydration with no `mf2:` mismatch, the cookie is written, a reload is served in the reader's zone and nothing changes after hydration; `demo-csr` mounts in the reader's zone; negative control: the correction disabled fails the first-visit assertion; `cargo xtask size` with B1 unmoved (the gated build has no `fn-datetime`), the example's delta with it recorded; `docs/call-sites.md` §"Dates" rewritten |
 | **A8** The Phase 9 work order | Written from Phase 8's findings into `plans/17-phase-9-work-order.md`, with `plans/phase-8-results.md`. | written |
+
+## A0 — Leptos 0.9 the default: what was built
+
+* **The switch** (04 §3, §10 "As built"): `leptos-mf2` and `mf2-axum` have
+  `leptos-0-9` (default) and `leptos-0-8`; 0.8 is `default-features =
+  false, features = ["leptos-0-8"]` on both. One source, both lines in one
+  lock file (the 0.8 crates renamed back at each crate root); both lines
+  or none is a `compile_error!` naming the fix. `tachys-0-3` is gone.
+* **Moved to 0.9.0-beta / tachys 0.3.0-beta:** the workspace, the three
+  examples, `conformance/l6-web`, `conformance/l7-web` and its sets,
+  `bench/churn`, the workload generator's apps (a template may say
+  `leptos = "0.8"`; `fluent-view` and `fluent-converted` do, since
+  `leptos-fluent` 0.3.1 requires Leptos < 0.9) and the docs' samples.
+  The requirement `0.3.0-beta` already resolves to `0.3.0-beta2`: a new
+  pre-release is taken by `cargo update`, with no plan change.
+* **Found on the way — Leptos 0.9 hydrates a lazy route only with its new
+  `lazy` feature** (`leptos/lazy` → `tachys/lazy`; without it tachys
+  panics when hydration reaches the route, and `demo.mjs`/`lazy.mjs`
+  timed out). 0.8 has no such feature. It is the application's to turn
+  on, so an application without lazy routes does not pay for it:
+  `demo-ssr`, the generated reference application (0.9 templates) and
+  `docs/delivery-modes.md` §"Lazy routes" (a compiled `merge` block) now
+  do; `hydrate_lazy`'s documentation says so.
+* **`cargo xtask leptos-0-8`** (was `leptos-beta`): both lines at once
+  refused with the fix named; on 0.8, `leptos-mf2` linted for ssr,
+  hydrate and csr, its `render`, `churn` and `fallback_lang` tests,
+  `mf2-axum`'s tests and layer L6. Its nightly job is not allowed to
+  fail. `--negative-control` (the 0.9 `to_html_with_buf` under
+  `leptos-0-8`) fails with E0050/E0425. `cargo xtask docs` also compiles
+  Getting started's application on 0.8 (`hello-0-8`) from the page's own
+  instructions.
+* **Re-run on 0.9** (2026-09-25, Chromium and Firefox, debug builds):
+  `cargo xtask ci` green; `cargo xtask docs` 7 applications; L6 20/20;
+  L7 444/444, L7c 444/444, L7d and L7cd 325/444 with the ledger's 119
+  documented degradations (the ledger's columns hold); churn 84/84, no
+  shape grows the heap; `demo.mjs` 170/170, `lazy.mjs` 66/66,
+  `islands.mjs` 58/58, `csr.mjs` 88/88, `a11y.mjs` 720/720;
+  `fluent-migrate` and `islands-zero` green. The nightly CI jobs
+  themselves were not run (nothing is pushed).
+* **Size** (`cargo xtask size`, taken under load — sizes are
+  load-independent): B1 22,102 → **25,891 B gz** (+3,789), B5 12.6 →
+  **8.4 B gz** a site, the whole app at 1,860 sites 45,517 → **41,511 B
+  gz** (−4,006) — all met. The change between the two measurements is
+  the Leptos line (tachys 0.3), plus `leptos/lazy`, which is on in all
+  three of the gate's templates; the two were not measured apart. The
+  islands example's client (`islands-zero`): code section 185,925 →
+  165,151 B, shipped 94,904 → 85,446 B gz.
 
 ## A1 — the Fluent converter: what was built
 
@@ -330,7 +378,7 @@ then move and ask about 0.8.)
 
 ## Exit (master plan §9, P8)
 
-- [ ] Leptos 0.9 the default, 0.8 an opt-in built and tested in CI (A0)
+- [x] Leptos 0.9 the default, 0.8 an opt-in built and tested in CI (A0)
 - [x] a Fluent corpus of reference-workload shape converts with a report of
       zero unmapped constructs (A1, A2)
 - [x] converted catalogs format identically to the Fluent originals on a

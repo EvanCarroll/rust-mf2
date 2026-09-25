@@ -407,6 +407,9 @@ where
 /// [`hydrate_body`] for an application built with `#[lazy]` routes or
 /// `cargo leptos --split`: the lazy chunks share this crate's state, since
 /// they share linear memory, statics and the `Owner` (P0.2).
+///
+/// On Leptos 0.9 the application's `hydrate` feature must also turn on
+/// `leptos/lazy`, or tachys panics when hydration reaches a lazy route.
 #[cfg(feature = "hydrate")]
 pub fn hydrate_lazy<F, N>(app: F)
 where

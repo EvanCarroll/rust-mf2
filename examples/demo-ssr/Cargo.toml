@@ -38,6 +38,9 @@ wasm-bindgen = { version = "0.2.128", optional = true }
 default = []
 hydrate = [
     "leptos/hydrate",
+    # Leptos 0.9 hydrates the `#[lazy_route]` only with this; without it
+    # tachys panics at hydration.
+    "leptos/lazy",
     "leptos-mf2/hydrate",
     "mf2/hydrate",
     "demo-i18n/hydrate",

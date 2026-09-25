@@ -134,6 +134,22 @@ pub fn hydrate() {
 }
 ```
 
+Leptos hydrates a lazy route only with its `lazy` feature, so the
+client's feature list gains `leptos/lazy`. Without it, the page panics
+when hydration reaches the route:
+
+```toml file=lazy/Cargo.toml merge
+[features]
+hydrate = [
+    "leptos/hydrate",
+    "leptos/lazy",
+    "leptos-mf2/hydrate",
+    "hello-i18n/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+]
+```
+
 Run it with `cargo leptos watch --split`. Without `--split`, a lazy route is
 an ordinary async route in the one wasm, and it works the same.
 
