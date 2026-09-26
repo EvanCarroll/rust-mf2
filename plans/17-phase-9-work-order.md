@@ -688,6 +688,47 @@ of the tree, which a public repository or package cannot carry.
   publish --workspace --dry-run` packaging and verifying the 16, and the
   tree unchanged (304 s; both with warm build caches, taken under the
   machine's usual load).
+* **The owner's first publish stopped part way** (2026-09-26, 03:14 UTC):
+  five crates went up at 1.0.0 (`mf2-model`, `mf2-resource`,
+  `mf2-syntax`, `mf2-catalog`, `mf2-macros`), then crates.io refused the
+  sixth, `mf2-runtime` — "429 Too Many Requests: You have published too
+  many new crates in a short period of time. Please try again after …
+  03:15:30 GMT". `cargo publish --workspace` stops there, and run again,
+  this command would have refused the five as taken. The five are what
+  the tree packages (each `.crate` byte for byte, and a repackaging
+  reproduces them). Changed:
+  * the names are checked **after** the package audit, which leaves each
+    `.crate` in `target/package`. A crate already at this version is
+    **released** when the published `.crate` (from `static.crates.io`,
+    into `target/release-check`) ships the same files as this tree's —
+    compared by one digest over each path and its bytes, leaving out the
+    two files cargo generates from the tree's state: `.cargo_vcs_info.json`
+    (the commit packaged from) and `Cargo.lock` (it records our sibling
+    crates' package checksums, which move with that commit — found on the
+    first try, when four of the five differed there and nowhere else — and
+    third-party versions resolved that day; a library's lock file is not
+    used by its dependents). The sources and the normalized `Cargo.toml`
+    are compared. Otherwise it is
+    refused: a published version cannot be replaced (negative control in
+    the unit tests);
+  * the dry run and the publish run `cargo publish --workspace` with
+    `--exclude` for each released crate; with all 16 out, neither runs;
+  * on a 429 the publish reads the time crates.io names (tested on the
+    owner's message), waits until 5 s past it, asks crates.io again which
+    crates are out, and publishes the rest — up to 40 times, then stops
+    saying to run it again. Any other failure stops it; run again, it
+    takes up where the publish left off;
+  * `cargo-semver-checks`' baseline is the newest version published
+    before this one (`--baseline-version`): a crate out at this version is
+    not its own baseline;
+  * the four `[workspace.dependencies]` entries nothing inherits
+    (`leptos_meta`, `leptos_router`, `mf2-axum`, `mf2-cli`) are removed:
+    the pinned nightly cargo warned about each once per crate in `api
+    --check`, 64 warnings that hid the real error in the owner's output
+    (A5 had left them as harmless).
+  The wait loop itself cannot be run without publishing; its parts are
+  unit-tested, and the dry run was shown resuming: the five recognised,
+  the other 11 verified against them from crates.io.
 * **The owner's command,** when the owner chooses to publish: `cargo
   login` once (cargo stores the token), then from a clean checkout of the
   commit to release, `cargo xtask spec-sync --check && cargo xtask release

@@ -191,6 +191,28 @@ fn forbidden(root: &Path) -> Result<BTreeMap<String, String>> {
     Ok(out)
 }
 
+/// What a `.crate` ships, as one SHA-256: every file's path and bytes but
+/// the two cargo writes from the state of the tree rather than the crate —
+/// `.cargo_vcs_info.json` (the commit packaged from) and `Cargo.lock` (which
+/// records, among the dependencies resolved that day, the checksums of our
+/// own crates' packages, and so moves with the commit too). The sources and
+/// the normalized `Cargo.toml` are compared. Two packages with the same
+/// digest ship the same crate.
+pub(crate) fn content_digest(path: &Path) -> Result<String> {
+    let packaged = read_crate(path)?;
+    let mut all = Vec::new();
+    for (rel, bytes) in packaged.files {
+        if rel == ".cargo_vcs_info.json" || rel == "Cargo.lock" {
+            continue;
+        }
+        all.extend_from_slice(rel.as_bytes());
+        all.push(0);
+        all.extend_from_slice(sha256_hex(&bytes).as_bytes());
+        all.push(b'\n');
+    }
+    Ok(sha256_hex(&all))
+}
+
 fn read_crate(path: &Path) -> Result<Packaged> {
     let at = |source| Error::IoAt {
         path: path.to_path_buf(),
