@@ -484,6 +484,80 @@ of the tree, which a public repository or package cannot carry.
   others in dependency order, the unpublished members skipped. `cargo
   xtask ci` green with `package --check` as its last step.
 
+## A5 — docs.rs: what was built
+
+* **`[package.metadata.docs.rs]` in the 15 library crates** (`mf2-cli`
+  has no library; docs.rs documents none, and `cargo xtask docs-rs`
+  refuses a table there). Each lists its `targets` — `x86_64-unknown-
+  linux-gnu`, and for `mf2-host-web` only `wasm32-unknown-unknown` as
+  `default-target` — so docs.rs builds one target, not its default five.
+  The features are A2's listing sets, so the table is now **the one
+  source for both**: `cargo xtask api` reads it (its own feature list is
+  gone) and the published documentation shows what `api.txt` promises.
+  One set grew: `mf2-fn-datetime` is documented with both backends
+  (`datetime-icu,datetime-intl`; they build together), which resolves
+  A2's broken link to `Intl` and adds `Intl` — the `datetime-intl`
+  backend the facade's feature table already offers — to its `api.txt`
+  (+19 lines, the struct, its derives and its `Backend` impl).
+  `leptos-mf2` and `mf2` are documented as `ssr` on Leptos 0.9 (`mf2`
+  with `leptos-mf2/leptos-0-9`, since the facade alone names no line).
+* **`cargo xtask docs-rs`** (`xtask/src/docs_rs.rs`): for each crate and
+  target, `cargo rustdoc --lib` on the nightly `cargo xtask api` pins
+  (`nightly-2026-09-24`; docs.rs uses its latest nightly — pinned here so
+  a run repeats), with the table's features, `--cfg docsrs` given to
+  rustdoc and `DOCS_RS=1` set, into `target/docs-rs`. Stricter than
+  docs.rs, which only warns: `-D warnings` (every rustdoc lint that warns
+  by default — `broken_intra_doc_links`, `private_intra_doc_links`,
+  `invalid_markdown_table`, …) and `-D rustdoc::missing_crate_level_docs`
+  (a front page must exist); then each front page must say where the
+  user guide is. A table key it does not reproduce (`rustc-args`,
+  `cargo-args`, …), a missing table, no `targets`, or a `default-target`
+  outside them is refused, not ignored. It runs every crate and names
+  all that fail. CI: a new job `docs-rs` in `ci.yml`.
+* **Feature labels:** every library says
+  `#![cfg_attr(docsrs, feature(doc_cfg))]`. On the pinned nightly that
+  labels each feature-gated item by itself (the old `doc_auto_cfg` is
+  part of `doc_cfg` now; probed first), so explicit
+  `#[cfg_attr(docsrs, doc(cfg(…)))]` is only where the automatic label
+  is wrong: the Leptos layer is gated on the internal `leptos` feature,
+  and its items now say "`csr` or `hydrate` or `ssr`" (10 in
+  `leptos-mf2`, 2 in `mf2`), the server's re-exports "`ssr`" (not
+  "`leptos` and `ssr`"), the client's "`hydrate` or `csr`"; the
+  stand-in `islands_gate!` without `hydrate` carries no label
+  (`doc(auto_cfg = false)`) instead of "non-`hydrate`".
+* **What the build found, fixed:** A2's two links in `leptos-mf2`
+  (`set_document_lang`, `hydrate_islands` — client items absent from the
+  `ssr` docs; now plain names with the mode); `mf2-build`'s link to the
+  private `INDEX_FILE` (now `index.json`); `mf2-resource`'s two links to
+  its hidden `parse` and `serialize`; `mf2-syntax`'s code table, whose
+  row 3 held an unescaped `|` — rustdoc drops what follows it, so docs.rs
+  would have shown that row cut short.
+* **Front pages**, all 15, rewritten for a docs.rs reader: the
+  references to `plans/` documents, section numbers, decision, budget and
+  phase codes are gone (the content stays, in words); each ends with
+  **"The user guide"** — what it covers and that it is the repository's
+  `docs/` directory (no URL: there is no public remote, as A1's READMEs
+  say) — and how an application reaches the crate (through `mf2`, and
+  as which re-export and feature). `leptos-mf2`'s says which mode and
+  line the docs show and lists, mode by mode, the items `hydrate` and
+  `csr` add and the server items they lack; `mf2`'s points there. Also
+  corrected: `leptos-mf2`'s claim that an application names only `mf2`
+  (the guide has it name `leptos-mf2` too), and `mf2-model`'s "frozen by
+  the Phase 1 work order", now what the data model's shape promises.
+* **Shown** (2026-09-25): `cargo xtask docs-rs` green — 15 crates, no
+  warnings; before the front pages were rewritten it refused all 15 as
+  not naming the user guide. Negative control: `` [`NoSuchItem`] `` added
+  to `mf2-host-std`'s front page is refused ("unresolved link to
+  `NoSuchItem`", then the crate named). The table's refusals are unit
+  tests (`docs_rs::tests`). `cargo xtask api` rewrote only
+  `mf2-fn-datetime`'s listing (above).
+* **Left:** item docs (not front pages) still cite `plans/` documents and
+  section numbers in about 190 places, which docs.rs readers see but
+  cannot follow; the criterion asked for the front pages. Nightly cargo
+  warns of four unused `[workspace.dependencies]` entries (`leptos_meta`,
+  `leptos_router`, `mf2-axum`, `mf2-cli`) — cargo's lint, not rustdoc's,
+  and not a failure.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -501,7 +575,7 @@ of the tree, which a public repository or package cannot carry.
 - [x] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
 - [x] the version policy written, the MSRV measured and held in CI (A3)
 - [x] the packages audited and verified from crates.io's point of view (A4)
-- [ ] the documentation builds as docs.rs builds it (A5)
+- [x] the documentation builds as docs.rs builds it (A5)
 - [ ] the changelog with 1.0.0 and its known limitations (A6)
 - [ ] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`

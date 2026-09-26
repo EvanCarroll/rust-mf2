@@ -8,7 +8,7 @@
 //! |---:|---|---|
 //! | 1 | syntax | U+0000 is not allowed anywhere in a message |
 //! | 2 | syntax | `}` in text must be escaped as `\}` |
-//! | 3 | syntax | `\` must be followed by `\`, `{`, `|` or `}` |
+//! | 3 | syntax | `\` must be followed by `\`, `{`, `\|` or `}` |
 //! | 4 | syntax | a placeholder is missing its closing `}` |
 //! | 5 | syntax | a placeholder is empty (`{}`) |
 //! | 6 | syntax | a character that cannot appear here |

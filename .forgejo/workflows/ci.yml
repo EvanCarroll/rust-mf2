@@ -69,6 +69,14 @@
 # lines; `--below` must see the release before it fail, so a lower MSRV
 # that would do is noticed.
 #
+# Job `docs-rs`: the published crates' documentation built as docs.rs builds
+# it (plans/17-phase-9-work-order.md, A5). `cargo xtask docs-rs` reads each
+# library crate's `[package.metadata.docs.rs]` — its features and targets —
+# and runs `cargo rustdoc` on the nightly `cargo xtask api` pins (installed
+# with rustup), with `--cfg docsrs`, every rustdoc warning an error (a
+# broken intra-doc link among them), and each front page pointing to the
+# user guide.
+#
 # Actions: only Forgejo-maintained forks. upload-artifact comes from
 # https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
 # "disable GHES check", checked 2026-09-20); the code.forgejo.org/actions
@@ -556,3 +564,49 @@ jobs:
 
       - name: The release before it must fail
         run: cargo xtask msrv --below
+
+  docs-rs:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: The documentation, as docs.rs builds it
+        run: cargo xtask docs-rs

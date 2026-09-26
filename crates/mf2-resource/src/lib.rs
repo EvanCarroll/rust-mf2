@@ -2,11 +2,9 @@
 //! 2: a parser, a serializer and the data model, generic over the message
 //! type.
 //!
-//! Unicode defines no file format for MF2 (`spec/syntax.md` points at "a
-//! future *`MessageResource`* specification"). mf2-two adopts the draft the MF2
-//! spec editor is writing, incubated by the W3C i18n WG — decision D2 of the
-//! master plan (`plans/00-master-plan.md`), with the format described in
-//! `plans/05-tooling.md` §2.
+//! Unicode defines no file format for MF2; its specification leaves that to
+//! a future message resource specification. mf2-two adopts the draft being
+//! written for it, incubated by the W3C i18n WG.
 //!
 //! ```text
 //! # A comment about the file.
@@ -45,15 +43,25 @@
 //!
 //! # The draft is not vendored
 //!
-//! The draft states no license (`third_party/w3c-message-resource/PIN`), so
-//! nothing is copied from it: this crate implements the working grammar of
-//! `plans/05-tooling.md` §2, written from the draft at the pin. **Where the
-//! draft and that text disagree, the draft wins** and the plan is corrected.
-//! The same holds for the JSON shape behind the `serde` feature.
+//! The draft states no license, so nothing is copied from it: this crate
+//! implements a grammar written from the draft at a pinned revision. **Where
+//! the draft and this crate disagree, the draft wins**, and the crate
+//! follows it. The same holds for the JSON shape behind the `serde`
+//! feature.
 //!
 //! `#![no_std]` + `alloc`; never linked into the client wasm.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. Its getting-started page shows the files this crate
+//! reads, and `versioning.md` what 1.x promises about their format.
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 

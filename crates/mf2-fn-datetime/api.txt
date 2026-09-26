@@ -1,5 +1,5 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: datetime-icu
+# nightly-2026-09-24; features: datetime-icu,datetime-intl
 pub mod mf2_fn_datetime
 pub mod mf2_fn_datetime::icu
 pub struct mf2_fn_datetime::icu::AnyCalendar
@@ -70,6 +70,19 @@ pub fn mf2_fn_datetime::DateTimeFunction<B>::format_parts(&self, &mf2_runtime::f
 pub fn mf2_fn_datetime::DateTimeFunction<B>::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
 pub fn mf2_fn_datetime::DateTimeFunction<B>::part_kind(&self) -> &'static str
 pub fn mf2_fn_datetime::DateTimeFunction<B>::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub struct mf2_fn_datetime::Intl
+impl core::clone::Clone for mf2_fn_datetime::Intl
+pub fn mf2_fn_datetime::Intl::clone(&self) -> Self
+impl core::default::Default for mf2_fn_datetime::Intl
+pub fn mf2_fn_datetime::Intl::default() -> Self
+impl core::fmt::Debug for mf2_fn_datetime::Intl
+pub fn mf2_fn_datetime::Intl::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::Intl
+impl mf2_fn_datetime::Backend for mf2_fn_datetime::Intl
+pub fn mf2_fn_datetime::Intl::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::Intl::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::Intl::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::Intl::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
 pub struct mf2_fn_datetime::Neutral
 impl core::clone::Clone for mf2_fn_datetime::Neutral
 pub fn mf2_fn_datetime::Neutral::clone(&self) -> Self
@@ -112,6 +125,11 @@ pub fn mf2_fn_datetime::Backend::dir(&self, &mf2_runtime::function::FnContext<'_
 pub fn mf2_fn_datetime::Backend::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
 pub fn mf2_fn_datetime::Backend::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
 pub fn mf2_fn_datetime::Backend::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+impl mf2_fn_datetime::Backend for mf2_fn_datetime::Intl
+pub fn mf2_fn_datetime::Intl::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::Intl::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::Intl::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::Intl::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
 impl mf2_fn_datetime::Backend for mf2_fn_datetime::Neutral
 pub fn mf2_fn_datetime::Neutral::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
 pub fn mf2_fn_datetime::Neutral::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)

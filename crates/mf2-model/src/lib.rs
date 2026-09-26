@@ -2,11 +2,10 @@
 //! Rust types, plus the identities and error kinds every mf2-two crate shares
 //! and the [`Frontend`] trait a parser implements.
 //!
-//! The public types are **frozen** by the Phase 1 work order
-//! (`plans/08-phase-1-work-order.md`, "Frozen public types of `mf2-model`"):
-//! later phases are written against these names, fields and signatures.
-//! Adding a method is allowed; changing or removing one needs a change to
-//! that document in the same commit.
+//! The data model's structs mirror the specification's `message.json` field
+//! for field, and code builds them by literal; a later MF2 that defines a
+//! new structure adds a variant, which is why the enums are
+//! `#[non_exhaustive]`.
 //!
 //! * [`MsgId`], [`Dir`] — identities shared with the catalog and the runtime.
 //! * [`is_name_start`], [`is_name_char`] — the ABNF's name classes, shared by
@@ -14,23 +13,33 @@
 //! * [`ErrorKind`], [`ErrorClass`], [`Span`], [`Diagnostic`], [`Diagnostics`] —
 //!   the 13 error kinds of the WG test suite plus two, and how a frontend
 //!   reports them.
-//! * [`Message`] and everything below it — the interchange data model of
-//!   `spec/data-model/README.md`, one-to-one.
-//! * [`Parsed`], [`Frontend`] — the parser boundary (decision D1's gate and
-//!   fallback).
+//! * [`Message`] and everything below it — the specification's interchange
+//!   data model, one-to-one.
+//! * [`Parsed`], [`Frontend`] — the parser boundary.
 //!
 //! Values are kept **as written**: nothing in this crate normalizes. Names
 //! exclude the bidi marks the syntax allows around them (spec, "Names and
 //! Identifiers"); equality is exact (bytewise), which is what the round-trip
-//! properties of conformance layers L2 and L3 need. Normalization belongs to
+//! properties of the conformance tests need. Normalization belongs to
 //! comparison (validation in `mf2-syntax`) and to catalog encoding.
 //!
 //! `#![no_std]` + `alloc`, no dependencies by default. Features: `serde` (JSON
-//! per `spec/data-model/message.json`) and `suite-names` (error kinds ↔ the
+//! that validates against the specification's `message.json`) and `suite-names` (error kinds ↔ the
 //! suite's strings). The client wasm links only [`MsgId`], [`Dir`] and
 //! [`ErrorKind`].
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application formatting messages starts at
+//! [`mf2`](https://docs.rs/mf2); this crate is for tools that work on the
+//! data model itself, with `mf2-syntax`.
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 

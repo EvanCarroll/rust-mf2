@@ -1,9 +1,9 @@
-//! `mf2-fn-number` — the localized numeric functions of mf2-two (feature
-//! `fn-number`; `plans/03-runtime.md` §3–§5): the runtime's numeric core
+//! `mf2-fn-number` — the localized numeric functions of mf2-two: the
+//! runtime's numeric core
 //! (`mf2_runtime::NumberSpec`, `Number::resolve`) resolves — operand rules,
 //! every digit and rounding option, `signDisplay`, inheritance, selection —
 //! and this crate writes the rounded digits with the catalog's locale data
-//! (`number.symbols`, `number.patterns`; `plans/02-catalog-format.md` §4):
+//! (its `number.symbols` and `number.patterns` entries):
 //! decimal and group separators, signs, the numbering system's digits,
 //! grouping (`useGrouping` `auto` / `always` / `min2` / `never`, with the
 //! locale's minimum grouping digits), and the percent pattern.
@@ -13,21 +13,30 @@
 //! | [`NUMBER`], [`INTEGER`], [`OFFSET`] | `:number`, `:integer`, `:offset`, localized (the core's are neutral) |
 //! | [`PERCENT`] | `:percent` |
 //! | [`CURRENCY`], [`UNIT`] | `:currency`, `:unit` (Draft): a `Measure` with the catalog's `currency.data` / `unit.data` |
-//! | [`NUMBERS`] | unannotated numbers, localized: `Registry::with_numbers(&NUMBERS)` (`syntax.json` #90) |
+//! | [`NUMBERS`] | unannotated numbers, localized: `Registry::with_numbers(&NUMBERS)` |
 //!
 //! With feature `intl` on `wasm32-unknown-unknown`
 //! ([`mf2_runtime::INTL_NUMBERS`]) the text comes from the host's number
-//! formatter (the browser's `Intl.NumberFormat`) instead (`intl.rs`,
-//! `plans/03-runtime.md` §5.3).
+//! formatter (the browser's `Intl.NumberFormat`) instead.
 //!
-//! Closed world (B13): an application's registry names only the handlers
+//! Closed world: an application's registry names only the handlers
 //! its corpus uses. Selection, exact-match keys and plural operands are the
 //! core's (neutral digits, the formatted digits' plural category): a
 //! localized handler only changes the text. Client-path code: `no_std`,
 //! `forbid(unsafe_code)`, no `core::fmt`, no panicking operation, no
 //! allocation.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application reaches this crate through
+//! [`mf2`](https://docs.rs/mf2), as `mf2::fn_number` (feature `fn-number`).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(

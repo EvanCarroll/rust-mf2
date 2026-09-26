@@ -5,9 +5,8 @@
 //! It runs from an i18n crate's `build.rs`
 //! (`Build::new()?.emit_cargo(true).run()?.into_result()?`) and from
 //! `mf2-cli`,
-//! reading the same [`Config`] both times so that the two can never disagree
-//! (`plans/05-tooling.md` §3.1, §4). Nothing here is linked into the client
-//! wasm.
+//! reading the same [`Config`] both times so that the two can never
+//! disagree. Nothing here is linked into the client wasm.
 //!
 //! ```text
 //! locales/<tag>/*.mf2   ─▶ Loader ─▶ records ─▶ mf2-syntax ─▶ models
@@ -16,7 +15,7 @@
 //!                                                  │  markup, functions, hash
 //!                             lints (mf2 check) ◀──┤
 //!                                                  ▼
-//!                                   fallbacks flattened (D5)
+//!                                      fallbacks flattened
 //!                                                  ▼
 //!                       locale data sliced ─▶ mf2-catalog writer ─▶ .mf2b + .br/.gz
 //!                                                  ▼
@@ -47,8 +46,19 @@
 //! | `codegen` | the generated Rust module |
 //! | `pseudo` | the pseudo-locales `en-XA` and `ar-XB` |
 //! | `build` | [`Build`], which runs all of it |
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application names this crate in its i18n crate's
+//! `[build-dependencies]`, and [`mf2`](https://docs.rs/mf2) in its
+//! `[dependencies]`.
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 // `Error` carries a path and the error it wraps, which makes it wide. A build
 // returns one of these at most once per run, never in a loop, so keeping the

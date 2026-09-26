@@ -21,8 +21,19 @@
 //! Diagnostics carry a stable detail code: see [`code`].
 //!
 //! `#![no_std]` + `alloc`; never linked into the client wasm.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application formatting messages starts at
+//! [`mf2`](https://docs.rs/mf2); this crate is the stand-alone parser, for
+//! tools.
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 

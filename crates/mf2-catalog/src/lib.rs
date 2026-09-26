@@ -1,6 +1,5 @@
-//! `mf2-catalog` — the `.mf2b` binary catalog of mf2-two
-//! (`plans/02-catalog-format.md`): one locale's messages and locale data, as
-//! a lossless encoding of the MF2 data model that the client reads in place.
+//! `mf2-catalog` — the `.mf2b` binary catalog of mf2-two: one locale's
+//! messages and locale data, as a lossless encoding of the MF2 data model that the client reads in place.
 //!
 //! An application meets one type of this crate: [`Catalog`], a loaded
 //! catalog, which `leptos-mf2` and `mf2-axum` load and serve for it and
@@ -16,18 +15,27 @@
 //! | `number`, `currency`, `unit` — views of the `number.*`, `currency.data` and `unit.data` LOCALE entries (`mf2-fn-number` reads them) | *(always)* | client, same rules |
 //! | `Manifest` — `manifest.mf2m` and `manifest_hash` | `manifest` | build |
 //! | `writer` — `writer::catalog`, `writer::single` | `writer` | build |
-//! | `decode()` — the model-rebuilding decoder (layer L3) | `decode` | build |
+//! | `decode()` — the model-rebuilding decoder (for tests) | `decode` | build |
 //!
 //! The reader is client-path code: `Catalog::new` takes the fetched buffer
-//! and validates its structure once, linearly (F2, F4); every accessor is a
+//! and validates its structure once, in linear time; every accessor is a
 //! bounds-checked O(1) read that never panics; strings are checked as UTF-8
 //! when read; nothing formats. `StrRef` is opaque and loading is one
 //! function — the two seams kept for catalog text as JS strings.
 //!
-//! The byte format is version 1, frozen at the exit of Phase 2
-//! (`plans/02-catalog-format.md` §2); its constants are in `format`.
+//! The byte format is version 1; its constants are in `format`.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application starts at
+//! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(

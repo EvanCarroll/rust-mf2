@@ -12,6 +12,7 @@ mod cldr_sync;
 mod cmd;
 mod codegen_matrix;
 mod docs;
+mod docs_rs;
 mod error;
 mod fluent_ab;
 mod fluent_migrate;
@@ -214,6 +215,13 @@ enum Command {
         #[arg(long)]
         test: bool,
     },
+    /// The 16 published crates' documentation built as docs.rs builds it
+    /// (Phase 9, A5): each library crate's `[package.metadata.docs.rs]`
+    /// features and targets, on the pinned nightly with `--cfg docsrs`,
+    /// every rustdoc warning (a broken intra-doc link among them) an error,
+    /// and each front page pointing to the user guide.
+    #[command(name = "docs-rs")]
+    DocsRs,
     /// The MSRV (Phase 9, A3): the 16 published crates checked on the
     /// `rust-version` they state, natively and for wasm32-unknown-unknown,
     /// on both Leptos lines.
@@ -386,6 +394,7 @@ fn run(command: Command) -> Result<()> {
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
         Command::Api { check } => api::run(&root, check),
+        Command::DocsRs => docs_rs::run(&root),
         Command::Msrv { below } => msrv::run(&root, below),
         Command::Package { check, test } => package::run(&root, check, test),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),

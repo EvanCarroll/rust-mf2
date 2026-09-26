@@ -1,5 +1,4 @@
-//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of mf2-two
-//! (`functions/datetime.md`; `plans/03-runtime.md` §2.7, §5.2, §6):
+//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of mf2-two:
 //! `:datetime`, `:date`, `:time`, and the handler that formats unannotated
 //! date/time values. The semantics — operands, options, errors, time zones
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into
@@ -10,8 +9,6 @@
 //! | none | [`Neutral`], a deterministic locale-independent stub (ISO 8601 pieces) |
 //! | `datetime-icu` | `icu::Icu`: ICU4X over the catalog's `icu.blob` LOCALE entry, on client and server alike (narrower variants: `Icu<GregorianOnly, NoZones>` …) |
 //! | `datetime-intl` | `Intl` on `wasm32-unknown-unknown`: `Host::format_date_time` (the browser's `Intl.DateTimeFormat` through `mf2-host-web`'s `INTL_HOST`); elsewhere `Icu` over ICU4X's compiled data |
-//!
-//! (`plans/03-runtime.md` §5.2, "The date backends as built".)
 //!
 //! ```
 //! use mf2_fn_datetime::{DateTimeFunction, Neutral};
@@ -37,7 +34,7 @@
 //! | [`DATES`] | — (`Registry::with_dates`) | an unannotated date/time, as `:datetime` with its defaults |
 //!
 //! All three functions take the override options `timeZone` and `calendar`;
-//! `:datetime` and `:time` also `hour12`. Closed world (B13): a registry
+//! `:datetime` and `:time` also `hour12`. Closed world: a registry
 //! names only the handlers its corpus uses, and an unused one is never
 //! linked. A handler over another backend: [`DateTimeFunction::datetime`]
 //! and its siblings.
@@ -99,13 +96,14 @@
 //! * **No zone data** (`Host::zone_offset` answers `None`, the default).
 //!   Converting a value with an offset to a named zone, or a value in a
 //!   named zone whose offset is unknown to any other zone, cannot be done:
-//!   *Bad Option* and a fallback value, the alternative datetime.md allows —
+//!   *Bad Option* and a fallback value, the alternative the specification
+//!   allows —
 //!   not a wall time shown in the wrong zone, and not *Unsupported
 //!   Operation*, since the conversion itself is what the spec asks for. This
 //!   includes the formatting context's default zone, which is the
 //!   `timeZone` option's resolved value when the expression sets none: a
-//!   context in a named zone needs a host with zone data for instants
-//!   (`plans/11` owner decision 1). Placing a *floating* value in a named
+//!   context in a named zone needs a host with zone data for instants.
+//!   Placing a *floating* value in a named
 //!   zone needs no conversion, so it is no error: the wall time shows, and
 //!   the zone's offset stays unknown (the neutral backend then names the
 //!   zone for `timeZoneStyle`). A converted value past `Date`'s year limit
@@ -116,10 +114,19 @@
 //!   fallback value with that error.
 //!
 //! Client-path code: `no_std`, `forbid(unsafe_code)`, no `core::fmt` use,
-//! no panicking operation, no allocation (B12, `plans/05-tooling.md` §8) —
+//! no panicking operation, no allocation —
 //! the semantics, the neutral and the `Intl` backends. The ICU4X backend
 //! allocates (the blob's provider) and links ICU4X's own `core::fmt` and
-//! panic paths: that is `datetime-icu`'s documented cost (06 B4).
+//! panic paths: that is `datetime-icu`'s cost in client size.
+//!
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application reaches this crate through
+//! [`mf2`](https://docs.rs/mf2), as `mf2::fn_datetime` (feature `fn-datetime`).
 //!
 //! [`Arg::DateTime`]: mf2_runtime::Arg::DateTime
 //! [`Value::DateTime`]: mf2_runtime::Value::DateTime
@@ -127,6 +134,8 @@
 //! [`Host::zone_offset`]: mf2_runtime::Host::zone_offset
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(

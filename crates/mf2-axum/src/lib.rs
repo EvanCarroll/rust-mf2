@@ -1,5 +1,5 @@
 //! `mf2-axum` — locale negotiation and catalog serving for an Axum + Leptos
-//! application (`plans/04-leptos-integration.md` §6).
+//! application.
 //!
 //! Three things, and nothing else:
 //!
@@ -7,7 +7,7 @@
 //!    [`LocaleSource`]s and [`LocaleSink`]s: a cookie, `Accept-Language`, a
 //!    path prefix, a query parameter. The first source that offers a locale
 //!    this build has wins. Never a boolean matrix of
-//!    `from_<source>_to_<target>` (§11, item 5).
+//!    `from_<source>_to_<target>` options.
 //! 2. **The catalogs** ([`catalog_routes`]) — `/i18n/*` from the bytes
 //!    embedded in the server binary, with the precompressed variant and
 //!    `Cache-Control: immutable`.
@@ -17,9 +17,9 @@
 //!
 //! The negotiated locale is **serialized into the page** — `<html lang dir>`
 //! and the preload link — and the client reads it rather than negotiating
-//! again. The prior-art audit found re-negotiation at hydration behind a long
-//! tail of bugs (§11, item 3), and the browser checks assert that this
-//! library does not do it.
+//! again: negotiating again at hydration is behind a long tail of bugs in
+//! other i18n libraries, and this library's browser checks assert that it
+//! does not.
 //!
 //! ```ignore
 //! use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator};
@@ -31,8 +31,18 @@
 //!         .sink(CookieLocale::default()),
 //! );
 //! ```
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application starts at
+//! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 // The Leptos line, as in leptos-mf2 (`plans/04-leptos-integration.md` §10):
 // the 0.8 crates, when they are the ones on, renamed back.

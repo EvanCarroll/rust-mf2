@@ -87,5 +87,12 @@ mf2 = { path = "../mf2", features = ["compile", "host-std", "datetime-icu"] }
 mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-syntax.workspace = true
 
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
+[package.metadata.docs.rs]
+# Both backends: they build together, and each adds its own items.
+features = ["datetime-icu", "datetime-intl"]
+targets = ["x86_64-unknown-linux-gnu"]
+
 [lints]
 workspace = true

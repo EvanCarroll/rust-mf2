@@ -35,5 +35,13 @@ js-sys = { workspace = true }
 mf2-runtime.workspace = true
 wasm-bindgen = { workspace = true, optional = true }
 
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
+[package.metadata.docs.rs]
+features = ["intl", "datetime-intl"]
+# Its only target.
+default-target = "wasm32-unknown-unknown"
+targets = ["wasm32-unknown-unknown"]
+
 [lints]
 workspace = true

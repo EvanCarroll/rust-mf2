@@ -158,7 +158,7 @@ impl Outcome {
 
     /// Writes what a static host serves into `dir`: every catalog under its
     /// content-hashed name (with its `.br` and `.gz`, when the build
-    /// compressed them) and [`INDEX_FILE`], `{"<tag>": "<file name>", …}`,
+    /// compressed them) and `index.json`, `{"<tag>": "<file name>", …}`,
     /// which a client-only application reads to find them. Nothing else —
     /// not the manifest, not the generated module — so the whole directory
     /// can be published as it is. Catalogs an earlier publish left in `dir`

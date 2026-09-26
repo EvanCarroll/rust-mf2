@@ -132,8 +132,14 @@ required-features = ["csr"]
 name = "fallback_lang"
 required-features = ["ssr", "mark-fallback-lang"]
 
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-features = ["ssr"]
+# The modes (`ssr`, `hydrate`, `csr`) exclude each other: the docs show
+# the server on the default line, and the front page names what the
+# client modes add.
+features = ["ssr", "fn-datetime", "static-locale", "mark-fallback-lang"]
+targets = ["x86_64-unknown-linux-gnu"]
 
 [lints]
 workspace = true

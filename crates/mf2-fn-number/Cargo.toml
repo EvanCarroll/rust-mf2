@@ -41,5 +41,10 @@ mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-locale-data.workspace = true
 mf2-syntax.workspace = true
 
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
 [lints]
 workspace = true

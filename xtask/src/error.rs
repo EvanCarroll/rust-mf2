@@ -44,6 +44,10 @@ pub(crate) enum Error {
     /// from its committed `package.txt`, or its own tests fail.
     #[error("package: {0}")]
     Package(String),
+    /// A published crate's documentation does not build as docs.rs builds
+    /// it, warns, or has no front page pointing to the user guide.
+    #[error("docs-rs: {0}")]
+    DocsRs(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

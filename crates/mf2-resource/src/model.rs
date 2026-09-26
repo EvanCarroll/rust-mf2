@@ -4,7 +4,7 @@
 //! `third_party/w3c-message-resource/PIN` (the draft states no license, so
 //! nothing is vendored; see `plans/05-tooling.md` §2). The draft's
 //! `Resource<Message>` becomes [`Resource<'a, V>`]: `V` is whatever an entry's
-//! value is — the MF2 source as written ([`crate::parse`] gives
+//! value is — the MF2 source as written (`parse` gives
 //! `Cow<'a, str>`), or a parsed `Message`, or anything else a caller maps to
 //! with [`Resource::map_values`].
 //!
@@ -328,7 +328,7 @@ pub struct Entry<'a, V> {
     pub id: Id<'a>,
     /// The value: the MF2 source as written, or whatever it was mapped to.
     pub value: V,
-    /// The comment above it, if it attaches ([`crate::parse`] documents the
+    /// The comment above it, if it attaches (`parse` documents the
     /// attachment rules).
     pub comment: Option<Comment<'a>>,
     /// The properties above it, in the order written.

@@ -1,8 +1,9 @@
-//! `mf2` — Unicode MessageFormat 2 for Leptos: the one crate an application
-//! names (`plans/05-tooling.md` §9). It re-exports the public API of the
-//! mf2-two crates and carries the application's feature flags
-//! (`plans/00-master-plan.md` §5); it has no logic of its own beyond
-//! [`compile_str`].
+//! `mf2` — Unicode MessageFormat 2 for Leptos: the crate an application
+//! starts from. It re-exports the public API of the mf2-two crates and
+//! carries the application's feature flags; it has no logic of its own
+//! beyond [`compile_str`] and the call-site core. Beside it, an application
+//! names `leptos-mf2` (the Leptos mode and line), `mf2-axum` (the server),
+//! and `mf2-build` in its i18n crate's build script.
 //!
 //! | Feature | Adds |
 //! |---|---|
@@ -15,13 +16,19 @@
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
 //! | `intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
+//! The Leptos modes (`ssr`, `hydrate`, `csr`) exclude each other; this
+//! documentation shows `ssr` on Leptos 0.9, and `leptos-mf2`'s front page
+//! lists what the client modes add. `host-web` and `intl` are for
+//! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
+//! is not shown here.
+//!
 //! Beyond the re-exports the facade carries one thing of its own: the
-//! **call-site core** (`plans/04-leptos-integration.md` §2.1) — [`Tr`],
+//! **call-site core** — [`Tr`],
 //! [`TrArgs`], [`TrRich`], [`ArgValue`] and the lowering that borrows them
 //! into the runtime's [`Arg`], with [`include_generated!`] and the `tr!`
 //! proc-macro behind it. It is Leptos-free, so a server, a test and
-//! `mf2-cli` use it as they are; Phase 6's `leptos-mf2` adds rendering, the
-//! catalog context and the reactive argument on top of it.
+//! `mf2-cli` use it as they are; `leptos-mf2` adds rendering, the catalog
+//! context and the reactive argument on top of it.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -68,8 +75,19 @@
 //! assert!(errors.is_empty());
 //! # }
 //! ```
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository.
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+// The Leptos layer's items name the modes an application turns on, not the
+// `leptos` feature they imply (`doc(cfg(...))` below).
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 // The call-site core is what 2,000 client call sites are made of, so the
@@ -108,10 +126,18 @@ pub use leptos_mf2::{
 
 /// The Leptos layer (`plans/04-leptos-integration.md` §§3–7).
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use leptos_mf2::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
 
 /// The Leptos layer in full, for what this facade does not name one by one.
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use leptos_mf2;
 
 /// The proc-macro behind the generated `tr!` wrapper — reached as

@@ -5,7 +5,7 @@
 //! message-level ones. This type is for operations that cannot produce a
 //! result at all — serializing a model the resource syntax cannot write.
 
-/// A model the resource syntax cannot represent (see [`crate::serialize`]).
+/// A model the resource syntax cannot represent (see `serialize`).
 #[derive(Clone, Copy, PartialEq, Eq, Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {

@@ -1,12 +1,22 @@
 //! `mf2-host-std` — the [`Host`] of `mf2-runtime` for native code and for the
-//! `wasm32-wasip1` conformance run (`plans/03-runtime.md` §2.5, §4): NFC
+//! `wasm32-wasip1`: NFC
 //! through `unicode-normalization`, the shortest round-trip text of a float
 //! through `ryu`, and the UTC offset of a named time zone through `jiff`'s
-//! **bundled** IANA database (owner decision 1, §5.2) — never the system's,
-//! so a server, a test and the `wasm32-wasip1` run answer alike. Never
+//! **bundled** IANA database — never the system's, so every server, test and
+//! `wasm32-wasip1` run answers alike. Never
 //! linked into the browser client, which uses `mf2-host-web`.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application reaches this crate through
+//! [`mf2`](https://docs.rs/mf2), as `mf2::host_std` (feature `host-std`).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 

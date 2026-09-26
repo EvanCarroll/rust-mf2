@@ -70,5 +70,11 @@ required-features = ["writer"]
 name = "measure"
 required-features = ["writer"]
 
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
+[package.metadata.docs.rs]
+features = ["manifest", "writer", "decode"]
+targets = ["x86_64-unknown-linux-gnu"]
+
 [lints]
 workspace = true

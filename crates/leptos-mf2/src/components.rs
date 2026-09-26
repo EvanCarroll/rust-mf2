@@ -4,8 +4,8 @@
 //! components exist because getting them right by hand is fiddly:
 //!
 //! * `<html lang dir>` must be correct and must **update on a switch**
-//!   (3.1.1). [`set_document_lang`](crate::set_document_lang) does the
-//!   update; [`html_lang`] gives the shell the pair to render.
+//!   (3.1.1). `set_document_lang` (a client function: `hydrate` or `csr`)
+//!   does the update; [`html_lang`] gives the shell the pair to render.
 //! * A language control must be a real labelled control, and each language
 //!   must be named **in its own language, with its own `lang`** — otherwise
 //!   a screen reader pronounces "Français" with an English voice.
@@ -133,8 +133,8 @@ pub fn CatalogLinks() -> impl IntoView {
 /// The first thing in an islands page's `<body>`: an empty island that
 /// Leptos' island walk awaits until the catalog is installed, so that every
 /// island after it hydrates against the catalog the page was rendered with
-/// ([`hydrate_islands`](crate::hydrate_islands) says why nothing else can
-/// wait). Pair it with [`islands_gate!`](crate::islands_gate) in the client.
+/// (`hydrate_islands`, with `hydrate`, says why nothing else can wait).
+/// Pair it with [`islands_gate!`](crate::islands_gate) in the client.
 ///
 /// It must come before every island in document order, and outside all of
 /// them. It has no content and no role, so assistive technology never meets

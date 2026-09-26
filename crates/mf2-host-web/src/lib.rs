@@ -1,14 +1,14 @@
 //! `mf2-host-web` — the [`Host`] of `mf2-runtime` in the browser
-//! (`plans/03-runtime.md` §2.5, §4): NFC through `String.prototype.normalize`
+//! (`wasm32-unknown-unknown`, its only target): NFC through `String.prototype.normalize`
 //! and the shortest round-trip text of a float through `Number.prototype
 //! .toString`, both via `js-sys`, so the wasm carries no normalization
 //! tables and no float-printing code.
 //!
-//! Dates (`plans/03-runtime.md` §2.7) and numbers (`intl`, §5.3) come as
+//! Dates and numbers (`intl`) come as
 //! more hosts, not as more methods of [`HOST`]: a host method is linked
 //! whenever its host is (it is in the `Host` vtable), so a date or number
 //! method on [`HOST`] would cost every client that has the feature on,
-//! dates or numbers or not (B1′). An application names the host its corpus
+//! dates or numbers or not. An application names the host its corpus
 //! needs (`mf2-build` picks it):
 //!
 //! | Static | Feature | Adds |
@@ -16,9 +16,19 @@
 //! | [`HOST`] | — | NFC, float text |
 //! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (`datetime-icu` clients: named zones) |
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
-//! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host (`numbers.rs`) |
+//! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application reaches this crate through
+//! [`mf2`](https://docs.rs/mf2), as `mf2::host_web` (feature `host-web`).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 

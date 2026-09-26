@@ -8,9 +8,11 @@
 //! `public-api` and `rustdoc-json` crates from the rustdoc JSON of a pinned
 //! nightly (installed through rustup when missing; `--document-hidden-items`
 //! is not passed, so `#[doc(hidden)]` items — which 1.x does not promise —
-//! are not listed). Each crate is listed with the feature set an application
-//! turns on for its server (the same as `cargo xtask msrv`'s first step),
-//! and `mf2-host-web` for `wasm32-unknown-unknown`, the only target it has.
+//! are not listed). Each crate is listed with the features and target its
+//! `[package.metadata.docs.rs]` gives docs.rs (`cargo xtask docs-rs`), so
+//! the published documentation shows what the listing promises: the feature
+//! set an application turns on for its server, and `mf2-host-web` for
+//! `wasm32-unknown-unknown`, the only target it has.
 //!
 //! `mf2-cli` is a binary: its promise is the command tree, and its listing
 //! is the commands and their arguments as clap declares them, written and
@@ -27,6 +29,7 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 use crate::cmd::{cargo, run_capture, run_inherit_env};
+use crate::docs_rs::Presented;
 use crate::error::{Error, Result};
 use crate::fsx;
 
@@ -41,72 +44,18 @@ const WASM: &str = "wasm32-unknown-unknown";
 const HEADER: &str = "# The public API that 1.x promises (docs/versioning.md). Written by \
                       `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.";
 
-/// A library crate, the features it is listed with, and its target.
-struct Listed {
-    name: &'static str,
-    features: &'static [&'static str],
-    target: Option<&'static str>,
-}
-
-const fn native(name: &'static str, features: &'static [&'static str]) -> Listed {
-    Listed {
-        name,
-        features,
-        target: None,
-    }
-}
-
-/// The 15 library crates.
-const LISTED: [Listed; 15] = [
-    native("mf2-model", &["serde"]),
-    native("mf2-syntax", &[]),
-    native("mf2-resource", &["serde"]),
-    native("mf2-catalog", &["manifest", "writer", "decode"]),
-    native("mf2-runtime", &[]),
-    native("mf2-locale-data", &["extract", "icu-blob"]),
-    native("mf2-build", &["icu-blob"]),
-    native("mf2-host-std", &[]),
-    Listed {
-        name: "mf2-host-web",
-        features: &["intl", "datetime-intl"],
-        target: Some(WASM),
-    },
-    native("mf2-fn-number", &[]),
-    native("mf2-fn-datetime", &["datetime-icu"]),
-    native("mf2-macros", &[]),
-    native(
-        "leptos-mf2",
-        &["ssr", "fn-datetime", "static-locale", "mark-fallback-lang"],
-    ),
-    // The facade alone with `ssr` names no Leptos line; an application also
-    // depends on `leptos-mf2`, whose default names 0.9 (docs/getting-started.md).
-    native(
-        "mf2",
-        &[
-            "compile",
-            "fn-number",
-            "datetime-icu",
-            "host-std",
-            "ssr",
-            "static-locale",
-            "mark-fallback-lang",
-            "leptos-mf2/leptos-0-9",
-        ],
-    ),
-    native("mf2-axum", &[]),
-];
-
 fn fail(message: impl Into<String>) -> Error {
     Error::Api(message.into())
 }
 
 pub(crate) fn run(root: &Path, check: bool) -> Result<()> {
     install(root)?;
+    let listed = crate::docs_rs::presented(root)?;
     let mut stale = Vec::new();
-    for listed in &LISTED {
+    for listed in &listed {
         eprintln!("==> api: {}", listed.name);
         let text = listing(root, listed)?;
-        if let Some(diff) = compare(root, listed.name, &text, check)? {
+        if let Some(diff) = compare(root, &listed.name, &text, check)? {
             stale.push(diff);
         }
     }
@@ -115,7 +64,7 @@ pub(crate) fn run(root: &Path, check: bool) -> Result<()> {
     if stale.is_empty() {
         eprintln!(
             "api: {} listings {}",
-            LISTED.len() + 1,
+            listed.len() + 1,
             if check { "unchanged" } else { "written" }
         );
         Ok(())
@@ -129,15 +78,19 @@ pub(crate) fn run(root: &Path, check: bool) -> Result<()> {
 }
 
 /// `listed`'s public API, as `api.txt` holds it.
-fn listing(root: &Path, listed: &Listed) -> Result<String> {
+fn listing(root: &Path, listed: &Presented) -> Result<String> {
+    // Documented for another target than the host's: listed for it too.
+    let target = listed.default_target.as_ref();
     let mut builder = rustdoc_json::Builder::default()
         .toolchain(NIGHTLY)
-        .manifest_path(root.join("crates").join(listed.name).join("Cargo.toml"))
+        .manifest_path(root.join("crates").join(&listed.name).join("Cargo.toml"))
         .target_dir(root.join("target").join("api"))
-        .features(listed.features)
+        .features(&listed.features)
+        .all_features(listed.all_features)
+        .no_default_features(listed.no_default_features)
         .quiet(true);
-    if let Some(target) = listed.target {
-        builder = builder.target(target.to_owned());
+    if let Some(target) = target {
+        builder = builder.target(target.clone());
     }
     let json = builder
         .build()
@@ -147,15 +100,14 @@ fn listing(root: &Path, listed: &Listed) -> Result<String> {
         .omit_auto_trait_impls(true)
         .build()
         .map_err(|e| fail(format!("{}: {e}", listed.name)))?;
-    let features = if listed.features.is_empty() {
+    let features = if listed.all_features {
+        "(all)".to_owned()
+    } else if listed.features.is_empty() {
         "(default)".to_owned()
     } else {
         listed.features.join(",")
     };
-    let target = listed
-        .target
-        .map(|t| format!("; target: {t}"))
-        .unwrap_or_default();
+    let target = target.map(|t| format!("; target: {t}")).unwrap_or_default();
     let mut text = format!("{HEADER}\n# {NIGHTLY}; features: {features}{target}\n");
     for item in api.items() {
         let _ = writeln!(text, "{item}");
@@ -222,7 +174,7 @@ fn cli(root: &Path, check: bool) -> Result<()> {
 
 /// The pinned nightly, through rustup (a no-op when present), with the
 /// wasm target `mf2-host-web` needs.
-fn install(root: &Path) -> Result<()> {
+pub(crate) fn install(root: &Path) -> Result<()> {
     let args = [
         "toolchain",
         "install",

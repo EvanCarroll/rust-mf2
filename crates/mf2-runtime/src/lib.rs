@@ -1,5 +1,4 @@
-//! `mf2-runtime` — the MessageFormat 2 evaluator of mf2-two
-//! (`plans/03-runtime.md`): it formats a message **from a catalog**, walking
+//! `mf2-runtime` — the MessageFormat 2 evaluator of mf2-two: it formats a message **from a catalog**, walking
 //! `mf2-catalog`'s views in place — resolution, declarations (lazily, each at
 //! most once), selection, fallback, the Default Bidi Strategy, format to
 //! parts, markup, the `u:` options — and it holds the function registry, the
@@ -11,15 +10,25 @@
 //! | [`Formatter`] | the entry point: `simple`, `write`, `parts`, `*_named` |
 //! | [`Sink`], [`PartSink`], [`ErrorSink`] | where output and errors go |
 //! | [`Arg`], [`Value`], [`Number`] | arguments and resolved values |
-//! | [`Function`], [`Registry`], [`functions`] | handlers, closed world (B13) |
+//! | [`Function`], [`Registry`], [`functions`] | handlers; a registry names only the handlers its corpus uses, and no other is linked |
 //! | [`Host`] | NFC, float text, zone offsets, a date formatter, a number formatter (`intl`) from the platform |
-//! | [`DateTime`], [`TimeZone`], [`NumberSpec`], [`Digits`], [`Measure`] | Phase 4's additions for the function crates (§2.7) |
+//! | [`DateTime`], [`TimeZone`], [`NumberSpec`], [`Digits`], [`Measure`] | what the function crates and custom functions build on |
 //!
-//! The API is `plans/03-runtime.md` §2 (§2.7: Phase 4's additions). Client-path code: `no_std` +
-//! `alloc`, `forbid(unsafe_code)`, no `core::fmt`, no panicking operation
-//! (B12); built-in handlers never allocate.
+//! Client-path code: `no_std` + `alloc`, `forbid(unsafe_code)`, no
+//! `core::fmt`, no panicking operation; built-in handlers never allocate.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application reaches this crate through
+//! [`mf2`](https://docs.rs/mf2), which re-exports it; a custom function is
+//! written against [`Function`].
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(

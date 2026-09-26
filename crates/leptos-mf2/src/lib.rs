@@ -1,36 +1,68 @@
-//! `leptos-mf2` — what a `tr!` call site builds, and how Leptos renders it
-//! (`plans/04-leptos-integration.md`).
+//! `leptos-mf2` — what a `tr!` call site builds, and how Leptos renders it:
+//! the catalog of the request or of the page, the text of every `tr!`, and
+//! the switch from one language to another.
 //!
-//! The crate has two halves, and the `leptos` feature is the seam:
+//! The crate has two halves, and the Leptos mode is the seam:
 //!
 //! * **the call-site core** (always): [`Tr`], [`TrArgs`], [`TrRich`],
 //!   [`TrDyn`], [`ArgValue`] and the lowering that borrows them into the
-//!   runtime's `Arg` at format time (§2.1). It formats against a
+//!   runtime's `Arg` at format time. It formats against a
 //!   [`Formatter`](mf2_runtime::Formatter) the caller supplies, so a server,
 //!   a test and `mf2-cli` use it with no Leptos code compiled at all;
-//! * **the Leptos layer** (`leptos`): the tachys view impls, the per-request
-//!   and per-client catalog, the node registry and the locale switch
-//!   (§§3–7).
+//! * **the Leptos layer** (with a mode: `ssr`, `hydrate` or `csr`): the
+//!   tachys view impls, the per-request and per-client catalog, the node
+//!   registry and the locale switch.
 //!
-//! **Why one crate.** [04](plans/04-leptos-integration.md) §2.1 puts the
-//! core in the facade, and `mf2` still re-exports every one of these types —
-//! `mf2::Tr` is this `Tr`. The implementation lives here because Rust's
-//! orphan rule leaves no choice: `impl Render for Tr` needs either the trait
+//! # Modes and Leptos lines
+//!
+//! An application turns on exactly one mode — `ssr` in the server's build,
+//! `hydrate` in the client's (`csr` for a client-only application) — and
+//! forwards it to every Leptos-aware dependency, as cargo-leptos does. The
+//! modes exclude each other, so this documentation shows one: **`ssr`, on
+//! Leptos 0.9**, the default line (Leptos 0.8 is the opt-in: no default
+//! features, and `leptos-0-8`). The client modes add:
+//!
+//! | Mode | Adds |
+//! |---|---|
+//! | `hydrate` or `csr` | the active catalog's change notifier: `changed`, `set_active`, `track_locale`; the boot and the locale switch: `catalog_url`, `document_locale`, `load_page_catalog`, `preload_locale`, `set_document_lang`, `set_locale` |
+//! | `hydrate` | `hydrate_body`, `hydrate_lazy`, `hydrate_islands`, `wait_for_catalog`; [`islands_gate!`] expands to the islands' gate (with `ssr`, to nothing) |
+//! | `csr` | `client_locale`, `load_client_catalog`, `mount_to_body` |
+//!
+//! and lack what only a server has: [`RequestI18n`], [`catalog`],
+//! [`default_catalog`], [`provide_locale`], [`provide_locale_in_zone`],
+//! [`request_time_zone`].
+//!
+//! # Why one crate
+//!
+//! `mf2` re-exports every call-site type — `mf2::Tr` is this `Tr`. The
+//! implementation lives here because Rust's orphan rule leaves no choice: `impl Render for Tr` needs either the trait
 //! or the type to be the implementing crate's, `Render` is tachys', so `Tr`
 //! has to be ours. The same holds for `AttributeValue`, `IntoProperty`,
 //! `From<Tr> for TextProp` and `From<Signal<T>> for ArgValue`. Splitting the
 //! types from their rendering is not expressible; splitting them by feature
 //! is, and that is what this crate does.
 //!
-//! An application still names one crate — `mf2`, with `features =
-//! ["leptos", …]` — and a build without that feature pulls in no Leptos
-//! crate, no tachys and no `reactive_graph`.
+//! An application names this crate beside `mf2`, for the mode and the
+//! Leptos line; a build with no mode pulls in no Leptos crate, no tachys and
+//! no `reactive_graph`.
 //!
-//! Client-path code (`plans/06-size-and-perf.md`, B12): `no_std` + `alloc`
+//! Client-path code: `no_std` + `alloc`
 //! (the Leptos layer adds `std`, which its dependencies need anyway),
 //! `forbid(unsafe_code)`, no `core::fmt`, no panicking operation.
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application starts at
+//! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+// The Leptos layer's items name the modes an application turns on, not the
+// `leptos` feature they imply (`doc(cfg(...))` below).
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(
@@ -97,6 +129,10 @@ mod catalog;
 /// The page's own i18n furniture: the preload link, the catalog map, the
 /// `hreflang` block and the reference locale switcher (§9).
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub mod components;
 #[cfg(feature = "leptos")]
 mod convert;
@@ -107,6 +143,10 @@ mod error;
 #[doc(hidden)]
 pub mod glue;
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use components::{
     AlternateLinks, CatalogLinks, CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher,
     html_lang,
@@ -148,16 +188,28 @@ pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr
 /// The view closure a rich call site writes, and the flat handler
 /// conformance L6 compares against `expParts`.
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use markup::{Flat, FlatHandler, NestingHandler};
 
 #[cfg(feature = "leptos")]
 mod signal;
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use signal::{SignalArg, signal_arg};
 
 /// What an application installs once, and what it can ask about the build
 /// (`plans/04-leptos-integration.md` §5).
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use state::{
     Setup, TextUse, dir_of, install, locales, lookup_locale, manifest_hash, setup, source_locale,
 };
@@ -168,8 +220,16 @@ pub use state::{installed, installed_twice};
 
 /// The catalog a render reads, and what can go wrong loading one.
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use catalog::{active, read as read_catalog};
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use error::LoadError;
 
 /// The table of catalogs the server serves, which `mf2-axum` installs and
@@ -179,6 +239,7 @@ pub use error::LoadError;
 pub use catalog::{CatalogEntry, catalog_entries, catalog_file, catalog_name, install_catalogs};
 /// The server's catalogs and per-request locale (§5, §6).
 #[cfg(feature = "ssr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ssr")))]
 pub use catalog::{
     RequestI18n, catalog, default_catalog, provide_locale, provide_locale_in_zone,
     request_time_zone,
@@ -187,10 +248,15 @@ pub use catalog::{
 /// The reader's time zone (`plans/03-runtime.md` §6.1): whether a name the
 /// browser or the `mf2_tz` cookie gave can be used.
 #[cfg(feature = "leptos")]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
 pub use zone::reader_time_zone;
 
 /// The client's active catalog and its change notifier.
 #[cfg(all(feature = "leptos", not(feature = "ssr")))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "hydrate", feature = "csr"))))]
 pub use catalog::{changed, set_active, track_locale};
 
 /// The client's boot and locale switch (§6).
@@ -249,6 +315,8 @@ macro_rules! islands_gate {
 /// Exports the island [`IslandsGate`] renders — in a client build. This is
 /// a server build, where there is nothing to export.
 #[cfg(not(feature = "hydrate"))]
+// Not a feature's item: `islands_gate!` is always there (above, with `hydrate`).
+#[cfg_attr(docsrs, doc(auto_cfg = false))]
 #[macro_export]
 macro_rules! islands_gate {
     () => {};

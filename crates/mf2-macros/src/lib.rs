@@ -1,5 +1,4 @@
-//! `mf2-macros` — the `tr!` proc-macro (`plans/05-tooling.md` §4,
-//! `plans/04-leptos-integration.md` §2).
+//! `mf2-macros` — the `tr!` proc-macro.
 //!
 //! An application never names this crate. `mf2-build` generates, in the i18n
 //! crate, an exported `tr!` wrapper that forwards to `__tr_impl` with the
@@ -11,7 +10,7 @@
 //! ```
 //!
 //! so that any crate depending on the i18n crate can call `tr!`, with no
-//! unstable feature and nothing to configure (D8). The manifest is read once
+//! unstable feature and nothing to configure. The manifest is read once
 //! per compiler process, keyed by the path and verified against the baked
 //! hash — a manifest that hashes to anything else is reported as stale, never
 //! used, which is what keeps a long-lived rust-analyzer proc-macro server
@@ -23,13 +22,23 @@
 //!
 //! What the macro checks and what it emits is the `expand` module's doc; what reaches
 //! the wasm is a `MsgId` and the argument values, never an id string, an
-//! argument name or a markup name (B6).
+//! argument name or a markup name.
 //!
 //! Both proc-macros are hidden from the documentation: only the generated
 //! wrapper calls them, and 1.x promises the `tr!` forms, not these
 //! (`docs/versioning.md`).
+//!
+//! # The user guide
+//!
+//! Getting started, call sites, delivery modes, switching language,
+//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
+//! (`versioning.md`): the user guide is the `docs/` directory of the
+//! mf2-two repository. An application calls `tr!` through the i18n crate that
+//! `mf2-build` generates, and names [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]
+// docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 
 mod error;
