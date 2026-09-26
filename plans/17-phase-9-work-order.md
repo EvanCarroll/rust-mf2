@@ -682,6 +682,12 @@ of the tree, which a public repository or package cannot carry.
   removed, refusing `mf2-host-std` alone (`derive_trait_impl_removed`,
   "semver requires new major version") while the other 13 libraries
   passed.
+* **The dry run green** (2026-09-25): first with `--allow-dirty` on the
+  uncommitted change (490 s), then on the clean tree after the commit —
+  every step, the names all free, `cargo-semver-checks` skipped, `cargo
+  publish --workspace --dry-run` packaging and verifying the 16, and the
+  tree unchanged (304 s; both with warm build caches, taken under the
+  machine's usual load).
 * **The owner's command,** when the owner chooses to publish: `cargo
   login` once (cargo stores the token), then from a clean checkout of the
   commit to release, `cargo xtask spec-sync --check && cargo xtask release
@@ -706,6 +712,6 @@ of the tree, which a public repository or package cannot carry.
 - [x] the packages audited and verified from crates.io's point of view (A4)
 - [x] the documentation builds as docs.rs builds it (A5)
 - [x] the changelog with 1.0.0 and its known limitations (A6)
-- [ ] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7)
+- [x] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7) — green locally on the clean tree; the `release` job is in `ci.yml`, waiting for a runner like every job (no remote yet)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
 - [ ] `plans/phase-9-results.md` written (A8)
