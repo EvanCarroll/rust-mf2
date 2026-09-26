@@ -1,0 +1,127 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: datetime-icu
+pub mod mf2_fn_datetime
+pub mod mf2_fn_datetime::icu
+pub struct mf2_fn_datetime::icu::AnyCalendar
+impl core::clone::Clone for mf2_fn_datetime::icu::AnyCalendar
+pub fn mf2_fn_datetime::icu::AnyCalendar::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::AnyCalendar
+pub fn mf2_fn_datetime::icu::AnyCalendar::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::AnyCalendar
+pub struct mf2_fn_datetime::icu::Blob
+impl core::clone::Clone for mf2_fn_datetime::icu::Blob
+pub fn mf2_fn_datetime::icu::Blob::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::Blob
+pub fn mf2_fn_datetime::icu::Blob::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::Blob
+pub struct mf2_fn_datetime::icu::Compiled
+impl core::clone::Clone for mf2_fn_datetime::icu::Compiled
+pub fn mf2_fn_datetime::icu::Compiled::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::Compiled
+pub fn mf2_fn_datetime::icu::Compiled::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::Compiled
+pub struct mf2_fn_datetime::icu::GregorianOnly
+impl core::clone::Clone for mf2_fn_datetime::icu::GregorianOnly
+pub fn mf2_fn_datetime::icu::GregorianOnly::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::GregorianOnly
+pub fn mf2_fn_datetime::icu::GregorianOnly::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::GregorianOnly
+pub struct mf2_fn_datetime::icu::Icu<C, Z, D>(_)
+impl<C, Z, D> mf2_fn_datetime::icu::Icu<C, Z, D>
+pub const mf2_fn_datetime::icu::Icu<C, Z, D>::NEW: Self
+impl<C, Z, D> core::clone::Clone for mf2_fn_datetime::icu::Icu<C, Z, D>
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::clone(&self) -> Self
+impl<C, Z, D> core::fmt::Debug for mf2_fn_datetime::icu::Icu<C, Z, D>
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<C, Z, D> core::marker::Copy for mf2_fn_datetime::icu::Icu<C, Z, D>
+impl<C: 'static, Z: 'static, D: Data> mf2_fn_datetime::Backend for mf2_fn_datetime::icu::Icu<C, Z, D> where (C, Z): Variant
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub struct mf2_fn_datetime::icu::NoZones
+impl core::clone::Clone for mf2_fn_datetime::icu::NoZones
+pub fn mf2_fn_datetime::icu::NoZones::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::NoZones
+pub fn mf2_fn_datetime::icu::NoZones::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::NoZones
+pub struct mf2_fn_datetime::icu::WithZones
+impl core::clone::Clone for mf2_fn_datetime::icu::WithZones
+pub fn mf2_fn_datetime::icu::WithZones::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::WithZones
+pub fn mf2_fn_datetime::icu::WithZones::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::WithZones
+pub struct mf2_fn_datetime::DateTimeFunction<B>
+impl<B> mf2_fn_datetime::DateTimeFunction<B>
+pub const fn mf2_fn_datetime::DateTimeFunction<B>::backend(&self) -> &B
+pub const fn mf2_fn_datetime::DateTimeFunction<B>::date(B) -> Self
+pub const fn mf2_fn_datetime::DateTimeFunction<B>::datetime(B) -> Self
+pub const fn mf2_fn_datetime::DateTimeFunction<B>::time(B) -> Self
+pub const fn mf2_fn_datetime::DateTimeFunction<B>::unannotated(B) -> Self
+impl<B: core::clone::Clone> core::clone::Clone for mf2_fn_datetime::DateTimeFunction<B>
+pub fn mf2_fn_datetime::DateTimeFunction<B>::clone(&self) -> Self
+impl<B: core::fmt::Debug> core::fmt::Debug for mf2_fn_datetime::DateTimeFunction<B>
+pub fn mf2_fn_datetime::DateTimeFunction<B>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<B: core::marker::Copy> core::marker::Copy for mf2_fn_datetime::DateTimeFunction<B>
+impl<B: mf2_fn_datetime::Backend> mf2_runtime::function::Function for mf2_fn_datetime::DateTimeFunction<B>
+pub fn mf2_fn_datetime::DateTimeFunction<B>::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::DateTimeFunction<B>::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::DateTimeFunction<B>::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::DateTimeFunction<B>::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub fn mf2_fn_datetime::DateTimeFunction<B>::part_kind(&self) -> &'static str
+pub fn mf2_fn_datetime::DateTimeFunction<B>::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub struct mf2_fn_datetime::Neutral
+impl core::clone::Clone for mf2_fn_datetime::Neutral
+pub fn mf2_fn_datetime::Neutral::clone(&self) -> Self
+impl core::default::Default for mf2_fn_datetime::Neutral
+pub fn mf2_fn_datetime::Neutral::default() -> Self
+impl core::fmt::Debug for mf2_fn_datetime::Neutral
+pub fn mf2_fn_datetime::Neutral::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::Neutral
+impl mf2_fn_datetime::Backend for mf2_fn_datetime::Neutral
+pub fn mf2_fn_datetime::Neutral::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::Neutral::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::Neutral::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::Neutral::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+#[non_exhaustive] pub struct mf2_fn_datetime::Plan<'p>
+pub mf2_fn_datetime::Plan::date: mf2_runtime::datetime::Date
+pub mf2_fn_datetime::Plan::offset: core::option::Option<i32>
+pub mf2_fn_datetime::Plan::options: &'p mf2_runtime::datetime::DateTimeOptions<'p>
+pub mf2_fn_datetime::Plan::time: mf2_runtime::datetime::Time
+pub mf2_fn_datetime::Plan::zone: mf2_runtime::datetime::ZoneOption<'p>
+impl<'p> mf2_fn_datetime::Plan<'p>
+pub fn mf2_fn_datetime::Plan<'p>::epoch_ms(&self) -> core::option::Option<i64>
+pub fn mf2_fn_datetime::Plan<'p>::new(&mf2_runtime::function::FnContext<'p>, &'p mf2_runtime::datetime::DateTime<'p>) -> mf2_fn_datetime::Plan<'p>
+pub fn mf2_fn_datetime::Plan<'p>::request(&self) -> mf2_runtime::datetime::DateTimeRequest<'p>
+pub fn mf2_fn_datetime::Plan<'p>::wall_ms(&self) -> i64
+impl<'p> core::clone::Clone for mf2_fn_datetime::Plan<'p>
+pub fn mf2_fn_datetime::Plan<'p>::clone(&self) -> Self
+impl<'p> core::cmp::Eq for mf2_fn_datetime::Plan<'p>
+impl<'p> core::cmp::PartialEq for mf2_fn_datetime::Plan<'p>
+pub fn mf2_fn_datetime::Plan<'p>::eq(&self, &Self) -> bool
+impl<'p> core::fmt::Debug for mf2_fn_datetime::Plan<'p>
+pub fn mf2_fn_datetime::Plan<'p>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'p> core::marker::Copy for mf2_fn_datetime::Plan<'p>
+impl<'p> core::marker::StructuralPartialEq for mf2_fn_datetime::Plan<'p>
+pub static mf2_fn_datetime::DATE: mf2_fn_datetime::DateTimeFunction
+pub static mf2_fn_datetime::DATES: mf2_fn_datetime::DateTimeFunction
+pub static mf2_fn_datetime::DATETIME: mf2_fn_datetime::DateTimeFunction
+pub static mf2_fn_datetime::TIME: mf2_fn_datetime::DateTimeFunction
+pub trait mf2_fn_datetime::Backend: core::marker::Sync
+pub fn mf2_fn_datetime::Backend::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::Backend::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::Backend::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::Backend::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+impl mf2_fn_datetime::Backend for mf2_fn_datetime::Neutral
+pub fn mf2_fn_datetime::Neutral::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::Neutral::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::Neutral::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::Neutral::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+impl<C: 'static, Z: 'static, D: Data> mf2_fn_datetime::Backend for mf2_fn_datetime::icu::Icu<C, Z, D> where (C, Z): Variant
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::icu::Icu<C, Z, D>::supports(&self, &mf2_runtime::function::FnContext<'_>, &mf2_fn_datetime::Plan<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub fn mf2_fn_datetime::operand<'a>(&mf2_runtime::value::Value<'a>) -> core::option::Option<mf2_runtime::datetime::DateTime<'a>>
+pub fn mf2_fn_datetime::parse_literal<'a>(&str) -> core::option::Option<mf2_runtime::datetime::DateTime<'a>>
+pub type mf2_fn_datetime::DefaultBackend = mf2_fn_datetime::icu::Icu

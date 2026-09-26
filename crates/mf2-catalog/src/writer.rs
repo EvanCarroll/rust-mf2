@@ -201,6 +201,8 @@ pub fn single(
         let f = match d {
             Declaration::Input(x) => x.value.function.as_ref(),
             Declaration::Local(x) => x.value.function(),
+            // The encoder refuses it; nothing to collect.
+            _ => None,
         };
         if let Some(f) = f {
             functions.insert(nfc(&f.name).into_owned());
@@ -209,6 +211,7 @@ pub fn single(
     let patterns: Vec<&Pattern<'_>> = match message {
         Message::Pattern(p) => alloc::vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     };
     for p in patterns {
         for part in p.parts() {
@@ -377,7 +380,7 @@ fn locals_of<'a>(m: &'a Message<'_>) -> Vec<&'a str> {
         .iter()
         .filter_map(|d| match d {
             Declaration::Local(x) => Some(&*x.name),
-            Declaration::Input(_) => None,
+            _ => None,
         })
         .collect()
 }

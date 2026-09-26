@@ -1,0 +1,115 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: compile,fn-number,datetime-icu,host-std,ssr,static-locale,mark-fallback-lang,leptos-mf2/leptos-0-9
+pub mod mf2
+pub use mf2::Arg
+pub use mf2::ArgList
+pub use mf2::ArgSource
+pub use mf2::ArgValue
+pub use mf2::BidiStrategy
+pub use mf2::Catalog
+pub use mf2::CatalogError
+pub use mf2::Category
+pub use mf2::CurrencyDisplay
+pub use mf2::CustomValue
+pub use mf2::Date
+pub use mf2::DateFields
+pub use mf2::DateLength
+pub use mf2::DateStyle
+pub use mf2::DateTime
+pub use mf2::DateTimeOptions
+pub use mf2::DateTimeRequest
+pub use mf2::DateTimeValue
+pub use mf2::DigitOptions
+pub use mf2::Digits
+pub use mf2::Dir
+pub use mf2::ErrorKind
+pub use mf2::ErrorSink
+pub use mf2::ExpressionPart
+pub use mf2::FallbackSource
+pub use mf2::Flat
+pub use mf2::FlatHandler
+pub use mf2::FnContext
+pub use mf2::FormatContext
+pub use mf2::FormatError
+pub use mf2::Formatter
+pub use mf2::Function
+pub use mf2::Grouping
+pub use mf2::Handler
+pub use mf2::Host
+pub use mf2::IntoMarkupHandler
+pub use mf2::Isolation
+pub use mf2::MarkupHandler
+pub use mf2::MarkupKind
+pub use mf2::MarkupOptions
+pub use mf2::MarkupPart
+pub use mf2::Measure
+pub use mf2::MeasureUnit
+pub use mf2::MsgId
+pub use mf2::NestingHandler
+pub use mf2::NoErrors
+pub use mf2::Number
+pub use mf2::NumberFormatter
+pub use mf2::NumberOut
+pub use mf2::NumberRequest
+pub use mf2::NumberSpec
+pub use mf2::NumberStyle
+pub use mf2::Operands
+pub use mf2::OptionValue
+pub use mf2::Options
+pub use mf2::Part
+pub use mf2::PartSink
+pub use mf2::Registry
+pub use mf2::RoundingMode
+pub use mf2::RoundingPriority
+pub use mf2::Sign
+pub use mf2::SignDisplay
+pub use mf2::SignalArg
+pub use mf2::Sink
+pub use mf2::SubPartSink
+pub use mf2::Text
+pub use mf2::Time
+pub use mf2::TimePrecision
+pub use mf2::TimeZone
+pub use mf2::Tr
+pub use mf2::TrArgs
+pub use mf2::TrDyn
+pub use mf2::TrRich
+pub use mf2::UnitDisplay
+pub use mf2::Value
+pub use mf2::ZoneOption
+pub use mf2::ZoneStyle
+pub use mf2::fn_datetime
+pub use mf2::fn_number
+pub use mf2::functions
+pub use mf2::host_std
+pub use mf2::is_zone_name
+pub use mf2::leptos_mf2
+pub use mf2::signal_arg
+pub macro mf2::include_generated!
+#[non_exhaustive] pub enum mf2::CompileError
+pub mf2::CompileError::Invalid(alloc::vec::Vec<mf2_model::diagnostic::Diagnostic>)
+pub mf2::CompileError::Load(mf2_catalog::error::CatalogError)
+pub mf2::CompileError::LocaleData(mf2_locale_data::error::Error)
+pub mf2::CompileError::Write(mf2_catalog::error::WriteError)
+impl mf2::CompileError
+pub fn mf2::CompileError::kinds(&self) -> alloc::vec::Vec<mf2_model::diagnostic::ErrorKind>
+impl core::convert::From<mf2_catalog::error::CatalogError> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_catalog::error::CatalogError) -> Self
+impl core::convert::From<mf2_catalog::error::WriteError> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_catalog::error::WriteError) -> Self
+impl core::convert::From<mf2_locale_data::error::Error> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_locale_data::error::Error) -> Self
+impl core::error::Error for mf2::CompileError
+pub fn mf2::CompileError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for mf2::CompileError
+pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::CompileError
+pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub struct mf2::Compiled
+pub mf2::Compiled::catalog: mf2_catalog::reader::Catalog
+impl mf2::Compiled
+pub const mf2::Compiled::ID: mf2_model::id::MsgId
+impl core::fmt::Debug for mf2::Compiled
+pub fn mf2::Compiled::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub fn mf2::compile_str(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>
+pub fn mf2::compile_str_stripped(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>

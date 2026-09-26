@@ -1,0 +1,353 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: (default)
+pub mod mf2_syntax
+pub mod mf2_syntax::code
+pub const mf2_syntax::code::CONTENT_AFTER_BODY: u16
+pub const mf2_syntax::code::DUPLICATE_DECLARATION: u16
+pub const mf2_syntax::code::DUPLICATE_OPTION_NAME: u16
+pub const mf2_syntax::code::DUPLICATE_VARIANT: u16
+pub const mf2_syntax::code::EMPTY_PLACEHOLDER: u16
+pub const mf2_syntax::code::EXPECTED_EQUALS: u16
+pub const mf2_syntax::code::EXPECTED_EXPRESSION: u16
+pub const mf2_syntax::code::EXPECTED_KEY: u16
+pub const mf2_syntax::code::EXPECTED_LITERAL: u16
+pub const mf2_syntax::code::EXPECTED_NAME: u16
+pub const mf2_syntax::code::EXPECTED_OPERAND: u16
+pub const mf2_syntax::code::EXPECTED_OPTION_VALUE: u16
+pub const mf2_syntax::code::EXPECTED_QUOTED_PATTERN: u16
+pub const mf2_syntax::code::EXPECTED_SELECTOR: u16
+pub const mf2_syntax::code::EXPECTED_VARIABLE: u16
+pub const mf2_syntax::code::EXPECTED_VARIABLE_EXPRESSION: u16
+pub const mf2_syntax::code::EXPECTED_VARIANT: u16
+pub const mf2_syntax::code::INVALID_ESCAPE: u16
+pub const mf2_syntax::code::MARKUP_NOT_ALLOWED: u16
+pub const mf2_syntax::code::MISSING_BODY: u16
+pub const mf2_syntax::code::MISSING_FALLBACK_VARIANT: u16
+pub const mf2_syntax::code::MISSING_SELECTOR_ANNOTATION: u16
+pub const mf2_syntax::code::MISSING_WHITESPACE: u16
+pub const mf2_syntax::code::NUL_CHARACTER: u16
+pub const mf2_syntax::code::SELF_REFERENCING_DECLARATION: u16
+pub const mf2_syntax::code::SOURCE_TOO_LONG: u16
+pub const mf2_syntax::code::UNESCAPED_CLOSE_BRACE: u16
+pub const mf2_syntax::code::UNEXPECTED_CHARACTER: u16
+pub const mf2_syntax::code::UNKNOWN_KEYWORD: u16
+pub const mf2_syntax::code::UNTERMINATED_PLACEHOLDER: u16
+pub const mf2_syntax::code::UNTERMINATED_QUOTED_LITERAL: u16
+pub const mf2_syntax::code::UNTERMINATED_QUOTED_PATTERN: u16
+pub const mf2_syntax::code::VARIANT_KEY_MISMATCH: u16
+pub fn mf2_syntax::code::describe(u16) -> core::option::Option<&'static str>
+pub mod mf2_syntax::cst
+#[non_exhaustive] #[repr(u8)] pub enum mf2_syntax::cst::SyntaxKind
+pub mf2_syntax::cst::SyntaxKind::At
+pub mf2_syntax::cst::SyntaxKind::Attribute
+pub mf2_syntax::cst::SyntaxKind::Colon
+pub mf2_syntax::cst::SyntaxKind::ComplexMessage
+pub mf2_syntax::cst::SyntaxKind::Dollar
+pub mf2_syntax::cst::SyntaxKind::Equals
+pub mf2_syntax::cst::SyntaxKind::Error
+pub mf2_syntax::cst::SyntaxKind::Escape
+pub mf2_syntax::cst::SyntaxKind::Expression
+pub mf2_syntax::cst::SyntaxKind::Function
+pub mf2_syntax::cst::SyntaxKind::Hash
+pub mf2_syntax::cst::SyntaxKind::Identifier
+pub mf2_syntax::cst::SyntaxKind::InputDeclaration
+pub mf2_syntax::cst::SyntaxKind::KwInput
+pub mf2_syntax::cst::SyntaxKind::KwLocal
+pub mf2_syntax::cst::SyntaxKind::KwMatch
+pub mf2_syntax::cst::SyntaxKind::LBrace
+pub mf2_syntax::cst::SyntaxKind::LBrace2
+pub mf2_syntax::cst::SyntaxKind::LiteralText
+pub mf2_syntax::cst::SyntaxKind::LocalDeclaration
+pub mf2_syntax::cst::SyntaxKind::MarkupClose
+pub mf2_syntax::cst::SyntaxKind::MarkupOpen
+pub mf2_syntax::cst::SyntaxKind::MarkupStandalone
+pub mf2_syntax::cst::SyntaxKind::Matcher
+pub mf2_syntax::cst::SyntaxKind::Name
+pub mf2_syntax::cst::SyntaxKind::Option
+pub mf2_syntax::cst::SyntaxKind::Pattern
+pub mf2_syntax::cst::SyntaxKind::Pipe
+pub mf2_syntax::cst::SyntaxKind::QuotedLiteral
+pub mf2_syntax::cst::SyntaxKind::QuotedPattern
+pub mf2_syntax::cst::SyntaxKind::RBrace
+pub mf2_syntax::cst::SyntaxKind::RBrace2
+pub mf2_syntax::cst::SyntaxKind::SimpleMessage
+pub mf2_syntax::cst::SyntaxKind::Slash
+pub mf2_syntax::cst::SyntaxKind::Star
+pub mf2_syntax::cst::SyntaxKind::Text
+pub mf2_syntax::cst::SyntaxKind::Trivia
+pub mf2_syntax::cst::SyntaxKind::UnquotedLiteral
+pub mf2_syntax::cst::SyntaxKind::Variable
+pub mf2_syntax::cst::SyntaxKind::Variant
+impl mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::is_markup(self) -> bool
+pub fn mf2_syntax::cst::SyntaxKind::is_node(self) -> bool
+pub fn mf2_syntax::cst::SyntaxKind::is_token(self) -> bool
+impl core::clone::Clone for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::cst::SyntaxKind
+impl core::cmp::PartialEq for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_syntax::cst::SyntaxKind
+impl core::marker::StructuralPartialEq for mf2_syntax::cst::SyntaxKind
+pub struct mf2_syntax::cst::Cst<'src>
+impl<'src> mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::diagnostics(&self) -> &[mf2_model::diagnostic::Diagnostic]
+pub fn mf2_syntax::cst::Cst<'src>::has_errors(&self) -> bool
+pub fn mf2_syntax::cst::Cst<'src>::root(&self) -> core::option::Option<mf2_syntax::cst::SyntaxNode<'_, 'src>>
+pub fn mf2_syntax::cst::Cst<'src>::source(&self) -> &'src str
+pub fn mf2_syntax::cst::Cst<'src>::to_model(&self) -> mf2_model::frontend::Parsed<'src>
+pub fn mf2_syntax::cst::Cst<'src>::view(&self) -> mf2_syntax::cst::CstRef<'_, 'src>
+impl core::fmt::Display for mf2_syntax::cst::Cst<'_>
+pub fn mf2_syntax::cst::Cst<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'src> core::clone::Clone for mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::clone(&self) -> Self
+impl<'src> core::fmt::Debug for mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2_syntax::cst::CstRef<'a, 'src>
+impl<'a, 'src> mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::diagnostics(&self) -> &'a [mf2_model::diagnostic::Diagnostic]
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::has_errors(&self) -> bool
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::nodes(&self) -> &'a [mf2_syntax::cst::Node]
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::root(&self) -> core::option::Option<mf2_syntax::cst::SyntaxNode<'a, 'src>>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::source(&self) -> &'src str
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::to_model(&self) -> mf2_model::frontend::Parsed<'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::tokens(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+impl core::fmt::Display for mf2_syntax::cst::CstRef<'_, '_>
+pub fn mf2_syntax::cst::CstRef<'_, '_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::clone::Clone for mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::clone(&self) -> Self
+impl<'a, 'src> core::fmt::Debug for mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::marker::Copy for mf2_syntax::cst::CstRef<'a, 'src>
+pub struct mf2_syntax::cst::Node
+impl mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::kind(&self) -> mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::Node::span(&self) -> mf2_model::diagnostic::Span
+impl core::clone::Clone for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::cst::Node
+impl core::cmp::PartialEq for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_syntax::cst::Node
+impl core::marker::StructuralPartialEq for mf2_syntax::cst::Node
+pub struct mf2_syntax::cst::SyntaxNode<'a, 'src>
+impl<'a, 'src> mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::children(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::descendants(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::index(&self) -> usize
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::is_token(&self) -> bool
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::kind(&self) -> mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::span(&self) -> mf2_model::diagnostic::Span
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::text(&self) -> &'src str
+impl<'a, 'src> core::clone::Clone for mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::clone(&self) -> Self
+impl<'a, 'src> core::fmt::Debug for mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::marker::Copy for mf2_syntax::cst::SyntaxNode<'a, 'src>
+#[non_exhaustive] pub enum mf2_syntax::Error
+pub mf2_syntax::Error::InputNameMismatch
+pub mf2_syntax::Error::InvalidName(mf2_syntax::NameRole)
+pub mf2_syntax::Error::NoKeys
+pub mf2_syntax::Error::NoSelectors
+pub mf2_syntax::Error::NoVariants
+pub mf2_syntax::Error::Nul
+pub mf2_syntax::Error::UnknownNode
+impl core::clone::Clone for mf2_syntax::Error
+pub fn mf2_syntax::Error::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::Error
+impl core::cmp::PartialEq for mf2_syntax::Error
+pub fn mf2_syntax::Error::eq(&self, &Self) -> bool
+impl core::error::Error for mf2_syntax::Error
+impl core::fmt::Debug for mf2_syntax::Error
+pub fn mf2_syntax::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_syntax::Error
+pub fn mf2_syntax::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_syntax::Error
+impl core::marker::StructuralPartialEq for mf2_syntax::Error
+#[non_exhaustive] pub enum mf2_syntax::NameRole
+pub mf2_syntax::NameRole::Attribute
+pub mf2_syntax::NameRole::Function
+pub mf2_syntax::NameRole::Markup
+pub mf2_syntax::NameRole::Option
+pub mf2_syntax::NameRole::Variable
+impl core::clone::Clone for mf2_syntax::NameRole
+pub fn mf2_syntax::NameRole::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::NameRole
+impl core::cmp::PartialEq for mf2_syntax::NameRole
+pub fn mf2_syntax::NameRole::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_syntax::NameRole
+pub fn mf2_syntax::NameRole::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_syntax::NameRole
+pub fn mf2_syntax::NameRole::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_syntax::NameRole
+impl core::marker::StructuralPartialEq for mf2_syntax::NameRole
+#[non_exhaustive] #[repr(u8)] pub enum mf2_syntax::SyntaxKind
+pub mf2_syntax::SyntaxKind::At
+pub mf2_syntax::SyntaxKind::Attribute
+pub mf2_syntax::SyntaxKind::Colon
+pub mf2_syntax::SyntaxKind::ComplexMessage
+pub mf2_syntax::SyntaxKind::Dollar
+pub mf2_syntax::SyntaxKind::Equals
+pub mf2_syntax::SyntaxKind::Error
+pub mf2_syntax::SyntaxKind::Escape
+pub mf2_syntax::SyntaxKind::Expression
+pub mf2_syntax::SyntaxKind::Function
+pub mf2_syntax::SyntaxKind::Hash
+pub mf2_syntax::SyntaxKind::Identifier
+pub mf2_syntax::SyntaxKind::InputDeclaration
+pub mf2_syntax::SyntaxKind::KwInput
+pub mf2_syntax::SyntaxKind::KwLocal
+pub mf2_syntax::SyntaxKind::KwMatch
+pub mf2_syntax::SyntaxKind::LBrace
+pub mf2_syntax::SyntaxKind::LBrace2
+pub mf2_syntax::SyntaxKind::LiteralText
+pub mf2_syntax::SyntaxKind::LocalDeclaration
+pub mf2_syntax::SyntaxKind::MarkupClose
+pub mf2_syntax::SyntaxKind::MarkupOpen
+pub mf2_syntax::SyntaxKind::MarkupStandalone
+pub mf2_syntax::SyntaxKind::Matcher
+pub mf2_syntax::SyntaxKind::Name
+pub mf2_syntax::SyntaxKind::Option
+pub mf2_syntax::SyntaxKind::Pattern
+pub mf2_syntax::SyntaxKind::Pipe
+pub mf2_syntax::SyntaxKind::QuotedLiteral
+pub mf2_syntax::SyntaxKind::QuotedPattern
+pub mf2_syntax::SyntaxKind::RBrace
+pub mf2_syntax::SyntaxKind::RBrace2
+pub mf2_syntax::SyntaxKind::SimpleMessage
+pub mf2_syntax::SyntaxKind::Slash
+pub mf2_syntax::SyntaxKind::Star
+pub mf2_syntax::SyntaxKind::Text
+pub mf2_syntax::SyntaxKind::Trivia
+pub mf2_syntax::SyntaxKind::UnquotedLiteral
+pub mf2_syntax::SyntaxKind::Variable
+pub mf2_syntax::SyntaxKind::Variant
+impl mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::is_markup(self) -> bool
+pub fn mf2_syntax::cst::SyntaxKind::is_node(self) -> bool
+pub fn mf2_syntax::cst::SyntaxKind::is_token(self) -> bool
+impl core::clone::Clone for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::cst::SyntaxKind
+impl core::cmp::PartialEq for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxKind::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_syntax::cst::SyntaxKind
+impl core::marker::StructuralPartialEq for mf2_syntax::cst::SyntaxKind
+#[non_exhaustive] pub struct mf2_syntax::Analysis<'m>
+pub mf2_syntax::Analysis::externals: alloc::vec::Vec<mf2_syntax::Name<'m>>
+pub mf2_syntax::Analysis::functions: alloc::vec::Vec<mf2_syntax::Name<'m>>
+pub mf2_syntax::Analysis::locals: alloc::vec::Vec<mf2_syntax::Name<'m>>
+pub mf2_syntax::Analysis::markup: alloc::vec::Vec<mf2_syntax::Name<'m>>
+impl<'m> core::clone::Clone for mf2_syntax::Analysis<'m>
+pub fn mf2_syntax::Analysis<'m>::clone(&self) -> Self
+impl<'m> core::cmp::Eq for mf2_syntax::Analysis<'m>
+impl<'m> core::cmp::PartialEq for mf2_syntax::Analysis<'m>
+pub fn mf2_syntax::Analysis<'m>::eq(&self, &Self) -> bool
+impl<'m> core::default::Default for mf2_syntax::Analysis<'m>
+pub fn mf2_syntax::Analysis<'m>::default() -> Self
+impl<'m> core::fmt::Debug for mf2_syntax::Analysis<'m>
+pub fn mf2_syntax::Analysis<'m>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'m> core::marker::StructuralPartialEq for mf2_syntax::Analysis<'m>
+pub struct mf2_syntax::Cst<'src>
+impl<'src> mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::diagnostics(&self) -> &[mf2_model::diagnostic::Diagnostic]
+pub fn mf2_syntax::cst::Cst<'src>::has_errors(&self) -> bool
+pub fn mf2_syntax::cst::Cst<'src>::root(&self) -> core::option::Option<mf2_syntax::cst::SyntaxNode<'_, 'src>>
+pub fn mf2_syntax::cst::Cst<'src>::source(&self) -> &'src str
+pub fn mf2_syntax::cst::Cst<'src>::to_model(&self) -> mf2_model::frontend::Parsed<'src>
+pub fn mf2_syntax::cst::Cst<'src>::view(&self) -> mf2_syntax::cst::CstRef<'_, 'src>
+impl core::fmt::Display for mf2_syntax::cst::Cst<'_>
+pub fn mf2_syntax::cst::Cst<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'src> core::clone::Clone for mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::clone(&self) -> Self
+impl<'src> core::fmt::Debug for mf2_syntax::cst::Cst<'src>
+pub fn mf2_syntax::cst::Cst<'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2_syntax::CstRef<'a, 'src>
+impl<'a, 'src> mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::diagnostics(&self) -> &'a [mf2_model::diagnostic::Diagnostic]
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::has_errors(&self) -> bool
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::nodes(&self) -> &'a [mf2_syntax::cst::Node]
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::root(&self) -> core::option::Option<mf2_syntax::cst::SyntaxNode<'a, 'src>>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::source(&self) -> &'src str
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::to_model(&self) -> mf2_model::frontend::Parsed<'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::tokens(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+impl core::fmt::Display for mf2_syntax::cst::CstRef<'_, '_>
+pub fn mf2_syntax::cst::CstRef<'_, '_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::clone::Clone for mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::clone(&self) -> Self
+impl<'a, 'src> core::fmt::Debug for mf2_syntax::cst::CstRef<'a, 'src>
+pub fn mf2_syntax::cst::CstRef<'a, 'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::marker::Copy for mf2_syntax::cst::CstRef<'a, 'src>
+#[non_exhaustive] pub struct mf2_syntax::Name<'m>
+pub mf2_syntax::Name::nfc: alloc::borrow::Cow<'m, str>
+pub mf2_syntax::Name::spelling: &'m str
+impl<'m> core::clone::Clone for mf2_syntax::Name<'m>
+pub fn mf2_syntax::Name<'m>::clone(&self) -> Self
+impl<'m> core::cmp::Eq for mf2_syntax::Name<'m>
+impl<'m> core::cmp::PartialEq for mf2_syntax::Name<'m>
+pub fn mf2_syntax::Name<'m>::eq(&self, &Self) -> bool
+impl<'m> core::fmt::Debug for mf2_syntax::Name<'m>
+pub fn mf2_syntax::Name<'m>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'m> core::hash::Hash for mf2_syntax::Name<'m>
+pub fn mf2_syntax::Name<'m>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'m> core::marker::StructuralPartialEq for mf2_syntax::Name<'m>
+pub struct mf2_syntax::Node
+impl mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::kind(&self) -> mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::Node::span(&self) -> mf2_model::diagnostic::Span
+impl core::clone::Clone for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::clone(&self) -> Self
+impl core::cmp::Eq for mf2_syntax::cst::Node
+impl core::cmp::PartialEq for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_syntax::cst::Node
+pub fn mf2_syntax::cst::Node::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_syntax::cst::Node
+impl core::marker::StructuralPartialEq for mf2_syntax::cst::Node
+pub struct mf2_syntax::Parser
+impl mf2_syntax::Parser
+pub const fn mf2_syntax::Parser::new() -> Self
+pub fn mf2_syntax::Parser::parse_cst<'p, 'src>(&'p mut self, &'src str) -> mf2_syntax::cst::CstRef<'p, 'src>
+pub fn mf2_syntax::Parser::parse_model<'src>(&mut self, &'src str) -> mf2_model::frontend::Parsed<'src>
+pub fn mf2_syntax::Parser::with_capacity(usize) -> Self
+impl core::clone::Clone for mf2_syntax::Parser
+pub fn mf2_syntax::Parser::clone(&self) -> Self
+impl core::default::Default for mf2_syntax::Parser
+pub fn mf2_syntax::Parser::default() -> Self
+impl core::fmt::Debug for mf2_syntax::Parser
+pub fn mf2_syntax::Parser::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2_model::frontend::Frontend for mf2_syntax::Parser
+pub fn mf2_syntax::Parser::parse<'src>(&mut self, &'src str) -> mf2_model::frontend::Parsed<'src>
+pub struct mf2_syntax::SyntaxNode<'a, 'src>
+impl<'a, 'src> mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::children(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::descendants(&self) -> impl core::iter::traits::iterator::Iterator<Item = mf2_syntax::cst::SyntaxNode<'a, 'src>> + use<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::index(&self) -> usize
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::is_token(&self) -> bool
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::kind(&self) -> mf2_syntax::cst::SyntaxKind
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::span(&self) -> mf2_model::diagnostic::Span
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::text(&self) -> &'src str
+impl<'a, 'src> core::clone::Clone for mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::clone(&self) -> Self
+impl<'a, 'src> core::fmt::Debug for mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::cst::SyntaxNode<'a, 'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a, 'src> core::marker::Copy for mf2_syntax::cst::SyntaxNode<'a, 'src>
+pub fn mf2_syntax::analyze<'m>(&'m mf2_model::message::Message<'_>) -> mf2_syntax::Analysis<'m>
+pub fn mf2_syntax::parse_cst(&str) -> mf2_syntax::cst::Cst<'_>
+pub fn mf2_syntax::parse_model(&str) -> mf2_model::frontend::Parsed<'_>
+pub fn mf2_syntax::serialize(&mf2_model::message::Message<'_>) -> core::result::Result<alloc::string::String, mf2_syntax::Error>
+pub fn mf2_syntax::validate(&mf2_model::message::Message<'_>) -> mf2_model::diagnostic::Diagnostics

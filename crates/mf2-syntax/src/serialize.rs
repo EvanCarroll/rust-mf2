@@ -74,12 +74,14 @@ pub fn serialize(message: &Message<'_>) -> Result<String, Error> {
                     match k {
                         Key::CatchAll(_) => w.0.push('*'),
                         Key::Literal(l) => w.literal(l)?,
+                        _ => return Err(Error::UnknownNode),
                     }
                 }
                 w.0.push(' ');
                 w.quoted_pattern(&v.value)?;
             }
         }
+        _ => return Err(Error::UnknownNode),
     }
     Ok(w.0)
 }
@@ -115,6 +117,7 @@ impl Writer {
                     self.0.push_str(" = ");
                     self.expression(&x.value)?;
                 }
+                _ => return Err(Error::UnknownNode),
             }
             self.0.push('\n');
         }
@@ -208,6 +211,7 @@ impl Writer {
                     self.0.push('$');
                     self.name(&v.name, NameRole::Variable)?;
                 }
+                _ => return Err(Error::UnknownNode),
             }
         }
         Ok(())

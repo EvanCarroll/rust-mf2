@@ -17,10 +17,8 @@ fn main() {
     let out = std::path::PathBuf::from(
         std::env::var_os("OUT_DIR").expect("cargo sets OUT_DIR"),
     );
-    let mut config = mf2_build::Config {
-        source_locale: "en".to_owned(),
-        ..mf2_build::Config::default()
-    };
+    let mut config = mf2_build::Config::default();
+    config.source_locale = "en".to_owned();
     // The generated corpus has pseudo-locales that do not translate every
     // message, and a shape chosen for size, not for lint cleanliness.
     for &lint in mf2_build::Lint::ALL {

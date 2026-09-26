@@ -131,6 +131,7 @@
 //! [`FnContext::time_zone`]: mf2_runtime::FnContext::time_zone
 //! [`Host::zone_offset`]: mf2_runtime::Host::zone_offset
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(
@@ -160,7 +161,10 @@ mod options;
 mod plan;
 mod zone;
 
-pub use function::{DateTimeFunction, literal_options, operand};
+pub use function::{DateTimeFunction, operand};
+// The build's reading of a literal's options (`mf2-locale-data`'s `icu.blob`).
+#[doc(hidden)]
+pub use function::literal_options;
 #[cfg(feature = "datetime-intl")]
 pub use intl::Intl;
 pub use literal::parse_literal;

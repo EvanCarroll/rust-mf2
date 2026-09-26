@@ -43,6 +43,7 @@ pub(crate) enum ParseError {
 
 /// `roundingMode` (ECMA-402's names and meanings).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum RoundingMode {
     /// `ceil`: towards +∞.
     Ceil,

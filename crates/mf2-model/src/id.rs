@@ -1,19 +1,25 @@
 //! Identities shared with the catalog and the runtime.
 
-/// A message id: an index into one catalog chunk's message table.
+/// A message id: which message of a build's catalogs. `tr!` and the
+/// generated module make them; an application compares, hashes and passes
+/// them, and never builds one from a number.
 ///
-/// Low 24 bits: the index; high 8 bits: the chunk (plans/02-catalog-format.md
-/// §3). Until per-route chunking exists every message is in chunk 0.
+/// Inside, low 24 bits are an index into one catalog chunk's message table
+/// and the high 8 bits the chunk (plans/02-catalog-format.md §3) — the
+/// catalog's layout, which 1.x does not promise, so the methods that expose
+/// it are hidden. Until per-route chunking exists every message is in chunk 0.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 #[repr(transparent)]
 pub struct MsgId(u32);
 
 impl MsgId {
+    #[doc(hidden)]
     /// Bits of the index part.
     pub const INDEX_BITS: u32 = 24;
 
     const INDEX_MASK: u32 = (1 << Self::INDEX_BITS) - 1;
 
+    #[doc(hidden)]
     /// The id of message `index` in `chunk`; `None` if `index ≥ 2^24`.
     pub const fn new(chunk: u8, index: u32) -> Option<MsgId> {
         if index > Self::INDEX_MASK {
@@ -22,16 +28,19 @@ impl MsgId {
         Some(MsgId(((chunk as u32) << Self::INDEX_BITS) | index))
     }
 
+    #[doc(hidden)]
     /// The id whose raw value is `raw` (every `u32` is a valid id).
     pub const fn from_raw(raw: u32) -> MsgId {
         MsgId(raw)
     }
 
+    #[doc(hidden)]
     /// The raw value: `chunk << 24 | index`.
     pub const fn raw(self) -> u32 {
         self.0
     }
 
+    #[doc(hidden)]
     /// The chunk (high 8 bits).
     pub const fn chunk(self) -> u8 {
         // Lossless: a u32 shifted right by 24 fits in 8 bits.
@@ -40,6 +49,7 @@ impl MsgId {
         chunk
     }
 
+    #[doc(hidden)]
     /// The index within the chunk (low 24 bits).
     pub const fn index(self) -> u32 {
         self.0 & Self::INDEX_MASK

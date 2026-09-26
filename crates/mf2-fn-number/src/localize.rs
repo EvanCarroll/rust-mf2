@@ -43,9 +43,10 @@ pub(crate) enum Layout {
 fn groups(n: u16, sizes: Sizes, grouping: Grouping, locale_min: u8) -> bool {
     let min = match grouping {
         Grouping::Never => return false,
-        Grouping::Auto => locale_min.max(1),
         Grouping::Always => 1,
         Grouping::Min2 => 2,
+        // `auto`, and a value this version does not know.
+        _ => locale_min.max(1),
     };
     sizes.primary != 0 && u32::from(n) >= u32::from(sizes.primary) + u32::from(min)
 }

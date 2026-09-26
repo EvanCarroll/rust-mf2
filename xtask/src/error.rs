@@ -36,6 +36,10 @@ pub(crate) enum Error {
     /// it builds them too.
     #[error("msrv: {0}")]
     Msrv(String),
+    /// A published crate's public API differs from its committed `api.txt`,
+    /// or could not be listed.
+    #[error("api: {0}")]
+    Api(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

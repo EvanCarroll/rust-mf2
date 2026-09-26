@@ -102,6 +102,7 @@ pub enum NumberStyle<'a> {
 
 /// `:currency`'s `currencyDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum CurrencyDisplay {
     /// `symbol` (the default).
     Symbol,
@@ -117,6 +118,7 @@ pub enum CurrencyDisplay {
 
 /// `:unit`'s `unitDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum UnitDisplay {
     /// `short` (the default).
     Short,
@@ -275,6 +277,7 @@ impl Number {
     /// the host has no number formatter (nothing written). The `intl` path
     /// of the numeric functions (`plans/03-runtime.md` §2.7); on any build
     /// it only asks the host.
+    #[doc(hidden)]
     pub fn format_by_host(
         &self,
         cx: &FnContext<'_>,

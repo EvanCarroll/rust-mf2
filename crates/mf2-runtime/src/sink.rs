@@ -19,6 +19,7 @@ pub trait Sink {
     /// strings (`plans/stretch_goals_after_v1/prob_builtin_strings.md` §7):
     /// the evaluator writes catalog text only through this method. Returns
     /// `false` (and writes nothing) when the string is not valid (F4).
+    #[doc(hidden)]
     fn push_catalog_text(&mut self, catalog: &Catalog, r: StrRef) -> bool {
         match catalog.text(r) {
             Some(s) => {

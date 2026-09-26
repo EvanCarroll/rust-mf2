@@ -30,6 +30,7 @@
 //! suite's strings). The client wasm links only [`MsgId`], [`Dir`] and
 //! [`ErrorKind`].
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 
@@ -45,6 +46,7 @@ mod json;
 mod message;
 mod pattern;
 
+#[doc(hidden)]
 pub use alloc::borrow::Cow;
 
 pub use chars::{is_name_char, is_name_start};

@@ -62,10 +62,8 @@ fn build_panel(name: &str, body: &str, tags: &[&str], features: &Features) -> mf
         std::fs::create_dir_all(path.parent().expect("a parent")).expect("mkdir");
         std::fs::write(&path, format!("@locale {tag}\n---\n\n{body}")).expect("write");
     }
-    let mut config = Config {
-        source_locale: tags[0].to_owned(),
-        ..Config::default()
-    };
+    let mut config = Config::default();
+    tags[0].clone_into(&mut config.source_locale);
     // Every locale here has the same messages; the plural variants are the
     // source's, which other locales' categories do not match.
     config.lints.insert(

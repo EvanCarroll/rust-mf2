@@ -3,6 +3,7 @@
 //! Network access happens only in the `*-sync` commands, and only to the
 //! upstreams named in `third_party/*/PIN` (see `CLAUDE.md`, "Boundary").
 
+mod api;
 mod b12_generated;
 mod b5;
 mod churn;
@@ -190,6 +191,15 @@ enum Command {
         #[arg(long)]
         negative_control: bool,
     },
+    /// The public API of the 16 published crates (Phase 9, A2): written as
+    /// `crates/<name>/api.txt`, from a pinned nightly's rustdoc JSON (the
+    /// libraries) and clap's command tree (`mf2-cli`).
+    Api {
+        /// Compare with the committed listings instead of writing them; any
+        /// difference fails, naming its lines.
+        #[arg(long)]
+        check: bool,
+    },
     /// The MSRV (Phase 9, A3): the 16 published crates checked on the
     /// `rust-version` they state, natively and for wasm32-unknown-unknown,
     /// on both Leptos lines.
@@ -361,6 +371,7 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
+        Command::Api { check } => api::run(&root, check),
         Command::Msrv { below } => msrv::run(&root, below),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {

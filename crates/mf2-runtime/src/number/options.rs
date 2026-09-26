@@ -18,6 +18,7 @@ pub(crate) enum Select {
 
 /// `signDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum SignDisplay {
     /// `auto` (the default): a minus sign for negative numbers, `-0` included.
     Auto,
@@ -33,6 +34,7 @@ pub enum SignDisplay {
 
 /// `useGrouping`. Core output never groups; `mf2-fn-number` honours it.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum Grouping {
     /// `auto` (the default): the locale's grouping, with its minimum
     /// grouping digits.
@@ -47,6 +49,7 @@ pub enum Grouping {
 
 /// `roundingPriority`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum RoundingPriority {
     /// `auto` (the default): significant digits when set, else fraction digits.
     Auto,

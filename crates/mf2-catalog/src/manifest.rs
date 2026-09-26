@@ -26,9 +26,13 @@ const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
 /// message.
 #[derive(Clone, Default, PartialEq, Eq, Hash, Debug)]
 pub struct Manifest {
+    /// The message ids, in `MsgId` order.
     pub ids: Vec<String>,
+    /// Per message, its slot names, in slot order.
     pub slots: Vec<Vec<String>>,
+    /// Per message, its markup names.
     pub markup: Vec<Vec<String>>,
+    /// The function identifiers the corpus uses.
     pub functions: Vec<String>,
 }
 

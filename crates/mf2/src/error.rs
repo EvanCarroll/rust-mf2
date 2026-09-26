@@ -6,6 +6,7 @@ use mf2_model::{Diagnostic, ErrorKind};
 
 /// Why [`crate::compile_str`] refused a message.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum CompileError {
     /// The source is not well-formed (syntax errors) or not valid
     /// (data-model errors): the build refuses to ship it, as the suite's

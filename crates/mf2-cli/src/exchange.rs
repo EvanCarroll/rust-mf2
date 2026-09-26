@@ -14,8 +14,8 @@ use std::path::{Path, PathBuf};
 mod xliff;
 
 use clap::{Args as ClapArgs, ValueEnum};
-use mf2_build::config::{Config, Layout};
 use mf2_build::loader::{Loader, json, resource};
+use mf2_build::{Config, Layout};
 use mf2_resource::{parse, serialize_with};
 
 use crate::error::{Error, Result, read, write};

@@ -399,6 +399,7 @@ pub struct DateStyle {
 
 /// `dateFields` / `fields`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum DateFields {
     /// `weekday`.
     Weekday,
@@ -416,6 +417,7 @@ pub enum DateFields {
 
 /// `dateLength` / `length`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum DateLength {
     /// `long`.
     Long,
@@ -427,6 +429,7 @@ pub enum DateLength {
 
 /// `timePrecision` / `precision`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum TimePrecision {
     /// `hour`.
     Hour,
@@ -438,6 +441,7 @@ pub enum TimePrecision {
 
 /// `timeZoneStyle`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum ZoneStyle {
     /// `long`.
     Long,
@@ -447,6 +451,7 @@ pub enum ZoneStyle {
 
 /// A time zone as an option value (`timeZone`) or a formatting target.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum ZoneOption<'a> {
     /// `input`: the operand's own zone.
     Input,
@@ -578,6 +583,7 @@ fn zone_part(p: &[u8]) -> bool {
 /// What a host's date formatter receives (`Host::format_date_time`,
 /// `datetime-intl`): an instant and how to show it.
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct DateTimeRequest<'r> {
     /// The instant, in milliseconds since the epoch. For a floating value
     /// shown without a zone: its wall time read as UTC, with `zone` = UTC.
@@ -587,6 +593,22 @@ pub struct DateTimeRequest<'r> {
     /// The resolved options: the date and time parts, the zone style,
     /// `hour12`, `calendar`.
     pub options: &'r DateTimeOptions<'r>,
+}
+
+impl<'r> DateTimeRequest<'r> {
+    /// The request to show `epoch_ms` in `zone` with `options` (a date
+    /// backend makes it; a later version may add fields).
+    pub const fn new(
+        epoch_ms: i64,
+        zone: ZoneOption<'r>,
+        options: &'r DateTimeOptions<'r>,
+    ) -> DateTimeRequest<'r> {
+        DateTimeRequest {
+            epoch_ms,
+            zone,
+            options,
+        }
+    }
 }
 
 #[cfg(test)]

@@ -242,8 +242,10 @@ fn prefs(
     Ok(p)
 }
 
-/// The field set builder for `o`.
-fn builder(o: &DateTimeOptions<'_>) -> FieldSetBuilder {
+/// The field set builder for `o`. The option enums are not exhaustive: a
+/// value this backend does not know is an Unsupported Operation, never a
+/// silent default.
+fn builder(o: &DateTimeOptions<'_>) -> Result<FieldSetBuilder, FormatError> {
     let mut b = FieldSetBuilder::new();
     if let Some(DateStyle { fields, length }) = o.date {
         b.date_fields = Some(match fields {
@@ -253,19 +255,23 @@ fn builder(o: &DateTimeOptions<'_>) -> FieldSetBuilder {
             DateFields::MonthDayWeekday => F::MDE,
             DateFields::YearMonthDay => F::YMD,
             DateFields::YearMonthDayWeekday => F::YMDE,
+            _ => return Err(FormatError::UnsupportedOperation),
         });
         b.length = Some(match length {
             DateLength::Long => Length::Long,
             DateLength::Medium => Length::Medium,
             DateLength::Short => Length::Short,
+            _ => return Err(FormatError::UnsupportedOperation),
         });
     }
-    b.time_precision = o.time.map(|t| match t {
-        TimePrecision::Hour => P::Hour,
-        TimePrecision::Minute => P::Minute,
-        TimePrecision::Second => P::Second,
-    });
-    b
+    b.time_precision = match o.time {
+        None => None,
+        Some(TimePrecision::Hour) => Some(P::Hour),
+        Some(TimePrecision::Minute) => Some(P::Minute),
+        Some(TimePrecision::Second) => Some(P::Second),
+        Some(_) => return Err(FormatError::UnsupportedOperation),
+    };
+    Ok(b)
 }
 
 /// The ICU4X time of `plan`.
@@ -302,6 +308,7 @@ fn zone(
         ZoneOption::Offset(o) => (TimeZone::UNKNOWN, Some(o)),
         ZoneOption::Named(n) => (parser.as_borrowed().parse(n), plan.offset),
         ZoneOption::Utc | ZoneOption::Input => (parser.as_borrowed().parse("Etc/UTC"), Some(0)),
+        _ => return Err(FormatError::UnsupportedOperation),
     };
     input.set_time_zone_id(id);
     if let Some(o) = offset {
@@ -335,7 +342,7 @@ macro_rules! variant {
                 o: &DateTimeOptions<'_>,
                 run: Option<(&Plan<'_>, Option<&mut dyn Sink>)>,
             ) -> Result<(), FormatError> {
-                let mut b = builder(o);
+                let mut b = builder(o)?;
                 if let Some(style) = o.time_zone_style {
                     if !$has_zones {
                         return Err(FormatError::UnsupportedOperation);
@@ -343,6 +350,7 @@ macro_rules! variant {
                     b.zone_style = Some(match style {
                         ZoneStyle::Long => Zs::SpecificLong,
                         ZoneStyle::Short => Zs::SpecificShort,
+                        _ => return Err(FormatError::UnsupportedOperation),
                     });
                 }
                 let fs = b.$build().map_err(|_| FormatError::UnsupportedOperation)?;
@@ -445,6 +453,7 @@ variant!(
 /// zone style without zones, a calendar other than `gregory` with
 /// [`GregorianOnly`]. Returns the shapes that failed to build, with their
 /// error.
+#[doc(hidden)]
 pub fn prime<'c, C: 'static, Z: 'static>(
     provider: &dyn BufferProvider,
     locale: &str,

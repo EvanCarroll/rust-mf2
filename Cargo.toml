@@ -123,6 +123,10 @@ similar = "3.2.0"
 # read and written; a dependency of mf2-cli only.
 quick-xml = "0.42.0"
 sha2 = "0.11.0"
+# `cargo xtask api` (plans/17 A2): each published crate's public API listed
+# from a pinned nightly's rustdoc JSON, as `cargo public-api` lists it.
+public-api = { version = "0.52.2", default-features = false }
+rustdoc-json = "0.9.10"
 toml = "1.1.6"
 # no_std use in mf2-syntax (validation, analysis); std crates add `features = ["std"]`.
 unicode-normalization = { version = "0.1.25", default-features = false }

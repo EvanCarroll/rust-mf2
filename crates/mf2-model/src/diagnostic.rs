@@ -46,6 +46,7 @@ pub enum ErrorKind {
 
 /// The category of an [`ErrorKind`] (`spec/errors.md`).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum ErrorClass {
     /// The source is not well-formed.
     Syntax,
@@ -59,7 +60,7 @@ pub enum ErrorClass {
 
 impl ErrorKind {
     /// Every kind, in declaration order.
-    pub const ALL: [ErrorKind; 15] = [
+    pub const ALL: &'static [ErrorKind] = &[
         ErrorKind::Syntax,
         ErrorKind::VariantKeyMismatch,
         ErrorKind::MissingFallbackVariant,
@@ -103,6 +104,7 @@ impl ErrorKind {
     /// names in the same style (`"unsupported-operation"`,
     /// `"message-function-error"`), which never occur in the suite.
     #[cfg(feature = "suite-names")]
+    #[doc(hidden)]
     pub fn suite_name(self) -> &'static str {
         match self {
             ErrorKind::Syntax => "syntax-error",
@@ -125,8 +127,9 @@ impl ErrorKind {
 
     /// The kind named `s` (the inverse of [`ErrorKind::suite_name`]).
     #[cfg(feature = "suite-names")]
+    #[doc(hidden)]
     pub fn from_suite_name(s: &str) -> Option<ErrorKind> {
-        ErrorKind::ALL.into_iter().find(|k| k.suite_name() == s)
+        ErrorKind::ALL.iter().copied().find(|k| k.suite_name() == s)
     }
 }
 
@@ -139,8 +142,10 @@ pub struct Span {
     pub end: u32,
 }
 
-/// One reported error.
+/// One reported error. Made with [`Diagnostic::new`]; a later version may
+/// add fields.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub struct Diagnostic {
     /// What kind of error.
     pub kind: ErrorKind,
@@ -149,6 +154,14 @@ pub struct Diagnostic {
     pub code: u16,
     /// Where, in the source; `None` for models built in code.
     pub span: Option<Span>,
+}
+
+impl Diagnostic {
+    /// An error of `kind`, with the frontend's detail `code` (0 = none) at
+    /// `span`.
+    pub const fn new(kind: ErrorKind, code: u16, span: Option<Span>) -> Diagnostic {
+        Diagnostic { kind, code, span }
+    }
 }
 
 /// The errors a frontend or validator reported, in the order reported.
@@ -259,7 +272,7 @@ mod tests {
     #[cfg(feature = "suite-names")]
     #[test]
     fn suite_names_round_trip() {
-        for k in ErrorKind::ALL {
+        for &k in ErrorKind::ALL {
             assert_eq!(ErrorKind::from_suite_name(k.suite_name()), Some(k));
         }
         assert_eq!(

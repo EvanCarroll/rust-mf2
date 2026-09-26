@@ -81,7 +81,7 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
 fn plural_kinds(message: &Message<'_>) -> (bool, bool) {
     match message {
         Message::Select(select) => selector_kinds(select),
-        Message::Pattern(_) => (false, false),
+        _ => (false, false),
     }
 }
 
@@ -105,7 +105,7 @@ pub(crate) fn selector_kinds(select: &SelectMessage<'_>) -> (bool, bool) {
                 },
                 // A variable: only the run knows which rules it asks for, so
                 // carry both. `check`'s `dynamic-select` says why that costs.
-                Some(OptionValue::Variable(_)) => {
+                Some(_) => {
                     cardinal = true;
                     ordinal = true;
                 }
@@ -143,11 +143,7 @@ pub fn declared_function<'m>(
     }
     let mut found = None;
     for declaration in declarations {
-        let declared = match declaration {
-            Declaration::Input(input) => input.name.as_ref(),
-            Declaration::Local(local) => local.name.as_ref(),
-        };
-        if declared == name {
+        if declaration.name() == name {
             found = Some(declaration);
         }
     }
@@ -163,6 +159,7 @@ pub fn declared_function<'m>(
                 _ => None,
             },
         },
+        _ => None,
     }
 }
 
@@ -190,6 +187,7 @@ fn scan_dynamic(message: &Message<'_>, slice: &mut Slice) {
         match declaration {
             Declaration::Input(input) => note(input.value.function.as_ref()),
             Declaration::Local(local) => note(local.value.function()),
+            _ => {}
         }
     }
     for pattern in patterns(message) {
@@ -215,6 +213,7 @@ fn patterns<'m>(message: &'m Message<'_>) -> Vec<&'m mf2_model::Pattern<'m>> {
     match message {
         Message::Pattern(p) => vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     }
 }
 

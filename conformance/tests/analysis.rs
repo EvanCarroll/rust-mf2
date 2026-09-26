@@ -39,6 +39,7 @@ fn analysis(src: &str) -> (Vec<String>, Vec<String>, Vec<String>, Vec<String>) {
         locals,
         markup,
         functions,
+        ..
     } = analyze(&m);
     (
         names(&externals),

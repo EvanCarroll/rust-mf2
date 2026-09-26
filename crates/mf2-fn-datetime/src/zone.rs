@@ -85,7 +85,8 @@ fn at<'s>(d: &DateTime<'s>, context: ZoneOption<'s>) -> At<'s> {
         (None, None) if in_context(d) => match context {
             ZoneOption::Offset(o) => At::Offset(o),
             ZoneOption::Named(n) => At::Named(n),
-            ZoneOption::Utc | ZoneOption::Input => At::Offset(0),
+            // UTC, and a kind this version does not know.
+            _ => At::Offset(0),
         },
         (None, None) => At::Floating,
     }
@@ -224,6 +225,7 @@ pub(crate) fn place<'a>(
                     None => d.offset = None,
                 },
                 ZoneOption::Utc | ZoneOption::Input => d.offset = Some(0),
+                _ => return Err(FormatError::UnsupportedOperation),
             }
             d.zone = keep;
             return Ok(stored);
@@ -235,6 +237,7 @@ pub(crate) fn place<'a>(
         ZoneOption::Offset(o) => o,
         ZoneOption::Named(n) => offset_at(host, n, instant).ok_or(FormatError::BadOption)?,
         ZoneOption::Utc | ZoneOption::Input => 0,
+        _ => return Err(FormatError::UnsupportedOperation),
     };
     *d = moved(instant, offset, keep, d.options)?;
     Ok(stored)

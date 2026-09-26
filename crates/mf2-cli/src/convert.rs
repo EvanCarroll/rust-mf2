@@ -19,7 +19,7 @@ pub(crate) mod report;
 use std::path::{Path, PathBuf};
 
 use clap::{Args as ClapArgs, ValueEnum};
-use mf2_build::config::Layout;
+use mf2_build::Layout;
 
 use self::report::{Code, Finding, Report};
 use crate::Format;

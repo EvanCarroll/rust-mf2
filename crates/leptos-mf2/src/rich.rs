@@ -105,6 +105,8 @@ impl PartSink for Builder<'_> {
                 self.text.push('}');
             }
             Part::Markup(m) => self.markup(&m),
+            // A kind of part this version does not know: nothing to show.
+            _ => {}
         }
     }
 }

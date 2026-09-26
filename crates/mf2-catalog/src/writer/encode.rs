@@ -119,6 +119,7 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
                     out.extend_from_slice(&p);
                 }
             }
+            _ => return Err(self.err_unsupported()),
         }
         let cold = if self.overrides == 0 {
             None
@@ -273,6 +274,7 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
                 self.locals.push(&x.name);
                 self.scope.insert(nfc(&x.name), index);
             }
+            _ => return Err(self.err_unsupported()),
         }
         Ok(())
     }
@@ -330,6 +332,7 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
                         .map(|x| x | 1)
                         .ok_or(WriteError::TooLarge("variable index"))?
                 }
+                _ => return Err(self.err_unsupported()),
             };
             varint(v, out);
         }
@@ -375,6 +378,7 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
                     }
                 }
             }
+            _ => return Err(self.err_unsupported()),
         }
         Ok(())
     }

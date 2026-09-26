@@ -53,7 +53,7 @@ pub(crate) fn offers<'m>(
 ) -> Result<Option<Offers<'m>>> {
     let source_select = match source {
         Message::Select(s) => Some(s),
-        Message::Pattern(_) => None,
+        _ => None,
     };
     let target_select = match target {
         Some(Message::Select(s)) => Some(s),
@@ -66,7 +66,7 @@ pub(crate) fn offers<'m>(
     let target_variants = target.map(variants_of);
     let arity = |m: &Message<'_>| match m {
         Message::Select(s) => s.selectors.len(),
-        Message::Pattern(_) => 0,
+        _ => 0,
     };
     if let Some(target) = target
         && arity(target) != arity(source)
@@ -128,6 +128,7 @@ fn variants_of<'m>(message: &'m Message<'m>) -> Vec<(&'m [Key<'m>], &'m Pattern<
             .iter()
             .map(|v: &Variant<'m>| (v.keys.as_slice(), &v.value))
             .collect(),
+        _ => Vec::new(),
     }
 }
 
@@ -215,7 +216,7 @@ fn kind(select: &SelectMessage<'_>, name: &str) -> Column {
             "plural" => Column::Plural(PluralKind::Cardinal),
             _ => Column::Keys,
         },
-        Some(OptionValue::Variable(_)) => Column::Keys,
+        Some(_) => Column::Keys,
     }
 }
 
@@ -296,8 +297,8 @@ mod tests {
                     .keys
                     .iter()
                     .map(|k| match k {
-                        Key::CatchAll(_) => "*".to_owned(),
                         Key::Literal(l) => l.value.to_string(),
+                        _ => "*".to_owned(),
                     })
                     .collect();
                 let text = u.source.as_simple_text().unwrap_or("…").to_owned();

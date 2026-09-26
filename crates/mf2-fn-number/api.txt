@@ -1,0 +1,70 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: (default)
+pub mod mf2_fn_number
+pub struct mf2_fn_number::CurrencyFunction
+impl core::clone::Clone for mf2_fn_number::CurrencyFunction
+pub fn mf2_fn_number::CurrencyFunction::clone(&self) -> Self
+impl core::default::Default for mf2_fn_number::CurrencyFunction
+pub fn mf2_fn_number::CurrencyFunction::default() -> Self
+impl core::fmt::Debug for mf2_fn_number::CurrencyFunction
+pub fn mf2_fn_number::CurrencyFunction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_number::CurrencyFunction
+impl mf2_runtime::function::Function for mf2_fn_number::CurrencyFunction
+pub fn mf2_fn_number::CurrencyFunction::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_number::CurrencyFunction::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_number::CurrencyFunction::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_number::CurrencyFunction::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub fn mf2_fn_number::CurrencyFunction::part_kind(&self) -> &'static str
+pub fn mf2_fn_number::CurrencyFunction::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub struct mf2_fn_number::NumberFunction
+impl core::clone::Clone for mf2_fn_number::NumberFunction
+pub fn mf2_fn_number::NumberFunction::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_number::NumberFunction
+pub fn mf2_fn_number::NumberFunction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_number::NumberFunction
+impl mf2_runtime::function::Function for mf2_fn_number::NumberFunction
+pub fn mf2_fn_number::NumberFunction::better_than(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &str, &str) -> bool
+pub fn mf2_fn_number::NumberFunction::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_number::NumberFunction::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_number::NumberFunction::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_number::NumberFunction::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub fn mf2_fn_number::NumberFunction::matches(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &str, &mut dyn mf2_runtime::sink::ErrorSink) -> bool
+pub fn mf2_fn_number::NumberFunction::part_kind(&self) -> &'static str
+pub fn mf2_fn_number::NumberFunction::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub fn mf2_fn_number::NumberFunction::selectable(&self, &mf2_runtime::value::Value<'_>) -> bool
+pub struct mf2_fn_number::Unannotated
+impl core::clone::Clone for mf2_fn_number::Unannotated
+pub fn mf2_fn_number::Unannotated::clone(&self) -> Self
+impl core::default::Default for mf2_fn_number::Unannotated
+pub fn mf2_fn_number::Unannotated::default() -> Self
+impl core::fmt::Debug for mf2_fn_number::Unannotated
+pub fn mf2_fn_number::Unannotated::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_number::Unannotated
+impl mf2_runtime::function::Function for mf2_fn_number::Unannotated
+pub fn mf2_fn_number::Unannotated::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_number::Unannotated::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_number::Unannotated::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_number::Unannotated::part_kind(&self) -> &'static str
+pub fn mf2_fn_number::Unannotated::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub struct mf2_fn_number::UnitFunction
+impl core::clone::Clone for mf2_fn_number::UnitFunction
+pub fn mf2_fn_number::UnitFunction::clone(&self) -> Self
+impl core::default::Default for mf2_fn_number::UnitFunction
+pub fn mf2_fn_number::UnitFunction::default() -> Self
+impl core::fmt::Debug for mf2_fn_number::UnitFunction
+pub fn mf2_fn_number::UnitFunction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_number::UnitFunction
+impl mf2_runtime::function::Function for mf2_fn_number::UnitFunction
+pub fn mf2_fn_number::UnitFunction::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_fn_number::UnitFunction::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
+pub fn mf2_fn_number::UnitFunction::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_number::UnitFunction::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
+pub fn mf2_fn_number::UnitFunction::part_kind(&self) -> &'static str
+pub fn mf2_fn_number::UnitFunction::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
+pub static mf2_fn_number::CURRENCY: mf2_fn_number::CurrencyFunction
+pub static mf2_fn_number::INTEGER: mf2_fn_number::NumberFunction
+pub static mf2_fn_number::NUMBER: mf2_fn_number::NumberFunction
+pub static mf2_fn_number::NUMBERS: mf2_fn_number::Unannotated
+pub static mf2_fn_number::OFFSET: mf2_fn_number::NumberFunction
+pub static mf2_fn_number::PERCENT: mf2_fn_number::NumberFunction
+pub static mf2_fn_number::UNIT: mf2_fn_number::UnitFunction

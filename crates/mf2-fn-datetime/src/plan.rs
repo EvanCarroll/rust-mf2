@@ -41,7 +41,8 @@ impl<'p> Plan<'p> {
         let zone = match (value.zone, value.options.time_zone) {
             (Some(z), _) => ZoneOption::Named(z),
             (None, Some(z @ (ZoneOption::Utc | ZoneOption::Offset(_) | ZoneOption::Named(_)))) => z,
-            (None, Some(ZoneOption::Input) | None) => cx.time_zone().as_option(),
+            // `timeZone=input`, none, or a kind this version does not know.
+            (None, _) => cx.time_zone().as_option(),
         };
         Plan {
             date: value.date,
@@ -69,16 +70,8 @@ impl<'p> Plan<'p> {
     /// time, but the zone is lost).
     pub fn request(&self) -> DateTimeRequest<'p> {
         match self.epoch_ms() {
-            Some(epoch_ms) => DateTimeRequest {
-                epoch_ms,
-                zone: self.zone,
-                options: self.options,
-            },
-            None => DateTimeRequest {
-                epoch_ms: self.wall_ms(),
-                zone: ZoneOption::Utc,
-                options: self.options,
-            },
+            Some(epoch_ms) => DateTimeRequest::new(epoch_ms, self.zone, self.options),
+            None => DateTimeRequest::new(self.wall_ms(), ZoneOption::Utc, self.options),
         }
     }
 }

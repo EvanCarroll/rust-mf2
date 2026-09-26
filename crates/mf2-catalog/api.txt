@@ -1,0 +1,114 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: manifest,writer,decode
+pub mod mf2_catalog
+pub use mf2_catalog::Dir
+pub use mf2_catalog::MsgId
+#[non_exhaustive] #[repr(u8)] pub enum mf2_catalog::CatalogError
+pub mf2_catalog::CatalogError::Fallback
+pub mf2_catalog::CatalogError::Funcs
+pub mf2_catalog::CatalogError::Header
+pub mf2_catalog::CatalogError::Ids
+pub mf2_catalog::CatalogError::Index
+pub mf2_catalog::CatalogError::Locale
+pub mf2_catalog::CatalogError::Magic
+pub mf2_catalog::CatalogError::ManifestMismatch
+pub mf2_catalog::CatalogError::MissingSection
+pub mf2_catalog::CatalogError::Names
+pub mf2_catalog::CatalogError::SectionTable
+pub mf2_catalog::CatalogError::Strings
+pub mf2_catalog::CatalogError::Truncated
+pub mf2_catalog::CatalogError::Version
+impl core::clone::Clone for mf2_catalog::CatalogError
+pub fn mf2_catalog::CatalogError::clone(&self) -> Self
+impl core::cmp::Eq for mf2_catalog::CatalogError
+impl core::cmp::PartialEq for mf2_catalog::CatalogError
+pub fn mf2_catalog::CatalogError::eq(&self, &Self) -> bool
+impl core::error::Error for mf2_catalog::CatalogError
+impl core::fmt::Debug for mf2_catalog::CatalogError
+pub fn mf2_catalog::CatalogError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_catalog::CatalogError
+pub fn mf2_catalog::CatalogError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_catalog::CatalogError
+impl core::marker::StructuralPartialEq for mf2_catalog::CatalogError
+#[non_exhaustive] pub enum mf2_catalog::ManifestError
+pub mf2_catalog::ManifestError::Hash
+pub mf2_catalog::ManifestError::Invalid(&'static str)
+pub mf2_catalog::ManifestError::Magic
+pub mf2_catalog::ManifestError::Trailing
+pub mf2_catalog::ManifestError::Truncated
+pub mf2_catalog::ManifestError::Utf8
+pub mf2_catalog::ManifestError::Version
+impl core::clone::Clone for mf2_catalog::ManifestError
+pub fn mf2_catalog::ManifestError::clone(&self) -> Self
+impl core::cmp::Eq for mf2_catalog::ManifestError
+impl core::cmp::PartialEq for mf2_catalog::ManifestError
+pub fn mf2_catalog::ManifestError::eq(&self, &Self) -> bool
+impl core::error::Error for mf2_catalog::ManifestError
+impl core::fmt::Debug for mf2_catalog::ManifestError
+pub fn mf2_catalog::ManifestError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_catalog::ManifestError
+pub fn mf2_catalog::ManifestError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_catalog::ManifestError
+#[non_exhaustive] pub enum mf2_catalog::WriteError
+pub mf2_catalog::WriteError::Dir
+pub mf2_catalog::WriteError::Fallback(&'static str)
+pub mf2_catalog::WriteError::InputName
+pub mf2_catalog::WriteError::InputName::message: usize
+pub mf2_catalog::WriteError::InputName::name: alloc::string::String
+pub mf2_catalog::WriteError::InputName::variable: alloc::string::String
+pub mf2_catalog::WriteError::Internal(&'static str)
+pub mf2_catalog::WriteError::LocaleEntry(u32)
+pub mf2_catalog::WriteError::Manifest(&'static str)
+pub mf2_catalog::WriteError::Nul(alloc::string::String)
+pub mf2_catalog::WriteError::TooLarge(&'static str)
+pub mf2_catalog::WriteError::UnknownFunction
+pub mf2_catalog::WriteError::UnknownFunction::message: usize
+pub mf2_catalog::WriteError::UnknownFunction::name: alloc::string::String
+pub mf2_catalog::WriteError::UnknownVariable
+pub mf2_catalog::WriteError::UnknownVariable::message: usize
+pub mf2_catalog::WriteError::UnknownVariable::name: alloc::string::String
+pub mf2_catalog::WriteError::Unsupported
+pub mf2_catalog::WriteError::Unsupported::message: usize
+impl core::clone::Clone for mf2_catalog::WriteError
+pub fn mf2_catalog::WriteError::clone(&self) -> Self
+impl core::cmp::Eq for mf2_catalog::WriteError
+impl core::cmp::PartialEq for mf2_catalog::WriteError
+pub fn mf2_catalog::WriteError::eq(&self, &Self) -> bool
+impl core::error::Error for mf2_catalog::WriteError
+impl core::fmt::Debug for mf2_catalog::WriteError
+pub fn mf2_catalog::WriteError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_catalog::WriteError
+pub fn mf2_catalog::WriteError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_catalog::WriteError
+pub struct mf2_catalog::Catalog
+impl mf2_catalog::Catalog
+pub fn mf2_catalog::Catalog::as_bytes(&self) -> &[u8]
+pub fn mf2_catalog::Catalog::cldr_version(&self) -> core::option::Option<mf2_catalog::CldrVersion>
+pub fn mf2_catalog::Catalog::dir(&self) -> mf2_model::id::Dir
+pub fn mf2_catalog::Catalog::into_bytes(self) -> alloc::vec::Vec<u8>
+pub fn mf2_catalog::Catalog::locale(&self) -> &str
+pub fn mf2_catalog::Catalog::lookup(&self, &str) -> core::option::Option<mf2_model::id::MsgId>
+pub fn mf2_catalog::Catalog::manifest_hash(&self) -> u64
+pub fn mf2_catalog::Catalog::message_count(&self) -> u32
+pub fn mf2_catalog::Catalog::new(alloc::vec::Vec<u8>, u64) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
+impl core::fmt::Debug for mf2_catalog::Catalog
+pub fn mf2_catalog::Catalog::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2_catalog::CldrVersion
+pub mf2_catalog::CldrVersion::major: u16
+pub mf2_catalog::CldrVersion::minor: u8
+pub mf2_catalog::CldrVersion::patch: u8
+impl core::clone::Clone for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::clone(&self) -> Self
+impl core::cmp::Eq for mf2_catalog::CldrVersion
+impl core::cmp::Ord for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_catalog::CldrVersion
+pub fn mf2_catalog::CldrVersion::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_catalog::CldrVersion
+impl core::marker::StructuralPartialEq for mf2_catalog::CldrVersion

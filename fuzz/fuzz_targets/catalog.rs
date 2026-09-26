@@ -705,6 +705,7 @@ impl ModelWalk {
                 + match value {
                     OptionValue::Literal(l) => l.value.len(),
                     OptionValue::Variable(v) => v.name.len(),
+                    _ => 0,
                 };
         }
     }
@@ -753,6 +754,7 @@ impl ModelWalk {
                     self.bytes += x.name.len();
                     self.expression(&x.value);
                 }
+                _ => {}
             }
         }
         match m {
@@ -769,11 +771,13 @@ impl ModelWalk {
                         self.bytes += match k {
                             Key::Literal(l) => l.value.len(),
                             Key::CatchAll(c) => c.value.as_ref().map_or(0, |v| v.len()),
+                            _ => 0,
                         };
                     }
                     self.pattern(&v.value);
                 }
             }
+            _ => {}
         }
     }
 }

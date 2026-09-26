@@ -27,6 +27,7 @@ fn functions_and_markup(m: &Message<'_>, functions: &mut BTreeSet<String>) -> BT
         let f = match d {
             Declaration::Input(x) => x.value.function.as_ref(),
             Declaration::Local(x) => x.value.function(),
+            _ => None,
         };
         if let Some(f) = f {
             functions.insert(f.name.to_string());
@@ -35,6 +36,7 @@ fn functions_and_markup(m: &Message<'_>, functions: &mut BTreeSet<String>) -> BT
     let patterns: Vec<&Pattern<'_>> = match m {
         Message::Pattern(p) => vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     };
     for p in patterns {
         for part in p.parts() {

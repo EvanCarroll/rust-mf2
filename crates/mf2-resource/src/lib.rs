@@ -5,8 +5,8 @@
 //! Unicode defines no file format for MF2 (`spec/syntax.md` points at "a
 //! future *`MessageResource`* specification"). mf2-two adopts the draft the MF2
 //! spec editor is writing, incubated by the W3C i18n WG — decision D2 of the
-//! [master plan](https://example.invalid) (`plans/00-master-plan.md`), with
-//! the format described in `plans/05-tooling.md` §2.
+//! master plan (`plans/00-master-plan.md`), with the format described in
+//! `plans/05-tooling.md` §2.
 //!
 //! ```text
 //! # A comment about the file.
@@ -27,13 +27,21 @@
 //! release = Release {#kbd}?{/kbd} to close
 //! ```
 //!
+//! # Not part of 1.x's promise
+//!
+//! `mf2-build` and the `mf2` command line read and write `.mf2` files with
+//! this crate; an application never names it. What 1.x promises is the
+//! **file format as `mf2 fmt` writes it** (`docs/versioning.md`), not this
+//! Rust API: it mirrors a draft, and follows the draft as it changes. Its
+//! items are therefore hidden from the documentation.
+//!
 //! | Entry point | Gives |
 //! |---|---|
-//! | [`parse`] | a [`Resource`] of MF2 sources as written, plus the syntax errors found |
-//! | [`Resource::map_values`] | the draft's `Resource<Message>`: the same tree with parsed messages |
-//! | [`serialize`] / [`serialize_with`] | canonical source (`mf2 fmt`) |
-//! | [`LineIndex`] | a byte offset as a line and a column |
-//! | [`ValueMap`] | a cooked value's offset back to where the file wrote it |
+//! | `parse` | a `Resource` of MF2 sources as written, plus the syntax errors found |
+//! | `Resource::map_values` | the draft's `Resource<Message>`: the same tree with parsed messages |
+//! | `serialize` / `serialize_with` | canonical source (`mf2 fmt`) |
+//! | `LineIndex` | a byte offset as a line and a column |
+//! | `ValueMap` | a cooked value's offset back to where the file wrote it |
 //!
 //! # The draft is not vendored
 //!
@@ -45,11 +53,13 @@
 //!
 //! `#![no_std]` + `alloc`; never linked into the client wasm.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 
 extern crate alloc;
 
+#[doc(hidden)]
 pub mod code;
 mod diagnostic;
 mod error;
@@ -60,14 +70,21 @@ mod model;
 mod parse;
 mod serialize;
 
+#[doc(hidden)]
 pub use diagnostic::Diagnostic;
+#[doc(hidden)]
 pub use error::{Error, Role};
+#[doc(hidden)]
 pub use lines::{LineIndex, Position};
 // Re-exported so that building a resource needs only this crate.
+#[doc(hidden)]
 pub use mf2_model::Span;
+#[doc(hidden)]
 pub use model::{
     Comment, Detached, Entry, EntryInfo, EntryRef, Head, Id, Meta, Resource, Section, Segment,
     ValueMap, is_id_char,
 };
+#[doc(hidden)]
 pub use parse::parse;
+#[doc(hidden)]
 pub use serialize::{Style, serialize, serialize_with};

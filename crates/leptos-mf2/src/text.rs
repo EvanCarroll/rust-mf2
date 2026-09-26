@@ -124,6 +124,7 @@ pub enum Stored {
 }
 
 impl Stored {
+    /// The message it formats.
     #[must_use]
     pub fn msg_id(&self) -> MsgId {
         match self {

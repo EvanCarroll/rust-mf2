@@ -17,6 +17,7 @@ pub trait PartSink {
 
 /// A part of a formatted message. Concatenated, the parts are the string
 /// output.
+#[non_exhaustive]
 pub enum Part<'p> {
     /// Literal text.
     Text(&'p str),
@@ -163,6 +164,7 @@ impl<'p> Iterator for MarkupOptions<'p> {
 
 /// What a fallback value shows (formatting.md, "Fallback Resolution").
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub enum FallbackSource<'p> {
     /// `$name`.
     Variable(&'p str),

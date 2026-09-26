@@ -65,11 +65,11 @@ pub(crate) fn parse_into(
     nodes.clear();
     diags.clear();
     if u32::try_from(src.len()).is_err() {
-        diags.push(Diagnostic {
-            kind: ErrorKind::Syntax,
-            code: code::SOURCE_TOO_LONG,
-            span: None,
-        });
+        diags.push(Diagnostic::new(
+            ErrorKind::Syntax,
+            code::SOURCE_TOO_LONG,
+            None,
+        ));
         return;
     }
     let mut p = Parser {
@@ -228,14 +228,14 @@ impl Parser<'_, '_> {
     }
 
     fn diag(&mut self, code: u16, start: usize, end: usize) {
-        self.diags.push(Diagnostic {
-            kind: ErrorKind::Syntax,
+        self.diags.push(Diagnostic::new(
+            ErrorKind::Syntax,
             code,
-            span: Some(Span {
+            Some(Span {
                 start: u32_of(start),
                 end: u32_of(end),
             }),
-        });
+        ));
     }
 
     /// Whether the last diagnostic reaches offset `at` (so a new one there

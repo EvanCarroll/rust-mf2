@@ -195,6 +195,7 @@ pub fn formatting_model(m: &Message<'_>) -> Message<'static> {
                 })
                 .collect(),
         }),
+        other => other.clone().into_owned(),
     }
 }
 
@@ -233,6 +234,7 @@ fn key(k: &Key<'_>) -> Key<'static> {
             value: nfc(&l.value),
         }),
         Key::CatchAll(_) => Key::CatchAll(CatchAllKey { value: None }),
+        other => other.clone().into_owned(),
     }
 }
 
@@ -278,6 +280,7 @@ impl Projection {
                     value,
                 })
             }
+            other => other.clone().into_owned(),
         }
     }
 
@@ -318,6 +321,7 @@ impl Projection {
                 let value = match value {
                     OptionValue::Literal(l) => OptionValue::Literal(literal(l)),
                     OptionValue::Variable(v) => OptionValue::Variable(self.var(v)),
+                    other => other.clone().into_owned(),
                 };
                 (nfc(name), value)
             })

@@ -1115,6 +1115,7 @@ fn rebuild(
                 selectors: s.selectors.clone(),
                 variants: Vec::new(),
             }),
+            other => other.clone(),
         },
     };
     for (keys, pattern) in patterns {

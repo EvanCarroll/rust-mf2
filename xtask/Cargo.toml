@@ -20,6 +20,9 @@ mf2-locale-data = { workspace = true, features = ["extract"] }
 mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde_json.workspace = true
+# `cargo xtask api`: the published crates' public API, as `cargo public-api` lists it.
+public-api.workspace = true
+rustdoc-json.workspace = true
 # `cargo xtask xliff-sync`: the PIN's digests of the OASIS files.
 sha2.workspace = true
 # `cargo xtask docs` points a documented manifest at the working tree.

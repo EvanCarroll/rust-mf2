@@ -141,6 +141,7 @@ fn describe(d: &mf2_model::Diagnostic) -> String {
         ErrorClass::DataModel => "data model error",
         ErrorClass::Resolution => "resolution error",
         ErrorClass::MessageFunction => "message function error",
+        _ => "error",
     };
     match mf2_syntax::code::describe(d.code) {
         Some(detail) => format!("{what}: {detail}"),

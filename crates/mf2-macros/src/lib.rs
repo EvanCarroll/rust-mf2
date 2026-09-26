@@ -2,7 +2,7 @@
 //! `plans/04-leptos-integration.md` §2).
 //!
 //! An application never names this crate. `mf2-build` generates, in the i18n
-//! crate, an exported `tr!` wrapper that forwards to [`__tr_impl`] with the
+//! crate, an exported `tr!` wrapper that forwards to `__tr_impl` with the
 //! manifest's absolute path and hash baked in as literals:
 //!
 //! ```text
@@ -21,10 +21,15 @@
 //! cost it — expansions, nanoseconds, manifest reads — which is how the
 //! cache and the macro's time are measured (`stats`).
 //!
-//! What the macro checks and what it emits is [`expand`]'s doc; what reaches
+//! What the macro checks and what it emits is the `expand` module's doc; what reaches
 //! the wasm is a `MsgId` and the argument values, never an id string, an
 //! argument name or a markup name (B6).
+//!
+//! Both proc-macros are hidden from the documentation: only the generated
+//! wrapper calls them, and 1.x promises the `tr!` forms, not these
+//! (`docs/versioning.md`).
 
+#![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
 mod error;
@@ -39,6 +44,7 @@ use quote::quote;
 /// The call site, checked against the manifest and lowered to a positional
 /// description of the message. Called only by the generated `tr!` wrapper.
 #[proc_macro]
+#[doc(hidden)]
 pub fn __tr_impl(input: TokenStream) -> TokenStream {
     let started = stats::start();
     let out = match parse::input(input).and_then(expand::expand) {
@@ -60,6 +66,7 @@ pub fn __tr_impl(input: TokenStream) -> TokenStream {
 /// that formats with arguments it does not know at compile time
 /// (`mf2::TrDyn`). Called only by the generated `msg_id!` wrapper.
 #[proc_macro]
+#[doc(hidden)]
 pub fn __msg_id_impl(input: TokenStream) -> TokenStream {
     let started = stats::start();
     let out = match parse::input(input).and_then(expand::expand_id) {

@@ -9,6 +9,10 @@ build time.
 Applications do not name this crate: [`mf2`](https://docs.rs/mf2) re-exports the items
 they need.
 
+Of its API, 1.x promises the loaded `Catalog` and the error types; the
+byte format's views, the writer and the decoder are hidden from the
+documentation and may change (`docs/versioning.md`).
+
 API documentation: <https://docs.rs/mf2-catalog>.
 
 The user guide — getting started, call sites, delivery modes, switching

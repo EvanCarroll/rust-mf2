@@ -404,6 +404,7 @@ impl PartSink for Parts {
                 src.write(&mut self.text);
                 self.text.push('}');
             }
+            _ => {}
         }
     }
 }

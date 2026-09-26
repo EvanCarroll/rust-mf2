@@ -16,6 +16,7 @@ use crate::value::Arg;
 /// A bidirectional isolation strategy (formatting.md, "Handling
 /// Bidirectional Text").
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
+#[non_exhaustive]
 pub enum BidiStrategy {
     /// The Default Bidi Strategy: isolate placeholders with U+2066–U+2069.
     #[default]
@@ -101,6 +102,7 @@ impl<'c> Formatter<'c> {
     /// The text reference of a `simple` message — the seam for catalog text
     /// as JS strings.
     #[inline]
+    #[doc(hidden)]
     pub fn simple_ref(&self, id: MsgId) -> Option<StrRef> {
         match self.catalog.get(id) {
             Entry::Simple(r) => Some(r),

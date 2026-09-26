@@ -204,7 +204,7 @@ fn catalog_file(name: &str) -> Option<(&'static str, &'static [u8])> {
 /// The routes that serve the catalogs. Mount them at the application's root:
 ///
 /// ```ignore
-/// let app = Router::new().merge(mf2_axum::catalog_routes()).…;
+/// let app = Router::new().merge(mf2_axum::catalog_routes()); // and the application's routes
 /// ```
 pub fn catalog_routes<S>() -> Router<S>
 where

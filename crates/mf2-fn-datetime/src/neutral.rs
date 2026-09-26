@@ -82,11 +82,13 @@ impl Backend for Neutral {
         if let Some(style) = o.date {
             let d = plan.date;
             let (year, month, weekday) = match style.fields {
-                DateFields::YearMonthDay => (true, true, false),
                 DateFields::YearMonthDayWeekday => (true, true, true),
                 DateFields::MonthDay => (false, true, false),
                 DateFields::MonthDayWeekday => (false, true, true),
                 DateFields::DayWeekday | DateFields::Weekday => (false, false, true),
+                // `YearMonthDay`, and (not exhaustive) a value this stub
+                // does not know: the whole date.
+                _ => (true, true, false),
             };
             if style.fields != DateFields::Weekday {
                 space(out);
@@ -144,8 +146,9 @@ impl Backend for Neutral {
                     offset(out, s);
                 }
                 (_, ZoneOption::Named(n), _) => out.push_str(n),
-                (_, ZoneOption::Utc | ZoneOption::Input, _) => out.push_str("UTC"),
                 (ZoneStyle::Short, ZoneOption::Offset(s), None) => offset(out, s),
+                // UTC and `input`, and a kind this stub does not know.
+                _ => out.push_str("UTC"),
             }
         }
     }

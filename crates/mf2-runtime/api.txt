@@ -1,0 +1,840 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: (default)
+pub mod mf2_runtime
+pub use mf2_runtime::Catalog
+pub use mf2_runtime::Dir
+pub use mf2_runtime::MarkupKind
+pub use mf2_runtime::MsgId
+pub mod mf2_runtime::functions
+pub struct mf2_runtime::functions::NumberFunction
+impl core::clone::Clone for mf2_runtime::functions::NumberFunction
+pub fn mf2_runtime::functions::NumberFunction::clone(&self) -> Self
+impl core::fmt::Debug for mf2_runtime::functions::NumberFunction
+pub fn mf2_runtime::functions::NumberFunction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_runtime::functions::NumberFunction
+impl mf2_runtime::Function for mf2_runtime::functions::NumberFunction
+pub fn mf2_runtime::functions::NumberFunction::better_than(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &str) -> bool
+pub fn mf2_runtime::functions::NumberFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_runtime::functions::NumberFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
+pub fn mf2_runtime::functions::NumberFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::NumberFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
+pub fn mf2_runtime::functions::NumberFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::functions::NumberFunction::part_kind(&self) -> &'static str
+pub fn mf2_runtime::functions::NumberFunction::resolve<'a>(&self, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'a>>, &mf2_runtime::Options<'_, 'a>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::functions::NumberFunction::selectable(&self, &mf2_runtime::Value<'_>) -> bool
+pub struct mf2_runtime::functions::StringFunction
+impl core::clone::Clone for mf2_runtime::functions::StringFunction
+pub fn mf2_runtime::functions::StringFunction::clone(&self) -> Self
+impl core::default::Default for mf2_runtime::functions::StringFunction
+pub fn mf2_runtime::functions::StringFunction::default() -> Self
+impl core::fmt::Debug for mf2_runtime::functions::StringFunction
+pub fn mf2_runtime::functions::StringFunction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_runtime::functions::StringFunction
+impl mf2_runtime::Function for mf2_runtime::functions::StringFunction
+pub fn mf2_runtime::functions::StringFunction::better_than(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &str) -> bool
+pub fn mf2_runtime::functions::StringFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_runtime::functions::StringFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
+pub fn mf2_runtime::functions::StringFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::StringFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
+pub fn mf2_runtime::functions::StringFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::functions::StringFunction::part_kind(&self) -> &'static str
+pub fn mf2_runtime::functions::StringFunction::resolve<'a>(&self, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'a>>, &mf2_runtime::Options<'_, 'a>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::functions::StringFunction::selectable(&self, &mf2_runtime::Value<'_>) -> bool
+pub static mf2_runtime::functions::INTEGER: mf2_runtime::functions::NumberFunction
+pub static mf2_runtime::functions::NUMBER: mf2_runtime::functions::NumberFunction
+pub static mf2_runtime::functions::OFFSET: mf2_runtime::functions::NumberFunction
+pub static mf2_runtime::functions::STRING: mf2_runtime::functions::StringFunction
+#[non_exhaustive] pub enum mf2_runtime::Arg<'a>
+pub mf2_runtime::Arg::Custom(&'a dyn mf2_runtime::CustomValue)
+pub mf2_runtime::Arg::DateTime(&'a mf2_runtime::DateTime<'a>)
+pub mf2_runtime::Arg::Decimal(&'a str)
+pub mf2_runtime::Arg::Float(f64)
+pub mf2_runtime::Arg::Int(i64)
+pub mf2_runtime::Arg::Str(&'a str)
+pub mf2_runtime::Arg::Unset
+impl core::convert::From<f32> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(f32) -> Self
+impl core::convert::From<f64> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(f64) -> Self
+impl core::convert::From<i16> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(i16) -> Self
+impl core::convert::From<i32> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(i32) -> Self
+impl core::convert::From<i64> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(i64) -> Self
+impl core::convert::From<i8> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(i8) -> Self
+impl core::convert::From<u16> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(u16) -> Self
+impl core::convert::From<u32> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(u32) -> Self
+impl core::convert::From<u8> for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::from(u8) -> Self
+impl<'a> core::clone::Clone for mf2_runtime::Arg<'a>
+pub fn mf2_runtime::Arg<'a>::clone(&self) -> Self
+impl<'a> core::convert::From<&'a alloc::string::String> for mf2_runtime::Arg<'a>
+pub fn mf2_runtime::Arg<'a>::from(&'a alloc::string::String) -> Self
+impl<'a> core::convert::From<&'a mf2_runtime::DateTime<'a>> for mf2_runtime::Arg<'a>
+pub fn mf2_runtime::Arg<'a>::from(&'a mf2_runtime::DateTime<'a>) -> Self
+impl<'a> core::convert::From<&'a str> for mf2_runtime::Arg<'a>
+pub fn mf2_runtime::Arg<'a>::from(&'a str) -> Self
+impl<'a> core::marker::Copy for mf2_runtime::Arg<'a>
+#[non_exhaustive] pub enum mf2_runtime::BidiStrategy
+pub mf2_runtime::BidiStrategy::Default
+pub mf2_runtime::BidiStrategy::None
+impl core::clone::Clone for mf2_runtime::BidiStrategy
+pub fn mf2_runtime::BidiStrategy::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::BidiStrategy
+impl core::cmp::PartialEq for mf2_runtime::BidiStrategy
+pub fn mf2_runtime::BidiStrategy::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_runtime::BidiStrategy
+pub fn mf2_runtime::BidiStrategy::default() -> Self
+impl core::fmt::Debug for mf2_runtime::BidiStrategy
+pub fn mf2_runtime::BidiStrategy::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::BidiStrategy
+pub fn mf2_runtime::BidiStrategy::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::BidiStrategy
+impl core::marker::StructuralPartialEq for mf2_runtime::BidiStrategy
+#[repr(u8)] pub enum mf2_runtime::Category
+pub mf2_runtime::Category::Few = 3
+pub mf2_runtime::Category::Many = 4
+pub mf2_runtime::Category::One = 1
+pub mf2_runtime::Category::Other = 5
+pub mf2_runtime::Category::Two = 2
+pub mf2_runtime::Category::Zero = 0
+impl mf2_runtime::Category
+pub const fn mf2_runtime::Category::as_str(self) -> &'static str
+pub const fn mf2_runtime::Category::from_code(u8) -> mf2_runtime::Category
+pub fn mf2_runtime::Category::from_keyword(&str) -> core::option::Option<mf2_runtime::Category>
+impl core::clone::Clone for mf2_runtime::Category
+pub fn mf2_runtime::Category::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Category
+impl core::cmp::PartialEq for mf2_runtime::Category
+pub fn mf2_runtime::Category::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::Category
+pub fn mf2_runtime::Category::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Category
+pub fn mf2_runtime::Category::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Category
+impl core::marker::StructuralPartialEq for mf2_runtime::Category
+#[non_exhaustive] pub enum mf2_runtime::CurrencyDisplay
+pub mf2_runtime::CurrencyDisplay::Code
+pub mf2_runtime::CurrencyDisplay::Name
+pub mf2_runtime::CurrencyDisplay::NarrowSymbol
+pub mf2_runtime::CurrencyDisplay::Never
+pub mf2_runtime::CurrencyDisplay::Symbol
+impl core::clone::Clone for mf2_runtime::CurrencyDisplay
+pub fn mf2_runtime::CurrencyDisplay::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::CurrencyDisplay
+impl core::cmp::PartialEq for mf2_runtime::CurrencyDisplay
+pub fn mf2_runtime::CurrencyDisplay::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::CurrencyDisplay
+pub fn mf2_runtime::CurrencyDisplay::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::CurrencyDisplay
+pub fn mf2_runtime::CurrencyDisplay::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::CurrencyDisplay
+impl core::marker::StructuralPartialEq for mf2_runtime::CurrencyDisplay
+#[non_exhaustive] pub enum mf2_runtime::DateFields
+pub mf2_runtime::DateFields::DayWeekday
+pub mf2_runtime::DateFields::MonthDay
+pub mf2_runtime::DateFields::MonthDayWeekday
+pub mf2_runtime::DateFields::Weekday
+pub mf2_runtime::DateFields::YearMonthDay
+pub mf2_runtime::DateFields::YearMonthDayWeekday
+impl core::clone::Clone for mf2_runtime::DateFields
+pub fn mf2_runtime::DateFields::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::DateFields
+impl core::cmp::PartialEq for mf2_runtime::DateFields
+pub fn mf2_runtime::DateFields::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::DateFields
+pub fn mf2_runtime::DateFields::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::DateFields
+pub fn mf2_runtime::DateFields::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::DateFields
+impl core::marker::StructuralPartialEq for mf2_runtime::DateFields
+#[non_exhaustive] pub enum mf2_runtime::DateLength
+pub mf2_runtime::DateLength::Long
+pub mf2_runtime::DateLength::Medium
+pub mf2_runtime::DateLength::Short
+impl core::clone::Clone for mf2_runtime::DateLength
+pub fn mf2_runtime::DateLength::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::DateLength
+impl core::cmp::PartialEq for mf2_runtime::DateLength
+pub fn mf2_runtime::DateLength::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::DateLength
+pub fn mf2_runtime::DateLength::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::DateLength
+pub fn mf2_runtime::DateLength::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::DateLength
+impl core::marker::StructuralPartialEq for mf2_runtime::DateLength
+#[non_exhaustive] pub enum mf2_runtime::FallbackSource<'p>
+pub mf2_runtime::FallbackSource::Function(&'p str)
+pub mf2_runtime::FallbackSource::Literal(&'p str)
+pub mf2_runtime::FallbackSource::Unknown
+pub mf2_runtime::FallbackSource::Variable(&'p str)
+impl mf2_runtime::FallbackSource<'_>
+pub fn mf2_runtime::FallbackSource<'_>::write(&self, &mut dyn mf2_runtime::Sink)
+impl<'p> core::clone::Clone for mf2_runtime::FallbackSource<'p>
+pub fn mf2_runtime::FallbackSource<'p>::clone(&self) -> Self
+impl<'p> core::cmp::Eq for mf2_runtime::FallbackSource<'p>
+impl<'p> core::cmp::PartialEq for mf2_runtime::FallbackSource<'p>
+pub fn mf2_runtime::FallbackSource<'p>::eq(&self, &Self) -> bool
+impl<'p> core::fmt::Debug for mf2_runtime::FallbackSource<'p>
+pub fn mf2_runtime::FallbackSource<'p>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'p> core::hash::Hash for mf2_runtime::FallbackSource<'p>
+pub fn mf2_runtime::FallbackSource<'p>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'p> core::marker::Copy for mf2_runtime::FallbackSource<'p>
+impl<'p> core::marker::StructuralPartialEq for mf2_runtime::FallbackSource<'p>
+#[non_exhaustive] #[repr(u8)] pub enum mf2_runtime::FormatError
+pub mf2_runtime::FormatError::BadOperand
+pub mf2_runtime::FormatError::BadOption
+pub mf2_runtime::FormatError::BadSelector
+pub mf2_runtime::FormatError::BadVariantKey
+pub mf2_runtime::FormatError::Malformed
+pub mf2_runtime::FormatError::MessageFunctionError
+pub mf2_runtime::FormatError::MissingFallbackVariant
+pub mf2_runtime::FormatError::MissingMessage
+pub mf2_runtime::FormatError::UnknownFunction
+pub mf2_runtime::FormatError::UnresolvedVariable
+pub mf2_runtime::FormatError::UnsupportedOperation
+impl mf2_runtime::FormatError
+pub const fn mf2_runtime::FormatError::kind(self) -> core::option::Option<mf2_model::diagnostic::ErrorKind>
+impl core::clone::Clone for mf2_runtime::FormatError
+pub fn mf2_runtime::FormatError::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::FormatError
+impl core::cmp::PartialEq for mf2_runtime::FormatError
+pub fn mf2_runtime::FormatError::eq(&self, &Self) -> bool
+impl core::error::Error for mf2_runtime::FormatError
+impl core::fmt::Debug for mf2_runtime::FormatError
+pub fn mf2_runtime::FormatError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_runtime::FormatError
+pub fn mf2_runtime::FormatError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::FormatError
+pub fn mf2_runtime::FormatError::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::FormatError
+impl core::marker::StructuralPartialEq for mf2_runtime::FormatError
+#[non_exhaustive] pub enum mf2_runtime::Grouping
+pub mf2_runtime::Grouping::Always
+pub mf2_runtime::Grouping::Auto
+pub mf2_runtime::Grouping::Min2
+pub mf2_runtime::Grouping::Never
+impl core::clone::Clone for mf2_runtime::Grouping
+pub fn mf2_runtime::Grouping::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Grouping
+impl core::cmp::PartialEq for mf2_runtime::Grouping
+pub fn mf2_runtime::Grouping::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::Grouping
+pub fn mf2_runtime::Grouping::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Grouping
+pub fn mf2_runtime::Grouping::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Grouping
+impl core::marker::StructuralPartialEq for mf2_runtime::Grouping
+pub enum mf2_runtime::Isolation
+pub mf2_runtime::Isolation::Fsi
+pub mf2_runtime::Isolation::Lri
+pub mf2_runtime::Isolation::Pdi
+pub mf2_runtime::Isolation::Rli
+impl mf2_runtime::Isolation
+pub const fn mf2_runtime::Isolation::as_str(self) -> &'static str
+impl core::clone::Clone for mf2_runtime::Isolation
+pub fn mf2_runtime::Isolation::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Isolation
+impl core::cmp::PartialEq for mf2_runtime::Isolation
+pub fn mf2_runtime::Isolation::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::Isolation
+pub fn mf2_runtime::Isolation::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Isolation
+pub fn mf2_runtime::Isolation::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Isolation
+impl core::marker::StructuralPartialEq for mf2_runtime::Isolation
+pub enum mf2_runtime::MeasureUnit<'a>
+pub mf2_runtime::MeasureUnit::Currency([u8; 3])
+pub mf2_runtime::MeasureUnit::Unit(&'a str)
+impl mf2_runtime::MeasureUnit<'_>
+pub fn mf2_runtime::MeasureUnit<'_>::as_str(&self) -> &str
+impl<'a> core::clone::Clone for mf2_runtime::MeasureUnit<'a>
+pub fn mf2_runtime::MeasureUnit<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_runtime::MeasureUnit<'a>
+impl<'a> core::cmp::PartialEq for mf2_runtime::MeasureUnit<'a>
+pub fn mf2_runtime::MeasureUnit<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_runtime::MeasureUnit<'a>
+pub fn mf2_runtime::MeasureUnit<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_runtime::MeasureUnit<'a>
+pub fn mf2_runtime::MeasureUnit<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::Copy for mf2_runtime::MeasureUnit<'a>
+impl<'a> core::marker::StructuralPartialEq for mf2_runtime::MeasureUnit<'a>
+pub enum mf2_runtime::NumberOut<'o>
+pub mf2_runtime::NumberOut::Parts(&'o mut dyn mf2_runtime::SubPartSink)
+pub mf2_runtime::NumberOut::Text(&'o mut dyn mf2_runtime::Sink)
+#[non_exhaustive] pub enum mf2_runtime::NumberStyle<'a>
+pub mf2_runtime::NumberStyle::Currency
+pub mf2_runtime::NumberStyle::Currency::accounting: bool
+pub mf2_runtime::NumberStyle::Currency::code: &'a str
+pub mf2_runtime::NumberStyle::Currency::display: mf2_runtime::CurrencyDisplay
+pub mf2_runtime::NumberStyle::Currency::own_digits: bool
+pub mf2_runtime::NumberStyle::Decimal
+pub mf2_runtime::NumberStyle::Percent
+pub mf2_runtime::NumberStyle::Unit
+pub mf2_runtime::NumberStyle::Unit::display: mf2_runtime::UnitDisplay
+pub mf2_runtime::NumberStyle::Unit::unit: &'a str
+impl<'a> core::clone::Clone for mf2_runtime::NumberStyle<'a>
+pub fn mf2_runtime::NumberStyle<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_runtime::NumberStyle<'a>
+impl<'a> core::cmp::PartialEq for mf2_runtime::NumberStyle<'a>
+pub fn mf2_runtime::NumberStyle<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_runtime::NumberStyle<'a>
+pub fn mf2_runtime::NumberStyle<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_runtime::NumberStyle<'a>
+pub fn mf2_runtime::NumberStyle<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::Copy for mf2_runtime::NumberStyle<'a>
+impl<'a> core::marker::StructuralPartialEq for mf2_runtime::NumberStyle<'a>
+#[non_exhaustive] pub enum mf2_runtime::Part<'p>
+pub mf2_runtime::Part::BidiIsolation(mf2_runtime::Isolation)
+pub mf2_runtime::Part::Expression(mf2_runtime::ExpressionPart<'p>)
+pub mf2_runtime::Part::Fallback(mf2_runtime::FallbackSource<'p>)
+pub mf2_runtime::Part::Markup(mf2_runtime::MarkupPart<'p>)
+pub mf2_runtime::Part::Text(&'p str)
+#[non_exhaustive] pub enum mf2_runtime::RoundingMode
+pub mf2_runtime::RoundingMode::Ceil
+pub mf2_runtime::RoundingMode::Expand
+pub mf2_runtime::RoundingMode::Floor
+pub mf2_runtime::RoundingMode::HalfCeil
+pub mf2_runtime::RoundingMode::HalfEven
+pub mf2_runtime::RoundingMode::HalfExpand
+pub mf2_runtime::RoundingMode::HalfFloor
+pub mf2_runtime::RoundingMode::HalfTrunc
+pub mf2_runtime::RoundingMode::Trunc
+impl core::clone::Clone for mf2_runtime::RoundingMode
+pub fn mf2_runtime::RoundingMode::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::RoundingMode
+impl core::cmp::PartialEq for mf2_runtime::RoundingMode
+pub fn mf2_runtime::RoundingMode::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::RoundingMode
+pub fn mf2_runtime::RoundingMode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::RoundingMode
+pub fn mf2_runtime::RoundingMode::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::RoundingMode
+impl core::marker::StructuralPartialEq for mf2_runtime::RoundingMode
+#[non_exhaustive] pub enum mf2_runtime::RoundingPriority
+pub mf2_runtime::RoundingPriority::Auto
+pub mf2_runtime::RoundingPriority::LessPrecision
+pub mf2_runtime::RoundingPriority::MorePrecision
+impl core::clone::Clone for mf2_runtime::RoundingPriority
+pub fn mf2_runtime::RoundingPriority::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::RoundingPriority
+impl core::cmp::PartialEq for mf2_runtime::RoundingPriority
+pub fn mf2_runtime::RoundingPriority::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::RoundingPriority
+pub fn mf2_runtime::RoundingPriority::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::RoundingPriority
+pub fn mf2_runtime::RoundingPriority::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::RoundingPriority
+impl core::marker::StructuralPartialEq for mf2_runtime::RoundingPriority
+pub enum mf2_runtime::Sign
+pub mf2_runtime::Sign::Minus
+pub mf2_runtime::Sign::None
+pub mf2_runtime::Sign::Plus
+impl core::clone::Clone for mf2_runtime::Sign
+pub fn mf2_runtime::Sign::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Sign
+impl core::cmp::PartialEq for mf2_runtime::Sign
+pub fn mf2_runtime::Sign::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::Sign
+pub fn mf2_runtime::Sign::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Sign
+pub fn mf2_runtime::Sign::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Sign
+impl core::marker::StructuralPartialEq for mf2_runtime::Sign
+#[non_exhaustive] pub enum mf2_runtime::SignDisplay
+pub mf2_runtime::SignDisplay::Always
+pub mf2_runtime::SignDisplay::Auto
+pub mf2_runtime::SignDisplay::ExceptZero
+pub mf2_runtime::SignDisplay::Negative
+pub mf2_runtime::SignDisplay::Never
+impl core::clone::Clone for mf2_runtime::SignDisplay
+pub fn mf2_runtime::SignDisplay::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::SignDisplay
+impl core::cmp::PartialEq for mf2_runtime::SignDisplay
+pub fn mf2_runtime::SignDisplay::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::SignDisplay
+pub fn mf2_runtime::SignDisplay::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::SignDisplay
+pub fn mf2_runtime::SignDisplay::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::SignDisplay
+impl core::marker::StructuralPartialEq for mf2_runtime::SignDisplay
+#[non_exhaustive] pub enum mf2_runtime::TimePrecision
+pub mf2_runtime::TimePrecision::Hour
+pub mf2_runtime::TimePrecision::Minute
+pub mf2_runtime::TimePrecision::Second
+impl core::clone::Clone for mf2_runtime::TimePrecision
+pub fn mf2_runtime::TimePrecision::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::TimePrecision
+impl core::cmp::PartialEq for mf2_runtime::TimePrecision
+pub fn mf2_runtime::TimePrecision::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::TimePrecision
+pub fn mf2_runtime::TimePrecision::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::TimePrecision
+pub fn mf2_runtime::TimePrecision::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::TimePrecision
+impl core::marker::StructuralPartialEq for mf2_runtime::TimePrecision
+#[non_exhaustive] pub enum mf2_runtime::UnitDisplay
+pub mf2_runtime::UnitDisplay::Long
+pub mf2_runtime::UnitDisplay::Narrow
+pub mf2_runtime::UnitDisplay::Short
+impl core::clone::Clone for mf2_runtime::UnitDisplay
+pub fn mf2_runtime::UnitDisplay::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::UnitDisplay
+impl core::cmp::PartialEq for mf2_runtime::UnitDisplay
+pub fn mf2_runtime::UnitDisplay::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::UnitDisplay
+pub fn mf2_runtime::UnitDisplay::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::UnitDisplay
+pub fn mf2_runtime::UnitDisplay::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::UnitDisplay
+impl core::marker::StructuralPartialEq for mf2_runtime::UnitDisplay
+#[non_exhaustive] pub enum mf2_runtime::Value<'a>
+pub mf2_runtime::Value::Boxed(alloc::boxed::Box<dyn core::any::Any>)
+pub mf2_runtime::Value::Custom(&'a dyn mf2_runtime::CustomValue)
+pub mf2_runtime::Value::DateTime(mf2_runtime::DateTime<'a>)
+pub mf2_runtime::Value::Decimal(&'a str)
+pub mf2_runtime::Value::Fallback(mf2_runtime::FallbackSource<'a>)
+pub mf2_runtime::Value::Float(f64)
+pub mf2_runtime::Value::Int(i64)
+pub mf2_runtime::Value::Measure(mf2_runtime::Measure<'a>)
+pub mf2_runtime::Value::Number(mf2_runtime::Number)
+pub mf2_runtime::Value::Str(&'a str)
+impl<'a> mf2_runtime::Value<'a>
+pub fn mf2_runtime::Value<'a>::as_str(&self) -> core::option::Option<&str>
+pub fn mf2_runtime::Value<'a>::digit_size(&self) -> core::option::Option<u8>
+pub fn mf2_runtime::Value<'a>::downcast_ref<T: core::any::Any>(&self) -> core::option::Option<&T>
+pub fn mf2_runtime::Value<'a>::from_arg(mf2_runtime::Arg<'a>) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::Value<'a>::to_number(&self, &dyn mf2_runtime::Host) -> core::option::Option<mf2_runtime::Number>
+#[non_exhaustive] pub enum mf2_runtime::ZoneOption<'a>
+pub mf2_runtime::ZoneOption::Input
+pub mf2_runtime::ZoneOption::Named(&'a str)
+pub mf2_runtime::ZoneOption::Offset(i32)
+pub mf2_runtime::ZoneOption::Utc
+impl<'a> core::clone::Clone for mf2_runtime::ZoneOption<'a>
+pub fn mf2_runtime::ZoneOption<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_runtime::ZoneOption<'a>
+impl<'a> core::cmp::PartialEq for mf2_runtime::ZoneOption<'a>
+pub fn mf2_runtime::ZoneOption<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_runtime::ZoneOption<'a>
+pub fn mf2_runtime::ZoneOption<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_runtime::ZoneOption<'a>
+pub fn mf2_runtime::ZoneOption<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::Copy for mf2_runtime::ZoneOption<'a>
+impl<'a> core::marker::StructuralPartialEq for mf2_runtime::ZoneOption<'a>
+#[non_exhaustive] pub enum mf2_runtime::ZoneStyle
+pub mf2_runtime::ZoneStyle::Long
+pub mf2_runtime::ZoneStyle::Short
+impl core::clone::Clone for mf2_runtime::ZoneStyle
+pub fn mf2_runtime::ZoneStyle::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::ZoneStyle
+impl core::cmp::PartialEq for mf2_runtime::ZoneStyle
+pub fn mf2_runtime::ZoneStyle::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::ZoneStyle
+pub fn mf2_runtime::ZoneStyle::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::ZoneStyle
+pub fn mf2_runtime::ZoneStyle::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::ZoneStyle
+impl core::marker::StructuralPartialEq for mf2_runtime::ZoneStyle
+pub struct mf2_runtime::Date
+impl mf2_runtime::Date
+pub const fn mf2_runtime::Date::day(self) -> u8
+pub const fn mf2_runtime::Date::days_since_epoch(self) -> i64
+pub const fn mf2_runtime::Date::from_days_since_epoch(i64) -> core::option::Option<mf2_runtime::Date>
+pub const fn mf2_runtime::Date::month(self) -> u8
+pub const fn mf2_runtime::Date::new(i32, u8, u8) -> core::option::Option<mf2_runtime::Date>
+pub const fn mf2_runtime::Date::weekday(self) -> u8
+pub const fn mf2_runtime::Date::year(self) -> i32
+impl core::clone::Clone for mf2_runtime::Date
+pub fn mf2_runtime::Date::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Date
+impl core::cmp::Ord for mf2_runtime::Date
+pub fn mf2_runtime::Date::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_runtime::Date
+pub fn mf2_runtime::Date::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_runtime::Date
+pub fn mf2_runtime::Date::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_runtime::Date
+pub fn mf2_runtime::Date::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Date
+pub fn mf2_runtime::Date::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Date
+impl core::marker::StructuralPartialEq for mf2_runtime::Date
+pub struct mf2_runtime::DateStyle
+pub mf2_runtime::DateStyle::fields: mf2_runtime::DateFields
+pub mf2_runtime::DateStyle::length: mf2_runtime::DateLength
+impl core::clone::Clone for mf2_runtime::DateStyle
+pub fn mf2_runtime::DateStyle::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::DateStyle
+impl core::cmp::PartialEq for mf2_runtime::DateStyle
+pub fn mf2_runtime::DateStyle::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::DateStyle
+pub fn mf2_runtime::DateStyle::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::DateStyle
+pub fn mf2_runtime::DateStyle::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::DateStyle
+impl core::marker::StructuralPartialEq for mf2_runtime::DateStyle
+#[non_exhaustive] pub struct mf2_runtime::DateTime<'a>
+pub mf2_runtime::DateTime::date: mf2_runtime::Date
+pub mf2_runtime::DateTime::offset: core::option::Option<i32>
+pub mf2_runtime::DateTime::options: mf2_runtime::DateTimeOptions<'a>
+pub mf2_runtime::DateTime::time: mf2_runtime::Time
+pub mf2_runtime::DateTime::zone: core::option::Option<&'a str>
+impl<'a> mf2_runtime::DateTime<'a>
+pub const fn mf2_runtime::DateTime<'a>::floating(mf2_runtime::Date, mf2_runtime::Time) -> mf2_runtime::DateTime<'a>
+pub const fn mf2_runtime::DateTime<'a>::from_epoch_ms(i64) -> core::option::Option<mf2_runtime::DateTime<'a>>
+pub const fn mf2_runtime::DateTime<'a>::in_zone(self, &'a str) -> Self
+pub const fn mf2_runtime::DateTime<'a>::to_epoch_ms(&self) -> core::option::Option<i64>
+pub const fn mf2_runtime::DateTime<'a>::with_offset(self, i32) -> core::option::Option<Self>
+pub fn mf2_runtime::DateTime<'a>::write_iso(&self, &mut dyn mf2_runtime::Sink)
+impl<'a> core::clone::Clone for mf2_runtime::DateTime<'a>
+pub fn mf2_runtime::DateTime<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_runtime::DateTime<'a>
+impl<'a> core::cmp::PartialEq for mf2_runtime::DateTime<'a>
+pub fn mf2_runtime::DateTime<'a>::eq(&self, &Self) -> bool
+impl<'a> core::convert::From<&'a mf2_runtime::DateTime<'a>> for mf2_runtime::Arg<'a>
+pub fn mf2_runtime::Arg<'a>::from(&'a mf2_runtime::DateTime<'a>) -> Self
+impl<'a> core::fmt::Debug for mf2_runtime::DateTime<'a>
+pub fn mf2_runtime::DateTime<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_runtime::DateTime<'a>
+pub fn mf2_runtime::DateTime<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::Copy for mf2_runtime::DateTime<'a>
+impl<'a> core::marker::StructuralPartialEq for mf2_runtime::DateTime<'a>
+#[non_exhaustive] pub struct mf2_runtime::DateTimeOptions<'a>
+pub mf2_runtime::DateTimeOptions::calendar: core::option::Option<&'a str>
+pub mf2_runtime::DateTimeOptions::date: core::option::Option<mf2_runtime::DateStyle>
+pub mf2_runtime::DateTimeOptions::hour12: core::option::Option<bool>
+pub mf2_runtime::DateTimeOptions::time: core::option::Option<mf2_runtime::TimePrecision>
+pub mf2_runtime::DateTimeOptions::time_zone: core::option::Option<mf2_runtime::ZoneOption<'a>>
+pub mf2_runtime::DateTimeOptions::time_zone_style: core::option::Option<mf2_runtime::ZoneStyle>
+impl mf2_runtime::DateTimeOptions<'_>
+pub const mf2_runtime::DateTimeOptions<'_>::NONE: mf2_runtime::DateTimeOptions<'static>
+pub const fn mf2_runtime::DateTimeOptions<'_>::is_resolved(&self) -> bool
+impl<'a> core::clone::Clone for mf2_runtime::DateTimeOptions<'a>
+pub fn mf2_runtime::DateTimeOptions<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_runtime::DateTimeOptions<'a>
+impl<'a> core::cmp::PartialEq for mf2_runtime::DateTimeOptions<'a>
+pub fn mf2_runtime::DateTimeOptions<'a>::eq(&self, &Self) -> bool
+impl<'a> core::default::Default for mf2_runtime::DateTimeOptions<'a>
+pub fn mf2_runtime::DateTimeOptions<'a>::default() -> Self
+impl<'a> core::fmt::Debug for mf2_runtime::DateTimeOptions<'a>
+pub fn mf2_runtime::DateTimeOptions<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_runtime::DateTimeOptions<'a>
+pub fn mf2_runtime::DateTimeOptions<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::Copy for mf2_runtime::DateTimeOptions<'a>
+impl<'a> core::marker::StructuralPartialEq for mf2_runtime::DateTimeOptions<'a>
+#[non_exhaustive] pub struct mf2_runtime::DateTimeRequest<'r>
+pub mf2_runtime::DateTimeRequest::epoch_ms: i64
+pub mf2_runtime::DateTimeRequest::options: &'r mf2_runtime::DateTimeOptions<'r>
+pub mf2_runtime::DateTimeRequest::zone: mf2_runtime::ZoneOption<'r>
+impl<'r> mf2_runtime::DateTimeRequest<'r>
+pub const fn mf2_runtime::DateTimeRequest<'r>::new(i64, mf2_runtime::ZoneOption<'r>, &'r mf2_runtime::DateTimeOptions<'r>) -> mf2_runtime::DateTimeRequest<'r>
+impl<'r> core::clone::Clone for mf2_runtime::DateTimeRequest<'r>
+pub fn mf2_runtime::DateTimeRequest<'r>::clone(&self) -> Self
+impl<'r> core::fmt::Debug for mf2_runtime::DateTimeRequest<'r>
+pub fn mf2_runtime::DateTimeRequest<'r>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'r> core::marker::Copy for mf2_runtime::DateTimeRequest<'r>
+#[non_exhaustive] pub struct mf2_runtime::DigitOptions
+pub mf2_runtime::DigitOptions::fraction: core::option::Option<(u8, u8)>
+pub mf2_runtime::DigitOptions::increment: u16
+pub mf2_runtime::DigitOptions::minimum_integer: u8
+pub mf2_runtime::DigitOptions::mode: mf2_runtime::RoundingMode
+pub mf2_runtime::DigitOptions::priority: mf2_runtime::RoundingPriority
+pub mf2_runtime::DigitOptions::significant: core::option::Option<(u8, u8)>
+pub mf2_runtime::DigitOptions::strip_if_integer: bool
+impl core::clone::Clone for mf2_runtime::DigitOptions
+pub fn mf2_runtime::DigitOptions::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::DigitOptions
+impl core::cmp::PartialEq for mf2_runtime::DigitOptions
+pub fn mf2_runtime::DigitOptions::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::DigitOptions
+pub fn mf2_runtime::DigitOptions::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::DigitOptions
+pub fn mf2_runtime::DigitOptions::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::DigitOptions
+impl core::marker::StructuralPartialEq for mf2_runtime::DigitOptions
+pub struct mf2_runtime::Digits<'n>
+impl mf2_runtime::Digits<'_>
+pub fn mf2_runtime::Digits<'_>::digit(&self, i16) -> u8
+pub fn mf2_runtime::Digits<'_>::fraction_count(&self) -> u16
+pub fn mf2_runtime::Digits<'_>::integer_count(&self) -> u16
+pub fn mf2_runtime::Digits<'_>::is_zero(&self) -> bool
+pub fn mf2_runtime::Digits<'_>::neutral_parts(&self, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::Digits<'_>::operands(&self) -> mf2_runtime::Operands
+pub fn mf2_runtime::Digits<'_>::sign(&self) -> mf2_runtime::Sign
+pub fn mf2_runtime::Digits<'_>::write_neutral(&self, &mut dyn mf2_runtime::Sink)
+impl<'n> core::clone::Clone for mf2_runtime::Digits<'n>
+pub fn mf2_runtime::Digits<'n>::clone(&self) -> Self
+impl<'n> core::marker::Copy for mf2_runtime::Digits<'n>
+pub struct mf2_runtime::ExpressionPart<'p>
+impl<'p> mf2_runtime::ExpressionPart<'p>
+pub fn mf2_runtime::ExpressionPart<'p>::dir(&self) -> mf2_model::id::Dir
+pub fn mf2_runtime::ExpressionPart<'p>::id(&self) -> core::option::Option<&'p str>
+pub fn mf2_runtime::ExpressionPart<'p>::kind(&self) -> &'p str
+pub fn mf2_runtime::ExpressionPart<'p>::locale(&self) -> &'p str
+pub fn mf2_runtime::ExpressionPart<'p>::sub_parts(&self, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::ExpressionPart<'p>::value(&self) -> &'p mf2_runtime::Value<'p>
+pub fn mf2_runtime::ExpressionPart<'p>::write(&self, &mut dyn mf2_runtime::Sink)
+pub struct mf2_runtime::FnContext<'x>
+impl<'x> mf2_runtime::FnContext<'x>
+pub fn mf2_runtime::FnContext<'x>::dir(&self) -> core::option::Option<mf2_model::id::Dir>
+pub fn mf2_runtime::FnContext<'x>::host(&self) -> &'static dyn mf2_runtime::Host
+pub fn mf2_runtime::FnContext<'x>::locale(&self) -> &'x str
+pub fn mf2_runtime::FnContext<'x>::time_zone(&self) -> &'x mf2_runtime::TimeZone
+impl<'x> core::clone::Clone for mf2_runtime::FnContext<'x>
+pub fn mf2_runtime::FnContext<'x>::clone(&self) -> Self
+impl<'x> core::marker::Copy for mf2_runtime::FnContext<'x>
+#[non_exhaustive] pub struct mf2_runtime::FormatContext
+pub mf2_runtime::FormatContext::bidi: mf2_runtime::BidiStrategy
+pub mf2_runtime::FormatContext::host: &'static dyn mf2_runtime::Host
+pub mf2_runtime::FormatContext::time_zone: mf2_runtime::TimeZone
+impl mf2_runtime::FormatContext
+pub const fn mf2_runtime::FormatContext::new(&'static dyn mf2_runtime::Host) -> mf2_runtime::FormatContext
+impl core::fmt::Debug for mf2_runtime::FormatContext
+pub fn mf2_runtime::FormatContext::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2_runtime::Formatter<'c>
+impl<'c> mf2_runtime::Formatter<'c>
+pub fn mf2_runtime::Formatter<'c>::catalog(&self) -> &'c mf2_catalog::reader::Catalog
+pub const fn mf2_runtime::Formatter<'c>::new(&'c mf2_catalog::reader::Catalog, &'c mf2_runtime::Registry, &'c mf2_runtime::FormatContext) -> Self
+pub fn mf2_runtime::Formatter<'c>::parts(&self, mf2_model::id::MsgId, &[mf2_runtime::Arg<'_>], &mut dyn mf2_runtime::PartSink, &mut dyn mf2_runtime::ErrorSink)
+pub fn mf2_runtime::Formatter<'c>::parts_named(&self, mf2_model::id::MsgId, &[(&str, mf2_runtime::Arg<'_>)], &mut dyn mf2_runtime::PartSink, &mut dyn mf2_runtime::ErrorSink)
+pub fn mf2_runtime::Formatter<'c>::simple(&self, mf2_model::id::MsgId) -> core::option::Option<&'c str>
+pub fn mf2_runtime::Formatter<'c>::write(&self, mf2_model::id::MsgId, &[mf2_runtime::Arg<'_>], &mut dyn mf2_runtime::Sink, &mut dyn mf2_runtime::ErrorSink)
+pub fn mf2_runtime::Formatter<'c>::write_named(&self, mf2_model::id::MsgId, &[(&str, mf2_runtime::Arg<'_>)], &mut dyn mf2_runtime::Sink, &mut dyn mf2_runtime::ErrorSink)
+impl core::fmt::Debug for mf2_runtime::Formatter<'_>
+pub fn mf2_runtime::Formatter<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'c> core::clone::Clone for mf2_runtime::Formatter<'c>
+pub fn mf2_runtime::Formatter<'c>::clone(&self) -> Self
+impl<'c> core::marker::Copy for mf2_runtime::Formatter<'c>
+pub struct mf2_runtime::MarkupOptions<'p>
+impl<'p> core::iter::traits::iterator::Iterator for mf2_runtime::MarkupOptions<'p>
+pub type mf2_runtime::MarkupOptions<'p>::Item = (&'p str, &'p mf2_runtime::Value<'p>)
+pub fn mf2_runtime::MarkupOptions<'p>::next(&mut self) -> core::option::Option<Self::Item>
+pub struct mf2_runtime::MarkupPart<'p>
+impl<'p> mf2_runtime::MarkupPart<'p>
+pub fn mf2_runtime::MarkupPart<'p>::id(&self) -> core::option::Option<&'p str>
+pub fn mf2_runtime::MarkupPart<'p>::kind(&self) -> mf2_model::expression::MarkupKind
+pub fn mf2_runtime::MarkupPart<'p>::name(&self) -> &'p str
+pub fn mf2_runtime::MarkupPart<'p>::options(&self) -> mf2_runtime::MarkupOptions<'p>
+#[non_exhaustive] pub struct mf2_runtime::Measure<'a>
+pub mf2_runtime::Measure::flags: u32
+pub mf2_runtime::Measure::number: mf2_runtime::Number
+pub mf2_runtime::Measure::unit: mf2_runtime::MeasureUnit<'a>
+impl<'a> mf2_runtime::Measure<'a>
+pub fn mf2_runtime::Measure<'a>::new(mf2_runtime::Number, mf2_runtime::MeasureUnit<'a>, u32) -> Self
+impl<'a> core::clone::Clone for mf2_runtime::Measure<'a>
+pub fn mf2_runtime::Measure<'a>::clone(&self) -> Self
+pub struct mf2_runtime::NoErrors
+impl core::clone::Clone for mf2_runtime::NoErrors
+pub fn mf2_runtime::NoErrors::clone(&self) -> Self
+impl core::default::Default for mf2_runtime::NoErrors
+pub fn mf2_runtime::NoErrors::default() -> Self
+impl core::fmt::Debug for mf2_runtime::NoErrors
+pub fn mf2_runtime::NoErrors::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_runtime::NoErrors
+impl mf2_runtime::ErrorSink for mf2_runtime::NoErrors
+pub fn mf2_runtime::NoErrors::error(&mut self, mf2_runtime::FormatError)
+pub struct mf2_runtime::Number
+impl mf2_runtime::Number
+pub fn mf2_runtime::Number::better_than(&str, &str) -> bool
+pub fn mf2_runtime::Number::digits(&self) -> core::option::Option<mf2_runtime::Digits<'_>>
+pub fn mf2_runtime::Number::exact_digits(&self) -> mf2_runtime::Digits<'_>
+pub fn mf2_runtime::Number::from_f64(f64, &dyn mf2_runtime::Host) -> core::option::Option<mf2_runtime::Number>
+pub fn mf2_runtime::Number::from_i64(i64) -> mf2_runtime::Number
+pub fn mf2_runtime::Number::grouping(&self) -> core::option::Option<mf2_runtime::Grouping>
+pub fn mf2_runtime::Number::is_integer(&self) -> bool
+pub fn mf2_runtime::Number::is_negative(&self) -> bool
+pub fn mf2_runtime::Number::is_selectable(&self) -> bool
+pub fn mf2_runtime::Number::matches(&self, &mf2_runtime::FnContext<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::Number::parse(&str) -> core::option::Option<mf2_runtime::Number>
+pub fn mf2_runtime::Number::resolve(mf2_runtime::NumberSpec, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'_>>, &mf2_runtime::Options<'_, '_>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Number>
+pub fn mf2_runtime::Number::to_i64(&self) -> core::option::Option<i64>
+pub fn mf2_runtime::Number::write_plain(&self, &mut dyn mf2_runtime::Sink)
+impl core::clone::Clone for mf2_runtime::Number
+pub fn mf2_runtime::Number::clone(&self) -> Self
+#[non_exhaustive] pub struct mf2_runtime::NumberRequest<'r>
+pub mf2_runtime::NumberRequest::digits: mf2_runtime::DigitOptions
+pub mf2_runtime::NumberRequest::grouping: mf2_runtime::Grouping
+pub mf2_runtime::NumberRequest::neutral: bool
+pub mf2_runtime::NumberRequest::ordinal: bool
+pub mf2_runtime::NumberRequest::sign: mf2_runtime::SignDisplay
+pub mf2_runtime::NumberRequest::style: mf2_runtime::NumberStyle<'r>
+pub mf2_runtime::NumberRequest::value: &'r str
+impl<'r> core::clone::Clone for mf2_runtime::NumberRequest<'r>
+pub fn mf2_runtime::NumberRequest<'r>::clone(&self) -> Self
+impl<'r> core::fmt::Debug for mf2_runtime::NumberRequest<'r>
+pub fn mf2_runtime::NumberRequest<'r>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'r> core::marker::Copy for mf2_runtime::NumberRequest<'r>
+pub struct mf2_runtime::NumberSpec
+impl mf2_runtime::NumberSpec
+pub const mf2_runtime::NumberSpec::INTEGER: mf2_runtime::NumberSpec
+pub const mf2_runtime::NumberSpec::NUMBER: mf2_runtime::NumberSpec
+pub const mf2_runtime::NumberSpec::OFFSET: mf2_runtime::NumberSpec
+pub const mf2_runtime::NumberSpec::PERCENT: mf2_runtime::NumberSpec
+pub const mf2_runtime::NumberSpec::UNIT: mf2_runtime::NumberSpec
+pub const fn mf2_runtime::NumberSpec::currency(u8) -> mf2_runtime::NumberSpec
+impl core::clone::Clone for mf2_runtime::NumberSpec
+pub fn mf2_runtime::NumberSpec::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::NumberSpec
+impl core::cmp::PartialEq for mf2_runtime::NumberSpec
+pub fn mf2_runtime::NumberSpec::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_runtime::NumberSpec
+pub fn mf2_runtime::NumberSpec::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_runtime::NumberSpec
+impl core::marker::StructuralPartialEq for mf2_runtime::NumberSpec
+pub struct mf2_runtime::Operands
+pub mf2_runtime::Operands::e: u32
+pub mf2_runtime::Operands::f: u64
+pub mf2_runtime::Operands::i: u64
+pub mf2_runtime::Operands::t: u64
+pub mf2_runtime::Operands::v: u32
+pub mf2_runtime::Operands::w: u32
+impl mf2_runtime::Operands
+pub fn mf2_runtime::Operands::parse(&str) -> core::option::Option<mf2_runtime::Operands>
+impl core::clone::Clone for mf2_runtime::Operands
+pub fn mf2_runtime::Operands::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Operands
+impl core::cmp::PartialEq for mf2_runtime::Operands
+pub fn mf2_runtime::Operands::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_runtime::Operands
+pub fn mf2_runtime::Operands::default() -> Self
+impl core::fmt::Debug for mf2_runtime::Operands
+pub fn mf2_runtime::Operands::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Operands
+pub fn mf2_runtime::Operands::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Operands
+impl core::marker::StructuralPartialEq for mf2_runtime::Operands
+#[non_exhaustive] pub struct mf2_runtime::OptionValue<'o, 'a>
+pub mf2_runtime::OptionValue::literal: bool
+pub mf2_runtime::OptionValue::value: &'o mf2_runtime::Value<'a>
+impl<'o, 'a> core::clone::Clone for mf2_runtime::OptionValue<'o, 'a>
+pub fn mf2_runtime::OptionValue<'o, 'a>::clone(&self) -> Self
+impl<'o, 'a> core::marker::Copy for mf2_runtime::OptionValue<'o, 'a>
+pub struct mf2_runtime::Options<'o, 'a>
+impl<'o, 'a> mf2_runtime::Options<'o, 'a>
+pub fn mf2_runtime::Options<'o, 'a>::get(&self, &str) -> core::option::Option<mf2_runtime::OptionValue<'o, 'a>>
+pub fn mf2_runtime::Options<'o, 'a>::is_empty(&self) -> bool
+pub fn mf2_runtime::Options<'o, 'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = (&'a str, mf2_runtime::OptionValue<'o, 'a>)> + 'o
+pub fn mf2_runtime::Options<'o, 'a>::len(&self) -> usize
+impl<'o, 'a> core::clone::Clone for mf2_runtime::Options<'o, 'a>
+pub fn mf2_runtime::Options<'o, 'a>::clone(&self) -> Self
+impl<'o, 'a> core::marker::Copy for mf2_runtime::Options<'o, 'a>
+pub struct mf2_runtime::Registry
+impl mf2_runtime::Registry
+pub const mf2_runtime::Registry::EMPTY: mf2_runtime::Registry
+pub fn mf2_runtime::Registry::get(&self, &str) -> core::option::Option<&'static dyn mf2_runtime::Function>
+pub const fn mf2_runtime::Registry::new(&'static [(&'static str, &'static dyn mf2_runtime::Function)]) -> mf2_runtime::Registry
+pub const fn mf2_runtime::Registry::with_dates(self, &'static dyn mf2_runtime::Function) -> mf2_runtime::Registry
+pub const fn mf2_runtime::Registry::with_numbers(self, &'static dyn mf2_runtime::Function) -> mf2_runtime::Registry
+impl core::clone::Clone for mf2_runtime::Registry
+pub fn mf2_runtime::Registry::clone(&self) -> Self
+impl core::fmt::Debug for mf2_runtime::Registry
+pub fn mf2_runtime::Registry::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_runtime::Registry
+pub struct mf2_runtime::Time
+impl mf2_runtime::Time
+pub const mf2_runtime::Time::MIDNIGHT: mf2_runtime::Time
+pub const fn mf2_runtime::Time::from_ms_of_day(i64) -> core::option::Option<mf2_runtime::Time>
+pub const fn mf2_runtime::Time::hour(self) -> u8
+pub const fn mf2_runtime::Time::millisecond(self) -> u16
+pub const fn mf2_runtime::Time::minute(self) -> u8
+pub const fn mf2_runtime::Time::ms_of_day(self) -> i64
+pub const fn mf2_runtime::Time::new(u8, u8, u8, u16) -> core::option::Option<mf2_runtime::Time>
+pub const fn mf2_runtime::Time::second(self) -> u8
+impl core::clone::Clone for mf2_runtime::Time
+pub fn mf2_runtime::Time::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::Time
+impl core::cmp::Ord for mf2_runtime::Time
+pub fn mf2_runtime::Time::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_runtime::Time
+pub fn mf2_runtime::Time::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_runtime::Time
+pub fn mf2_runtime::Time::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_runtime::Time
+pub fn mf2_runtime::Time::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::Time
+pub fn mf2_runtime::Time::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::Time
+impl core::marker::StructuralPartialEq for mf2_runtime::Time
+pub struct mf2_runtime::TimeZone
+impl mf2_runtime::TimeZone
+pub const mf2_runtime::TimeZone::UTC: mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::as_option(&self) -> mf2_runtime::ZoneOption<'_>
+pub fn mf2_runtime::TimeZone::named(&str) -> core::option::Option<mf2_runtime::TimeZone>
+pub const fn mf2_runtime::TimeZone::offset(i32) -> core::option::Option<mf2_runtime::TimeZone>
+impl core::clone::Clone for mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::clone(&self) -> Self
+impl core::cmp::Eq for mf2_runtime::TimeZone
+impl core::cmp::PartialEq for mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::default() -> Self
+impl core::fmt::Debug for mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_runtime::TimeZone
+pub fn mf2_runtime::TimeZone::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_runtime::TimeZone
+impl core::marker::StructuralPartialEq for mf2_runtime::TimeZone
+pub trait mf2_runtime::CustomValue
+pub fn mf2_runtime::CustomValue::as_any(&self) -> core::option::Option<&dyn core::any::Any>
+pub fn mf2_runtime::CustomValue::as_date_time(&self) -> core::option::Option<mf2_runtime::DateTime<'_>>
+pub fn mf2_runtime::CustomValue::as_measure(&self) -> core::option::Option<mf2_runtime::Measure<'_>>
+pub fn mf2_runtime::CustomValue::as_number(&self) -> core::option::Option<mf2_runtime::Number>
+pub fn mf2_runtime::CustomValue::as_str(&self) -> core::option::Option<&str>
+pub trait mf2_runtime::ErrorSink
+pub fn mf2_runtime::ErrorSink::error(&mut self, mf2_runtime::FormatError)
+impl mf2_runtime::ErrorSink for alloc::vec::Vec<mf2_runtime::FormatError>
+pub fn alloc::vec::Vec<mf2_runtime::FormatError>::error(&mut self, mf2_runtime::FormatError)
+impl mf2_runtime::ErrorSink for mf2_runtime::NoErrors
+pub fn mf2_runtime::NoErrors::error(&mut self, mf2_runtime::FormatError)
+pub trait mf2_runtime::Function: core::marker::Sync
+pub fn mf2_runtime::Function::better_than(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &str) -> bool
+pub fn mf2_runtime::Function::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_runtime::Function::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
+pub fn mf2_runtime::Function::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::Function::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
+pub fn mf2_runtime::Function::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::Function::part_kind(&self) -> &'static str
+pub fn mf2_runtime::Function::resolve<'a>(&self, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'a>>, &mf2_runtime::Options<'_, 'a>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::Function::selectable(&self, &mf2_runtime::Value<'_>) -> bool
+impl mf2_runtime::Function for mf2_runtime::functions::NumberFunction
+pub fn mf2_runtime::functions::NumberFunction::better_than(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &str) -> bool
+pub fn mf2_runtime::functions::NumberFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_runtime::functions::NumberFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
+pub fn mf2_runtime::functions::NumberFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::NumberFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
+pub fn mf2_runtime::functions::NumberFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::functions::NumberFunction::part_kind(&self) -> &'static str
+pub fn mf2_runtime::functions::NumberFunction::resolve<'a>(&self, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'a>>, &mf2_runtime::Options<'_, 'a>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::functions::NumberFunction::selectable(&self, &mf2_runtime::Value<'_>) -> bool
+impl mf2_runtime::Function for mf2_runtime::functions::StringFunction
+pub fn mf2_runtime::functions::StringFunction::better_than(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &str) -> bool
+pub fn mf2_runtime::functions::StringFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
+pub fn mf2_runtime::functions::StringFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
+pub fn mf2_runtime::functions::StringFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::StringFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
+pub fn mf2_runtime::functions::StringFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
+pub fn mf2_runtime::functions::StringFunction::part_kind(&self) -> &'static str
+pub fn mf2_runtime::functions::StringFunction::resolve<'a>(&self, &mf2_runtime::FnContext<'_>, core::option::Option<&mf2_runtime::Value<'a>>, &mf2_runtime::Options<'_, 'a>, &mut dyn mf2_runtime::ErrorSink) -> core::option::Option<mf2_runtime::Value<'a>>
+pub fn mf2_runtime::functions::StringFunction::selectable(&self, &mf2_runtime::Value<'_>) -> bool
+pub trait mf2_runtime::Host: core::marker::Sync
+pub fn mf2_runtime::Host::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_runtime::Host::format_date_time(&self, &str, &mf2_runtime::DateTimeRequest<'_>, &mut dyn mf2_runtime::Sink) -> bool
+pub fn mf2_runtime::Host::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub fn mf2_runtime::Host::numbers(&self) -> core::option::Option<&dyn mf2_runtime::NumberFormatter>
+pub fn mf2_runtime::Host::zone_offset(&self, &str, i64) -> core::option::Option<i32>
+pub trait mf2_runtime::NumberFormatter: core::marker::Sync
+pub fn mf2_runtime::NumberFormatter::format(&self, &str, &mf2_runtime::NumberRequest<'_>, mf2_runtime::NumberOut<'_>) -> bool
+pub fn mf2_runtime::NumberFormatter::plural(&self, &str, &mf2_runtime::NumberRequest<'_>) -> core::option::Option<mf2_runtime::Category>
+pub trait mf2_runtime::PartSink
+pub fn mf2_runtime::PartSink::part(&mut self, mf2_runtime::Part<'_>)
+pub trait mf2_runtime::Sink
+pub fn mf2_runtime::Sink::push_str(&mut self, &str)
+impl mf2_runtime::Sink for alloc::string::String
+pub fn alloc::string::String::push_str(&mut self, &str)
+pub trait mf2_runtime::SubPartSink
+pub fn mf2_runtime::SubPartSink::sub_part(&mut self, &str, &str)
+pub fn mf2_runtime::is_zone_name(&str) -> bool

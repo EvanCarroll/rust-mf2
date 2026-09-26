@@ -124,6 +124,7 @@ impl PartSink for Parts {
                 src.write(&mut s);
                 let _ = write!(self.0, "[fallback {s}]");
             }
+            _ => self.0.push_str("[unknown]"),
         }
     }
 }

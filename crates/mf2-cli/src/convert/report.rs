@@ -201,7 +201,7 @@ impl Report {
         self.functions
             .iter()
             .filter_map(|f| {
-                mf2_build::features::BUILTINS
+                mf2_build::BUILTINS
                     .iter()
                     .find(|(name, _)| name == f)
                     .and_then(|(_, feature)| *feature)

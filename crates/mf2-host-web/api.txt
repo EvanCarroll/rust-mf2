@@ -1,0 +1,53 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: intl,datetime-intl; target: wasm32-unknown-unknown
+pub mod mf2_host_web
+pub struct mf2_host_web::IntlNumbers(pub &'static dyn mf2_runtime::host::Host)
+impl core::clone::Clone for mf2_host_web::IntlNumbers
+pub fn mf2_host_web::IntlNumbers::clone(&self) -> Self
+impl core::marker::Copy for mf2_host_web::IntlNumbers
+impl mf2_runtime::host::Host for mf2_host_web::IntlNumbers
+pub fn mf2_host_web::IntlNumbers::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_host_web::IntlNumbers::format_date_time(&self, &str, &mf2_runtime::datetime::DateTimeRequest<'_>, &mut dyn mf2_runtime::sink::Sink) -> bool
+pub fn mf2_host_web::IntlNumbers::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub fn mf2_host_web::IntlNumbers::numbers(&self) -> core::option::Option<&dyn mf2_runtime::host::NumberFormatter>
+pub fn mf2_host_web::IntlNumbers::zone_offset(&self, &str, i64) -> core::option::Option<i32>
+pub struct mf2_host_web::IntlWebHost
+impl core::clone::Clone for mf2_host_web::IntlWebHost
+pub fn mf2_host_web::IntlWebHost::clone(&self) -> Self
+impl core::default::Default for mf2_host_web::IntlWebHost
+pub fn mf2_host_web::IntlWebHost::default() -> Self
+impl core::fmt::Debug for mf2_host_web::IntlWebHost
+pub fn mf2_host_web::IntlWebHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_host_web::IntlWebHost
+impl mf2_runtime::host::Host for mf2_host_web::IntlWebHost
+pub fn mf2_host_web::IntlWebHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_host_web::IntlWebHost::format_date_time(&self, &str, &mf2_runtime::datetime::DateTimeRequest<'_>, &mut dyn mf2_runtime::sink::Sink) -> bool
+pub fn mf2_host_web::IntlWebHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub fn mf2_host_web::IntlWebHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
+pub struct mf2_host_web::WebHost
+impl core::clone::Clone for mf2_host_web::WebHost
+pub fn mf2_host_web::WebHost::clone(&self) -> Self
+impl core::default::Default for mf2_host_web::WebHost
+pub fn mf2_host_web::WebHost::default() -> Self
+impl core::fmt::Debug for mf2_host_web::WebHost
+pub fn mf2_host_web::WebHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_host_web::WebHost
+impl mf2_runtime::host::Host for mf2_host_web::WebHost
+pub fn mf2_host_web::WebHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_host_web::WebHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub struct mf2_host_web::ZonesWebHost
+impl core::clone::Clone for mf2_host_web::ZonesWebHost
+pub fn mf2_host_web::ZonesWebHost::clone(&self) -> Self
+impl core::default::Default for mf2_host_web::ZonesWebHost
+pub fn mf2_host_web::ZonesWebHost::default() -> Self
+impl core::fmt::Debug for mf2_host_web::ZonesWebHost
+pub fn mf2_host_web::ZonesWebHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_host_web::ZonesWebHost
+impl mf2_runtime::host::Host for mf2_host_web::ZonesWebHost
+pub fn mf2_host_web::ZonesWebHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_host_web::ZonesWebHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub fn mf2_host_web::ZonesWebHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
+pub static mf2_host_web::HOST: mf2_host_web::WebHost
+pub static mf2_host_web::INTL_HOST: mf2_host_web::IntlWebHost
+pub static mf2_host_web::NUMBERS_HOST: mf2_host_web::IntlNumbers
+pub static mf2_host_web::ZONES_HOST: mf2_host_web::ZonesWebHost

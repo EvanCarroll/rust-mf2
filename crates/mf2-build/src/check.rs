@@ -176,7 +176,7 @@ fn options(at: &mut At<'_, '_>, model: &Message<'_>) {
             }
             let literal = match value {
                 OptionValue::Literal(literal) => Some(literal.value.as_ref()),
-                OptionValue::Variable(_) => None,
+                _ => None,
             };
             match (name, literal) {
                 ("select", Some(v)) if !matches!(v, "plural" | "ordinal" | "exact") => at.say(
@@ -220,6 +220,7 @@ fn options(at: &mut At<'_, '_>, model: &Message<'_>) {
         match declaration {
             Declaration::Input(input) => check(input.value.function.as_ref()),
             Declaration::Local(local) => check(local.value.function()),
+            _ => {}
         }
     }
     for pattern in patterns(model) {
@@ -373,6 +374,7 @@ fn names(at: &mut At<'_, '_>, model: &Message<'_>, analysis: &Analysis<'_>) {
                 local.value.function().map(|f| &f.options),
                 local.value.attributes(),
             ),
+            _ => {}
         }
     }
     for pattern in patterns(model) {
@@ -702,6 +704,7 @@ fn patterns<'m>(message: &'m Message<'_>) -> Vec<&'m Pattern<'m>> {
     match message {
         Message::Pattern(p) => vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     }
 }
 

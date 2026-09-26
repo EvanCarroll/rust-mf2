@@ -511,6 +511,7 @@ impl PartSink for JsonParts {
                 o.push_str(",\"source\":");
                 json_string(&mut o, &s);
             }
+            _ => json_string(&mut o, "unknown"),
         }
         o.push('}');
         self.json.push(o);

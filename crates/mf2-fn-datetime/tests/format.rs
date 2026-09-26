@@ -215,6 +215,7 @@ fn zone_text(z: ZoneOption<'_>) -> String {
         ZoneOption::Utc => "UTC".into(),
         ZoneOption::Offset(o) => format!("{o:+}s"),
         ZoneOption::Named(n) => n.into(),
+        other => format!("{other:?}"),
     }
 }
 

@@ -18,6 +18,7 @@
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
 //! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host (`numbers.rs`) |
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 

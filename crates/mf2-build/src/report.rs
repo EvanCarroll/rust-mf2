@@ -22,6 +22,7 @@ fn suite_name<S: serde::Serializer>(kind: &Option<ErrorKind>, s: S) -> Result<S:
 
 /// One thing a build has to say.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct Diagnostic {
     /// Whether it fails the build.
     pub level: Level,
@@ -80,6 +81,7 @@ impl Diagnostic {
 
 /// Everything a build found, in the order found.
 #[derive(Clone, Debug, Default, Serialize)]
+#[non_exhaustive]
 pub struct Report {
     /// The diagnostics.
     pub diagnostics: Vec<Diagnostic>,
@@ -170,14 +172,14 @@ impl Report {
 
 /// Builds diagnostics for one locale, so that the caller does not repeat the
 /// tag and the file on every call.
-pub struct Sink<'r> {
+pub(crate) struct Sink<'r> {
     report: &'r mut Report,
     locale: String,
 }
 
 impl<'r> Sink<'r> {
     /// A sink that tags everything with `locale`.
-    pub fn new(report: &'r mut Report, locale: impl Into<String>) -> Sink<'r> {
+    pub(crate) fn new(report: &'r mut Report, locale: impl Into<String>) -> Sink<'r> {
         Sink {
             report,
             locale: locale.into(),
@@ -185,7 +187,7 @@ impl<'r> Sink<'r> {
     }
 
     /// Adds one diagnostic.
-    pub fn add(
+    pub(crate) fn add(
         &mut self,
         level: Level,
         lint: Option<Lint>,
@@ -209,7 +211,7 @@ impl<'r> Sink<'r> {
 
     /// A message the spec refuses: a syntax or data-model error, with the
     /// kind the WG suite names it by.
-    pub fn add_invalid(
+    pub(crate) fn add_invalid(
         &mut self,
         file: &Path,
         at: mf2_resource::Position,

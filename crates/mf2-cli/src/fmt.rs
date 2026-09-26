@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use clap::Args as ClapArgs;
-use mf2_build::config::Layout;
+use mf2_build::Layout;
 use mf2_build::loader::resource;
 
 use crate::error::{Error, Result, read, write};

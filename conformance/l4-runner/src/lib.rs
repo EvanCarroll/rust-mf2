@@ -94,12 +94,13 @@ static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::HOST);
 fn context(bidi: BidiStrategy) -> &'static FormatContext {
     static NO_BIDI: std::sync::OnceLock<FormatContext> = std::sync::OnceLock::new();
     match bidi {
-        BidiStrategy::Default => &DEFAULT_BIDI,
         BidiStrategy::None => NO_BIDI.get_or_init(|| {
             let mut cx = FormatContext::new(&mf2_host_std::HOST);
             cx.bidi = BidiStrategy::None;
             cx
         }),
+        // The default, and a strategy this runner does not know.
+        _ => &DEFAULT_BIDI,
     }
 }
 
@@ -492,6 +493,8 @@ impl PartSink for JsonParts {
                 text.push_str(&s);
                 text.push('}');
             }
+            // The suite knows no other kind of part.
+            _ => json_string(&mut o, "unknown"),
         }
         o.push('}');
         self.json.push(o);

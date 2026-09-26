@@ -115,6 +115,7 @@ impl<'x> FnContext<'x> {
     }
 
     /// The catalog, for its locale data (`Catalog::locale_entry`).
+    #[doc(hidden)]
     pub fn catalog(&self) -> &'x Catalog {
         self.catalog
     }
@@ -127,6 +128,7 @@ impl<'x> FnContext<'x> {
 
 /// A resolved option value.
 #[derive(Clone, Copy)]
+#[non_exhaustive]
 pub struct OptionValue<'o, 'a> {
     /// The value.
     pub value: &'o Value<'a>,

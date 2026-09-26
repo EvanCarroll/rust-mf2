@@ -27,6 +27,7 @@
 //! `forbid(unsafe_code)`, no `core::fmt`, no panicking operation, no
 //! allocation.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(

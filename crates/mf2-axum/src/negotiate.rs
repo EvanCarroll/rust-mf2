@@ -19,6 +19,7 @@ use mf2_catalog::Dir;
 
 /// What negotiation decided, for one request.
 #[derive(Clone, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 pub struct Negotiated {
     /// The tag, always one this build has.
     pub tag: &'static str,

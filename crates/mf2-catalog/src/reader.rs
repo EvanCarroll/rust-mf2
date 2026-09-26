@@ -27,19 +27,24 @@ pub struct StrRef(pub(crate) u32);
 /// The CLDR version of a catalog's locale data.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct CldrVersion {
+    /// The release (`48` of CLDR 48.2.1).
     pub major: u16,
+    /// The minor version (`2`).
     pub minor: u8,
+    /// The patch (`1`).
     pub patch: u8,
 }
 
 impl CldrVersion {
     /// The header encoding: `major << 16 | minor << 8 | patch`.
+    #[doc(hidden)]
     pub const fn to_u32(self) -> u32 {
         (self.major as u32) << 16 | (self.minor as u32) << 8 | self.patch as u32
     }
 
     /// From the header encoding; `None` for 0 (no CLDR data).
     #[allow(clippy::cast_possible_truncation)] // the fields are bit ranges of `v`
+    #[doc(hidden)]
     pub const fn from_u32(v: u32) -> Option<Self> {
         if v == 0 {
             return None;
@@ -245,6 +250,7 @@ impl Catalog {
     }
 
     /// `format_version`: `major << 8 | minor`.
+    #[doc(hidden)]
     pub fn format_version(&self) -> u16 {
         self.version
     }
@@ -265,6 +271,7 @@ impl Catalog {
     }
 
     /// The `MsgId` chunk this catalog holds (0 until chunking).
+    #[doc(hidden)]
     pub fn chunk(&self) -> u8 {
         self.chunk
     }
@@ -275,11 +282,13 @@ impl Catalog {
     }
 
     /// Whether COLD was stripped (production catalogs, §2.3).
+    #[doc(hidden)]
     pub fn cold_stripped(&self) -> bool {
         self.flags & flags::COLD_STRIPPED != 0
     }
 
     /// Whether IDS was stripped (production catalogs, §2.3).
+    #[doc(hidden)]
     pub fn ids_stripped(&self) -> bool {
         self.flags & flags::IDS_STRIPPED != 0
     }
@@ -301,6 +310,7 @@ impl Catalog {
 
     /// The section table: `(kind, offset, length)` in file order, unknown
     /// kinds included (for tools: sizes, dumps).
+    #[doc(hidden)]
     pub fn sections(&self) -> impl Iterator<Item = (u16, u32, u32)> + '_ {
         let n = u16_at(&self.bytes, header::SECTION_COUNT).unwrap_or(0);
         (0..usize::from(n)).filter_map(move |i| {
@@ -316,6 +326,7 @@ impl Catalog {
     /// O(1) lookup by id (F3). Never fails: an id outside this catalog (or
     /// chunk) is `Absent`.
     #[inline]
+    #[doc(hidden)]
     pub fn get(&self, id: MsgId) -> Entry<'_> {
         if id.chunk() != self.chunk || id.index() >= self.count {
             return Entry::Absent;
@@ -340,6 +351,7 @@ impl Catalog {
     /// UTF-8 (F4: checked on access, so a corrupt string costs only the
     /// message that uses it).
     #[inline]
+    #[doc(hidden)]
     pub fn text(&self, r: StrRef) -> Option<&str> {
         let rest = self.strings.of(&self.bytes).get(r.0 as usize..)?;
         let end = nul_pos(rest)?;
@@ -348,6 +360,7 @@ impl Catalog {
 
     /// The locale a message's text came from, when it is not this catalog's
     /// own (F7). O(log n).
+    #[doc(hidden)]
     pub fn fallback_locale(&self, id: MsgId) -> Option<&str> {
         let fb = self.fallback?;
         if id.chunk() != self.chunk {
@@ -372,17 +385,20 @@ impl Catalog {
     }
 
     /// Entry `index` of FUNCS: a function identifier (`ns:name`, NFC).
+    #[doc(hidden)]
     pub fn function(&self, index: u32) -> Option<&str> {
         let at = (index as usize).checked_mul(4)?;
         self.text(StrRef(u32_at(self.funcs.of(&self.bytes), at)?))
     }
 
     /// The number of FUNCS entries.
+    #[doc(hidden)]
     pub fn function_count(&self) -> u32 {
         u32::try_from(self.funcs.len / 4).unwrap_or(u32::MAX)
     }
 
     /// The payload of the LOCALE entry with `key` (opaque; §2.7, §4).
+    #[doc(hidden)]
     pub fn locale_entry(&self, key: u32) -> Option<&[u8]> {
         match key {
             locale_key::PLURAL_CARDINAL => return self.plural[0].map(|s| s.of(&self.bytes)),
@@ -407,6 +423,7 @@ impl Catalog {
 
     /// A message's variable names (NAMES): its slots and its locals. Empty
     /// for simple and absent messages.
+    #[doc(hidden)]
     pub fn names(&self, id: MsgId) -> Names<'_> {
         match self.get(id) {
             Entry::Pattern(m) | Entry::Select(m) => m.names(),
@@ -421,6 +438,7 @@ impl Catalog {
     /// needs an id back, so this is not on its path. `mf2 dump` and the
     /// tooling that reports on a catalog do.
     #[cfg(feature = "decode")]
+    #[doc(hidden)]
     pub fn id_of(&self, id: MsgId) -> Option<alloc::string::String> {
         let index = id.index() as usize;
         let count = self.count as usize;

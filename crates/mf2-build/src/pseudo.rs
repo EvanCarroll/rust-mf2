@@ -94,6 +94,8 @@ pub fn message<'a>(message: &Message<'a>, kind: Kind) -> Message<'a> {
                 })
                 .collect(),
         }),
+        // A kind this version does not know: left as it is.
+        other => other.clone(),
     }
 }
 

@@ -1,0 +1,565 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: ssr,fn-datetime,static-locale,mark-fallback-lang
+pub mod leptos_mf2
+pub mod leptos_mf2::components
+pub struct leptos_mf2::components::AlternateLinksProps
+pub leptos_mf2::components::AlternateLinksProps::href_of: fn(&str) -> alloc::string::String
+impl leptos::component::Props for leptos_mf2::components::AlternateLinksProps
+pub type leptos_mf2::components::AlternateLinksProps::Builder = AlternateLinksPropsBuilder
+pub fn leptos_mf2::components::AlternateLinksProps::builder() -> Self::Builder
+impl leptos_mf2::components::AlternateLinksProps
+pub fn leptos_mf2::components::AlternateLinksProps::builder() -> AlternateLinksPropsBuilder<(())>
+pub struct leptos_mf2::components::CatalogLinksProps
+impl leptos::component::Props for leptos_mf2::components::CatalogLinksProps
+pub type leptos_mf2::components::CatalogLinksProps::Builder = CatalogLinksPropsBuilder
+pub fn leptos_mf2::components::CatalogLinksProps::builder() -> Self::Builder
+impl leptos_mf2::components::CatalogLinksProps
+pub fn leptos_mf2::components::CatalogLinksProps::builder() -> CatalogLinksPropsBuilder<()>
+pub struct leptos_mf2::components::CatalogPreloadProps
+impl leptos::component::Props for leptos_mf2::components::CatalogPreloadProps
+pub type leptos_mf2::components::CatalogPreloadProps::Builder = CatalogPreloadPropsBuilder
+pub fn leptos_mf2::components::CatalogPreloadProps::builder() -> Self::Builder
+impl leptos_mf2::components::CatalogPreloadProps
+pub fn leptos_mf2::components::CatalogPreloadProps::builder() -> CatalogPreloadPropsBuilder<()>
+pub struct leptos_mf2::components::IslandsGateProps
+impl leptos::component::Props for leptos_mf2::components::IslandsGateProps
+pub type leptos_mf2::components::IslandsGateProps::Builder = IslandsGatePropsBuilder
+pub fn leptos_mf2::components::IslandsGateProps::builder() -> Self::Builder
+impl leptos_mf2::components::IslandsGateProps
+pub fn leptos_mf2::components::IslandsGateProps::builder() -> IslandsGatePropsBuilder<()>
+pub struct leptos_mf2::components::LocaleOptionProps
+pub leptos_mf2::components::LocaleOptionProps::children: leptos::children::Children
+pub leptos_mf2::components::LocaleOptionProps::tag: &'static str
+impl leptos::component::Props for leptos_mf2::components::LocaleOptionProps
+pub type leptos_mf2::components::LocaleOptionProps::Builder = LocaleOptionPropsBuilder
+pub fn leptos_mf2::components::LocaleOptionProps::builder() -> Self::Builder
+impl leptos_mf2::components::LocaleOptionProps
+pub fn leptos_mf2::components::LocaleOptionProps::builder() -> LocaleOptionPropsBuilder<((), ())>
+pub struct leptos_mf2::components::LocaleSwitcherProps
+pub leptos_mf2::components::LocaleSwitcherProps::button: leptos::text_prop::TextProp
+pub leptos_mf2::components::LocaleSwitcherProps::children: leptos::children::Children
+pub leptos_mf2::components::LocaleSwitcherProps::label: leptos::text_prop::TextProp
+impl leptos::component::Props for leptos_mf2::components::LocaleSwitcherProps
+pub type leptos_mf2::components::LocaleSwitcherProps::Builder = LocaleSwitcherPropsBuilder
+pub fn leptos_mf2::components::LocaleSwitcherProps::builder() -> Self::Builder
+impl leptos_mf2::components::LocaleSwitcherProps
+pub fn leptos_mf2::components::LocaleSwitcherProps::builder() -> LocaleSwitcherPropsBuilder<((), (), ())>
+pub fn leptos_mf2::components::AlternateLinks(leptos_mf2::components::AlternateLinksProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::CatalogLinks() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::CatalogPreload() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::IslandsGate() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::LocaleOption(leptos_mf2::components::LocaleOptionProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::LocaleSwitcher(leptos_mf2::components::LocaleSwitcherProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::components::html_lang() -> (alloc::string::String, &'static str)
+pub macro leptos_mf2::islands_gate!
+#[non_exhaustive] pub enum leptos_mf2::ArgValue
+pub leptos_mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)
+pub leptos_mf2::ArgValue::DateTime(alloc::sync::Arc<leptos_mf2::DateTimeValue>)
+pub leptos_mf2::ArgValue::Decimal(leptos_mf2::Text)
+pub leptos_mf2::ArgValue::Float(f64)
+pub leptos_mf2::ArgValue::Int(i64)
+pub leptos_mf2::ArgValue::Source(alloc::sync::Arc<dyn leptos_mf2::ArgSource>)
+pub leptos_mf2::ArgValue::Str(leptos_mf2::Text)
+pub leptos_mf2::ArgValue::Unset
+impl leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::custom<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static>(C) -> leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::decimal(impl core::convert::Into<leptos_mf2::Text>) -> leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::source<S: leptos_mf2::ArgSource + 'static>(S) -> leptos_mf2::ArgValue
+impl core::clone::Clone for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::clone(&self) -> Self
+impl core::convert::From<&alloc::string::String> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(&alloc::string::String) -> leptos_mf2::ArgValue
+impl core::convert::From<&str> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(&str) -> leptos_mf2::ArgValue
+impl core::convert::From<alloc::string::String> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(alloc::string::String) -> leptos_mf2::ArgValue
+impl core::convert::From<alloc::sync::Arc<str>> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(alloc::sync::Arc<str>) -> leptos_mf2::ArgValue
+impl core::convert::From<char> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(char) -> leptos_mf2::ArgValue
+impl core::convert::From<f32> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(f32) -> leptos_mf2::ArgValue
+impl core::convert::From<f64> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(f64) -> leptos_mf2::ArgValue
+impl core::convert::From<i16> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(i16) -> leptos_mf2::ArgValue
+impl core::convert::From<i32> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(i32) -> leptos_mf2::ArgValue
+impl core::convert::From<i64> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(i64) -> leptos_mf2::ArgValue
+impl core::convert::From<i8> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(i8) -> leptos_mf2::ArgValue
+impl core::convert::From<leptos_mf2::DateTimeValue> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(leptos_mf2::DateTimeValue) -> leptos_mf2::ArgValue
+impl core::convert::From<leptos_mf2::Text> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(leptos_mf2::Text) -> leptos_mf2::ArgValue
+impl core::convert::From<mf2_runtime::datetime::DateTime<'_>> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(mf2_runtime::datetime::DateTime<'_>) -> leptos_mf2::ArgValue
+impl core::convert::From<u16> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(u16) -> leptos_mf2::ArgValue
+impl core::convert::From<u32> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(u32) -> leptos_mf2::ArgValue
+impl core::convert::From<u8> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(u8) -> leptos_mf2::ArgValue
+impl core::convert::From<usize> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(usize) -> leptos_mf2::ArgValue
+impl<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static> core::convert::From<alloc::sync::Arc<C>> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(alloc::sync::Arc<C>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::computed::arc_memo::ArcMemo<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::computed::arc_memo::ArcMemo<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::computed::memo::Memo<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::computed::memo::Memo<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::signal::arc_read::ArcReadSignal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::signal::arc_read::ArcReadSignal<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::signal::arc_rw::ArcRwSignal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::signal::arc_rw::ArcRwSignal<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::signal::read::ReadSignal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::signal::read::ReadSignal<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::signal::rw::RwSignal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::signal::rw::RwSignal<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::wrappers::read::ArcSignal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::wrappers::read::ArcSignal<T>) -> leptos_mf2::ArgValue
+impl<T> core::convert::From<reactive_graph::wrappers::read::Signal<T>> for leptos_mf2::ArgValue where T: core::convert::Into<leptos_mf2::ArgValue> + core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
+pub fn leptos_mf2::ArgValue::from(reactive_graph::wrappers::read::Signal<T>) -> leptos_mf2::ArgValue
+#[non_exhaustive] pub enum leptos_mf2::LoadError
+pub leptos_mf2::LoadError::Fetch
+pub leptos_mf2::LoadError::Malformed(mf2_catalog::error::CatalogError)
+pub leptos_mf2::LoadError::ManifestMismatch
+pub leptos_mf2::LoadError::NotInstalled
+pub leptos_mf2::LoadError::UnknownLocale
+impl core::clone::Clone for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::clone(&self) -> Self
+impl core::cmp::Eq for leptos_mf2::LoadError
+impl core::cmp::PartialEq for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::eq(&self, &Self) -> bool
+impl core::convert::From<mf2_catalog::error::CatalogError> for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::from(mf2_catalog::error::CatalogError) -> Self
+impl core::error::Error for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for leptos_mf2::LoadError
+pub fn leptos_mf2::LoadError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for leptos_mf2::LoadError
+pub enum leptos_mf2::Text
+pub leptos_mf2::Text::Shared(alloc::sync::Arc<str>)
+pub leptos_mf2::Text::Static(&'static str)
+impl leptos_mf2::Text
+pub fn leptos_mf2::Text::as_str(&self) -> &str
+impl core::clone::Clone for leptos_mf2::Text
+pub fn leptos_mf2::Text::clone(&self) -> Self
+impl core::convert::From<&'static str> for leptos_mf2::Text
+pub fn leptos_mf2::Text::from(&'static str) -> leptos_mf2::Text
+impl core::convert::From<alloc::string::String> for leptos_mf2::Text
+pub fn leptos_mf2::Text::from(alloc::string::String) -> leptos_mf2::Text
+impl core::convert::From<alloc::sync::Arc<str>> for leptos_mf2::Text
+pub fn leptos_mf2::Text::from(alloc::sync::Arc<str>) -> leptos_mf2::Text
+impl core::convert::From<leptos_mf2::Text> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(leptos_mf2::Text) -> leptos_mf2::ArgValue
+pub enum leptos_mf2::TextUse
+pub leptos_mf2::TextUse::Displayed
+pub leptos_mf2::TextUse::Plain
+impl core::clone::Clone for leptos_mf2::TextUse
+pub fn leptos_mf2::TextUse::clone(&self) -> Self
+impl core::cmp::Eq for leptos_mf2::TextUse
+impl core::cmp::PartialEq for leptos_mf2::TextUse
+pub fn leptos_mf2::TextUse::eq(&self, &Self) -> bool
+impl core::fmt::Debug for leptos_mf2::TextUse
+pub fn leptos_mf2::TextUse::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for leptos_mf2::TextUse
+pub fn leptos_mf2::TextUse::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for leptos_mf2::TextUse
+impl core::marker::StructuralPartialEq for leptos_mf2::TextUse
+pub struct leptos_mf2::ArgList(_)
+impl leptos_mf2::ArgList
+pub fn leptos_mf2::ArgList::as_slice(&self) -> &[leptos_mf2::ArgValue]
+impl core::clone::Clone for leptos_mf2::ArgList
+pub fn leptos_mf2::ArgList::clone(&self) -> Self
+pub struct leptos_mf2::DateTimeValue
+impl leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::floating(mf2_runtime::datetime::Date, mf2_runtime::datetime::Time) -> leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::instant(i64) -> core::option::Option<leptos_mf2::DateTimeValue>
+pub fn leptos_mf2::DateTimeValue::wall_time(mf2_runtime::datetime::Date, mf2_runtime::datetime::Time, impl core::convert::Into<leptos_mf2::Text>) -> leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::with_calendar(self, impl core::convert::Into<leptos_mf2::Text>) -> leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::with_zone(self, impl core::convert::Into<leptos_mf2::Text>) -> leptos_mf2::DateTimeValue
+impl core::clone::Clone for leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::clone(&self) -> Self
+impl core::convert::From<leptos_mf2::DateTimeValue> for leptos_mf2::ArgValue
+pub fn leptos_mf2::ArgValue::from(leptos_mf2::DateTimeValue) -> leptos_mf2::ArgValue
+impl core::convert::From<mf2_runtime::datetime::DateTime<'_>> for leptos_mf2::DateTimeValue
+pub fn leptos_mf2::DateTimeValue::from(mf2_runtime::datetime::DateTime<'_>) -> leptos_mf2::DateTimeValue
+pub struct leptos_mf2::Flat<F>(pub F)
+impl<F, V> leptos_mf2::IntoMarkupHandler for leptos_mf2::Flat<F> where F: for<'p> core::ops::function::Fn(&mf2_runtime::parts::MarkupPart<'p>) -> V + core::marker::Send + core::marker::Sync + 'static, V: tachys::view::any_view::IntoAny
+pub fn leptos_mf2::Flat<F>::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+pub struct leptos_mf2::FlatHandler(_)
+impl leptos_mf2::FlatHandler
+pub fn leptos_mf2::FlatHandler::call(&self, &mf2_runtime::parts::MarkupPart<'_>) -> tachys::view::any_view::AnyView
+impl leptos_mf2::MarkupHandler for leptos_mf2::FlatHandler
+pub fn leptos_mf2::FlatHandler::as_any(&self) -> &dyn core::any::Any
+pub struct leptos_mf2::Handler<H>(pub H)
+impl<H: leptos_mf2::MarkupHandler + 'static> leptos_mf2::IntoMarkupHandler for leptos_mf2::Handler<H>
+pub fn leptos_mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+pub struct leptos_mf2::NestingHandler(_)
+impl leptos_mf2::NestingHandler
+pub fn leptos_mf2::NestingHandler::call(&self, tachys::view::any_view::AnyView) -> tachys::view::any_view::AnyView
+impl leptos_mf2::MarkupHandler for leptos_mf2::NestingHandler
+pub fn leptos_mf2::NestingHandler::as_any(&self) -> &dyn core::any::Any
+pub struct leptos_mf2::RequestI18n
+impl leptos_mf2::RequestI18n
+pub fn leptos_mf2::RequestI18n::new(alloc::sync::Arc<mf2_catalog::reader::Catalog>) -> leptos_mf2::RequestI18n
+pub fn leptos_mf2::RequestI18n::provide(self)
+pub fn leptos_mf2::RequestI18n::with_bidi(self, mf2_runtime::format::BidiStrategy) -> leptos_mf2::RequestI18n
+pub fn leptos_mf2::RequestI18n::with_registry(self, &'static mf2_runtime::function::Registry) -> leptos_mf2::RequestI18n
+pub fn leptos_mf2::RequestI18n::with_time_zone(self, mf2_runtime::datetime::TimeZone) -> leptos_mf2::RequestI18n
+impl core::clone::Clone for leptos_mf2::RequestI18n
+pub fn leptos_mf2::RequestI18n::clone(&self) -> Self
+#[non_exhaustive] pub struct leptos_mf2::Setup
+pub leptos_mf2::Setup::host: &'static dyn mf2_runtime::host::Host
+pub leptos_mf2::Setup::locales: &'static [(&'static str, mf2_model::id::Dir)]
+pub leptos_mf2::Setup::manifest_hash: u64
+pub leptos_mf2::Setup::registry: &'static mf2_runtime::function::Registry
+pub leptos_mf2::Setup::source_locale: &'static str
+pub leptos_mf2::Setup::time_zone: mf2_runtime::datetime::TimeZone
+impl leptos_mf2::Setup
+pub const fn leptos_mf2::Setup::new(&'static mf2_runtime::function::Registry, &'static dyn mf2_runtime::host::Host, u64, &'static str, &'static [(&'static str, mf2_model::id::Dir)]) -> leptos_mf2::Setup
+pub const fn leptos_mf2::Setup::with_time_zone(self, mf2_runtime::datetime::TimeZone) -> leptos_mf2::Setup
+impl core::clone::Clone for leptos_mf2::Setup
+pub fn leptos_mf2::Setup::clone(&self) -> Self
+impl core::fmt::Debug for leptos_mf2::Setup
+pub fn leptos_mf2::Setup::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for leptos_mf2::Setup
+pub struct leptos_mf2::SignalArg<S>(_)
+impl<S> leptos_mf2::SignalArg<S>
+pub const fn leptos_mf2::SignalArg<S>::new(S) -> leptos_mf2::SignalArg<S>
+impl<S> leptos_mf2::ArgSource for leptos_mf2::SignalArg<S> where S: reactive_graph::traits::Get + reactive_graph::traits::GetUntracked<Value = <S as reactive_graph::traits::Get>::Value> + core::marker::Send + core::marker::Sync + 'static, <S as reactive_graph::traits::Get>::Value: core::convert::Into<leptos_mf2::ArgValue>
+pub fn leptos_mf2::SignalArg<S>::arg_value(&self) -> leptos_mf2::ArgValue
+#[repr(transparent)] pub struct leptos_mf2::Tr
+impl leptos_mf2::Tr
+pub fn leptos_mf2::Tr::format(self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn leptos_mf2::Tr::id(self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::Tr::parts(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::Tr::write(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl leptos_mf2::Tr
+pub fn leptos_mf2::Tr::to_display_string(&self) -> alloc::string::String
+pub fn leptos_mf2::Tr::to_plain_string(&self) -> alloc::string::String
+pub fn leptos_mf2::Tr::to_string(&self) -> alloc::string::String
+impl core::clone::Clone for leptos_mf2::Tr
+pub fn leptos_mf2::Tr::clone(&self) -> Self
+impl core::cmp::Eq for leptos_mf2::Tr
+impl core::cmp::PartialEq for leptos_mf2::Tr
+pub fn leptos_mf2::Tr::eq(&self, &Self) -> bool
+impl core::convert::From<leptos_mf2::Tr> for alloc::string::String
+pub fn alloc::string::String::from(leptos_mf2::Tr) -> alloc::string::String
+impl core::convert::From<leptos_mf2::Tr> for leptos::text_prop::TextProp
+pub fn leptos::text_prop::TextProp::from(leptos_mf2::Tr) -> leptos::text_prop::TextProp
+impl core::convert::From<leptos_mf2::Tr> for leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::from(leptos_mf2::Tr) -> leptos_mf2::TrArgs
+impl core::convert::From<leptos_mf2::Tr> for oco_ref::Oco<'static, str>
+pub fn oco_ref::Oco<'static, str>::from(leptos_mf2::Tr) -> oco_ref::Oco<'static, str>
+impl core::convert::From<leptos_mf2::Tr> for reactive_graph::wrappers::read::Signal<alloc::string::String>
+pub fn reactive_graph::wrappers::read::Signal<alloc::string::String>::from(leptos_mf2::Tr) -> reactive_graph::wrappers::read::Signal<alloc::string::String>
+impl core::fmt::Debug for leptos_mf2::Tr
+pub fn leptos_mf2::Tr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for leptos_mf2::Tr
+pub fn leptos_mf2::Tr::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for leptos_mf2::Tr
+impl core::marker::StructuralPartialEq for leptos_mf2::Tr
+impl leptos_mf2::text::Description for leptos_mf2::Tr
+pub fn leptos_mf2::Tr::into_stored(self) -> leptos_mf2::text::Stored
+pub fn leptos_mf2::Tr::msg_id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::Tr::write_text(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink)
+impl tachys::html::attribute::value::AttributeValue for leptos_mf2::Tr
+pub type leptos_mf2::Tr::AsyncOutput = leptos_mf2::Tr
+pub type leptos_mf2::Tr::Cloneable = leptos_mf2::Tr
+pub type leptos_mf2::Tr::CloneableOwned = leptos_mf2::Tr
+pub type leptos_mf2::Tr::State = TrAttrState
+pub fn leptos_mf2::Tr::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::Tr::dry_resolve(&mut self)
+pub fn leptos_mf2::Tr::html_len(&self) -> usize
+pub fn leptos_mf2::Tr::hydrate<const FROM_SERVER: bool>(self, &str, &tachys::renderer::dom::Element) -> Self::State
+pub fn leptos_mf2::Tr::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::Tr::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::Tr::rebuild(self, &str, &mut Self::State)
+pub fn leptos_mf2::Tr::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::Tr::to_html(self, &str, &mut alloc::string::String)
+pub fn leptos_mf2::Tr::to_template(&str, &mut alloc::string::String)
+impl tachys::html::property::IntoProperty for leptos_mf2::Tr
+pub type leptos_mf2::Tr::Cloneable = leptos_mf2::Tr
+pub type leptos_mf2::Tr::CloneableOwned = leptos_mf2::Tr
+pub type leptos_mf2::Tr::State = TrAttrState
+pub fn leptos_mf2::Tr::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::Tr::hydrate<const FROM_SERVER: bool>(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::Tr::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::Tr::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::Tr::rebuild(self, &mut Self::State, &str)
+impl tachys::view::Render for leptos_mf2::Tr
+pub type leptos_mf2::Tr::State = TrState
+pub fn leptos_mf2::Tr::build(self) -> Self::State
+pub fn leptos_mf2::Tr::rebuild(self, &mut Self::State)
+impl tachys::view::RenderHtml for leptos_mf2::Tr
+pub type leptos_mf2::Tr::AsyncOutput = leptos_mf2::Tr
+pub type leptos_mf2::Tr::Owned = leptos_mf2::Tr
+pub const leptos_mf2::Tr::MIN_LENGTH: usize
+pub fn leptos_mf2::Tr::dry_resolve(&mut self)
+pub fn leptos_mf2::Tr::html_len(&self) -> usize
+pub fn leptos_mf2::Tr::hydrate<const FROM_SERVER: bool>(self, &tachys::hydration::Cursor, &tachys::view::PositionState) -> Self::State
+pub fn leptos_mf2::Tr::into_owned(self) -> Self::Owned
+pub fn leptos_mf2::Tr::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::Tr::to_html_with_buf(self, &mut alloc::string::String, &mut tachys::view::Position, tachys::view::RenderFlags, alloc::vec::Vec<tachys::html::attribute::any_attribute::AnyAttribute>)
+impl tachys::view::ToTemplate for leptos_mf2::Tr
+pub const leptos_mf2::Tr::TEMPLATE: &'static str
+pub fn leptos_mf2::Tr::to_template(&mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut tachys::view::Position)
+impl tachys::view::add_attr::AddAnyAttr for leptos_mf2::Tr
+pub type leptos_mf2::Tr::Output<SomeNewAttr: tachys::html::attribute::Attribute> = leptos_mf2::Tr
+pub fn leptos_mf2::Tr::add_any_attr<NewAttr: tachys::html::attribute::Attribute>(self, NewAttr) -> Self::Output
+pub struct leptos_mf2::TrArgs
+impl leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::args(&self) -> &[leptos_mf2::ArgValue]
+pub fn leptos_mf2::TrArgs::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn leptos_mf2::TrArgs::id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::to_display_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrArgs::to_plain_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrArgs::to_string(&self) -> alloc::string::String
+impl core::clone::Clone for leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::clone(&self) -> Self
+impl core::convert::From<leptos_mf2::Tr> for leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::from(leptos_mf2::Tr) -> leptos_mf2::TrArgs
+impl core::convert::From<leptos_mf2::TrArgs> for alloc::string::String
+pub fn alloc::string::String::from(leptos_mf2::TrArgs) -> alloc::string::String
+impl core::convert::From<leptos_mf2::TrArgs> for leptos::text_prop::TextProp
+pub fn leptos::text_prop::TextProp::from(leptos_mf2::TrArgs) -> leptos::text_prop::TextProp
+impl core::convert::From<leptos_mf2::TrArgs> for oco_ref::Oco<'static, str>
+pub fn oco_ref::Oco<'static, str>::from(leptos_mf2::TrArgs) -> oco_ref::Oco<'static, str>
+impl core::convert::From<leptos_mf2::TrArgs> for reactive_graph::wrappers::read::Signal<alloc::string::String>
+pub fn reactive_graph::wrappers::read::Signal<alloc::string::String>::from(leptos_mf2::TrArgs) -> reactive_graph::wrappers::read::Signal<alloc::string::String>
+impl leptos_mf2::text::Description for leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::into_stored(self) -> leptos_mf2::text::Stored
+pub fn leptos_mf2::TrArgs::msg_id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrArgs::write_text(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink)
+impl tachys::html::attribute::value::AttributeValue for leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::AsyncOutput = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::Cloneable = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::CloneableOwned = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::State = TrAttrState
+pub fn leptos_mf2::TrArgs::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrArgs::dry_resolve(&mut self)
+pub fn leptos_mf2::TrArgs::html_len(&self) -> usize
+pub fn leptos_mf2::TrArgs::hydrate<const FROM_SERVER: bool>(self, &str, &tachys::renderer::dom::Element) -> Self::State
+pub fn leptos_mf2::TrArgs::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrArgs::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrArgs::rebuild(self, &str, &mut Self::State)
+pub fn leptos_mf2::TrArgs::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrArgs::to_html(self, &str, &mut alloc::string::String)
+pub fn leptos_mf2::TrArgs::to_template(&str, &mut alloc::string::String)
+impl tachys::html::property::IntoProperty for leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::Cloneable = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::CloneableOwned = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::State = TrAttrState
+pub fn leptos_mf2::TrArgs::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrArgs::hydrate<const FROM_SERVER: bool>(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrArgs::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrArgs::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrArgs::rebuild(self, &mut Self::State, &str)
+impl tachys::view::Render for leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::State = TrState
+pub fn leptos_mf2::TrArgs::build(self) -> Self::State
+pub fn leptos_mf2::TrArgs::rebuild(self, &mut Self::State)
+impl tachys::view::RenderHtml for leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::AsyncOutput = leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::Owned = leptos_mf2::TrArgs
+pub const leptos_mf2::TrArgs::MIN_LENGTH: usize
+pub fn leptos_mf2::TrArgs::dry_resolve(&mut self)
+pub fn leptos_mf2::TrArgs::html_len(&self) -> usize
+pub fn leptos_mf2::TrArgs::hydrate<const FROM_SERVER: bool>(self, &tachys::hydration::Cursor, &tachys::view::PositionState) -> Self::State
+pub fn leptos_mf2::TrArgs::into_owned(self) -> Self::Owned
+pub fn leptos_mf2::TrArgs::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrArgs::to_html_with_buf(self, &mut alloc::string::String, &mut tachys::view::Position, tachys::view::RenderFlags, alloc::vec::Vec<tachys::html::attribute::any_attribute::AnyAttribute>)
+impl tachys::view::ToTemplate for leptos_mf2::TrArgs
+pub const leptos_mf2::TrArgs::TEMPLATE: &'static str
+pub fn leptos_mf2::TrArgs::to_template(&mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut tachys::view::Position)
+impl tachys::view::add_attr::AddAnyAttr for leptos_mf2::TrArgs
+pub type leptos_mf2::TrArgs::Output<SomeNewAttr: tachys::html::attribute::Attribute> = leptos_mf2::TrArgs
+pub fn leptos_mf2::TrArgs::add_any_attr<NewAttr: tachys::html::attribute::Attribute>(self, NewAttr) -> Self::Output
+pub struct leptos_mf2::TrDyn
+impl leptos_mf2::TrDyn
+pub fn leptos_mf2::TrDyn::args(&self) -> &[(leptos_mf2::Text, leptos_mf2::ArgValue)]
+pub fn leptos_mf2::TrDyn::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn leptos_mf2::TrDyn::id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl leptos_mf2::TrDyn
+pub fn leptos_mf2::TrDyn::to_display_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrDyn::to_plain_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrDyn::to_string(&self) -> alloc::string::String
+impl core::clone::Clone for leptos_mf2::TrDyn
+pub fn leptos_mf2::TrDyn::clone(&self) -> Self
+impl core::convert::From<leptos_mf2::TrDyn> for alloc::string::String
+pub fn alloc::string::String::from(leptos_mf2::TrDyn) -> alloc::string::String
+impl core::convert::From<leptos_mf2::TrDyn> for leptos::text_prop::TextProp
+pub fn leptos::text_prop::TextProp::from(leptos_mf2::TrDyn) -> leptos::text_prop::TextProp
+impl core::convert::From<leptos_mf2::TrDyn> for oco_ref::Oco<'static, str>
+pub fn oco_ref::Oco<'static, str>::from(leptos_mf2::TrDyn) -> oco_ref::Oco<'static, str>
+impl core::convert::From<leptos_mf2::TrDyn> for reactive_graph::wrappers::read::Signal<alloc::string::String>
+pub fn reactive_graph::wrappers::read::Signal<alloc::string::String>::from(leptos_mf2::TrDyn) -> reactive_graph::wrappers::read::Signal<alloc::string::String>
+impl leptos_mf2::text::Description for leptos_mf2::TrDyn
+pub fn leptos_mf2::TrDyn::into_stored(self) -> leptos_mf2::text::Stored
+pub fn leptos_mf2::TrDyn::msg_id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrDyn::write_text(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink)
+impl tachys::html::attribute::value::AttributeValue for leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::AsyncOutput = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::Cloneable = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::CloneableOwned = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::State = TrAttrState
+pub fn leptos_mf2::TrDyn::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrDyn::dry_resolve(&mut self)
+pub fn leptos_mf2::TrDyn::html_len(&self) -> usize
+pub fn leptos_mf2::TrDyn::hydrate<const FROM_SERVER: bool>(self, &str, &tachys::renderer::dom::Element) -> Self::State
+pub fn leptos_mf2::TrDyn::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrDyn::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrDyn::rebuild(self, &str, &mut Self::State)
+pub fn leptos_mf2::TrDyn::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrDyn::to_html(self, &str, &mut alloc::string::String)
+pub fn leptos_mf2::TrDyn::to_template(&str, &mut alloc::string::String)
+impl tachys::html::property::IntoProperty for leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::Cloneable = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::CloneableOwned = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::State = TrAttrState
+pub fn leptos_mf2::TrDyn::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrDyn::hydrate<const FROM_SERVER: bool>(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrDyn::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrDyn::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrDyn::rebuild(self, &mut Self::State, &str)
+impl tachys::view::Render for leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::State = TrState
+pub fn leptos_mf2::TrDyn::build(self) -> Self::State
+pub fn leptos_mf2::TrDyn::rebuild(self, &mut Self::State)
+impl tachys::view::RenderHtml for leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::AsyncOutput = leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::Owned = leptos_mf2::TrDyn
+pub const leptos_mf2::TrDyn::MIN_LENGTH: usize
+pub fn leptos_mf2::TrDyn::dry_resolve(&mut self)
+pub fn leptos_mf2::TrDyn::html_len(&self) -> usize
+pub fn leptos_mf2::TrDyn::hydrate<const FROM_SERVER: bool>(self, &tachys::hydration::Cursor, &tachys::view::PositionState) -> Self::State
+pub fn leptos_mf2::TrDyn::into_owned(self) -> Self::Owned
+pub fn leptos_mf2::TrDyn::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrDyn::to_html_with_buf(self, &mut alloc::string::String, &mut tachys::view::Position, tachys::view::RenderFlags, alloc::vec::Vec<tachys::html::attribute::any_attribute::AnyAttribute>)
+impl tachys::view::ToTemplate for leptos_mf2::TrDyn
+pub const leptos_mf2::TrDyn::TEMPLATE: &'static str
+pub fn leptos_mf2::TrDyn::to_template(&mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut alloc::string::String, &mut tachys::view::Position)
+impl tachys::view::add_attr::AddAnyAttr for leptos_mf2::TrDyn
+pub type leptos_mf2::TrDyn::Output<SomeNewAttr: tachys::html::attribute::Attribute> = leptos_mf2::TrDyn
+pub fn leptos_mf2::TrDyn::add_any_attr<NewAttr: tachys::html::attribute::Attribute>(self, NewAttr) -> Self::Output
+pub struct leptos_mf2::TrRich
+impl leptos_mf2::TrRich
+pub const fn leptos_mf2::TrRich::args(&self) -> &leptos_mf2::TrArgs
+pub fn leptos_mf2::TrRich::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub fn leptos_mf2::TrRich::handler(&self, &str) -> core::option::Option<&dyn leptos_mf2::MarkupHandler>
+pub fn leptos_mf2::TrRich::handlers(&self) -> &[(u64, alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>)]
+pub const fn leptos_mf2::TrRich::id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl leptos_mf2::TrRich
+pub fn leptos_mf2::TrRich::to_display_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrRich::to_plain_string(&self) -> alloc::string::String
+pub fn leptos_mf2::TrRich::to_string(&self) -> alloc::string::String
+impl core::clone::Clone for leptos_mf2::TrRich
+pub fn leptos_mf2::TrRich::clone(&self) -> Self
+impl core::convert::From<leptos_mf2::TrRich> for alloc::string::String
+pub fn alloc::string::String::from(leptos_mf2::TrRich) -> alloc::string::String
+impl core::convert::From<leptos_mf2::TrRich> for leptos::text_prop::TextProp
+pub fn leptos::text_prop::TextProp::from(leptos_mf2::TrRich) -> leptos::text_prop::TextProp
+impl core::convert::From<leptos_mf2::TrRich> for oco_ref::Oco<'static, str>
+pub fn oco_ref::Oco<'static, str>::from(leptos_mf2::TrRich) -> oco_ref::Oco<'static, str>
+impl core::convert::From<leptos_mf2::TrRich> for reactive_graph::wrappers::read::Signal<alloc::string::String>
+pub fn reactive_graph::wrappers::read::Signal<alloc::string::String>::from(leptos_mf2::TrRich) -> reactive_graph::wrappers::read::Signal<alloc::string::String>
+impl leptos_mf2::text::Description for leptos_mf2::TrRich
+pub fn leptos_mf2::TrRich::into_stored(self) -> leptos_mf2::text::Stored
+pub fn leptos_mf2::TrRich::msg_id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrRich::write_text(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink)
+impl tachys::html::attribute::value::AttributeValue for leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::AsyncOutput = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::Cloneable = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::CloneableOwned = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::State = TrAttrState
+pub fn leptos_mf2::TrRich::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrRich::dry_resolve(&mut self)
+pub fn leptos_mf2::TrRich::html_len(&self) -> usize
+pub fn leptos_mf2::TrRich::hydrate<const FROM_SERVER: bool>(self, &str, &tachys::renderer::dom::Element) -> Self::State
+pub fn leptos_mf2::TrRich::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrRich::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrRich::rebuild(self, &str, &mut Self::State)
+pub fn leptos_mf2::TrRich::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrRich::to_html(self, &str, &mut alloc::string::String)
+pub fn leptos_mf2::TrRich::to_template(&str, &mut alloc::string::String)
+impl tachys::html::property::IntoProperty for leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::Cloneable = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::CloneableOwned = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::State = TrAttrState
+pub fn leptos_mf2::TrRich::build(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrRich::hydrate<const FROM_SERVER: bool>(self, &tachys::renderer::dom::Element, &str) -> Self::State
+pub fn leptos_mf2::TrRich::into_cloneable(self) -> Self::Cloneable
+pub fn leptos_mf2::TrRich::into_cloneable_owned(self) -> Self::CloneableOwned
+pub fn leptos_mf2::TrRich::rebuild(self, &mut Self::State, &str)
+impl tachys::view::Render for leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::State = TrRichState
+pub fn leptos_mf2::TrRich::build(self) -> Self::State
+pub fn leptos_mf2::TrRich::rebuild(self, &mut Self::State)
+impl tachys::view::RenderHtml for leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::AsyncOutput = leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::Owned = leptos_mf2::TrRich
+pub const leptos_mf2::TrRich::MIN_LENGTH: usize
+pub fn leptos_mf2::TrRich::dry_resolve(&mut self)
+pub fn leptos_mf2::TrRich::html_len(&self) -> usize
+pub fn leptos_mf2::TrRich::hydrate<const FROM_SERVER: bool>(self, &tachys::hydration::Cursor, &tachys::view::PositionState) -> Self::State
+pub fn leptos_mf2::TrRich::into_owned(self) -> Self::Owned
+pub fn leptos_mf2::TrRich::resolve(self) -> impl core::future::future::Future<Output = Self::AsyncOutput> + core::marker::Send
+pub fn leptos_mf2::TrRich::to_html_with_buf(self, &mut alloc::string::String, &mut tachys::view::Position, tachys::view::RenderFlags, alloc::vec::Vec<tachys::html::attribute::any_attribute::AnyAttribute>)
+impl tachys::view::add_attr::AddAnyAttr for leptos_mf2::TrRich
+pub type leptos_mf2::TrRich::Output<SomeNewAttr: tachys::html::attribute::Attribute> = leptos_mf2::TrRich
+pub fn leptos_mf2::TrRich::add_any_attr<NewAttr: tachys::html::attribute::Attribute>(self, NewAttr) -> Self::Output
+pub trait leptos_mf2::ArgSource: core::marker::Send + core::marker::Sync
+pub fn leptos_mf2::ArgSource::arg_value(&self) -> leptos_mf2::ArgValue
+impl<S> leptos_mf2::ArgSource for leptos_mf2::SignalArg<S> where S: reactive_graph::traits::Get + reactive_graph::traits::GetUntracked<Value = <S as reactive_graph::traits::Get>::Value> + core::marker::Send + core::marker::Sync + 'static, <S as reactive_graph::traits::Get>::Value: core::convert::Into<leptos_mf2::ArgValue>
+pub fn leptos_mf2::SignalArg<S>::arg_value(&self) -> leptos_mf2::ArgValue
+pub trait leptos_mf2::IntoMarkupHandler
+pub fn leptos_mf2::IntoMarkupHandler::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+impl leptos_mf2::IntoMarkupHandler for alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+pub fn alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+impl<F, V> leptos_mf2::IntoMarkupHandler for F where F: core::ops::function::Fn(tachys::view::any_view::AnyView) -> V + core::marker::Send + core::marker::Sync + 'static, V: tachys::view::any_view::IntoAny
+pub fn F::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+impl<F, V> leptos_mf2::IntoMarkupHandler for leptos_mf2::Flat<F> where F: for<'p> core::ops::function::Fn(&mf2_runtime::parts::MarkupPart<'p>) -> V + core::marker::Send + core::marker::Sync + 'static, V: tachys::view::any_view::IntoAny
+pub fn leptos_mf2::Flat<F>::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+impl<H: leptos_mf2::MarkupHandler + 'static> leptos_mf2::IntoMarkupHandler for leptos_mf2::Handler<H>
+pub fn leptos_mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn leptos_mf2::MarkupHandler>
+pub trait leptos_mf2::MarkupHandler: core::marker::Send + core::marker::Sync
+pub fn leptos_mf2::MarkupHandler::as_any(&self) -> &dyn core::any::Any
+impl leptos_mf2::MarkupHandler for leptos_mf2::FlatHandler
+pub fn leptos_mf2::FlatHandler::as_any(&self) -> &dyn core::any::Any
+impl leptos_mf2::MarkupHandler for leptos_mf2::NestingHandler
+pub fn leptos_mf2::NestingHandler::as_any(&self) -> &dyn core::any::Any
+pub fn leptos_mf2::AlternateLinks(leptos_mf2::components::AlternateLinksProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::CatalogLinks() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::CatalogPreload() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::IslandsGate() -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::LocaleOption(leptos_mf2::components::LocaleOptionProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::LocaleSwitcher(leptos_mf2::components::LocaleSwitcherProps) -> impl leptos::into_view::IntoView
+pub fn leptos_mf2::active() -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
+pub fn leptos_mf2::catalog(&str) -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
+pub fn leptos_mf2::default_catalog() -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
+pub fn leptos_mf2::dir_of(&str) -> core::option::Option<mf2_model::id::Dir>
+pub fn leptos_mf2::html_lang() -> (alloc::string::String, &'static str)
+pub fn leptos_mf2::install(leptos_mf2::Setup)
+pub fn leptos_mf2::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
+pub fn leptos_mf2::lookup_locale(&str, &[(&'static str, mf2_model::id::Dir)]) -> core::option::Option<(&'static str, mf2_model::id::Dir)>
+pub fn leptos_mf2::manifest_hash() -> u64
+pub fn leptos_mf2::provide_locale(&str) -> &'static str
+pub fn leptos_mf2::provide_locale_in_zone(&str, core::option::Option<mf2_runtime::datetime::TimeZone>) -> &'static str
+pub fn leptos_mf2::read_catalog(alloc::vec::Vec<u8>) -> core::result::Result<alloc::sync::Arc<mf2_catalog::reader::Catalog>, leptos_mf2::LoadError>
+pub fn leptos_mf2::reader_time_zone(&str) -> core::option::Option<mf2_runtime::datetime::TimeZone>
+pub fn leptos_mf2::request_time_zone() -> core::option::Option<mf2_runtime::datetime::TimeZone>
+pub fn leptos_mf2::setup() -> core::option::Option<leptos_mf2::Setup>
+pub fn leptos_mf2::signal_arg<S>(S) -> leptos_mf2::ArgValue where S: reactive_graph::traits::Get + reactive_graph::traits::GetUntracked<Value = <S as reactive_graph::traits::Get>::Value> + core::marker::Send + core::marker::Sync + 'static, <S as reactive_graph::traits::Get>::Value: core::convert::Into<leptos_mf2::ArgValue>
+pub fn leptos_mf2::source_locale() -> &'static str

@@ -6,6 +6,7 @@
 
 /// A data model that MF2 syntax cannot represent (see [`crate::serialize`]).
 #[derive(Clone, Copy, PartialEq, Eq, Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     /// Text or a literal contains U+0000, which MF2 syntax cannot express
     /// (the grammar excludes it everywhere and has no escape for it).
@@ -27,14 +28,16 @@ pub enum Error {
     /// A variant has no key.
     #[error("a variant needs at least one key")]
     NoKeys,
-    /// A pattern part or expression of a kind this version does not know
-    /// (the model's enums are not exhaustive).
-    #[error("a pattern part or expression of an unknown kind")]
+    /// A message, declaration, key, option value, pattern part or
+    /// expression of a kind this version does not know (the model's enums
+    /// are not exhaustive).
+    #[error("a part of the message of an unknown kind")]
     UnknownNode,
 }
 
 /// Which kind of name was invalid.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 pub enum NameRole {
     /// A variable (reference or declaration).
     Variable,

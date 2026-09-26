@@ -345,11 +345,13 @@ fn date_operands(model: &Message<'_>) -> BTreeSet<String> {
                 }
             }
             Declaration::Local(l) => expression(&l.value, &mut out),
+            _ => {}
         }
     }
     let patterns: Vec<&Pattern<'_>> = match model {
         Message::Pattern(p) => vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     };
     for p in patterns {
         for part in p.parts() {
@@ -630,6 +632,7 @@ fn steer(message: Message<'static>, r: &mut Rng) -> Message<'static> {
             }
             Message::Select(m)
         }
+        other => other,
     }
 }
 
@@ -671,6 +674,7 @@ impl Steer<'_> {
                     }
                 },
                 Declaration::Local(l) => self.expression(&mut l.value),
+                _ => {}
             }
         }
     }

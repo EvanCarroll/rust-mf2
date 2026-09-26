@@ -67,11 +67,7 @@ pub(crate) enum ExprLoc {
 pub fn validate(message: &Message<'_>) -> Diagnostics {
     let mut out = Diagnostics::new();
     check(message, &mut |kind, code, _| {
-        out.push(Diagnostic {
-            kind,
-            code,
-            span: None,
-        });
+        out.push(Diagnostic::new(kind, code, None));
     });
     out
 }
@@ -103,6 +99,7 @@ pub(crate) fn check(message: &Message<'_>, report: &mut impl FnMut(ErrorKind, u1
         let function = match d {
             Declaration::Input(x) => x.value.function.as_ref(),
             Declaration::Local(x) => x.value.function(),
+            _ => None,
         };
         if let Some(f) = function {
             check_options(&f.options, ExprLoc::Declaration(i), report);
@@ -157,6 +154,7 @@ pub(crate) fn check(message: &Message<'_>, report: &mut impl FnMut(ErrorKind, u1
                 check_pattern(&v.value, Some(i), report);
             }
         }
+        _ => {}
     }
 }
 
@@ -206,11 +204,12 @@ fn variables_used<'d>(d: &'d Declaration<'_>) -> impl Iterator<Item = &'d str> {
             },
             x.value.function(),
         ),
+        _ => (None, None),
     };
     let options = function.into_iter().flat_map(|f| {
         f.options.iter().filter_map(|(_, v)| match v {
             OptionValue::Variable(v) => Some(&*v.name),
-            OptionValue::Literal(_) => None,
+            _ => None,
         })
     });
     operand.into_iter().chain(options)
@@ -254,6 +253,7 @@ impl<'d> Annotations<'d> {
                             _ => false,
                         }
                 }
+                _ => false,
             };
             annotated.push(a);
             last.insert(nfc(d.name()), i);
@@ -296,7 +296,7 @@ fn walk_annotation(declarations: &[Declaration<'_>], name: &str) -> bool {
                     _ => return false,
                 }
             }
-            None => return false,
+            _ => return false,
         }
     }
 }
@@ -328,7 +328,7 @@ fn duplicate_variants(variants: &[Variant<'_>]) -> Option<Vec<usize>> {
                 .iter()
                 .map(|k| match k {
                     Key::Literal(l) => Some(nfc(&l.value)),
-                    Key::CatchAll(_) => None,
+                    _ => None,
                 })
                 .collect();
             (keys, i)

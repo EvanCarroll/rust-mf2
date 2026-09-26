@@ -9,6 +9,9 @@ use crate::pattern::Pattern;
 
 /// A message: a single pattern, or a selection among variants.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+// Future versions of MF2 may define new structures (the specification's
+// stability policy); a new one is a new variant, which a 1.x minor may add.
+#[non_exhaustive]
 pub enum Message<'a> {
     /// No selectors: one pattern.
     Pattern(PatternMessage<'a>),
@@ -89,6 +92,9 @@ impl SelectMessage<'_> {
 
 /// A declaration.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+// Future versions of MF2 may define new structures (the specification's
+// stability policy); a new one is a new variant, which a 1.x minor may add.
+#[non_exhaustive]
 pub enum Declaration<'a> {
     /// `.input {$name …}`.
     Input(InputDeclaration<'a>),
@@ -174,6 +180,9 @@ impl Variant<'_> {
 
 /// A variant key.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+// Future versions of MF2 may define new structures (the specification's
+// stability policy); a new one is a new variant, which a 1.x minor may add.
+#[non_exhaustive]
 pub enum Key<'a> {
     /// A literal key.
     Literal(Literal<'a>),

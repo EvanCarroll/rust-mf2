@@ -275,36 +275,149 @@ of the tree, which a public repository or package cannot carry.
   on missing files; the spec cache went with it). The run was repeated
   and passed; `spec-sync` refills the cache.
 
-## A2 — the API review for 1.0: progress (not done)
+## A2 — the API review for 1.0: what was built
 
-* **Done and committed:** `with_zone` converts an instant, and
-  `DateTimeValue::wall_time` names a zoned wall time (the date functions
-  move a value with an offset to its zone's offset; test in
+* **The two fixes** (committed first): `with_zone` converts an instant,
+  and `DateTimeValue::wall_time` names a zoned wall time (the date
+  functions move a value with an offset to its zone's offset; test in
   `crates/mf2/tests/call_site.rs`, negative control shown); the
-  `unknown-option` lint (`mf2_build::features::OPTIONS`, held against the
-  formatter by `conformance/tests/options_lint.rs`; every corpus
-  re-checked — none fires; the WG suite's two are its deliberate `foo` on
-  `:offset`). `cargo xtask ci` green before both commits.
-* **Measured** (2026-09-25; `cargo-public-api` 0.52.0 from crates.io, the
-  installed nightly, `-s`): the listings are 8,374 lines for 15 library
-  crates (`mf2-cli` is a binary: its listing is the command tree, still to
-  build). Feature sets used, matching `cargo xtask msrv`'s: `mf2`
-  `compile,fn-number,datetime-icu,host-std,ssr,static-locale,
-  mark-fallback-lang` **plus `leptos-mf2/leptos-0-9`** (the facade alone
-  with `ssr` names no Leptos line; applications also depend on
-  `leptos-mf2`, whose default turns it on, as the guide says);
-  `leptos-mf2` `ssr,fn-datetime,static-locale,mark-fallback-lang`;
-  `mf2-host-web` on `wasm32-unknown-unknown`. Missing docs under
-  `-W missing_docs`: 137 (`mf2-locale-data` 91, `mf2-catalog` 45,
-  `leptos-mf2` 1).
-* **Items only the macro and the generated module use** (from
-  `mf2-macros/src/expand.rs` and `mf2-build/src/codegen.rs`; no doc or
-  example names them): `tr`, `tr_args0`–`tr_args4`, `tr_args_n`,
-  `tr_rich`, `markup`, `MsgId::from_raw`, `ArgValue::str_static`.
-* **Left:** owner question 5's hiding, crate by crate; `#[non_exhaustive]`
-  on what may grow; error conventions; `#![warn(missing_docs)]` and the
-  137; `api.txt` per crate with `cargo xtask api` (write) / `--check` in
-  `cargo xtask ci`, and the negative control; the task record.
+  `unknown-option` lint (`mf2_build::OPTIONS`, held against the formatter
+  by `conformance/tests/options_lint.rs`; every corpus re-checked — none
+  fires; the WG suite's two are its deliberate `foo` on `:offset`).
+* **`cargo xtask api [--check]`** (`xtask/src/api.rs`) writes, or
+  compares with, `crates/<name>/api.txt` for the 16. A library's listing
+  is `cargo public-api -ss`'s — no blanket or auto-trait impls; derived
+  impls stay, since removing a derive breaks a caller — made in-process
+  with the `public-api` 0.52.2 and `rustdoc-json` 0.9.10 crates (the
+  library `cargo-public-api` is built on; crates.io) from the rustdoc
+  JSON of a pinned nightly, `nightly-2026-09-24` (format 61; installed
+  through rustup when missing). Hidden items are not listed. Feature
+  sets, matching `cargo xtask msrv`'s: `mf2` `compile,fn-number,
+  datetime-icu,host-std,ssr,static-locale,mark-fallback-lang` plus
+  `leptos-mf2/leptos-0-9` (the facade alone with `ssr` names no Leptos
+  line; an application also depends on `leptos-mf2`, whose default names
+  it); `leptos-mf2` `ssr,fn-datetime,static-locale,mark-fallback-lang`;
+  `mf2-host-web` `intl,datetime-intl` on `wasm32-unknown-unknown`; each
+  build-side crate with its features. `mf2-cli` is a binary: its listing
+  is the command tree as clap declares it — every command, each argument,
+  its value and the values it accepts — written and held by its own test
+  (`listing::api_txt`, which `cargo test` runs too). `cargo xtask ci`
+  runs `api --check` last; a difference names its lines.
+* **Measured:** 8,374 lines before the review (`cargo public-api -s`, 15
+  libraries) → 3,512 after (16 listings, derived impls included):
+  `mf2-runtime` 840, `mf2-model` 614, `leptos-mf2` 565, `mf2-build` 374,
+  `mf2-syntax` 353, … `mf2-resource` and `mf2-macros` 3 each (the crate
+  alone). Missing docs: 137 → 5 once the internals were hidden (rustc
+  does not ask for docs on hidden items), and those 5 written; every
+  library crate now says `#![warn(missing_docs)]`, which CI's clippy
+  denies.
+* **Hidden (owner question 5)**, each named in `docs/versioning.md`'s
+  exemption: what `tr!` and the generated module expand to (`tr`,
+  `tr_args0`–`tr_args4`, `tr_args_n`, `tr_rich`, `tr_dyn`, `markup`,
+  `ArgValue::str_static`, both proc-macros) and a `MsgId`'s bits
+  (`new`, `from_raw`, `raw`, `chunk`, `index`, `INDEX_BITS`);
+  `mf2-build`'s pipeline modules, `Layout`, the loader's types,
+  `Outcome::catalogs` / `manifest` / `catalog()`, `Error::io`;
+  `mf2-catalog` but for `Catalog` (`new`, `locale`, `dir`,
+  `manifest_hash`, `message_count`, `lookup`, `cldr_version`, its bytes),
+  `CldrVersion` and the error types; the runtime's catalog access
+  (`FnContext::catalog`, `Formatter::simple_ref`, `StrRef`,
+  `Sink::push_catalog_text`, `plural_category`) and the function crates'
+  switches (`INTL_NUMBERS`, `Number::format_by_host`); the manifest
+  (`Manifest`, `Compiled::manifest`); `mf2-locale-data` but for its
+  errors, `CLDR_VERSION` and `direction`; `mf2_fn_datetime::icu::prime`
+  (it names ICU4X's provider types) and `literal_options`;
+  `ErrorKind::suite_name`; in `leptos-mf2` the glue and its view states,
+  the sealed `Description` / `Stored`, the serving table
+  (`CatalogEntry`, `catalog_entries`, `catalog_file`, `catalog_name`,
+  `install_catalogs`), `links`, and the test hooks `live_nodes`,
+  `installed`, `installed_twice`.
+* **Decided here, within owner question 5:** `mf2-resource`'s API is
+  hidden whole — the answer named neither it nor the resource model; it
+  mirrors a draft that 1.x follows, no application names it, and our
+  tools build its structs field by field, so promising it would make a
+  draft change a 2.0; what 1.x promises is the format as `mf2 fmt`
+  writes it (its README says so). **Kept promised**, though our crates
+  are its main users: all of `mf2-syntax` (the stand-alone parser: CST,
+  detail codes, serializer, analysis); `mf2-fn-datetime`'s `Backend`,
+  `Plan`, `Neutral`, the `icu` variants and `DateTimeFunction`'s
+  constructors (its docs offer the narrower ICU4X variants as an
+  application's size choice); `Registry::with_numbers` / `with_dates`
+  with `fn_number::NUMBERS` and `fn_datetime::DATES` (how a hand-built
+  registry, as in the facade's example, gets unannotated values); the
+  server calls of `leptos-mf2` outside the serving table
+  (`provide_locale`, `RequestI18n`, `catalog`, …).
+* **Found — a hidden module hides its re-exports too.** rustdoc strips
+  every item inside a `#[doc(hidden)]` module, even when the crate root
+  re-exports it, and `#[doc(inline)]` does not bring it back: the first
+  listing showed `pub use mf2_build::Build` with nothing behind it, and
+  docs.rs would have shown no `Build`, `Config` or `Report`, nor
+  `mf2-locale-data`'s `Error`. So the modules that hold promised types
+  (`mf2-build`'s `build`, `config`, `features`, `lint`, `report`;
+  `mf2-locale-data`'s `error`) are private, and the few internals other
+  crates read get hidden root re-exports (`mf2_build::{Layout,
+  CONFIG_FILE, BUILTINS, OPTIONS, CATALOG_FEATURES, defines_option}`);
+  `mf2-cli`'s and the options-lint test's paths changed with them.
+* **`#[non_exhaustive]` added:** the data model's `Message`,
+  `Declaration`, `Key`, `OptionValue` (as `Expression` and `PatternPart`
+  already were: the spec's stability policy lets a later MF2 define new
+  structures) and `ErrorClass`; `mf2_model::Diagnostic` (with
+  `Diagnostic::new`); `mf2-syntax`'s `Error`, `NameRole`, `Analysis`,
+  `Name`; the runtime's `Part`, `FallbackSource`, `BidiStrategy` and the
+  option values (`CurrencyDisplay`, `UnitDisplay`, `SignDisplay`,
+  `Grouping`, `RoundingMode`, `RoundingPriority`, `DateFields`,
+  `DateLength`, `TimePrecision`, `ZoneOption`, `ZoneStyle`),
+  `OptionValue`, `DateTimeRequest` (with `DateTimeRequest::new`);
+  `mf2-build`'s `Config`, `CatalogConfig`, `LocaleDataConfig`, `DataSet`,
+  `Missing`, `Strip`, `Emit`, `LocaleInfo`, `Report`, `Diagnostic`;
+  `mf2-locale-data`'s errors; `mf2::Compiled`, `CompileError`;
+  `mf2_axum::Negotiated`. `ErrorKind::ALL` became a slice (an array's
+  length is part of its type). **Kept exhaustive:** the data model's
+  structs (they mirror `message.json`, tools build them by literal, and
+  a new structure arrives as a variant), `MarkupKind`, `Dir`, `Span`,
+  `MeasureUnit` (exactly the two measure functions), `Category`,
+  `Isolation`, `Sign`, `Level`, `TextUse`, `CldrVersion`, and
+  `mf2_axum::CookieLocale` (the guide builds it with `..default()`).
+  `Config` is built from `Default` and then assigned (three call sites,
+  none in the guide).
+* **What that costs inside our crates:** matches on those enums from
+  another of our crates need a `_` arm, which the compiler no longer
+  checks — a variant added later must be followed by hand. Each arm does
+  the loud thing where it can: the serializer's `UnknownNode`, the
+  catalog writer's unsupported message, `UnsupportedOperation` from the
+  ICU4X date backend and the zone moves, and the `Intl` date host
+  declines (`format_date_time` returns `false`); where it cannot, the
+  option's default (the `Intl` number host, the neutral stub,
+  `Grouping`). Also patched: the conformance harness, `l4-runner`, the
+  fuzz targets, the B12 walk harnesses and the `intl` probe (`cargo
+  check` of each; B12's harnesses one at a time, as `check.sh` builds
+  them — their `--workspace` unifies features that cannot meet). The
+  arms added to client-path code match variants that do not exist, so
+  they compile to nothing; B12's job measures it.
+* **Error conventions:** every public error type is `thiserror` in
+  `src/error.rs` with `#[from]` conversions; `mf2-syntax`'s `Error`,
+  `mf2-locale-data`'s two (documented variant by variant) and
+  `mf2::CompileError` became `#[non_exhaustive]`, the others were.
+* **Also fixed:** an ```` ```ignore ```` block in `mf2-axum` that was not
+  Rust (a rustdoc warning); `mf2-resource`'s front page linked
+  `https://example.invalid`; crate front pages that linked items now
+  hidden say what 1.x promises instead (`mf2-build`, `mf2-catalog`,
+  `mf2-locale-data`, `mf2-resource`, `mf2-macros`).
+* **Shown** (2026-09-25): negative controls — `pub fn
+  a2_negative_control()` added to `mf2-host-std` makes `cargo xtask api
+  --check` fail naming `+ pub fn mf2_host_std::a2_negative_control()`; a
+  flag `--a2-control` added to `mf2 fmt` fails `listing::api_txt` naming
+  it. `cargo xtask ci` green with `api --check` as its last step, and
+  `cargo xtask docs` green (every sample of the guide compiled for the
+  server and for `wasm32-unknown-unknown`).
+* **No behaviour an application sees changed,** and nothing it names was
+  removed: the guide's samples name only promised items. The one
+  run-time difference is unreachable today (an option value the runtime
+  does not have).
+* **Left for A5:** three links to feature-gated items do not resolve in
+  the listings' feature sets (`leptos-mf2`'s `set_document_lang` and
+  `hydrate_islands`, `mf2-fn-datetime`'s `Intl`) — docs.rs's feature set
+  and `doc(cfg)` are A5's.
 
 ## Standing
 
@@ -320,7 +433,7 @@ of the tree, which a public repository or package cannot carry.
 
 - [x] the specification text out of the tree, fetched on demand; the suite still vendored (A0)
 - [x] the 16 names verified and every package's metadata complete (A1; `rust-version` comes with A3's measurement)
-- [ ] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
+- [x] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
 - [x] the version policy written, the MSRV measured and held in CI (A3)
 - [ ] the packages audited and verified from crates.io's point of view (A4)
 - [ ] the documentation builds as docs.rs builds it (A5)

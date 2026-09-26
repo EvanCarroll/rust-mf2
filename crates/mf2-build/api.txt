@@ -1,0 +1,374 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: icu-blob
+pub mod mf2_build
+#[non_exhaustive] pub enum mf2_build::DataSet
+pub mf2_build::DataSet::All
+pub mf2_build::DataSet::Listed(alloc::collections::btree::set::BTreeSet<alloc::string::String>)
+pub mf2_build::DataSet::Used
+impl mf2_build::DataSet
+pub fn mf2_build::DataSet::with_used(&self, &mf2_locale_data::number::Selection) -> mf2_locale_data::number::Selection
+impl core::clone::Clone for mf2_build::DataSet
+pub fn mf2_build::DataSet::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::DataSet
+impl core::cmp::PartialEq for mf2_build::DataSet
+pub fn mf2_build::DataSet::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::DataSet
+pub fn mf2_build::DataSet::default() -> Self
+impl core::fmt::Debug for mf2_build::DataSet
+pub fn mf2_build::DataSet::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::DataSet
+impl serde_core::ser::Serialize for mf2_build::DataSet
+pub fn mf2_build::DataSet::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::DataSet
+pub fn mf2_build::DataSet::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+#[non_exhaustive] pub enum mf2_build::Emit
+pub mf2_build::Emit::Both
+pub mf2_build::Emit::Catalogs
+pub mf2_build::Emit::Module
+impl core::clone::Clone for mf2_build::Emit
+pub fn mf2_build::Emit::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Emit
+impl core::cmp::PartialEq for mf2_build::Emit
+pub fn mf2_build::Emit::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::Emit
+pub fn mf2_build::Emit::default() -> Self
+impl core::fmt::Debug for mf2_build::Emit
+pub fn mf2_build::Emit::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Emit
+impl core::marker::StructuralPartialEq for mf2_build::Emit
+#[non_exhaustive] pub enum mf2_build::Error
+pub mf2_build::Error::Catalog(mf2_catalog::error::WriteError)
+pub mf2_build::Error::Compress
+pub mf2_build::Error::Compress::format: &'static str
+pub mf2_build::Error::Compress::locale: alloc::string::String
+pub mf2_build::Error::Compress::source: core::io::error::Error
+pub mf2_build::Error::Config
+pub mf2_build::Error::Config::message: alloc::string::String
+pub mf2_build::Error::Config::path: std::path::PathBuf
+pub mf2_build::Error::Corpus
+pub mf2_build::Error::Corpus::errors: usize
+pub mf2_build::Error::Corpus::locales: usize
+pub mf2_build::Error::Io
+pub mf2_build::Error::Io::path: std::path::PathBuf
+pub mf2_build::Error::Io::source: core::io::error::Error
+pub mf2_build::Error::Json
+pub mf2_build::Error::Json::column: u32
+pub mf2_build::Error::Json::line: u32
+pub mf2_build::Error::Json::message: alloc::string::String
+pub mf2_build::Error::Json::path: std::path::PathBuf
+pub mf2_build::Error::Layout(alloc::string::String)
+pub mf2_build::Error::Locale
+pub mf2_build::Error::Locale::locale: alloc::string::String
+pub mf2_build::Error::Locale::source: mf2_locale_data::error::Error
+pub mf2_build::Error::LocaleData(mf2_locale_data::error::Error)
+pub mf2_build::Error::Manifest(mf2_catalog::error::ManifestError)
+pub mf2_build::Error::Write
+pub mf2_build::Error::Write::locale: alloc::string::String
+pub mf2_build::Error::Write::source: mf2_catalog::error::WriteError
+impl core::convert::From<mf2_catalog::error::ManifestError> for mf2_build::Error
+pub fn mf2_build::Error::from(mf2_catalog::error::ManifestError) -> Self
+impl core::convert::From<mf2_catalog::error::WriteError> for mf2_build::Error
+pub fn mf2_build::Error::from(mf2_catalog::error::WriteError) -> Self
+impl core::convert::From<mf2_locale_data::error::Error> for mf2_build::Error
+pub fn mf2_build::Error::from(mf2_locale_data::error::Error) -> Self
+impl core::error::Error for mf2_build::Error
+pub fn mf2_build::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for mf2_build::Error
+pub fn mf2_build::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_build::Error
+pub fn mf2_build::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum mf2_build::Level
+pub mf2_build::Level::Allow
+pub mf2_build::Level::Error
+pub mf2_build::Level::Warn
+impl core::clone::Clone for mf2_build::Level
+pub fn mf2_build::Level::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Level
+impl core::cmp::Ord for mf2_build::Level
+pub fn mf2_build::Level::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::Level
+pub fn mf2_build::Level::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::Level
+pub fn mf2_build::Level::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::Level
+pub fn mf2_build::Level::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_build::Level
+pub fn mf2_build::Level::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::Level
+pub fn mf2_build::Level::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::Level
+impl core::marker::StructuralPartialEq for mf2_build::Level
+impl serde_core::ser::Serialize for mf2_build::Level
+pub fn mf2_build::Level::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Level
+pub fn mf2_build::Level::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub enum mf2_build::Lint
+pub mf2_build::Lint::BadOptionValue
+pub mf2_build::Lint::DoNotTranslate
+pub mf2_build::Lint::DroppedPlaceholder
+pub mf2_build::Lint::DuplicateId
+pub mf2_build::Lint::DynamicCurrency
+pub mf2_build::Lint::DynamicSelect
+pub mf2_build::Lint::DynamicUnit
+pub mf2_build::Lint::ExtraId
+pub mf2_build::Lint::GatedFunction
+pub mf2_build::Lint::LocaleMismatch
+pub mf2_build::Lint::MissingPluralCategory
+pub mf2_build::Lint::MissingTranslation
+pub mf2_build::Lint::NeutralNumbers
+pub mf2_build::Lint::NonNfcSource
+pub mf2_build::Lint::NonstandardName
+pub mf2_build::Lint::SuspiciousBidi
+pub mf2_build::Lint::UndeclaredMarkup
+pub mf2_build::Lint::UndeclaredVariable
+pub mf2_build::Lint::UnknownFunction
+pub mf2_build::Lint::UnknownOption
+pub mf2_build::Lint::UnpairedMarkup
+pub mf2_build::Lint::UnusedId
+impl mf2_build::Lint
+pub const mf2_build::Lint::ALL: &'static [mf2_build::Lint]
+pub fn mf2_build::Lint::default_level(self) -> mf2_build::Level
+pub fn mf2_build::Lint::floor(self) -> mf2_build::Level
+pub fn mf2_build::Lint::from_name(&str) -> core::option::Option<mf2_build::Lint>
+pub fn mf2_build::Lint::name(self) -> &'static str
+impl core::clone::Clone for mf2_build::Lint
+pub fn mf2_build::Lint::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Lint
+impl core::cmp::Ord for mf2_build::Lint
+pub fn mf2_build::Lint::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::Lint
+pub fn mf2_build::Lint::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::Lint
+pub fn mf2_build::Lint::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::Lint
+pub fn mf2_build::Lint::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_build::Lint
+pub fn mf2_build::Lint::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::Lint
+pub fn mf2_build::Lint::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::Lint
+impl core::marker::StructuralPartialEq for mf2_build::Lint
+impl serde_core::ser::Serialize for mf2_build::Lint
+pub fn mf2_build::Lint::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Lint
+pub fn mf2_build::Lint::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub enum mf2_build::Missing
+pub mf2_build::Missing::Empty
+pub mf2_build::Missing::Fallback
+pub mf2_build::Missing::Id
+impl core::clone::Clone for mf2_build::Missing
+pub fn mf2_build::Missing::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Missing
+impl core::cmp::PartialEq for mf2_build::Missing
+pub fn mf2_build::Missing::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::Missing
+pub fn mf2_build::Missing::default() -> Self
+impl core::fmt::Debug for mf2_build::Missing
+pub fn mf2_build::Missing::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Missing
+impl core::marker::StructuralPartialEq for mf2_build::Missing
+impl serde_core::ser::Serialize for mf2_build::Missing
+pub fn mf2_build::Missing::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Missing
+pub fn mf2_build::Missing::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub enum mf2_build::Strip
+pub mf2_build::Strip::Cold
+pub mf2_build::Strip::Ids
+impl core::clone::Clone for mf2_build::Strip
+pub fn mf2_build::Strip::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Strip
+impl core::cmp::Ord for mf2_build::Strip
+pub fn mf2_build::Strip::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::Strip
+pub fn mf2_build::Strip::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::Strip
+pub fn mf2_build::Strip::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::Strip
+pub fn mf2_build::Strip::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::Strip
+pub fn mf2_build::Strip::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::Strip
+impl core::marker::StructuralPartialEq for mf2_build::Strip
+impl serde_core::ser::Serialize for mf2_build::Strip
+pub fn mf2_build::Strip::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Strip
+pub fn mf2_build::Strip::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+pub struct mf2_build::Build
+impl mf2_build::Build
+pub fn mf2_build::Build::at(impl core::convert::Into<std::path::PathBuf>, impl core::convert::Into<std::path::PathBuf>) -> mf2_build::Build
+pub fn mf2_build::Build::check(self) -> mf2_build::Result<mf2_build::Outcome>
+pub fn mf2_build::Build::config(self, mf2_build::Config) -> mf2_build::Build
+pub fn mf2_build::Build::emit(self, mf2_build::Emit) -> mf2_build::Build
+pub fn mf2_build::Build::emit_cargo(self, bool) -> mf2_build::Build
+pub fn mf2_build::Build::facade(self, impl core::convert::Into<alloc::string::String>) -> mf2_build::Build
+pub fn mf2_build::Build::features(self, mf2_build::Features) -> mf2_build::Build
+pub fn mf2_build::Build::manifest_inline(self, bool) -> mf2_build::Build
+pub fn mf2_build::Build::new() -> mf2_build::Result<mf2_build::Build>
+pub fn mf2_build::Build::run(self) -> mf2_build::Result<mf2_build::Outcome>
+pub fn mf2_build::Build::source_locale(self, impl core::convert::Into<alloc::string::String>) -> mf2_build::Build
+impl core::fmt::Debug for mf2_build::Build
+pub fn mf2_build::Build::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub struct mf2_build::CatalogConfig
+pub mf2_build::CatalogConfig::missing: mf2_build::Missing
+pub mf2_build::CatalogConfig::strip: alloc::collections::btree::set::BTreeSet<mf2_build::Strip>
+impl core::clone::Clone for mf2_build::CatalogConfig
+pub fn mf2_build::CatalogConfig::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::CatalogConfig
+impl core::cmp::PartialEq for mf2_build::CatalogConfig
+pub fn mf2_build::CatalogConfig::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::CatalogConfig
+pub fn mf2_build::CatalogConfig::default() -> Self
+impl core::fmt::Debug for mf2_build::CatalogConfig
+pub fn mf2_build::CatalogConfig::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::CatalogConfig
+impl serde_core::ser::Serialize for mf2_build::CatalogConfig
+pub fn mf2_build::CatalogConfig::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::CatalogConfig where mf2_build::CatalogConfig: core::default::Default
+pub fn mf2_build::CatalogConfig::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub struct mf2_build::Config
+pub mf2_build::Config::catalog: mf2_build::CatalogConfig
+pub mf2_build::Config::fallback: alloc::collections::btree::map::BTreeMap<alloc::string::String, alloc::vec::Vec<alloc::string::String>>
+pub mf2_build::Config::functions: alloc::collections::btree::map::BTreeMap<alloc::string::String, alloc::string::String>
+pub mf2_build::Config::lints: alloc::collections::btree::map::BTreeMap<mf2_build::Lint, mf2_build::Level>
+pub mf2_build::Config::locale_data: mf2_build::LocaleDataConfig
+pub mf2_build::Config::source_locale: alloc::string::String
+impl mf2_build::Config
+pub fn mf2_build::Config::chain(&self, &str) -> alloc::vec::Vec<alloc::string::String>
+pub fn mf2_build::Config::level(&self, mf2_build::Lint) -> mf2_build::Level
+pub fn mf2_build::Config::load(&std::path::Path) -> mf2_build::Result<mf2_build::Config>
+pub fn mf2_build::Config::parse(&str, &std::path::Path) -> mf2_build::Result<mf2_build::Config>
+pub fn mf2_build::Config::to_toml(&self) -> alloc::string::String
+impl core::clone::Clone for mf2_build::Config
+pub fn mf2_build::Config::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Config
+impl core::cmp::PartialEq for mf2_build::Config
+pub fn mf2_build::Config::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::Config
+pub fn mf2_build::Config::default() -> Self
+impl core::fmt::Debug for mf2_build::Config
+pub fn mf2_build::Config::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::Config
+impl serde_core::ser::Serialize for mf2_build::Config
+pub fn mf2_build::Config::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Config where mf2_build::Config: core::default::Default
+pub fn mf2_build::Config::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub struct mf2_build::Diagnostic
+pub mf2_build::Diagnostic::column: u32
+pub mf2_build::Diagnostic::file: std::path::PathBuf
+pub mf2_build::Diagnostic::id: core::option::Option<alloc::string::String>
+pub mf2_build::Diagnostic::kind: core::option::Option<mf2_model::diagnostic::ErrorKind>
+pub mf2_build::Diagnostic::level: mf2_build::Level
+pub mf2_build::Diagnostic::line: u32
+pub mf2_build::Diagnostic::lint: core::option::Option<mf2_build::Lint>
+pub mf2_build::Diagnostic::locale: alloc::string::String
+pub mf2_build::Diagnostic::message: alloc::string::String
+impl mf2_build::Diagnostic
+pub fn mf2_build::Diagnostic::write_text(&self, &mut alloc::string::String)
+impl core::clone::Clone for mf2_build::Diagnostic
+pub fn mf2_build::Diagnostic::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Diagnostic
+impl core::cmp::PartialEq for mf2_build::Diagnostic
+pub fn mf2_build::Diagnostic::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::Diagnostic
+pub fn mf2_build::Diagnostic::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::Diagnostic
+impl serde_core::ser::Serialize for mf2_build::Diagnostic
+pub fn mf2_build::Diagnostic::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+pub struct mf2_build::Features
+impl mf2_build::Features
+pub fn mf2_build::Features::datetime_icu(&self) -> bool
+pub fn mf2_build::Features::datetime_intl(&self) -> bool
+pub fn mf2_build::Features::fn_datetime(&self) -> bool
+pub fn mf2_build::Features::fn_number(&self) -> bool
+pub fn mf2_build::Features::for_catalogs(&self) -> mf2_build::Features
+pub fn mf2_build::Features::from_env() -> mf2_build::Features
+pub fn mf2_build::Features::from_names<S: core::convert::Into<alloc::string::String>>(impl core::iter::traits::collect::IntoIterator<Item = S>) -> mf2_build::Features
+pub fn mf2_build::Features::from_vars(impl core::iter::traits::collect::IntoIterator<Item = (alloc::string::String, alloc::string::String)>) -> mf2_build::Features
+pub fn mf2_build::Features::has(&self, &str) -> bool
+pub fn mf2_build::Features::intl(&self) -> bool
+pub fn mf2_build::Features::missing_feature(&self, &str) -> core::option::Option<&'static str>
+pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::Iterator<Item = &str>
+pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
+pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>
+impl core::clone::Clone for mf2_build::Features
+pub fn mf2_build::Features::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Features
+impl core::cmp::PartialEq for mf2_build::Features
+pub fn mf2_build::Features::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::Features
+pub fn mf2_build::Features::default() -> Self
+impl core::fmt::Debug for mf2_build::Features
+pub fn mf2_build::Features::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::Features
+#[non_exhaustive] pub struct mf2_build::LocaleDataConfig
+pub mf2_build::LocaleDataConfig::currencies: mf2_build::DataSet
+pub mf2_build::LocaleDataConfig::units: mf2_build::DataSet
+impl core::clone::Clone for mf2_build::LocaleDataConfig
+pub fn mf2_build::LocaleDataConfig::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::LocaleDataConfig
+impl core::cmp::PartialEq for mf2_build::LocaleDataConfig
+pub fn mf2_build::LocaleDataConfig::eq(&self, &Self) -> bool
+impl core::default::Default for mf2_build::LocaleDataConfig
+pub fn mf2_build::LocaleDataConfig::default() -> Self
+impl core::fmt::Debug for mf2_build::LocaleDataConfig
+pub fn mf2_build::LocaleDataConfig::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_build::LocaleDataConfig
+impl serde_core::ser::Serialize for mf2_build::LocaleDataConfig
+pub fn mf2_build::LocaleDataConfig::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'de> serde_core::de::Deserialize<'de> for mf2_build::LocaleDataConfig where mf2_build::LocaleDataConfig: core::default::Default
+pub fn mf2_build::LocaleDataConfig::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+#[non_exhaustive] pub struct mf2_build::LocaleInfo
+pub mf2_build::LocaleInfo::dir: mf2_model::id::Dir
+pub mf2_build::LocaleInfo::file_name: alloc::string::String
+pub mf2_build::LocaleInfo::hash: alloc::string::String
+pub mf2_build::LocaleInfo::tag: alloc::string::String
+impl core::clone::Clone for mf2_build::LocaleInfo
+pub fn mf2_build::LocaleInfo::clone(&self) -> Self
+impl core::fmt::Debug for mf2_build::LocaleInfo
+pub fn mf2_build::LocaleInfo::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub struct mf2_build::Outcome
+pub mf2_build::Outcome::catalogs_module: alloc::string::String
+pub mf2_build::Outcome::generated: alloc::string::String
+pub mf2_build::Outcome::locales: alloc::vec::Vec<mf2_build::LocaleInfo>
+pub mf2_build::Outcome::manifest_hash: u64
+pub mf2_build::Outcome::out_dir: std::path::PathBuf
+pub mf2_build::Outcome::removed: alloc::vec::Vec<std::path::PathBuf>
+pub mf2_build::Outcome::report: mf2_build::Report
+pub mf2_build::Outcome::source_locale: alloc::string::String
+pub mf2_build::Outcome::written: alloc::vec::Vec<std::path::PathBuf>
+impl mf2_build::Outcome
+pub fn mf2_build::Outcome::into_result(self) -> mf2_build::Result<mf2_build::Outcome>
+pub fn mf2_build::Outcome::is_clean(&self) -> bool
+pub fn mf2_build::Outcome::publish(&self, &std::path::Path) -> mf2_build::Result<mf2_build::Published>
+impl core::fmt::Debug for mf2_build::Outcome
+pub fn mf2_build::Outcome::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub struct mf2_build::Published
+pub mf2_build::Published::removed: alloc::vec::Vec<std::path::PathBuf>
+pub mf2_build::Published::written: alloc::vec::Vec<std::path::PathBuf>
+impl core::default::Default for mf2_build::Published
+pub fn mf2_build::Published::default() -> Self
+impl core::fmt::Debug for mf2_build::Published
+pub fn mf2_build::Published::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub struct mf2_build::Report
+pub mf2_build::Report::diagnostics: alloc::vec::Vec<mf2_build::Diagnostic>
+impl mf2_build::Report
+pub fn mf2_build::Report::errors(&self) -> usize
+pub fn mf2_build::Report::extend(&mut self, mf2_build::Report)
+pub fn mf2_build::Report::failing_locales(&self) -> alloc::collections::btree::set::BTreeSet<&str>
+pub fn mf2_build::Report::is_clean(&self) -> bool
+pub fn mf2_build::Report::is_empty(&self) -> bool
+pub fn mf2_build::Report::new() -> mf2_build::Report
+pub fn mf2_build::Report::push(&mut self, mf2_build::Diagnostic)
+pub fn mf2_build::Report::to_cargo_warnings(&self) -> alloc::string::String
+pub fn mf2_build::Report::to_json(&self) -> alloc::string::String
+pub fn mf2_build::Report::to_text(&self) -> alloc::string::String
+pub fn mf2_build::Report::warnings(&self) -> usize
+impl core::clone::Clone for mf2_build::Report
+pub fn mf2_build::Report::clone(&self) -> Self
+impl core::default::Default for mf2_build::Report
+pub fn mf2_build::Report::default() -> Self
+impl core::fmt::Debug for mf2_build::Report
+pub fn mf2_build::Report::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl serde_core::ser::Serialize for mf2_build::Report
+pub fn mf2_build::Report::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+pub type mf2_build::Result<T> = core::result::Result<T, mf2_build::Error>

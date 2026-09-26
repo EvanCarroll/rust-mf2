@@ -12,10 +12,12 @@ use crate::error::CompileError;
 
 /// A compiled message: its one-message catalog and the catalog's manifest.
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct Compiled {
     /// The catalog, loaded: format [`Compiled::ID`] from it.
     pub catalog: Catalog,
     /// Its manifest (the message's slots: `manifest.slots[0]`).
+    #[doc(hidden)]
     pub manifest: Manifest,
 }
 

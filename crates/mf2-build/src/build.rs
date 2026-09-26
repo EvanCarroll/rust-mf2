@@ -32,15 +32,15 @@ use crate::report::{Report, Sink};
 use crate::slice;
 
 /// The manifest's file name in `OUT_DIR` (`plans/02-catalog-format.md` §5).
-pub const MANIFEST_FILE: &str = "manifest.mf2m";
+pub(crate) const MANIFEST_FILE: &str = "manifest.mf2m";
 /// The generated module's file name in `OUT_DIR`.
-pub const GENERATED_FILE: &str = "mf2_generated.rs";
+pub(crate) const GENERATED_FILE: &str = "mf2_generated.rs";
 /// The catalog table's file name, when the two are emitted apart.
-pub const CATALOGS_FILE: &str = "mf2_catalogs.rs";
+pub(crate) const CATALOGS_FILE: &str = "mf2_catalogs.rs";
 /// The catalog index's file name in a published site ([`Outcome::publish`]):
 /// what a client-only application reads to learn each locale's hashed URL
 /// (`plans/04-leptos-integration.md` §8).
-pub const INDEX_FILE: &str = "index.json";
+pub(crate) const INDEX_FILE: &str = "index.json";
 
 /// What a build writes (`plans/05-tooling.md` §4; owner question 1 of
 /// `plans/12-phase-5a-work-order.md`).
@@ -56,6 +56,7 @@ pub const INDEX_FILE: &str = "index.json";
 /// (A translation that introduces a *function* the source does not use still
 /// moves the manifest hash, and must — see [`crate::manifest`].)
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+#[non_exhaustive]
 pub enum Emit {
     /// The manifest, the catalogs and a module that names them (the
     /// default: one crate, one build script).
@@ -84,6 +85,7 @@ pub struct Build {
 
 /// One locale in the built corpus.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct LocaleInfo {
     /// The BCP 47 tag.
     pub tag: String,
@@ -100,12 +102,14 @@ pub struct LocaleInfo {
 #[non_exhaustive]
 pub struct Outcome {
     /// The manifest, from the source locale.
+    #[doc(hidden)]
     pub manifest: Manifest,
     /// Its hash — what the wasm and every catalog agree on.
     pub manifest_hash: u64,
     /// Everything the build has to say.
     pub report: Report,
     /// One catalog per locale, in tag order.
+    #[doc(hidden)]
     pub catalogs: Vec<Catalog>,
     /// The locale table the generated module carries.
     pub locales: Vec<LocaleInfo>,
@@ -126,6 +130,7 @@ pub struct Outcome {
 
 impl Outcome {
     /// The catalog of `tag`.
+    #[doc(hidden)]
     pub fn catalog(&self, tag: &str) -> Option<&Catalog> {
         self.catalogs.iter().find(|c| c.tag == tag)
     }

@@ -13,7 +13,7 @@
 //! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
 //! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
-//! | `intl` | on `wasm32-unknown-unknown` ([`INTL_NUMBERS`]): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
+//! | `intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
 //! Beyond the re-exports the facade carries one thing of its own: the
 //! **call-site core** (`plans/04-leptos-integration.md` §2.1) — [`Tr`],
@@ -45,6 +45,7 @@
 //! # }
 //! ```
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 // The call-site core is what 2,000 client call sites are made of, so the
@@ -72,8 +73,13 @@ mod error;
 /// so `mf2::Tr` is the Leptos-free description §2.1 describes.
 pub use leptos_mf2::{
     ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler, Text,
-    Tr, TrArgs, TrDyn, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3,
-    tr_args4, tr_dyn, tr_rich,
+    Tr, TrArgs, TrDyn, TrRich,
+};
+
+/// What `tr!` and the generated module expand to; never written by hand.
+#[doc(hidden)]
+pub use leptos_mf2::{
+    markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
 };
 
 /// The Leptos layer (`plans/04-leptos-integration.md` §§3–7).
@@ -120,19 +126,26 @@ macro_rules! include_generated {
 
 /// The manifest (build side: `mf2-catalog`'s `manifest` feature).
 #[cfg(feature = "compile")]
+#[doc(hidden)]
 pub use mf2_catalog::Manifest;
-pub use mf2_catalog::{Catalog, CatalogError, Dir, Entry, MsgId, StrRef, markup_key};
+pub use mf2_catalog::{Catalog, CatalogError, Dir, MsgId};
+/// The catalog's layout, which the generated module and the function crates
+/// read.
+#[doc(hidden)]
+pub use mf2_catalog::{Entry, StrRef, markup_key};
 pub use mf2_model::{ErrorKind, MarkupKind};
 pub use mf2_runtime::{
     Arg, BidiStrategy, Category, CurrencyDisplay, CustomValue, Date, DateFields, DateLength,
     DateStyle, DateTime, DateTimeOptions, DateTimeRequest, DigitOptions, Digits, ErrorSink,
     ExpressionPart, FallbackSource, FnContext, FormatContext, FormatError, Formatter, Function,
-    Grouping, Host, INTL_NUMBERS, Isolation, MarkupOptions, MarkupPart, Measure, MeasureUnit,
-    NoErrors, Number, NumberFormatter, NumberOut, NumberRequest, NumberSpec, NumberStyle, Operands,
-    OptionValue, Options, Part, PartSink, Registry, RoundingMode, RoundingPriority, Sign,
-    SignDisplay, Sink, SubPartSink, Time, TimePrecision, TimeZone, UnitDisplay, Value, ZoneOption,
-    ZoneStyle, functions, is_zone_name, plural_category,
+    Grouping, Host, Isolation, MarkupOptions, MarkupPart, Measure, MeasureUnit, NoErrors, Number,
+    NumberFormatter, NumberOut, NumberRequest, NumberSpec, NumberStyle, Operands, OptionValue,
+    Options, Part, PartSink, Registry, RoundingMode, RoundingPriority, Sign, SignDisplay, Sink,
+    SubPartSink, Time, TimePrecision, TimeZone, UnitDisplay, Value, ZoneOption, ZoneStyle,
+    functions, is_zone_name,
 };
+#[doc(hidden)]
+pub use mf2_runtime::{INTL_NUMBERS, plural_category};
 
 #[cfg(feature = "compile")]
 pub use compile::{Compiled, compile_str, compile_str_stripped};

@@ -188,6 +188,7 @@ impl ArgValue {
     /// A `&'static str` argument without an allocation — what the macro
     /// emits for a string literal at a call site.
     #[must_use]
+    #[doc(hidden)]
     pub const fn str_static(s: &'static str) -> ArgValue {
         ArgValue::Str(Text::Static(s))
     }

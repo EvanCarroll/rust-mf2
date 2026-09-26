@@ -42,6 +42,7 @@ pub const FILE_NAME: &str = "mf2.toml";
 /// A corpus's configuration.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
+#[non_exhaustive]
 pub struct Config {
     /// The locale the manifest and every lint compare against.
     pub source_locale: String,
@@ -76,6 +77,7 @@ impl Default for Config {
 /// `[catalog]`.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
+#[non_exhaustive]
 pub struct CatalogConfig {
     /// Sections to leave out of the catalogs (`plans/02-catalog-format.md`
     /// §2.3).
@@ -96,6 +98,7 @@ impl Default for CatalogConfig {
 /// A catalog section a production build leaves out.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum Strip {
     /// Attributes, comments and the other cold data.
     Cold,
@@ -106,6 +109,7 @@ pub enum Strip {
 /// What a locale that lacks a message gets.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum Missing {
     /// The fallback chain's text, flagged as a fallback (D5, F7).
     #[default]
@@ -119,6 +123,7 @@ pub enum Missing {
 /// `[locale_data]`.
 #[derive(Clone, Debug, PartialEq, Eq, Default, Deserialize)]
 #[serde(deny_unknown_fields, default)]
+#[non_exhaustive]
 pub struct LocaleDataConfig {
     /// Which currencies a catalog carries.
     pub currencies: DataSet,
@@ -128,6 +133,7 @@ pub struct LocaleDataConfig {
 
 /// How much of one CLDR table a catalog carries.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[non_exhaustive]
 pub enum DataSet {
     /// Only what the corpus names in a literal option (`"used"`, the
     /// default). A non-literal option value makes it [`DataSet::All`]

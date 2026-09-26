@@ -15,7 +15,7 @@
 use std::collections::BTreeSet;
 
 use mf2::{Compiled, FormatContext, Formatter, Function, Registry, functions};
-use mf2_build::features::OPTIONS;
+use mf2_build::OPTIONS;
 
 /// The core functions, without `fn-number` (`plans/03-runtime.md` §5.1).
 static CORE_FUNCTIONS: [(&str, &dyn Function); 4] = [
@@ -111,9 +111,6 @@ fn every_list_is_what_every_function_reads() {
 #[test]
 fn the_lists_cover_every_built_in() {
     let listed: Vec<&str> = OPTIONS.iter().map(|(f, _)| *f).collect();
-    let builtins: Vec<&str> = mf2_build::features::BUILTINS
-        .iter()
-        .map(|(f, _)| *f)
-        .collect();
+    let builtins: Vec<&str> = mf2_build::BUILTINS.iter().map(|(f, _)| *f).collect();
     assert_eq!(listed, builtins);
 }

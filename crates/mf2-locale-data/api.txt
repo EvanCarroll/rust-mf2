@@ -1,0 +1,80 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: extract,icu-blob
+pub mod mf2_locale_data
+pub use mf2_locale_data::CldrVersion
+#[non_exhaustive] pub enum mf2_locale_data::Error
+pub mf2_locale_data::Error::Assumption(alloc::string::String)
+pub mf2_locale_data::Error::Entry(mf2_catalog::error::WriteError)
+pub mf2_locale_data::Error::IcuBlobBuild
+pub mf2_locale_data::Error::IcuBlobBuild::count: usize
+pub mf2_locale_data::Error::IcuBlobBuild::first: alloc::string::String
+pub mf2_locale_data::Error::IcuBlobBuild::locale: alloc::string::String
+pub mf2_locale_data::Error::IcuData(icu_provider::error::DataError)
+pub mf2_locale_data::Error::Io
+pub mf2_locale_data::Error::Io::path: std::path::PathBuf
+pub mf2_locale_data::Error::Io::source: core::io::error::Error
+pub mf2_locale_data::Error::Json(serde_json::error::Error)
+pub mf2_locale_data::Error::Missing
+pub mf2_locale_data::Error::Missing::field: &'static str
+pub mf2_locale_data::Error::Missing::locale: alloc::string::String
+pub mf2_locale_data::Error::Missing::system: alloc::string::String
+pub mf2_locale_data::Error::Parse(mf2_locale_data::ParseError)
+pub mf2_locale_data::Error::Pattern
+pub mf2_locale_data::Error::Pattern::message: &'static str
+pub mf2_locale_data::Error::Pattern::pattern: alloc::string::String
+pub mf2_locale_data::Error::Rule
+pub mf2_locale_data::Error::Rule::category: alloc::string::String
+pub mf2_locale_data::Error::Rule::kind: &'static str
+pub mf2_locale_data::Error::Rule::locale: alloc::string::String
+pub mf2_locale_data::Error::Rule::source: mf2_locale_data::ParseError
+pub mf2_locale_data::Error::Shape(alloc::string::String)
+pub mf2_locale_data::Error::Table
+pub mf2_locale_data::Error::Table::line: usize
+pub mf2_locale_data::Error::Table::message: alloc::string::String
+impl core::convert::From<icu_provider::error::DataError> for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::from(icu_provider::error::DataError) -> Self
+impl core::convert::From<mf2_catalog::error::WriteError> for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::from(mf2_catalog::error::WriteError) -> Self
+impl core::convert::From<mf2_locale_data::ParseError> for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::from(mf2_locale_data::ParseError) -> Self
+impl core::convert::From<serde_json::error::Error> for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::from(serde_json::error::Error) -> Self
+impl core::error::Error for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum mf2_locale_data::ParseError
+pub mf2_locale_data::ParseError::EmptyRange
+pub mf2_locale_data::ParseError::EmptyRange::hi: u64
+pub mf2_locale_data::ParseError::EmptyRange::lo: u64
+pub mf2_locale_data::ParseError::Expected
+pub mf2_locale_data::ParseError::Expected::at: usize
+pub mf2_locale_data::ParseError::Expected::expected: &'static str
+pub mf2_locale_data::ParseError::MissingCondition
+pub mf2_locale_data::ParseError::OtherWithCondition
+pub mf2_locale_data::ParseError::Overflow
+pub mf2_locale_data::ParseError::Overflow::at: usize
+pub mf2_locale_data::ParseError::Sample(alloc::string::String)
+pub mf2_locale_data::ParseError::SampleRange(alloc::string::String)
+pub mf2_locale_data::ParseError::TooLarge
+pub mf2_locale_data::ParseError::TooManyGroups
+pub mf2_locale_data::ParseError::UnexpectedChar
+pub mf2_locale_data::ParseError::UnexpectedChar::at: usize
+pub mf2_locale_data::ParseError::UnexpectedChar::ch: char
+pub mf2_locale_data::ParseError::UnknownCategory(alloc::string::String)
+pub mf2_locale_data::ParseError::ZeroModulus
+impl core::cmp::Eq for mf2_locale_data::ParseError
+impl core::cmp::PartialEq for mf2_locale_data::ParseError
+pub fn mf2_locale_data::ParseError::eq(&self, &Self) -> bool
+impl core::convert::From<mf2_locale_data::ParseError> for mf2_locale_data::Error
+pub fn mf2_locale_data::Error::from(mf2_locale_data::ParseError) -> Self
+impl core::error::Error for mf2_locale_data::ParseError
+impl core::fmt::Debug for mf2_locale_data::ParseError
+pub fn mf2_locale_data::ParseError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2_locale_data::ParseError
+pub fn mf2_locale_data::ParseError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2_locale_data::ParseError
+pub const mf2_locale_data::CLDR_VERSION: mf2_catalog::reader::CldrVersion
+pub fn mf2_locale_data::direction(&str) -> core::result::Result<mf2_model::id::Dir, mf2_locale_data::Error>

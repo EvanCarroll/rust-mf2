@@ -150,9 +150,11 @@ fn offset_id(seconds: i32, out: &mut [u8; 6]) -> &str {
     core::str::from_utf8(out).unwrap_or("+00:00")
 }
 
-/// The `Intl.DateTimeFormat` options of `r` (see the module docs).
+/// The `Intl.DateTimeFormat` options of `r` (see the module docs); `false`
+/// for an option value this version does not know (the runtime's option
+/// enums are not exhaustive), which the browser is then not asked to guess.
 #[cfg(feature = "datetime-intl")]
-fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
+fn options(r: &DateTimeRequest<'_>, j: &mut Json) -> bool {
     let o = r.options;
     // A time alone with `hour12` takes components: V8 and JavaScriptCore
     // apply `hour12` to a 24-hour locale's `timeStyle` pattern by swapping
@@ -175,6 +177,7 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
         DateLength::Long => "long",
         DateLength::Medium => "medium",
         DateLength::Short => "short",
+        _ => return false,
     };
     if styleable {
         if o.date.is_some() {
@@ -194,6 +197,7 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
                 DateFields::MonthDayWeekday => (false, true, true, true),
                 DateFields::YearMonthDay => (true, true, true, false),
                 DateFields::YearMonthDayWeekday => (true, true, true, true),
+                _ => return false,
             };
             if year {
                 let v = if length == DateLength::Short {
@@ -208,6 +212,7 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
                     DateLength::Long => "long",
                     DateLength::Medium => "short",
                     DateLength::Short => "numeric",
+                    _ => return false,
                 };
                 j.text("month", v);
             }
@@ -236,6 +241,7 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
             let v = match z {
                 ZoneStyle::Long => "long",
                 ZoneStyle::Short => "short",
+                _ => return false,
             };
             j.text("timeZoneName", v);
         }
@@ -252,8 +258,10 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
         ZoneOption::Offset(s) => offset_id(s, &mut id),
         ZoneOption::Named(n) => n,
         ZoneOption::Utc | ZoneOption::Input => "UTC",
+        _ => return false,
     };
     j.text("timeZone", zone);
+    true
 }
 
 /// Formats `r` for `locale` with `Intl.DateTimeFormat`; `false` when the
@@ -261,7 +269,9 @@ fn options(r: &DateTimeRequest<'_>, j: &mut Json) {
 #[cfg(feature = "datetime-intl")]
 pub(crate) fn format(locale: &str, r: &DateTimeRequest<'_>, out: &mut dyn Sink) -> bool {
     let mut j = Json::new();
-    options(r, &mut j);
+    if !options(r, &mut j) {
+        return false;
+    }
     let Some(options) = j.finish() else {
         return false;
     };

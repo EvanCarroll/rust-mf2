@@ -12,6 +12,7 @@ use crate::norm::nfc;
 /// A name used by a message: its NFC form (what comparisons and the manifest
 /// use) and its spelling as written (first occurrence in source order).
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[non_exhaustive]
 pub struct Name<'m> {
     /// The name in Unicode Normalization Form C.
     pub nfc: Cow<'m, str>,
@@ -21,6 +22,7 @@ pub struct Name<'m> {
 
 /// What [`analyze`] found.
 #[derive(Clone, Default, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 pub struct Analysis<'m> {
     /// External variables — every variable the caller must supply: the
     /// variables of `.input` declarations and every variable referenced
@@ -62,6 +64,7 @@ pub fn analyze<'m>(message: &'m Message<'_>) -> Analysis<'m> {
                 a.locals.insert(&x.name);
                 locals.insert(nfc(&x.name));
             }
+            _ => {}
         }
     }
     match message {
@@ -74,6 +77,7 @@ pub fn analyze<'m>(message: &'m Message<'_>) -> Analysis<'m> {
                 a.pattern(&v.value, &locals);
             }
         }
+        _ => {}
     }
     a.finish()
 }

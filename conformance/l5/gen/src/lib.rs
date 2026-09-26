@@ -381,10 +381,8 @@ fn params(resolved: &serde_json::Map<String, Value>) -> Vec<(String, Param)> {
 /// as a matter of policy (`plans/05-tooling.md` §5). Policy is not what L5
 /// is about, so every lint goes to its floor.
 fn config(locale: &str) -> Config {
-    let mut config = Config {
-        source_locale: locale.to_owned(),
-        ..Config::default()
-    };
+    let mut config = Config::default();
+    locale.clone_into(&mut config.source_locale);
     for &lint in Lint::ALL {
         let floor = lint.floor();
         if floor != Level::Error {

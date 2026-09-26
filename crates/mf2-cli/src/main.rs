@@ -30,6 +30,8 @@ mod error;
 mod exchange;
 mod fmt;
 mod init;
+#[cfg(test)]
+mod listing;
 mod pseudo;
 mod stats;
 mod watch;

@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use clap::Args as ClapArgs;
-use mf2_build::config::Layout;
+use mf2_build::Layout;
 use mf2_build::{Build, Config};
 
 use crate::FeatureArgs;
@@ -90,7 +90,7 @@ fn build(dir: &Path, args: &Args) -> Result<()> {
 /// The modification time of every file a build reads.
 fn stamps(layout: &Layout, dir: &Path) -> BTreeMap<PathBuf, SystemTime> {
     let mut out = BTreeMap::new();
-    let config = dir.join(mf2_build::config::FILE_NAME);
+    let config = dir.join(mf2_build::CONFIG_FILE);
     if let Ok(meta) = std::fs::metadata(&config)
         && let Ok(time) = meta.modified()
     {

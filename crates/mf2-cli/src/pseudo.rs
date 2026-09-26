@@ -3,7 +3,7 @@
 use std::path::Path;
 
 use clap::Args as ClapArgs;
-use mf2_build::config::Layout;
+use mf2_build::Layout;
 use mf2_build::loader::{Loader, resource};
 use mf2_build::{Config, pseudo};
 use mf2_resource::{parse, serialize_with};

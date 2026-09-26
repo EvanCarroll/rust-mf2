@@ -168,7 +168,8 @@ fn option<'m>(f: &'m FunctionRef<'_>, name: &str) -> Opt<'m> {
     match f.options.get(name) {
         None => Opt::Absent,
         Some(OptionValue::Literal(l)) => Opt::Literal(l.value.as_ref()),
-        Some(OptionValue::Variable(_)) => Opt::Variable,
+        // A variable, or a kind of value this version does not know: any.
+        Some(_) => Opt::Variable,
     }
 }
 
@@ -208,11 +209,13 @@ impl NumberNeeds {
                     }
                     self.add_function(l.value.function());
                 }
+                _ => {}
             }
         }
         let patterns: Vec<&Pattern<'_>> = match message {
             Message::Pattern(p) => vec![&p.pattern],
             Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+            _ => Vec::new(),
         };
         for p in patterns {
             for part in p {

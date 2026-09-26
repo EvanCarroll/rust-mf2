@@ -1,7 +1,9 @@
 //! `cargo xtask ci`: exactly what `.forgejo/workflows/ci.yml` runs, in order,
 //! stopping at the first failure. No network access beyond what cargo itself
-//! needs to resolve dependencies: the specification text must already be in
-//! its cache (`cargo xtask spec-sync`, which CI runs first).
+//! needs to resolve dependencies, and rustup to install the nightly the API
+//! listings are made with (`cargo xtask api`) when it is missing: the
+//! specification text must already be in its cache (`cargo xtask spec-sync`,
+//! which CI runs first).
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -223,6 +225,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     crate::docs::run(root, false)?;
     eprintln!("==> cargo xtask conformance-report");
     report::check(root, None, None)?;
+    // The published crates' public API against the committed `api.txt`
+    // (Phase 9 A2): a change to it is committed with its listing.
+    eprintln!("==> cargo xtask api --check");
+    crate::api::run(root, true)?;
     eprintln!("==> ci: all steps passed");
     Ok(())
 }

@@ -117,6 +117,7 @@ fn plural(n: usize) -> &'static str {
 
 impl Error {
     /// An I/O error that names its file.
+    #[doc(hidden)]
     pub fn io(path: impl Into<PathBuf>, source: io::Error) -> Error {
         Error::Io {
             path: path.into(),

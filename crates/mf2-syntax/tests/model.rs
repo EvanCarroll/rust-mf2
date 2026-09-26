@@ -22,7 +22,7 @@ fn model(src: &str) -> Message<'_> {
 fn pattern_of<'a>(m: &'a Message<'a>) -> &'a Pattern<'a> {
     match m {
         Message::Pattern(p) => &p.pattern,
-        Message::Select(_) => panic!("pattern message expected"),
+        _ => panic!("pattern message expected"),
     }
 }
 

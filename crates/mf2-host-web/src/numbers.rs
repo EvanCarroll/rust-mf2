@@ -219,9 +219,11 @@ fn mode_name(m: RoundingMode) -> &'static str {
         RoundingMode::Trunc => "trunc",
         RoundingMode::HalfCeil => "halfCeil",
         RoundingMode::HalfFloor => "halfFloor",
-        RoundingMode::HalfExpand => "halfExpand",
         RoundingMode::HalfTrunc => "halfTrunc",
         RoundingMode::HalfEven => "halfEven",
+        // `halfExpand`, the default, and (not exhaustive) a mode this
+        // version does not know; as below, an unknown value is the default.
+        _ => "halfExpand",
     }
 }
 
@@ -245,7 +247,7 @@ fn digits(d: &DigitOptions, defaults: Option<(u8, u8)>, j: &mut Json) {
     match d.priority {
         RoundingPriority::MorePrecision => j.text("roundingPriority", "morePrecision"),
         RoundingPriority::LessPrecision => j.text("roundingPriority", "lessPrecision"),
-        RoundingPriority::Auto => {}
+        _ => {}
     }
     if d.increment != 1 {
         j.number("roundingIncrement", d.increment);
@@ -274,11 +276,12 @@ fn format_options(r: &NumberRequest<'_>, j: &mut Json) {
             j.text("style", "currency");
             j.text("currency", code);
             let d = match display {
-                CurrencyDisplay::Symbol => None,
                 CurrencyDisplay::NarrowSymbol => Some("narrowSymbol"),
                 CurrencyDisplay::Name => Some("name"),
                 CurrencyDisplay::Code => Some("code"),
                 CurrencyDisplay::Never => Some("never"),
+                // `symbol`, the default, or a value this version does not know.
+                _ => None,
             };
             if let Some(d) = d {
                 j.text("currencyDisplay", d);
@@ -292,9 +295,9 @@ fn format_options(r: &NumberRequest<'_>, j: &mut Json) {
             j.text("style", "unit");
             j.text("unit", unit);
             match display {
-                UnitDisplay::Short => {}
                 UnitDisplay::Narrow => j.text("unitDisplay", "narrow"),
                 UnitDisplay::Long => j.text("unitDisplay", "long"),
+                _ => {}
             }
             Some((0, 3))
         }
@@ -312,15 +315,16 @@ fn format_options(r: &NumberRequest<'_>, j: &mut Json) {
                 j.key("useGrouping");
                 j.raw("false");
             }
-            Grouping::Auto => {}
+            _ => {}
         }
     }
     let sign = match r.sign {
-        SignDisplay::Auto => None,
         SignDisplay::Always => Some("always"),
         SignDisplay::ExceptZero => Some("exceptZero"),
         SignDisplay::Negative => Some("negative"),
         SignDisplay::Never => Some("never"),
+        // `auto`, the default, or a value this version does not know.
+        _ => None,
     };
     if let Some(s) = sign {
         j.text("signDisplay", s);

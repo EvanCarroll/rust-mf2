@@ -8,6 +8,10 @@ the per-locale entries built from them.
 Used by [`mf2-build`](https://docs.rs/mf2-build) and by `mf2`'s `compile` feature; an application
 does not name it.
 
+Of its API, 1.x promises the errors, `CLDR_VERSION` and `direction`; the
+tables and entry builders are hidden from the documentation and may
+change (`docs/versioning.md`).
+
 API documentation: <https://docs.rs/mf2-locale-data>.
 
 The user guide — getting started, call sites, delivery modes, switching

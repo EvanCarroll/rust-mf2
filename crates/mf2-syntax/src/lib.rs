@@ -22,6 +22,7 @@
 //!
 //! `#![no_std]` + `alloc`; never linked into the client wasm.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 
@@ -172,11 +173,7 @@ pub(crate) fn model_from_arena<'src>(source: &'src str, nodes: &[Node]) -> Parse
     let mut locator = lower::Locator::new(&arena);
     let mut diagnostics: Vec<Diagnostic> = found
         .iter()
-        .map(|(kind, code, loc)| Diagnostic {
-            kind: *kind,
-            code: *code,
-            span: locator.resolve(loc),
-        })
+        .map(|(kind, code, loc)| Diagnostic::new(*kind, *code, locator.resolve(loc)))
         .collect();
     // Stable: equal positions keep the checks' order.
     diagnostics.sort_by_key(|d| d.span.map_or(0, |s| s.start));

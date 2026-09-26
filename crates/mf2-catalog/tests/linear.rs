@@ -253,11 +253,13 @@ fn attributes(m: &Message<'_>) -> usize {
         n += match d {
             Declaration::Input(x) => x.value.attributes.len(),
             Declaration::Local(x) => x.value.attributes().len(),
+            _ => 0,
         };
     }
     let patterns: Vec<&Pattern<'_>> = match m {
         Message::Pattern(p) => vec![&p.pattern],
         Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+        _ => Vec::new(),
     };
     for p in patterns {
         for part in p.parts() {

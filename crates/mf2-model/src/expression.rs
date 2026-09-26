@@ -169,6 +169,9 @@ impl FunctionRef<'_> {
 
 /// An option's value: a literal or a variable.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+// Future versions of MF2 may define new structures (the specification's
+// stability policy); a new one is a new variant, which a 1.x minor may add.
+#[non_exhaustive]
 pub enum OptionValue<'a> {
     /// `opt=|literal|` or `opt=literal`.
     Literal(Literal<'a>),

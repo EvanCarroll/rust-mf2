@@ -1,0 +1,614 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: serde
+pub mod mf2_model
+#[non_exhaustive] pub enum mf2_model::Declaration<'a>
+pub mf2_model::Declaration::Input(mf2_model::InputDeclaration<'a>)
+pub mf2_model::Declaration::Local(mf2_model::LocalDeclaration<'a>)
+impl mf2_model::Declaration<'_>
+pub fn mf2_model::Declaration<'_>::into_owned(self) -> mf2_model::Declaration<'static>
+pub fn mf2_model::Declaration<'_>::name(&self) -> &str
+impl serde_core::ser::Serialize for mf2_model::Declaration<'_>
+pub fn mf2_model::Declaration<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Declaration<'a>
+pub fn mf2_model::Declaration<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Declaration<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Declaration<'a>
+pub fn mf2_model::Declaration<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Declaration<'a>
+pub fn mf2_model::Declaration<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Declaration<'a>
+pub fn mf2_model::Declaration<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Declaration<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Declaration<'a>
+pub fn mf2_model::Declaration<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+#[repr(u8)] pub enum mf2_model::Dir
+pub mf2_model::Dir::Auto = 2
+pub mf2_model::Dir::Ltr = 0
+pub mf2_model::Dir::Rtl = 1
+impl core::clone::Clone for mf2_model::Dir
+pub fn mf2_model::Dir::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::Dir
+impl core::cmp::PartialEq for mf2_model::Dir
+pub fn mf2_model::Dir::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::Dir
+pub fn mf2_model::Dir::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::Dir
+pub fn mf2_model::Dir::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::Dir
+impl core::marker::StructuralPartialEq for mf2_model::Dir
+#[non_exhaustive] pub enum mf2_model::ErrorClass
+pub mf2_model::ErrorClass::DataModel
+pub mf2_model::ErrorClass::MessageFunction
+pub mf2_model::ErrorClass::Resolution
+pub mf2_model::ErrorClass::Syntax
+impl core::clone::Clone for mf2_model::ErrorClass
+pub fn mf2_model::ErrorClass::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::ErrorClass
+impl core::cmp::PartialEq for mf2_model::ErrorClass
+pub fn mf2_model::ErrorClass::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::ErrorClass
+pub fn mf2_model::ErrorClass::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::ErrorClass
+pub fn mf2_model::ErrorClass::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::ErrorClass
+impl core::marker::StructuralPartialEq for mf2_model::ErrorClass
+#[non_exhaustive] #[repr(u8)] pub enum mf2_model::ErrorKind
+pub mf2_model::ErrorKind::BadOperand
+pub mf2_model::ErrorKind::BadOption
+pub mf2_model::ErrorKind::BadSelector
+pub mf2_model::ErrorKind::BadVariantKey
+pub mf2_model::ErrorKind::DuplicateDeclaration
+pub mf2_model::ErrorKind::DuplicateOptionName
+pub mf2_model::ErrorKind::DuplicateVariant
+pub mf2_model::ErrorKind::MessageFunctionError
+pub mf2_model::ErrorKind::MissingFallbackVariant
+pub mf2_model::ErrorKind::MissingSelectorAnnotation
+pub mf2_model::ErrorKind::Syntax
+pub mf2_model::ErrorKind::UnknownFunction
+pub mf2_model::ErrorKind::UnresolvedVariable
+pub mf2_model::ErrorKind::UnsupportedOperation
+pub mf2_model::ErrorKind::VariantKeyMismatch
+impl mf2_model::ErrorKind
+pub const mf2_model::ErrorKind::ALL: &'static [mf2_model::ErrorKind]
+pub const fn mf2_model::ErrorKind::class(self) -> mf2_model::ErrorClass
+impl core::clone::Clone for mf2_model::ErrorKind
+pub fn mf2_model::ErrorKind::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::ErrorKind
+impl core::cmp::PartialEq for mf2_model::ErrorKind
+pub fn mf2_model::ErrorKind::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::ErrorKind
+pub fn mf2_model::ErrorKind::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::ErrorKind
+pub fn mf2_model::ErrorKind::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::ErrorKind
+impl core::marker::StructuralPartialEq for mf2_model::ErrorKind
+#[non_exhaustive] pub enum mf2_model::Expression<'a>
+pub mf2_model::Expression::Function(mf2_model::FunctionExpression<'a>)
+pub mf2_model::Expression::Literal(mf2_model::LiteralExpression<'a>)
+pub mf2_model::Expression::Variable(mf2_model::VariableExpression<'a>)
+impl<'a> mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::attributes(&self) -> &mf2_model::Attributes<'a>
+pub fn mf2_model::Expression<'a>::function(&self) -> core::option::Option<&mf2_model::FunctionRef<'a>>
+pub fn mf2_model::Expression<'a>::into_owned(self) -> mf2_model::Expression<'static>
+impl serde_core::ser::Serialize for mf2_model::Expression<'_>
+pub fn mf2_model::Expression<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Expression<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Expression<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Expression<'a>
+pub fn mf2_model::Expression<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+#[non_exhaustive] pub enum mf2_model::Key<'a>
+pub mf2_model::Key::CatchAll(mf2_model::CatchAllKey<'a>)
+pub mf2_model::Key::Literal(mf2_model::Literal<'a>)
+impl mf2_model::Key<'_>
+pub fn mf2_model::Key<'_>::into_owned(self) -> mf2_model::Key<'static>
+impl serde_core::ser::Serialize for mf2_model::Key<'_>
+pub fn mf2_model::Key<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Key<'a>
+pub fn mf2_model::Key<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Key<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Key<'a>
+pub fn mf2_model::Key<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Key<'a>
+pub fn mf2_model::Key<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Key<'a>
+pub fn mf2_model::Key<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Key<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Key<'a>
+pub fn mf2_model::Key<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub enum mf2_model::MarkupKind
+pub mf2_model::MarkupKind::Close
+pub mf2_model::MarkupKind::Open
+pub mf2_model::MarkupKind::Standalone
+impl core::clone::Clone for mf2_model::MarkupKind
+pub fn mf2_model::MarkupKind::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::MarkupKind
+impl core::cmp::PartialEq for mf2_model::MarkupKind
+pub fn mf2_model::MarkupKind::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::MarkupKind
+pub fn mf2_model::MarkupKind::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::MarkupKind
+pub fn mf2_model::MarkupKind::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::MarkupKind
+impl core::marker::StructuralPartialEq for mf2_model::MarkupKind
+#[non_exhaustive] pub enum mf2_model::Message<'a>
+pub mf2_model::Message::Pattern(mf2_model::PatternMessage<'a>)
+pub mf2_model::Message::Select(mf2_model::SelectMessage<'a>)
+impl<'a> mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::declarations(&self) -> &[mf2_model::Declaration<'a>]
+pub fn mf2_model::Message<'a>::into_owned(self) -> mf2_model::Message<'static>
+impl serde_core::ser::Serialize for mf2_model::Message<'_>
+pub fn mf2_model::Message<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Message<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Message<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Message<'a>
+pub fn mf2_model::Message<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+#[non_exhaustive] pub enum mf2_model::OptionValue<'a>
+pub mf2_model::OptionValue::Literal(mf2_model::Literal<'a>)
+pub mf2_model::OptionValue::Variable(mf2_model::VariableRef<'a>)
+impl mf2_model::OptionValue<'_>
+pub fn mf2_model::OptionValue<'_>::into_owned(self) -> mf2_model::OptionValue<'static>
+impl serde_core::ser::Serialize for mf2_model::OptionValue<'_>
+pub fn mf2_model::OptionValue<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::OptionValue<'a>
+pub fn mf2_model::OptionValue<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::OptionValue<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::OptionValue<'a>
+pub fn mf2_model::OptionValue<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::OptionValue<'a>
+pub fn mf2_model::OptionValue<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::OptionValue<'a>
+pub fn mf2_model::OptionValue<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::OptionValue<'a>
+#[non_exhaustive] pub enum mf2_model::PatternPart<'a>
+pub mf2_model::PatternPart::Expression(mf2_model::Expression<'a>)
+pub mf2_model::PatternPart::Markup(mf2_model::Markup<'a>)
+pub mf2_model::PatternPart::Text(alloc::borrow::Cow<'a, str>)
+impl mf2_model::PatternPart<'_>
+pub fn mf2_model::PatternPart<'_>::into_owned(self) -> mf2_model::PatternPart<'static>
+impl serde_core::ser::Serialize for mf2_model::PatternPart<'_>
+pub fn mf2_model::PatternPart<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::PatternPart<'a>
+pub fn mf2_model::PatternPart<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::PatternPart<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::PatternPart<'a>
+pub fn mf2_model::PatternPart<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::PatternPart<'a>
+pub fn mf2_model::PatternPart<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::PatternPart<'a>
+pub fn mf2_model::PatternPart<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::iter::traits::collect::FromIterator<mf2_model::PatternPart<'a>> for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::from_iter<I: core::iter::traits::collect::IntoIterator<Item = mf2_model::PatternPart<'a>>>(I) -> Self
+impl<'a> core::marker::StructuralPartialEq for mf2_model::PatternPart<'a>
+pub struct mf2_model::Attributes<'a>(_)
+impl<'a> mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::get(&self, &str) -> core::option::Option<core::option::Option<&mf2_model::Literal<'a>>>
+pub fn mf2_model::Attributes<'a>::into_owned(self) -> mf2_model::Attributes<'static>
+pub fn mf2_model::Attributes<'a>::is_empty(&self) -> bool
+pub fn mf2_model::Attributes<'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = (&str, core::option::Option<&mf2_model::Literal<'a>>)>
+pub fn mf2_model::Attributes<'a>::len(&self) -> usize
+pub const fn mf2_model::Attributes<'a>::new() -> Self
+pub fn mf2_model::Attributes<'a>::push(&mut self, alloc::borrow::Cow<'a, str>, core::option::Option<mf2_model::Literal<'a>>)
+pub fn mf2_model::Attributes<'a>::with_capacity(usize) -> Self
+impl serde_core::ser::Serialize for mf2_model::Attributes<'_>
+pub fn mf2_model::Attributes<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Attributes<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::eq(&self, &Self) -> bool
+impl<'a> core::default::Default for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::default() -> Self
+impl<'a> core::fmt::Debug for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::iter::traits::collect::FromIterator<(alloc::borrow::Cow<'a, str>, core::option::Option<mf2_model::Literal<'a>>)> for mf2_model::Attributes<'a>
+pub fn mf2_model::Attributes<'a>::from_iter<I: core::iter::traits::collect::IntoIterator<Item = (alloc::borrow::Cow<'a, str>, core::option::Option<mf2_model::Literal<'a>>)>>(I) -> Self
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Attributes<'a>
+pub struct mf2_model::CatchAllKey<'a>
+pub mf2_model::CatchAllKey::value: core::option::Option<alloc::borrow::Cow<'a, str>>
+impl mf2_model::CatchAllKey<'_>
+pub fn mf2_model::CatchAllKey<'_>::into_owned(self) -> mf2_model::CatchAllKey<'static>
+impl serde_core::ser::Serialize for mf2_model::CatchAllKey<'_>
+pub fn mf2_model::CatchAllKey<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::CatchAllKey<'a>
+pub fn mf2_model::CatchAllKey<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::CatchAllKey<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::CatchAllKey<'a>
+pub fn mf2_model::CatchAllKey<'a>::eq(&self, &Self) -> bool
+impl<'a> core::default::Default for mf2_model::CatchAllKey<'a>
+pub fn mf2_model::CatchAllKey<'a>::default() -> Self
+impl<'a> core::fmt::Debug for mf2_model::CatchAllKey<'a>
+pub fn mf2_model::CatchAllKey<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::CatchAllKey<'a>
+pub fn mf2_model::CatchAllKey<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::CatchAllKey<'a>
+#[non_exhaustive] pub struct mf2_model::Diagnostic
+pub mf2_model::Diagnostic::code: u16
+pub mf2_model::Diagnostic::kind: mf2_model::ErrorKind
+pub mf2_model::Diagnostic::span: core::option::Option<mf2_model::Span>
+impl mf2_model::Diagnostic
+pub const fn mf2_model::Diagnostic::new(mf2_model::ErrorKind, u16, core::option::Option<mf2_model::Span>) -> mf2_model::Diagnostic
+impl core::clone::Clone for mf2_model::Diagnostic
+pub fn mf2_model::Diagnostic::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::Diagnostic
+impl core::cmp::PartialEq for mf2_model::Diagnostic
+pub fn mf2_model::Diagnostic::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::Diagnostic
+pub fn mf2_model::Diagnostic::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::Diagnostic
+pub fn mf2_model::Diagnostic::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::iter::traits::collect::Extend<mf2_model::Diagnostic> for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::extend<I: core::iter::traits::collect::IntoIterator<Item = mf2_model::Diagnostic>>(&mut self, I)
+impl core::marker::StructuralPartialEq for mf2_model::Diagnostic
+pub struct mf2_model::Diagnostics(_)
+impl mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::has(&self, mf2_model::ErrorKind) -> bool
+pub fn mf2_model::Diagnostics::has_class(&self, mf2_model::ErrorClass) -> bool
+pub fn mf2_model::Diagnostics::into_vec(self) -> alloc::vec::Vec<mf2_model::Diagnostic>
+pub fn mf2_model::Diagnostics::is_empty(&self) -> bool
+pub fn mf2_model::Diagnostics::iter(&self) -> core::slice::iter::Iter<'_, mf2_model::Diagnostic>
+pub fn mf2_model::Diagnostics::len(&self) -> usize
+pub const fn mf2_model::Diagnostics::new() -> Self
+pub fn mf2_model::Diagnostics::push(&mut self, mf2_model::Diagnostic)
+impl core::clone::Clone for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::Diagnostics
+impl core::cmp::PartialEq for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::eq(&self, &Self) -> bool
+impl core::convert::From<alloc::vec::Vec<mf2_model::Diagnostic>> for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::from(alloc::vec::Vec<mf2_model::Diagnostic>) -> Self
+impl core::default::Default for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::default() -> Self
+impl core::fmt::Debug for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::iter::traits::collect::Extend<mf2_model::Diagnostic> for mf2_model::Diagnostics
+pub fn mf2_model::Diagnostics::extend<I: core::iter::traits::collect::IntoIterator<Item = mf2_model::Diagnostic>>(&mut self, I)
+impl core::marker::StructuralPartialEq for mf2_model::Diagnostics
+impl<'a> core::iter::traits::collect::IntoIterator for &'a mf2_model::Diagnostics
+pub type &'a mf2_model::Diagnostics::IntoIter = core::slice::iter::Iter<'a, mf2_model::Diagnostic>
+pub type &'a mf2_model::Diagnostics::Item = &'a mf2_model::Diagnostic
+pub fn &'a mf2_model::Diagnostics::into_iter(self) -> Self::IntoIter
+pub struct mf2_model::FunctionExpression<'a>
+pub mf2_model::FunctionExpression::attributes: mf2_model::Attributes<'a>
+pub mf2_model::FunctionExpression::function: mf2_model::FunctionRef<'a>
+impl mf2_model::FunctionExpression<'_>
+pub fn mf2_model::FunctionExpression<'_>::into_owned(self) -> mf2_model::FunctionExpression<'static>
+impl serde_core::ser::Serialize for mf2_model::FunctionExpression<'_>
+pub fn mf2_model::FunctionExpression<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::FunctionExpression<'a>
+pub fn mf2_model::FunctionExpression<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::FunctionExpression<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::FunctionExpression<'a>
+pub fn mf2_model::FunctionExpression<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::FunctionExpression<'a>
+pub fn mf2_model::FunctionExpression<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::FunctionExpression<'a>
+pub fn mf2_model::FunctionExpression<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::FunctionExpression<'a>
+pub struct mf2_model::FunctionRef<'a>
+pub mf2_model::FunctionRef::name: alloc::borrow::Cow<'a, str>
+pub mf2_model::FunctionRef::options: mf2_model::Options<'a>
+impl mf2_model::FunctionRef<'_>
+pub fn mf2_model::FunctionRef<'_>::into_owned(self) -> mf2_model::FunctionRef<'static>
+impl serde_core::ser::Serialize for mf2_model::FunctionRef<'_>
+pub fn mf2_model::FunctionRef<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::FunctionRef<'a>
+pub fn mf2_model::FunctionRef<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::FunctionRef<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::FunctionRef<'a>
+pub fn mf2_model::FunctionRef<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::FunctionRef<'a>
+pub fn mf2_model::FunctionRef<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::FunctionRef<'a>
+pub fn mf2_model::FunctionRef<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::FunctionRef<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::FunctionRef<'a>
+pub fn mf2_model::FunctionRef<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub struct mf2_model::InputDeclaration<'a>
+pub mf2_model::InputDeclaration::name: alloc::borrow::Cow<'a, str>
+pub mf2_model::InputDeclaration::value: mf2_model::VariableExpression<'a>
+impl mf2_model::InputDeclaration<'_>
+pub fn mf2_model::InputDeclaration<'_>::into_owned(self) -> mf2_model::InputDeclaration<'static>
+impl serde_core::ser::Serialize for mf2_model::InputDeclaration<'_>
+pub fn mf2_model::InputDeclaration<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::InputDeclaration<'a>
+pub fn mf2_model::InputDeclaration<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::InputDeclaration<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::InputDeclaration<'a>
+pub fn mf2_model::InputDeclaration<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::InputDeclaration<'a>
+pub fn mf2_model::InputDeclaration<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::InputDeclaration<'a>
+pub fn mf2_model::InputDeclaration<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::InputDeclaration<'a>
+pub struct mf2_model::Literal<'a>
+pub mf2_model::Literal::value: alloc::borrow::Cow<'a, str>
+impl mf2_model::Literal<'_>
+pub fn mf2_model::Literal<'_>::into_owned(self) -> mf2_model::Literal<'static>
+impl serde_core::ser::Serialize for mf2_model::Literal<'_>
+pub fn mf2_model::Literal<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Literal<'a>
+pub fn mf2_model::Literal<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Literal<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Literal<'a>
+pub fn mf2_model::Literal<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Literal<'a>
+pub fn mf2_model::Literal<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Literal<'a>
+pub fn mf2_model::Literal<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Literal<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Literal<'a>
+pub fn mf2_model::Literal<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub struct mf2_model::LiteralExpression<'a>
+pub mf2_model::LiteralExpression::arg: mf2_model::Literal<'a>
+pub mf2_model::LiteralExpression::attributes: mf2_model::Attributes<'a>
+pub mf2_model::LiteralExpression::function: core::option::Option<mf2_model::FunctionRef<'a>>
+impl mf2_model::LiteralExpression<'_>
+pub fn mf2_model::LiteralExpression<'_>::into_owned(self) -> mf2_model::LiteralExpression<'static>
+impl serde_core::ser::Serialize for mf2_model::LiteralExpression<'_>
+pub fn mf2_model::LiteralExpression<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::LiteralExpression<'a>
+pub fn mf2_model::LiteralExpression<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::LiteralExpression<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::LiteralExpression<'a>
+pub fn mf2_model::LiteralExpression<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::LiteralExpression<'a>
+pub fn mf2_model::LiteralExpression<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::LiteralExpression<'a>
+pub fn mf2_model::LiteralExpression<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::LiteralExpression<'a>
+pub struct mf2_model::LocalDeclaration<'a>
+pub mf2_model::LocalDeclaration::name: alloc::borrow::Cow<'a, str>
+pub mf2_model::LocalDeclaration::value: mf2_model::Expression<'a>
+impl mf2_model::LocalDeclaration<'_>
+pub fn mf2_model::LocalDeclaration<'_>::into_owned(self) -> mf2_model::LocalDeclaration<'static>
+impl serde_core::ser::Serialize for mf2_model::LocalDeclaration<'_>
+pub fn mf2_model::LocalDeclaration<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::LocalDeclaration<'a>
+pub fn mf2_model::LocalDeclaration<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::LocalDeclaration<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::LocalDeclaration<'a>
+pub fn mf2_model::LocalDeclaration<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::LocalDeclaration<'a>
+pub fn mf2_model::LocalDeclaration<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::LocalDeclaration<'a>
+pub fn mf2_model::LocalDeclaration<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::LocalDeclaration<'a>
+pub struct mf2_model::Markup<'a>
+pub mf2_model::Markup::attributes: mf2_model::Attributes<'a>
+pub mf2_model::Markup::kind: mf2_model::MarkupKind
+pub mf2_model::Markup::name: alloc::borrow::Cow<'a, str>
+pub mf2_model::Markup::options: mf2_model::Options<'a>
+impl mf2_model::Markup<'_>
+pub fn mf2_model::Markup<'_>::into_owned(self) -> mf2_model::Markup<'static>
+impl serde_core::ser::Serialize for mf2_model::Markup<'_>
+pub fn mf2_model::Markup<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Markup<'a>
+pub fn mf2_model::Markup<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Markup<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Markup<'a>
+pub fn mf2_model::Markup<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Markup<'a>
+pub fn mf2_model::Markup<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Markup<'a>
+pub fn mf2_model::Markup<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Markup<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Markup<'a>
+pub fn mf2_model::Markup<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+#[repr(transparent)] pub struct mf2_model::MsgId(_)
+impl core::clone::Clone for mf2_model::MsgId
+pub fn mf2_model::MsgId::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::MsgId
+impl core::cmp::Ord for mf2_model::MsgId
+pub fn mf2_model::MsgId::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_model::MsgId
+pub fn mf2_model::MsgId::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_model::MsgId
+pub fn mf2_model::MsgId::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_model::MsgId
+pub fn mf2_model::MsgId::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::MsgId
+pub fn mf2_model::MsgId::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::MsgId
+impl core::marker::StructuralPartialEq for mf2_model::MsgId
+pub struct mf2_model::Options<'a>(_)
+impl<'a> mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::get(&self, &str) -> core::option::Option<&mf2_model::OptionValue<'a>>
+pub fn mf2_model::Options<'a>::into_owned(self) -> mf2_model::Options<'static>
+pub fn mf2_model::Options<'a>::is_empty(&self) -> bool
+pub fn mf2_model::Options<'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = (&str, &mf2_model::OptionValue<'a>)>
+pub fn mf2_model::Options<'a>::len(&self) -> usize
+pub const fn mf2_model::Options<'a>::new() -> Self
+pub fn mf2_model::Options<'a>::push(&mut self, alloc::borrow::Cow<'a, str>, mf2_model::OptionValue<'a>)
+pub fn mf2_model::Options<'a>::with_capacity(usize) -> Self
+impl serde_core::ser::Serialize for mf2_model::Options<'_>
+pub fn mf2_model::Options<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Options<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::eq(&self, &Self) -> bool
+impl<'a> core::default::Default for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::default() -> Self
+impl<'a> core::fmt::Debug for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::iter::traits::collect::FromIterator<(alloc::borrow::Cow<'a, str>, mf2_model::OptionValue<'a>)> for mf2_model::Options<'a>
+pub fn mf2_model::Options<'a>::from_iter<I: core::iter::traits::collect::IntoIterator<Item = (alloc::borrow::Cow<'a, str>, mf2_model::OptionValue<'a>)>>(I) -> Self
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Options<'a>
+pub struct mf2_model::Parsed<'src>
+pub mf2_model::Parsed::diagnostics: mf2_model::Diagnostics
+pub mf2_model::Parsed::message: core::option::Option<mf2_model::Message<'src>>
+impl<'src> core::clone::Clone for mf2_model::Parsed<'src>
+pub fn mf2_model::Parsed<'src>::clone(&self) -> Self
+impl<'src> core::cmp::Eq for mf2_model::Parsed<'src>
+impl<'src> core::cmp::PartialEq for mf2_model::Parsed<'src>
+pub fn mf2_model::Parsed<'src>::eq(&self, &Self) -> bool
+impl<'src> core::fmt::Debug for mf2_model::Parsed<'src>
+pub fn mf2_model::Parsed<'src>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'src> core::marker::StructuralPartialEq for mf2_model::Parsed<'src>
+pub struct mf2_model::Pattern<'a>(_)
+impl<'a> mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::as_simple_text(&self) -> core::option::Option<&str>
+pub fn mf2_model::Pattern<'a>::from_text(alloc::borrow::Cow<'a, str>) -> Self
+pub fn mf2_model::Pattern<'a>::into_owned(self) -> mf2_model::Pattern<'static>
+pub fn mf2_model::Pattern<'a>::into_parts(self) -> alloc::vec::Vec<mf2_model::PatternPart<'a>>
+pub fn mf2_model::Pattern<'a>::is_empty(&self) -> bool
+pub fn mf2_model::Pattern<'a>::iter(&self) -> core::slice::iter::Iter<'_, mf2_model::PatternPart<'a>>
+pub fn mf2_model::Pattern<'a>::len(&self) -> usize
+pub const fn mf2_model::Pattern<'a>::new() -> Self
+pub fn mf2_model::Pattern<'a>::parts(&self) -> &[mf2_model::PatternPart<'a>]
+pub fn mf2_model::Pattern<'a>::push(&mut self, mf2_model::PatternPart<'a>)
+pub fn mf2_model::Pattern<'a>::with_capacity(usize) -> Self
+impl core::cmp::Eq for mf2_model::Pattern<'_>
+impl core::cmp::PartialEq for mf2_model::Pattern<'_>
+pub fn mf2_model::Pattern<'_>::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::Pattern<'_>
+pub fn mf2_model::Pattern<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::Pattern<'_>
+pub fn mf2_model::Pattern<'_>::hash<H: core::hash::Hasher>(&self, &mut H)
+impl serde_core::ser::Serialize for mf2_model::Pattern<'_>
+pub fn mf2_model::Pattern<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::clone(&self) -> Self
+impl<'a> core::convert::From<alloc::vec::Vec<mf2_model::PatternPart<'a>>> for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::from(alloc::vec::Vec<mf2_model::PatternPart<'a>>) -> Self
+impl<'a> core::default::Default for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::default() -> Self
+impl<'a> core::iter::traits::collect::FromIterator<mf2_model::PatternPart<'a>> for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::from_iter<I: core::iter::traits::collect::IntoIterator<Item = mf2_model::PatternPart<'a>>>(I) -> Self
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Pattern<'a>
+pub fn mf2_model::Pattern<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+impl<'p, 'a> core::iter::traits::collect::IntoIterator for &'p mf2_model::Pattern<'a>
+pub type &'p mf2_model::Pattern<'a>::IntoIter = core::slice::iter::Iter<'p, mf2_model::PatternPart<'a>>
+pub type &'p mf2_model::Pattern<'a>::Item = &'p mf2_model::PatternPart<'a>
+pub fn &'p mf2_model::Pattern<'a>::into_iter(self) -> Self::IntoIter
+pub struct mf2_model::PatternMessage<'a>
+pub mf2_model::PatternMessage::declarations: alloc::vec::Vec<mf2_model::Declaration<'a>>
+pub mf2_model::PatternMessage::pattern: mf2_model::Pattern<'a>
+impl mf2_model::PatternMessage<'_>
+pub fn mf2_model::PatternMessage<'_>::into_owned(self) -> mf2_model::PatternMessage<'static>
+impl serde_core::ser::Serialize for mf2_model::PatternMessage<'_>
+pub fn mf2_model::PatternMessage<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::PatternMessage<'a>
+pub fn mf2_model::PatternMessage<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::PatternMessage<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::PatternMessage<'a>
+pub fn mf2_model::PatternMessage<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::PatternMessage<'a>
+pub fn mf2_model::PatternMessage<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::PatternMessage<'a>
+pub fn mf2_model::PatternMessage<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::PatternMessage<'a>
+pub struct mf2_model::SelectMessage<'a>
+pub mf2_model::SelectMessage::declarations: alloc::vec::Vec<mf2_model::Declaration<'a>>
+pub mf2_model::SelectMessage::selectors: alloc::vec::Vec<mf2_model::VariableRef<'a>>
+pub mf2_model::SelectMessage::variants: alloc::vec::Vec<mf2_model::Variant<'a>>
+impl mf2_model::SelectMessage<'_>
+pub fn mf2_model::SelectMessage<'_>::into_owned(self) -> mf2_model::SelectMessage<'static>
+impl serde_core::ser::Serialize for mf2_model::SelectMessage<'_>
+pub fn mf2_model::SelectMessage<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::SelectMessage<'a>
+pub fn mf2_model::SelectMessage<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::SelectMessage<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::SelectMessage<'a>
+pub fn mf2_model::SelectMessage<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::SelectMessage<'a>
+pub fn mf2_model::SelectMessage<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::SelectMessage<'a>
+pub fn mf2_model::SelectMessage<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::SelectMessage<'a>
+pub struct mf2_model::Span
+pub mf2_model::Span::end: u32
+pub mf2_model::Span::start: u32
+impl core::clone::Clone for mf2_model::Span
+pub fn mf2_model::Span::clone(&self) -> Self
+impl core::cmp::Eq for mf2_model::Span
+impl core::cmp::PartialEq for mf2_model::Span
+pub fn mf2_model::Span::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_model::Span
+pub fn mf2_model::Span::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_model::Span
+pub fn mf2_model::Span::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_model::Span
+impl core::marker::StructuralPartialEq for mf2_model::Span
+pub struct mf2_model::VariableExpression<'a>
+pub mf2_model::VariableExpression::arg: mf2_model::VariableRef<'a>
+pub mf2_model::VariableExpression::attributes: mf2_model::Attributes<'a>
+pub mf2_model::VariableExpression::function: core::option::Option<mf2_model::FunctionRef<'a>>
+impl mf2_model::VariableExpression<'_>
+pub fn mf2_model::VariableExpression<'_>::into_owned(self) -> mf2_model::VariableExpression<'static>
+impl serde_core::ser::Serialize for mf2_model::VariableExpression<'_>
+pub fn mf2_model::VariableExpression<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::VariableExpression<'a>
+pub fn mf2_model::VariableExpression<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::VariableExpression<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::VariableExpression<'a>
+pub fn mf2_model::VariableExpression<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::VariableExpression<'a>
+pub fn mf2_model::VariableExpression<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::VariableExpression<'a>
+pub fn mf2_model::VariableExpression<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::VariableExpression<'a>
+pub struct mf2_model::VariableRef<'a>
+pub mf2_model::VariableRef::name: alloc::borrow::Cow<'a, str>
+impl mf2_model::VariableRef<'_>
+pub fn mf2_model::VariableRef<'_>::into_owned(self) -> mf2_model::VariableRef<'static>
+impl serde_core::ser::Serialize for mf2_model::VariableRef<'_>
+pub fn mf2_model::VariableRef<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::VariableRef<'a>
+pub fn mf2_model::VariableRef<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::VariableRef<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::VariableRef<'a>
+pub fn mf2_model::VariableRef<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::VariableRef<'a>
+pub fn mf2_model::VariableRef<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::VariableRef<'a>
+pub fn mf2_model::VariableRef<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::VariableRef<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::VariableRef<'a>
+pub fn mf2_model::VariableRef<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub struct mf2_model::Variant<'a>
+pub mf2_model::Variant::keys: alloc::vec::Vec<mf2_model::Key<'a>>
+pub mf2_model::Variant::value: mf2_model::Pattern<'a>
+impl mf2_model::Variant<'_>
+pub fn mf2_model::Variant<'_>::into_owned(self) -> mf2_model::Variant<'static>
+impl serde_core::ser::Serialize for mf2_model::Variant<'_>
+pub fn mf2_model::Variant<'_>::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
+impl<'a> core::clone::Clone for mf2_model::Variant<'a>
+pub fn mf2_model::Variant<'a>::clone(&self) -> Self
+impl<'a> core::cmp::Eq for mf2_model::Variant<'a>
+impl<'a> core::cmp::PartialEq for mf2_model::Variant<'a>
+pub fn mf2_model::Variant<'a>::eq(&self, &Self) -> bool
+impl<'a> core::fmt::Debug for mf2_model::Variant<'a>
+pub fn mf2_model::Variant<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::hash::Hash for mf2_model::Variant<'a>
+pub fn mf2_model::Variant<'a>::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl<'a> core::marker::StructuralPartialEq for mf2_model::Variant<'a>
+impl<'de: 'a, 'a> serde_core::de::Deserialize<'de> for mf2_model::Variant<'a>
+pub fn mf2_model::Variant<'a>::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub trait mf2_model::Frontend
+pub fn mf2_model::Frontend::parse<'src>(&mut self, &'src str) -> mf2_model::Parsed<'src>
+pub const fn mf2_model::is_name_char(char) -> bool
+pub const fn mf2_model::is_name_start(char) -> bool
+pub fn mf2_model::split_identifier(&str) -> (core::option::Option<&str>, &str)

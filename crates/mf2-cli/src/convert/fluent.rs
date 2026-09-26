@@ -1088,7 +1088,7 @@ fn unescape(value: &str) -> String {
 
 /// The report's name for a function the converter writes.
 fn static_name(name: &str) -> &'static str {
-    mf2_build::features::BUILTINS
+    mf2_build::BUILTINS
         .iter()
         .map(|(n, _)| *n)
         .find(|n| *n == name)

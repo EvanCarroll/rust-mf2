@@ -453,11 +453,13 @@ impl DateNeeds {
                     }
                     expressions.push(&l.value);
                 }
+                _ => {}
             }
         }
         let patterns: Vec<&Pattern<'_>> = match message {
             Message::Pattern(p) => vec![&p.pattern],
             Message::Select(s) => s.variants.iter().map(|v| &v.value).collect(),
+            _ => Vec::new(),
         };
         for p in patterns {
             for part in p {

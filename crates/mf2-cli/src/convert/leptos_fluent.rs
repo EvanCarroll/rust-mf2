@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use mf2_build::Config;
-use mf2_build::config::Layout;
+use mf2_build::Layout;
 
 use self::rewrite::{Messages, Options};
 use super::report::{Code, Finding, Report};

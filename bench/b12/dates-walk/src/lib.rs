@@ -120,6 +120,7 @@ impl PartSink for Fold {
                 }
             }
             Part::Fallback(src) => src.write(self),
+            _ => {}
         }
     }
 }

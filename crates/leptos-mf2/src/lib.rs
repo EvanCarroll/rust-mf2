@@ -30,6 +30,7 @@
 //! (the Leptos layer adds `std`, which its dependencies need anyway),
 //! `forbid(unsafe_code)`, no `core::fmt`, no panicking operation.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(
@@ -103,6 +104,7 @@ mod convert;
 mod error;
 /// Everything that names tachys, in one module for every supported line.
 #[cfg(feature = "leptos")]
+#[doc(hidden)]
 pub mod glue;
 #[cfg(feature = "leptos")]
 pub use components::{
@@ -110,8 +112,10 @@ pub use components::{
     html_lang,
 };
 
-/// The names the page carries, shared by the shell and the boot.
+/// The names the page carries, shared by the shell, the boot and
+/// `mf2-axum`: the wire between them, not an application's.
 #[cfg(feature = "leptos")]
+#[doc(hidden)]
 pub mod links;
 
 #[cfg(all(feature = "leptos", feature = "mark-fallback-lang"))]
@@ -129,12 +133,17 @@ mod text;
 mod zone;
 
 pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
-pub use dynamic::{TrDyn, tr_dyn};
-pub use markup::{Handler, IntoMarkupHandler, markup};
-pub use tr::{
-    MarkupHandler, Tr, TrArgs, TrRich, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3,
-    tr_args4, tr_rich,
-};
+pub use dynamic::TrDyn;
+/// What `tr!` and the generated module expand to (`mf2-macros`,
+/// `mf2-build`'s codegen); never written by hand.
+#[doc(hidden)]
+pub use dynamic::tr_dyn;
+#[doc(hidden)]
+pub use markup::markup;
+pub use markup::{Handler, IntoMarkupHandler};
+pub use tr::{MarkupHandler, Tr, TrArgs, TrRich};
+#[doc(hidden)]
+pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_rich};
 
 /// The view closure a rich call site writes, and the flat handler
 /// conformance L6 compares against `expParts`.
@@ -150,9 +159,12 @@ pub use signal::{SignalArg, signal_arg};
 /// (`plans/04-leptos-integration.md` §5).
 #[cfg(feature = "leptos")]
 pub use state::{
-    Setup, TextUse, dir_of, install, installed, installed_twice, locales, lookup_locale,
-    manifest_hash, setup, source_locale,
+    Setup, TextUse, dir_of, install, locales, lookup_locale, manifest_hash, setup, source_locale,
 };
+/// Whether [`install`] ran, and ran more than once: for the library's tests.
+#[cfg(feature = "leptos")]
+#[doc(hidden)]
+pub use state::{installed, installed_twice};
 
 /// The catalog a render reads, and what can go wrong loading one.
 #[cfg(feature = "leptos")]
@@ -160,11 +172,16 @@ pub use catalog::{active, read as read_catalog};
 #[cfg(feature = "leptos")]
 pub use error::LoadError;
 
+/// The table of catalogs the server serves, which `mf2-axum` installs and
+/// reads.
+#[cfg(feature = "ssr")]
+#[doc(hidden)]
+pub use catalog::{CatalogEntry, catalog_entries, catalog_file, catalog_name, install_catalogs};
 /// The server's catalogs and per-request locale (§5, §6).
 #[cfg(feature = "ssr")]
 pub use catalog::{
-    CatalogEntry, RequestI18n, catalog, catalog_entries, catalog_file, catalog_name,
-    default_catalog, install_catalogs, provide_locale, provide_locale_in_zone, request_time_zone,
+    RequestI18n, catalog, default_catalog, provide_locale, provide_locale_in_zone,
+    request_time_zone,
 };
 
 /// The reader's time zone (`plans/03-runtime.md` §6.1): whether a name the
@@ -241,13 +258,16 @@ macro_rules! islands_gate {
 /// checks read to know that hydration finished and that dropped nodes freed
 /// their slots.
 #[cfg(feature = "leptos")]
+#[doc(hidden)]
 pub use registry::live_nodes;
 
 /// What the three call-site types have in common, which is what the
 /// rendering is written against.
 #[cfg(feature = "leptos")]
+#[doc(hidden)]
 pub use text::{Description, Stored};
 
 /// The retained view state of a rendered description.
 #[cfg(feature = "leptos")]
+#[doc(hidden)]
 pub use glue::view::{TrAttrState, TrRichState, TrState};

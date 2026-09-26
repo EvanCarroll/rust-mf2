@@ -19,6 +19,7 @@
 //! `alloc`, `forbid(unsafe_code)`, no `core::fmt`, no panicking operation
 //! (B12); built-in handlers never allocate.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(
@@ -46,7 +47,9 @@ mod text;
 mod unannotated;
 mod value;
 
-pub use mf2_catalog::{Catalog, Dir, MsgId, StrRef};
+#[doc(hidden)]
+pub use mf2_catalog::StrRef;
+pub use mf2_catalog::{Catalog, Dir, MsgId};
 pub use mf2_model::MarkupKind;
 
 pub use datetime::{
@@ -65,7 +68,9 @@ pub use number::{
 pub use parts::{
     ExpressionPart, FallbackSource, Isolation, MarkupOptions, MarkupPart, Part, PartSink,
 };
-pub use plural::{Category, Operands, select as plural_category};
+#[doc(hidden)]
+pub use plural::select as plural_category;
+pub use plural::{Category, Operands};
 pub use sink::{ErrorSink, NoErrors, Sink, SubPartSink};
 pub use value::{Arg, CustomValue, Value};
 
@@ -77,6 +82,7 @@ pub use value::{Arg, CustomValue, Value};
 /// `Intl.NumberFormat` and `Intl.PluralRules`) instead of the Rust digit
 /// plan, rounding and plural evaluator, which are not linked. Everywhere
 /// else — servers, `wasm32-wasip1`, native tests — `false`: the Rust path.
+#[doc(hidden)]
 pub const INTL_NUMBERS: bool = cfg!(all(
     feature = "intl",
     target_arch = "wasm32",

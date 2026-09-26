@@ -6,6 +6,7 @@
 //! so a server, a test and the `wasm32-wasip1` run answer alike. Never
 //! linked into the browser client, which uses `mf2-host-web`.
 
+#![warn(missing_docs)]
 #![no_std]
 #![forbid(unsafe_code)]
 

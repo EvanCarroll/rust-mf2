@@ -32,6 +32,8 @@
 //! );
 //! ```
 
+#![warn(missing_docs)]
+
 // The Leptos line, as in leptos-mf2 (`plans/04-leptos-integration.md` §10):
 // the 0.8 crates, when they are the ones on, renamed back.
 #[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]

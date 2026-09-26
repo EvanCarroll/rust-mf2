@@ -1,0 +1,66 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# The `mf2` command tree: commands, then each argument, its value and the values it accepts.
+mf2
+  --dir, -C <DIR> (global)
+mf2 check
+  --deny-warnings
+  --dir, -C <DIR> (global)
+  --features <LIST>
+  --format <FORMAT> [text|json]
+  --src <DIR> (repeatable)
+mf2 compile
+  --dir, -C <DIR> (global)
+  --facade <PATH>
+  --features <LIST>
+  --out, -o <DIR>
+  --site <DIR>
+  --verbose, -v
+mf2 convert
+  --dir, -C <DIR> (global)
+  --format <FORMAT> [text|json]
+  --from <FORMAT> [fluent|leptos-fluent] (required)
+  --i18n-crate <NAME>
+  <input> (position 1) (required)
+  --locales <DIR>
+  --write
+mf2 dump
+  <catalog> (position 1) (required)
+  --dir, -C <DIR> (global)
+  --format <FORMAT> [mf2|json]
+  --id <ID>
+  --manifest <FILE.mf2m>
+mf2 export
+  --dir, -C <DIR> (global)
+  --format <FORMAT> [json|xliff]
+  <locale> (position 1) (required)
+  --out, -o <FILE>
+mf2 fmt
+  --check
+  --dir, -C <DIR> (global)
+  <paths> (position 1) (repeatable)
+mf2 import
+  --dir, -C <DIR> (global)
+  --dry-run
+  <file> (position 2) (required)
+  <locale> (position 1) (required)
+mf2 init
+  --dir, -C <DIR> (global)
+  --force
+  --locale <TAG> (repeatable)
+  --name <NAME>
+  --no-messages
+  --source-locale <TAG>
+mf2 pseudo
+  --dir, -C <DIR> (global)
+  --dry-run
+  --locale <TAG> (repeatable)
+mf2 stats
+  --dir, -C <DIR> (global)
+  --features <LIST>
+  --format <FORMAT> [text|json]
+mf2 watch
+  --dir, -C <DIR> (global)
+  --features <LIST>
+  --interval <MS>
+  --max-rebuilds <MAX_REBUILDS>
+  --out, -o <DIR>
