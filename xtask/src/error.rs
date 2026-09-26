@@ -40,6 +40,10 @@ pub(crate) enum Error {
     /// or could not be listed.
     #[error("api: {0}")]
     Api(String),
+    /// A published crate's package ships a file it must not, or differs
+    /// from its committed `package.txt`, or its own tests fail.
+    #[error("package: {0}")]
+    Package(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

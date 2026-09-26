@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-model"
 keywords = ["messageformat", "mf2", "i18n", "data-model"]
 categories = ["internationalization", "localization", "data-structures", "no-std"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [features]
 # (De)serialization as JSON that validates against spec/data-model/message.json.

@@ -7,8 +7,9 @@
 //!
 //! A dev-dependency between two of ours may instead be path-only: cargo
 //! strips it from the package, which is the only way to publish one that
-//! closes a cycle (`mf2-fn-number` → `mf2` → `mf2-fn-number`). Which of their
-//! tests then travel with the package is A4's.
+//! closes a cycle (`mf2-fn-number` → `mf2` → `mf2-fn-number`). The tests
+//! that use one are left out of the package and run in the workspace (A4;
+//! `cargo xtask package`).
 //!
 //! Every one of the 16 states the one `rust-version` (A3): the MSRV
 //! `[workspace.package]` records and `cargo xtask msrv` measures.

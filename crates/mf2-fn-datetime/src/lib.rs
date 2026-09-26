@@ -14,23 +14,18 @@
 //! (`plans/03-runtime.md` §5.2, "The date backends as built".)
 //!
 //! ```
-//! # use mf2::{FormatContext, Formatter, Registry};
 //! use mf2_fn_datetime::{DateTimeFunction, Neutral};
+//! use mf2_runtime::{Function, Registry};
 //!
 //! // `DATETIME`, `DATE`, `TIME`, `DATES` are these over the default backend.
 //! static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
 //! static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
-//! static FUNCTIONS: [(&str, &dyn mf2::Function); 1] = [("datetime", &DATETIME)];
+//! static FUNCTIONS: [(&str, &dyn Function); 1] = [("datetime", &DATETIME)];
 //! static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
-//! static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
-//!
-//! let m = mf2::compile_str("{|2006-01-02T15:04:06| :datetime timePrecision=second}", "en").unwrap();
-//! let mut out = String::new();
-//! let mut errors = Vec::new();
-//! Formatter::new(&m.catalog, &REGISTRY, &CX).write(mf2::Compiled::ID, &[], &mut out, &mut errors);
-//! assert_eq!(out, "2006-01-02 15:04:06");
-//! assert!(errors.is_empty());
 //! ```
+//!
+//! A message formatted with that registry: the `mf2` facade's front page,
+//! which reaches this crate as `mf2::fn_datetime`.
 //!
 //! # The handlers
 //!

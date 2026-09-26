@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-axum"
 keywords = ["messageformat", "mf2", "i18n", "axum", "leptos"]
 categories = ["internationalization", "localization", "web-programming::http-server"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [features]
 # The Leptos line, as leptos-mf2's (`plans/04-leptos-integration.md` §10):

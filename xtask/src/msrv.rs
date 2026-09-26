@@ -34,6 +34,14 @@ use crate::error::{Error, Result};
 
 const WASM: &str = "wasm32-unknown-unknown";
 
+/// Every feature an application can turn on at once for its server, across
+/// the 16 (step 1; also what `cargo xtask package --test` tests the unpacked
+/// packages with).
+pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,\
+     mf2/ssr,mf2/static-locale,mf2/mark-fallback-lang,mf2-catalog/decode,\
+     mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
+     mf2-runtime/fixed-decimal";
+
 /// Every step's `cargo check` arguments, after `check`.
 const STEPS: [(&str, &[&str]); 5] = [
     (
@@ -70,10 +78,7 @@ const STEPS: [(&str, &[&str]); 5] = [
             "-p",
             "leptos-mf2",
             "--features",
-            "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,mf2/ssr,\
-             mf2/static-locale,mf2/mark-fallback-lang,mf2-catalog/decode,\
-             mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,\
-             mf2-resource/serde,mf2-runtime/fixed-decimal",
+            SERVER_FEATURES,
         ],
     ),
     (

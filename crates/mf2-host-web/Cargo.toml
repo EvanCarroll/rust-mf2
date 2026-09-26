@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-host-web"
 keywords = ["messageformat", "mf2", "i18n", "wasm", "intl"]
 categories = ["internationalization", "localization", "wasm", "web-programming"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [features]
 # Each adds a host (a static): a host method is linked whenever its host is

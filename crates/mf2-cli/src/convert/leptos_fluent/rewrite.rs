@@ -36,7 +36,8 @@ pub(crate) enum Rule {
 
 impl Rule {
     /// Every rule.
-    #[cfg(test)]
+    /// (`src/workspace_tests.rs` holds it against the plan.)
+    #[cfg(all(test, mf2_workspace))]
     pub(crate) const ALL: [Rule; 9] = [
         Rule::TrString,
         Rule::TrView,

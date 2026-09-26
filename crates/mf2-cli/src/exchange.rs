@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-mod xliff;
+pub(crate) mod xliff;
 
 use clap::{Args as ClapArgs, ValueEnum};
 use mf2_build::loader::{Loader, json, resource};

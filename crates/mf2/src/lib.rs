@@ -44,6 +44,30 @@
 //! assert!(errors.is_empty());
 //! # }
 //! ```
+//!
+//! With [`fn_datetime`], a date: a handler over a chosen backend (here the
+//! neutral stub; `DATETIME` and `DATES` are these over the default one) and
+//! the registry that formats unannotated date/time values with it.
+//!
+//! ```
+//! # #[cfg(all(feature = "compile", feature = "host-std", feature = "fn-datetime"))] {
+//! use mf2::fn_datetime::{DateTimeFunction, Neutral};
+//! use mf2::{FormatContext, Formatter, Registry};
+//!
+//! static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
+//! static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
+//! static FUNCTIONS: [(&str, &dyn mf2::Function); 1] = [("datetime", &DATETIME)];
+//! static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+//! static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
+//!
+//! let m = mf2::compile_str("{|2006-01-02T15:04:06| :datetime timePrecision=second}", "en").unwrap();
+//! let mut out = String::new();
+//! let mut errors = Vec::new();
+//! Formatter::new(&m.catalog, &REGISTRY, &CX).write(mf2::Compiled::ID, &[], &mut out, &mut errors);
+//! assert_eq!(out, "2006-01-02 15:04:06");
+//! assert!(errors.is_empty());
+//! # }
+//! ```
 
 #![warn(missing_docs)]
 #![no_std]

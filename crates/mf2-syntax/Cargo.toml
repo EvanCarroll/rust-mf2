@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-syntax"
 keywords = ["messageformat", "mf2", "i18n", "parser"]
 categories = ["internationalization", "localization", "parser-implementations", "no-std"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [dependencies]
 mf2-model.workspace = true

@@ -186,22 +186,3 @@ fn a_rule_disabled_leaves_its_sites_reported_and_the_comparison_fails() {
     assert!(reported > 100, "{}", report.to_text());
     assert!(!differing(&files, &rewritten).is_empty());
 }
-
-/// Every rule of §6.2 has its own test, named after it, and the plan names
-/// every rule.
-#[test]
-fn every_rule_is_tested_and_planned() {
-    let tests = include_str!("../../../tests/convert.rs");
-    let plan = include_str!("../../../../../plans/05-tooling.md");
-    for rule in Rule::ALL {
-        let name = rule.name();
-        assert!(
-            tests.contains(&format!("fn rule_{}(", name.replace('-', "_"))),
-            "no test named rule_{name} in tests/convert.rs"
-        );
-        assert!(
-            plan.contains(&format!("| `{name}` |")),
-            "{name} is not in plans/05 §6.2"
-        );
-    }
-}

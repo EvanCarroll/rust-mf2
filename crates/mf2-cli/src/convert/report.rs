@@ -47,7 +47,8 @@ pub(crate) enum Code {
 
 impl Code {
     /// Every code, errors first.
-    #[cfg(test)]
+    /// (`src/workspace_tests.rs` holds it against the plan.)
+    #[cfg(all(test, mf2_workspace))]
     pub(crate) const ALL: [Code; 30] = [
         Code::Junk,
         Code::MissingReference,

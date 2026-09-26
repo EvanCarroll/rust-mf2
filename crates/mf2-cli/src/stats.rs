@@ -163,31 +163,3 @@ fn entry_name(key: u32) -> &'static str {
         _ => "(unknown)",
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::SPEC_COMMIT;
-
-    /// The pin this crate reports is the one `third_party/` is at.
-    #[test]
-    fn the_spec_commit_is_the_pinned_one() {
-        let pin = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../third_party/message-format-wg/PIN");
-        let Ok(text) = std::fs::read_to_string(&pin) else {
-            // A published crate has no `third_party/`; nothing to compare.
-            return;
-        };
-        let commit = text
-            .lines()
-            .find_map(|l| l.strip_prefix("commit"))
-            .and_then(|l| l.split('=').nth(1))
-            .map(str::trim)
-            .expect("the PIN names a commit");
-        assert_eq!(
-            commit,
-            SPEC_COMMIT,
-            "{} is not what stats reports",
-            pin.display()
-        );
-    }
-}

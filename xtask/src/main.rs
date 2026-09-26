@@ -26,6 +26,7 @@ mod l7_web;
 mod leptos_0_8;
 mod locale_data;
 mod msrv;
+mod package;
 // A test only until `cargo xtask release` (A7) runs it too.
 #[cfg(test)]
 mod packages;
@@ -200,6 +201,19 @@ enum Command {
         #[arg(long)]
         check: bool,
     },
+    /// The 16 published crates' packages (Phase 9, A4): each `.crate` audited
+    /// (every file from its own crate, none a copy of `third_party/`,
+    /// `plans/` or the specification cache, under 10 MB) and its file list
+    /// written as `crates/<name>/package.txt`.
+    Package {
+        /// Compare with the committed lists instead of writing them.
+        #[arg(long)]
+        check: bool,
+        /// Then run the packages' own tests from their unpacked `.crate`
+        /// files, with crates.io patched to them.
+        #[arg(long)]
+        test: bool,
+    },
     /// The MSRV (Phase 9, A3): the 16 published crates checked on the
     /// `rust-version` they state, natively and for wasm32-unknown-unknown,
     /// on both Leptos lines.
@@ -373,6 +387,7 @@ fn run(command: Command) -> Result<()> {
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
         Command::Api { check } => api::run(&root, check),
         Command::Msrv { below } => msrv::run(&root, below),
+        Command::Package { check, test } => package::run(&root, check, test),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

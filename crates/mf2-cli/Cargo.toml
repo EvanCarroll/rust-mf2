@@ -10,6 +10,18 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-cli"
 keywords = ["messageformat", "mf2", "i18n", "cli", "xliff"]
 categories = ["internationalization", "localization", "command-line-utilities"]
+# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
+# A4): the integration tests generate their corpora with `workload-gen`, which
+# is not published, or read `third_party/` and `plans/`; the unit tests that
+# read the repository compile only where they are (`build.rs`). The `.ftl`
+# corpus under `tests/fluent/` stays: `src/convert.rs`'s own tests read it.
+exclude = [
+    "tests/*.rs",
+    "src/workspace_tests.rs",
+    "src/convert/leptos_fluent/tests.rs",
+    # Its own file list (`cargo xtask package`).
+    "package.txt",
+]
 
 [[bin]]
 name = "mf2"

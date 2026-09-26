@@ -9,7 +9,9 @@
 # conformance report, which runs layers L1-L5
 # over the suite, and the published crates' public API held against each
 # crate's committed api.txt — `cargo xtask api --check`, which installs the
-# pinned nightly whose rustdoc JSON it reads through rustup, plans/17 A2), so "green
+# pinned nightly whose rustdoc JSON it reads through rustup, plans/17 A2 — and
+# each package as crates.io would receive it, audited and held against its
+# committed package.txt — `cargo xtask package --check`, plans/17 A4), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain, fetch the MF2 specification text into its
 # cache (it is not vendored — upstream #1112; every job does this first,

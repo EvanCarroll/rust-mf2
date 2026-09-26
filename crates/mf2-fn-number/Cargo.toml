@@ -10,6 +10,13 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-fn-number"
 keywords = ["messageformat", "mf2", "i18n", "number", "currency"]
 categories = ["internationalization", "localization", "value-formatting", "no-std"]
+# Every integration test uses `mf2`, which the package does not carry (the
+# path-only dev-dependency below): they run in the workspace.
+exclude = [
+    "tests/",
+    # Its own file list (`cargo xtask package`).
+    "package.txt",
+]
 
 [features]
 # The `intl` client option (plans/03-runtime.md §2.7, §5.3): on
@@ -24,7 +31,12 @@ mf2-catalog.workspace = true
 mf2-runtime.workspace = true
 
 [dev-dependencies]
-mf2 = { workspace = true, features = ["compile", "host-std"] }
+# Path-only, not the workspace's `=1.0.0`: `mf2` depends on this crate, so
+# a versioned dev-dependency on it is a cycle `cargo package` cannot
+# resolve. Cargo strips a path-only dev-dependency from the package, and
+# the tests that use `mf2` stay in the workspace (`exclude` above;
+# plans/17-phase-9-work-order.md A4).
+mf2 = { path = "../mf2", features = ["compile", "host-std"] }
 mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-locale-data.workspace = true
 mf2-syntax.workspace = true

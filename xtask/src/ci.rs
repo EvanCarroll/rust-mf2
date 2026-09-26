@@ -229,6 +229,11 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     // (Phase 9 A2): a change to it is committed with its listing.
     eprintln!("==> cargo xtask api --check");
     crate::api::run(root, true)?;
+    // What crates.io would receive (Phase 9 A4): each package audited and
+    // its file list against the committed `package.txt`. The packages' own
+    // tests from their `.crate` files (`--test`) are `cargo xtask release`'s.
+    eprintln!("==> cargo xtask package --check");
+    crate::package::run(root, true, false)?;
     eprintln!("==> ci: all steps passed");
     Ok(())
 }

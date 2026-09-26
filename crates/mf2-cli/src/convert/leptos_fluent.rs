@@ -8,7 +8,9 @@
 pub(crate) mod call;
 pub(crate) mod rewrite;
 
-#[cfg(test)]
+// It generates the reference workload with `workload-gen`, which is not
+// published: it runs in the workspace only (`build.rs`).
+#[cfg(all(test, mf2_workspace))]
 mod tests;
 
 use std::collections::BTreeSet;

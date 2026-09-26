@@ -1,0 +1,20 @@
+# The files crates.io receives for this crate (plans/17-phase-9-work-order.md A4). Written by `cargo xtask package`, checked by `cargo xtask ci`; commit it with the change.
+.cargo_vcs_info.json
+Cargo.lock
+Cargo.toml
+Cargo.toml.orig
+LICENSE
+README.md
+api.txt
+src/code.rs
+src/diagnostic.rs
+src/error.rs
+src/json.rs
+src/lib.rs
+src/lines.rs
+src/model.rs
+src/parse.rs
+src/serialize.rs
+tests/generated.rs
+tests/grammar.rs
+tests/json.rs

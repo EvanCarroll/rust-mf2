@@ -123,6 +123,9 @@ similar = "3.2.0"
 # read and written; a dependency of mf2-cli only.
 quick-xml = "0.42.0"
 sha2 = "0.11.0"
+# `cargo xtask package` (plans/17 A4): each `.crate`, read as crates.io
+# receives it.
+tar = "0.4.46"
 # `cargo xtask api` (plans/17 A2): each published crate's public API listed
 # from a pinned nightly's rustdoc JSON, as `cargo public-api` lists it.
 public-api = { version = "0.52.2", default-features = false }

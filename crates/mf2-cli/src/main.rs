@@ -35,6 +35,8 @@ mod listing;
 mod pseudo;
 mod stats;
 mod watch;
+#[cfg(all(test, mf2_workspace))]
+mod workspace_tests;
 
 use std::path::PathBuf;
 use std::process::ExitCode;

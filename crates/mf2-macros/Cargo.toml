@@ -14,6 +14,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-macros"
 keywords = ["messageformat", "mf2", "i18n", "macro", "leptos"]
 categories = ["internationalization", "localization", "development-tools::procedural-macro-helpers"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [lib]
 proc-macro = true

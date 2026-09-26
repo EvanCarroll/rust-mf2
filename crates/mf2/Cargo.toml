@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2"
 keywords = ["messageformat", "mf2", "i18n", "l10n", "leptos"]
 categories = ["internationalization", "localization", "wasm", "web-programming"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [features]
 default = []

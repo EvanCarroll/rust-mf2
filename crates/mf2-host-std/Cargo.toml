@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-host-std"
 keywords = ["messageformat", "mf2", "i18n", "timezone"]
 categories = ["internationalization", "localization"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [dependencies]
 # Named zones (owner decision 1, plans/03 §5.2): the bundled IANA database,

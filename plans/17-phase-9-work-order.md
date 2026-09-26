@@ -419,6 +419,71 @@ of the tree, which a public repository or package cannot carry.
   `hydrate_islands`, `mf2-fn-datetime`'s `Intl`) — docs.rs's feature set
   and `doc(cfg)` are A5's.
 
+## A4 — packages that build from crates.io alone: what was built
+
+* **The dev-dependency cycles** A1 found are broken the one way cargo
+  allows: in `mf2-fn-number`, `mf2-fn-datetime` and `leptos-mf2` the
+  dev-dependency on `mf2` (which depends on each) is path-only, written in
+  the crate's manifest (a path, no version — the one departure from
+  "declared once", commented there). Cargo strips it from the package.
+* **What each package leaves out, and why** — each in its manifest's
+  `exclude`, commented; every one still runs in the workspace:
+  * the integration tests of those three crates, all of which use `mf2`;
+  * `mf2-build`'s tests that build corpora with `workload-gen` (not
+    published; a path-only dev-dependency) — all but `tests/config.rs`;
+  * `mf2-catalog`'s `manifest`, `roundtrip`, `skew` (they read
+    `bench/corpora/`), `mf2-locale-data`'s `table` (it regenerates `data/`
+    from `third_party/cldr-json`);
+  * `mf2-cli`'s integration tests (`workload-gen`, and `xliff.rs` reads
+    `third_party/xliff` and `plans/`), and two unit-test files:
+    `src/workspace_tests.rs` — new: the checks that held report codes and
+    rules against `plans/05-tooling.md` (moved from `convert.rs`,
+    `exchange/xliff.rs` and `leptos_fluent/tests.rs`) and `stats`'s spec
+    commit against the `PIN` (which silently passed when the file was
+    missing; now it is not compiled at all where it cannot run) — and
+    `src/convert/leptos_fluent/tests.rs` (`workload-gen` and its
+    templates). A new `build.rs` sets `cfg(mf2_workspace)` when
+    `src/workspace_tests.rs` is present, and both modules compile only
+    then. `tests/fluent/` stays in the package: `convert.rs`'s own tests
+    read it;
+  * `package.txt` itself, in all 16.
+* **`mf2-fn-datetime`'s front-page example** formatted a date through
+  `mf2`; in the package it could not compile. It now shows the handler and
+  registry with `mf2-runtime` (a dependency), and the complete example —
+  unchanged — moved to the `mf2` facade's front page, under `fn-datetime`.
+* **`cargo xtask package [--check] [--test]`** (`xtask/src/package.rs`):
+  `cargo package --no-verify` of the publishable crates (from `cargo
+  metadata`; A1's test holds them to the 16), then each `.crate` read back
+  and audited: every file from the crate's own directory, the two licence
+  symlinks the only exceptions and each pointing where A1 put it; no file
+  a copy (SHA-256) of anything under `third_party/`, `plans/` or
+  `target/xtask-cache/` (the specification text), `LICENSE-UNICODE` the
+  one expected copy; the `.crate` under crates.io's 10 MB. The file list
+  is `crates/<name>/package.txt`, written, or with `--check` compared
+  naming the lines. `cargo xtask ci` runs `package --check` last (3.6 s).
+  `--test` unpacks every `.crate` into `target/package-test/`, joins them
+  in a workspace of their own with `[patch.crates-io]` standing in for the
+  registry, and runs `cargo test --no-fail-fast --workspace` with the
+  server feature set (`cargo xtask msrv`'s first step, now the shared
+  `msrv::SERVER_FEATURES`) — their own tests against a fresh resolve, as
+  after publishing. It is A7's to run in `release`.
+* **Sizes** (2026-09-25, `cargo xtask package`; printed, not committed —
+  they move with every edit): the largest `.crate` is `mf2-locale-data`,
+  1,377,249 B (7,838,847 B unpacked, of which `data/` 7.3 MB), 14 % of the
+  limit; the next is `mf2-cli`, 88 KB; the rest 6–79 KB.
+* **Shown** (2026-09-25): `package --check --test` green — the 16 audited,
+  their lists unchanged, their own tests passing from the `.crate` files
+  (the first run failed on `mf2-fn-datetime`'s front-page example, above);
+  the moved `mf2-cli` tests run in the workspace (4 in
+  `workspace_tests`). Negative controls: the spec's `syntax.md` copied
+  into `mf2-model`, and a symlink to its `errors.md` added to
+  `mf2-syntax`, refused — "a copy of target/xtask-cache/…/spec/syntax.md",
+  "outside the crate"; an unlisted `notes.md` in `mf2-host-std` refused
+  as `+ notes.md` in its `package.txt`. `cargo publish --workspace
+  --dry-run` green: exactly the 16 packaged, each built against the
+  others in dependency order, the unpublished members skipped. `cargo
+  xtask ci` green with `package --check` as its last step.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -435,7 +500,7 @@ of the tree, which a public repository or package cannot carry.
 - [x] the 16 names verified and every package's metadata complete (A1; `rust-version` comes with A3's measurement)
 - [x] every public item reviewed, listed and documented for 1.0.0; `with_zone` fixed; the unknown-option lint (A2)
 - [x] the version policy written, the MSRV measured and held in CI (A3)
-- [ ] the packages audited and verified from crates.io's point of view (A4)
+- [x] the packages audited and verified from crates.io's point of view (A4)
 - [ ] the documentation builds as docs.rs builds it (A5)
 - [ ] the changelog with 1.0.0 and its known limitations (A6)
 - [ ] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7)

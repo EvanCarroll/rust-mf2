@@ -302,23 +302,4 @@ mod tests {
         let path = Path::new("en/functions.mf2");
         assert_ne!(outputs.get(path), expected.get(path));
     }
-
-    /// Every code of `plans/05-tooling.md` §6.1 has its own test, and the
-    /// plan names every code this crate writes.
-    #[test]
-    fn every_code_is_tested_and_planned() {
-        let tests = include_str!("../tests/convert.rs");
-        let plan = include_str!("../../../plans/05-tooling.md");
-        for code in Code::ALL {
-            let name = code.name();
-            assert!(
-                tests.contains(&format!("fn {}(", name.replace('-', "_"))),
-                "no test named {name} in tests/convert.rs"
-            );
-            assert!(
-                plan.contains(&format!("`{name}`")),
-                "{name} is not in plans/05 §6.1"
-            );
-        }
-    }
 }

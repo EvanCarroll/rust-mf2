@@ -10,6 +10,13 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-locale-data"
 keywords = ["messageformat", "mf2", "i18n", "cldr", "locale"]
 categories = ["internationalization", "localization"]
+# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
+# A4): the drift test regenerates `data/` from `third_party/cldr-json`.
+exclude = [
+    "tests/table.rs",
+    # Its own file list (`cargo xtask package`).
+    "package.txt",
+]
 
 [features]
 # `extract`: regenerate `data/` from the vendored CLDR JSON and, for the

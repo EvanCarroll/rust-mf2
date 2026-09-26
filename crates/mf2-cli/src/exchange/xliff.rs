@@ -755,7 +755,8 @@ pub(crate) enum Finding {
 
 impl Finding {
     /// Every code.
-    #[cfg(test)]
+    /// (`src/workspace_tests.rs` holds it against the plan.)
+    #[cfg(all(test, mf2_workspace))]
     pub(crate) const ALL: [Finding; 6] = [
         Finding::CodeEdited,
         Finding::UnknownCode,
@@ -1326,7 +1327,7 @@ fn owned_id(parts: &[String]) -> Id<'static> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Checks, Finding, export, import, pair_markup, xliff_id};
+    use super::{Checks, export, import, pair_markup, xliff_id};
     use crate::error::Error;
 
     /// Negative control for `xliff-code-edited`: with the comparison of
@@ -1386,18 +1387,5 @@ mod tests {
         assert_eq!(pairs[0], None);
         assert_eq!(pairs[1], Some(4));
         assert_eq!(pairs[6], None);
-    }
-
-    /// Every code is in 05 §6.3's table.
-    #[test]
-    fn every_code_is_in_the_plan() {
-        let plan = include_str!("../../../../plans/05-tooling.md");
-        for f in Finding::ALL {
-            assert!(
-                plan.contains(&format!("**`{}`**", f.code())),
-                "{}",
-                f.code()
-            );
-        }
     }
 }

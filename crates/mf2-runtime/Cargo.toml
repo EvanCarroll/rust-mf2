@@ -10,6 +10,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-runtime"
 keywords = ["messageformat", "mf2", "i18n", "l10n", "formatting"]
 categories = ["internationalization", "localization", "value-formatting", "no-std", "wasm"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
 
 [features]
 # The A/B of owner decision 1 (plans/10 A5b): the numeric code over
