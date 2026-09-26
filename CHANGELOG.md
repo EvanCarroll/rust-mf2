@@ -1,0 +1,116 @@
+# Changelog
+
+Every mf2-two crate is released together, at one version, so this one file
+covers them all. Newest first. What a version number promises is in
+[`docs/versioning.md`](docs/versioning.md); a release that raises the
+minimum Rust version says so here.
+
+## 1.0.0
+
+The first release. Unicode MessageFormat 2 for Leptos: the whole
+specification, one small binary catalog per language loaded when it is
+needed, and a wasm that contains none of the text. 1.0 is a promise: within
+1.x nothing an application uses breaks ([what is promised, and what is
+not](docs/versioning.md)).
+
+### What is in it
+
+* **The whole of MF2**, as the Unicode working group's repository stood at
+  commit `5c4ddb27` (2026-08-31, after the LDML 48.2 tag): the syntax, the
+  data model, formatting, selection, fallback, bidi isolation, markup, the
+  error kinds, and the default functions — `:string`, `:number`,
+  `:integer`, `:offset`, `:percent`, `:currency`, `:unit`, `:datetime`,
+  `:date`, `:time`. The working group's test suite passes at every layer,
+  from the parser to hydrated pages in a browser, and every normative
+  statement of the specification has a test
+  ([`conformance/REPORT.md`](conformance/REPORT.md),
+  [`conformance/COVERAGE.md`](conformance/COVERAGE.md)). Without the
+  number and date features a build formats the rest and reports those
+  functions as unsupported, as MF2 allows; each such case is recorded.
+* **`tr!`**, one macro for text, attributes, props, strings and `const`
+  tables, checked against the messages when the application compiles:
+  arguments, signals, dates, and markup rendered as the elements the call
+  site gives ([call sites](docs/call-sites.md)).
+* **Catalogs, not code.** A build step (`mf2-build`) checks the messages
+  and writes one binary catalog per language and a manifest; the browser
+  downloads one language's catalog when it needs it. No message text, id,
+  argument name or plural rule is in the wasm, so a translation edit leaves
+  it byte-for-byte the same.
+* **Every Leptos delivery mode** ([delivery modes](docs/delivery-modes.md)):
+  server-rendered and hydrated (the default), islands, client-only, and lazy
+  routes. The language switches live, without a reload, or — with
+  `static-locale` — by a cookie and a navigation.
+* **Leptos 0.9** by default and **Leptos 0.8** as an opt-in
+  (`leptos-0-8`), on `leptos-mf2` and `mf2-axum`.
+* **`mf2-axum`**: the reader's language chosen from an ordered list of
+  sources (a cookie, `Accept-Language`, a path prefix), `Content-Language` and
+  `Vary`, and the catalogs served immutable from the server binary
+  ([switching language](docs/switching.md)).
+* **Dates in the reader's time zone**, with no code in the application:
+  the first page re-renders only its dates after hydration and remembers
+  the zone in a cookie, and every later page is rendered in it on the
+  server ([call sites](docs/call-sites.md)).
+* **Localized numbers and dates** from CLDR: symbols, grouping and
+  numbering systems, currencies and units; dates through ICU4X on client
+  and server (`datetime-icu`) or through the browser's
+  `Intl.DateTimeFormat` (`datetime-intl`). The `intl` option formats
+  numbers through the browser's `Intl` too.
+* **The `mf2` command** (`mf2-cli`): `init`, `check` (lints, among them an
+  option a function does not define), `compile`, `fmt`, `stats`, `dump`,
+  `pseudo`, `watch`.
+* **Migration from Fluent**: `mf2 convert --from fluent` for `.ftl` files,
+  and `--from leptos-fluent` for an application — its messages and its call
+  sites in one command
+  ([migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md)).
+* **XLIFF 2** for translators: `mf2 export --format xliff` and
+  `mf2 import`, each file valid against the XLIFF 2.0 core schema.
+* **Accessibility**: `<html lang dir>` follows the language, the switcher
+  is a labelled form, bidi isolation where a person reads the text, and
+  text borrowed from a fallback language can carry its own `lang`
+  (`mark-fallback-lang`) ([accessibility](docs/accessibility.md)).
+* **Minimum Rust version 1.88**, checked in CI on exactly that release.
+
+### Budgets, as measured
+
+The project holds its size and speed to written budgets, gated in CI.
+Exact figures are not part of the 1.x promise: they move with every
+dependency. Each was measured with the command beside it, on 2026-09-25
+unless it says otherwise.
+
+| What | Budget | Measured | Command |
+|---|---|---|---|
+| the library's fixed client cost | ≤ 30 KB gz | 25,875 B gz | `cargo xtask size` |
+| each call site, at the margin | ≤ 40 B gz | 8.4 B gz | `cargo xtask size` |
+| the reference application's i18n, 1,860 call sites | ≤ 30 KB + 40 B a site (105,120 B) | 41,466 B gz | `cargo xtask size` |
+| locale data in the wasm | none | none | `cargo xtask codegen-matrix` |
+| the 1,600-message `en` catalog on the wire | ≤ 23,296 B brotli | 18,072 B | `cargo xtask catalog-size` |
+| `core::fmt` and panic formatting in the client runtime | absent | absent | `bench/b12/check.sh` |
+| an unused function's code in the wasm | absent | absent | `bench/b12/check.sh`, `cargo xtask b12-generated` |
+| a simple message / a one-argument message, native | ≤ 100 / 500 ns | 20–35 / 118–137 ns, `en` (2026-09-21) | `cargo run --release -p runtime-bench -- b10` |
+
+Against `leptos-fluent`, on the same application of 1,600 messages and
+1,860 call sites, measured once
+([`bench/fluent-ab/SNAPSHOT.md`](bench/fluent-ab/SNAPSHOT.md), 2026-09-25):
+a first visit in English downloads 642,980 B gz against 983,963; each
+added language is a 21–27 KB gz catalog for its own readers against
+66,042 B gz more in every visitor's wasm; switching language with 2,000
+translated nodes on the page takes 10.3 ms against 82.4 (Chromium,
+medians).
+
+### Known limitations
+
+* **Leptos 0.9 is a pre-release** (`0.9.0-beta`). 1.0 is published on it;
+  Leptos 0.9's release, and any pre-release before it, is taken in a patch
+  release. Leptos 0.8 is supported through `leptos-0-8`.
+* **The W3C Message Resource format** that `.mf2` files follow is a
+  draft. If it changes, 1.x follows it with `mf2 fmt` able to rewrite
+  files, and does not reject a file 1.0 accepted
+  ([versioning](docs/versioning.md#the-w3c-message-resource-format)).
+* **Browsers tested: Chromium and Firefox.** Every browser check ran in
+  those two; WebKit (Safari) has not been run.
+* **No screen reader has been run** on the examples. The WCAG 2.2 AA audit
+  covered the rest.
+* **A date inside an island** is built and checked when it compiles, but
+  not yet asserted in a browser: no example has one.
+* **Pushing an edited catalog to open pages during development** is not
+  built. A translation edit is picked up by the normal rebuild.

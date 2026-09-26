@@ -6,6 +6,9 @@
 mod api;
 mod b12_generated;
 mod b5;
+// A test only until `cargo xtask release` (A7) runs it too.
+#[cfg(test)]
+mod changelog;
 mod churn;
 mod ci;
 mod cldr_sync;

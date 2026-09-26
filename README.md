@@ -41,8 +41,8 @@ One macro works in every position: text, attributes, props, strings and
 * **No locale data in the wasm**: no message text, ids, argument names or
   plural rules. A translation edit leaves the wasm byte-for-byte the same,
   so readers keep their cached copy. The library's client code costs
-  22,102 bytes gzipped, plus 12.6 bytes a call site: 45,517 bytes for an
-  application with 1,860 call sites (`cargo xtask size`, 2026-09-24).
+  25,875 bytes gzipped, plus 8.4 bytes a call site: 41,466 bytes for an
+  application with 1,860 call sites (`cargo xtask size`, 2026-09-25).
 * **The whole specification**: the MF2 working group's test suite passes at
   every layer, from the parser to the browser, and every normative
   statement has a test ([`conformance/REPORT.md`](conformance/REPORT.md),
@@ -51,16 +51,46 @@ One macro works in every position: text, attributes, props, strings and
   a labelled form that applies a choice on a button, and bidi isolation is
   on where a person reads the text.
 
-**Status:** not released yet, and not on crates.io. Phase 7 of the plan is
-under way (see below).
+**Status:** 1.0.0 is being prepared for crates.io, and is not published yet.
+What it contains, what it measures and its known limitations are in
+[`CHANGELOG.md`](CHANGELOG.md); what 1.x promises is in
+[`docs/versioning.md`](docs/versioning.md).
+
+## Install
+
+Rust 1.88 or later, the browser target, and the `mf2` command:
+
+```sh
+rustup target add wasm32-unknown-unknown
+cargo install mf2-cli             # the `mf2` command
+```
+
+In a Leptos application, `mf2 init` makes the translation crate (it
+depends on `mf2`, and builds with `mf2-build`); the application adds the
+Leptos layer and, for its server, the Axum one:
+
+```sh
+mf2 -C i18n init --name my-app-i18n --locale fr
+cargo add my-app-i18n --path i18n
+cargo add leptos-mf2@1
+cargo add mf2-axum@1 --optional   # turned on by the application's `ssr` feature
+```
+
+Leptos 0.9 is the default; on Leptos 0.8, add both with
+`--no-default-features --features leptos-0-8`.
+[Getting started](docs/getting-started.md) builds a complete application
+step by step. Until 1.0.0 is on crates.io, name the crates by path into a
+checkout of this repository instead.
 
 ## Documentation
 
 [`docs/`](docs/README.md): [getting started](docs/getting-started.md),
 [call sites](docs/call-sites.md), [delivery modes](docs/delivery-modes.md),
-[switching language](docs/switching.md) and
-[accessibility](docs/accessibility.md). CI compiles every code sample in
-these pages (`cargo xtask docs`).
+[switching language](docs/switching.md),
+[accessibility](docs/accessibility.md),
+[migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md) and
+[versions](docs/versioning.md); what changed, [`CHANGELOG.md`](CHANGELOG.md).
+CI compiles every code sample in these pages (`cargo xtask docs`).
 
 The examples: [`examples/demo-ssr`](examples/demo-ssr) (server-rendered,
 with a lazy route), [`examples/demo-islands`](examples/demo-islands) and

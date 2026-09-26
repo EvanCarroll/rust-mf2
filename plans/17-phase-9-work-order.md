@@ -558,6 +558,55 @@ of the tree, which a public repository or package cannot carry.
   `leptos_router`, `mf2-axum`, `mf2-cli`) — cargo's lint, not rustdoc's,
   and not a failure.
 
+## A6 — the changelog and release notes: what was built
+
+* **`CHANGELOG.md`** at the root, one file for the 16 (they are released
+  at one version), newest first. The 1.0.0 entry: what is in it — MF2 at
+  `5c4ddb27` with the suite at every layer and the coverage matrix, `tr!`,
+  catalogs outside the wasm, the four delivery modes, Leptos 0.9 default
+  and 0.8 opt-in, `mf2-axum`, the reader's time zone, CLDR numbers and the
+  two date backends, the `mf2` command, the Fluent converters, XLIFF 2,
+  accessibility, MSRV 1.88; **budgets as measured**, each with its
+  command (B1, B5 and the whole app re-measured for this entry, below;
+  the others their last recorded figure or CI's gate), and the
+  `leptos-fluent` A/B's headline figures from its snapshot; **known
+  limitations** — Leptos 0.9 a beta, the Message Resource format a draft,
+  Chromium and Firefox only (no WebKit), no screen reader, a date in an
+  island not asserted in a browser, and the dev push of an edited catalog
+  not built (owner, 2026-09-24).
+* **Entry headings carry no date:** `## 1.0.0`. The owner publishes when
+  the owner chooses, and the tag `cargo xtask release` prints records the
+  day; a dated heading would have to be edited in the publish step, which
+  A7's clean-tree check forbids.
+* **The check** (`xtask/src/changelog.rs`, test-only until A7's
+  `release` runs it, as A1's `packages.rs` is): the workspace version has
+  exactly one `## <version>` entry, it is the newest (first), and it is
+  not empty. `the_version_has_its_entry` holds the tree; four negative
+  controls — no entry, an empty one, one below a newer entry, one
+  repeated — each refused with its line. Shown on the real tree
+  (2026-09-25): the heading renamed `## 0.9.0` fails the test with
+  "CHANGELOG.md: no `## 1.0.0` entry". (Raising the workspace version
+  instead cannot be shown this way: the `=1.0.0` requirements between our
+  crates stop cargo resolving first.)
+* **The root README:** the status now says 1.0.0 is being prepared and
+  is not published; an **Install** section — the browser target, `cargo
+  install mf2-cli`, `mf2 init`, `cargo add` of the translation crate,
+  `leptos-mf2@1` and `mf2-axum@1` (optional, for `ssr`), the 0.8 flags —
+  with the note to use paths until 1.0.0 is on crates.io; the
+  documentation list gains the migration and versions pages and the
+  changelog. Its figures (B1 22,102 B, 12.6 B a site, 45,517 B) were
+  Phase 7's; updated to this measurement.
+* **Measured for the entry** (2026-09-25, this tree): `cargo xtask size`
+  — B1 25,875 B gz, B5 8.4 B gz a site, 41,466 B gz at 1,860 sites (Phase
+  8's exit gate read 25,835 / 8.4 / 41,506; B1 is fitted from two builds
+  and moves a little between tree states); `cargo xtask catalog-size` —
+  B7 `en` 18,072 B br (unchanged since Phase 2). B10 is Phase 3's
+  recorded figure, dated as such in the entry. No budget moved.
+* **Left for A7:** once the owner has published, three sentences stop
+  being true — the README's status and its "until 1.0.0 is on crates.io"
+  note, and `docs/getting-started.md`'s "Not published yet" box. `release
+  --publish` should print them among its next steps.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -576,7 +625,7 @@ of the tree, which a public repository or package cannot carry.
 - [x] the version policy written, the MSRV measured and held in CI (A3)
 - [x] the packages audited and verified from crates.io's point of view (A4)
 - [x] the documentation builds as docs.rs builds it (A5)
-- [ ] the changelog with 1.0.0 and its known limitations (A6)
+- [x] the changelog with 1.0.0 and its known limitations (A6)
 - [ ] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
 - [ ] `plans/phase-9-results.md` written (A8)
