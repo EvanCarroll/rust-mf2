@@ -75,10 +75,8 @@ thiserror = { version = "2.0.20", default-features = false }
 mf2 = { path = "crates/mf2", version = "=1.0.0" }
 mf2-build = { path = "crates/mf2-build", version = "=1.0.0" }
 mf2-catalog = { path = "crates/mf2-catalog", version = "=1.0.0" }
-mf2-cli = { path = "crates/mf2-cli", version = "=1.0.0" }
 mf2-conformance = { path = "conformance" }
 leptos-mf2 = { path = "crates/leptos-mf2", version = "=1.0.0", default-features = false }
-mf2-axum = { path = "crates/mf2-axum", version = "=1.0.0", default-features = false }
 mf2-fn-number = { path = "crates/mf2-fn-number", version = "=1.0.0" }
 mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=1.0.0" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
@@ -177,8 +175,6 @@ any_spawner = "0.3.0"
 axum = { version = "0.8.9", default-features = false }
 http = "1.5.0"
 leptos_axum = "0.9.0-beta"
-leptos_meta = "0.9.0-beta"
-leptos_router = "0.9.0-beta"
 # The Leptos 0.8 line, an opt-in (04 §10): the same crates under the names
 # the `leptos-0-8` features of leptos-mf2, mf2-axum and the conformance
 # harness turn on, in place of the 0.9 ones above. A crate's root renames
