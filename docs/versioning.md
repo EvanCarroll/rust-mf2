@@ -70,7 +70,10 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
   Each published crate commits the list of what it does promise as
   `api.txt` (`cargo xtask api`), and a change to it fails the project's CI
   until the list is updated with it — which is how a change to the promise
-  is seen and reviewed.
+  is seen and reviewed. From the second release on, each release is also
+  compared with the version before it on crates.io by
+  [cargo-semver-checks](https://crates.io/crates/cargo-semver-checks), and
+  one that breaks it is refused (`cargo xtask release`).
 * **The compiled catalog (`.mf2b`) and the manifest.** They are what a
   build produces and its server and browser read, not a format to keep. A
   server and a client built together agree; the manifest's hash is how

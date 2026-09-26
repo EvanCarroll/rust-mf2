@@ -6,8 +6,6 @@
 mod api;
 mod b12_generated;
 mod b5;
-// A test only until `cargo xtask release` (A7) runs it too.
-#[cfg(test)]
 mod changelog;
 mod churn;
 mod ci;
@@ -31,10 +29,9 @@ mod leptos_0_8;
 mod locale_data;
 mod msrv;
 mod package;
-// A test only until `cargo xtask release` (A7) runs it too.
-#[cfg(test)]
 mod packages;
 mod pin;
+mod release;
 mod report;
 mod scenarios;
 mod size;
@@ -234,6 +231,26 @@ enum Command {
         #[arg(long)]
         below: bool,
     },
+    /// Everything a release needs, checked (Phase 9, A7): the tree clean,
+    /// the changelog, the metadata, the names on crates.io, the public API
+    /// against the published version, `cargo xtask ci`, the packages and
+    /// their own tests, the docs.rs build, the MSRV, and `cargo publish
+    /// --workspace --dry-run`. CI runs it on every change.
+    Release {
+        /// Then publish the 16 with cargo's own stored login. The owner's
+        /// only: refused when `CI` is set. Prints the tag to create; never
+        /// tags or pushes.
+        #[arg(long, conflicts_with_all = ["allow_dirty", "baseline_rev"])]
+        publish: bool,
+        /// Carry on with uncommitted changes (a dry run only), to try one
+        /// before committing it.
+        #[arg(long)]
+        allow_dirty: bool,
+        /// Compare the public API with this git revision instead of the
+        /// published version (`cargo-semver-checks --baseline-rev`).
+        #[arg(long, value_name = "REV")]
+        baseline_rev: Option<String>,
+    },
     /// The reference application migrated from leptos-fluent (Phase 8, A4):
     /// `fluent-view` converted by `mf2 convert --from leptos-fluent`, its
     /// call sites compared with `fluent-converted` byte for byte, finished
@@ -400,6 +417,18 @@ fn run(command: Command) -> Result<()> {
         Command::DocsRs => docs_rs::run(&root),
         Command::Msrv { below } => msrv::run(&root, below),
         Command::Package { check, test } => package::run(&root, check, test),
+        Command::Release {
+            publish,
+            allow_dirty,
+            baseline_rev,
+        } => release::run(
+            &root,
+            &release::Options {
+                publish,
+                allow_dirty,
+                baseline_rev,
+            },
+        ),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

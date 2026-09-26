@@ -56,7 +56,7 @@ pub(crate) struct Presented {
     pub(crate) targets: Vec<String>,
     /// A proc-macro crate, built for the host whatever the target: its
     /// documentation is not under the target's directory.
-    proc_macro: bool,
+    pub(crate) proc_macro: bool,
 }
 
 impl Presented {

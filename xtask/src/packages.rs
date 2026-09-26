@@ -14,10 +14,16 @@
 //! Every one of the 16 states the one `rust-version` (A3): the MSRV
 //! `[workspace.package]` records and `cargo xtask msrv` measures.
 
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
+
 use serde_json::Value;
 
+use crate::cmd::{cargo, run_capture};
+use crate::error::{Error, Result};
+
 /// The crates published to crates.io (D12), and nothing else.
-const PUBLISHED: [&str; 16] = [
+pub(crate) const PUBLISHED: [&str; 16] = [
     "leptos-mf2",
     "mf2",
     "mf2-axum",
@@ -45,8 +51,28 @@ const CLDR_DATA: [&str; 1] = ["mf2-locale-data"];
 /// crates.io's limit on keywords and on categories.
 const MAX_TERMS: usize = 5;
 
+/// `cargo metadata --no-deps` of the workspace.
+pub(crate) fn metadata(root: &Path) -> Result<Value> {
+    let args = ["metadata", "--no-deps", "--format-version", "1"].map(OsStr::new);
+    let out = run_capture(&cargo(), &args, root, &[])?;
+    serde_json::from_slice(&out).map_err(|e| Error::Json {
+        path: PathBuf::from("cargo metadata"),
+        message: e.to_string(),
+    })
+}
+
+/// The version the published crates are released at: `mf2`'s (A1's test
+/// holds the 16 to one).
+pub(crate) fn version(metadata: &Value) -> Option<&str> {
+    metadata["packages"]
+        .as_array()?
+        .iter()
+        .find(|p| p["name"] == "mf2")?["version"]
+        .as_str()
+}
+
 /// Every problem with `metadata` (`cargo metadata --no-deps`), one line each.
-fn problems(metadata: &Value) -> Vec<String> {
+pub(crate) fn problems(metadata: &Value) -> Vec<String> {
     let mut out = Vec::new();
     let empty = Vec::new();
     let packages = metadata["packages"].as_array().unwrap_or(&empty);
@@ -161,14 +187,10 @@ mod tests {
     use serde_json::Value;
 
     use super::{PUBLISHED, problems};
-    use crate::cmd::{cargo, run_capture};
     use crate::fsx::repo_root;
 
     fn metadata() -> Value {
-        let args = ["metadata", "--no-deps", "--format-version", "1"];
-        let args: Vec<&std::ffi::OsStr> = args.iter().map(std::ffi::OsStr::new).collect();
-        let out = run_capture(&cargo(), &args, &repo_root(), &[]).unwrap();
-        serde_json::from_slice(&out).unwrap()
+        super::metadata(&repo_root()).unwrap()
     }
 
     fn package<'m>(metadata: &'m mut Value, name: &str) -> &'m mut Value {

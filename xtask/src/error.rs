@@ -48,6 +48,9 @@ pub(crate) enum Error {
     /// it, warns, or has no front page pointing to the user guide.
     #[error("docs-rs: {0}")]
     DocsRs(String),
+    /// A release check failed, or the publish was refused.
+    #[error("release: {0}")]
+    Release(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

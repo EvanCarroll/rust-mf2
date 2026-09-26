@@ -607,6 +607,86 @@ of the tree, which a public repository or package cannot carry.
   note, and `docs/getting-started.md`'s "Not published yet" box. `release
   --publish` should print them among its next steps.
 
+## A7 — `cargo xtask release`: what was built
+
+* **`cargo xtask release [--publish] [--allow-dirty] [--baseline-rev
+  REV]`** (`xtask/src/release.rs`). In order: (1) **at once**, so one run
+  names every cheap problem — the tree clean (`git status --porcelain`,
+  untracked files included), the version's changelog entry (A6's check,
+  no longer test-only), A1's metadata check (likewise), and the 16 names
+  on crates.io; (2) `package --check` (seconds, so an unaudited file stops
+  the run before the long steps); (3) `cargo-semver-checks`; (4) `cargo
+  xtask ci` (A2's `api --check` among its steps); (5) `package --check
+  --test` (A4: the packages' own tests from their `.crate` files); (6)
+  `docs-rs`; (7) `msrv`; (8) `cargo publish --workspace --dry-run`; (9) the
+  tree as it was at the start. `--publish` then runs `cargo publish
+  --workspace` with cargo's own login, and prints the tag to create and
+  A6's three sentences to update; it never tags or pushes. It refuses
+  when `CI` is set, at all, before anything else; clap refuses it beside
+  `--allow-dirty` or `--baseline-rev`. `--allow-dirty` (a dry run only)
+  reports a dirty tree and carries on, to try a change before committing
+  it; `--baseline-rev` compares the API with a git revision instead of
+  crates.io.
+* **The names:** crates.io's API, one request per name a second apart
+  (its crawler policy), and one for the owners of a taken name; `curl`,
+  as `xliff-sync` fetches; a user agent that names the command and no
+  person. The rule needs no stored login: on the **first release** (no
+  entry below the version's in `CHANGELOG.md`) every name must be free;
+  from the second, `mf2` must carry the previous entry's version, and
+  "ours" is `mf2`'s owners — every other name free (a crate new in the
+  release) or owned by one of them, and no crate may already carry the
+  version.
+* **`cargo-semver-checks` 0.50.0**, pinned, installed by cargo into
+  `target/tools` only when a crate is compared (so not on 1.0.0). Each
+  library crate that has a published version is compared with it, with
+  the features its `[package.metadata.docs.rs]` presents (the table is
+  now the source for `api`, `docs-rs` and this) — `--default-features`
+  plus the list, or `--only-explicit-features` when the table turns the
+  defaults off; left to itself the tool guesses a feature set. Three
+  departures, each found on the first run and each in the code:
+  * `mf2` is compared **without its Leptos layer** (`ssr`,
+    `static-locale`, `mark-fallback-lang`, `leptos-mf2/leptos-0-9`): the
+    tool builds a placeholder crate that depends on the one checked, which
+    cannot pass a dependency's feature ("not allowed to contain slashes"),
+    and without one no Leptos line is named. The layer is `leptos-mf2`'s,
+    re-exported, and compared there; the re-exports are held by `mf2`'s
+    `api.txt`.
+  * `mf2-host-web` is compared **on the host**, not wasm32: the tool runs
+    rustc with `--cap-lints=allow`, which on Rust 1.98 silences the
+    "unsupported crate type" warning cargo's wasm32 probe relies on
+    ("output of --print=file-names missing"; reproduced with plain cargo
+    and `RUSTFLAGS=--cap-lints=allow`). Its host and wasm32 API listings
+    were identical (51 lines, 2026-09-25), and the command refuses the
+    fallback for a crate whose `src/` gates code on the target (a unit
+    test holds `mf2-host-web` to that, with `mf2-runtime` as the control).
+  * `mf2-macros` is skipped with its reason: the tool reads a library's
+    rustdoc JSON, which a proc-macro crate has none of; its promise is the
+    macros' names (`api.txt`) and forms (the `tr!` tests).
+* **CI:** a new job `release` in `ci.yml` runs `cargo xtask release`
+  after `spec-sync --check` (git-ignored, so the tree stays clean). It
+  repeats the `ci`, `msrv` and `docs-rs` jobs' work, so that one command
+  says a commit can be released. It holds no token. No remote exists yet,
+  so the job has not run on a runner.
+* **`docs/versioning.md`** now names `cargo-semver-checks`: from the
+  second release on, a release that breaks the one before is refused.
+* **Shown** (2026-09-25), each refusal once: a **dirty tree** (the
+  uncommitted files listed); a **missing changelog entry** (the heading
+  renamed `## 0.9.0`: "CHANGELOG.md: no `## 1.0.0` entry"); an
+  **unaudited file** (`notes.md` in `mf2-host-std`: "+ notes.md" in its
+  `package.txt`); **`--publish` under `CI=true`** refused before any check;
+  a **taken name**, simulated in unit tests (taken on the first release;
+  owned by someone else later; `mf2` without the previous release; a
+  version already out), since no name of the 16 is taken — the real run
+  found all 16 free; **`cargo-semver-checks`** skipping on 1.0.0 (nothing
+  published) and, with `--baseline-rev HEAD` and `StdHost`'s `Copy` derive
+  removed, refusing `mf2-host-std` alone (`derive_trait_impl_removed`,
+  "semver requires new major version") while the other 13 libraries
+  passed.
+* **The owner's command,** when the owner chooses to publish: `cargo
+  login` once (cargo stores the token), then from a clean checkout of the
+  commit to release, `cargo xtask spec-sync --check && cargo xtask release
+  --publish`.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
