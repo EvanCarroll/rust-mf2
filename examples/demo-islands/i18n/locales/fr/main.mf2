@@ -4,10 +4,8 @@
 app-title = Des îlots, dans toutes les langues
 tagline = Seules les parties interactives de cette page apportent du code.
 server-note = Ce paragraphe est rendu par le serveur et ne coûte rien au wasm.
-
 search-label = Rechercher
 search-placeholder = Rechercher partout
-
 hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
 
 # The element sits in a different place than in English.
@@ -25,6 +23,7 @@ reset = Réinitialiser
 
 [language]
 label = Langue
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Appliquer
 en = English

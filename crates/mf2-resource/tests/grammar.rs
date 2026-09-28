@@ -421,6 +421,97 @@ name = Example
     assert_eq!(ok(&written), r);
 }
 
+// ─────────────────────────── the canonical layout ───────────────────────
+
+/// `mf2 fmt`'s blank lines (owner, 2026-09-27; `plans/05-tooling.md` §6):
+/// one after the frontmatter's `---`, one before a section head and before
+/// a commented entry, and one on each side of a message whose value starts
+/// on its own line. Blank lines anywhere else come out; an entry that only
+/// carries properties follows straight on.
+#[test]
+fn the_canonical_layout_sets_off_the_frontmatter_and_block_messages() {
+    let messy = "\
+@locale en
+---
+a = A
+
+
+b = B
+multi =
+  .input {$n :integer}
+  .match $n
+  one {{one}}
+  * {{other}}
+c = C
+@param $n - A count.
+d = D {$n}
+other =
+  line one
+  line two
+# A comment.
+e = E
+
+[s]
+f = F
+g =
+  x
+  y
+";
+    let canonical = "\
+@locale en
+---
+
+a = A
+b = B
+
+multi =
+  .input {$n :integer}
+  .match $n
+  one {{one}}
+  * {{other}}
+
+c = C
+@param $n - A count.
+d = D {$n}
+
+other =
+  line one
+  line two
+
+# A comment.
+e = E
+
+[s]
+f = F
+
+g =
+  x
+  y
+";
+    let r = ok(messy);
+    let written = serialize(&r).expect("writable");
+    assert_eq!(written, canonical);
+    // The same model, and a fixed point: formatting the output changes
+    // nothing.
+    assert_eq!(ok(&written), r);
+    assert_eq!(serialize(&ok(&written)).expect("writable"), written);
+
+    // A block right after the frontmatter gets one blank line before it,
+    // not two; right after a head it is set off too, as a commented entry
+    // there is.
+    let first = "@locale en\n---\nm =\n  a\n  b\nn = N\n[s]\no =\n  a\n  b\n";
+    let written = serialize(&ok(first)).expect("writable");
+    assert_eq!(
+        written,
+        "@locale en\n---\n\nm =\n  a\n  b\n\nn = N\n\n[s]\n\no =\n  a\n  b\n"
+    );
+    assert_eq!(serialize(&ok(&written)).expect("writable"), written);
+
+    // Without frontmatter nothing is set off at the top.
+    let bare = serialize(&ok("m =\n  a\n  b\n")).expect("writable");
+    assert_eq!(bare, "m =\n  a\n  b\n");
+}
+
 // ───────────────────────────── the value map ────────────────────────────
 
 #[test]

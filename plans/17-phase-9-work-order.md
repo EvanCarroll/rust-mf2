@@ -1261,6 +1261,71 @@ behaviour. Each names what was run.
   not wrong text; a file must keep the name the build gave it. The changelog's
   1.1.0 entry says what was fixed.
 
+## B9 — `mf2 fmt` blank lines: what was built
+
+* **The layout.** `serialize_with` (`mf2-resource/src/serialize.rs`)
+  writes one blank line after the frontmatter's `---` and one on each side
+  of an entry whose value starts on its own line (under its `=`), on top of
+  those it already wrote (before a section head, a commented entry and a
+  detached comment). A block right after a section head is set off from it
+  too, as a commented entry already was. Every other blank line still
+  goes. `mf2 convert`, `import` and `pseudo` write through it, so they
+  write the same layout. `bench/workload-gen`'s `write_file` matches (it
+  already had the blank after `---`; it gained the ones around a
+  `.match`). The decision is recorded in 05 **§6** ("Three details the
+  implementation settled") — where fmt's form is described; owner
+  question 13 and the B9 row say §5, which is the lints.
+* **Tests.** `mf2-resource`'s `grammar.rs` gained
+  `the_canonical_layout_sets_off_the_frontmatter_and_block_messages`: a
+  messy file to an exact canonical text (every new blank line, the old
+  ones, and blanks that go), the same model back, and fmt of fmt's output
+  unchanged; a block right after `---` and after a head; no blank at the
+  top without frontmatter. The existing round trips (`generated.rs`, the
+  `resource` fuzz target's property) hold as they were.
+* **The docs gate.** `cargo xtask docs` (and so `ci`, which runs it with
+  `--no-build`) writes each `mf2` block of the pages to
+  `target/docs/fmt/<page>-<line>.mf2` and runs `mf2 fmt --check` on them;
+  a refusal names each block (`page:line`) and its first line that
+  differs from fmt's. After the applications are assembled it runs `mf2
+  fmt --check` on their `.mf2` files as well. For those to pass, a file's
+  blocks are now joined as fmt lays a file out (`join_mf2`: a blank line
+  only before a head or a comment, after `---`, and around a block
+  message); the `"\n"` join had put a blank line between `published` and
+  `starts` in `calls`' English file.
+* **Shown** (2026-09-27). With the new serializer and the book as it was:
+  2 of the 20 blocks refused (`call-sites.md:273`, `accessibility.md:43`:
+  a `.match` straight after its section head), and 1 of the 15 assembled
+  files (`calls/…/en/main.mf2`, the join). Both blocks reformatted (a blank
+  line each, no prose touched): `cargo xtask docs --no-build` → `mf2 fmt:
+  0 of 15 file(s) would change`. **Seeded:** the blank line after `---`
+  removed from `getting-started.md`'s English block → exit 1, `mf2 fmt
+  --check refuses 1 of the pages' mf2 blocks / docs/getting-started.md:188
+  … line 3, the page: app-title = Hello, MessageFormat 2 / line 3, mf2 fmt:
+  (blank)`; restored. `cargo xtask ci` green (one earlier run failed
+  `mf2-catalog`'s timing test `adversarial_catalogs_in_linear_time`, 9.1 >
+  8 under load, untouched here; alone it passed, and the next full run
+  was green); `cargo xtask docs` green, every sample compiled.
+* **The committed `.mf2` files.** `mf2 fmt --check` over `bench/churn`,
+  the three examples' `i18n/locales`, `tools/i18n-fixture` (and its
+  variants) and the converter's expected output: 12 of 23 would change —
+  the converter's three `en` files (the new blanks) and all nine example
+  files (the new blanks, and grouping blank lines fmt removes; the
+  examples' messages are unchanged). Rewritten with `mf2 fmt`; then 0 of
+  23. `bench/corpora/` holds JSON (message sources), not `.mf2`: the
+  corpus from it is generated, and `mf2-cli`'s
+  `fmt_leaves_the_generated_corpus_alone` runs fmt on the reference
+  workload as generated now — `0 of 72 file(s) would change`. The XLIFF
+  test's inline `en`/`pl` fixtures took the new layout (its `fmt --check`
+  after an import had failed on the untouched `en`).
+* **`docs/versioning.md`** promises "the resource format as `mf2 fmt`
+  writes it: a `.mf2` file that 1.0 accepts, 1.x accepts, with the same
+  meaning". That holds: every file 1.0 accepted still parses to the same
+  model. What changed is the layout fmt writes, so a project with `mf2
+  fmt --check` in CI sees its 1.0-formatted files reported after the
+  upgrade until it runs `mf2 fmt` once. The changelog says so; whether
+  versioning.md should say that fmt's *layout* may change in a minor is
+  B10's word to add (not edited here).
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

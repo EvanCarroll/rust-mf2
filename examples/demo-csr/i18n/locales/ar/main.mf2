@@ -2,11 +2,10 @@
 ---
 
 app-title = صفحة بلا خادم
-tagline = تُبنى هذه الصفحة في متصفحك، باللغة التي اخترتها آخر مرة.
-
+tagline = تُبنى هذه الصفحة في متصفحك، باللغة \
+  التي اخترتها آخر مرة.
 search-label = بحث
 search-placeholder = ابحث في كل شيء
-
 hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
 
 people-online =
@@ -20,17 +19,17 @@ people-online =
   *    {{{$count} شخص هنا}}
 
 published = نشر في {$when :datetime dateLength=long}
-
 add-one = أضف واحدا
 reset = إعادة تعيين
-
 note-label = ملاحظة:
+
 # `untranslated` is missing here on purpose (see `en`): the catalog borrows
 # it from English, which is what `mark-fallback-lang` marks. `mf2 check`
 # reports it as `missing-translation`, a warning.
 
 [language]
 label = اللغة
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = تطبيق
 en = English

@@ -4,13 +4,11 @@
 app-title = جزر، بأي لغة
 tagline = الأجزاء التفاعلية وحدها من هذه الصفحة تحمل شيفرة.
 server-note = تُعرض هذه الفقرة على الخادم ولا تكلّف الـ wasm شيئا.
-
 search-label = بحث
 search-placeholder = ابحث في كل شيء
-
 hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
-
-island-note = العداد أدناه {#em}جزيرة{/em}: يُفعَّل وحده، أما بقية الصفحة فلا.
+island-note = العداد أدناه {#em}جزيرة{/em}: يُفعَّل \
+  وحده، أما بقية الصفحة فلا.
 
 people-online =
   .input {$count :integer}
@@ -27,6 +25,7 @@ reset = إعادة تعيين
 
 [language]
 label = اللغة
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = تطبيق
 en = English

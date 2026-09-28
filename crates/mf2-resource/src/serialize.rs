@@ -1,8 +1,10 @@
 //! The serializer: a [`Resource`] back to canonical resource source.
 //!
 //! The output is laid out the way `mf2 fmt` writes a file — one blank line
-//! before a section head and before any entry that carries a comment or a
-//! property — and reads back as the same model, so
+//! after the frontmatter's `---`, before a section head, before an entry
+//! that carries a comment, and on both sides of an entry whose value starts
+//! on its own line (a multi-line message) — and reads back as the same
+//! model, so
 //! `parse(&serialize(&r)) == r` (equality ignores spans; see
 //! [`crate::model`]).
 
@@ -59,12 +61,17 @@ pub fn serialize_with<V: AsRef<str>>(
     style: &Style,
 ) -> Result<String, Error> {
     let mut out = String::new();
+    // Whether the next entry is set off by a blank line: after the
+    // frontmatter, and after a message laid out as a block. A section head
+    // and a detached comment always are.
+    let mut gap = false;
     if resource.comment.is_some() || !resource.meta.is_empty() {
         write_comment(&mut out, resource.comment.as_ref())?;
         for meta in &resource.meta {
             write_meta(&mut out, meta, style)?;
         }
         out.push_str("---\n");
+        gap = true;
     }
     for section in &resource.sections {
         if let Some(head) = &section.head {
@@ -76,6 +83,7 @@ pub fn serialize_with<V: AsRef<str>>(
             out.push('[');
             head.id.write_canonical(&mut out)?;
             out.push_str("]\n");
+            gap = false;
         }
         for (i, entry) in section.entries.iter().enumerate() {
             for detached in section.detached.iter().filter(|d| d.before == i) {
@@ -83,21 +91,24 @@ pub fn serialize_with<V: AsRef<str>>(
                 write_comment(&mut out, Some(&detached.comment))?;
                 out.push('\n');
             }
-            // A blank line sets a comment off from what came before it; an
+            let value = entry.value.as_ref();
+            let block = starts_on_its_own_line(value);
+            // A blank line sets a comment off from what came before it, and
+            // a message laid out as a block from both its neighbours; an
             // entry that only carries properties follows straight on, since
             // the properties are part of it.
-            if entry.comment.is_some() {
+            if gap || block || entry.comment.is_some() {
                 blank_line(&mut out);
             }
+            gap = block;
             write_comment(&mut out, entry.comment.as_ref())?;
             for meta in &entry.meta {
                 write_meta(&mut out, meta, style)?;
             }
             entry.id.write_canonical(&mut out)?;
-            let value = entry.value.as_ref();
             if value.is_empty() {
                 out.push_str(" =\n");
-            } else if starts_on_its_own_line(value) {
+            } else if block {
                 // A value with line breaks in it reads better with every
                 // line at the same indent, so it starts below the `=`. The
                 // first line of such a value contributes nothing, which is

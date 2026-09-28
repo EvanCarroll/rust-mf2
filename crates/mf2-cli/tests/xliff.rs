@@ -78,6 +78,7 @@ fn scratch(name: &str) -> PathBuf {
 const EN: &str = "\
 @locale en
 ---
+
 hello = Hello, {$name}!
 
 # The count of files in the folder.
@@ -87,22 +88,27 @@ files =
   .match $count
   one {{{$count} file}}
   *   {{{$count} files}}
+
 @do-not-translate
 brand = Chattyness
 
 [inbox]
+
 new =
   .input {$count :integer}
   .match $count
   one {{{$count} new message}}
   *   {{{$count} new messages}}
+
 bold = Press {#b}here{/b} now
 ";
 
 const PL: &str = "\
 @locale pl
 ---
+
 hello = Cześć, {$name}!
+
 files =
   .input {$count :integer}
   .match $count

@@ -283,12 +283,14 @@ library runs one effect for the node, and that effect reads the signal.
 
 ```mf2 file=calls/i18n/locales/en/main.mf2
 [cart]
+
 items =
   .input {$count :integer}
   .match $count
   0   {{Your cart is empty}}
   one {{One item in your cart}}
   *   {{{$count} items in your cart}}
+
 add = Add an item
 ```
 

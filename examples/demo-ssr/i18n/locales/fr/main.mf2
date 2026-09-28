@@ -3,10 +3,8 @@
 
 app-title = MessageFormat 2 pour Leptos
 tagline = Une macro. Toutes les positions. Aucune donnée de langue dans le wasm.
-
 search-placeholder = Rechercher partout
 search-label = Rechercher
-
 greeting = Bonjour {$name} !
 message-label = Message
 
@@ -20,17 +18,13 @@ people-online =
 # The element lands in a different place than in English, which is the whole
 # point of markup.
 hotkey = Pour fermer la boîte de dialogue, appuyez sur {#kbd}Échap{/kbd}
-
 published = Publié le {$when :datetime dateLength=long}
-
 add-one = Ajouter un
 reset = Réinitialiser
 typed-nothing = Vous n'avez encore rien saisi
 typed = Vous avez saisi {$typed}
 echo-label = Saisissez quelque chose
-
 not-found = Cette page n'existe pas.
-
 note-label = Remarque :
 untranslated = Cette phrase n'a pas encore été traduite dans toutes les langues.
 
@@ -50,6 +44,7 @@ presses = Appuis : {$count :integer}
 
 [language]
 label = Langue
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Appliquer
 en = English

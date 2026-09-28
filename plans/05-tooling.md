@@ -516,7 +516,17 @@ settled:
   *before* the word that would pass the width; a value with line breaks starts
   under its `=` with every line at one indent and is never wrapped, since its
   line structure is the message's; and a blank line sets a comment off, not a
-  bare property.
+  bare property. **Blank lines (owner, 2026-09-27; Phase 9 B9)**: fmt also
+  keeps one after the frontmatter's `---` and one on each side of a message
+  whose value starts under its `=` (a multi-line message — a `.match`), a
+  section head included. Why: fmt's form had dropped both, and the user
+  guide's own files, written for a reader, had both — 13 of its 15 would
+  have changed. The owner chose to make fmt keep the blank lines that help a
+  reader rather than make the book adopt the denser form. Every other blank
+  line still goes: a blank line is layout, never meaning, and grouping by
+  blank lines is what comments and sections are for. `bench/workload-gen`
+  writes the same layout, and `cargo xtask docs` runs `mf2 fmt --check` on
+  every `mf2` block of the book and on the files the blocks make.
 * **`watch` polls modification times** (300 ms by default) rather than
   subscribing to the operating system's file events: a corpus is a few hundred
   files, and nothing then has to know about inotify, kqueue or the editors

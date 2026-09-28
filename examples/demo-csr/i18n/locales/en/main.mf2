@@ -6,7 +6,6 @@
 
 app-title = A page with no server
 tagline = This page is built in your browser, in the language you chose last time.
-
 search-label = Search
 search-placeholder = Search everything
 
@@ -22,7 +21,6 @@ people-online =
 
 # A date, in the reader's time zone: the browser's, read at mount.
 published = Published {$when :datetime dateLength=long}
-
 add-one = Add one
 reset = Reset
 
@@ -34,6 +32,7 @@ untranslated = This sentence has not been translated into every language yet.
 
 [language]
 label = Language
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Apply
 en = English

@@ -44,6 +44,7 @@ lists both. Its samples join the [call sites](call-sites.md) library.
 
   ```mf2 file=calls/i18n/locales/en/main.mf2
   [results]
+
   count =
     .input {$n :integer}
     .match $n

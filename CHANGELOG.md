@@ -103,6 +103,12 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   `content_hash` (feature `content-hash`, which `mf2-build` shares); the
   web client, whose catalogs come from its own server or build, does not
   compute it.
+* **Changed: `mf2 fmt` keeps a blank line after the frontmatter's `---`
+  and on both sides of a message laid out on lines of its own** (a
+  `.match`, or any value written under its `=`). Files keep their meaning;
+  run `mf2 fmt` once, or `mf2 fmt --check` in CI reports the files 1.0
+  formatted. `mf2 convert`, `mf2 import` and `mf2 pseudo` write the same
+  layout.
 
 ## 1.0.0
 

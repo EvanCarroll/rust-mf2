@@ -3,10 +3,8 @@
 
 app-title = MessageFormat 2 لـ Leptos
 tagline = ماكرو واحد. كل المواضع. لا بيانات لغوية في الـ wasm.
-
 search-placeholder = ابحث في كل شيء
 search-label = بحث
-
 greeting = مرحبا يا {$name}!
 message-label = الرسالة
 
@@ -21,18 +19,15 @@ people-online =
   *    {{{$count} شخص هنا}}
 
 hotkey = اضغط {#kbd}Esc{/kbd} لإغلاق مربع الحوار
-
 published = نشر في {$when :datetime dateLength=long}
-
 add-one = أضف واحدا
 reset = إعادة تعيين
 typed-nothing = لم تكتب شيئا بعد
 typed = لقد كتبت {$typed}
 echo-label = اكتب شيئا
-
 not-found = هذه الصفحة غير موجودة.
-
 note-label = ملاحظة:
+
 # `untranslated` is missing here on purpose (see `en`): the catalog borrows
 # it from English, which is what `mark-fallback-lang` marks. `mf2 check`
 # reports it as `missing-translation`, a warning.
@@ -46,13 +41,15 @@ lazy = مسار مؤجل
 page-title = مسار مؤجل · MessageFormat 2 لـ Leptos
 heading = مسار في جزء مستقل
 title = وصل رمزه عندما فتحته
-body = رمز هذه الصفحة {#strong}ملف wasm منفصل{/strong}، يُجلب في الطريق إليها.
+body = رمز هذه الصفحة {#strong}ملف wasm \
+  منفصل{/strong}، يُجلب في الطريق إليها.
 locale-label = اللغة المعروضة
 press = اضغط
 presses = مرات الضغط: {$count :integer}
 
 [language]
 label = اللغة
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = تطبيق
 en = English

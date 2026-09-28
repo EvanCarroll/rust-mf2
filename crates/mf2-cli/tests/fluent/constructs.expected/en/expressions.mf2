@@ -1,5 +1,6 @@
 @locale en
 ---
+
 text-escapes = Braces, backslashes and a leading dot: \{, \\ and \}
 leading-dot = {{.hidden}}
 leading-space = \  two spaces

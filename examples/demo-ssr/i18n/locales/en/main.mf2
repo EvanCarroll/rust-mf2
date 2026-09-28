@@ -7,10 +7,8 @@
 
 app-title = MessageFormat 2 for Leptos
 tagline = One macro. Every position. No locale data in the wasm.
-
 search-placeholder = Search everything
 search-label = Search
-
 greeting = Hello, {$name}!
 message-label = Message
 
@@ -23,15 +21,12 @@ people-online =
 # Markup: the sentence keeps its own word order and the element goes where
 # this locale wants it.
 hotkey = Press {#kbd}Esc{/kbd} to close the dialog
-
 published = Published {$when :datetime dateLength=long}
-
 add-one = Add one
 reset = Reset
 typed-nothing = You have not typed anything yet
 typed = You typed {$typed}
 echo-label = Type something
-
 not-found = This page does not exist.
 
 # Left untranslated in `ar` on purpose: the Arabic catalog borrows it from
@@ -52,6 +47,7 @@ heading = A route in its own chunk
 title = Its code arrived when you opened it
 body = This page's code is a {#strong}separate wasm file{/strong}, fetched on the way here.
 locale-label = Rendered in
+
 # A counter: the chunk's own event handler and reactive text, which must
 # work whether the route was loaded directly or reached by a link.
 press = Press
@@ -59,6 +55,7 @@ presses = Presses: {$count :integer}
 
 [language]
 label = Language
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Apply
 en = English

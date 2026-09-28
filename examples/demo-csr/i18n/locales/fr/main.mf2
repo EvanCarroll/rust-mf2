@@ -3,7 +3,6 @@
 
 app-title = Une page sans serveur
 tagline = Cette page est construite dans votre navigateur, dans la langue choisie la dernière fois.
-
 search-label = Rechercher
 search-placeholder = Rechercher partout
 
@@ -18,15 +17,14 @@ people-online =
   *    {{{$count} personnes sont ici}}
 
 published = Publié le {$when :datetime dateLength=long}
-
 add-one = Ajouter un
 reset = Réinitialiser
-
 note-label = Remarque :
 untranslated = Cette phrase n'a pas encore été traduite dans toutes les langues.
 
 [language]
 label = Langue
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Appliquer
 en = English

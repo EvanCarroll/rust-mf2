@@ -32,6 +32,10 @@
 //! conversion that leaves work for a person exits 1, which is what the page
 //! explains next.
 //!
+//! Every `mf2` block, each read as a file of its own, must be in `mf2
+//! fmt`'s form: `mf2 fmt --check` runs on copies of them under
+//! `target/docs/fmt` before anything is assembled.
+//!
 //! The applications are assembled under `target/docs/projects`, their
 //! dependencies on this repository's crates pointed at the working tree (the
 //! pages write them as the first release will publish them), and each is
@@ -251,10 +255,25 @@ pub(crate) fn run(root: &Path, build: bool) -> Result<()> {
     let mf2 = root.join("target/debug/mf2");
 
     let out = root.join("target/docs");
+    check_mf2_form(&out.join("fmt"), &blocks, &mf2)?;
     let projects = out.join("projects");
     fsx::remove(&projects)?;
     for project in PROJECTS {
         assemble(root, &projects, project, &blocks, &mf2)?;
+    }
+    // And the files the blocks make, blocks joined and `mf2 convert`'s
+    // output included: what a reader who follows the pages ends up with.
+    eprintln!("==> mf2 fmt --check on the applications' .mf2 files");
+    let status = std::process::Command::new(&mf2)
+        .args(["fmt", "--check"])
+        .arg(&projects)
+        .status()
+        .map_err(|e| fail(format!("`mf2 fmt --check` did not run: {e}")))?;
+    if !status.success() {
+        return Err(fail(format!(
+            "the applications' .mf2 files, assembled under {}, are not in `mf2 fmt`'s form (above)",
+            projects.display()
+        )));
     }
     let compiled = blocks.iter().filter(|b| b.file.is_some()).count();
     let commands = blocks.iter().filter(|b| b.run.is_some()).count();
@@ -504,6 +523,68 @@ fn validate(blocks: &[Block]) -> Result<()> {
     Ok(())
 }
 
+/// Every `mf2` block is in `mf2 fmt`'s form (owner, 2026-09-27;
+/// `plans/17-phase-9-work-order.md` B9): what a reader copies from the book
+/// is what `mf2 fmt --check` accepts. Each block is checked as a file of its
+/// own — a block that continues a file shown earlier is read without what
+/// came before it, which is how a reader meets it.
+fn check_mf2_form(dir: &Path, blocks: &[Block], mf2: &Path) -> Result<()> {
+    fsx::remove(dir)?;
+    let mut shown = Vec::new();
+    for block in blocks.iter().filter(|b| b.lang == "mf2") {
+        let name = format!(
+            "{}-{}.mf2",
+            block.page.trim_start_matches("docs/").replace('/', "-"),
+            block.line
+        );
+        fsx::write(&dir.join(&name), block.text.as_bytes())?;
+        shown.push((name, block));
+    }
+    if shown.is_empty() {
+        return Ok(());
+    }
+    eprintln!(
+        "==> mf2 fmt --check on the {} mf2 blocks of the pages",
+        shown.len()
+    );
+    let check = std::process::Command::new(mf2)
+        .args(["fmt", "--check"])
+        .arg(dir)
+        .output()
+        .map_err(|e| fail(format!("`mf2 fmt --check` did not run: {e}")))?;
+    if check.status.success() {
+        return Ok(());
+    }
+    // Say which blocks, and where each first departs from the form: `mf2
+    // fmt` rewrites the copies, which are compared with the pages' text.
+    let refused = String::from_utf8_lossy(&check.stderr).into_owned();
+    let _ = std::process::Command::new(mf2).arg("fmt").arg(dir).output();
+    let mut report = String::new();
+    for (name, block) in &shown {
+        let formatted = fsx::read_to_string(&dir.join(name))?;
+        if formatted != block.text {
+            let _ = write!(
+                report,
+                "\n{}: not in `mf2 fmt`'s form\n{}",
+                block.at(),
+                diff(&block.text, &formatted).replace("the file:", "mf2 fmt: ")
+            );
+        }
+    }
+    Err(fail(format!(
+        "`mf2 fmt --check` refuses {} of the pages' mf2 blocks{report}{}",
+        String::from_utf8_lossy(&check.stdout)
+            .lines()
+            .filter(|l| l.starts_with("would format"))
+            .count(),
+        if refused.trim().is_empty() {
+            String::new()
+        } else {
+            format!("\n{}", refused.trim())
+        }
+    )))
+}
+
 fn commands(block: &Block) -> impl Iterator<Item = &str> {
     block
         .text
@@ -582,11 +663,15 @@ fn assemble(
         }
     }
     for (path, parts) in files {
-        let text = parts
-            .iter()
-            .map(|b| b.text.as_str())
-            .collect::<Vec<_>>()
-            .join("\n");
+        let text = if has_extension(path, "mf2") {
+            join_mf2(&parts)
+        } else {
+            parts
+                .iter()
+                .map(|b| b.text.as_str())
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
         let target = dir.join(path);
         let merged = parts.iter().filter(|b| b.merge).count();
         if merged != 0 {
@@ -657,6 +742,66 @@ fn assemble(
         }
     }
     Ok(())
+}
+
+/// The blocks of one `.mf2` file, joined the way `mf2 fmt` lays a file out:
+/// a blank line between two blocks only where fmt keeps one — before a
+/// section head or a comment, and on either side of a message whose value
+/// starts on its own line. Each block is in fmt's form already
+/// ([`check_mf2_form`]), so the file is too; `assemble` checks it.
+fn join_mf2(parts: &[&Block]) -> String {
+    let mut text = String::new();
+    for part in parts {
+        let after_frontmatter = text.ends_with("\n---\n") || text == "---\n";
+        if !text.is_empty()
+            && (after_frontmatter || ends_in_block(&text) || starts_set_off(&part.text))
+        {
+            text.push('\n');
+        }
+        text.push_str(&part.text);
+    }
+    text
+}
+
+/// Whether the entry line `line`, followed by `rest`, starts a value on the
+/// next line: `id =` and an indented line after it.
+fn is_block_entry<'a>(line: &str, mut rest: impl Iterator<Item = &'a str>) -> bool {
+    line.trim_end().ends_with(" =")
+        && rest
+            .next()
+            .is_some_and(|next| next.starts_with(char::is_whitespace) && !next.trim().is_empty())
+}
+
+/// Whether a block's text opens with what fmt sets off from what precedes it.
+fn starts_set_off(text: &str) -> bool {
+    let mut lines = text.lines().skip_while(|l| l.trim().is_empty());
+    while let Some(line) = lines.next() {
+        if line.starts_with('[') || line.starts_with('#') {
+            return true;
+        }
+        // A property belongs to the entry after it.
+        if !line.starts_with('@') {
+            return is_block_entry(line, lines);
+        }
+    }
+    false
+}
+
+/// Whether text ends with a message whose value starts on its own line.
+fn ends_in_block(text: &str) -> bool {
+    let lines: Vec<&str> = text.lines().collect();
+    let Some(last) = lines.iter().rposition(|l| {
+        !l.trim().is_empty()
+            && !l.starts_with(char::is_whitespace)
+            && !l.starts_with(['#', '@', '['])
+    }) else {
+        return false;
+    };
+    // Only continuation lines after it: the value is the file's last.
+    lines[last + 1..]
+        .iter()
+        .all(|l| l.starts_with(char::is_whitespace) && !l.trim().is_empty())
+        && is_block_entry(lines[last], lines[last + 1..].iter().copied())
 }
 
 fn has_extension(path: &str, extension: &str) -> bool {

@@ -16,12 +16,18 @@
 //! send = Send
 //! long = A long value is wrapped with an escaped line break \
 //!   and the continuation's indentation is removed.
+//!
 //! select =
 //!   .input {$count :integer}
 //!   .match $count
 //!   one {{…}}
 //!   * {{…}}
+//!
+//! after = A blank line closes a message laid out as a block.
 //! ```
+//!
+//! This is `mf2 fmt`'s canonical layout (plans/05-tooling.md §6), so `mf2 fmt
+//! --check` finds nothing to change in a generated corpus.
 //!
 //! Comments are sized so that they make up 60 % of the source locale's bytes
 //! (plans/06 §2); every locale carries the same (English) comments.
@@ -165,12 +171,19 @@ pub fn write_file(
             out.push_str(head);
             out.push_str("]\n");
         }
+        // Whether the previous message was a block (a value with line
+        // breaks, written under its `=`), which a blank line closes.
+        let mut after_block = false;
         for &j in &section.messages {
             let message = &wl.messages[j];
+            let block = sources[j].contains('\n');
+            // A blank line before a comment and on both sides of a block —
+            // `mf2 fmt`'s layout (plans/05-tooling.md §6).
+            if (after_block || block || comments.entries[j].is_some()) && !out.ends_with("\n\n") {
+                out.push('\n');
+            }
+            after_block = block;
             if let Some(lines) = &comments.entries[j] {
-                if !out.ends_with("\n\n") {
-                    out.push('\n');
-                }
                 write_comment(&mut out, lines);
             }
             for (v, var) in message.vars.iter().enumerate() {

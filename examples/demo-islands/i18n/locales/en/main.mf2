@@ -8,7 +8,6 @@
 app-title = Islands, in any language
 tagline = Only the interactive parts of this page ship code.
 server-note = This paragraph is rendered on the server and costs the wasm nothing.
-
 search-label = Search
 search-placeholder = Search everything
 
@@ -30,6 +29,7 @@ reset = Reset
 
 [language]
 label = Language
+
 # The switcher's button: a choice applies only when it is pressed.
 apply = Apply
 en = English

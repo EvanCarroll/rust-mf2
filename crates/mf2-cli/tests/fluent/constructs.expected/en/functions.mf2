@@ -1,5 +1,6 @@
 @locale en
 ---
+
 number-plain = {$n :number}
 number-options = {$n :number minimumIntegerDigits=2 minimumFractionDigits=1 maximumFractionDigits=3 minimumSignificantDigits=1 maximumSignificantDigits=5}
 number-grouping = {$n :number useGrouping=never} {$n :number}
