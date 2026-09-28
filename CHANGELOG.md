@@ -61,6 +61,11 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
 * **`TrDyn::new`**, a public constructor for a message whose id is known
   only at run time (`msg_id!("…")`) and whose arguments arrive by name —
   for a tool or a server. `tr!` stays the form a page uses.
+* **Fixed: no `<span lang>` inside an element that holds only text.**
+  Under `mark-fallback-lang`, a borrowed message in a `<textarea>`,
+  `<title>`, `<option>`, `<script>` or `<style>` showed the span's markup
+  as characters. It is now written unmarked there, on the server and in
+  the browser.
 
 ## 1.0.0
 

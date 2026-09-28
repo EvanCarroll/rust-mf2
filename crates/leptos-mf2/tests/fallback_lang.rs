@@ -120,6 +120,32 @@ fn text_around_a_wrapped_message_separates_as_around_an_unwrapped_one() {
     );
 }
 
+/// An element whose content is text, never markup, shows a span as its
+/// characters (`<textarea>`, `<title>`, `<option>`) or runs it (`<script>`,
+/// `<style>`): a borrowed message there is written unmarked (Phase 9 B6).
+#[test]
+fn a_text_only_element_gets_no_span() {
+    let fr = catalog("Save", "fr", Dir::Ltr, Some("en"));
+    let html = in_request(&fr, || {
+        RenderHtml::to_html(view! {
+            <div>
+                <textarea name="t">{tr(ID)}</textarea>
+                <select><option value="s">{tr(ID)}</option></select>
+                <p>{tr(ID)}</p>
+            </div>
+        })
+    });
+    assert_eq!(
+        html,
+        "<div><textarea name=\"t\">Save</textarea><select><option value=\"s\">Save</option></select>\
+         <p><span lang=\"en\">Save</span></p></div>"
+    );
+    let title = in_request(&fr, || {
+        RenderHtml::to_html(view! { <title>{tr(ID)}</title> })
+    });
+    assert_eq!(title, "<title>Save</title>");
+}
+
 /// An empty borrowed text writes the single space tachys writes for any
 /// empty text, inside the span, so hydration has a text node to adopt.
 #[test]

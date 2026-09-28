@@ -1057,6 +1057,28 @@ behaviour. Each names what was run.
   `msg_id!("signature.text")` from data and formatting it with
   `to_plain_string()`.
 
+## B6 — no fallback span in text-only elements: what was built
+
+* **Server:** `html_marked` (`glue/view.rs`) writes a borrowed message
+  unmarked when it is the first child of `textarea`, `title`, `option`,
+  `script` or `style` — the tag read back from what was just written
+  (`lang::open_tag`: the buffer ends with `>`, the name after the last
+  `<`). Only the first child is checked, as the row says; a borrowed
+  message after another text in such an element would still be wrapped
+  (not seen in any sample).
+* **Client:** `Wrapper::fit` adds no span around a text mounted in such an
+  element, and `TrState::mount` (through `Wrapper::mount_into`) removes the
+  span a text built unmounted was fitted with when its parent is one. A
+  switch then keeps it unmarked.
+* **Tests:** `tests/fallback_lang.rs`'s `a_text_only_element_gets_no_span`
+  (a `<textarea>`, an `<option>` and a `<title>` unmarked; a `<p>` beside
+  them still marked) and `lang`'s unit test of `open_tag`. Negative
+  control: with the check disabled, the first fails. Clippy clean for
+  wasm with `hydrate` and `csr` under `mark-fallback-lang`.
+* **Not asserted in a browser:** no example puts a borrowed message in a
+  text-only element, so the client half is read, not run; the existing
+  fallback assertions (`demo`, `csr`) cover the unchanged paths.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

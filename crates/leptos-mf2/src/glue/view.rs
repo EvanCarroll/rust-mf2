@@ -92,7 +92,7 @@ impl Mountable for TrState {
 
     fn mount(&mut self, parent: &Element, marker: Option<&tachys::renderer::types::Node>) {
         #[cfg(feature = "mark-fallback-lang")]
-        Rndr::insert_node(parent, &self.wrapper.outer(&self.node), marker);
+        Rndr::insert_node(parent, &self.wrapper.mount_into(parent, &self.node), marker);
         #[cfg(not(feature = "mark-fallback-lang"))]
         Rndr::insert_node(parent, self.node.as_ref(), marker);
     }
@@ -256,8 +256,13 @@ fn html_marked<D: Description>(
     separator: bool,
     write: impl FnOnce(&str, &mut String, &mut Position),
 ) {
+    // A text-only parent (`<textarea>`, `<title>`, …) whose opening tag was
+    // just written shows markup as characters: no span there.
+    let text_only = matches!(*position, Position::FirstChild)
+        && lang::open_tag(buf).is_some_and(lang::is_text_only);
     with_marked_text(description, |text, lender| match lender {
         None => write(text, buf, position),
+        Some(_) if text_only => write(text, buf, position),
         Some(lender) => {
             if separator {
                 buf.push_str("<!>");

@@ -96,6 +96,31 @@ pub(crate) fn write_open(buf: &mut String, lender: Lender<'_>) {
     buf.push('>');
 }
 
+/// The elements whose content is text, never markup: a `<span lang>` inside
+/// one would be shown as characters (`textarea`, `title`, `option`) or run
+/// as code (`script`, `style`). A borrowed message there stays unmarked.
+const TEXT_ONLY: &[&str] = &["textarea", "title", "option", "script", "style"];
+
+/// Whether `name` is one of [`TEXT_ONLY`], in any case.
+pub(crate) fn is_text_only(name: &str) -> bool {
+    TEXT_ONLY.iter().any(|t| t.eq_ignore_ascii_case(name))
+}
+
+/// Whether `el` holds only text.
+fn holds_text_only(el: &Element) -> bool {
+    is_text_only(&el.tag_name())
+}
+
+/// The name of the element whose opening tag `buf` ends with, if it does —
+/// the parent a server writes a first child into.
+pub(crate) fn open_tag(buf: &str) -> Option<&str> {
+    let tag = buf.strip_suffix('>')?;
+    let tag = &tag[tag.rfind('<')? + 1..];
+    let name = tag.split(|c: char| c.is_ascii_whitespace()).next()?;
+    (!name.is_empty() && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-'))
+        .then_some(name)
+}
+
 /// The element around a rendered text node, if its message is borrowed:
 /// shared by the view state and the node registry's slot, so that a switch
 /// can add or remove it without reaching into the view tree.
@@ -137,16 +162,31 @@ impl Wrapper {
         Some(text)
     }
 
+    /// The node to insert into `parent`: the wrapper, else the text — and
+    /// no wrapper at all in an element that holds only text, where a text
+    /// built unmounted loses the span it was fitted with.
+    pub(crate) fn mount_into(&self, parent: &Element, text: &Text) -> Node {
+        if self.get().is_some() && holds_text_only(parent) {
+            self.fit(text, None);
+        }
+        self.outer(text)
+    }
+
     /// Makes the wrapper match `lender`, around `text`, which keeps its
     /// identity: a span is added or removed around it, or its attributes
-    /// change. Works mounted or not.
+    /// change. Works mounted or not; mounted in an element that holds only
+    /// text, it adds none.
     pub(crate) fn fit(&self, text: &Text, lender: Option<Lender<'_>>) {
         match (self.0.take(), lender) {
             (None, None) => {}
             (None, Some(lender)) => {
+                let parent = Rndr::get_parent(text.as_ref()).and_then(Element::cast_from);
+                if parent.as_ref().is_some_and(holds_text_only) {
+                    return;
+                }
                 let span = Rndr::create_element("span", None);
                 lender.apply(&span);
-                if let Some(parent) = Rndr::get_parent(text.as_ref()).and_then(Element::cast_from) {
+                if let Some(parent) = parent {
                     Rndr::insert_node(&parent, span.as_ref(), Some(text.as_ref()));
                 }
                 Rndr::insert_node(&span, text.as_ref(), None);
@@ -166,5 +206,22 @@ impl Wrapper {
                 Rndr::remove(span.as_ref());
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{is_text_only, open_tag};
+
+    #[test]
+    fn the_parent_s_tag_is_read_from_what_was_just_written() {
+        assert_eq!(
+            open_tag("<p><textarea name=\"a b\" rows=\"2\">"),
+            Some("textarea")
+        );
+        assert_eq!(open_tag("<p>"), Some("p"));
+        assert_eq!(open_tag("<p>text"), None);
+        assert_eq!(open_tag("<!>"), None);
+        assert!(is_text_only("TEXTAREA") && is_text_only("title") && !is_text_only("span"));
     }
 }
