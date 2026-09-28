@@ -1,0 +1,12 @@
+[package]
+name = "cli-b"
+description = "A4 probe: the same CLI on the ambient store, for the stripped size."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+ambient.workspace = true
+mf2.workspace = true
+probe-i18n.workspace = true

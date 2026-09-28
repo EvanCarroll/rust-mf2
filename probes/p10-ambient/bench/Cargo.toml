@@ -1,0 +1,18 @@
+[package]
+name = "ambient-bench"
+description = "A4 probe: time and allocations of variants (a)-(d), per case and per frame."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+seam = ["ambient/seam"]
+
+[dependencies]
+ambient.workspace = true
+mf2 = { workspace = true, features = ["host-std"] }
+mf2-native.workspace = true
+mf2-ratatui.workspace = true
+probe-i18n.workspace = true
+ratatui-core.workspace = true

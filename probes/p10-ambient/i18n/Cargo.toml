@@ -1,0 +1,18 @@
+[package]
+name = "probe-i18n"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+build = "build.rs"
+
+# As the book's native translation crate (docs/native-apps.md, 1.x).
+[features]
+default = ["fn-number"]
+fn-number = ["mf2/fn-number"]
+
+[dependencies]
+mf2 = { workspace = true, features = ["host-std"] }
+
+[build-dependencies]
+mf2-build.workspace = true

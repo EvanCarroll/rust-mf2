@@ -1,0 +1,4 @@
+source_locale = "en"
+
+[catalog]
+missing = "fallback"

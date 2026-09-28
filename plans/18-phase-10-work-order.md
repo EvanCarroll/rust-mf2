@@ -806,6 +806,278 @@ only unqualified** … fixture's tests are written that way"):
 - C7's `mf2 init` scaffold note and the fixture's comment about
   "unqualified only" go; "Upgrading from 1.x" gains the import line.
 
+## A4 — the ambient store's cost: what was built
+
+* **Where.** Built on the probe branch `p10-a4-ambient` (off `2fb7f54`;
+  not merged): `d6836f8`, `9c8dc82`, `d3fb379`, `07ac660`, `be498b1`,
+  `aca96c4` (the runtime seam), `4e31af1`, `389b4be`. The probe is copied to
+  `main` as `probes/p10-ambient/`, with the seam as
+  `probes/p10-ambient/seam.patch` (the runtime on `main` is unchanged). A
+  standalone workspace over the path crates (its `README.md` lists every
+  command):
+  * `i18n/` — a 112-message trippy-shaped corpus (63 plain, 24 with
+    arguments, 10 plurals, 15 with markup) in `en` and `fr`, built by
+    `mf2-build` with `Emit::Native`, laid out as the 1.x book's native page;
+  * `ambient/` — variants (b) and (c): the store, the lookup, `Display`,
+    `to_string` / `to_cow`, the zero-copy Ratatui `Line`, the theme;
+  * `bench/` — each variant as a frame and as single-message cases, a
+    counting allocator, `ambient-bench check | allocs | breakdown | time |
+    time-mt | pools`, and the thread tests;
+  * `cli-a/`, `cli-b/` — one three-message CLI on (a) and on (b).
+* **The variants.** Each formats in `fr`, not the source locale.
+  * **(a)** 1.x: an app-owned `NativeI18n` passed by reference; `format` →
+    `String`; `mf2_ratatui::line` with `MarkupStyles`.
+  * **(b)** the design: `install(&'static Corpus)` fills a `OnceLock` store.
+    The catalogs read the executable's bytes in place and the `Catalog`
+    values are leaked once, so each is `&'static`. The active locale is one
+    `AtomicUsize`. A thread's override is one thread-local `Cell`, set by
+    `with_locale` and restored by a guard. The settings (bidi, time zone,
+    theme) sit behind an `RwLock` with a generation counter; each thread
+    keeps a copy and re-reads the lock only when the generation moved.
+    A simple message is borrowed (`to_cow` → `&'static str`); others are
+    formatted into a reused scratch and copied out once; `Display` streams
+    into the `fmt::Formatter`. Markup goes through a zero-copy sink, styled
+    by a theme keyed by `markup_key`.
+  * **(b-copy)** (b)'s store with 1.x's outputs (a `String` per text, 1.x's
+    sink): the store's own cost, all else as (a).
+  * **(c)** (b), reading the settings lock on every format.
+  * **(d)** the port's shape: `thread_local! { RefCell<Option<NativeI18n>> }`
+    and a `t!`-like wrapper; a `String` per message; 1.x's `line`.
+* **Correct first** (`ambient-bench check`, 2026-09-28): all six variants
+  render the 112 messages with (a)'s text and styles, compared character by
+  character with each character's style (the zero-copy sink splits spans
+  differently). In (b)'s frame, 100 spans borrow catalog text and 43 own
+  theirs (34 formatted messages, 9 placeholders).
+
+### Allocations
+
+Exact; `ambient-bench allocs` run twice, byte-identical tables
+(2026-09-28). One iteration after a warm-up. "Frame" is the 112 messages
+into Ratatui `Line`s: plain ones `Line::from(Span)`, markup ones styled.
+Allocations / bytes requested:
+
+| case | (a) 1.x | (b) design | (b-copy) | (c) | (d) port |
+|---|---:|---:|---:|---:|---:|
+| simple → `String` | 1 / 13 | 1 / 13 | | 1 / 13 | 1 / 13 |
+| simple → `&'static str` | — | **0** | | 0 | — |
+| one `:integer` argument → `String` | 1 / 8 | 1 / 7 | | 1 / 7 | 1 / 8 |
+| one string argument → `String` | 2 / 33 | 1 / 22 | | | 2 / 33 |
+| one string argument → `println!` | 2 / 33 | **0** | | | 2 / 33 |
+| markup → `Line` (`status.connected`) | 10 / 557 | **3 / 203** | 10 / 557 | 3 / 203 | 10 / 557 |
+| **frame** | **413 / 27,631** | **227 / 21,483** | 386 / 27,043 | 227 / 21,483 | 413 / 27,631 |
+
+(b)'s three ways of proving text `'static` (below) allocate alike: R1, R2
+and S are each 3 / 203 and 227 / 21,483. `ToString` through `Display`
+(`Show(&m).to_string()`) is 2 / 33, against the inherent `to_string`'s
+1 / 22.
+
+Where a frame's allocations go (`ambient-bench breakdown`). In (b):
+* a plain simple message costs only its `Line`'s `Vec` (63 messages: 2 →
+  1);
+* a markup message costs its `Vec` and one `String` per placeholder (the 7
+  one-key hints: 6 → 1; `status.connected`: 10 → 3).
+
+What is left is not the store's:
+* a `&str` argument from a variable is copied into an `Arc<str>`, one per
+  argument (a literal is not: the macro emits `ArgValue::str_static`) —
+  C1's measurement;
+* each of the 10 `.match` messages allocates **4 times inside the runtime**
+  (its `Scratch` working lists: declarations, inputs, selectors), in 1.x
+  and in the design alike (7 → 6 a message);
+* the `Line`'s own `Vec`, which any `Line` needs.
+
+### Time
+
+Taken **under load** (the other probes building: load average 9–16 on the
+8-thread i7-1165G7), so only the ratios are the result. The variants run
+round-robin in one process, each round a batch of iterations per variant
+(≈ 2 ms of the first), the starting variant rotating; each row is the
+median of 101 rounds' means, with their 10th–90th percentiles.
+`ambient-bench time 101` (seam build), 2026-09-28, load 8.95 → 9.50:
+
+| case | variant | median ns | p10–p90 | × (a) |
+|---|---|---:|---:|---:|
+| lookup: catalog + settings | (a) / (b) / (c) / (d) | 7.7 / 14.1 / 41.2 / 10.2 | | 1 / 1.82 / 5.32 / 1.32 |
+| simple → `String` | (a) | 187 | 181–219 | 1.00 |
+| | (b) | 144 | 136–159 | **0.77** |
+| | (c) | 142 | 136–168 | 0.76 |
+| | (d) | 191 | 180–209 | 1.02 |
+| simple → `&'static str` | (b) / (c) | 84 / 84 | 80–89 | |
+| one `:integer` argument → `String` | (a) | 1,693 | 1,584–1,860 | 1.00 |
+| | (b) | 1,749 | 1,718–1,808 | 1.03 |
+| | (c) | 1,754 | 1,689–1,872 | 1.04 |
+| | (d) | 1,707 | 1,661–1,909 | 1.01 |
+| one string argument → `String` | (a) / (b) / (d) | 861 / 862 / 887 | | 1.00 / 1.00 / 1.03 |
+| | `Show(..).to_string()` | 972 | | 1.13 |
+| one string argument → `println!` | (a) | 979 | 829–2,652 | 1.00 |
+| | (b) | 821 | 716–2,156 | **0.84** |
+| | (d) | 1,058 | 865–2,388 | 1.08 |
+| markup → `Line` | (a) | 2,978 | 2,905–3,397 | 1.00 |
+| | (b-copy) | 3,035 | 2,864–3,523 | 1.02 |
+| | (b), R2 | 2,402 | 2,300–2,821 | **0.81** |
+| | (b), R1 | 2,464 | 2,347–2,641 | 0.83 |
+| | (b), S | 2,349 | 2,210–2,676 | 0.79 |
+| | (c) | 2,416 | 2,301–2,693 | 0.81 |
+| | (d) | 3,002 | 2,919–3,721 | 1.01 |
+| **frame** (112 messages) | (a) | 136,018 | 122,203–152,422 | 1.00 |
+| | (b-copy) | 136,392 | 125,486–154,422 | 1.00 |
+| | (b), R2 | 120,001 | 108,225–145,001 | **0.88** |
+| | (b), R1 | 118,610 | 106,902–166,914 | 0.87 |
+| | (b), S | 116,591 | 104,968–143,971 | 0.86 |
+| | (c) | 118,971 | 106,470–133,828 | 0.87 |
+| | (d) | 140,038 | 124,360–199,932 | 1.03 |
+
+Three earlier runs of the same binary without the seam (loads 15–22) agree:
+(b)'s frame 0.85–0.87 × (a), its markup `Line` 0.79–0.82 ×, (b-copy)
+0.97–1.00 ×, (d) 1.02–1.04 ×. The one-argument row is the only one where
+(b) is not below (a): 1.00–1.03 × across the runs (the store's lookup plus
+the scratch's copy; the same one allocation).
+
+Frames on several threads at once (`ambient-bench time-mt THREADS 21`: each
+round starts the threads on a barrier and each thread times 40 frames; the
+round's figure is the median thread's). Five runs, 2026-09-28, loads
+10.7–22:
+
+| threads | (b) × (a) | (c) × (a) | (d) × (a) |
+|---|---:|---:|---:|
+| 8 (three runs) | 0.78 / 0.83 / 0.84 | 0.79 / 0.90 / 0.95 | 1.01 / 1.12 / 1.18 |
+| 4 (two runs) | 0.81 / 0.93 | 0.78 / 0.99 | 0.93 / 1.19 |
+
+Under this load the threaded runs cannot separate (b) from (c). The
+single-thread lookup can: (c)'s read lock costs ≈ 27–31 ns a format more
+than (b)'s copy (41–46 against 14–15 ns; 1.x's handle 7.4–7.7 ns); per
+frame that is ≈ 3 µs of ≈ 120 µs.
+
+### Stripped size
+
+`cargo build --profile stripped -p cli-a -p cli-b` (release: opt-level 3,
+fat LTO; symbols stripped). The same CLI both ways: the system's language
+or the first argument; one simple message, one with a string argument, one
+plural.
+
+| | bytes |
+|---|---:|
+| (a) `NativeI18n` | 1,145,640 |
+| (b) the store, printed through `Display` | **1,140,392 (−5,248)** |
+
+The first (b) was **+3,784 B**. `nm -S --size-sort` over both showed a
+`Display` impl per description type (`Show<Tr>` 3,200 B, `Show<TrArgs>`
+1,976 B), each inlining the whole path; and, once they shared one function
+taking `&dyn Msg`, the **parts path** (≈ 3.8 KB) — kept alive by the
+vtable, which lists `Message::parts`, in a CLI that never calls it. Each
+form now forwards to one non-generic function taking a trait object that
+lists only what that form calls (`write` for text, `parts` for Ratatui),
+and R2's pools are built by the first Ratatui conversion, not by `install`.
+
+### Zero copy
+
+* **Constant text.** A simple message is `&'static str` straight from the
+  `&'static Catalog`: `to_cow` allocates nothing (above).
+* **Pattern text parts**, recovered as `'static` in safe code (`ptr as
+  usize`, `str::get`, `ptr::eq`; no `unsafe`); a part that cannot be proven
+  is copied, so correctness never depends on the proof. Three methods,
+  measured side by side (the tables above):
+  * **R1** — a pointer-range check against the catalog's `&'static` bytes,
+    then `from_utf8` on the re-slice: O(length) a part;
+  * **R2** — the same check against the catalog's string pool, validated
+    once as `&'static str` (2,731 B, both locales, in 1,389 ns, best of
+    101: `ambient-bench pools`); `str::get` re-slices in O(1). **No change
+    to the runtime**;
+  * **S** — a hidden seam, `PartSink::part_catalog_text(&Catalog, StrRef)`
+    in `mf2-runtime` (commit `aca96c4`), whose default is today's
+    behaviour; the native sink resolves the reference against its own
+    `&'static Catalog` after a `ptr::eq`. No range check, no pool.
+* **S against B1 and B12.** `cargo xtask size` in this worktree on
+  `2fb7f54` (`--out target/p10-a4/size-base`), then with the seam
+  (`--keep`: the same generated sources at the same paths; the runtime
+  rebuilt): **byte-identical**, every application at both scales (B1 fixed
+  26,416 B gz, B5 8.3 B gz a site, the whole app 41,872 B gz, both runs);
+  the gate's applications never format to parts. `bench/b12/check.sh`
+  (its `runtime` harness formats to parts through a `PartSink`): runtime
+  38,336 → 38,324 B raw (−12), 19,223 → **19,224 B gz (+1)**; **B12 clean**
+  in both runs.
+* Recorded for A1's reference (not this probe's A/B): this worktree's
+  baseline, B1 26,416 / B5 8.3 / whole app 41,872 B gz, differs from A1's
+  main-tree 26,676 / 8.2 / 41,889 at the same commit. The cause, checked
+  by the coordinator: `Cargo.lock` is not committed, and the worktree
+  resolved its dependencies afresh — Leptos `0.9.0-beta2` (the main tree's
+  lock has `0.9.0-beta`), newer `js-sys` / `wasm-bindgen` and others. **A
+  size A/B is valid only within one tree and one lock**; the ±64 B gates
+  compare against a base measured under the same lock (A1's figure is the
+  main tree's, until its lock is updated).
+
+### Threads
+
+`cargo test --release -p ambient-bench`; the probe's tests run in parallel
+with each other on purpose, since the store is process-wide.
+* 16 threads, half pinned to `en` and half to `fr` by `with_locale`, each
+  formatting 2,000 rounds: a simple message (`to_cow` and `Display`), an
+  argument message and a markup `Line`. All correct, while another test
+  changes the app-wide locale, bidi and time zone.
+* `set_locale`, `set_bidi` and `set_time_zone` are seen by another thread's
+  next format (a worker answering over a channel).
+* `with_locale` nests, and is restored when its body unwinds; an unknown
+  locale is an error.
+* Formatting before `install()` panics with "call install() at start-up"
+  (a separate test binary).
+
+All pass; the three-test binary passed 20 of 20 repeated runs.
+
+### Verdict
+
+* **The ambient store (C2)** against method §3's gate, both parts **met**:
+  * time per frame ≤ 1.x: (b) is 0.86–0.88 × (a) (0.85–0.87 × in the
+    earlier runs), measured interleaved in one process rather than by
+    alternating binaries;
+  * stripped size ≤ 1.x: −5,248 B.
+  * The store's own cost, isolated by (b-copy), is within noise
+    (1.00 × per frame).
+  * (d), the port's `RefCell`, is 1.02–1.04 ×, and 413 allocations like
+    (a).
+* **The text-borrowing method chosen: S**, the hidden seam.
+  * Its cost on the client is −12 B raw / +1 B gz on B12's runtime harness
+    and 0 B on the whole-app gate (the gate is ±64 B gz); B12 stays clean.
+  * It is the fastest of the three (within noise), needs neither a pool
+    nor knowledge of the catalog's layout, and makes "catalog text arrives
+    with its reference" a contract rather than an inference from pointers.
+  * It is the pattern `Sink::push_catalog_text` already set.
+  * **Fallback:** R2, which changes nothing in the runtime.
+* **Done when** — D17's figures against the gates, and the text-borrowing
+  method chosen: **met**. Nothing needs the owner.
+
+### What it means for C2 and C5 (interpretation)
+
+* **C2: keep (b)'s shape.** A `OnceLock` store of `&'static` catalogs, an
+  atomic locale index, a thread-local override with a restoring guard, and
+  settings copied per thread by generation. The per-thread copy saves
+  ≈ 27–31 ns a format over the lock. The native-only panic naming
+  `install()` works as decided.
+* **The public forms stay thin.** `Display` for each description, and
+  every `From<…>` into Ratatui, should be one-line forwarders to one
+  non-generic function taking a trait object that lists only what that
+  form calls. A `&dyn Message` would pull the parts path into every CLI
+  (+≈ 3.8 KB here).
+* **Keep an inherent `to_string`** beside `Display`. It is faster and
+  allocates once (0.99–1.00 × against `ToString`'s 1.09–1.13 ×; 1 against
+  2 allocations). `println!("{}", tr!(…))` streams with none. This is
+  A5's `inherent_to_string_shadow_display` question.
+* **C5 inherits the zero-copy sink.** Text parts are borrowed through S;
+  a placeholder is one `String`; the open-element stack is inline and keyed
+  by `markup_key`, so markup names never allocate; a line break becomes a
+  borrowed `" "` span. With it, a markup line falls from 10 allocations to
+  its `Line`'s `Vec` plus one per placeholder (and C1's argument copies),
+  and the frame from 413 to 227. C5's
+  allocation gate (≤ 1.x and ≤ the upstream re-implementation) should hold
+  on this evidence for 1.x; the upstream baseline is A1's `upstream.rs`.
+* **Not the store's, and left to their owners:**
+  * the `Arc<str>` copy of a variable `&str` argument (C1);
+  * the runtime's 4 `Scratch` allocations per `.match` message, which
+    affect 1.x and 2.0 alike.
+* **Not measured here:** the ambient lookup's first step when `ssr` is also
+  on (the request context before the native store, D17's order). In a
+  native-only build that step is compiled out; with both features unified
+  in one workspace, every native format pays it. C2 should time it.
+
 ## A6 — a single-crate web application: what was built
 
 **The probe.** `probes/p10-single-crate/hello/`: Getting started's `hello`
