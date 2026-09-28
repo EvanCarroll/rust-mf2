@@ -62,11 +62,13 @@ kept open by each decision, not built.
 Kept current so that any task can be picked up cold, from this file and the
 commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
 parallel agents; three were stopped by the account's session limit and were
-finished by new agents. **Part A is done except A8**; A9, which the owner
-added afterwards, is done too. A8's two opening questions, on the matcher,
-are answered (questions 15 and 16, 2026-09-28), and C3's text half has read
-the matching rules from the specification. The owner holds everything
-else: the next tasks start from fresh sessions, as listed under "Next".
+finished by new agents. **Part A is done**: A9, which the owner added
+afterwards, is done, and **A8's design is written and awaits the owner's
+review** ([19](19-native-and-terminal.md)). A8's two opening questions, on the
+matcher, were answered (questions 15 and 16), and C3's text half read the
+matching rules from the specification before A8 stated them. The owner holds
+everything else: the next tasks start from fresh sessions, as listed under
+"Next".
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -108,6 +110,21 @@ else: the next tasks start from fresh sessions, as listed under "Next".
   debug-profile client build. **Owner question 14, asked after A9:** a lean `Display`, allowed
   everywhere (S3: `Display` pads the text `to_string()` builds; `{}` then costs 25–70 B gz), and
   `Debug` through `write_str` (S2). A8 states both in the design.
+- **A8, written; awaiting the owner's review** (`7ba59ef`, the probe `probes/p10-args/`; then the
+  design, in the plans commit after it): [19](19-native-and-terminal.md), with the web side's
+  design in [04](04-leptos-integration.md) §12 and [05](05-tooling.md) §4.1, §6.4, §9.1.
+  - **The four samples' exact code** (19 §1): a one-file CLI, a trippy-shaped TUI, a two-crate
+    workspace, and the Leptos `hello` in one crate.
+  - **The UX targets** (19 §2; method §2's table below): every row falls. Setup lines go 35 → 13,
+    48 → 24, 48 → 19 and 96 → 22; crates named go to `mf2` + `mf2-build` everywhere; concepts
+    18 → 8, 22 → 14, 22 → 16 and 28 → 18; the Leptos page needs 3 commands, none of them this
+    library's.
+  - **The gate table** (19 §14).
+  - **One probe** (`probes/p10-args/`): a `tr!` argument takes `IntoArg` by value, else any
+    `Display` as its text, else our own E0277 message at the argument. 13 of 13 accepted cases
+    took the expected step; 3 refused cases gave our message.
+  - **17 choices no answer settled**, listed for the review (19 §15); no owner question is
+    waiting.
 
 **In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
 (`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
@@ -115,13 +132,10 @@ kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-di
 and left it clean; its `target/a9/` goes with that worktree.
 
 **Next, each from a fresh session** (the owner holds everything until then):
-- **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
-  exact code, the UX targets, the gate table; the web side into 04 and 05. The matcher's
-  questions are answered (15: follow the data; 16: the text fetched). Its rules come from C3's
-  text half (done). That record's "For A8 and C3" lists what A8 states: the threshold (a match
-  below 50), the demotion (5 per later entry) and the details left open. `Display` and `Debug`
-  are decided (question 14). Part C's API work waits for the owner's review of it.
-- **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
+- **The owner's review of A8** ([19](19-native-and-terminal.md); its §15 lists the choices to look
+  at first). **Part C's API work (C1–C9) and D4 wait for it**; so does every task that builds
+  what 19 or 04 §12 designs. Its answers are recorded here and in 19 before those tasks start.
+- **B1**, the merge (after A1 and A7, both done; **it may start now**, before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
   on the client; the size workloads render no component, so B1 and `b5 --view` did not see it).
@@ -133,25 +147,27 @@ and left it clean; its `target/a9/` goes with that worktree.
 
 **Owner questions found in the work:** none waiting. C3's data half found two; they were asked
 when A8 started, and answered as questions 15 and 16 below. C3's text half found none: the case
-it was to send back (a threshold above the default script distance) does not arise.
+it was to send back (a threshold above the default script distance) does not arise. A8 found
+none. It made 17 choices that no answer settled, each with its reason, for the owner's review
+(19 §15).
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
   placeholder is a string (A3).
-- A8 (the `Display` / `Debug` design, decided in question 14): S3 for `Display`, S2 for `Debug`
-  (`probes/p10-display-cost/lib-s3-display-via-string.patch`, `lib-s2-debug.patch`); A5's
-  16.6 KB was `{:?}` on a description with arguments, which `unwrap()`, `assert_eq!` and a
-  derived `Debug` reach too. S2's fidelity limits are A8's to state. Whether the demos keep a
-  check (it needs a debug-profile build) now that `{}` is allowed: A8's call.
+- ~~A8 (the `Display` / `Debug` design)~~ — **stated in 19 §6**:
+  - S3 for `Display` and S2 for `Debug`, with S2's fidelity limits;
+  - `Debug` on every public type;
+  - the demos keep a nightly `fmt-check` (D6).
 - F (the book): `.to_string()` is the leanest; `{}` costs a few dozen bytes, `{:?}` about 1 KB,
   and `unwrap()` / `assert_eq!` on a description reach `{:?}` (A9).
 - F (the book): Traditional and Simplified Chinese don't fall back to each other, as CLDR's data
   says; a Traditional reader served the source language means the application needs a
   Traditional catalog, and on the web E4's warning shows it (question 15).
 - D6 / CI: a `Display` / `Debug` check on the demos needs a debug-profile client build; a release
-  build with names kept misses what LLVM inlines (A9).
+  build with names kept misses what LLVM inlines (A9). **A8: the demos keep one, nightly**
+  (19 §6).
 - Every size investigation that keeps names: `wasm-opt --strip-dwarf` before `-Oz`, or the
   names-kept build is not the shipped one (A9).
 - C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).
@@ -160,12 +176,23 @@ it was to send back (a threshold above the default script distance) does not ari
 - C7/C8: Ratatui without its default features needs `layout-cache` (A1).
 - D5: the one-crate web starter writes `watch-additional-files = ["locales"]` (A6).
 - C3, from its text half, each with a test:
-  - state or bound the demotion (an exact match 11th in a reader's list is refused);
+  - the demotion: **A8 states it, unbounded** (19 §9). An exact match 11th in a reader's list is
+    refused, and a test shows it;
   - `$!X` for a macroregion that straddles a variable (`en-001`);
   - a desired `und` is not maximized;
   - the section's worked examples.
 - F (or whoever next edits `README.md`): its "Current work order" still names
   `plans/17-phase-9-work-order.md` (C3's text half).
+- From A8 (19 §16):
+  - B2 / D1: `mf2::native::LocaleSource` (an enum) and `mf2::axum::LocaleSource` (a trait) now
+    share one crate. B2 renames the native one.
+  - C4: the generated names (`install`, `Locale`, `markup`, …) can collide with an application's
+    own root items (E0428). A way to rename them waits until an application needs one.
+  - C5: collecting descriptions into a `Line` flattens their markup (Ratatui's blanket goes
+    through `Span`). The rustdoc says so, and the book recommends one message per styled line.
+  - F: a `Display` argument's text is not translated, and a string selector is the MF2 way; a
+    styled line is one message.
+  - Not scheduled: an argument shorthand, `tr!("id", error)` for `error = error`.
 - Every size gate: an A/B is valid only within one tree and one `Cargo.lock` (A4's record).
 - Not scheduled: each `.match` message allocates 4 times inside the runtime (A4);
   `mf2-catalog`'s timing test `linear.rs` failed once under load 10–13 (C3 data).
@@ -469,6 +496,12 @@ let header = Row::new([tr!("col.host"), tr!("col.loss")]);
 let hint = tr!("help");                                // `{#key}h{/key}elp`: the theme styles the key
 ```
 
+*A8 wrote the exact code of every sample: [19](19-native-and-terminal.md) §1. It differs from
+this sketch where the design settled a detail:*
+- `install()` returns nothing, so `main` needs no `Result` for it;
+- `src/ui.rs` imports the crate's prelude (A3);
+- `Theme` comes from `mf2::ratatui`.
+
 **The shape** (A8 writes the exact code of every sample for the owner's review):
 
 - **Crates: 18 become 16.**
@@ -527,14 +560,16 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
    - **concepts:** distinct API names used before the first translated output;
    - **commands:** from an empty directory to the first translated output.
 
-   A8 sets 2.0's targets. **Every row must fall** (C8, D6).
+   A8 sets 2.0's targets. **Every row must fall** (C8, D6). A8's reading (19 §2): setup lines,
+   crates and concepts fall, commands do not rise, and fewer translation files are written by
+   hand. A count of one command cannot fall. The targets are ceilings.
 
    | Sample | 1.x (A1, by the rules; the detail is in A1's record) | 2.0 target (A8) |
    |---|---|---|
-   | one-file CLI | **35 setup lines** (a translation crate of 24, a two-member workspace); **3 + 1 crates** (`mf2`, `mf2-build`, `mf2-native`; the translation crate); **18 concepts**; **1 command**, the translation crate written by hand | — |
-   | trippy-shaped TUI | **48 setup lines**: as the CLI, plus `mf2-ratatui` and a `MarkupStyles` map built for each draw; the handle in all 118 calls (48 of them `line(i18n, &tr!(…), styles)`); **4 + 1 crates**; **22 concepts**; **1 command**. The real port added **76** (a 59-line `locale.rs`) | — |
-   | two-crate workspace | **48 setup lines** (a third, shared translation crate; the handle as a parameter in the library); **4 + 1 crates**; **22 concepts**; **1 command** | — |
-   | Leptos `hello` | **96 setup lines**: 53 in the translation crate `mf2 init` writes (a 9-feature `Cargo.toml`, a hand-shaped `setup()`), 43 in the application (20 of them server wiring), and 3 lines changed to `_with_context` forms; **4 + 1 crates** (`mf2`, `mf2-build`, `leptos-mf2`, `mf2-axum`; the translation crate) and the `mf2` tool; **28 concepts**; **5 commands** | — |
+   | one-file CLI | **35 setup lines** (a translation crate of 24, a two-member workspace); **3 + 1 crates** (`mf2`, `mf2-build`, `mf2-native`; the translation crate); **18 concepts**; **1 command**, the translation crate written by hand | **13 setup lines** (`Cargo.toml` 3, `build.rs` 3, `main.rs` 7); **2 + 0 crates**; **8 concepts**; **1 command**, `build.rs` the one translation file by hand (19 §1.1, §2) |
+   | trippy-shaped TUI | **48 setup lines**: as the CLI, plus `mf2-ratatui` and a `MarkupStyles` map built for each draw; the handle in all 118 calls (48 of them `line(i18n, &tr!(…), styles)`); **4 + 1 crates**; **22 concepts**; **1 command**. The real port added **76** (a 59-line `locale.rs`) | `examples/tui` on 2.0: **24 setup lines**, no handle in any call; **2 + 0 crates**; **14 concepts**; **1 command**, 1 file by hand. The book's TUI (19 §1.2, with a menu and a live switch): 23; 2 + 0; 17; 1 (19 §2) |
+   | two-crate workspace | **48 setup lines** (a third, shared translation crate; the handle as a parameter in the library); **4 + 1 crates**; **22 concepts**; **1 command** | **19 setup lines** (the library owns the corpus; no third crate, no handle); **2 + 0 crates**; **16 concepts**; **1 command**, 1 file by hand (19 §1.3, §2) |
+   | Leptos `hello` | **96 setup lines**: 53 in the translation crate `mf2 init` writes (a 9-feature `Cargo.toml`, a hand-shaped `setup()`), 43 in the application (20 of them server wiring), and 3 lines changed to `_with_context` forms; **4 + 1 crates** (`mf2`, `mf2-build`, `leptos-mf2`, `mf2-axum`; the translation crate) and the `mf2` tool; **28 concepts**; **5 commands** | **22 setup lines** (one crate: `Cargo.toml` 7, `build.rs` 3, `lib.rs` 8, `main.rs` 4), none changed; **2 + 0 crates**, no tool; **18 concepts**; **3 commands**, none of them this library's (19 §1.4, §2) |
 
 3. **Measure against what exists** (D1's rule: a baseline, a gate, a
    fallback).
@@ -2583,6 +2618,18 @@ over one, and on the helpers only `Display` and `Debug` reach
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
+Each task builds what [19](19-native-and-terminal.md) designs, once the owner has reviewed it.
+Where 19 refines a row below, 19 wins:
+- C1 → §7: the `Display` step, and `IntoArg`'s list;
+- C2 → §5, §6: `install()` returns nothing; `with_locale` and `Locale::format` work before it;
+- C3 → §9;
+- C4 → §10: `Locale::name()`, `best_match()`, the extractor, and the `clap` value parser in
+  place of `ValueEnum`;
+- C5 → §8: the theme's defaults;
+- C6 → §11, §12;
+- C7 → 05 §6.4;
+- C8 → §1, §2.
+
 | Task | Deliverable | Done when |
 |---|---|---|
 | **C1** Arguments | A trait `IntoArg` with `#[diagnostic::on_unimplemented]` naming the accepted types, **implemented per type** (a blanket over `Into` would bypass the message): <br>• integers up to 128 bits exact (past `i64`, an exact decimal written without `core::fmt`), and `usize` without saturation; <br>• `bool`, `Cow<'static, str>` (borrowed stays static); <br>• `Path` / `OsStr` / `SystemTime` under std; jiff's `Timestamp`, `Zoned` and civil types under `native`; <br>• signals over `T: IntoArg`; `ArgValue`; `&T` for `Copy` types. <br>The macro emits `IntoArg::into_arg(e)` spanned at the argument; `From` stays for `ArgValue::from`. The `&str` copy is measured, and inlined only if it pays and B5 holds | per-conversion tests through `compile_str`; a trybuild case whose `.stderr` shows the message pointing at the argument; `b5 --view` unchanged |
@@ -3042,6 +3089,13 @@ Output: `target/p10-c3/evidence_v2.out`.
   `target/p10-c3/ci-text-half.log`).
 
 ## Part D — the web (D1 after B4; D2–D4 after D1; D5 after D3 and C7; D6 last)
+
+The design is [04](04-leptos-integration.md) §12, with its shared parts in
+[19](19-native-and-terminal.md). D4's typed API waits for the owner's review of it:
+- D2 and D3 → 04 §12.5: `Negotiator` as the tower layer;
+- D4 → 04 §12.2–§12.4: the switcher's options from `language.<tag>`;
+- D5 → 05 §6.4;
+- D6 → 19 §1.4 and §2, and the demos' nightly `fmt-check` (19 §6).
 
 | Task | Deliverable | Done when |
 |---|---|---|

@@ -37,6 +37,7 @@ companion documents elaborate it and MUST NOT contradict it.
 | [17-phase-9-work-order](17-phase-9-work-order.md) | Phase 9 work order (done): the release — 1.0.0, the specification text out of the tree, `cargo xtask release`; the book verified |
 | [phase-9-results](phase-9-results.md) | Phase 9 record: status at exit, the release figures, the book's re-verification, the post-1.0 order |
 | [18-phase-10-work-order](18-phase-10-work-order.md) | task-level work order for the next phase: 2.0, the user experience — one crate, native and Ratatui first, the web's setup, the silent failures, the book |
+| [19-native-and-terminal](19-native-and-terminal.md) | the 2.0 design (Phase 10 A8, for the owner's review): the four samples' exact code and their UX targets; the one crate's features and API per mode; the native store, `Display` / `Debug`, arguments, Ratatui, the matcher, the generated module, the build, `tr!` in its own crate; the gates. The web side's design is [04](04-leptos-integration.md) §12 |
 
 ---
 
@@ -247,7 +248,7 @@ The table above is the tree until Phase 10's tasks land. At P10's exit:
 
 | Feature | Effect |
 |---|---|
-| `leptos` / `leptos-0-8` | the Leptos layer on the 0.9 line (the default line) or the 0.8 line; both at once is a `compile_error!` naming what to write; changing the default line is a major |
+| `leptos` / `leptos-0-8` | the Leptos layer on the 0.9 line (the default line) or the 0.8 line; neither is a default feature, and a mode needs one; both at once, or a mode with neither, is a `compile_error!` naming what to write; changing the default line is a major ([19](19-native-and-terminal.md) §3) |
 | `ssr` / `hydrate` / `csr` | exactly one, as above; each implies its host |
 | `axum` | negotiation and catalog serving, with or without Leptos |
 | `native` | the app-wide language store, the system's language and time zone, embedded or shipped catalogs |

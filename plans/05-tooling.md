@@ -355,6 +355,12 @@ Without an answer from cargo (no `Cargo.toml`, no cargo) `check` checks with
 none and says so on stderr (Phase 9 B8, owner question 12); a plain `compile`
 uses none.
 
+*2.0 (Phase 10 A8; [19](19-native-and-terminal.md) §11):* the build reads
+`mf2`'s own features, which `mf2`'s build script publishes through `links`
+metadata (`DEP_MF2_V2_FEATURES`), so no crate declares or forwards them; and
+`mf2 check` / `compile --site` read `mf2`'s node in the cargo resolve.
+`mf2.toml` becomes optional: its defaults are `Config::default()`'s.
+
 ## 4. Build orchestration (decision D8; settled by probe P0.9)
 
 > **Amended for 2.0** (owner, 2026-09-28; master plan D19): `links` metadata
@@ -367,7 +373,8 @@ uses none.
 > at item level through `mf2`'s macros); A3 chose a hidden exported wrapper
 > re-exported as `tr` with a crate `prelude` (its record holds the rule for
 > a translation crate and its consumers, written for this section). A6
-> found one crate works for the web too. This section is rewritten with C6.
+> found one crate works for the web too. This section is rewritten with C6;
+> the 2.0 design is §4.1 (Phase 10 A8).
 
 ```
 my-app-i18n/            ← a crate in the application's workspace
@@ -469,6 +476,33 @@ construction — see
 several errors from one expansion are wrapped in a block (bare
 `compile_error!`s in expression position misparse and hide the later ones); and
 a cache hit never re-stringifies a large literal.
+
+### 4.1 2.0: the build, and `tr!` in its own crate (Phase 10 A8)
+
+Designed on 2026-09-28 for the owner's review; C6 builds it and then rewrites
+§4 as a whole. The design is [19](19-native-and-terminal.md):
+- **§11, the build**:
+  - `mf2`'s build script and `links = "mf2-v2"`;
+  - `mf2_build::run()` as the whole build script, failing clearly without the
+    metadata;
+  - what it emits for each of `mf2`'s modes, and one byte table when `ssr` and
+    `native` are both on;
+  - compression only for a web server, at a fast level in a debug build;
+  - an optional `mf2.toml`, whose `rerun-if-changed` is printed only when the
+    file exists;
+  - the `datetime-icu` / `icu-blob` error;
+  - `check` reading `mf2`'s node;
+- **§10, the generated module**, per mode;
+- **§12, `tr!` in its own crate**: A3's shape (3c), which replaces this
+  section's "inside the i18n crate itself only unqualified". A module of the
+  crate that includes the module imports `tr!` with `use crate::prelude::*;` or
+  `use crate::tr;`, before or after the include. Another crate uses `my_lib::tr!`
+  or its prelude. Three rules keep the name unambiguous.
+
+What stays as this section describes: the manifest's baked path and hash, the
+relocation fallback, inline mode, the macro's cache and checks, cargo-leptos's
+builds, and `watch-additional-files`, which a one-crate cargo-leptos
+application still needs (A6).
 
 ## 5. `mf2 check` — lints
 
@@ -1088,6 +1122,32 @@ form it has:
   as it went, and a form the translator did not fill is simply absent —
   the reader gets the catch-all for it, as MF2 would.
 
+### 6.4 2.0: `mf2 init` as a starter (Phase 10 A8; C7, D5)
+
+Designed on 2026-09-28 for the owner's review (question 12; review findings
+#16–#18).
+
+- **`mf2 init --cli | --tui | --ssr | --islands | --csr [DIR]`** makes a
+  complete, runnable one-crate application in an empty or missing directory:
+  - `--cli` is [19](19-native-and-terminal.md) §1.1's, `--tui` §1.2's and
+    `--ssr` §1.4's;
+  - `--islands` and `--csr` are the delivery modes' (`docs/delivery-modes.md`).
+
+  A new application gets `[profile.dev.build-override] opt-level = 2`, and a
+  cargo-leptos one `watch-additional-files = ["locales"]` (A6).
+- **In an existing crate**, `init` adds translations: `build.rs`,
+  `locales/<source>/main.mf2`, `cargo add mf2 -F <features>` and
+  `cargo add --build mf2-build`. It prints what it cannot write into an existing
+  manifest: a web application's `"mf2/ssr"` / `"mf2/hydrate"` lines, and the
+  build-override tip.
+- **Without a mode flag**, `init` names the five, and changes nothing.
+  `--locale` and `--no-messages` stay as in 1.x.
+- **`mf2 --help`'s summary names every command**, `init` and `convert`
+  included (review #17).
+- **The book runs `init` in `run=` blocks**, so `cargo xtask docs` compiles
+  what it makes and a starter cannot go stale. The book's counted path writes
+  the files by hand; `init` is its shortcut (19 §2).
+
 ## 7. Locale data extraction (`mf2-locale-data`, build-side)
 
 Input: `cldr-json` pinned at **48.2.1** (`third_party/cldr-json/PIN`; at this tag
@@ -1231,7 +1291,7 @@ root `CLAUDE.md` ("Boundary").
 > §2.1), and `mf2` has no `axum` or `build` feature. In 2.0, `mf2` becomes the
 > one crate an application names, with `leptos`, `axum`, `native` and
 > `ratatui` as feature-gated modules. The text below is rewritten when
-> [18](18-phase-10-work-order.md) B1 lands.
+> [18](18-phase-10-work-order.md) B1 lands; the 2.0 design is §9.1 (Phase 10 A8).
 
 The one crate an application names. It re-exports the public API of
 `mf2-runtime`, `leptos-mf2` (feature `leptos`), `mf2-axum` (feature `axum`) and
@@ -1259,3 +1319,23 @@ under, `mf2::include_generated!()` includes what `mf2-build` wrote
 catalog-only crate of `Emit::Catalogs`), and `mf2::__tr_impl` re-exports
 `mf2-macros`' proc-macro so that the generated `tr!` wrapper reaches it
 through `__mf2` alone.
+
+### 9.1 2.0: the one crate (Phase 10 A8)
+
+Designed on 2026-09-28 for the owner's review; B1–B4 and D1 build it, and
+then rewrite §9. The design is [19](19-native-and-terminal.md):
+- **§3, the features and modules**: `native`, `ratatui`, `leptos` /
+  `leptos-0-8`, the modes, `axum`, `clap`, and 1.x's function features;
+- **§4, the call-site types and the API per mode**, which B5's per-mode
+  `api/*.txt` lists.
+
+What stays of this section:
+- **`compile_str`**;
+- **`include_generated!`**;
+- **`__mf2`**, the path every expansion goes through;
+- **the call-site core's client-path discipline**: `no_std`,
+  `forbid(unsafe_code)`, no `core::fmt`, no panicking operation.
+
+The `native`, `ratatui` and `axum` modules are std. They carry scoped `allow`s
+with their reasons, as 18's risks table says. `mf2` has no prelude: the
+generated module's is the one an application imports (19 §10, §12).

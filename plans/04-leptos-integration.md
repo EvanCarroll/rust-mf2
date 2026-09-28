@@ -102,7 +102,8 @@ or markup name is emitted at the call site.
 > lives behind a feature: the Leptos layer as `mf2::leptos`, Ratatui and
 > `Display`. The six built-in components move to one helper crate per Leptos
 > line. This section describes 1.x, and it is rewritten when
-> [18](18-phase-10-work-order.md) B1 lands.
+> [18](18-phase-10-work-order.md) B1 lands. The 2.0 design is §12 and
+> [19](19-native-and-terminal.md) §3–§4.
 
 **Where these types live** (owner, 2026-09-23; Phase 5b's owner question 1,
 [13](13-phase-5b-work-order.md)). `Tr`, `TrArgs`, `TrRich` and `ArgValue` are
@@ -327,7 +328,8 @@ default locale is used.
 > **Changing in 2.0** (owner, 2026-09-28; master plan D21, D22). The default
 > negotiation becomes `?lang=` → cookie → `Accept-Language`, and every locale
 > match goes through one CLDR-based matcher. The rest of this section is
-> unchanged; [18](18-phase-10-work-order.md) C3, D2 and D3.
+> unchanged; [18](18-phase-10-work-order.md) C3, D2 and D3. The 2.0 design is §12.5 and
+> [19](19-native-and-terminal.md) §9.
 
 **Server**
 
@@ -658,7 +660,7 @@ chosen locale.
 > become features of `mf2`: `leptos` for 0.9, the default line, and
 > `leptos-0-8` for 0.8. 0.8 stays supported, and changing the default line
 > stays a major. `leptos-mf2` is folded into `mf2`. The policy below holds
-> for 1.x; [18](18-phase-10-work-order.md) B1 and G1.
+> for 1.x; [18](18-phase-10-work-order.md) B1 and G1. The 2.0 design is §12.1.
 
 **Leptos 0.9 is the default line, whether or not it is released** (owner,
 2026-09-24: "that was supposed to be the default"; 0.9.0-beta / tachys
@@ -756,3 +758,173 @@ Sources are its own; the claims below were read in its tree.
    `mf2.toml` (05 §3.1) should stay an ordered list of typed sources and
    sinks, never a boolean matrix. Their cheap insurance is worth stealing: a
    test asserting every configuration option has a section in the docs.
+
+## 12. 2.0: the web side's design (Phase 10 A8, for the owner's review)
+
+Designed on 2026-09-28 by Phase 10's A8 ([18](18-phase-10-work-order.md)),
+with the native side and the shared parts in
+[19](19-native-and-terminal.md). The tasks that build it are B1 (the Leptos
+layer into `mf2`), C3, C4 and D1–D6. As they land, each rewrites the 1.x
+section it replaces: §2.1, §5, §6 and §10. `hello`'s exact code is 19 §1.4,
+and its UX target is 19 §2.
+
+### 12.1 `mf2::leptos`, and the two lines
+
+- **Features** (19 §3):
+  - `leptos` is the 0.9 line, the default line; it is not a default feature;
+  - `leptos-0-8` is the 0.8 line;
+  - exactly one of `ssr`, `hydrate` and `csr`.
+
+  Two modes, both lines, or a mode with no line are each a `compile_error!`
+  that says what to write.
+- **An application writes the line once**, on its `mf2` dependency
+  (`features = ["leptos"]`), and the mode where it writes Leptos's own
+  (`hydrate = ["leptos/hydrate", "mf2/hydrate", …]`). A 0.8 application
+  writes `leptos-0-8`, and turns off no default features.
+- **The module**:
+  - the six components, re-exported from the helper crate of the active line
+    (question 13), with their props;
+  - `html_lang`, `islands_gate!`, `Setup`, `LoadError`, `track_locale`;
+  - the boots: `hydrate_body`, `hydrate_lazy` and `hydrate_islands` (`hydrate`),
+    `mount_to_body` (`csr`);
+  - `RequestI18n` (`ssr`);
+  - the untyped `set_locale(&str)` and `preload_locale(&str)`, which the
+    generated typed forms call (§12.2).
+- **Inside `mf2`** (A7):
+  - each line is reached through a private alias module;
+  - `::axum` is written at the crate root;
+  - there is no root rename.
+
+  The helper crates reach `mf2` through the function table the components
+  install (A7's v3), or through static dispatch if that holds the demos' size
+  gate (B1).
+- **Applications** import items from `mf2::leptos`, and never `use
+  mf2::leptos;` beside the `leptos` crate (A7, N5).
+
+### 12.2 What the generated module gives a web application
+
+From 19 §10. The items are the same names as a native application's, with the
+same signatures, so code shared between the two sides needs no `#[cfg]`:
+- **`Locale`**: typed, and parsed through the one matcher (19 §9);
+- **`install()`, on each side**, returning nothing:
+  - on the server it installs the setup and the embedded catalogs, each
+    checked once;
+  - in the browser it records the setup, which `mf2::leptos::hydrate_body`
+    (and each boot) reads. A boot with nothing installed logs one `mf2:` line
+    and leaves the page as served (§6's failed boot);
+- **`setup()`**: still generated, for a boot of one's own;
+- **`set_locale(Locale)` and `preload_locale(Locale)`**, on both sides:
+  - in the browser, a spawned switch or fetch, whose failure is logged once
+    (`mf2:`) and leaves the page as it was;
+  - on the server, nothing: the next request's cookie decides;
+- **`current_locale() -> Locale`**:
+  - in the browser it is reactive: reading it in a view or an effect subscribes
+    to the next switch, through `track_locale`;
+  - on the server it is the request's language;
+- **`Locale::name()`**: the `language.<tag>` message;
+- **`Locale::format(&message)`**: on the server;
+- **the prelude**.
+
+There is no translation crate and no feature block: `links` carries `mf2`'s
+features to the build (19 §11).
+
+### 12.3 The switcher and its options
+
+- **`<LocaleSwitcher label=… button=…/>` with no children lists every
+  language**, in `Locale::ALL`'s order: one `<option value=tag lang=tag>` each,
+  named by its `language.<tag>` message. The option of the page's language is
+  `selected`, as in 1.x.
+  - `setup()` carries each language's name message, and the helper renders it
+    through the table.
+  - A corpus that names some languages but not all gets a build warning. A
+    language without a name shows its tag.
+  - Adding a language needs no code.
+- **Children make a list of one's own**: `<LocaleOption tag=Locale::Fr>…
+  </LocaleOption>`. `tag` takes the generated `Locale`, which converts into the
+  helper's tag type, and still a `&'static str`.
+- **Each option carries its own language's `lang`** (§9). So E2's finding
+  does not arise inside a switcher: under `mark-fallback-lang`, a
+  `@do-not-translate` name borrowed from the source's catalog would otherwise
+  be wrapped in `<span lang="en">`. An option's text takes no span; its `lang`
+  is the language's own.
+- **The query name comes from the installed query source** (D2), not a
+  hard-coded `lang`.
+- **The accessibility contract is unchanged** (§9): a `GET` form, the
+  `<select>` inside its `<label>`, a submit button, no switch on `change`.
+
+### 12.4 Switching, and the current language, without `#[cfg]`
+
+Review finding #12. 1.x's `SwitchButton` (`docs/switching.md`) needed an
+`#[cfg(feature = "hydrate")]` and an `#[cfg(feature = "ssr")]` form of each
+helper. In 2.0:
+
+```rust
+#[component]
+pub fn SwitchButton(lang: Locale, children: Children) -> impl IntoView {
+    view! {
+        <button
+            type="button"
+            lang=lang.tag()
+            on:click=move |_| set_locale(lang)
+            on:pointerenter=move |_| preload_locale(lang)
+            on:focus=move |_| preload_locale(lang)
+        >
+            {children()}
+        </button>
+    }
+}
+```
+
+1.x's `current_language()` helper becomes `move || current_locale().tag()`.
+
+**Markup closures need no annotation** (review #10, D4):
+`tr!("hotkey", kbd = |c| view! { <kbd>{c}</kbd> })` infers in every position.
+D4 finds the positions where 1.x needed `|c: AnyView|`, and removes the need.
+
+### 12.5 The server
+
+- **`Negotiator::default()`** (D2) is `?lang=` (the switcher's query name),
+  then the cookie, then `Accept-Language`. Each goes through the one matcher.
+  The cookie sink is `Secure` except in a debug build, as 1.x's pages wrote by
+  hand.
+- **`Negotiator` is a tower `Layer`** (D3, a probe first). `.layer(
+  Negotiator::default())`:
+  - negotiates each request, and puts the `Negotiated` in the request's
+    extensions;
+  - writes `Content-Language`, `Vary` and the cookie on the response.
+
+  The Leptos render finds the result through the request `Parts` that
+  leptos_axum provides in the context. A render with no request (route
+  listing, a bare owner) uses the source language, as in 1.x. So
+  `leptos_routes` and `file_and_error_handler` are Leptos's plain forms: no
+  `_with_context`, and no silent default-language page when one entry point
+  misses the context. Fallback: keep the context wiring (19 §14).
+- **`catalog_routes()`** is unchanged. The generated `install()` replaces
+  `mf2_axum::install(setup(), CATALOGS)`.
+- **Plain Axum**, with no Leptos, has three things:
+  - the same layer;
+  - `Locale` as an extractor;
+  - `locale.format(&tr!(…))`.
+
+  A per-request ambient language, so that `{}` works in a plain handler, is
+  later (19 §13).
+
+### 12.6 `Display` and `Debug` in a browser build
+
+Question 14, as 19 §6 states it:
+- `Display` pads the text `to_string()` builds (A9's S3): `{}` costs 25–70 B gz
+  over `.to_string()`, and a wrapper's `.to_string()` 60–100 B gz;
+- `Debug` goes through `write_str` (A9's S2): `{:?}` on a description with
+  arguments costs about 1 KB gz, against 11.8–16.5 KB derived.
+
+The book says `.to_string()` is the leanest. The demos keep a nightly check
+that neither is linked (D6).
+
+### 12.7 What becomes of §2–§10
+
+- **§2.1:** the types return to `mf2`. B1 rewrites the section.
+- **§3, §4, §7, §8 and §9:** unchanged in substance.
+- **§5:** the storage is unchanged. The lookup order is 19 §5's: the request or
+  the page first, then the native store where `native` is also on.
+- **§6:** the defaults of §12.5, and the one matcher (C3).
+- **§10:** the lines become features of `mf2` (§12.1; B1, G1).
