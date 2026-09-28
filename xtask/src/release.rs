@@ -9,19 +9,20 @@
 //! 2. the package audit (A4, `cargo xtask package --check`: quick, so an
 //!    unaudited file stops the run before the long steps), which also
 //!    leaves each `.crate` in `target/package`;
-//! 3. the names on crates.io — on the first release all 16 free, from the
-//!    second on `mf2` carrying the previous release and every other name
-//!    free (a crate new in this release) or owned by one of `mf2`'s owners.
-//!    A crate that already carries this version counts as **released** when
+//! 3. the names on crates.io — the interrupted initial release has five
+//!    crates at 1.0.0, so their owners establish the project identity until
+//!    `mf2` itself is published. Later releases use `mf2`'s owners. Every
+//!    other name must be free or owned by the same account. A crate that
+//!    already carries this version counts as **released** when
 //!    the published `.crate` ships what this tree's does, file for file but
 //!    the commit cargo records (a publish that stopped part way, as
 //!    crates.io's limit on new crates stops one), and as a problem
 //!    otherwise: a published version cannot be replaced;
-//! 4. the public API against the published version (`cargo-semver-checks`,
-//!    pinned, installed into `target/tools`), crate by crate with the
-//!    features its documentation presents — skipped for a crate with nothing
-//!    published, so for all of them on 1.0.0; `--baseline-rev` compares with
-//!    a git revision instead;
+//! 4. the public API against each crate's latest published version
+//!    (`cargo-semver-checks`, pinned, installed into `target/tools`), with
+//!    the features its documentation presents — skipped for a crate with
+//!    nothing published; `--baseline-rev` compares with a git revision
+//!    instead;
 //! 5. `cargo xtask ci` (the committed API listings of A2 among its steps);
 //! 6. the packages' own tests from their `.crate` files (A4, `--test`);
 //! 7. the documentation as docs.rs builds it (A5);
@@ -73,6 +74,16 @@ const DEFAULT_WAIT: Duration = Duration::from_mins(10);
 
 /// The crate whose owners are "ours" once a release is published.
 const FACADE: &str = "mf2";
+
+/// The five packages published before crates.io rate-limited the initial
+/// release. They identify the owners until the facade has its first version.
+const PARTIAL_INITIAL_RELEASE: [&str; 5] = [
+    "mf2-model",
+    "mf2-resource",
+    "mf2-syntax",
+    "mf2-catalog",
+    "mf2-macros",
+];
 
 /// Features left out of a crate's cargo-semver-checks run, by crate.
 /// cargo-semver-checks builds a placeholder crate that depends on the one it
@@ -227,9 +238,8 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
          Next, by hand:\n\
          * tag it:  git tag -a {tag} -m \"rust-mf2 {version}\"  (and push the tag where the \
          repository lives)\n\
-         * after the first release, three sentences stop being true: README.md's status \
-         (\"is not published yet\") and its \"Until 1.0.0 is on crates.io\" note, and \
-         docs/getting-started.md's \"Not published yet\" box"
+         * after this coordinated release, update the README and getting-started page to \
+         say that all crates are available on crates.io"
     );
     Ok(())
 }
@@ -472,7 +482,7 @@ fn name_problems(
 ) -> Vec<String> {
     let mut out = Vec::new();
     let facade = found.iter().find(|(n, _)| *n == FACADE).map(|(_, r)| r);
-    let ours: Option<&[String]> = match (previous, facade) {
+    let ours: Option<Vec<String>> = match (previous, facade) {
         (None, _) => None,
         (
             Some(previous),
@@ -480,20 +490,24 @@ fn name_problems(
                 versions, owners, ..
             }),
         ) => {
-            if !versions.iter().any(|v| v == previous) {
-                out.push(format!(
-                    "{FACADE}: crates.io does not have {previous}, the release before this \
-                     one in CHANGELOG.md, so its owners are not known to be ours"
-                ));
+            if versions.iter().any(|v| v == previous) {
+                Some(owners.clone())
+            } else {
+                partial_initial_owners(found, previous).or_else(|| {
+                    out.push(format!(
+                        "{FACADE}: crates.io does not have {previous}, the release before this \
+                         one in CHANGELOG.md, so its owners are not known to be ours"
+                    ));
+                    None
+                })
             }
-            Some(owners)
         }
-        (Some(previous), _) => {
+        (Some(previous), _) => partial_initial_owners(found, previous).or_else(|| {
             out.push(format!(
                 "{FACADE}: not on crates.io, though CHANGELOG.md says {previous} was released"
             ));
             None
-        }
+        }),
     };
     for (name, registered) in found {
         let Registered::Taken { owners, this, .. } = registered else {
@@ -509,19 +523,35 @@ fn name_problems(
             }
             continue;
         }
-        match ours {
+        match ours.as_deref() {
             None if previous.is_none() => out.push(format!(
                 "{name}: taken on crates.io (owners: {}), and nothing of ours is published yet",
                 owners.join(", ")
             )),
             Some(ours) if !owners.iter().any(|o| ours.contains(o)) => out.push(format!(
-                "{name}: owned on crates.io by {}, none of whom owns `{FACADE}`",
+                "{name}: owned on crates.io by {}, none of whom owns a published crate from this project",
                 owners.join(", ")
             )),
             _ => {}
         }
     }
     out
+}
+
+fn partial_initial_owners(found: &[(&str, Registered)], previous: &str) -> Option<Vec<String>> {
+    PARTIAL_INITIAL_RELEASE.iter().find_map(|expected| {
+        found.iter().find_map(|(name, registered)| {
+            if name != expected {
+                return None;
+            }
+            match registered {
+                Registered::Taken {
+                    versions, owners, ..
+                } if versions.iter().any(|v| v == previous) => Some(owners.clone()),
+                _ => None,
+            }
+        })
+    })
 }
 
 fn refuse(problems: &[String]) -> Result<()> {
@@ -881,8 +911,21 @@ mod tests {
         ];
         assert_eq!(
             name_problems(&found, "1.1.0", Some("1.0.0"), &local()),
-            ["mf2-new: owned on crates.io by someone, none of whom owns `mf2`"]
+            [
+                "mf2-new: owned on crates.io by someone, none of whom owns a published crate from this project"
+            ]
         );
+    }
+
+    #[test]
+    fn a_continuation_after_the_partial_first_release_uses_its_owners() {
+        let found = vec![
+            ("mf2", Registered::Free),
+            ("mf2-model", taken(&["1.0.0"], &["owner"])),
+            ("mf2-resource", taken(&["1.0.0"], &["owner"])),
+            ("mf2-new", Registered::Free),
+        ];
+        assert!(name_problems(&found, "1.0.1", Some("1.0.0"), &local()).is_empty());
     }
 
     #[test]
