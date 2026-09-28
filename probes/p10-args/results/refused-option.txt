@@ -1,0 +1,30 @@
+error[E0277]: `Option<i64>` is not a message argument
+   --> examples/refused.rs:22:13
+    |
+ 22 |     let _ = arg!(Some(3_i64));
+    |             ^^^^^^^^^^^^^^^^^ this argument has neither a number, string or date form nor `Display`
+    |
+    = help: the trait `IntoArg` is not implemented for `Option<i64>`
+    = note: an argument is a number, a string, a date, a path, or any type that implements `Display` (its text is used)
+    = note: for a type of your own, implement `Display`, or `mf2::IntoArg` to pass it as a number or a date
+    = help: the following other types implement trait `IntoArg`:
+              &Path
+              &T
+              &str
+              String
+              f64
+              i64
+              usize
+note: required by a bound in `p10_args::__arg::ViaNeither::__mf2_arg`
+   --> src/lib.rs:100:16
+    |
+ 98 |         fn __mf2_arg(self) -> ArgValue
+    |            --------- required by a bound in this associated function
+ 99 |         where
+100 |             T: IntoArg;
+    |                ^^^^^^^ required by this bound in `ViaNeither::__mf2_arg`
+    = note: this error originates in the macro `arg` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `p10-args` (example "refused") due to 1 previous error
+refused-option: exit 101
