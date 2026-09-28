@@ -94,7 +94,9 @@ tasks start from fresh sessions, as listed under "Next".
   `write_str`) cuts that by 92–93 %; S1 (`write_str` for `Display`) gains nothing. R3 (`Display`
   refusing in a browser build, with our message) costs 0 B and puts 1.x's wrapper `.to_string()`
   calls back on the fmt-free method. 13 silent paths, on both Leptos lines; the check needs a
-  debug-profile client build. Recommended for A8: S2, and R3 if the owner agrees (question 3).
+  debug-profile client build. **Owner question 14, asked after A9:** a lean `Display`, allowed
+  everywhere (S3: `Display` pads the text `to_string()` builds; `{}` then costs 25–70 B gz), and
+  `Debug` through `write_str` (S2). A8 states both in the design.
 
 **In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
 (`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
@@ -104,8 +106,8 @@ and left it clean; its `target/a9/` goes with that worktree.
 **Next, each from a fresh session** (the owner holds everything until then):
 - **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
   exact code, the UX targets, the gate table; the web side into 04 and 05. It starts by asking
-  owner questions 1, 2 and 3 below: the matcher's rules and the `Display` trade-off go into the
-  design. Part C's API work waits for the owner's review of it.
+  owner questions 1 and 2 below, since the matcher's rules go into the design. `Display` and
+  `Debug` are decided (question 14). Part C's API work waits for the owner's review of it.
 - **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
@@ -116,7 +118,7 @@ and left it clean; its `target/a9/` goes with that worktree.
   holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its other
   two options.
 
-**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks all three first):
+**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks both first):
 1. *C3, before A8 states the matching rules:* CLDR's data refuses Traditional ↔ Simplified
    Chinese (no rule; the default script distance, 50), where question 11's answer expected
    Traditional → Simplified to be served. Follow the data, or add a documented project rule?
@@ -124,26 +126,19 @@ and left it clean; its `target/a9/` goes with that worktree.
    `oneway`, demotion, match-variable groupings) is not in the tree, and the network rule does
    not reach it. Work from the C3 data record and ICU's documented behaviour, or allow vendoring
    that section?
-3. *A9, before A8 states the `Display` trade-off (it changes what A5 adopted):* in a browser
-   build, keep `{}` on a description compiling, or refuse it at compile time with a message
-   naming `.to_string()`? Keeping it (A5) costs 0.15–0.6 KB gz per description type when used,
-   and code written against 1.x (`signal.read().to_string()`, an `Arc`, a `RefCell` borrow, `&&`)
-   silently takes that path, ≈ 0.25 KB gz each. Refusing it (R3) costs 0 B and keeps those calls
-   fmt-free; a `Display`-bounded API such as Leptos's `<Redirect path>` then takes `.to_string()`
-   first. Servers, native applications and tests keep `Display` either way. (`Debug` is not in
-   the question: removing it breaks `#[derive(Debug)]` over descriptions; A9 recommends shrinking
-   it, S2.)
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
   placeholder is a string (A3).
-- A8 (the `Display` / `Debug` trade-off, measured by A9): `{}` in a browser build costs 0.15–0.6
-  KB gz, not 16.6 KB; the 16.6 KB was `{:?}` on a description with arguments, which `unwrap()`,
-  `assert_eq!` and a derived `Debug` reach too. A9 recommends S2 for `Debug`, and R3 for
-  `Display` if the owner agrees (question 3). Either way the book's rule (F), and for the demos
-  the debug-profile check (A9).
+- A8 (the `Display` / `Debug` design, decided in question 14): S3 for `Display`, S2 for `Debug`
+  (`probes/p10-display-cost/lib-s3-display-via-string.patch`, `lib-s2-debug.patch`); A5's
+  16.6 KB was `{:?}` on a description with arguments, which `unwrap()`, `assert_eq!` and a
+  derived `Debug` reach too. S2's fidelity limits are A8's to state. Whether the demos keep a
+  check (it needs a debug-profile build) now that `{}` is allowed: A8's call.
+- F (the book): `.to_string()` is the leanest; `{}` costs a few dozen bytes, `{:?}` about 1 KB,
+  and `unwrap()` / `assert_eq!` on a description reach `{:?}` (A9).
 - D6 / CI: a `Display` / `Debug` check on the demos needs a debug-profile client build; a release
   build with names kept misses what LLVM inlines (A9).
 - Every size investigation that keeps names: `wasm-opt --strip-dwarf` before `-Oz`, or the
@@ -336,6 +331,31 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     > 0.8 and 0.9 under the module `mf2::leptos`. Which way should the six built-in components (the
     > switcher, its options, preload and alternate links, the islands gate) go? — Helper crate per
     > line; generated into the app; without the macros, inside mf2.
+14. **`{}` on a message in a browser build** (asked after A9, 2026-09-28) — **answered: a lean
+    `Display`, allowed everywhere** (A9's S3), which is what the owner proposed. To the first
+    form (refuse it, or allow it at A5's cost) the owner answered, verbatim: "Can we implement our
+    own Display on it that does this for us, would this raise a problem with Ux or Ergonomics to do
+    that? What's the downside?" A9 built and measured that `Display`, then asked again.
+
+    **As decided:**
+    - `Display` pads the text the fmt-free inherent `to_string()` builds: one text path per
+      description type, shared by `.to_string()`, `{}` and a wrapper's `.to_string()`.
+    - `{}` compiles everywhere. In a browser build it costs 25–70 B gz more than `.to_string()` in
+      an application that already calls `format!`, and a wrapper's `.to_string()` (a signal's read
+      guard, an `Arc`, a `RefCell` borrow, `&&`) 60–100 B gz. The price: one more `String` per
+      `{}`. The book says `.to_string()` is the leanest.
+    - `Debug` is written through `write_str` (A9's S2, 92–93 % smaller than the derived one), as
+      both options put it.
+    - Rejected: refusing `{}` in browser builds (A9's R3), and A5's `Display` as written (a second
+      text path per type).
+
+    *As put, first:*
+    > In browser builds, should formatting a message with `{}` (e.g. `format!("{}", tr!("title"))`)
+    > be refused at compile time, or allowed?
+
+    *Then, after the measurement:*
+    > Which should browser builds get for `{}` on a message? — Lean Display, allowed; or refuse it
+    > in browser builds.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
@@ -405,8 +425,9 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
   found the hard way"). The impls:
   - the Leptos glue;
   - `From` into Ratatui's `Span` / `Line` / `Text`, `Widget`, and `Styled` (so `Stylize` works);
-  - `Display`, beside the fmt-free inherent `to_string()` the web client keeps;
-  - `Debug` on every type;
+  - `Display`, through the text the fmt-free inherent `to_string()` builds (question 14), beside
+    that method, which the web client keeps;
+  - `Debug` on every type, written through `write_str` (question 14; A9's S2);
   - argument conversions with a readable error.
 - **The ambient store** (native):
   - an atomic active-locale index plus a thread-local override;
@@ -1973,7 +1994,7 @@ for 19"):
 
 * **Where.** A5's worktree (`.claude/worktrees/agent-a7b6f4df78ce56a04`), on
   the probe branch `p10-a5-display` at **`70e0b27`** (2026-09-28,
-  14:09–15:39): one tree, and one lock per application. Nothing was
+  14:09–16:05): one tree, and one lock per application. Nothing was
   committed there; every change was a working-tree edit, taken out after its
   build, and the worktree is clean. On `main`: `probes/p10-display-cost/`,
   the scripts, the library variants as patches (`lib-*.patch`) and a README.
@@ -2210,6 +2231,35 @@ script). The fixture, raw bytes, names excluded:
     `DateTimeValue(2026-09-28T14:05:09.007)` rather than the nested fields;
     `{:#?}` prints what `{:?}` does. Integers, `2.5`, `0.1`, `123456.789`,
     `Unset` and `Custom(..)` print as before.
+* **S3, `Display` through the text the inherent `to_string()` builds
+  (`lib-s3-display-via-string.patch`, +4 −15: `ambient::fmt` pads
+  `string(…)`, and `text::fmt_display` is gone).** Built after the owner
+  asked for "our own Display … that does this for us" (question 14).
+  **One copy of the text path per description type**, shared by
+  `.to_string()`, `{}` and the traps; A5's `Display` compiled a second one
+  (`fmt_display`, 444 B in demo-ssr). `all.sh s3`, Δ raw / Δ gz:
+
+  | client | `{}` `Tr` over `.to_string()`, A5 → S3 | `{}` `TrArgs` over `.to_string()`, A5 → S3 |
+  |---|---:|---:|
+  | `tr-view` | +472 / +153 → **+82 / +26** | +475 / +148 → **+85 / +22** |
+  | demo-ssr | +471 / +217 → **+81 / +70** | — |
+  | demo-csr | +834 / +244 → +398 / +140 | +329 / +35 → +434 / +80 |
+  | demo-islands | +1,206 / +373 → +1,212 / +374 | — |
+
+  * **Every `base` is A5's** (0 B; demo-ssr −1 B gz).
+  * **In `tr-view` and demo-ssr, what is left is the call site.** demo-csr
+    and demo-islands call `format!` nowhere else, so there the first `{}`
+    also links `core::fmt`'s `pad` and `String`'s `fmt::Write`: in
+    demo-islands (names kept), `Formatter` +380 B and data +219, while the
+    text path only moves, from `hydrate` into `<Tr as Display>::fmt`
+    (+1,076 / −613). Any `format!` would bring the same.
+  * **The traps** (demo-ssr, each alone, over `base`): read guard +1,546 /
+    +694, `Arc` +385 / +116, `RefCell` +327 / +75, `&&` +333 / +77. That is
+    about +290 raw and +60–100 gz over R3's fmt-free path, from about +685
+    and +230–255 under A5.
+  * A5's render test passes (15; `{}` equals `to_string()`, `{:<16}` pads).
+  * **The price:** one more `String` per `{}`, since the text is built,
+    then copied into the formatter.
 
 ### Ways to remove it
 
@@ -2409,9 +2459,9 @@ over one, and on the helpers only `Display` and `Debug` reach
   * every figure is recorded here with its command: yes;
   * the silent paths are listed: yes, 13, each compiled on both Leptos
     lines, at A5 and at 1.x;
-  * a recommendation for A8: below. **It changes what A5 adopted for
-    `Display`, so A8 puts it to the owner** (added as owner question 3
-    below).
+  * a recommendation for A8: below. It changed what A5 adopted for
+    `Display`, so it went to the owner, who proposed a third way (S3),
+    measured here, and chose it: **question 14**.
 * **The figure A5 left open:**
   * **`{}` is cheap:** +0.15–0.6 KB gz, once per description type, in
     every client;
@@ -2421,7 +2471,8 @@ over one, and on the helpers only `Display` and `Debug` reach
     a derived `Debug`: +12.4 KB gz in demo-ssr).
 * **Shrink:** S1 gains nothing; **S2 cuts `Debug`'s cost by 92–93 %**, to
   about 1 KB gz, and drops the panic paths, at a documented loss of
-  fidelity.
+  fidelity. **S3 cuts what `{}` adds to about 25–70 B gz**, and a trap to
+  60–100, by sharing `.to_string()`'s text path.
 * **Remove:** R1, R2 and their `d` forms save 0 B where nothing formats.
   They bring back rustc's error, which suggests `{:?}`. **R3 refuses `{}`
   in a browser build with a message naming `.to_string()`, and returns the
@@ -2439,25 +2490,21 @@ over one, and on the helpers only `Display` and `Debug` reach
   S2 changes how A5's `Debug` is written, not what A5 adopted; its fidelity
   limits are A8's to state. The runtime's `Date` and `Time` keep their
   derives, which S2 no longer reaches.
-* **`Display`: R3, if the owner agrees.** The bytes alone don't decide:
-  `{}` costs 0.15–0.6 KB gz. What decides is what A5 does silently. Code
-  written against 1.x (`signal.read().to_string()`, an `Arc`, a `RefCell`
-  borrow, `&&`) compiles unchanged and takes `core::fmt` instead of the
-  fmt-free method, about 0.25 KB gz each. The only check that sees it needs
-  a debug-profile build. R3 costs 0 B and brings back 1.x's compile-time
-  guarantee. Its message names the fix, where rustc's hint (R1, R2) points
-  at `{:?}`, the path that costs 12–16 KB. Servers, native applications and
-  tests keep `Display` (owner answer 3: `println!("{}", tr!(…))`). The
-  price: in a browser build, a `Display`-bounded API (`<Redirect path>`, a
-  `redirect_path`, `ServerFnError::new`, generic `impl ToString`) takes
-  `.to_string()` first, which the message says. **A8 chooses R3's predicate:**
-  the target, as measured (every browser build, Leptos or not), or the client
-  modes (`hydrate`, `csr`), if a server on `wasm32-unknown-unknown` should
-  keep `Display`.
-* **If the owner keeps A5's `Display`:** the book's rule (F) covers `{}`,
-  `{:?}` and the traps, and CI runs the debug-profile check on the demos.
-  Under R3 the rule shrinks to `Debug`: `{:?}`, `unwrap()` on a description
-  error, `assert_eq!`. The check still guards the demos from those.
+* **`Display`: S3, as the owner decided (question 14).** Before it, A9
+  recommended R3: `{}` cost 0.15–0.6 KB gz, and code written against 1.x
+  (`signal.read().to_string()`, an `Arc`, a `RefCell` borrow, `&&`) took
+  `core::fmt` silently, about 0.25 KB gz each. S3 leaves both allowed and
+  cuts them to 25–70 and 60–100 B gz. No compile error in browser builds,
+  so `<Redirect path=tr!(…)>`, `ServerFnError::new(tr!(…))` and generic
+  `impl ToString` code just work. R3 stays documented (`lib-r3.patch`), with
+  what it would cost: `.to_string()` before any `Display`-bounded API in
+  browser code.
+* **The book's rule (F):** `.to_string()` is the leanest; `{}` costs a few
+  dozen bytes; `{:?}` about 1 KB with S2, and `unwrap()` / `assert_eq!` on a
+  description reach it. **The check** (a debug-profile client build, then
+  `fmt-check.sh`) stays available for the demos. With `{}` allowed, a gate
+  on it would flag legitimate uses; whether the demos keep one, and for
+  what, is A8's call.
 * **For every size investigation that keeps names:** `wasm-opt
   --strip-dwarf` before `-Oz`, or the names-kept build is not the shipped
   one (+557 B of code in the fixture).

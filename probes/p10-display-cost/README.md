@@ -12,11 +12,11 @@ figures came from.
 
 | Script | What |
 |---|---|
-| `all.sh STEP` | the runs: `fixture`, `tr-view` (the split), `demos [DEMO…]`, `tr`, `named`, `shrink`, `remove`, `remove-demos`, `errors`, `silent`, `traps`, `devcheck` |
+| `all.sh STEP` | the runs: `fixture`, `tr-view` (the split), `demos [DEMO…]`, `tr`, `named`, `shrink`, `remove`, `remove-demos`, `errors`, `silent`, `traps`, `devcheck`, `s3` |
 | `run.sh CLIENT CASE…` | builds a client once per case, as it ships, and measures it; `A9_LIB` labels the library variant, `A9_NAMED=1` also builds it with names kept, `A9_SHIP=0` skips the shipped build, `A9_CHECK=1` only type-checks a demo |
 | `case.py apply\|restore\|show CLIENT CASE` | the one-statement edit a case makes to a client's entry point (a working-tree edit, never committed), including the silent paths (`silent-new`, `silent-traps`, `silent-trap-*`, `silent-debug`) |
 | `libvar.sh apply NAME \| restore` | a library variant of `crates/leptos-mf2`, from `lib-NAME.patch` |
-| `lib-*.patch` | the variants: `v1x` (the crate at `2fb7f54`), `s1-writestr`, `s2-debug`, `r1`, `r1d`, `r2`, `r2d`, `r3` |
+| `lib-*.patch` | the variants: `v1x` (the crate at `2fb7f54`), `s1-writestr`, `s2-debug`, `s3-display-via-string` (what the owner chose, question 14), `r1`, `r1d`, `r2`, `r2d`, `r3` |
 | `make-removal.py` | how `lib-r1*.patch` and `lib-r2*.patch` were written |
 | `measure.py` | raw, `gzip -9 -n`, `brotli -q 11`, and a `.wasm`'s code and data sections, into `results.tsv` |
 | `report.py [CLIENT…]`, `tables.py split\|apps\|variants` | the record's tables, from `results.tsv` |

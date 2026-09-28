@@ -2,13 +2,15 @@
 # A9: put a library variant of `crates/leptos-mf2` into the tree, or take it
 # out again (back to the probe branch's A5 variant).
 #
-#   libvar.sh apply NAME      NAME: v1x s1-writestr s2-debug r1 r1d r2 r2d r3
+#   libvar.sh apply NAME      NAME: v1x s1-writestr s2-debug s3-display-via-string r1 r1d r2 r2d r3
 #   libvar.sh restore
 #
 #   v1x          the crate as at 2fb7f54 (1.x's `Display`-less descriptions)
 #   s1-writestr  `Display` through `write_str` in place of `Formatter::pad`
 #   s2-debug     every `Debug` through `write_str`: no `core::fmt` number,
 #                float or escape code, no builder
+#   s3-display-via-string  `Display` pads the text the inherent `to_string()`
+#                builds: one text path per description type, shared
 #   r1 / r1d     `Display` (r1d: and A5's `Debug`) only with the std mode
 #   r2 / r2d     `Display` (r2d: and A5's `Debug`) not on wasm32-unknown-unknown
 #   r3           on wasm32-unknown-unknown, `Display` refuses at compile time

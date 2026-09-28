@@ -129,5 +129,17 @@ case "$1" in
     bash "$here/libvar.sh" restore
     cp "$a9/t-demo-ssr-dev/wasm32-unknown-unknown/debug/demo_ssr.wasm" "$a9/dev-check/r3-silent-traps.wasm.r3"
     bash "$here/fmt-check.sh" "$a9/dev-check/r3-silent-traps.wasm.r3" || true ;;
-  *) echo "steps: fixture tr-view demos tr named shrink remove remove-demos errors silent traps devcheck" >&2; exit 2 ;;
+  # 8. S3, the owner's question (2026-09-28): `Display` through the text the
+  #    inherent `to_string()` builds, so that `{}` and the traps reuse its
+  #    code. Where `Display` does real work: the Leptos clients.
+  s3)
+    bash "$here/libvar.sh" apply s3-display-via-string
+    A9_LIB=s3-display-via-string run demo-ssr base display-tr display-trargs tostring-tr \
+      silent-trap-guard silent-trap-arc silent-trap-refcell silent-trap-refref
+    for c in tr-view demo-csr; do
+      A9_LIB=s3-display-via-string run "$c" base display-tr display-trargs tostring-tr tostring-trargs
+    done
+    A9_LIB=s3-display-via-string run demo-islands base display-tr tostring-tr
+    bash "$here/libvar.sh" restore ;;
+  *) echo "steps: fixture tr-view demos tr named shrink remove remove-demos errors silent traps devcheck s3" >&2; exit 2 ;;
 esac

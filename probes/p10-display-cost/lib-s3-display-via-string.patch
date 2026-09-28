@@ -1,0 +1,39 @@
+diff --git a/crates/leptos-mf2/src/display.rs b/crates/leptos-mf2/src/display.rs
+index afeb14d..f35a464 100644
+--- a/crates/leptos-mf2/src/display.rs
++++ b/crates/leptos-mf2/src/display.rs
+@@ -101,8 +101,11 @@ mod ambient {
+         text::to_string(description, use_)
+     }
+ 
++    /// `Display` through the text [`string`] builds, which the inherent
++    /// `to_string()` shares (probe A9, S3): one copy of the text path per
++    /// description type, not a second one for `{}`; padded as before.
+     pub(super) fn fmt<D: Description>(description: &D, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        text::fmt_display(description, f)
++        f.pad(&string(description, false))
+     }
+ }
+ 
+diff --git a/crates/leptos-mf2/src/text.rs b/crates/leptos-mf2/src/text.rs
+index 9604590..40d5488 100644
+--- a/crates/leptos-mf2/src/text.rs
++++ b/crates/leptos-mf2/src/text.rs
+@@ -315,17 +315,3 @@ pub(crate) fn to_string<D: Description>(description: &D, use_: TextUse) -> Strin
+     catalog::track_locale();
+     with_active_text(description, use_, |text: &str| String::from(text))
+ }
+-
+-/// What `Display` writes: [`to_string`]'s text, tracked the same way, into
+-/// the formatter with no `String` in between — padded when the format asks.
+-///
+-/// `core::fmt`, so never on the client path unless the application itself
+-/// formats a description with `{}` there (B12).
+-pub(crate) fn fmt_display<D: Description>(
+-    description: &D,
+-    f: &mut core::fmt::Formatter<'_>,
+-) -> core::fmt::Result {
+-    #[cfg(not(feature = "ssr"))]
+-    catalog::track_locale();
+-    with_active_text(description, TextUse::Displayed, |text: &str| f.pad(text))
+-}
