@@ -1,0 +1,40 @@
+diff --git a/crates/leptos-mf2/src/display.rs b/crates/leptos-mf2/src/display.rs
+index afeb14d..b4f0a8f 100644
+--- a/crates/leptos-mf2/src/display.rs
++++ b/crates/leptos-mf2/src/display.rs
+@@ -69,6 +69,7 @@ macro_rules! string_conversions {
+ 
+         /// The text [`to_string`](Self::to_string) returns, written into the
+         /// formatter — padded, when the format asks (`{:<12}`).
++        #[cfg(feature = "ssr")]
+         impl fmt::Display for $ty {
+             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                 ambient::fmt(self, f)
+@@ -101,6 +102,7 @@ mod ambient {
+         text::to_string(description, use_)
+     }
+ 
++    #[cfg(feature = "ssr")]
+     pub(super) fn fmt<D: Description>(description: &D, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         text::fmt_display(description, f)
+     }
+@@ -120,6 +122,7 @@ mod ambient {
+         clippy::unnecessary_wraps,
+         reason = "the signature `Display::fmt` calls in every build"
+     )]
++    #[cfg(feature = "ssr")]
+     pub(super) fn fmt<D>(_description: &D, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         Ok(())
+     }
+diff --git a/crates/leptos-mf2/src/text.rs b/crates/leptos-mf2/src/text.rs
+index 9604590..577dff7 100644
+--- a/crates/leptos-mf2/src/text.rs
++++ b/crates/leptos-mf2/src/text.rs
+@@ -321,6 +321,7 @@ pub(crate) fn to_string<D: Description>(description: &D, use_: TextUse) -> Strin
+ ///
+ /// `core::fmt`, so never on the client path unless the application itself
+ /// formats a description with `{}` there (B12).
++#[cfg(feature = "ssr")]
+ pub(crate) fn fmt_display<D: Description>(
+     description: &D,
+     f: &mut core::fmt::Formatter<'_>,

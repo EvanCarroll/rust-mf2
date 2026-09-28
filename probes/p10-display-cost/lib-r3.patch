@@ -1,0 +1,58 @@
+diff --git a/crates/leptos-mf2/src/display.rs b/crates/leptos-mf2/src/display.rs
+index afeb14d..299a360 100644
+--- a/crates/leptos-mf2/src/display.rs
++++ b/crates/leptos-mf2/src/display.rs
+@@ -69,14 +69,40 @@ macro_rules! string_conversions {
+ 
+         /// The text [`to_string`](Self::to_string) returns, written into the
+         /// formatter — padded, when the format asks (`{:<12}`).
++        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+         impl fmt::Display for $ty {
+             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                 ambient::fmt(self, f)
+             }
+         }
++
++        /// In a browser build, `Display` refuses at compile time, with a
++        /// message that names the fmt-free method (probe A9, R3): the impl
++        /// exists, so rustc does not suggest `{:?}`, and a wrapper's
++        /// `.to_string()` (`Arc<_>`, `&&_`, a signal's read guard) falls
++        /// through to the inherent method, as it did in 1.x.
++        #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
++        impl<'a> fmt::Display for $ty
++        where
++            &'a $ty: FmtInBrowser,
++        {
++            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++                ambient::fmt(self, f)
++            }
++        }
+     };
+ }
+ 
++/// Never implemented, and not implementable outside this crate: its bound on
++/// `Display` in a browser build is what refuses `{}`, with this message.
++#[doc(hidden)]
++#[diagnostic::on_unimplemented(
++    message = "a message description is not formatted with `{{}}` in a browser build",
++    label = "`{{}}` links `core::fmt` into the wasm; write `.to_string()`, the description's fmt-free method",
++    note = "`to_string()` gives the same text; `Display` stays for servers, native applications and tests"
++)]
++pub trait FmtInBrowser {}
++
+ string_conversions!(Tr);
+ string_conversions!(TrArgs);
+ string_conversions!(TrRich);
+diff --git a/crates/leptos-mf2/src/lib.rs b/crates/leptos-mf2/src/lib.rs
+index c3ba1fe..f000618 100644
+--- a/crates/leptos-mf2/src/lib.rs
++++ b/crates/leptos-mf2/src/lib.rs
+@@ -121,6 +121,8 @@ compile_error!(
+ 
+ mod arg;
+ mod display;
++#[doc(hidden)]
++pub use display::FmtInBrowser;
+ mod dynamic;
+ mod markup;
+ mod tr;

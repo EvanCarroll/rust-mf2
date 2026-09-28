@@ -62,9 +62,9 @@ kept open by each decision, not built.
 Kept current so that any task can be picked up cold, from this file and the
 commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
 parallel agents; three were stopped by the account's session limit and were
-finished by new agents. **Part A is done except A8, and A9, which the owner
-added afterwards.** The owner holds everything else: the next tasks start
-from fresh sessions, as listed under "Next".
+finished by new agents. **Part A is done except A8**; A9, which the owner
+added afterwards, is done too. The owner holds everything else: the next
+tasks start from fresh sessions, as listed under "Next".
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -87,21 +87,25 @@ from fresh sessions, as listed under "Next".
   crates, hydration green on both lines (the six browser checks on 0.9, and on 0.8 through
   copies of the demos); the coherence rules confirmed with their errors. The table's cost: see B1
   below.
+- **A9** (`probes/p10-display-cost/`, run in A5's worktree; its outputs in that worktree's
+  `target/a9/`): **`{}` costs 0.15–0.6 KB gz** once per description type, in every client; **`{:?}`
+  on a description with arguments costs 11.8–16.5 KB gz** (core's float formatter, with its panic
+  paths), and `unwrap()`, `assert_eq!` or a derived `Debug` reach it too. S2 (`Debug` through
+  `write_str`) cuts that by 92–93 %; S1 (`write_str` for `Display`) gains nothing. R3 (`Display`
+  refusing in a browser build, with our message) costs 0 B and puts 1.x's wrapper `.to_string()`
+  calls back on the fmt-free method. 13 silent paths, on both Leptos lines; the check needs a
+  debug-profile client build. Recommended for A8: S2, and R3 if the owner agrees (question 3).
 
 **In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
 (`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
-kept until B1 has taken what it reuses from `p10-a7-names`.
+kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-display`'s worktree
+and left it clean; its `target/a9/` goes with that worktree.
 
 **Next, each from a fresh session** (the owner holds everything until then):
-- **A9**, what `Display` / `Debug` cost the browser's wasm (added by the owner, 2026-09-28). A5's
-  positive control measured +16.6 KB gz for one `{}` and one `{:?}` together, in the fixture
-  client only. A9 splits that figure, measures it in the size workloads and the demos, measures
-  the ways to shrink or remove it, and lists the ways a description reaches `Display` with no
-  `format!` in the application. It runs before A8 states the `Display` trade-off.
-- **A8** (after A9), the design for the owner's review: `plans/19-native-and-terminal.md`, the
-  four samples' exact code, the UX targets, the gate table; the web side into 04 and 05. It starts
-  by asking owner questions 1 and 2 below, since the matcher's rules go into the design. Part C's
-  API work waits for the owner's review of it.
+- **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
+  exact code, the UX targets, the gate table; the web side into 04 and 05. It starts by asking
+  owner questions 1, 2 and 3 below: the matcher's rules and the `Display` trade-off go into the
+  design. Part C's API work waits for the owner's review of it.
 - **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
@@ -112,7 +116,7 @@ kept until B1 has taken what it reuses from `p10-a7-names`.
   holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its other
   two options.
 
-**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks both first):
+**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks all three first):
 1. *C3, before A8 states the matching rules:* CLDR's data refuses Traditional ↔ Simplified
    Chinese (no rule; the default script distance, 50), where question 11's answer expected
    Traditional → Simplified to be served. Follow the data, or add a documented project rule?
@@ -120,16 +124,30 @@ kept until B1 has taken what it reuses from `p10-a7-names`.
    `oneway`, demotion, match-variable groupings) is not in the tree, and the network rule does
    not reach it. Work from the C3 data record and ICU's documented behaviour, or allow vendoring
    that section?
+3. *A9, before A8 states the `Display` trade-off (it changes what A5 adopted):* in a browser
+   build, keep `{}` on a description compiling, or refuse it at compile time with a message
+   naming `.to_string()`? Keeping it (A5) costs 0.15–0.6 KB gz per description type when used,
+   and code written against 1.x (`signal.read().to_string()`, an `Arc`, a `RefCell` borrow, `&&`)
+   silently takes that path, ≈ 0.25 KB gz each. Refusing it (R3) costs 0 B and keeps those calls
+   fmt-free; a `Display`-bounded API such as Leptos's `<Redirect path>` then takes `.to_string()`
+   first. Servers, native applications and tests keep `Display` either way. (`Debug` is not in
+   the question: removing it breaks `#[derive(Debug)]` over descriptions; A9 recommends shrinking
+   it, S2.)
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
   placeholder is a string (A3).
-- A8 (a design trade-off to state): with `Display` always on, `format!("{}", tr!(…))` in a
-  browser build compiles and pulls in `core::fmt`, ≈ 16.6 KB gz; 1.x refused it at compile time,
-  and so would A5's fallback (`Display` only with the std modes) (A5). A9 investigates the figure
-  first.
+- A8 (the `Display` / `Debug` trade-off, measured by A9): `{}` in a browser build costs 0.15–0.6
+  KB gz, not 16.6 KB; the 16.6 KB was `{:?}` on a description with arguments, which `unwrap()`,
+  `assert_eq!` and a derived `Debug` reach too. A9 recommends S2 for `Debug`, and R3 for
+  `Display` if the owner agrees (question 3). Either way the book's rule (F), and for the demos
+  the debug-profile check (A9).
+- D6 / CI: a `Display` / `Debug` check on the demos needs a debug-profile client build; a release
+  build with names kept misses what LLVM inlines (A9).
+- Every size investigation that keeps names: `wasm-opt --strip-dwarf` before `-Oz`, or the
+  names-kept build is not the shipped one (A9).
 - C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).
 - C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
   times need a quiet machine (A1).
@@ -1950,6 +1968,499 @@ for 19"):
     in the per-mode `api.txt`;
   * what a checkout without symlink support (`core.symlinks=false`) gets for
     the 0.8 helper's `ui.rs`. `cargo package` follows the link.
+
+## A9 — what `Display` / `Debug` cost the browser's wasm: what was built
+
+* **Where.** A5's worktree (`.claude/worktrees/agent-a7b6f4df78ce56a04`), on
+  the probe branch `p10-a5-display` at **`70e0b27`** (2026-09-28,
+  14:09–15:39): one tree, and one lock per application. Nothing was
+  committed there; every change was a working-tree edit, taken out after its
+  build, and the worktree is clean. On `main`: `probes/p10-display-cost/`,
+  the scripts, the library variants as patches (`lib-*.patch`) and a README.
+  `all.sh STEP` reruns each step in the order the figures came from. The
+  outputs stay in the worktree's git-ignored `target/a9/`: `results.tsv`
+  (every figure), `log.txt` (every build), `out/` (each case's shipped files
+  and names-kept build), `check/` and `dev-check/` (the type-checks and the
+  debug-profile builds).
+* **The cases** (`case.py`): one statement after a fixed line of the
+  client's entry point, so that every build of the client reaches it; `x` is
+  a black-boxed description:
+  * `base`: nothing;
+  * `display-T`: `black_box(format!("{}", x))`;
+  * `debug-T`: `black_box(format!("{:?}", x))`;
+  * `both-T`: `black_box(format!("{} {:?}", x, x))`;
+  * `tostring-T`: `black_box(x.to_string())`, the inherent, fmt-free method.
+    It is the control: the description built and its text path linked, with
+    no `core::fmt` of ours;
+  * `control`: A5's positive control, `format!("{save} {items:?}")` (a
+    `Tr`, a `TrArgs`);
+  * T is `tr`, `trargs`, `trrich` or `trdyn`.
+* **The clients** (`run.sh`), each built as it ships:
+  * **fixture**: `mf2-i18n-client`, as `cargo xtask b12-generated` builds
+    its A (`hydrate,fn-number`, `wasm-release`), then `wasm-opt -Oz`. Its
+    `leptos-mf2` has no Leptos mode, so the variant's `Display` is the
+    stand-in that writes nothing: there `{}` measures `format!`'s own
+    machinery, not the text path;
+  * **`tr`** at 1,860 sites: the same Leptos-free core, in a Leptos
+    application, built as `cargo xtask size` builds it (`wasm-bindgen`,
+    `wasm-opt -Oz`) in its own target directory;
+  * **`tr-view`** at 1,860 sites: the Leptos layer (`hydrate`), where
+    `Display` reads the page's catalog and pads; built as `b5 --view`
+    builds it;
+  * **the demos**, as A7 measured them: `cargo leptos build --release
+    --split --frontend-only` (demo-ssr), `--frontend-only` (demo-islands),
+    `trunk build --release` (demo-csr). Every shipped `.wasm` and `.js` is
+    counted.
+* **What is measured** (`measure.py`): raw bytes, `gzip -9 -n` and
+  `brotli -q 11` (the CLIs, as in A5's compressor table), and a module's
+  code and data sections. `gzip -9 -n` reads a few bytes away from the
+  gate's flate2. The demos' Node figures (`measure-demo.mjs`) are kept
+  beside each build. **A figure is shipped bytes.**
+* **The library variants** (`libvar.sh apply NAME`, from `lib-NAME.patch`):
+  `v1x` (the crate at `2fb7f54`), `s1-writestr`, `s2-debug`, `r1`, `r1d`,
+  `r2`, `r2d`, `r3`, each described below.
+* **The A/B is valid** (checked):
+  * each client's `base` was built first and last: byte-identical every
+    time (the fixture's three times). Six fixture cases, built twice, agree
+    to the byte;
+  * the bases are A5's: `tr-view`'s `opt.wasm` is byte-identical to A5's
+    variant measurement; `tr` is 2,419,575 B, as A5's; the fixture is
+    365,001 B raw, 328,579 after `wasm-opt`, as A5's plain build. `v1x`
+    reproduces A5's A/B in `tr-view` (−3 B: 1,890,880);
+  * A5's control reproduces: +16,620 B gz, against A5's +16,604. A5's
+    `format!` sat in the fixture's existing block, this one in a block of
+    its own; the optimised raw size is 364,404, against A5's 364,332;
+  * **one lock per application.** `tr` kept `a1f1bcb3…` (A7's size runs'
+    lock) and `tr-view` `09effa29…`. The demos got A7's locks (`f2a99bf9…`,
+    `7b92fa28…`, `c1a6f667…`), which cargo trimmed of the two helper
+    crates' entries (24 lines each; every registry package kept its
+    version), the same change A7's base builds made;
+  * `results.tsv` has one line twice (demo-csr's `base` at 14:40:52: a
+    measurement repeated, not a build, after a script was edited while it
+    ran). One row was deleted: R3's `display-tr` in demo-ssr, a case that
+    does not compile, which `run.sh` measured from an empty directory
+    before it learned to stop on a failed build. No other build failed
+    (every run and build log was searched for `error`).
+* **The names-kept builds** (for twiggy and the check): the same clients
+  with `strip = false`, then `wasm-opt --strip-dwarf -Oz --debuginfo`.
+  **Without `--strip-dwarf`, the standard library's DWARF stays in, and
+  binaryen then emits +557 B of code** in the fixture (`eq-test.sh`,
+  `sections.py`: 67,552 against 66,995). That is why A5's named builds read
+  −160 B where the measured ones read −79. With `--strip-dwarf`, the code
+  section is the shipped one's size to the byte, in another function order
+  (gzip 2 B apart).
+
+### The split
+
+`python3 probes/p10-display-cost/tables.py split CLIENT`: Δ gz over `base`,
+raw in brackets.
+
+**The fixture** (the Leptos-free core; `Display` is the stand-in):
+
+| form | `Tr` | `TrArgs` | `TrRich` | `TrDyn` |
+|---|---:|---:|---:|---:|
+| `{}` | +321 (+591) | +341 (+660) | +586 (+1,038) | +550 (+1,033) |
+| `{:?}` | +1,647 (+3,263) | **+16,458 (+35,515)** | +16,765 (+36,116) | +16,670 (+35,959) |
+| `{}` and `{:?}` | +1,777 (+3,550) | +16,609 (+35,801) | +16,932 (+36,421) | +16,804 (+36,241) |
+| `.to_string()` | +49 (+104) | +59 (+161) | +310 (+534) | +232 (+518) |
+| **`{}` over `.to_string()`** | **+272 (+487)** | **+282 (+499)** | **+276 (+504)** | **+318 (+515)** |
+
+**`tr-view`** (the Leptos layer; `Display` is the text path, padded):
+
+| form | `Tr` | `TrArgs` | `TrRich` | `TrDyn` |
+|---|---:|---:|---:|---:|
+| `{}` | +215 (+523) | +238 (+549) | +1,095 (+2,926) | +531 (+1,139) |
+| `{:?}` | +87 (+331) | **+11,784 (+27,114)** | +12,715 (+29,503) | +12,067 (+27,811) |
+| `{}` and `{:?}` | +264 (+797) | +11,974 (+27,580) | +12,776 (+29,981) | +12,300 (+28,302) |
+| `.to_string()` | +62 (+51) | +90 (+74) | +931 (+2,461) | +455 (+1,045) |
+| **`{}` over `.to_string()`** | **+153 (+472)** | **+148 (+475)** | **+164 (+465)** | **+76 (+94)** |
+
+`TrRich` and `TrDyn` cost more in every row because building one links what
+the page did not have (the rich description, the names); `.to_string()`
+pays that too, so the last row is what `Display` itself adds.
+
+### In applications
+
+`tables.py apps`: Δ gz of every shipped file against the client's `base`,
+library `a5`:
+
+| client | `base` raw / gz | `{}` `Tr` | `{}` over `.to_string()`, `Tr` / `TrArgs` | `{:?}` `Tr` | `{:?}` `TrArgs` | A5's control |
+|---|---:|---:|---:|---:|---:|---:|
+| fixture | 328,579 / 87,371 | +321 | +272 / +282 | +1,647 | +16,458 | +16,620 |
+| `tr` | 2,419,575 / 688,943 | +103 | +60 / — | +223 | +12,966 | +13,085 |
+| `tr-view` | 1,890,883 / 569,373 | +215 | +153 / +148 | +87 | +11,784 | +12,005 |
+| demo-csr | 248,281 / 98,942 | +241 | +244 / +35 | +361 | +14,797 | +15,015 |
+| demo-ssr | 808,799 / 334,826 | +235 | +217 / +367 | +66 | +11,903 | +12,052 |
+| demo-islands | 213,233 / 90,398 | +938 | +373 / +594 | +637 | +12,308 | +12,896 |
+
+(`tr` ran `base`, `control`, `display-tr`, `tostring-tr`, `debug-tr` and
+`debug-trargs` only.)
+
+* **`{}` costs a few hundred bytes gz, once per description type, in
+  every client.** Over `.to_string()` of the same description it is
+  +35 to +594 B gz. In demo-ssr it is exactly one function,
+  `<Tr as Display>::fmt` (444 B raw), plus the call site (`attribute.py`
+  over the names-kept builds). `core::fmt::write`, `Formatter::pad` and
+  `alloc::fmt::format` are already in every client: the standard library's
+  panic machinery puts them there, and Leptos and wasm-bindgen use them.
+  demo-islands pays more over its `base` (+938) because its hydrate entry
+  point otherwise links no text path; `.to_string()` alone costs +565 there.
+* **`{:?}` on a description with arguments costs 11.8–16.5 KB gz in every
+  client, the applications included**: `tr-view` +11,784, demo-ssr
+  +11,903, demo-islands +12,308, `tr` +12,966, demo-csr +14,797, the
+  fixture +16,458. No application links float formatting on its own.
+* **`{:?}` on a bare `Tr`** (1.x's own `Debug`) costs +66 to +637 B gz in
+  the applications, which already link the builders and integer
+  formatting, and +1,647 in the bare fixture.
+* **A5's +16.6 KB was the `{:?}`.** The control is within 0.2 KB of
+  `debug-trargs` in every client.
+* **A5's variant against 1.x, in the demos** (same tree and lock, `v1x`):
+  demo-ssr −4 B raw, demo-islands −1, demo-csr +1. Against A7's `2fb7f54`
+  figures, from another tree, demo-ssr's main module reads +117 B raw: the
+  tree, not the variant.
+
+### What the bytes are
+
+`python3 probes/p10-display-cost/attribute.py BASE CASE` over the
+names-kept builds: `twiggy top -f json` of both, joined on names with crate
+hashes, binaryen's `.N` suffixes and closure numbers dropped, each item put
+in the first group whose pattern matches it (the patterns are in the
+script). The fixture, raw bytes, names excluded:
+
+| group | `{:?}` `TrArgs` | `{:?}` `Tr` | `{}` `Tr` over `.to_string()` |
+|---|---:|---:|---:|
+| **float formatting** (`<f64 as Debug>` 6,051, Dragon 3,374 + `mul_pow10` 593, Grisu 1,671, `bignum` 640 + …, `__multi3`) | **+13,605** | | |
+| **data** (tables and text; segments renumber, so taken as one) | **+7,371** | +514 | +222 |
+| integers (`pad_integral`, `<&u64/&u32/&u16/i64/u8 as Debug>`, hex) | +4,306 | +1,070 | |
+| ours (`Text` 778, `&ArgValue` 476, `&ArgList` 433, `Arc<DateTimeValue>` 279, `Time` 255, `Date`, `MsgId`, `TrArgs`, `Option<Text>`) | +2,845 | +595 | +6 |
+| string escaping (`char::escape_debug_ext` 2,042; the Unicode tables are data) | +2,186 | | |
+| `Debug` builders (`PadAdapter::write_str` 561, `DebugStruct::field` 334, `DebugTuple::field` 258, …) | +1,658 | +659 | |
+| **panic paths** (`str::slice_error_fail` 1,083, `slice_index_fail` 283, `panic_bounds_check` 82, `Range<usize>`'s `Debug`) | **+1,470** | | |
+| `Formatter` core (`pad_formatted_parts` 600, `write_formatted_parts` 398, …) | +1,040 | +42 | +42 |
+| the call site (`main`) | +264 | +272 | +168 |
+| other | +809 | +122 | +66 |
+| **total** | **+35,608** | **+3,274** | **+498** |
+
+* **About 2.3 KB of the new data is text** (the printable runs of the data
+  section): core's panic and assertion messages from the float code
+  (`assertion failed: d.mant + d.plus < (1 << 61)`, `assertion failed:
+  buf[0] > b'0'`, …), the absolute `/rustc/<hash>/library/core/src/num/imp/
+  flt2dec/…` paths they report, `str` slicing's panic messages, our
+  variants' and fields' names, and `alloc::fmt`'s "a formatting trait
+  implementation returned an error when the underlying stream did not".
+  The rest is binary: Grisu's cached powers, Dragon's, `escape_debug`'s
+  Unicode tables, the two-digit table. **So `{:?}` on a description with
+  arguments brings core's panic paths into the client too**; B12 forbids
+  them in our own code, and the float formatter asserts.
+* **`{}` over `.to_string()`** in the fixture is the call site, `format!`'s
+  pieces, `format_inner`'s panic text and 42 B of `Formatter`:
+  `core::fmt::write` and `Formatter::pad` were there already (A5 counted 32
+  fmt items in its base).
+* **In an application (demo-ssr):** `{:?}` on a `TrArgs` is +27,003 B raw,
+  and float formatting is 18,163 of it (`<f64 as Debug>` 8,032, Dragon
+  5,302 + `mul_pow10` 1,117, Grisu 1,611, `bignum` 1,259). Then come data
+  3,838, ours 1,546, integers 1,189, `Formatter` 1,138, the builders 842 and
+  `<str as Debug>` 761; panic paths only +17, since the application has
+  them already. `{}` over `.to_string()` is `<Tr as Display>::fmt` (444 B)
+  and the call site, and nothing else.
+
+### Ways to shrink it
+
+`tables.py variants --libs s1-writestr,s2-debug …`: each variant against
+`a5`, the same client and case, Δ raw / Δ gz:
+
+| client | case | `a5` raw / gz | S1 | S2 |
+|---|---|---:|---:|---:|
+| fixture | `base` | 328,579 / 87,371 | — | +0 / +0 |
+| fixture | `debug-tr` | 331,842 / 89,018 | — | −2,484 / −1,182 |
+| fixture | `debug-trargs` | 364,094 / 103,829 | — | **−33,133 / −15,226** |
+| fixture | `control` | 364,404 / 103,991 | — | −33,131 / −15,210 |
+| `tr-view` | `base` | 1,890,883 / 569,373 | +0 / +0 | −3 / −12 |
+| `tr-view` | `display-tr` / `-trargs` | 1,891,406 / 569,588 | +0 / +0; +0 / +1 | — |
+| `tr-view` | `debug-tr` | 1,891,214 / 569,460 | — | −71 / +102 |
+| `tr-view` | `debug-trargs` | 1,917,997 / 581,157 | — | **−25,493 / −10,900** |
+| demo-csr | `base` | 248,281 / 98,942 | +0 / +0 | −2 / +0 |
+| demo-csr | `display-tr` / `-trargs` | 249,169 / 99,183 | +44 / +9; +44 / +12 | — |
+| demo-csr | `debug-tr` | 249,165 / 99,303 | — | −309 / −132 |
+| demo-csr | `debug-trargs` | 279,917 / 113,739 | — | **−29,294 / −13,733** |
+| demo-ssr | `base` | 808,799 / 334,826 | +0 / −1 | −7 / +0 |
+| demo-ssr | `display-tr` / `-trargs` | 809,314 / 335,061 | +0 / +0; +0 / +1 | — |
+| demo-ssr | `debug-tr` | 809,039 / 334,892 | — | +1 / +86 |
+| demo-ssr | `debug-trargs` | 835,754 / 346,729 | — | **−25,374 / −10,942** |
+| demo-ssr | `silent-debug` (below) | 836,700 / 347,183 | — | −25,541 / −11,081 |
+
+* **S1, `Display` through `write_str` in place of `Formatter::pad`
+  (`lib-s1-writestr.patch`, one line): nothing to gain.** 0 B in `tr-view`
+  and demo-ssr, +44 B raw in demo-csr. `pad` is already in every
+  application, so `write_str` would only drop `{:<12}`'s padding.
+* **S2, every `Debug` through `write_str` (`lib-s2-debug.patch`: a new
+  `debug.rs` of digit, float, quote and id writers, and the impls rewritten;
+  no builder): −92 % to −93 %.** `{:?}` on a `TrArgs` falls to +884 B gz
+  (`tr-view`), +961 (demo-ssr), +1,064 (demo-csr) and +1,232 (the fixture),
+  from 11.8–16.5 KB. In the fixture it is 2,393 B raw: our writer 1,576
+  (the argument, text and date writers inlined into it), the call site,
+  354 B of names and 42 B of `Formatter`. There is no float, integer,
+  escaping, builder or panic code. On a bare `Tr`: −1,182 B gz in the
+  fixture, within ±132 B in the applications. Every `base` is within 7 B
+  raw and 12 B gz of `a5`'s. A5's render test passes on it (15 tests; its
+  `Debug` shapes unchanged).
+  * **What S2 gives up** (a throwaway test printing both, in `a5-dev`):
+    a float shows six fraction digits at most (`1e-7` prints `0.0`); a quote
+    or a newline in a text is not escaped; a date prints
+    `DateTimeValue(2026-09-28T14:05:09.007)` rather than the nested fields;
+    `{:#?}` prints what `{:?}` does. Integers, `2.5`, `0.1`, `123456.789`,
+    `Unset` and `Custom(..)` print as before.
+
+### Ways to remove it
+
+Five variants of A5's crate (`make-removal.py`, `lib-r3.patch`). R1d, R2d
+and R3 were also type-checked for `ssr` and with no Leptos mode (`cargo
+check -p leptos-mf2`; R1d and R2d contain R1's and R2's changes): no error,
+only an unused `use core::fmt` where `Display` is compiled out.
+* **R1**, A5's fallback: `Display` only with the std mode (`ssr`; 2.0 adds
+  `native`);
+* **R2**: no `Display` on `wasm32-unknown-unknown`, whatever the features;
+* **R1d, R2d**: the same, and every `Debug` A5 added (`Tr` keeps the
+  `Debug` it derived in 1.x);
+* **R3**, found here: on `wasm32-unknown-unknown`, the `Display` impls
+  exist but carry a bound no type meets, `where &'a Tr: FmtInBrowser`.
+  `FmtInBrowser` is a hidden trait carrying `#[diagnostic::on_unimplemented]`
+  (stable since 1.78; the MSRV is 1.88), and nothing outside the crate can
+  implement it (the orphan rule). A scratch crate (`target/a9/r3-test`)
+  showed the mechanism first.
+
+**What they save where nothing is formatted: nothing.** `tables.py variants
+--libs v1x,r1,r1d,r2,r2d,r3 base`:
+
+| client | `a5` raw / gz | `v1x` | R1 | R1d | R2 | R2d | R3 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| fixture | 328,579 / 87,371 | +22 / −22 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| `tr-view` | 1,890,883 / 569,373 | −3 / −7 | 0 / 0 | −3 / −9 | 0 / 0 | −3 / −9 | 0 / 0 |
+| demo-csr | 248,281 / 98,942 | +1 / −4 | 0 / 0 | +1 / −4 | 0 / 0 | +1 / −4 | 0 / 0 |
+
+A `Display` impl nobody calls was never linked. The few bytes A5's variant
+moved against 1.x (A5: −79 in `tr`) come from its non-generic `Debug`
+impls, which reshape the destructors: R1d and R2d read what `v1x` reads.
+
+**What they bring back: the compile error**, for `{}` on a `Tr` in
+demo-ssr's client (`A9_CHECK=1 A9_LIB=… run.sh demo-ssr display-tr`;
+`target/a9/check/*/demo-ssr/*/check.log`):
+* **1.x, R1 and R2** (identical text):
+  ```
+  error[E0277]: `leptos_mf2::Tr` doesn't implement `std::fmt::Display`
+      |         std::hint::black_box(format!("{}", x));
+      |                                       --   ^ `leptos_mf2::Tr` cannot be formatted with the default formatter
+      |                                       required by this formatting parameter
+      = help: the trait `std::fmt::Display` is not implemented for `leptos_mf2::Tr`
+      = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  ```
+  **The note steers to `{:?}`.** With A5's `Debug` kept, that compiles
+  and costs 12–16 KB gz for any description with arguments: 30 to 70 times
+  what the refused `{}` would have cost.
+* **R3:**
+  ```
+  error[E0277]: a message description is not formatted with `{}` in a browser build
+      |         std::hint::black_box(format!("{}", x));
+      |                                       --   ^ `{}` links `core::fmt` into the wasm; write `.to_string()`, the description's fmt-free method
+      = help: the trait `leptos_mf2::FmtInBrowser` is not implemented for `&leptos_mf2::Tr`
+      = note: `to_string()` gives the same text; `Display` stays for servers, native applications and tests
+  help: the trait `std::fmt::Display` is conditionally implemented for `leptos_mf2::Tr`
+     --> crates/leptos-mf2/src/display.rs:85:9   (the impl, in `string_conversions!`)
+  ```
+  No `{:?}` hint, since the impl exists. rustc adds the impl's location and
+  a macro-origin note: noisier than 1.x's text, but the first line names
+  the fix.
+* **`{:?}`** on a `TrArgs`: refused under R1d, R2d and 1.x with
+  "`TrArgs` doesn't implement `Debug`" (1.x's text, no hint); it compiles
+  under R1, R2 and R3. On a `Tr` it compiles everywhere (1.x's derive).
+
+**What removing `Debug` would break:** an application's `#[derive(Debug)]`
+over a struct holding a description stops compiling in browser builds, even
+when nothing prints it. The scratch crate shows "`&TrArgs` doesn't
+implement `Debug`", rustc's text, in the derive. That was 1.x's state for
+`TrArgs`, `TrRich` and `TrDyn`. R3's trick applied to `Debug` breaks the
+derive the same way, and its message is lost there. **So `Debug` is the one
+to shrink, not to remove.**
+
+### The silent paths
+
+Where a description reaches `Display` or `Debug` with no `format!` in the
+application. Searched with `rg` for `ToString`, `Display` and `Debug`
+bounds, and for `Display` impls over generic contents, in the Leptos crates
+of both lines, vendored into `target/a9/vendor*` with `cargo vendor
+--offline`: from demo-ssr's lock, and from a manifest naming
+`leptos_router` 0.8.16, `leptos_meta` 0.8.7 and `leptos_axum` 0.8.10. Then
+in `crates/`. Each path was compiled into demo-ssr's client
+(`A9_CHECK=1 run.sh demo-ssr silent-new silent-traps silent-debug`, `cargo
+check --target wasm32-unknown-unknown --features hydrate`). It was checked
+on 0.9, and on 0.8 through A7's copy of demo-ssr (`demos-0-8.py`, as
+`demo-ssr-08`), at A5's variant and at 1.x (`v1x`); at R3, on 0.9.
+
+| # | Path | Where (0.9.0-beta / 0.8) | A5, 0.9 / 0.8 | 1.x, 0.9 / 0.8 | R3, 0.9 |
+|---|---|---|---|---|---|
+| 1 | `<Redirect path=tr!(…)/>`: a translated redirect | `leptos_router` `components.rs:579` / `:572`: `P: Display`, then `path.to_string()` | compiles / compiles | refused / refused | refused, R3's message |
+| 2 | `<ProtectedRoute redirect_path=\|\| tr!(…)/>` (and `ProtectedParentRoute`) | `components.rs:418`, `:500`, both lines: `Fn() -> P, P: Display` | compiles / compiles | refused / refused | refused, R3's message |
+| 3 | `ServerFnError::new(tr!(…))` | `server_fn` `error.rs:207` / `:201`: `msg: impl ToString` | compiles / compiles | refused / refused | refused, R3's message |
+| 4 | the application's own generic code: `fn label(x: impl ToString)` | — | compiles / compiles | refused / refused | refused, R3's message |
+| 5 | `Either<Tr, TrArgs>::to_string()` | `either_of` 0.1.9 `lib.rs:106` | compiles / compiles | refused / refused | refused (rustc's E0599) |
+| 6 | `StaticParamsMap::insert(tr!(…), …)`: implausible, a parameter's name | `static_routes.rs:144`, both lines | compiles / compiles | refused / refused | refused, R3's message |
+| 7 | **a signal's read guard**: `signal.read().to_string()` | `reactive_graph` 0.3.0-beta3 / 0.2.15 `guards.rs:83`: `ReadGuard<T: Display>: Display`; also `SignalReadGuard`, `Derefable`, `Mapped*` | **compiles, through `Display`** | compiles, fmt-free | compiles, **fmt-free** |
+| 8 | **a smart pointer**: `Arc<Tr>` (and `Rc`, `Box`) | std's `Display` for each | same as 7 | same | same |
+| 9 | **a `RefCell` borrow**: `cell.borrow().to_string()` (and `MutexGuard`) | std: `Ref<T: Display>: Display` | same as 7 | same | same |
+| 10 | **a reference to a reference**: `(&&t).to_string()`, what `.iter().find(\|t\| t.to_string() == …)` hands a closure | std: `&T: Display` | same as 7 | same | same |
+| 11 | `Result::unwrap()` / `expect()` on a `Result` whose error is a description | std: the panic message's `{:?}` | compiles | refused for `TrArgs` (no `Debug`) | compiles |
+| 12 | `assert_eq!` / `assert_ne!` on descriptions | std: the failure message's `{:?}` | compiles | compiles for `Tr` (1.x's derive) | compiles |
+| 13 | the application's `#[derive(Debug)]` type holding a description, reached by 11, 12 or `{:?}` | — | compiles | refused for `TrRich` | compiles |
+
+* **Paths 1–6 are new:** 1.x refused them (9 errors, the same on both
+  lines). Each formats a description through `Display`, so each links what
+  a `{}` links (inferred; not measured one by one). **Paths 7–10 are traps:** the
+  same code compiles in 1.x, where it took the inherent, fmt-free
+  `to_string()`, because a wrapper whose `Display` forwards to the
+  description gets the blanket `ToString`. Method resolution then finds it
+  one auto-deref step before the description's inherent method. **With A5's
+  `Display` the same source silently changes method.** R3 undoes that: the
+  wrapper's `Display` bound fails, so resolution falls through to the
+  inherent method, as in 1.x.
+* **What a trap costs** (demo-ssr, each alone on a `Tr`, `A9_NAMED=1 run.sh
+  demo-ssr silent-trap-*` at `a5` and at R3):
+
+  | trap | `a5` over `base` | R3 over `base` | the trap (`a5` − R3) |
+  |---|---:|---:|---:|
+  | read guard | +1,933 / +845 | +1,249 / +590 | **+684 / +255** |
+  | `Arc` | +778 / +287 | +90 / +55 | **+688 / +232** |
+  | `RefCell` borrow | +720 / +248 | +38 / +16 | **+682 / +232** |
+  | `&&` | +726 / +249 | +44 / +18 | **+682 / +231** |
+  | (`.to_string()`) | +44 / +18 | +44 / +18 | 0 / 0 |
+
+  Raw / gz. Each trap is what a `{}` costs (+515 / +235 in the same demo).
+  Under R3 each ships what `.to_string()` ships, within 46 B raw, and the
+  read guard adds its signal (+1,205 raw).
+* **Paths 11–13 are `Debug`'s:** a panic message formats its payload with
+  `{:?}`, so an `unwrap()` on a `Result` whose error is a description links
+  its `Debug`. demo-ssr with all three (`silent-debug`) is **+27,901 raw /
+  +12,357 gz** over `base` at `a5`, and **+2,360 / +1,276 under S2**.
+
+**Ruled out:**
+* **tachys** 0.2.19 and 0.3.0-beta3: no `Display` or `ToString` bound
+  anywhere, so rendering never formats a value through `Display`; **leptos_meta**:
+  none either.
+* `<A href=…>`: `ToHref` is implemented for `&str`, `String`, `Cow<str>`,
+  `Oco<str>`, `Rc<str>` and `F: Fn() -> String` (`link.rs:14–49`, both
+  lines), with no `Display`.
+* `<Title text=…>` and the other `TextProp` and `Oco` positions: ours
+  (`convert.rs`), through the fmt-free `text::to_string`.
+* The router's `query_signal` family (`T: FromStr + ToString`,
+  `hooks.rs:28–102`), leptos_server's serializers (`T: ToString + FromStr`)
+  and `ParamToString for Option<T: ToString>` (a `#[derive(Params)]` field
+  also needs `IntoParam`, i.e. `FromStr`): a description has no `FromStr`.
+* leptos_server's `SharedValue<T: Display>: Display` derefs to its value,
+  but building one needs a serde codec for it, which a description lacks.
+* wasm-bindgen: `JsError: From<E: core::error::Error>` (a description is
+  not an `Error`); `JsOption<T: JsGeneric + Display>` (not a `JsGeneric`).
+* **Our crates:** no API bounded on `Display` or `ToString` takes a
+  description. The one hit, `boot.rs:359`, is `ToString::to_string` on a
+  `&str`: the standard library's specialisation, `String::from`, with no
+  `core::fmt`.
+
+### A check
+
+**CI can catch it, but not from a release build alone.** The shipped wasm
+has no names, so a check reads the same client built with them, then greps
+`twiggy top` (`fmt-check.sh`). It fails on any `Display` or `Debug` impl
+of a type of ours, including generic ones over one (`<&Tr as Display>`,
+`<Arc<DateTimeValue> as Debug>`). It also fails on the blanket `ToString`
+over one, and on the helpers only `Display` and `Debug` reach
+(`display::ambient::fmt`, `text::fmt_display`, S2's `debug::`).
+* **A release build with names kept** (`strip = false`; what A5's
+  `twiggy.sh` read):
+  * passes on all three demos as they are (`base`) and on `tostring-tr`;
+  * fails on every direct `{}` and `{:?}`, naming each item: demo-ssr's
+    `display-tr` (1 item, `<Tr as Display>::fmt`), `debug-tr` (2),
+    `debug-trargs` (11: `TrArgs`, `ArgList`, `ArgValue`, `Text`,
+    `Option<Text>`, `Arc<DateTimeValue>`, `MsgId`, `Date`, `Time`), the
+    control (12); the fixture's likewise; S2's `debug-trargs` (5);
+  * **misses every trap on its own** (4 of 4 pass). `fmt::Arguments`
+    reaches `Display::fmt` through a function pointer, so a `{}` keeps the
+    symbol. The blanket `to_string()` calls it directly, and LLVM inlines
+    the whole chain into the caller: no symbol is left that names our type.
+    With all four traps in one build, only `<TrArgs as Display>::fmt` (the
+    `Arc` over a `TrArgs`) survived.
+* **A debug-profile build** (`cargo build --lib --target
+  wasm32-unknown-unknown --features hydrate`, no LTO, no inlining;
+  `all.sh devcheck`): **9 of 9 right.** `base` and `tostring-tr` pass;
+  `display-tr`, `debug-tr`, `debug-trargs` and each of the four traps fail
+  (3 to 22 items; a trap shows `<Tr as Display>::fmt`, `fmt_display::<Tr>`
+  and the guard's `ToString`). No false positive from Leptos's debug-only
+  code. **Under R3, the four traps in one debug-profile build pass**: no
+  `Display` of ours is linked, so R3's traps are fmt-free, seen directly.
+* **Its cost:** from a cold target directory, 116 s (demo-ssr, debug) and
+  125 / 87 / 88 s (demo-ssr, demo-csr, demo-islands, release with names), at
+  `CARGO_BUILD_JOBS=2` here; a rebuild after an edit, 3 s (debug) or
+  10–11 s (release); `fmt-check.sh` over the 136 MB debug module, 0.35 s.
+  The only demo client CI builds today is demo-islands, twice, in the
+  nightly `b5` job (`cargo xtask islands-zero`); the browser jobs build
+  the conformance applications, not the demos. The `b12` job already
+  installs twiggy.
+
+### Verdict
+
+* **Done when:**
+  * every figure is recorded here with its command: yes;
+  * the silent paths are listed: yes, 13, each compiled on both Leptos
+    lines, at A5 and at 1.x;
+  * a recommendation for A8: below. **It changes what A5 adopted for
+    `Display`, so A8 puts it to the owner** (added as owner question 3
+    below).
+* **The figure A5 left open:**
+  * **`{}` is cheap:** +0.15–0.6 KB gz, once per description type, in
+    every client;
+  * **`{:?}` on a description with arguments is not:** 11.8–16.5 KB gz in
+    every client, most of it core's float formatter, with its panic paths.
+    It is reachable with no `{:?}` in the source (`unwrap()`, `assert_eq!`,
+    a derived `Debug`: +12.4 KB gz in demo-ssr).
+* **Shrink:** S1 gains nothing; **S2 cuts `Debug`'s cost by 92–93 %**, to
+  about 1 KB gz, and drops the panic paths, at a documented loss of
+  fidelity.
+* **Remove:** R1, R2 and their `d` forms save 0 B where nothing formats.
+  They bring back rustc's error, which suggests `{:?}`. **R3 refuses `{}`
+  in a browser build with a message naming `.to_string()`, and returns the
+  wrapper traps to the fmt-free method**, also at 0 B. Removing `Debug`
+  breaks `#[derive(Debug)]` over descriptions in browser builds.
+* **Check:** a debug-profile client build per demo, then `fmt-check.sh`,
+  catches every path found; a release build with names misses the traps.
+
+### What it means for A8 (interpretation, brief)
+
+* **`Debug`: keep it on every type (A5), written as S2 writes it.** It is
+  where the bytes are: 12–16 KB gz behind any `{:?}`, `unwrap()` or
+  `assert_eq!` on a description with arguments, against about 1 KB with S2.
+  Keeping it keeps `#[derive(Debug)]` over an application's types working.
+  S2 changes how A5's `Debug` is written, not what A5 adopted; its fidelity
+  limits are A8's to state. The runtime's `Date` and `Time` keep their
+  derives, which S2 no longer reaches.
+* **`Display`: R3, if the owner agrees.** The bytes alone don't decide:
+  `{}` costs 0.15–0.6 KB gz. What decides is what A5 does silently. Code
+  written against 1.x (`signal.read().to_string()`, an `Arc`, a `RefCell`
+  borrow, `&&`) compiles unchanged and takes `core::fmt` instead of the
+  fmt-free method, about 0.25 KB gz each. The only check that sees it needs
+  a debug-profile build. R3 costs 0 B and brings back 1.x's compile-time
+  guarantee. Its message names the fix, where rustc's hint (R1, R2) points
+  at `{:?}`, the path that costs 12–16 KB. Servers, native applications and
+  tests keep `Display` (owner answer 3: `println!("{}", tr!(…))`). The
+  price: in a browser build, a `Display`-bounded API (`<Redirect path>`, a
+  `redirect_path`, `ServerFnError::new`, generic `impl ToString`) takes
+  `.to_string()` first, which the message says. **A8 chooses R3's predicate:**
+  the target, as measured (every browser build, Leptos or not), or the client
+  modes (`hydrate`, `csr`), if a server on `wasm32-unknown-unknown` should
+  keep `Display`.
+* **If the owner keeps A5's `Display`:** the book's rule (F) covers `{}`,
+  `{:?}` and the traps, and CI runs the debug-profile check on the demos.
+  Under R3 the rule shrinks to `Debug`: `{:?}`, `unwrap()` on a description
+  error, `assert_eq!`. The check still guards the demos from those.
+* **For every size investigation that keeps names:** `wasm-opt
+  --strip-dwarf` before `-Oz`, or the names-kept build is not the shipped
+  one (+557 B of code in the fixture).
 
 ## Part B — one crate, with every old path kept by shims (B1 after A1 and A7; B2–B4 after B1; B5 with or after B4)
 
