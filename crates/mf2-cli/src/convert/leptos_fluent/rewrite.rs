@@ -168,15 +168,8 @@ fn find_locales(tokens: &[TokenTree]) -> Option<String> {
             {
                 let group = bang_group(tokens, i + 1)?;
                 let inner: Vec<TokenTree> = group.stream().into_iter().collect();
-                for (j, t) in inner.iter().enumerate() {
-                    if let TokenTree::Ident(key) = t
-                        && key == "locales"
-                        && matches!(inner.get(j + 1), Some(TokenTree::Punct(p)) if p.as_char() == ':')
-                        && let Some(TokenTree::Literal(l)) = inner.get(j + 2)
-                        && let syn::Lit::Str(s) = syn::Lit::new(l.clone())
-                    {
-                        return Some(s.value());
-                    }
+                if let Some(found) = string_field(&inner, "locales") {
+                    return Some(found);
                 }
                 if let Some(found) = find_locales(&inner) {
                     return Some(found);
@@ -192,6 +185,22 @@ fn find_locales(tokens: &[TokenTree]) -> Option<String> {
         }
     }
     None
+}
+
+/// The string literal after `key:` among an initializer's `tokens`.
+fn string_field(tokens: &[TokenTree], key: &str) -> Option<String> {
+    tokens.iter().enumerate().find_map(|(j, t)| match t {
+        TokenTree::Ident(name) if name == key && punct(tokens.get(j + 1), ':') => {
+            match tokens.get(j + 2) {
+                Some(TokenTree::Literal(l)) => match syn::Lit::new(l.clone()) {
+                    syn::Lit::Str(s) => Some(s.value()),
+                    _ => None,
+                },
+                _ => None,
+            }
+        }
+        _ => None,
+    })
 }
 
 fn names_leptos_fluent(tokens: &[TokenTree]) -> bool {
@@ -371,7 +380,7 @@ impl Walker<'_> {
                     if (id == "leptos_fluent" || id == "static_loader")
                         && bang_group(tokens, i + 1).is_some() =>
                 {
-                    self.initializer(id.span(), &id.to_string());
+                    self.initializer(id.span(), &id.to_string(), bang_group(tokens, i + 1));
                     i += 3;
                     continue;
                 }
@@ -380,7 +389,7 @@ impl Walker<'_> {
                         Some(TokenTree::Ident(x))
                             if x == "leptos_fluent" && bang_group(tokens, i + 4).is_some() =>
                         {
-                            self.initializer(id.span(), "leptos_fluent");
+                            self.initializer(id.span(), "leptos_fluent", bang_group(tokens, i + 4));
                             i += 6;
                         }
                         Some(x) => {
@@ -469,16 +478,27 @@ impl Walker<'_> {
         }
     }
 
-    fn initializer(&mut self, span: Span, name: &str) {
-        self.report(
-            Code::LfInitializer,
-            span,
-            None,
-            format!(
-                "`{name}!` initializes leptos-fluent: replace it with the i18n crate's \
-                 `setup()` and `leptos_mf2::install` / `mf2_axum::install`"
-            ),
+    fn initializer(&mut self, span: Span, name: &str, group: Option<&Group>) {
+        let mut message = format!(
+            "`{name}!` initializes leptos-fluent: replace it with the i18n crate's \
+             `setup()` and `leptos_mf2::install` / `mf2_axum::install`"
         );
+        // mf2's client writes its own cookie on every switch, so the old
+        // one can only be read, as an extra source, never renamed.
+        let inner: Vec<TokenTree> = group
+            .map(|g| g.stream().into_iter().collect())
+            .unwrap_or_default();
+        if let Some(cookie) = string_field(&inner, "cookie_name") {
+            let _ = write!(
+                message,
+                "; its `{cookie}` cookie is not read: the client always writes `mf2_locale`, \
+                 so to keep the language readers chose before, add \
+                 `CookieLocale {{ name: {cookie:?}, ..Default::default() }}` to the server's \
+                 `Negotiator` as an extra source, after `CookieLocale::default()` and before \
+                 `AcceptLanguage`"
+            );
+        }
+        self.report(Code::LfInitializer, span, None, message);
     }
 
     /// `use leptos_fluent::…;` at `i`: rewritten, or reported. Returns the

@@ -6,7 +6,9 @@
 //! What it cannot map is reported under a stable code and the command exits
 //! non-zero; everything else is still written, so the rest of a corpus can
 //! be checked while the errors are fixed by hand. It never overwrites: an
-//! existing `.mf2` stops it before anything is written.
+//! existing `.mf2` with other text stops it before anything is written. One
+//! that already holds what it would write is left alone, so a second run
+//! writes nothing and exits as the first did.
 //!
 //! `--from leptos-fluent APP_DIR` does the same with the application's
 //! `.ftl` files and rewrites its call sites (§6.2), showing a diff unless
@@ -90,13 +92,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     )?;
 
     // Nothing is written if anything would be overwritten.
-    if let Some((path, _)) = outputs.iter().find(|(path, _)| path.exists()) {
-        return Err(Error::Usage(format!(
-            "{} already exists; mf2 convert never overwrites, so nothing was written",
-            path.display()
-        )));
-    }
-    for (path, text) in &outputs {
+    let pending = pending(&outputs, "")?;
+    for (path, text) in &pending {
         write(path, text)?;
     }
 
@@ -105,9 +102,10 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
             print!("{}", report.to_text());
             let entries: usize = report.entries.values().sum();
             println!(
-                "mf2 convert: {entries} entries in {} locale(s), {} file(s) written; {} error(s), {} warning(s)",
+                "mf2 convert: {entries} entries in {} locale(s), {} file(s) written{}; {} error(s), {} warning(s)",
                 report.entries.len(),
-                outputs.len(),
+                pending.len(),
+                unchanged(outputs.len() - pending.len()),
                 report.errors(),
                 report.warnings()
             );
@@ -118,6 +116,38 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         return Err(Error::Corpus);
     }
     Ok(())
+}
+
+/// The outputs a run writes: those not already on disk with the same text.
+/// An existing file with other text is an error, before anything is
+/// written; `hint` ends its message.
+pub(crate) fn pending<'a>(
+    outputs: &'a [(PathBuf, String)],
+    hint: &str,
+) -> Result<Vec<&'a (PathBuf, String)>> {
+    let mut out = Vec::new();
+    for output in outputs {
+        let (path, text) = output;
+        if !path.exists() {
+            out.push(output);
+        } else if std::fs::read(path).ok().as_deref() != Some(text.as_bytes()) {
+            return Err(Error::Usage(format!(
+                "{} already exists, with other text; mf2 convert never overwrites, \
+                 so nothing was written{hint}",
+                path.display()
+            )));
+        }
+    }
+    Ok(out)
+}
+
+/// The summary's note on outputs already as converted, if there are any.
+pub(crate) fn unchanged(count: usize) -> String {
+    if count == 0 {
+        String::new()
+    } else {
+        format!(" ({count} unchanged)")
+    }
 }
 
 /// Converts every locale under `input`, returning each output file's path

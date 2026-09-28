@@ -185,7 +185,32 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     let fmt = run(&dir, &["fmt", "--check"]);
     assert!(fmt.status.success(), "{}", text(&fmt.stdout));
 
-    // A second run would overwrite: it stops before writing anything.
+    // A second run finds every file as it would write it: it writes
+    // nothing and exits as the first did.
+    let written = report
+        .lines()
+        .last()
+        .and_then(|l| l.split(" file(s) written").next())
+        .and_then(|l| l.rsplit(' ').next())
+        .expect("the summary")
+        .to_owned();
+    let again = run(
+        &dir,
+        &[
+            "convert",
+            "--from",
+            "fluent",
+            corpus.to_str().expect("utf-8"),
+        ],
+    );
+    assert!(again.status.success(), "{}", text(&again.stderr));
+    assert!(
+        text(&again.stdout).contains(&format!("0 file(s) written ({written} unchanged)")),
+        "{}",
+        text(&again.stdout)
+    );
+
+    // One that would overwrite other text stops before writing anything.
     let before = std::fs::read_to_string(dir.join("locales/en/selects.mf2")).expect("written");
     std::fs::write(dir.join("locales/en/selects.mf2"), "edited").expect("write");
     let again = run(
@@ -771,24 +796,116 @@ fn a_second_run_changes_nothing() {
     );
     m.clean();
     let dir = m.app.parent().expect("dir").to_path_buf();
-    std::fs::remove_dir_all(dir.join("i18n/locales")).expect("rm");
-    let out = run(
-        &dir.join("i18n"),
-        &[
-            "convert",
-            "--from",
-            "leptos-fluent",
-            m.app.to_str().expect("utf-8"),
-            "--i18n-crate",
-            "app_i18n",
-            "--write",
-        ],
+    let before = tree(&dir);
+
+    // `--write` again: it exits as the first did and writes nothing.
+    let out = convert_app(&dir, &m.app, &["--write"]);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(
+        text(&out.stdout)
+            .contains("0 .mf2 file(s) written (1 unchanged); 0 Rust file(s) rewritten; 0 error(s)"),
+        "{}",
+        text(&out.stdout)
     );
-    assert!(out.status.success(), "{}", text(&out.stdout));
+    assert_eq!(tree(&dir), before);
+
+    // The dry run reports nothing to write or rewrite.
+    let out = convert_app(&dir, &m.app, &[]);
+    let stdout = text(&out.stdout);
+    assert!(out.status.success(), "{stdout}");
+    assert!(!stdout.contains("would write"), "{stdout}");
+    assert!(!stdout.contains("--- a/"), "{stdout}");
+    assert!(
+        stdout.contains("0 .mf2 file(s) to write (1 unchanged); 0 Rust file(s) to rewrite"),
+        "{stdout}"
+    );
+    assert_eq!(tree(&dir), before);
+}
+
+#[test]
+fn unchanged_text_is_not_a_rewrite_and_the_cookie_is_named() {
+    // The file keeps naming `leptos_fluent` (its initializer is left for a
+    // person), and its only call is in a view, where it stays as it is.
+    let lib = "use leptos_fluent::{leptos_fluent, tr};\n\
+               fn p() {\n    leptos_fluent! { locales: \"./locales\", cookie_name: \"lang\" }\n}\n\
+               fn v() {\n    view! { <p>{tr!(\"hello\")}</p> }\n}\n";
+    let dir = scratch("lf-unchanged");
+    let app = dir.join("app");
+    for (path, body) in [
+        ("Cargo.toml", "[package]\nname = \"app\"\n"),
+        ("locales/en/main.ftl", APP_FTL),
+        ("src/lib.rs", lib),
+    ] {
+        let full = app.join(path);
+        std::fs::create_dir_all(full.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&full, body).expect("write");
+    }
+
+    let first = convert_app(&dir, &app, &["--write"]);
+    let stdout = text(&first.stdout);
+    assert_eq!(first.status.code(), Some(1), "{stdout}");
+    assert!(stdout.contains("0 Rust file(s) rewritten"), "{stdout}");
     assert_eq!(
-        std::fs::read_to_string(m.app.join("src/lib.rs")).expect("read"),
-        m.lib
+        std::fs::read_to_string(app.join("src/lib.rs")).expect("read"),
+        lib
     );
+    // The initializer's cookie: read as an extra source, since the client
+    // always writes `mf2_locale`.
+    assert!(
+        stdout.contains(
+            "its `lang` cookie is not read: the client always writes `mf2_locale`, so to \
+             keep the language readers chose before, add \
+             `CookieLocale { name: \"lang\", ..Default::default() }` to the server's \
+             `Negotiator` as an extra source"
+        ),
+        "{stdout}"
+    );
+
+    // A second `--write` exits as the first did, with the same report, and
+    // writes nothing.
+    let before = tree(&dir);
+    let second = convert_app(&dir, &app, &["--write"]);
+    assert_eq!(second.status.code(), first.status.code());
+    let findings = |s: &str| -> Vec<String> {
+        s.lines()
+            .filter(|l| l.contains(": error: "))
+            .map(str::to_owned)
+            .collect()
+    };
+    assert_eq!(findings(&text(&second.stdout)), findings(&stdout));
+    assert_eq!(tree(&dir), before);
+}
+
+/// `mf2 convert --from leptos-fluent` on `app`, into `dir/i18n`.
+fn convert_app(dir: &Path, app: &Path, extra: &[&str]) -> Output {
+    let mut args = vec![
+        "convert",
+        "--from",
+        "leptos-fluent",
+        app.to_str().expect("utf-8"),
+        "--i18n-crate",
+        "app_i18n",
+    ];
+    args.extend_from_slice(extra);
+    run(&dir.join("i18n"), &args)
+}
+
+/// Every file under `dir`, and its bytes.
+fn tree(dir: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+    let mut out = std::collections::BTreeMap::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(at) = stack.pop() {
+        for entry in std::fs::read_dir(&at).expect("read_dir").flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                let bytes = std::fs::read(&path).expect("read");
+                out.insert(path, bytes);
+            }
+        }
+    }
+    out
 }
 
 #[test]

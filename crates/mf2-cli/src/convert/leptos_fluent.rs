@@ -3,7 +3,8 @@
 //!
 //! Nothing is written without `--write`: the command shows what it would
 //! change — a unified diff per Rust file, the `.mf2` files it would write —
-//! and the report of what is left to do by hand.
+//! and the report of what is left to do by hand. A file whose text would
+//! not change is neither written nor listed.
 
 pub(crate) mod call;
 pub(crate) mod rewrite;
@@ -21,7 +22,7 @@ use mf2_build::Layout;
 
 use self::rewrite::{Messages, Options};
 use super::report::{Code, Finding, Report};
-use super::{convert_fluent, fluent};
+use super::{convert_fluent, fluent, pending, unchanged};
 use crate::Format;
 use crate::error::{Error, Result, read, write};
 
@@ -92,15 +93,18 @@ pub(crate) fn run(dir: &Path, request: &Request<'_>) -> Result<()> {
         report.extend(dependencies(path, &read(path)?));
     }
 
+    let pending = pending(
+        &outputs,
+        " (mf2 init --no-messages makes the i18n crate without starter messages)",
+    );
+    let pending = if request.write {
+        pending?
+    } else {
+        // A dry run shows everything; the `--write` that follows refuses.
+        pending.unwrap_or_else(|_| outputs.iter().collect())
+    };
     if request.write {
-        if let Some((path, _)) = outputs.iter().find(|(path, _)| path.exists()) {
-            return Err(Error::Usage(format!(
-                "{} already exists; mf2 convert never overwrites, so nothing was written \
-                 (mf2 init --no-messages makes the i18n crate without starter messages)",
-                path.display()
-            )));
-        }
-        for (path, text) in &outputs {
+        for (path, text) in &pending {
             write(path, text)?;
         }
         for change in &changes {
@@ -110,7 +114,7 @@ pub(crate) fn run(dir: &Path, request: &Request<'_>) -> Result<()> {
         for change in &changes {
             print!("{}", diff(app, change));
         }
-        for (path, _) in &outputs {
+        for (path, _) in &pending {
             println!("would write {}", path.display());
         }
     }
@@ -120,10 +124,11 @@ pub(crate) fn run(dir: &Path, request: &Request<'_>) -> Result<()> {
             print!("{}", report.to_text());
             let entries: usize = report.entries.values().sum();
             println!(
-                "mf2 convert: {entries} entries in {} locale(s), {} .mf2 file(s) {}; {} Rust file(s) {}; {} error(s), {} warning(s)",
+                "mf2 convert: {entries} entries in {} locale(s), {} .mf2 file(s) {}{}; {} Rust file(s) {}; {} error(s), {} warning(s)",
                 report.entries.len(),
-                outputs.len(),
+                pending.len(),
                 if request.write { "written" } else { "to write" },
+                unchanged(outputs.len() - pending.len()),
                 changes.len(),
                 if request.write {
                     "rewritten"
@@ -153,7 +158,9 @@ pub(crate) fn rewrite_all(
     for (path, text) in sources {
         let rewritten = rewrite::rewrite(path, text, messages, options);
         report.extend(rewritten.findings);
-        if let Some(after) = rewritten.text {
+        // An edit that gives the same text (a second run over a file that
+        // still names `leptos_fluent`) is not a rewrite.
+        if let Some(after) = rewritten.text.filter(|after| after != text) {
             changes.push(Change {
                 path: path.clone(),
                 before: text.clone(),
