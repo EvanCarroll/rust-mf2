@@ -30,7 +30,10 @@
 //! leptos-fluent`) turn it into what the page's `generated` blocks show. A
 //! `run=` block marked `status=N` holds commands that must exit with N — a
 //! conversion that leaves work for a person exits 1, which is what the page
-//! explains next.
+//! explains next. A `run=` block marked `output=<path>` writes what its
+//! commands print (standard output and error, in the order written) to that
+//! file of the project, so that a `text` block marked `generated` can show
+//! it and be held to it.
 //!
 //! Every `mf2` block, each read as a file of its own, must be in `mf2
 //! fmt`'s form: `mf2 fmt --check` runs on copies of them under
@@ -63,6 +66,7 @@ const PAGES: &[&str] = &[
     "docs/accessibility.md",
     "docs/native-apps.md",
     "docs/migrating-from-leptos-fluent.md",
+    "docs/command-line.md",
     "docs/ecosystem.md",
     "README.md",
 ];
@@ -187,6 +191,16 @@ const PROJECTS: &[Project] = &[
         }],
         site: true,
     },
+    // command-line.md: the `mf2` commands, run on Getting started's
+    // translation crate; the page shows what they print and write, and
+    // holds them to it. Nothing to compile beyond `hello`.
+    Project {
+        name: "cli",
+        base: Some("hello"),
+        remove: &[],
+        checks: &[],
+        site: false,
+    },
     // native-apps.md: native CLI catalog loading and the optional Ratatui adapter.
     Project {
         name: "native",
@@ -216,6 +230,8 @@ struct Block {
     run: Option<String>,
     /// The exit status every command of a `run=` block must have.
     status: i32,
+    /// The project file a `run=` block's printed output is written to.
+    output: Option<String>,
     generated: bool,
     merge: bool,
     before: bool,
@@ -392,6 +408,7 @@ fn parse(page: &'static str, text: &str) -> Result<Vec<Block>> {
             file: None,
             run: None,
             status: 0,
+            output: None,
             generated: false,
             merge: false,
             before: false,
@@ -409,12 +426,13 @@ fn parse(page: &'static str, text: &str) -> Result<Vec<Block>> {
                         ))
                     })?;
                 }
+                Some(("output", path)) => block.output = Some(path.to_owned()),
                 None if word == "generated" => block.generated = true,
                 None if word == "merge" => block.merge = true,
                 None if word == "before" => block.before = true,
                 _ => {
                     return Err(fail(format!(
-                        "{}: unknown attribute `{word}` (file=, run=, status=, generated, merge, before)",
+                        "{}: unknown attribute `{word}` (file=, run=, status=, output=, generated, merge, before)",
                         block.at()
                     )));
                 }
@@ -501,6 +519,17 @@ fn validate(blocks: &[Block]) -> Result<()> {
         }
         if block.generated && block.file.is_none() {
             return Err(fail(format!("{}: `generated` needs file=", block.at())));
+        }
+        if let Some(path) = &block.output
+            && (block.run.is_none()
+                || path.is_empty()
+                || path.starts_with('/')
+                || path.split('/').any(|part| part == ".." || part.is_empty()))
+        {
+            return Err(fail(format!(
+                "{}: `output=` belongs on a `run=` block and names a file inside its project",
+                block.at()
+            )));
         }
         if block.status != 0 && block.run.is_none() {
             return Err(fail(format!(
@@ -636,13 +665,17 @@ fn assemble(
         .iter()
         .filter(|b| b.run.as_deref() == Some(project.name))
     {
+        let mut printed = Vec::new();
         for line in commands(block) {
             let args: Vec<&OsStr> = line.split_whitespace().skip(1).map(OsStr::new).collect();
-            let status = std::process::Command::new(mf2)
-                .args(&args)
-                .current_dir(&dir)
-                .status()
-                .map_err(|e| fail(format!("{}: `{line}` did not run: {e}", block.at())))?;
+            let mut command = std::process::Command::new(mf2);
+            command.args(&args).current_dir(&dir);
+            let status = if block.output.is_some() {
+                run_capturing(command, &mut printed)
+            } else {
+                command.status()
+            }
+            .map_err(|e| fail(format!("{}: `{line}` did not run: {e}", block.at())))?;
             if status.code() != Some(block.status) {
                 return Err(fail(format!(
                     "{}: `{line}` exited with {status}, not {}",
@@ -650,6 +683,9 @@ fn assemble(
                     block.status
                 )));
             }
+        }
+        if let Some(path) = &block.output {
+            fsx::write(&dir.join(path), &printed)?;
         }
     }
 
@@ -802,6 +838,26 @@ fn ends_in_block(text: &str) -> bool {
         .iter()
         .all(|l| l.starts_with(char::is_whitespace) && !l.trim().is_empty())
         && is_block_entry(lines[last], lines[last + 1..].iter().copied())
+}
+
+/// Runs `command` with its standard output and error sent into one pipe,
+/// appending what it printed, in the order it wrote it, to `printed`.
+fn run_capturing(
+    mut command: std::process::Command,
+    printed: &mut Vec<u8>,
+) -> std::io::Result<std::process::ExitStatus> {
+    use std::io::Read as _;
+    let (mut reader, writer) = std::io::pipe()?;
+    let mut child = command
+        .stdin(std::process::Stdio::null())
+        .stdout(writer.try_clone()?)
+        .stderr(writer)
+        .spawn()?;
+    // The child holds the only writers now (the command's copies go with
+    // it): the read ends when the child exits.
+    drop(command);
+    reader.read_to_end(printed)?;
+    child.wait()
 }
 
 fn has_extension(path: &str, extension: &str) -> bool {
