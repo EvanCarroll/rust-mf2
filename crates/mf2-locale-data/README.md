@@ -1,6 +1,6 @@
 # mf2-locale-data
 
-The CLDR locale data that rust-mf2 catalogs carry, for the build side
+The CLDR locale data that Rust MF2 catalogs carry, for the build side
 only (never linked into a client): plural rules, text direction, number
 symbols and patterns, currencies and units for every CLDR locale, and
 the per-locale entries built from them.
@@ -14,10 +14,9 @@ change (`docs/versioning.md`).
 
 API documentation: <https://docs.rs/mf2-locale-data>.
 
-The [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) covers the ecosystem
-and application guides, including CLI and Ratatui integrations.
+The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user guide.
 
-Versions: every rust-mf2 crate is released together, and 1.x keeps the
+Versions: every Rust MF2 crate is released together, and 1.x keeps the
 promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
 
 ## License

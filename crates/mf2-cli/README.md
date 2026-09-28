@@ -10,12 +10,11 @@ cargo install mf2-cli
 mf2 --help
 ```
 
-API documentation: <https://docs.rs/mf2-cli>.
+Every command, its flags and its report codes: the
+[command-line chapter](https://evancarroll.github.io/rust-mf2/command-line.html)
+of the [Rust MF2 book](https://evancarroll.github.io/rust-mf2/).
 
-The [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) covers the ecosystem
-and application guides, including CLI and Ratatui integrations.
-
-Versions: every rust-mf2 crate is released together, and 1.x keeps the
+Versions: every Rust MF2 crate is released together, and 1.x keeps the
 promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
 
 ## License

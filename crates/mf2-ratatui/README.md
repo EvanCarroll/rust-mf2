@@ -20,6 +20,13 @@ It depends on `ratatui-core`, whose types `ratatui` re-exports.
 
 See the [native application guide](https://evancarroll.github.io/rust-mf2/native-apps.html).
 
+API documentation: <https://docs.rs/mf2-ratatui>.
+
+The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user guide.
+
+Versions: every Rust MF2 crate is released together, and 1.x keeps the
+promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
+
 ## License
 
 MIT (`LICENSE`).

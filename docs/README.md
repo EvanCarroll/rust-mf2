@@ -1,10 +1,13 @@
 # Rust MF2
 
-Unicode MessageFormat 2 for [Leptos](https://leptos.dev), and for native
-command-line and terminal applications. Translations are written in MF2 and
-checked when the application compiles. The browser downloads one small
-binary catalog per language, when it needs it, and a language switch is
-live. The wasm contains none of the text.
+Unicode MessageFormat 2 (MF2) for Rust applications: web applications
+with [Leptos](https://leptos.dev), and native command-line and terminal
+applications, including Ratatui. Translations are written in MF2 and
+checked when the application compiles, and each language becomes one
+small binary catalog. On the web, the browser downloads a language's
+catalog when it needs it, a language switch is live, and the wasm contains
+none of the text. A native application embeds its catalogs or ships them
+beside the executable, and follows the system's language.
 
 | Page | What it covers |
 |---|---|

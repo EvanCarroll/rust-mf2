@@ -94,6 +94,11 @@ The application depends on `mf2-native` and the translation crate, and on
 Ratatui only when its `tui` feature is on, so a command-line-only build
 does not compile it.
 
+`cargo tree` will also show `leptos-mf2`: it defines the call-site types
+`tr!` builds, and `mf2` re-exports them. With none of its Leptos features
+on it compiles no Leptos code; [How the crates fit together](ecosystem.md)
+says why the types live there.
+
 ```toml file=native/Cargo.toml
 [package]
 name = "native-demo"

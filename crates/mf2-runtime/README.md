@@ -11,10 +11,9 @@ they need.
 
 API documentation: <https://docs.rs/mf2-runtime>.
 
-The [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) covers the ecosystem
-and application guides, including CLI and Ratatui integrations.
+The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user guide.
 
-Versions: every rust-mf2 crate is released together, and 1.x keeps the
+Versions: every Rust MF2 crate is released together, and 1.x keeps the
 promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
 
 ## License

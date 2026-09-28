@@ -1,6 +1,6 @@
 # Versions and what 1.x promises
 
-Every crate of rust-mf2 is released together, at one version: `mf2 1.1.0`
+Every crate of Rust MF2 is released together, at one version: `mf2 1.1.0`
 goes with `leptos-mf2 1.1.0` and `mf2-build 1.1.0`, and each asks for the
 others at exactly that version. An application depends on the few crates
 it uses — `mf2` and `mf2-build`, then `leptos-mf2` and `mf2-axum` for a

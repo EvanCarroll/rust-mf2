@@ -39,7 +39,11 @@ One macro works in every position: text, attributes, props, strings and
   185,925 bytes with and without one full of call sites (`cargo xtask
   islands-zero`, 2026-09-23).
 * **Client-only** applications and **lazy routes** are supported too.
-* **Native CLI and Ratatui apps** use `mf2-native`: one generated corpus, the system's language and time zone, and the locale in app-owned state. `mf2-ratatui` turns messages into Ratatui text, with MF2 markup as styles.
+* **Native CLI and Ratatui apps** use the same messages and the same
+  `tr!` through `mf2-native`: the catalogs embedded in the executable or
+  shipped beside it, the system's language and time zone, and the locale
+  in state the application owns. `mf2-ratatui` turns messages into
+  Ratatui text, with MF2 markup as styles.
 * **No locale data in the wasm**: no message text, ids, argument names or
   plural rules. A translation edit leaves the wasm byte-for-byte the same,
   so readers keep their cached copy. The library's client code costs
@@ -61,11 +65,12 @@ What it contains, what it measures and its known limitations are in
 
 ## Install
 
-Rust 1.88 or later, the browser target, and the `mf2` command:
+Rust 1.88 or later and the `mf2` command, plus the browser target for a
+web application:
 
 ```sh
-rustup target add wasm32-unknown-unknown
 cargo install mf2-cli             # the `mf2` command
+rustup target add wasm32-unknown-unknown
 ```
 
 In a Leptos application, `mf2 init` makes the translation crate (it
@@ -82,7 +87,21 @@ cargo add mf2-axum@1 --optional   # turned on by the application's `ssr` feature
 Leptos 0.9 is the default; on Leptos 0.8, add both with
 `--no-default-features --features leptos-0-8`.
 [Getting started](docs/getting-started.md) builds a complete application
-step by step. Until 1.1.0 is on crates.io, name the crates by path into a
+step by step.
+
+In a native application, the translation crate's build script emits
+`mf2_build::Emit::Native`, and the application adds the native layer and,
+for a terminal UI, the Ratatui one:
+
+```sh
+cargo add mf2-native@1
+cargo add mf2-ratatui@1           # only for a Ratatui application
+```
+
+[Native CLI and Ratatui apps](docs/native-apps.md) builds one, from the
+translation crate to the draw loop.
+
+Until 1.1.0 is on crates.io, name the crates by path into a
 checkout of this repository instead.
 
 ## Documentation
@@ -102,9 +121,13 @@ and chapter links are in [`docs/`](docs/README.md). Start with the
 examples for native and browser targets. Each crate's API reference remains
 in rustdoc.
 
-The examples: [`examples/demo-ssr`](examples/demo-ssr) (server-rendered,
-with a lazy route), [`examples/demo-islands`](examples/demo-islands) and
-[`examples/demo-csr`](examples/demo-csr).
+The web examples: [`examples/demo-ssr`](examples/demo-ssr)
+(server-rendered, with a lazy route),
+[`examples/demo-islands`](examples/demo-islands) and
+[`examples/demo-csr`](examples/demo-csr). The native example — a CLI with
+a Ratatui mode — is the application
+[Native CLI and Ratatui apps](docs/native-apps.md) builds, compiled by
+`cargo xtask docs`.
 
 ## Developing
 
