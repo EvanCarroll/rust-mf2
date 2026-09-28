@@ -65,6 +65,12 @@ fn wanted_paths() -> Vec<String> {
         // likely script of a language (and region), and which scripts are RTL.
         "cldr-core/supplemental/likelySubtags.json".to_owned(),
         "cldr-core/scriptMetadata.json".to_owned(),
+        // The one locale matcher (Phase 10 C3, master plan D21): the distance
+        // between a requested and a supported locale, and which other script
+        // a reader accepts; its `$americas` match variable is a macro-region
+        // (`019`), so the matcher needs the region containment too.
+        "cldr-core/supplemental/languageMatching.json".to_owned(),
+        "cldr-core/supplemental/territoryContainment.json".to_owned(),
     ];
     for loc in LOCALES {
         paths.push(format!("cldr-numbers-full/main/{loc}/numbers.json"));
@@ -184,6 +190,8 @@ pub(crate) fn run(root: &Path) -> Result<()> {
          cldr-core/supplemental/numberingSystems.json\n\
          cldr-core/supplemental/currencyData.json\n\
          cldr-core/supplemental/likelySubtags.json\n\
+         cldr-core/supplemental/languageMatching.json\n\
+         cldr-core/supplemental/territoryContainment.json\n\
          cldr-core/scriptMetadata.json\n\
          cldr-numbers-full/main/<loc>/numbers.json\n\
          cldr-numbers-full/main/<loc>/currencies.json\n\
@@ -197,8 +205,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     );
     let vendored = format!(
         "{} files ({total} bytes) by `cargo xtask cldr-sync` (Phase 0 task A4; Phase 3 added\n\
-         likelySubtags and scriptMetadata for text direction):\n\
+         likelySubtags and scriptMetadata for text direction; Phase 10 languageMatching and\n\
+         territoryContainment for the one locale matcher):\n\
          cldr-core/supplemental/{{plurals,ordinals,numberingSystems,currencyData,likelySubtags}}.json;\n\
+         cldr-core/supplemental/{{languageMatching,territoryContainment}}.json;\n\
          cldr-core/scriptMetadata.json;\n\
          cldr-numbers-full/main/<loc>/{{numbers,currencies}}.json and\n\
          cldr-units-full/main/<loc>/units.json for the probe locale panel only;\n\

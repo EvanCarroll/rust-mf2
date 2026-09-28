@@ -181,11 +181,14 @@ fn publishable(root: &Path) -> Result<Vec<Published>> {
 }
 
 /// SHA-256 → the repository path of every file under [`FORBIDDEN`].
-fn forbidden(root: &Path) -> Result<BTreeMap<String, String>> {
-    let mut out = BTreeMap::new();
+/// Every file under [`FORBIDDEN`], by content: one digest may name several
+/// paths (the CLDR cache's upstream `LICENSE` is `third_party/cldr-json`'s,
+/// byte for byte, once `cargo xtask cldr-sync` has filled the cache).
+fn forbidden(root: &Path) -> Result<BTreeMap<String, Vec<String>>> {
+    let mut out: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for sub in FORBIDDEN {
         for (path, bytes) in fsx::read_tree(root, sub)? {
-            out.insert(sha256_hex(&bytes), path);
+            out.entry(sha256_hex(&bytes)).or_default().push(path);
         }
     }
     Ok(out)
@@ -245,7 +248,7 @@ fn audit(
     root: &Path,
     p: &Published,
     packaged: &Packaged,
-    forbidden: &BTreeMap<String, String>,
+    forbidden: &BTreeMap<String, Vec<String>>,
 ) -> Result<Vec<String>> {
     let mut out = Vec::new();
     let at = |path: &Path| {
@@ -303,12 +306,16 @@ fn audit(
                 source.display()
             ));
         }
-        if let Some(copy) = forbidden
+        if let Some(copies) = forbidden
             .get(&sha256_hex(bytes))
             .filter(|_| !bytes.is_empty())
-            && link.is_none_or(|target| target != copy)
+            && link.is_none_or(|target| !copies.iter().any(|copy| copy == target))
         {
-            out.push(format!("{}: {rel} is a copy of {copy}", p.name));
+            out.push(format!(
+                "{}: {rel} is a copy of {}",
+                p.name,
+                copies.join(", ")
+            ));
         }
     }
     Ok(out)

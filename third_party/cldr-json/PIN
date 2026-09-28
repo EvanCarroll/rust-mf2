@@ -13,14 +13,18 @@ layout   = each file keeps its upstream path relative to upstream's `cldr-json/`
            cldr-core/supplemental/numberingSystems.json
            cldr-core/supplemental/currencyData.json
            cldr-core/supplemental/likelySubtags.json
+           cldr-core/supplemental/languageMatching.json
+           cldr-core/supplemental/territoryContainment.json
            cldr-core/scriptMetadata.json
            cldr-numbers-full/main/<loc>/numbers.json
            cldr-numbers-full/main/<loc>/currencies.json
            cldr-units-full/main/<loc>/units.json
            LICENSE  (upstream's /LICENSE)
-vendored = 40 files (3633315 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4; Phase 3 added
-           likelySubtags and scriptMetadata for text direction):
+vendored = 42 files (3700535 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4; Phase 3 added
+           likelySubtags and scriptMetadata for text direction; Phase 10 languageMatching and
+           territoryContainment for the one locale matcher):
            cldr-core/supplemental/{plurals,ordinals,numberingSystems,currencyData,likelySubtags}.json;
+           cldr-core/supplemental/{languageMatching,territoryContainment}.json;
            cldr-core/scriptMetadata.json;
            cldr-numbers-full/main/<loc>/{numbers,currencies}.json and
            cldr-units-full/main/<loc>/units.json for the probe locale panel only;
