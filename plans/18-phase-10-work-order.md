@@ -346,12 +346,12 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
 
    A8 sets 2.0's targets. **Every row must fall** (C8, D6).
 
-   | Sample | 1.x (A1 re-counts by the rules) | 2.0 target (A8) |
+   | Sample | 1.x (A1, by the rules; the detail is in A1's record) | 2.0 target (A8) |
    |---|---|---|
-   | one-file CLI | a separate translation crate (≈ 30 setup lines), a two-member workspace; 3 family crates (`mf2`, `mf2-build`, `mf2-native`) + 1 own | — |
-   | trippy-shaped TUI | as the CLI, plus `mf2-ratatui`, `MarkupStyles` per draw, and three-argument calls per message; the real port added a ≈ 70-line `locale.rs` | — |
-   | two-crate workspace | as the CLI | — |
-   | Leptos `hello` | translation crate: 26-line `Cargo.toml` (a 9-feature block), 24-line `lib.rs` (a hand-shaped `setup()`), 12-line `mf2.toml`; about 25 lines of server wiring; 4 family crates (`mf2`, `mf2-build`, `leptos-mf2`, `mf2-axum`), the `mf2` tool, + 1 own | — |
+   | one-file CLI | **35 setup lines** (a translation crate of 24, a two-member workspace); **3 + 1 crates** (`mf2`, `mf2-build`, `mf2-native`; the translation crate); **18 concepts**; **1 command**, the translation crate written by hand | — |
+   | trippy-shaped TUI | **48 setup lines**: as the CLI, plus `mf2-ratatui` and a `MarkupStyles` map built for each draw; the handle in all 118 calls (48 of them `line(i18n, &tr!(…), styles)`); **4 + 1 crates**; **22 concepts**; **1 command**. The real port added **76** (a 59-line `locale.rs`) | — |
+   | two-crate workspace | **48 setup lines** (a third, shared translation crate; the handle as a parameter in the library); **4 + 1 crates**; **22 concepts**; **1 command** | — |
+   | Leptos `hello` | **96 setup lines**: 53 in the translation crate `mf2 init` writes (a 9-feature `Cargo.toml`, a hand-shaped `setup()`), 43 in the application (20 of them server wiring), and 3 lines changed to `_with_context` forms; **4 + 1 crates** (`mf2`, `mf2-build`, `leptos-mf2`, `mf2-axum`; the translation crate) and the `mf2` tool; **28 concepts**; **5 commands** | — |
 
 3. **Measure against what exists** (D1's rule: a baseline, a gate, a
    fallback).
@@ -395,6 +395,181 @@ task record.
 | **A6** Probe: a single-crate web application | Getting started's `hello` with `build.rs` and `locales/` in the application crate, checked for: <br>• both builds, and `watch` (is `watch-additional-files` still needed?); <br>• a translation-only edit leaves the wasm byte-identical (as `cargo xtask scenarios` does); <br>• `--split`; <br>• rust-analyzer; <br>• A3's in-crate `tr!` | one crate for the web too (then the web starter offers it), or why not recorded |
 | **A7** Probe: names and coherence | 1. `mf2::leptos` with no root rename. The components come from per-line helper crates through a function table: on both lines, under SSR, hydrate and islands; B1 measured for the table's indirection. <br>2. No Leptos procedural macro outside the six components. <br>3. `pub mod axum` against `use axum::…` inside `mf2`. <br>4. With `leptos` and `ratatui` both on, every intended impl compiles, and the rules are recorded: <br>• never `From<Tr> for Cow<str>` (it collides through `Span`'s blanket impl); <br>• no `FromIterator<Tr> for Line`; <br>• `Cell` and `ListItem` come through their blankets over `Into<Text>` | the module and crate names confirmed; the coherence rules for 19 |
 | **A8** The design, for the owner's review | A new companion, `plans/19-native-and-terminal.md`: the store and the lookup order, the Ratatui conversions and theme, the generated module, the build, the in-crate `tr!`, the argument conversion, and the per-mode API. **The exact target code of the four samples**, the UX targets and the gate table. The web side's design goes to 04 and 05 | the owner has reviewed it. This gates Part C's API work; Part B can start before |
+
+## A1 — stale statements and 1.x baselines: what was built
+
+* **The release statements** (commit `8f6569e`). `docs/versioning.md`
+  ("Where the releases stand", the intro's example versions, the Leptos
+  table), `README.md` ("Status", the install note),
+  `docs/getting-started.md` (the install note, the version callout) and the
+  1.1.0 changelog intro now say what is true: all 16 original crates are on
+  crates.io at 1.0.0 (2026-09-26); 1.1.0 was not published and will not be,
+  and its items ship in 2.0.0, the next release; `mf2-native` and
+  `mf2-ratatui` were never published and are named by path until then. The
+  `## 1.1.0` heading stays: the workspace is versioned 1.1.0 until G1, and
+  `xtask`'s changelog test holds the tree to that entry. Full
+  `cargo xtask docs` and `cargo xtask ci` green.
+* **`examples/tui`** (commit `3a296a9`), excluded from the root workspace
+  like the demos: a workspace of its own with its translation crate. One
+  trippy-shaped frame — a header with a key-hint bar, a table of 12 hops
+  under 14 column headers, the selected hop's details, chart titles,
+  settings (7 tabs, 7 values), help, a language menu, flows, an event log
+  and a status line — drawn into a Ratatui `Buffer` at 160 × 47 cells,
+  with no terminal. **118 messages**
+  in `en`, `de`, `es` and `fr`, **126 formatted per frame**. They use
+  plurals (two of them on two selectors, with `many` variants where Spanish
+  and French have the category), `:number`, `:integer` and `:percent` with
+  `fn-number`, and markup (`key`, `host`, `ok`, `warn`, `alert`). The French
+  failures message selects on another value than the English (the verb
+  agrees with the failed probes); the German frozen status moves the styled
+  word to the end; the language names are `@do-not-translate`.
+  `mf2 check --features fn-number`: nothing to report (without
+  `--features`, see the second finding below); the files are in `mf2 fmt`'s
+  form. The same frame is drawn twice:
+  * `src/ui.rs` — MF2 on **the 1.x API, as the user guide's native page
+    has an application written**: the translation crate beside the
+    application, a `NativeI18n` passed to all 10 draw functions,
+    `MarkupStyles` built for each draw and passed to the 6 that draw
+    markup; 48 calls `mf2_ratatui::line(i18n, &tr!(…), styles)` and 70
+    `i18n.format(&tr!(…))`.
+  * `src/upstream.rs` — **the baseline**: upstream trippy's approach,
+    re-implemented from this work order's description, not from its code.
+    A TOML table per message (122 keys) parsed once into a `HashMap`; the
+    locale a thread-local `String`, cloned by every lookup; `%{name}`
+    replaced one `str::replace` at a time; English plurals (`n > 1`); word
+    order assembled with `format!` and spans; key hints bolded by slicing
+    the translated word. Its bugs show in the frame, e.g. in French
+    `[h]aide`, `Cible:` and "2411 sur 14448 (16.7%) sondes ont échoué".
+  * `tests/frame.rs`: both renderers in every language; MF2's grouping,
+    percent signs, plurals and the French agreement checked; no MF2
+    fallback (`{…}`) in any frame. `cargo run -- --lang fr [--upstream]`
+    prints a frame.
+  * **Found while building it:** with Ratatui's default features off (no
+    terminal backend), its layout cache is off too. Every frame then
+    re-solved every layout: about 6,700 allocations and 1.2 MB a frame for
+    either renderer, with counts that moved between runs (the solver's hash
+    maps). The example turns on `std`, `layout-cache` and
+    `underline-color` — Ratatui's defaults without the backend — and the
+    counts became exact.
+  * **Found while checking it:** `mf2 -C examples/tui/i18n check` reads the
+    crate's features with `cargo metadata --offline`, which fails here —
+    the lock holds Ratatui's optional backend, and its Windows-only
+    `crossterm_winapi` has never been downloaded on this machine. The
+    command then says it checks "with no function features" and reports 12
+    `gated-function` errors that a build does not have (every `:percent`).
+    With `--features fn-number` it passes. C6 rewrites how `check` reads
+    the features; it should not turn a metadata failure into errors.
+* **`cargo xtask tui-gate`** (`xtask/src/tui_gate.rs`). It builds the
+  example's `tui-mf2` and `tui-upstream` in release, stripped
+  (`CARGO_PROFILE_RELEASE_STRIP=symbols`), and runs them alternately,
+  31 runs each by default. Each run draws two warm-up frames per language,
+  counts one frame's allocations and bytes per language (a counting global
+  allocator in each binary), and times 50 frames per language, switching
+  language between them. It reports allocations and bytes per frame per
+  language, the median of the runs' mean frame time with its range, and the
+  stripped sizes, to standard output and to `target/tui-gate/report.{md,json}`.
+  **A run whose counts differ from an earlier run's fails the command**
+  (unit-tested, with the negative control). `--save-baseline DIR` keeps the
+  binaries, with the commit in `BUILT-AT`; `--baseline DIR` puts kept
+  binaries back into the rotation, so that C2 and C8 compare 2.0 with 1.x by
+  alternating them; `--book` adds the user guide's native project's
+  stripped sizes. No gate yet: C8 adds it.
+* **The 1.x binaries are kept** in `target/p10-baseline/` (`tui-mf2`,
+  `tui-upstream`, and `BUILT-AT`: built at `3a296a9`, a clean tree).
+* **Not in CI yet:** nothing in `cargo xtask ci` builds `examples/tui`;
+  `tui-gate` does. It stays on the `mf2-native` / `mf2-ratatui` shims until
+  C8 rewrites it.
+
+### Figures at 1.x (the crates as at `2fb7f54`; measured 2026-09-28)
+
+| What | Figure | Command |
+|---|---|---|
+| B1, fixed | **26,676 B gz** (limit 30,720); the `dummy` bound 27,659 | `cargo xtask size` |
+| B5, per call site | **8.2 B gz** (limit 40); the `dummy` bound 25.1 | same |
+| the whole app at 1,860 sites | **41,889 B gz** (the ambition 105,120) | same |
+| B7, `en` | **18,072 B br** (limit 23,296); `pl` 24,137, `en-XA` 21,537, `ar-XB` 18,423 — every locale passes | `cargo xtask catalog-size` |
+| B12 | clean: no panic path, no `core::fmt` in the reader, the runtime, the numeric and the date functions; B13 shown | `bash bench/b12/check.sh` |
+| B1's runtime part | 18,888 B gz (the reader 6,781; the core numbers 5,407; B2 2,022; B3 5,486) | same |
+| B1′ and B13 on the generated module | +0 B; 13,573 B avoided | `cargo xtask b12-generated` |
+| B10, `en` allocations | 0 (simple), 0 (1-argument, reused `String`), 1.018 (new `String`), 4.000 and 1,024 B (select) | `cargo run --release -p runtime-bench -- b10 --gate --md target/p10-a1/B10-P10-1x.md --json target/p10-a1/b10-p10-1x.json` |
+| B10, `en` time, **under load** (12.0–12.3, CPU at 1,500 MHz) | 142.7 ns simple, 802.5 ns 1-argument, 2,587.8 ns select: the gate **fails** | same |
+| `tui-mf2`, allocations per frame (`en` / `de` / `es` / `fr`) | **1,816 / 1,815 / 1,816 / 1,817**; bytes 171,425 / 176,838 / 175,402 / 178,333 | `cargo xtask tui-gate --save-baseline target/p10-baseline --book` |
+| `tui-upstream`, allocations per frame | **1,517 / 1,519 / 1,518 / 1,526**; bytes 135,767 / 143,799 / 139,764 / 141,463 | same |
+| `tui-mf2` / `tui-upstream`, median time per frame, **under load** (14.4–16.9) | 2,484.7 / 2,136.1 µs; the second run 1,908.1 / 1,721.5; the third 1,864.5 / 1,803.9 | same, then `cargo xtask tui-gate`, then `cargo xtask tui-gate --save-baseline target/p10-baseline` at `3a296a9` |
+| `tui-mf2` / `tui-upstream`, stripped | **1,965,320 B** / **1,390,784 B** | same |
+| the user guide's native project, stripped | `native-demo` 1,620,208 B; with `--features tui` 1,620,160 B | same (`--book`, after `cargo xtask docs`) |
+
+* **Three runs agree exactly** on every allocation and byte count (31 runs
+  of each binary in each), and a fourth, alternating with the kept
+  binaries, agrees with them (`cargo xtask tui-gate --baseline
+  target/p10-baseline --runs 5`).
+* **B1 against Phase 9's record.** Phase 9 recorded 25,875 / 8.4 / 41,466
+  (A6, 2026-09-25, before its Part B); today's tree gives 26,676 / 8.2 /
+  41,889. Phase 10's gates (B1 within ±64 B gz, B5 within ±0.2 B) are
+  against today's figures.
+* **B10's time is not a baseline.** Every `en` time in the report is
+  3.9–5.9 × Phase 3's committed `bench/runtime-bench/B10-P3.md` (load 0.84,
+  1,823 MHz), including the load-time function table lookup, whose code
+  has not changed (3.2 → 15.9 ns). The allocation counts equal Phase 3's;
+  select's bytes per call are 1,024 against Phase 3's 928. C2's B10
+  criterion needs the run repeated on a quiet machine; the reports stay
+  under `target/p10-a1/`.
+* **The user guide's native project** is the same size with and without
+  its `tui` feature: its `main` never calls the TUI, so the linker drops it.
+
+### The UX table's 1.x column, by the rules
+
+Counted by method §2's rules, read this way so that C8 and D6 count 2.0
+alike:
+
+* **setup lines** — non-blank lines that are not comments, and that exist
+  only for translation, or name one of our crates, or forward a feature to
+  one; a line the application has anyway, in another form (Leptos's
+  `_with_context` calls), is listed as *changed*, not counted;
+* **crates named** — the family's crates in the manifests, plus the
+  application's own translation crate; the `mf2` tool apart;
+* **concepts** — distinct names of our API, generated items, features and
+  `mf2.toml` keys the application's author writes before the first
+  translated output; generated code the author does not write is counted
+  apart;
+* **commands** — what the book's page has the reader run, from an empty
+  directory to the first translated output, installs included; files
+  written by hand are listed beside them.
+
+The native samples are written the way `docs/native-apps.md` has an
+application written (the translation crate by hand: that page has no
+`mf2 init`); the TUI is `examples/tui`'s MF2 side; the Leptos sample is
+`docs/getting-started.md`'s `hello`.
+
+| Sample | Setup lines | Crates named | Concepts | Commands |
+|---|---|---|---|---|
+| one-file CLI | **35**: the translation crate 24 (`Cargo.toml` 12, `build.rs` 8, `mf2.toml` 3, `lib.rs` 1); the application's `Cargo.toml` 5 (a `[workspace]` of 3 lines, `mf2-native`, the translation crate); `main.rs` 6 (the `NativeI18n` and its `set_locale`, 4; `--lang`, 2) | **3 + 1**: `mf2`, `mf2-build`, `mf2-native`; the translation crate | **18**: `Build`, `Build::new`, `emit`, `Emit::Native`, `emit_cargo`, `run`, `into_result`; features `host-std`, `fn-number`; `source_locale`, `missing`; `include_generated!`; `NativeI18n`, `embedded`, `CORPUS`, `set_locale`, `format`, `tr!` | **1** (`cargo run`); the translation crate's 4 files by hand |
+| trippy-shaped TUI | **48**: as the CLI, plus `mf2-ratatui` in `Cargo.toml` (1), three `use` lines, and an 8-line `MarkupStyles` map built for each draw (+1). Every text carries the handle: 118 calls, 48 `line(i18n, &tr!(…), styles)` and 70 `i18n.format(&tr!(…))`; the 10 draw functions take `i18n`, and 6 of them `styles` too | **4 + 1**: the CLI's, and `mf2-ratatui` | **22**: the CLI's, and `MarkupStyles`, `MarkupStyles::new`, `with`, `mf2_ratatui::line` | **1**; as the CLI |
+| two-crate workspace (a library and a TUI sharing messages) | **48**: the shared translation crate 24 (a third crate, as the book has it); the library 3 (`mf2-native` and the translation crate in its `Cargo.toml`, a `use`), with an `i18n: &NativeI18n` parameter on each function that makes text; the TUI 21 (`Cargo.toml` 3, the handle and `--lang` 6, `use` 3, the styles 9) | **4 + 1** | **22** | **1**; as the CLI |
+| Leptos `hello` | **96**: the translation crate `mf2 init` writes, 53 (`Cargo.toml` 18 with a 9-feature block, `build.rs` 13, `mf2.toml` 10, `lib.rs` 12 with the hand-shaped `setup()`); the application 43 — `Cargo.toml` 12 (a `[workspace]` of 3, 3 dependencies, 5 forwarded features, `watch-additional-files`), `lib.rs` 11 (2 `use`, `html_lang`, the two head components, a 4-line switcher, `install`, `hydrate_body`), the server 20 (2 `use`, `install`, a 10-line negotiator, a 6-line context closure, `catalog_routes`); and 3 lines changed to their `_with_context` forms | **4 + 1**: `mf2`, `mf2-build`, `leptos-mf2`, `mf2-axum`; the translation crate; and the `mf2` tool | **28**: `tr!`, `html_lang`, `CatalogPreload`, `CatalogLinks`, `LocaleSwitcher`, `LocaleOption`, `leptos_mf2::install`, `setup`, `hydrate_body`, `mf2_axum::install`, `CATALOGS`, `Negotiator`, `empty`, `source`, `sink`, `QueryParam`, `CookieLocale`, `secure`, `AcceptLanguage`, `provide_locale`, `catalog_routes`, `leptos_routes_with_context`, `file_and_error_handler_with_context`; features `fn-number`, `fn-datetime`, `datetime-icu`; the mode forwarded to two crates; `watch-additional-files` (and 7 more in the generated `lib.rs`) | **5**: `rustup target add`, `cargo install cargo-leptos`, `cargo install mf2-cli`, `mf2 init`, `cargo leptos watch` — 2 of them this library's |
+
+**What the owner's trippy port added** (`vendor/trippy`, counted only,
+nothing copied): **76 setup lines** against the 1.0.1 API it pins — a
+59-line `locale.rs` (71 with comments and blank lines) holding its own
+`thread_local! RefCell<NativeI18n>`, the system-locale choice and a `t!`
+wrapper; `build.rs` +9; `Cargo.toml` +4; `mf2.toml` 3; `lib.rs` +1.
+
+**Verdict against "Done when":** met — the runs agree exactly on every
+allocation count, and every figure above is recorded with its command.
+B10's time, taken under load, is recorded but is not a baseline (above).
+
+**For A8 and later** (interpretation, kept brief):
+* The 1.x TUI costs +291 to +299 allocations (+19–20 %) and +33 to +37 KB
+  allocated per frame, and +574,536 B of stripped executable, against the
+  trippy-style baseline. C5's gate ("allocations per frame ≤ both") has
+  that gap to close: 1.x allocates a `String` for each `format`, and a
+  builder with owned spans for each `line`. The size gate is against 1.x,
+  not against the baseline.
+* A Ratatui application built without the default features needs
+  `layout-cache` (and `std`) on; the 2.0 starter and book should keep
+  Ratatui's defaults or say so.
+* The book's native project measures nothing of the TUI until its `main`
+  reaches it (C8).
 
 ## Part B — one crate, with every old path kept by shims (B1 after A1 and A7; B2–B4 after B1; B5 with or after B4)
 
