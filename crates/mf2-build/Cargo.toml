@@ -36,7 +36,7 @@ icu-blob = ["mf2-locale-data/icu-blob"]
 [dependencies]
 brotli.workspace = true
 flate2.workspace = true
-mf2-catalog = { workspace = true, features = ["decode", "manifest", "writer"] }
+mf2-catalog = { workspace = true, features = ["content-hash", "decode", "manifest", "writer"] }
 mf2-locale-data.workspace = true
 # `suite-names`: a diagnostic carries the WG suite's name for the MF2 error
 # kind it reports, so the build's verdict is machine-checkable (L5).
@@ -45,7 +45,6 @@ mf2-resource.workspace = true
 mf2-syntax.workspace = true
 serde = { workspace = true, features = ["std"] }
 serde_json.workspace = true
-sha2.workspace = true
 unicode-ident.workspace = true
 unicode-normalization = { workspace = true, features = ["std"] }
 unicode-security.workspace = true

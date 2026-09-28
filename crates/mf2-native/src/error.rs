@@ -32,6 +32,20 @@ pub enum NativeError {
         /// The catalog reader's error.
         source: mf2::CatalogError,
     },
+    /// A catalog file's bytes do not give the content hash in its name
+    /// (`<locale>.<hash>.mf2b`): it is from another build, renamed or
+    /// copied over, or it was damaged. A rebuild that changes only a
+    /// message's text keeps the manifest hash, so this is the check that
+    /// tells its catalogs from the old ones.
+    #[error(
+        "catalog {path:?} is not the one its name promises (its content hashes to {actual}): it is from another build"
+    )]
+    ContentMismatch {
+        /// The catalog's path; its name carries the expected hash.
+        path: PathBuf,
+        /// The content hash of the bytes read.
+        actual: String,
+    },
     /// Reading an external catalog file failed.
     #[error("could not read catalog {path:?}: {source}")]
     Io {

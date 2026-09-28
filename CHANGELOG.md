@@ -94,6 +94,15 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   initializer's finding says to add `CookieLocale { name, ..Default::default() }`
   to the server's `Negotiator` as an extra source, since mf2's client
   always writes `mf2_locale`.
+* **Fixed: a native catalog from another build loaded.** A rebuild that
+  changes only a message's text keeps the manifest hash, so an old catalog
+  file renamed to the new build's name loaded and printed the old text.
+  `NativeI18n::from_directory` now checks each file's bytes against the
+  content hash in its name, and a mismatch is the new
+  `NativeError::ContentMismatch`. The hash is `mf2-catalog`'s
+  `content_hash` (feature `content-hash`, which `mf2-build` shares); the
+  web client, whose catalogs come from its own server or build, does not
+  compute it.
 
 ## 1.0.0
 

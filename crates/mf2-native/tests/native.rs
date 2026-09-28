@@ -19,7 +19,8 @@ impl Message for Only {
     }
 }
 
-/// One catalog per `(tag, message)`, compiled against one manifest.
+/// One catalog per `(tag, message)`, compiled against one manifest, under
+/// the `<tag>.<content-hash>.mf2b` name the build gives it.
 fn corpus(
     messages: &[(&'static str, &str)],
     embed: bool,
@@ -33,7 +34,8 @@ fn corpus(
         let h = compiled.catalog.manifest_hash();
         assert_eq!(*hash.get_or_insert(h), h, "one manifest");
         let bytes: &'static [u8] = Box::leak(compiled.catalog.as_bytes().to_vec().into());
-        let name: &'static str = Box::leak(format!("{tag}.test.mf2b").into_boxed_str());
+        let name: &'static str =
+            Box::leak(format!("{tag}.{}.mf2b", mf2_catalog::content_hash(bytes)).into_boxed_str());
         locales.push((tag, Dir::Ltr));
         files.push(CatalogFile::new(tag, name, embed.then_some(bytes)));
         raw.push((name, bytes.to_vec()));
@@ -50,7 +52,7 @@ fn corpus(
 
 #[test]
 fn embedded_catalogs_format_and_switch_locale() {
-    let (corpus, _) = corpus(&[("en", "Welcome"), ("fr", "Bienvenue")], true);
+    let (corpus, raw) = corpus(&[("en", "Welcome"), ("fr", "Bienvenue")], true);
     let mut i18n = NativeI18n::embedded(corpus).expect("embedded catalogs load");
 
     i18n.set_locale("FR_ca").expect("fr-CA falls back to fr");
@@ -58,7 +60,8 @@ fn embedded_catalogs_format_and_switch_locale() {
     assert_eq!(i18n.locale_source(), LocaleSource::Explicit);
     assert_eq!(i18n.format(&Only), "Bienvenue");
 
-    assert_eq!(i18n.catalog_file_name("en"), Some("en.test.mf2b"));
+    let en = format!("en.{}.mf2b", mf2_catalog::content_hash(&raw[0].1));
+    assert_eq!(i18n.catalog_file_name("en"), Some(en.as_str()));
     assert_eq!(i18n.available_locales().collect::<Vec<_>>(), ["en", "fr"]);
 }
 
@@ -110,6 +113,65 @@ fn external_catalogs_load_from_a_directory() {
 
     assert_eq!(loaded.expect("catalog loads").format(&Only), "Welcome");
     assert!(matches!(missing, Err(NativeError::Io { .. })));
+}
+
+/// A temporary directory holding catalog files, removed when dropped.
+struct TempDir(std::path::PathBuf);
+
+impl TempDir {
+    fn with(label: &str, files: &[(&str, &[u8])]) -> TempDir {
+        let root = std::env::temp_dir().join(format!("mf2-native-{label}-{}", std::process::id()));
+        std::fs::create_dir_all(&root).expect("temporary directory is created");
+        for (name, bytes) in files {
+            std::fs::write(root.join(name), bytes).expect("catalog is written");
+        }
+        TempDir(root)
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// A rebuild that changes only a message's text keeps the manifest hash, so
+/// the reader alone cannot tell the two builds' catalogs apart. The old file
+/// renamed to the new build's name must still be refused: its bytes do not
+/// give the hash in that name.
+#[test]
+fn a_renamed_catalog_from_a_text_only_rebuild_is_refused() {
+    let (old, old_raw) = corpus(&[("en", "Welcome")], false);
+    let (new, new_raw) = corpus(&[("en", "Welcome back")], false);
+    assert_eq!(
+        old.manifest_hash(),
+        new.manifest_hash(),
+        "a text-only rebuild"
+    );
+    let (new_name, new_bytes) = &new_raw[0];
+    let (old_name, old_bytes) = &old_raw[0];
+    assert_ne!(new_name, old_name);
+
+    // The new build's catalog, under its own name, loads.
+    let fresh = TempDir::with("fresh", &[(*new_name, new_bytes.as_slice())]);
+    let loaded = NativeI18n::from_directory(new, &fresh.0).expect("the new build's catalog loads");
+    assert_eq!(loaded.format(&Only), "Welcome back");
+
+    // The old build's catalog, renamed to the new build's name, does not.
+    let renamed = TempDir::with("renamed", &[(*new_name, old_bytes.as_slice())]);
+    let refused = NativeI18n::from_directory(new, &renamed.0);
+    let old_hash = mf2_catalog::content_hash(old_bytes);
+    match refused {
+        Err(NativeError::ContentMismatch { path, actual }) => {
+            assert!(path.ends_with(new_name), "the path names the file read");
+            assert_eq!(actual, old_hash, "the hash of the bytes read");
+        }
+        Err(other) => panic!("refused, but as {other:?}"),
+        Ok(i18n) => panic!(
+            "a catalog from another build loaded and prints {:?}",
+            i18n.format(&Only)
+        ),
+    }
 }
 
 #[test]

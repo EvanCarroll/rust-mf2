@@ -1213,6 +1213,54 @@ behaviour. Each names what was run.
   getting-started.md's Leptos 0.8 opt-in can say that forgetting
   `default-features = false` gives exactly one error, which names the fix.
 
+## B7 — native catalogs checked by content: what was built
+
+* **Test first.** `crates/mf2-native/tests/native.rs` gained
+  `a_renamed_catalog_from_a_text_only_rebuild_is_refused`: two one-locale
+  corpora from `compile_str`, `Welcome` and `Welcome back` — one manifest
+  hash, as the review's text-only rebuild had. The new build's catalog
+  under its own name loads and prints `Welcome back`; the old build's
+  bytes written under the new build's name must be refused. The test
+  helper now names each file `<tag>.<content-hash>.mf2b`, as the build
+  does (it had used `<tag>.test.mf2b`). Before the fix (2026-09-27,
+  `cargo test -p mf2-native --test native`): 6/7 — the new test failed
+  with `a catalog from another build loaded and prints "Welcome"`, the
+  review's observation reproduced.
+* **Moved.** `content_hash` (the first 8 bytes of SHA-256 as 16 lowercase
+  hex digits) is now `mf2_catalog::content_hash`, with
+  `CONTENT_HASH_LEN`, behind a new `content-hash` feature (`dep:sha2`),
+  off by default, so the client reader's build is unchanged: no new code
+  or dependency in the wasm. `mf2-build` enables it and re-exports it from
+  its hidden `catalog` module (the old path still resolves); its own
+  `sha2` dependency is gone. `mf2-catalog`'s docs.rs feature set and its
+  crate-level feature table name it.
+* **Fixed** in `mf2-native`: `from_directory` hashes each file it reads
+  and compares that with the hash in the corpus's file name
+  (`<locale>.<hash>.mf2b`, the second-to-last dot segment, 16 digits); a
+  mismatch, or a name with no hash, is the new
+  `NativeError::ContentMismatch { path, actual }`. Embedded catalogs
+  (`NativeI18n::embedded`) are the executable's own bytes and are not
+  hashed. The web client is unchanged: its catalogs come from its own
+  server or build, and the manifest-hash check already covers skew there.
+* **Shown** (2026-09-27): `cargo test -p mf2-native` 7/7 (the new test
+  passes, and its refusal is `ContentMismatch` naming the file and the old
+  bytes' hash); `mf2-catalog`'s own test pins the hash to SHA-256's prefix
+  (`""` → `e3b0c44298fc1c14`, `"abc"` → `ba7816bf8f01cfea`). `cargo xtask
+  api` changed two listings — `mf2-catalog` (`content_hash`,
+  `CONTENT_HASH_LEN`, the docs.rs feature set) and `mf2-native`
+  (`ContentMismatch`), both additive — and `api --check` is green;
+  `package` added `src/content_hash.rs` to `mf2-catalog`'s `package.txt`,
+  `package --check` green; `msrv` green (the 18 build on 1.88), `msrv
+  --below` green (1.87 fails, as it must); `docs-rs` green (17 crates);
+  `cargo xtask ci` green.
+* **Words for B10.** `docs/native-apps.md`, "Catalogs outside the
+  executable": "each file is checked against the build when it is loaded"
+  becomes true as written once it says how — each file's bytes are
+  checked against the content hash in its name, so a catalog from another
+  build, even one that changed only text, is `NativeError::ContentMismatch`,
+  not wrong text; a file must keep the name the build gave it. The changelog's
+  1.1.0 entry says what was fixed.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

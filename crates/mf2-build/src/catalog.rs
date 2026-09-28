@@ -255,26 +255,10 @@ pub fn write(
     })
 }
 
-/// The first 16 hex digits of SHA-256 over the catalog's bytes.
-///
-/// Long enough that two builds of one application never collide, short
-/// enough to read in a URL. A catalog is served immutable under this name, so
-/// the same bytes must always give the same one — which they do, since the
-/// writer is deterministic (F8).
-pub fn content_hash(bytes: &[u8]) -> String {
-    use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(bytes);
-    let mut out = String::with_capacity(16);
-    for byte in digest.iter().take(8) {
-        out.push(hex(byte >> 4));
-        out.push(hex(byte & 0xF));
-    }
-    out
-}
-
-fn hex(nibble: u8) -> char {
-    char::from_digit(u32::from(nibble), 16).unwrap_or('0')
-}
+/// The first 16 hex digits of SHA-256 over the catalog's bytes: shared with
+/// `mf2-native`, which checks a catalog file against the name it was loaded
+/// under.
+pub use mf2_catalog::content_hash;
 
 /// Brotli at the quality and window B7 is measured with.
 pub fn brotli(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {

@@ -45,6 +45,11 @@ impl NativeI18n {
     /// or `Emit::Native`) from `directory`, under the content-hashed names
     /// the corpus records, and selects a locale as [`NativeI18n::embedded`]
     /// does.
+    ///
+    /// Each file must hash to the name it is read under: a catalog from
+    /// another build — even one that changed only a message's text, which
+    /// keeps the manifest hash — is [`NativeError::ContentMismatch`], not
+    /// the other build's text.
     pub fn from_directory(
         corpus: &'static Corpus,
         directory: impl AsRef<Path>,
@@ -52,7 +57,14 @@ impl NativeI18n {
         let directory = directory.as_ref();
         Self::load(corpus, |tag, file| {
             let path = directory.join(file.file_name());
-            let bytes = std::fs::read(&path).map_err(|source| NativeError::Io { path, source })?;
+            let bytes = std::fs::read(&path).map_err(|source| NativeError::Io {
+                path: path.clone(),
+                source,
+            })?;
+            let actual = mf2_catalog::content_hash(&bytes);
+            if name_hash(file.file_name()) != Some(actual.as_str()) {
+                return Err(NativeError::ContentMismatch { path, actual });
+            }
             Catalog::new(bytes, corpus.manifest_hash()).map_err(|source| NativeError::Catalog {
                 locale: tag.to_owned(),
                 source,
@@ -213,6 +225,13 @@ impl NativeI18n {
             .find(|f| f.tag() == tag)
             .map(mf2::CatalogFile::file_name)
     }
+}
+
+/// The content hash in a catalog file name, `<locale>.<hash>.mf2b`; `None`
+/// when the name carries none, which no file then matches.
+fn name_hash(file_name: &str) -> Option<&str> {
+    let (_, hash) = file_name.strip_suffix(".mf2b")?.rsplit_once('.')?;
+    (hash.len() == mf2_catalog::CONTENT_HASH_LEN).then_some(hash)
 }
 
 /// The system's time zone: its IANA name when it has one, else its current

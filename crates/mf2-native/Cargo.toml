@@ -18,7 +18,8 @@ exclude = ["package.txt"]
 [dependencies]
 mf2 = { workspace = true, features = ["host-std"] }
 # `Catalog::from_static`: embedded catalogs are read in place.
-mf2-catalog = { workspace = true, features = ["static-bytes"] }
+# `content_hash`: a catalog file is checked against the hash in its name.
+mf2-catalog = { workspace = true, features = ["static-bytes", "content-hash"] }
 thiserror.workspace = true
 sys-locale.workspace = true
 # The system time zone (`tz-system`); formatting uses mf2-host-std's bundled database.

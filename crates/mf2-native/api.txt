@@ -25,6 +25,9 @@ impl core::marker::StructuralPartialEq for mf2_native::LocaleSource
 pub mf2_native::NativeError::Catalog
 pub mf2_native::NativeError::Catalog::locale: alloc::string::String
 pub mf2_native::NativeError::Catalog::source: mf2_catalog::error::CatalogError
+pub mf2_native::NativeError::ContentMismatch
+pub mf2_native::NativeError::ContentMismatch::actual: alloc::string::String
+pub mf2_native::NativeError::ContentMismatch::path: std::path::PathBuf
 pub mf2_native::NativeError::Io
 pub mf2_native::NativeError::Io::path: std::path::PathBuf
 pub mf2_native::NativeError::Io::source: core::io::error::Error

@@ -16,6 +16,7 @@
 //! | `Manifest` — `manifest.mf2m` and `manifest_hash` | `manifest` | build |
 //! | `writer` — `writer::catalog`, `writer::single` | `writer` | build |
 //! | `decode()` — the model-rebuilding decoder (for tests) | `decode` | build |
+//! | [`content_hash`] — the hash in a catalog's file name | `content-hash` | build, native |
 //!
 //! The reader is client-path code: `Catalog::new` takes the fetched buffer
 //! and validates its structure once, in linear time; every accessor is a
@@ -48,6 +49,8 @@
 extern crate alloc;
 
 mod bytes;
+#[cfg(feature = "content-hash")]
+mod content_hash;
 #[doc(hidden)]
 pub mod currency;
 #[cfg(feature = "decode")]
@@ -71,6 +74,8 @@ pub mod writer;
 
 pub use mf2_model::{Dir, MsgId};
 
+#[cfg(feature = "content-hash")]
+pub use content_hash::{CONTENT_HASH_LEN, content_hash};
 #[cfg(feature = "decode")]
 #[doc(hidden)]
 pub use decode::{Decoded, decode, decode_report};

@@ -1,5 +1,5 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: manifest,writer,decode,static-bytes
+# nightly-2026-09-24; features: manifest,writer,decode,static-bytes,content-hash
 pub mod mf2_catalog
 pub use mf2_catalog::Dir
 pub use mf2_catalog::MsgId
@@ -113,3 +113,5 @@ impl core::hash::Hash for mf2_catalog::CldrVersion
 pub fn mf2_catalog::CldrVersion::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::Copy for mf2_catalog::CldrVersion
 impl core::marker::StructuralPartialEq for mf2_catalog::CldrVersion
+pub const mf2_catalog::CONTENT_HASH_LEN: usize
+pub fn mf2_catalog::content_hash(&[u8]) -> alloc::string::String
