@@ -73,6 +73,10 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   `<title>`, `<option>`, `<script>` or `<style>` showed the span's markup
   as characters. It is now written unmarked there, on the server and in
   the browser.
+* **Fixed: both Leptos lines on gives one error.** `leptos-0-8` with the
+  default `leptos-0-9` still on stopped the build with `leptos-mf2`'s
+  `compile_error!` naming the fix, but also with eight unrelated errors
+  from inside the view glue. Now the `compile_error!` is the only one.
 
 ## 1.0.0
 

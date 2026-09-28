@@ -42,7 +42,7 @@ use tachys::view::add_attr::AddAnyAttr;
 use tachys::view::any_view::AnyViewState;
 use tachys::view::iterators::VecState;
 // Only the 0.3 line has `RenderFlags`.
-#[cfg(not(feature = "leptos-0-8"))]
+#[cfg(not(all(feature = "leptos-0-8", not(feature = "leptos-0-9"))))]
 use tachys::view::RenderFlags;
 use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTemplate};
 
@@ -346,7 +346,7 @@ macro_rules! render_description {
                 0
             }
 
-            #[cfg(feature = "leptos-0-8")]
+            #[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
             fn to_html_with_buf(
                 self,
                 buf: &mut String,
@@ -385,7 +385,7 @@ macro_rules! render_description {
                 });
             }
 
-            #[cfg(not(feature = "leptos-0-8"))]
+            #[cfg(not(all(feature = "leptos-0-8", not(feature = "leptos-0-9"))))]
             fn to_html_with_buf(
                 self,
                 buf: &mut String,
@@ -814,7 +814,7 @@ impl RenderHtml for TrRich {
         0
     }
 
-    #[cfg(feature = "leptos-0-8")]
+    #[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
     fn to_html_with_buf(
         self,
         buf: &mut String,
@@ -832,7 +832,7 @@ impl RenderHtml for TrRich {
         );
     }
 
-    #[cfg(not(feature = "leptos-0-8"))]
+    #[cfg(not(all(feature = "leptos-0-8", not(feature = "leptos-0-9"))))]
     fn to_html_with_buf(
         self,
         buf: &mut String,
