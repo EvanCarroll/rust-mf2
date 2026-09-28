@@ -77,6 +77,23 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   default `leptos-0-9` still on stopped the build with `leptos-mf2`'s
   `compile_error!` naming the fix, but also with eight unrelated errors
   from inside the view glue. Now the `compile_error!` is the only one.
+* **Changed: `mf2 check` checks with the translation crate's features.**
+  Without `--features` it checked with none, so it warned where the build
+  does not (`neutral-numbers`) and failed where the build succeeds
+  (`gated-function`). It now asks cargo for the crate's features, as
+  `mf2 compile --site` does (offline), and reports what the build reports.
+  Without cargo it checks with none and says so; `--features` still wins.
+* **`missing-translation` names the missing ids**: the first ten of each
+  locale, then how many more, where it gave only the count.
+* **Fixed: a second `mf2 convert` run is not an error.** A `.mf2` file that
+  already holds what the conversion would write is left alone, and a Rust
+  file whose text would not change is not a rewrite, so a second `--write`
+  writes nothing and exits as the first did, and a dry run lists no files
+  that would not change. A file with other text still stops the command.
+* **`mf2 convert --from leptos-fluent` reads `cookie_name:`**: the
+  initializer's finding says to add `CookieLocale { name, ..Default::default() }`
+  to the server's `Negotiator` as an extra source, since mf2's client
+  always writes `mf2_locale`.
 
 ## 1.0.0
 

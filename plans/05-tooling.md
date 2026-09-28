@@ -345,8 +345,13 @@ missing-translation = "warn"
 
 The **client feature set** is not repeated here: `build.rs` reads it from the
 i18n crate's own cargo features (`CARGO_FEATURE_FN_NUMBER`, …), which the
-application forwards from its `ssr` and `hydrate` builds alike; `mf2-cli` takes
-`--features` and otherwise reads the i18n crate's `default` features.
+application forwards from its `ssr` and `hydrate` builds alike. `mf2-cli` takes
+`--features`; otherwise `mf2 check` and `mf2 compile --site` ask cargo for the
+i18n crate's features as its workspace resolves them (`cargo metadata`;
+`check` with `--offline`), so they check and build what the build does.
+Without an answer from cargo (no `Cargo.toml`, no cargo) `check` checks with
+none and says so on stderr (Phase 9 B8, owner question 12); a plain `compile`
+uses none.
 
 ## 4. Build orchestration (decision D8; settled by probe P0.9)
 
@@ -463,7 +468,7 @@ without `fn-datetime` — reported with file and line, so a translation can neve
 silently add formatting code to the wasm (see [03-runtime](03-runtime.md) §5.1).
 
 Warnings (configurable to errors): id missing in a translation (falls back —
-reported with counts per locale); `neutral-numbers` — the corpus formats numbers
+reported once per locale, with the count and the first ten ids, Phase 9 B8); `neutral-numbers` — the corpus formats numbers
 but `fn-number` is off, so digits render without locale symbols; `unpaired-markup`
 — an open without a close or the reverse; a plural `.match` that does not mention every
 category the *target* locale has; source text not in NFC; placeholder present in
@@ -492,7 +497,7 @@ the list — they are names users choose as much as option names are.*
 | Command | Purpose |
 |---|---|
 | `mf2 init` | scaffold `locales/`, an i18n crate, `build.rs`. Since Phase 7 A13 the crate is ready for Leptos as written: `ssr`, `hydrate` and `csr` features forwarding `mf2`'s, and a `setup()` for `leptos_mf2::install` / `mf2_axum::install` — what every example had added by hand, and what the user documentation shows verbatim (checked by `cargo xtask docs`). `--no-messages` leaves out the starter `locales/<tag>/main.mf2` files, for a corpus that comes from elsewhere — `mf2 convert` writes into `locales/` and never overwrites (Phase 8 A4) |
-| `mf2 check` | all lints, machine-readable output for CI (`--format json`) |
+| `mf2 check` | all lints, machine-readable output for CI (`--format json`); without `--features`, the i18n crate's features as cargo resolves them (§3), so a bare `check` reports what the build reports (Phase 9 B8) |
 | `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8). With `--site` the functions are the i18n crate's features as `cargo metadata` resolves them (only `fn-number`, `fn-datetime` and `datetime-icu` change a catalog); a `--features` that names others fails, with both lists, and writes nothing — so the catalogs are built for the wasm's functions without the list being written twice (Phase 7 A6). DIR must be a cargo package |
 | `mf2 fmt` | canonical formatting of `.mf2` resources |
 | `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
@@ -540,8 +545,11 @@ joined by `.` (`menus/file.ftl` → `menus.file.mf2`), since the loader reads a
 locale's directory flat. A file's name never enters its ids, on either side.
 `<tag>` is the directory name with `_` read as `-`; `@locale <tag>` is written
 in the frontmatter. Output is `mf2 fmt`'s canonical form (§6), so
-`mf2 fmt --check` reports nothing on it. An existing `.mf2` is not
-overwritten: the command stops before writing anything and names it.
+`mf2 fmt --check` reports nothing on it. An existing `.mf2` with other text
+is not overwritten: the command stops before writing anything and names it.
+One that already holds what the command would write is left alone and not
+counted as written (the summary says how many were unchanged), so a second
+run writes nothing and exits as the first did (Phase 9 B8).
 `--format json` gives the report as `mf2 check` gives its own
 (`{"diagnostics": [{level, locale, file, line, column, id, code, message}]}`),
 plus `inlined` (id → the terms and messages copied into it), `features` and
@@ -795,7 +803,10 @@ application's crate (the directory of its `Cargo.toml`):
    hidden directories and `--dir`'s own tree — that names `leptos_fluent`
    (a `use` or a path) is rewritten by the rules below. A file that does not
    name it is left alone: its `tr!` is not `leptos-fluent`'s, which also
-   makes a second run change nothing.
+   makes a second run change nothing. A file whose edits give back its own
+   text — one that still names `leptos_fluent` after the first run, its
+   calls in view positions already `tr!` — is not a rewrite: no diff, not
+   counted, not written (Phase 9 B8).
 3. **The manifests.** Every `Cargo.toml` line under `APP_DIR` naming
    `leptos-fluent` or `fluent-templates` is reported.
 
@@ -855,7 +866,7 @@ refuses to compile).
 
 | Construct | Code | What to do (the guide) |
 |---|---|---|
-| `leptos_fluent! { … }`, `static_loader! { … }` — the initializer | **`leptos-fluent-initializer`** | the i18n crate's `setup()`, `leptos_mf2::install` and `mf2_axum::install` |
+| `leptos_fluent! { … }`, `static_loader! { … }` — the initializer | **`leptos-fluent-initializer`** | the i18n crate's `setup()`, `leptos_mf2::install` and `mf2_axum::install`. With `cookie_name: "…"`, the finding also says to add `CookieLocale { name: "…", ..Default::default() }` to the `Negotiator` **as an extra source** (after the default `CookieLocale`, before `AcceptLanguage`), not a rename: the client always writes `mf2_locale` (Phase 9 B8) |
 | `I18n`, or any `leptos_fluent::` path but the macros — the context, its `language` / `languages` (the language selector) and `tr` / `tr_with_args` (lookups by run-time id) | **`leptos-fluent-context`** | `<LocaleSwitcher>` or the locale API; `msg_id!` and `TrDyn` for a run-time id |
 | a `use leptos_fluent::…` naming anything but `tr` and `move_tr`, a `pub use` or a rename of them, or any `use` when the i18n crate's name is unknown; a `move_tr!` in a file that does not name `leptos_fluent` (it came through a re-export) | **`leptos-fluent-import`** | import the i18n crate's `tr` |
 | a call whose id is not a string literal | **`leptos-fluent-dynamic-id`** | a literal id, or `msg_id!` and `TrDyn` |

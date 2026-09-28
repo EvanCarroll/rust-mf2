@@ -1127,6 +1127,92 @@ behaviour. Each names what was run.
   text-only element, so the client half is read, not run; the existing
   fallback assertions (`demo`, `csr`) cover the unchanged paths.
 
+## B8 — the command line: what was built
+
+* **`mf2 check`'s features** (owner question 12). Without `--features`,
+  `check` asks cargo for the i18n crate's features through
+  `cargo::resolved_features`, as `compile --site` does, now with an
+  `offline` switch (`check` passes `--offline`; `compile --site` does not,
+  unchanged). If cargo cannot answer — no `Cargo.toml`, no cargo, a
+  metadata failure — it checks with none and prints `note: checking with
+  no function features, as cargo could not name the i18n crate's (…);
+  --features names them` on **stderr**, so `--format json` stays one
+  document. `--features` still wins, unchecked against cargo's (unlike
+  `--site`, where a disagreement is an error). No flag changed; `api.txt`
+  unchanged. 05 §3 and the §6 table say so.
+  **Shown** (2026-09-27, `cargo xtask docs --no-build`, then in
+  `target/docs/projects/hello`): `mf2 -C i18n check` → `mf2 check: 9
+  messages in 2 locales, nothing to report`; `cargo check --features ssr`
+  of the same project → no build-script warning. The old bare check
+  (`--features ""`) still gives the review's two `neutral-numbers`
+  warnings. With one untranslated message seeded into `en`, the check and
+  the build (`warning: hello-i18n@0.1.0: …`) give the same line.
+* **Missing translations.** `missing-translation` (`mf2-build`'s
+  `coverage`) names the first ten ids, in manifest order, then `, and N
+  more` — the same shape `unused-id` had, now one helper (`first_ids`)
+  for both: `12 of 13 messages are missing here and fall back to en: m01,
+  …, m10, and 2 more`. Still one finding per locale. No lint or code
+  changed; 05 §5 says so.
+* **`convert`.** An output `.mf2` that already holds the text is left
+  alone and not counted; one with other text still stops the command
+  before anything is written (now "already exists, with other text"). A
+  Rust file whose edits give back its own text is not a change (no diff,
+  not counted, not written). The summary adds `(N unchanged)` when there
+  are any. A dry run whose `--write` would refuse lists every output, as
+  before. `cookie_name: "…"` in a `leptos_fluent!` / `static_loader!` is
+  read (a `string_field` shared with `locales:`), and the
+  `leptos-fluent-initializer` finding adds: "its `lang` cookie is not
+  read: the client always writes `mf2_locale`, so to keep the language
+  readers chose before, add `CookieLocale { name: "lang",
+  ..Default::default() }` to the server's `Negotiator` as an extra
+  source, after `CookieLocale::default()` and before `AcceptLanguage`".
+  The order matters: `Negotiator::default().source(…)` would put it after
+  `AcceptLanguage`, which nearly always answers. No code changed, so the
+  code table and the workspace test are as they were; 05 §6.1, §6.2 and
+  the initializer row say what changed.
+  **Shown** (2026-09-27, a copy of `target/docs/projects/migrate` with
+  the page's `before` blocks restored, the page's commands run): dry run
+  exit 1; first `--write` exit 1, `2 .mf2 file(s) written; 2 Rust file(s)
+  rewritten; 3 error(s)`; second `--write` exit 1, `0 .mf2 file(s)
+  written (2 unchanged); 0 Rust file(s) rewritten; 3 error(s)`, the same
+  three findings, every file's SHA-256 unchanged; a dry run after it
+  lists no file and no diff. (Before, the second `--write` failed with
+  "already exists" and the dry run listed both files.) `lib.rs` still
+  names `leptos_fluent` after the first run, and its `tr!` calls in views
+  were re-edited to themselves — the phantom rewrite.
+* **leptos-0-8.** The five cfgs in `glue/view.rs` are
+  `all(feature = "leptos-0-8", not(feature = "leptos-0-9"))` (or its
+  `not`), as `lib.rs`'s renames are. **Shown**: `cargo check -p
+  leptos-mf2 --features leptos-0-8,ssr` → 1 error, the `compile_error!`
+  (before: 9 — it and eight E0050/E0061); each line alone still checks
+  (`--no-default-features --features leptos-0-8,ssr`, and `--features
+  ssr`).
+* **Tests.** `mf2-cli`: `check_takes_the_i18n_crates_features_from_cargo`
+  (no package: note on stderr, `gated-function`, JSON still parses; the
+  crate's default `fn-number`: clean, stderr empty; `--features ""` wins;
+  no default: fails as the build would),
+  `check_names_the_first_missing_translations`,
+  `a_second_run_changes_nothing` (now without deleting the first run's
+  output: `--write` and dry run, the tree byte-identical),
+  `unchanged_text_is_not_a_rewrite_and_the_cookie_is_named` (exit 1
+  twice, same findings, nothing written), and the construct corpus's
+  second `--from fluent` run. `mf2-build`'s fallback test checks the ids.
+* **Words for B10** (the book is not edited here):
+  getting-started.md — `mf2 check` now checks with the translation
+  crate's features as cargo resolves them, so it reports what the build
+  reports (`--features` to check another set), and the missing-translation
+  warning names the first ids. migrating-from-leptos-fluent.md — the
+  report block's initializer line gains the cookie sentence (B12 makes it
+  `generated`); "A second run therefore changes nothing" can say a second
+  `--write` writes nothing and exits as the first did; the paragraph on
+  the server ("the initializer's cookie and `Accept-Language` options")
+  should say the `lang` cookie is **not** read until
+  `CookieLocale { name: "lang", ..Default::default() }` is added between
+  the default cookie and `AcceptLanguage`, and B11's `command-line.md`
+  should state the `check` feature rule and `convert`'s `(N unchanged)`.
+  getting-started.md's Leptos 0.8 opt-in can say that forgetting
+  `default-features = false` gives exactly one error, which names the fix.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
