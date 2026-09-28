@@ -6,14 +6,19 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 ## Start here
 
 1. Read `plans/00-master-plan.md` — the single source of truth (goals, layout,
-   feature flags, decisions D1–D14, phases, risks).
+   feature flags, decisions D1–D24, phases, risks).
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
-3. **Phases 1–9 are done.** Next is the owner's publish of 1.1.0
-   (`cargo xtask release --publish`, the owner's alone), then the post-1.0
-   order in the master plan's §9 "Later" (reasons in
-   `plans/phase-9-results.md`); its work order is written when the owner
-   chooses what comes first.
+3. **Phases 1–9 are done; Phase 10 is next.**
+   - Release: 1.0.0 is on crates.io; 1.1.0 will not be published (owner, 2026-09-28); the next
+     release is **2.0.0**.
+   - Phase 10 — 2.0, the user experience — is next, from
+     `plans/18-phase-10-work-order.md`, starting with its task A1.
+   - Its decisions are the master plan's D16–D24: one crate, `mf2` with features; native and
+     Ratatui first; the web's setup; one CLDR-based matcher; the silent failures; the book.
+   - `vendor/` (the owner's trippy port and reference checkouts) and `comparison.md` are untracked
+     and never committed: stage files by name.
+
    Built so far (`crates/mf2-model`, `crates/mf2-syntax`,
    `crates/mf2-catalog`, `crates/mf2-runtime` and its hosts,
    `mf2-locale-data`, `mf2-fn-number`, `mf2-fn-datetime` with both date

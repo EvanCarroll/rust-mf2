@@ -355,6 +355,13 @@ uses none.
 
 ## 4. Build orchestration (decision D8; settled by probe P0.9)
 
+> **Amended for 2.0, pending its probes** (owner, 2026-09-28; master plan
+> D19): `links` metadata carries `mf2`'s features to the build script, so no
+> translation crate declares or forwards features; `mf2_build::run()` is the
+> whole build script; native applications default to one crate, with a
+> path-addressable in-crate `tr!`. [18](18-phase-10-work-order.md) A2, A3, C6
+> settle each part, and this section is rewritten with C6.
+
 ```
 my-app-i18n/            ← a crate in the application's workspace
   locales/<tag>/*.mf2
@@ -1171,6 +1178,13 @@ that keeps an allocation alive.
 root `CLAUDE.md` ("Boundary").
 
 ## 9. The `mf2` facade
+
+> **Stale, and superseded for 2.0** (owner, 2026-09-28; master plan D16). As
+> built in 1.x, the call-site core lives in `leptos-mf2` ([04](04-leptos-integration.md)
+> §2.1), and `mf2` has no `axum` or `build` feature. In 2.0, `mf2` becomes the
+> one crate an application names, with `leptos`, `axum`, `native` and
+> `ratatui` as feature-gated modules. The text below is rewritten when
+> [18](18-phase-10-work-order.md) B1 lands.
 
 The one crate an application names. It re-exports the public API of
 `mf2-runtime`, `leptos-mf2` (feature `leptos`), `mf2-axum` (feature `axum`) and

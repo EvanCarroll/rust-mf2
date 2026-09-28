@@ -97,6 +97,13 @@ or markup name is emitted at the call site.
 
 ### 2.1 The Leptos-free core (`mf2`), and its two extension points
 
+> **Superseded for 2.0** (owner, 2026-09-28; master plan D16, D20). The types
+> return to `mf2`, where every integration that needs a foreign trait on them
+> lives behind a feature: the Leptos layer as `mf2::leptos`, Ratatui and
+> `Display`. The six built-in components move to one helper crate per Leptos
+> line. This section describes 1.x, and it is rewritten when
+> [18](18-phase-10-work-order.md) B1 lands.
+
 **Where these types live** (owner, 2026-09-23; Phase 5b's owner question 1,
 [13](13-phase-5b-work-order.md)). `Tr`, `TrArgs`, `TrRich` and `ArgValue` are
 a **Leptos-free core in the facade** — `mf2::Tr`, `mf2::TrArgs`,
@@ -316,6 +323,11 @@ mock parts, and the file handler calls it in a bare owner. With no request the
 default locale is used.
 
 ## 6. Request flow: zero extra round trips
+
+> **Changing in 2.0** (owner, 2026-09-28; master plan D21, D22). The default
+> negotiation becomes `?lang=` → cookie → `Accept-Language`, and every locale
+> match goes through one CLDR-based matcher. The rest of this section is
+> unchanged; [18](18-phase-10-work-order.md) C3, D2 and D3.
 
 **Server**
 
@@ -641,6 +653,12 @@ chosen locale.
   documentation (A13) says so.
 
 ## 10. Version policy
+
+> **Changing in 2.0** (owner, 2026-09-28; master plan D20, D23). The lines
+> become features of `mf2`: `leptos` for 0.9, the default line, and
+> `leptos-0-8` for 0.8. 0.8 stays supported, and changing the default line
+> stays a major. `leptos-mf2` is folded into `mf2`. The policy below holds
+> for 1.x; [18](18-phase-10-work-order.md) B1 and G1.
 
 **Leptos 0.9 is the default line, whether or not it is released** (owner,
 2026-09-24: "that was supposed to be the default"; 0.9.0-beta / tachys

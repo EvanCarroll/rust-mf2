@@ -34,6 +34,7 @@ source of truth and links to everything else.
 | — | [phase-8-results.md](phase-8-results.md) | the Phase 8 record: status at exit, the A/B and oracle figures, what the phase found and did not fix (tasks recorded in the work order) |
 | 17 | [17-phase-9-work-order.md](17-phase-9-work-order.md) | Phase 9 tasks (done): the release — 1.0.0 and 1.1.0, the specification text out of the tree, the API review, the version policy, packaging, docs.rs, `cargo xtask release`; Part B, the book verified by running it |
 | — | [phase-9-results.md](phase-9-results.md) | the Phase 9 record: status at exit, the release figures, the book's re-verification, what the phase found and did not fix, and the post-1.0 order of the "Later" list |
+| 18 | [18-phase-10-work-order.md](18-phase-10-work-order.md) | Phase 10 tasks: 2.0, the user experience. The owner's thirteen answers; one crate (`mf2` with features); native and Ratatui first (app-wide language, `tr!` straight into widgets, a theme); the web's setup; one CLDR-based matcher; the silent failures; the book; the trippy port as acceptance |
 | — | [stretch_goals_after_v1/](stretch_goals_after_v1/) | ideas deferred until after v1, each with what was verified, the seams v1 keeps, and how to re-evaluate: [catalog text as JS strings](stretch_goals_after_v1/prob_builtin_strings.md), [narrower NAMES references](stretch_goals_after_v1/names_reference_width.md) |
 
 ## Rules for anyone (or any agent) working from these plans

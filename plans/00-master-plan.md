@@ -34,7 +34,9 @@ companion documents elaborate it and MUST NOT contradict it.
 | [phase-7-results](phase-7-results.md) | Phase 7 measurements: the WCAG 2.2 AA audit, spec coverage, the documentation, `mark-fallback-lang` |
 | [16-phase-8-work-order](16-phase-8-work-order.md) | Phase 8 work order: migration from Fluent, XLIFF 2, the `leptos-fluent` A/B, the reader's time zone |
 | [phase-8-results](phase-8-results.md) | Phase 8 record: status at exit, the A/B and oracle figures, findings carried to Phase 9 |
-| [17-phase-9-work-order](17-phase-9-work-order.md) | task-level work order for the next phase: the release — 1.0.0, the specification text out of the tree, `cargo xtask release` |
+| [17-phase-9-work-order](17-phase-9-work-order.md) | Phase 9 work order (done): the release — 1.0.0, the specification text out of the tree, `cargo xtask release`; the book verified |
+| [phase-9-results](phase-9-results.md) | Phase 9 record: status at exit, the release figures, the book's re-verification, the post-1.0 order |
+| [18-phase-10-work-order](18-phase-10-work-order.md) | task-level work order for the next phase: 2.0, the user experience — one crate, native and Ratatui first, the web's setup, the silent failures, the book |
 
 ---
 
@@ -55,10 +57,22 @@ companion documents elaborate it and MUST NOT contradict it.
 5. **Proof, not claims** — the official `unicode-org/message-format-wg` test
    suite runs at *every* layer of the stack as each layer is built
    ([01](01-conformance.md)).
+6. **Native CLI and Ratatui applications, best in class** *(owner,
+   2026-09-28, D17–D18)*. `tr!` prints with `{}` and goes straight into any
+   Ratatui widget, and markup becomes styles from one app-wide theme. An
+   app-wide current language can be switched live. None of this may cost
+   performance or executable size against 1.x
+   ([18](18-phase-10-work-order.md), method §3).
+7. **Minimal boilerplate** *(owner, 2026-09-28, D16, D19, D22)*:
+   - an application names one crate, `mf2`, with features, plus `mf2-build` in a one-line build
+     script;
+   - languages are typed;
+   - no crate forwards features to another;
+   - `mf2 init` makes a runnable starter.
 
-Non-goals: a translation-management system; supporting UI frameworks other than
-Leptos (though `mf2-runtime` is framework-free); ICU MessageFormat 1 syntax; a
-stable public binary format.
+Non-goals: a translation-management system; UI frameworks other than Leptos
+and Ratatui (`mf2-runtime` itself is framework-free); ICU MessageFormat 1
+syntax; a stable public binary format.
 
 ## 2. Assessment of the earlier draft plan
 
@@ -194,6 +208,27 @@ rust-mf2/
 CI asserts the "never" column with `cargo tree -e normal --target
 wasm32-unknown-unknown` on the demo app.
 
+### 4.1 The 2.0 target (Phase 10; D16, D20, D23)
+
+The table above is the tree until Phase 10's tasks land. At P10's exit:
+
+- **The published crates go from 18 to 16.**
+  - `leptos-mf2`, `mf2-native`, `mf2-ratatui` and `mf2-axum` fold into `mf2`, as the modules
+    `mf2::leptos`, `mf2::native`, `mf2::ratatui` and `mf2::axum`, each behind a feature.
+  - The call-site types return to `mf2`, their Phase 5b home.
+- **Two supporting crates carry the six built-in Leptos components, one per Leptos line**
+  (`mf2-leptos-ui-0-9`, `mf2-leptos-ui-0-8`).
+  - They use `view!` / `#[component]` against their own line under its real name.
+  - `mf2::leptos` re-exports them.
+  - They reach `mf2`'s state through a function table `mf2` installs, since they cannot depend on
+    it.
+- **What an application names:** `mf2`, plus `mf2-build` in its build script; `mf2-cli` is the
+  tool.
+- **In the client wasm:** `mf2` (the core and `leptos`) and the active UI helper.
+- **Never in the client wasm:** `native`, `ratatui`, `axum`.
+- **The dependency-table cells above for `leptos-mf2` and `mf2-axum`** are rewritten when B1 and D1
+  land ([18](18-phase-10-work-order.md)).
+
 ## 5. Client feature flags (through the `mf2` facade)
 
 | Feature | Default | Effect |
@@ -206,6 +241,21 @@ wasm32-unknown-unknown` on the demo app.
 | `mark-fallback-lang` | off | wrap fallback-language text in `<span lang>` |
 | `diagnostics` | off (on in dev) | readable errors, ids, spans |
 | `ssr` / `hydrate` / `csr` / `islands` | — | mirror Leptos |
+
+**The 2.0 target (Phase 10; D16, D19, D20).** Every feature is `mf2`'s own.
+
+| Feature | Effect |
+|---|---|
+| `leptos` / `leptos-0-8` | the Leptos layer on the 0.9 line (the default line) or the 0.8 line; both at once is a `compile_error!` naming what to write; changing the default line is a major |
+| `ssr` / `hydrate` / `csr` | exactly one, as above; each implies its host |
+| `axum` | negotiation and catalog serving, with or without Leptos |
+| `native` | the app-wide language store, the system's language and time zone, embedded or shipped catalogs |
+| `ratatui` | implies `native`; `From` into `Span` / `Line` / `Text`, `Widget`, `Styled`, the theme |
+| `clap` (optional) | `clap::ValueEnum` for the generated `Locale` |
+| the rest | `fn-number`, `fn-datetime` with a backend, `intl`, `static-locale`, `mark-fallback-lang` and `compile`, as above |
+
+The build script reads them through `links` metadata (D19, probe-gated), so
+no translation crate declares or forwards features.
 
 Features belong to the **application**, declared once on its i18n crate, and
 apply to its server and wasm builds alike, so SSR output always matches what the
@@ -257,6 +307,15 @@ ledger; a phase cannot exit with its layer red.
 | D13 | Spec and CLDR inputs vendored and pinned, synced by xtask; the XLIFF 2 core specification and schema likewise, for Phase 8's export and import (owner, 2026-09-24): XLIFF 2.1, the newest OASIS Standard (2.2 is a Committee Specification), `third_party/xliff/`, `cargo xtask xliff-sync` — OASIS's notice permits verbatim copies with the notice kept and forbids modifying them, which a read-only `third_party/` satisfies | decided; `spec/` itself (upstream license change #1112 — [01](01-conformance.md) §1) **leaves the tree and is fetched on demand** into a git-ignored cache; `test/` stays vendored (owner, 2026-09-25; [17](17-phase-9-work-order.md) A0) |
 | D14 | Catalog is a lossless data-model encoding, not a bytecode | decided |
 | D15 | Numeric digits: an **own panic-free, allocation-free digit buffer** in `mf2-runtime` instead of `fixed_decimal` 0.7 (whose six panic paths break B12), under D1's rule — `fixed_decimal` stays behind the same internal interface as the A/B baseline and the fallback ([03](03-runtime.md) §5.2) | **settled: own buffer** — decided by owner (2026-09-21); the A5b gate holds on every row (identical output on 100,000 cases, 5,142 vs 7,305 B gz, B12 clean vs a panic import, 0 vs 0.5 allocations; [phase-3-results](phase-3-results.md) §A5b) |
+| D16 | **One crate.** Applications name `mf2` (plus `mf2-build`). `leptos-mf2`, `mf2-native`, `mf2-ratatui` and `mf2-axum` fold into feature-gated modules of `mf2`, and the call-site types return to `mf2`. Every integration that needs a foreign trait on them lives there: Leptos rendering, Ratatui conversions, `Display`. Types are defined once, with only additive impls behind features, which is what survives feature unification ([phase-6-results](phase-6-results.md)). Crates are already released in lockstep, so no versioning freedom is lost | **decided by owner (2026-09-28)**; replaces Phase 6's "types in `leptos-mf2`" ([04](04-leptos-integration.md) §2.1); [18](18-phase-10-work-order.md) B1–B4, D1 |
+| D17 | **Native apps get an app-wide current language with a per-thread override.** <br>• `install()`; `set_locale(Locale)`, seen by the next format on any thread; `with_locale` for parallel tests; `Locale::format` with no global. <br>• `NativeI18n` kept as the explicit `mf2::native::Catalogs`. <br>• A native-only build formatting with nothing installed panics, naming `install()`. <br>• One ambient lookup: request (ssr) or client (hydrate/csr), then the native thread, then the native global. <br>• `Display` and every conversion use it | **decided by owner (2026-09-28)**; cost gated by [18](18-phase-10-work-order.md) A4 and C2 |
+| D18 | **Ratatui.** <br>• `From<Tr…>` for `Span` / `Line` / `Text`, with constant text borrowed; `Widget`; `Styled` with `Item = Line`, so `Stylize` works. <br>• One app-wide theme (markup name → `Style`), with defaults for common names; generated `markup::*` constants, so a typo is a compile error; a scoped `with_theme`. <br>• No per-call styles | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) C5 |
+| D19 | **Build orchestration 2.0** (amends D8). <br>• `links` metadata carries `mf2`'s features to the build script; compile-time choices use cfg-forwarding macros in `mf2`. <br>• `mf2_build::run()` is the whole build script; `mf2.toml` is optional. <br>• Native apps default to one crate. <br>• The in-crate `tr!` gets a path-addressable form | **proposed, gated** by [18](18-phase-10-work-order.md) A2/A3 (fallbacks: function features on the translation crate; textual scope, documented) |
+| D20 | **Leptos in one crate** (amends D10). <br>• `mf2::leptos`, with the 0.9 line from `leptos` (the default line) and the 0.8 line from `leptos-0-8`. <br>• The six built-in components live in one helper crate per line, which uses `view!` / `#[component]` normally and which `mf2::leptos` re-exports. They reach `mf2` through a function table, since Leptos's procedural macros write `::leptos` into the crate using them. <br>• The rest of the layer reaches each line through internal aliases. <br>• A module named after the framework, never a generic `web` | **decided by owner (2026-09-28)**; gated by [18](18-phase-10-work-order.md) A7 (fallback: back to the owner) |
+| D21 | **One locale matcher everywhere.** <br>• Used by native, `Locale::from_str`, web negotiation and the client boot. <br>• POSIX names; the script implied by CLDR's likely subtags (so `zh-Hant-TW` finds `zh-TW`); region fallback (`es-MX` → `es`); another script only where CLDR's language-matching data accepts it. <br>• That file is added to `cldr-sync`'s set, and the client carries only the corpus's languages | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) C3 |
+| D22 | **Web defaults.** <br>• `Negotiator::default()` = `?lang=` → cookie → `Accept-Language`, and the switcher's parameter comes from the query source. <br>• A generated `setup()` / `install()` on each side, and no feature block in the translation crate. <br>• `Locale` in the switcher; `set_locale` / `preload_locale` callable on both sides; a reactive `current_locale()`; a prelude. <br>• Plain Axum served by the `axum` feature | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) D1–D5 |
+| D23 | **2.0.0, skipping 1.1.0** (amends D11, D12). <br>• 1.0.0 is on crates.io for the 16 original crates; 1.1.0 was never published. <br>• 2.0.0 carries 1.1.0's queued fixes. <br>• 16 published crates (D16, D20). <br>• The public API listed and semver-checked per mode (core, ssr, hydrate, csr, native, ratatui, axum). <br>• Two questions for release time: final stubs of `leptos-mf2` / `mf2-axum`, and whether to reserve the unpublished names | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) B5, G1–G2 |
+| D24 | **2.0's scope also covers:** <br>• the UX review's silent failures (`dropped-markup`, `@do-not-translate` not counted as missing, `import` checking what it writes, one-time warnings); <br>• the book's missing chapters (an MF2 guide, reference pages, the translator workflow, testing, troubleshooting, upgrading); <br>• `mf2 init` as a runnable starter for a CLI, TUI or Leptos app. <br>The proof is the owner's trippy port, finished and recorded as the acceptance test | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) Parts E, F; C7, D5, C9 |
 
 ## 9. Phases
 
@@ -265,7 +324,7 @@ exit criterion. Work inside a phase is ordered; phases overlap as drawn.
 
 ```
 P0 ─▶ P1 ─▶ P2 ─┬─▶ P3 ─▶ P4 ─┐
-                └─▶ P5a ──────┴─▶ P5b ─▶ P6 ─▶ P7 ─▶ P8 ─▶ P9
+                └─▶ P5a ──────┴─▶ P5b ─▶ P6 ─▶ P7 ─▶ P8 ─▶ P9 ─▶ P10
 ```
 
 P5a (build pipeline, CLI) needs only P1 + P2 and runs alongside P3 and P4.
@@ -442,18 +501,40 @@ everything before it).
   dry run green in CI, `current_phase = "P9"` with the harness green. Work
   order: [17](17-phase-9-work-order.md).
 
+### P10 — 2.0: the user experience
+* **Decided (owner, 2026-09-28; D16–D24):**
+  - **Release:** 1.1.0 is not published; the next release is **2.0.0**.
+  - **One crate:** applications name `mf2`, with features.
+  - **Native:** an app-wide current language, and Ratatui text straight from `tr!`, styled by one
+    theme.
+  - **Build and web:** a one-line build script, typed languages, and cut-down web setup.
+  - **Matching:** one CLDR-based locale matcher.
+  - **Also in 2.0:** the UX review's silent failures fixed, the book's missing chapters, and
+    `mf2 init` as a runnable starter.
+* **Method:**
+  - the target code of four sample applications is written first and reviewed by the owner;
+  - a UX table (setup lines, crates named, concepts, commands) in which every row must fall;
+  - gates against 1.x and against an in-house re-implementation of upstream trippy's approach: web
+    budgets within tolerance, native allocations, time and size per frame;
+  - the owner's trippy port finished as the acceptance test;
+  - a cold start from the book alone.
+* **Exit:** every item of [18](18-phase-10-work-order.md)'s exit list;
+  `cargo xtask release` green as a dry run at 2.0.0 (the publish is the owner's);
+  `current_phase = "P10"` with the harness green. Work order:
+  [18](18-phase-10-work-order.md).
+
 ### Later, deliberately not now
 Reviewed into a post-1.0 order at the close of Phase 9 (A8, 2026-09-28;
 proposed, the owner may reorder); the reasons are in
-[phase-9-results](phase-9-results.md), "What follows v1". None needs a 2.0:
-the catalog format and the manifest are outside 1.x's promise. First, when
-they happen: the owner's publish of 1.1.0, and Leptos 0.9's release as a
-patch.
+[phase-9-results](phase-9-results.md), "What follows v1". Phase 10 (2.0)
+comes first. It absorbs the hygiene item on item docs that cite `plans/`:
+they are rewritten as the crates merge. Starter templates, once a candidate
+here, are in Phase 10 too (`mf2 init`). First, when it happens: Leptos 0.9's
+release, taken as a patch.
 
-1. Hygiene after the release: item docs that cite `plans/`, the zones
-   vector test against time-zone data releases, a markup message with a
-   signal argument in a lazy route, a date in an island in a browser,
-   WebKit and a screen reader.
+1. Hygiene after the release: the zones vector test against time-zone data
+   releases, a markup message with a signal argument in a lazy route, a date
+   in an island in a browser, WebKit and a screen reader.
 2. Dev hot reload — `mf2 watch` pushing a recompiled catalog to open pages
    without a rebuild (owner, 2026-09-24; Phase 7 A6 measured the rebuild
    loop at 4–5 s on the example).
@@ -472,6 +553,14 @@ patch.
    constants (prob_builtin_strings form B), only if (5) shows the strings
    are worth it.
 
+Kept open by Phase 10's design, not built (owner, 2026-09-28):
+- custom-function ergonomics (the `Function` trait is hard to implement);
+- a plain-Axum per-request language context;
+- several message sets in one process (the native store keyed by corpus);
+- RTL alignment in terminals by `Locale::dir()`;
+- column widths computed across locales;
+- pseudo-locales embedded in debug builds.
+
 ## 10. Risks
 
 | Risk | Mitigation |
@@ -487,6 +576,9 @@ patch.
 | The W3C Message Resource format is an incubation draft and may change; its repo states no license. | Confined to `mf2-resource` behind the `Loader` trait; pinned; `mf2 fmt` migrates sources; license confirmed before vendoring, otherwise only a `PIN` and our own grammar. |
 | Own parser turns out slower than the existing one. | A measured gate at P1 exit with an explicit fallback to `ox_mf2_parser` behind the `Frontend` trait. *Retired at P1: 3.2–15.9× faster on every row; the gate stays in CI.* |
 | Scope. | Phase 0 is a genuine go/no-go; phases exit on measurable criteria only. |
+| One crate with many features (D16): cargo unifies them across a workspace, so `ssr`, `native`, `ratatui` and `axum` meet in one build. | Types defined once, with only additive impls behind features; every non-exclusive feature combination compiled by a matrix; the generated module handles `ssr` + `native` ([18](18-phase-10-work-order.md) risks). |
+| `links` metadata (D19) or the helper crates' function table (D20) misbehave under cargo-leptos or rust-analyzer. | Probes first ([18](18-phase-10-work-order.md) A2, A7), each with a recorded fallback. |
+| A new `ratatui-core` line (0.2) breaks the Ratatui impls. | An opt-in line feature, as with Leptos. |
 
 ## 11. Working rules
 
@@ -505,7 +597,9 @@ patch.
   [13-phase-5b-work-order](13-phase-5b-work-order.md) (done),
   [14-phase-6-work-order](14-phase-6-work-order.md) (done),
   [15-phase-7-work-order](15-phase-7-work-order.md) (done),
-  [16-phase-8-work-order](16-phase-8-work-order.md) (done) and
-  [17-phase-9-work-order](17-phase-9-work-order.md) (done).
+  [16-phase-8-work-order](16-phase-8-work-order.md) (done),
+  [17-phase-9-work-order](17-phase-9-work-order.md) (done) and
+  [18-phase-10-work-order](18-phase-10-work-order.md) (2.0, the user
+  experience; written at the owner's request after Phase 9's exit).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.
