@@ -78,6 +78,104 @@ pub fn Alternates() -> impl IntoView {
 }
 ```
 
+## The server's options
+
+`Negotiator::default()` is what a site gets when it says nothing more: the
+cookie, then `Accept-Language`, with the cookie as its sink. A site that
+wants `?lang=` too, or another order, starts from `Negotiator::empty()`
+and lists its sources, as Getting started does. Each part can be changed:
+
+* **`QueryParam("hl")`** reads another parameter name than `lang`.
+  `QueryParam::default()` is `lang`, the name `<LocaleSwitcher>`'s form
+  submits.
+* **`CookieLocale`'s fields**: `name` (`mf2_locale`), `max_age` (a year,
+  in seconds), `path` (`/`), `same_site` (`Lax`) and `secure` (`true`).
+  The client writes the cookie under `mf2_locale` on every switch, so a
+  different `name` is for an **extra** source that reads a cookie another
+  system wrote, listed after the default one. A `Secure` cookie is not
+  stored from a page served over plain HTTP, so a development server
+  without TLS sets `secure: false` (Getting started ties it to
+  `debug_assertions`).
+* **`.default_locale("fr")`** answers a request no source matched in
+  French instead of the source language, if the build has French.
+* **`Negotiator::over(locales, default)`** starts from an explicit table
+  of tags and directions instead of the build's, for a site that offers
+  fewer languages than it built, or a test. `Negotiator::locales()` (and,
+  anywhere on the server or the client, `leptos_mf2::locales()`) returns
+  the table in use: the tags and their directions, in build order — for a
+  sitemap or a list of `hreflang` links.
+
+```rust file=calls/src/lib.rs
+/// `?hl=` first, a cookie an older version of the site wrote after this
+/// library's own, and French for a request nothing matches.
+#[cfg(feature = "ssr")]
+pub fn custom_negotiator() -> mf2_axum::Negotiator {
+    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
+    Negotiator::empty()
+        .source(QueryParam("hl"))
+        .source(CookieLocale::default())
+        .source(CookieLocale {
+            name: "site_lang",
+            ..CookieLocale::default()
+        })
+        .source(AcceptLanguage)
+        .sink(CookieLocale {
+            secure: !cfg!(debug_assertions),
+            ..CookieLocale::default()
+        })
+        .default_locale("fr")
+}
+```
+
+**What was negotiated.** `provide_locale` returns it, and
+`mf2_axum::negotiated()` gives it to any component that renders in the
+request: the tag, its direction, `from` (the source that matched, such as
+`"query"` or `"cookie"`, or `"default"`) and `matched`.
+
+```rust file=calls/src/lib.rs
+/// Says where the page's language came from, on the server.
+#[cfg(feature = "ssr")]
+#[component]
+pub fn LanguageOrigin() -> impl IntoView {
+    let from = mf2_axum::negotiated().map_or("default", |n| n.from);
+    view! { <meta name="language-origin" content=from /> }
+}
+```
+
+**Your own sources and sinks.** A source implements `LocaleSource`: a
+name, the request header it reads (for `Vary`), and the tags a request
+offers, best first. A sink implements `LocaleSink`: a name, and the header
+it adds to the response for what was negotiated. A subdomain as a source:
+
+```rust file=calls/src/lib.rs
+/// `fr.example.com` → `fr`.
+#[cfg(feature = "ssr")]
+#[derive(Debug)]
+pub struct Subdomain;
+
+#[cfg(feature = "ssr")]
+impl mf2_axum::LocaleSource for Subdomain {
+    fn name(&self) -> &'static str {
+        "subdomain"
+    }
+
+    fn vary(&self) -> Option<axum::http::HeaderName> {
+        Some(axum::http::header::HOST)
+    }
+
+    fn candidates<'r>(
+        &self,
+        parts: &'r axum::http::request::Parts,
+        out: &mut Vec<std::borrow::Cow<'r, str>>,
+    ) {
+        let host = parts.headers.get(axum::http::header::HOST).and_then(|h| h.to_str().ok());
+        if let Some((first, _)) = host.and_then(|h| h.split_once('.')) {
+            out.push(std::borrow::Cow::Borrowed(first));
+        }
+    }
+}
+```
+
 ## The switcher
 
 `<LocaleSwitcher>` is the switcher the library provides. It is a

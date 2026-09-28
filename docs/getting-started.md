@@ -14,7 +14,7 @@ browser, so what you copy here is what CI builds.
 
 ## What you need
 
-* Rust (the 2024 edition), and the browser target:
+* Rust 1.88 or later (the 2024 edition), and the browser target:
 
   ```sh
   rustup target add wasm32-unknown-unknown
@@ -28,11 +28,18 @@ browser, so what you copy here is what CI builds.
   ```
 
 * The `mf2` command, which makes the translation crate and checks
-  translations:
+  translations ([The command line](command-line.md) has all of it):
 
   ```sh
-  cargo install --path crates/mf2-cli   # from a checkout of this repository
+  cargo install mf2-cli
   ```
+
+  Until 1.1.0 is on crates.io, install it from a checkout of this
+  repository instead: `cargo install --path crates/mf2-cli`.
+
+* For a client-only application only, [Trunk](https://trunkrs.dev)
+  (`cargo install trunk`), which builds it
+  ([Delivery modes](delivery-modes.md#client-only)).
 
 > **1.1.0 is not published yet.** Five crates are available at 1.0.0, and
 > the remaining crates will be published together at 1.1.0. The manifests
@@ -244,8 +251,10 @@ names are messages too. `language.fr` is `Français` in every catalog, so
 each language is named in its own language, and the names are catalog data
 rather than text in the wasm.
 
-`mf2 -C i18n check` runs every check that the build runs. It also works
-without cargo, so you can use it in CI or in a translator's editor.
+`mf2 -C i18n check` runs every check that the build runs, with the
+translation crate's features as cargo resolves them for the build (or the
+ones `--features` names). It also works without cargo, so you can use it
+in a translator's editor: it then checks with no features, and says so.
 
 ## The application's manifest
 
@@ -347,7 +356,7 @@ mf2-axum = { version = "1", default-features = false, features = ["leptos-0-8"],
 ```
 
 Asking for both lines at once — `leptos-0-8` with the default features
-still on — is a compile error that says what to write.
+still on — is a compile error, the only one, that says what to write.
 
 ## The page
 
@@ -377,8 +386,8 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <MetaTags />
                 // This page's catalog, downloading in parallel with the wasm.
                 <CatalogPreload />
-                // The other languages' catalog URLs, so a switch needs no
-                // extra round trip.
+                // Every language's catalog URL, so a switch needs no extra
+                // round trip.
                 <CatalogLinks />
             </head>
             <body>
@@ -396,8 +405,8 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
   catalog. This link **is** the client's boot data: the client reads the
   catalog URL from it and the language from `<html lang>`. There is no
   inline script and no JSON, and the catalog downloads while the wasm does.
-* `<CatalogLinks/>` lists the other languages' catalog URLs, so switching
-  language fetches the catalog directly. Leave it out to keep pages a few
+* `<CatalogLinks/>` lists every language's catalog URL (this page's
+  included), so switching language fetches the catalog directly. Leave it out to keep pages a few
   bytes smaller. A switch then asks the server for the URL first, which
   costs one round trip.
 

@@ -1326,6 +1326,89 @@ behaviour. Each names what was run.
   versioning.md should say that fmt's *layout* may change in a minor is
   B10's word to add (not edited here).
 
+## B10 — book corrections: what was built
+
+* **Every refuted and partly-right row**, and every review note, is
+  corrected in `docs/` — in two commits: first the rows no pending code
+  decided, then the wording of B7, B8 and B9 once they had landed. Row by
+  row: switch skew (B2's words, already in); lazy routes need `--split`
+  with `leptos/lazy` (Leptos's behaviour, said so); islands without
+  `static-locale` do not switch live, and the switcher on islands is the
+  form and the server's cookie; the migrated server reads `mf2_locale`,
+  not the initializer's `lang` (the report's advice, B8); path-prefix
+  sites (`href_of`, `path_prefix_redirect`, compiled samples, B4); native
+  files checked by content (B7, and how to ship them); `TrDyn::new` (B5);
+  `class=` / `style=` a documented limit — **`attr:class=tr!(…)` was
+  tried and does not compile** (the view macro rejects `attr:class`), so,
+  as the owner asked, no workaround is given; `check` as the build (B8);
+  islands-zero's figures (the review's 2026-09-27 run: code 165,714 B /
+  865 functions both builds, data +8 B, 85,644 → 85,648 B gz); isolation
+  only where needed; Ratatui's unstyled names inherit; the `<textarea>`
+  fallback span (B6); `<CatalogLinks/>` lists every language's URL, the page's own included
+  (getting-started said "the other languages");
+  `mf2 check`'s missing ids (B8); the 0.8 misconfiguration's one error
+  (B8); `fmt` and the book's blocks (B9's gate).
+* **Review notes:** all applied (README title and table, ecosystem
+  diagram and re-exports, strip and `"used"`, the beta requirement,
+  compression once and kept, U+202F, `starts` in `[event]`, text copied
+  once / `Arc<str>` shared, markup with no handlers, `TimeZone::named`,
+  `Vary: Cookie`, `index.json` for client-only, `mount_to_body`'s order,
+  the gate's few bytes, focus and markup fragments, repository paths as
+  links, the native title and U+2066–U+2069, `leptos-fluent-dependency`,
+  0.3 on Leptos 0.8, `locales/` fallback, and versioning's dependencies,
+  semver-checks' `mf2-macros` skip and where 1.0 stands — 1.0.0 is
+  described as partly published and 1.1.0 as the first full release).
+* **`versioning.md`** also says fmt's layout may change in a minor release
+  (B9 changed it in 1.1.0), a file's meaning never.
+* **Left, a decision recorded here, not asked:** B9 also sets off a block
+  message from the section head directly above it, matching how a
+  commented entry after a head already was; the owner's answer said
+  "around multi-line messages" and did not mention heads. It is a layout
+  detail inside the answer's intent, within a minor release's latitude.
+
+## B11 — book additions: what was built
+
+* **`docs/command-line.md`** (new; in SUMMARY and the README table, and
+  in `cargo xtask docs`' page list): every command — `init`, `check` (the
+  feature rule, `--deny-warnings`, `--format json`, `--src`), `fmt` (the
+  layout), `compile` (`--out`, `--site`, features decide names), `stats`,
+  `dump`, `export` / `import` (JSON and XLIFF 2), `pseudo`, `watch`,
+  `convert --from fluent` with all 18 report codes and their levels. Its
+  commands run in a new docs project `cli` (a copy of `hello`), and six
+  outputs are `generated` blocks held to what the commands print or
+  write. Each statement taken from the code was checked against `--help`
+  and the source: two first drafts were wrong and corrected before
+  commit (`convert --from fluent` has no `--write`; `import` tells JSON
+  from XLIFF by content, not extension; exit statuses are 0 and 1).
+* **`switching.md`, "The server's options":** `Negotiator::default()` and
+  `empty()`, `QueryParam("hl")`, `CookieLocale`'s fields (the cookie
+  name's role as an extra source; `secure: false` over plain HTTP),
+  `default_locale`, `over` and `locales()`, `negotiated()`, and a custom
+  `LocaleSource` (a subdomain) — compiled samples under `ssr`.
+* **`native-apps.md`:** the matching rules (POSIX names, subtag
+  truncation, same-language fallback and the multi-script exception),
+  `formatter()`, `NativeFiles` shipping with `mf2 compile --out` (the
+  names match the build's when the features do — observed: without
+  `fn-number` the names differed, with it they matched the build's
+  `en.604bd7743d02f2a4.mf2b` / `fr.12d01d9d7b6d52c4.mf2b`), and a Ratatui
+  draw loop in the compiled example (`ratatui::run`, the `crossterm`
+  feature).
+* **Small completions:** `TimeZone::named` (its `Option`), Trunk and
+  Rust 1.88 in the prerequisites, `cargo install mf2-cli` with the
+  from-a-checkout line until 1.1.0 is out; the "not published yet" box
+  was current and stays.
+
+## B12 — guards: what was built
+
+* **`output=` on a `run=` block** (`xtask/src/docs.rs`): the commands'
+  standard output and error, through one pipe in the order written, go to
+  that file of the project, and a `text … generated` block is held to
+  it. The migrate page's report is now such a block. **Negative control,
+  observed first:** with the page's old report text, `cargo xtask docs`
+  refused it naming line 2 — the initializer finding B8 had extended.
+  The command-line page uses the same mechanism six times.
+* Each code task's own guard is in its record (B3–B9).
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -1346,7 +1429,7 @@ behaviour. Each names what was run.
 - [x] the documentation builds as docs.rs builds it (A5)
 - [x] the changelog with 1.0.0 and its known limitations (A6)
 - [x] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7) — green locally on the clean tree; the `release` job is in `ci.yml`, waiting for a runner like every job (no remote yet)
-- [ ] Part B: the book's refuted claims fixed in code or text, each with its guard (B1–B12)
+- [x] Part B: the book's refuted claims fixed in code or text, each with its guard (B1–B12)
 - [ ] Part B: the book re-verified by running it (B13)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
 - [ ] `plans/phase-9-results.md` written (A8)

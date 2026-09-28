@@ -138,9 +138,9 @@ Some places cannot be marked, and stay as they are:
 
 For those, the answer is to translate the message. Either way:
 
-* `mf2 -C i18n check` warns about every missing translation
-  (`missing-translation`), and `mf2 -C i18n stats` counts them per
-  language;
+* `mf2 -C i18n check` warns about missing translations
+  (`missing-translation`), once per language, naming the first ten
+  missing ids, and `mf2 -C i18n stats` counts them per language;
 * to make a missing translation fail the build, raise the lint in
   `mf2.toml`:
 

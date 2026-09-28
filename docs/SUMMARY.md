@@ -7,6 +7,7 @@
 - [Delivery modes](delivery-modes.md)
 - [Switching language](switching.md)
 - [Native CLI and Ratatui apps](native-apps.md)
+- [The command line](command-line.md)
 - [Accessibility](accessibility.md)
 - [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md)
 - [Versioning](versioning.md)

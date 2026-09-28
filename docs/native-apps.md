@@ -113,7 +113,7 @@ clap = { version = "4", features = ["derive"] }
 mf2-native = "1"
 native-demo-i18n = { path = "i18n" }
 mf2-ratatui = { version = "1", optional = true }
-ratatui = { version = "0.30", default-features = false, optional = true }
+ratatui = { version = "0.30", default-features = false, features = ["crossterm"], optional = true }
 ```
 
 ### Choosing the language
@@ -123,9 +123,22 @@ one against the build. It selects the first of the system's preferred
 languages that the corpus supports — `fr_CA.UTF-8` finds `fr` — and the
 source locale when none is. `locale_source()` says which happened.
 
+The system's preferred languages are read in order, and the first one
+that matches wins. A language matches a supported one:
+
+1. as it is, ignoring case, with `_` read as `-` and a POSIX `.charset`
+   or `@modifier` left out: `fr_CA.UTF-8` is `fr-CA`. `C`, `POSIX`, `*`
+   and an empty value never match;
+2. else with subtags dropped from the end: `fr-CA-x-private`, then
+   `fr-CA`, then `fr`;
+3. else as any supported locale of the same language (`fr-BE` finds
+   `fr-FR`) — except for a language written in more than one script
+   (`zh`, `sr`, `uz`, …) or a tag that names a script, where another
+   region can mean another script, so only steps 1 and 2 count.
+
 A language the user names explicitly goes through `set_locale`, which
-returns an error for a language the corpus does not have, so a mistyped
-`--lang` is reported rather than ignored.
+uses the same rules and returns an error for a language the corpus does
+not have, so a mistyped `--lang` is reported rather than ignored.
 
 ```rust file=native/src/main.rs
 use clap::Parser;
@@ -160,7 +173,9 @@ locale is a field of `NativeI18n`, not a process or thread global.
 
 `format` returns the message as a `String` in the active locale.
 `format_with_errors` also returns the MF2 errors, for a tool that wants to
-log them.
+log them. `formatter()` gives the runtime's `Formatter` over the active
+catalog, for code that needs more than text — a message's parts, for a
+renderer of its own, as `mf2-ratatui` does.
 
 ```rust file=native/src/main.rs
     println!("{}", i18n.format(&native_demo_i18n::tr!("welcome")));
@@ -182,12 +197,29 @@ Two settings differ from the web:
 
 ### Catalogs outside the executable
 
-With `Emit::NativeFiles` instead, the build writes the catalogs to its
-output directory under content-hashed names and embeds none of them; the
-application ships the `.mf2b` files and loads them with
-`NativeI18n::from_directory`, as `--catalogs` does above. The corpus
-records each file name, and each file is checked against the build when it
-is loaded, so a catalog from another build is an error, not wrong text.
+With `Emit::NativeFiles` in the build script instead of `Emit::Native`,
+the executable embeds no catalog. `CORPUS` records each language's file
+name, `<locale>.<hash>.mf2b`, where the hash is the first 8 bytes of the
+file's SHA-256, and the application loads the files with
+`NativeI18n::from_directory`, as `--catalogs` does above.
+
+The build writes the files to its own output directory. To ship them,
+write the same files where the package wants them:
+
+```sh
+mf2 -C i18n compile --features fn-number --out dist/catalogs
+```
+
+Give it the translation crate's features as the application builds it:
+the features decide what the catalogs hold, and so their names.
+`catalog_file_name("fr")` gives the name the corpus expects, for an
+installer that copies the files itself. A file must keep that name.
+
+Each file is checked when it is loaded: its bytes against the hash in its
+name, and its manifest against the build's. So a catalog from another
+build is an error, not wrong text — `NativeError::ContentMismatch` when
+its content differs (even if only a translation changed), and
+`ManifestMismatch` when its messages are not the build's.
 
 ## Ratatui
 
@@ -222,8 +254,41 @@ pub mod tui {
 ```
 
 In English the paragraph reads "Connected to example.org: 1,204 probes
-sent.", with "Connected" green and bold and the host underlined. An event
-handler that calls `i18n.set_locale("fr")` changes the next draw.
+sent.", with "Connected" green and bold and the host underlined.
+
+Every draw formats in the active locale, so a key that calls `set_locale`
+changes the next frame. The draw loop, with Ratatui's `crossterm` backend:
+
+```rust file=native/src/lib.rs
+#[cfg(feature = "tui")]
+pub mod app {
+    use mf2_native::NativeI18n;
+    use ratatui::crossterm::event::{self, Event, KeyCode};
+
+    /// Draws the status until `q`; `f` and `e` switch the language.
+    pub fn run(i18n: &mut NativeI18n) -> std::io::Result<()> {
+        ratatui::run(|terminal| {
+            loop {
+                terminal.draw(|frame| {
+                    frame.render_widget(crate::tui::status(i18n, "example.org", 1204), frame.area());
+                })?;
+                if let Event::Key(key) = event::read()? {
+                    match key.code {
+                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Char('f') => {
+                            let _ = i18n.set_locale("fr");
+                        }
+                        KeyCode::Char('e') => {
+                            let _ = i18n.set_locale("en");
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        })
+    }
+}
+```
 
 `text` starts a new line at each line break in the message; `line` keeps
 the message on one line. The adapter never writes bidi isolation

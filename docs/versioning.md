@@ -32,7 +32,10 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
   `fmt`, `stats`, `dump`, `pseudo`, `export`, `import`, `watch`,
   `convert`) and their flags. A script that runs under 1.0 runs under 1.x.
 * **The resource format as `mf2 fmt` writes it**: a `.mf2` file that 1.0
-  accepts, 1.x accepts, with the same meaning.
+  accepts, 1.x accepts, with the same meaning. The layout `fmt` gives it —
+  where it leaves blank lines — may change in a minor release (1.1.0 added
+  some), so a project that runs `mf2 fmt --check` in CI runs `mf2 fmt`
+  once after such an upgrade.
 
 ## What it does not promise
 

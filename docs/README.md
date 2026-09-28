@@ -14,6 +14,7 @@ live. The wasm contains none of the text.
 | [Delivery modes](delivery-modes.md) | SSR + hydrate, lazy routes, islands, client-only |
 | [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |
 | [Native CLI and Ratatui apps](native-apps.md) | `mf2-native` for a command-line or terminal application: embedded or shipped catalogs, the system's language, Ratatui text with markup as styles |
+| [The command line](command-line.md) | every `mf2` command: `check`, `fmt`, `compile`, `stats`, `dump`, `export` and `import` (JSON, XLIFF 2), `pseudo`, `watch`, `convert --from fluent` and its report codes |
 | [Accessibility](accessibility.md) | what the library does for WCAG 2.2 AA, and what the application does |
 | [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md) | `mf2 convert --from leptos-fluent`: the messages and the call sites converted in one command, and what is left to finish by hand |
 | [Versioning](versioning.md) | what 1.x promises and what it does not, the Leptos lines, the minimum Rust version (1.88) |

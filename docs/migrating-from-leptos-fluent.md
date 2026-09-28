@@ -198,6 +198,9 @@ write, and its report. Read the diff, then run it again with `--write`:
 
 ```sh run=migrate status=1
 mf2 -C i18n convert --from leptos-fluent .
+```
+
+```sh run=migrate status=1 output=convert-report.txt
 mf2 -C i18n convert --from leptos-fluent . --write
 ```
 
@@ -273,15 +276,16 @@ are reported, because `tr!` checks both when it compiles. `leptos-fluent`
 ignored an extra argument and printed `{$name}` for a missing one.
 
 A file that does not name `leptos_fluent` is not touched. A second run
-therefore changes nothing.
+therefore changes nothing: it exits as the first did, and reports the
+`.mf2` files it would write as unchanged.
 
 ## What is left to do by hand
 
 For the application above, the report says:
 
-```text
+```text file=migrate/convert-report.txt generated
 ./src/lib.rs:5:1: error: this `use leptos_fluent` is not rewritten: it names I18n, leptos_fluent, move_tr [leptos-fluent-import]
-./src/lib.rs:12:5: error: `leptos_fluent!` initializes leptos-fluent: replace it with the i18n crate's `setup()` and `leptos_mf2::install` / `mf2_axum::install` [leptos-fluent-initializer]
+./src/lib.rs:12:5: error: `leptos_fluent!` initializes leptos-fluent: replace it with the i18n crate's `setup()` and `leptos_mf2::install` / `mf2_axum::install`; its `lang` cookie is not read: the client always writes `mf2_locale`, so to keep the language readers chose before, add `CookieLocale { name: "lang", ..Default::default() }` to the server's `Negotiator` as an extra source, after `CookieLocale::default()` and before `AcceptLanguage` [leptos-fluent-initializer]
 ./src/lib.rs:64:33: error: the `leptos-fluent` context: its language and languages become `<LocaleSwitcher>` or the locale API, its `tr` / `tr_with_args` `msg_id!` and `TrDyn` [leptos-fluent-context]
 mf2 convert: 22 entries in 2 locale(s), 2 .mf2 file(s) written; 2 Rust file(s) rewritten; 3 error(s), 0 warning(s)
 ```
@@ -369,10 +373,14 @@ pub fn hydrate() {
 }
 ```
 
-The server is [Getting started](getting-started.md)'s `src/main.rs`,
-unchanged: it installs the translation crate with `mf2_axum::install` and
-negotiates each request's language (the initializer's cookie and
-`Accept-Language` options). The manifest is Getting started's too:
+The server is [Getting started](getting-started.md)'s `src/main.rs`: it
+installs the translation crate with `mf2_axum::install` and negotiates each
+request's language. It reads this library's cookie, `mf2_locale`, which the
+client writes on every switch — not the initializer's `lang`. So that a
+reader's earlier choice is kept after the migration, add a source for the
+old cookie after the default one and before `AcceptLanguage`, as the
+report says: `.source(CookieLocale { name: "lang",
+..CookieLocale::default() })`. The manifest is Getting started's too:
 `leptos-fluent` gives way to the translation crate and `leptos-mf2`, and
 `ssr` and `hydrate` forward to them.
 
