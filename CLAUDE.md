@@ -81,7 +81,11 @@ This section is the canonical statement of the rule; other documents point here.
 * Front-end code in examples: flexbox layout, WCAG 2.2 AA, consider schema.org,
   SVGs as external files (never inline).
 * Containers: podman / buildah, never docker. CI: `.forgejo/workflows/`, Forgejo
-  action forks (`https://code.forgejo.org/...`), never Woodpecker.
+  action forks (`https://code.forgejo.org/...`), never Woodpecker. The one
+  exception is the user guide (owner, 2026-09-27): the repository is published
+  on GitHub, and `.github/workflows/book.yml` builds it with mdBook and deploys
+  it to GitHub Pages. `mdbook build` writes to `target/mdbook`; the rendered
+  book is never committed.
 * Search with `rg`.
 * `third_party/` is read-only and changes only through `cargo xtask *-sync`.
 * **Agents may stage and commit** as the work needs (owner, 2026-09-21): on

@@ -55,8 +55,8 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! (`versioning.md`): the user guide is the `docs/` directory of the
-//! mf2-two repository. Its getting-started page shows the files this crate
+//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! ecosystem and application guides. Its getting-started page shows the files this crate
 //! reads, and `versioning.md` what 1.x promises about their format.
 
 #![warn(missing_docs)]

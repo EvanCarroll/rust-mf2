@@ -87,14 +87,20 @@ checkout of this repository instead.
 
 ## Documentation
 
-[`docs/`](docs/README.md): [getting started](docs/getting-started.md),
+The [Rust MF2 book](https://chattyness.github.io/rust-mf2/) explains the
+ecosystem, crate roles, application workflows and integrations. Its source
+and chapter links are in [`docs/`](docs/README.md). Start with the
+[ecosystem overview](docs/ecosystem.md), then choose a path:
+[getting started](docs/getting-started.md),
 [call sites](docs/call-sites.md), [delivery modes](docs/delivery-modes.md),
 [switching language](docs/switching.md),
 [accessibility](docs/accessibility.md),
 [native CLI and TUI apps](docs/native-apps.md),
 [migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md) and
 [versions](docs/versioning.md); what changed, [`CHANGELOG.md`](CHANGELOG.md).
-CI compiles every code sample in these pages (`cargo xtask docs`).
+`mdbook build` renders the book; `cargo xtask docs` compiles its application
+examples for native and browser targets. Each crate's API reference remains
+in rustdoc.
 
 The examples: [`examples/demo-ssr`](examples/demo-ssr) (server-rendered,
 with a lazy route), [`examples/demo-islands`](examples/demo-islands) and

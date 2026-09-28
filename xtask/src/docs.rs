@@ -1,7 +1,8 @@
-//! `cargo xtask docs`: every code sample in the user documentation, compiled
-//! (`plans/15-phase-7-work-order.md` A13).
+//! `cargo xtask docs`: every checked application example in the mdBook user
+//! guide, compiled (`plans/15-phase-7-work-order.md` A13).
 //!
-//! The pages under `docs/` are the source. A sample that is code — a `rust`,
+//! The Markdown under `docs/` is both the mdBook source and the source for
+//! examples. A sample that is code — a `rust`,
 //! `toml` or `mf2` block — names the file of a small application it belongs
 //! to in its info string, and the samples of one application, read in page
 //! order, **are** that application:
@@ -58,11 +59,12 @@ const PAGES: &[&str] = &[
     "docs/accessibility.md",
     "docs/native-apps.md",
     "docs/migrating-from-leptos-fluent.md",
+    "docs/ecosystem.md",
     "README.md",
 ];
 
 /// Pages under `docs/` with no samples of their own.
-const INDEX_PAGES: &[&str] = &["docs/README.md", "docs/versioning.md"];
+const INDEX_PAGES: &[&str] = &["docs/README.md", "docs/SUMMARY.md", "docs/versioning.md"];
 
 /// This repository's crates, as a documented manifest names them.
 const OUR_CRATES: &[(&str, &str)] = &[

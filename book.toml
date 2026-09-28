@@ -1,0 +1,10 @@
+[book]
+title = "Rust MF2"
+language = "en"
+src = "docs"
+
+[build]
+# Local builds land where CI builds, under target/ (not committed); the
+# Book workflow deploys that directory to GitHub Pages.
+build-dir = "target/mdbook"
+create-missing = false

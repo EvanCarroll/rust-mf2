@@ -17,12 +17,11 @@ dependency, [`mf2-build`](https://docs.rs/mf2-build); the `mf2` command ([`mf2-c
 
 API documentation: <https://docs.rs/mf2>.
 
-The user guide — getting started, call sites, delivery modes, switching
-language, accessibility and migrating from `leptos-fluent` — is in the
-`docs/` directory of the mf2-two repository.
+The [rust-mf2 book](https://chattyness.github.io/rust-mf2/) covers the ecosystem
+and application guides, including CLI and Ratatui integrations.
 
-Versions: every mf2-two crate is released together, and 1.x keeps the
-promise `docs/versioning.md` states; the minimum Rust version is 1.88.
+Versions: every rust-mf2 crate is released together, and 1.x keeps the
+promise [the book's versioning chapter](https://chattyness.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
 
 ## License
 

@@ -124,8 +124,8 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! (`versioning.md`): the user guide is the `docs/` directory of the
-//! mf2-two repository. An application reaches this crate through
+//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! ecosystem and application guides. An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), as `mf2::fn_datetime` (feature `fn-datetime`).
 //!
 //! [`Arg::DateTime`]: mf2_runtime::Arg::DateTime

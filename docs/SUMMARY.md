@@ -1,0 +1,12 @@
+# Summary
+
+- [Rust MF2](README.md)
+- [How the crates fit together](ecosystem.md)
+- [Getting started](getting-started.md)
+- [Call sites](call-sites.md)
+- [Delivery modes](delivery-modes.md)
+- [Switching language](switching.md)
+- [Native CLI and Ratatui apps](native-apps.md)
+- [Accessibility](accessibility.md)
+- [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md)
+- [Versioning](versioning.md)

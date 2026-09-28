@@ -32,8 +32,8 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! (`versioning.md`): the user guide is the `docs/` directory of the
-//! mf2-two repository. An application calls `tr!` through the i18n crate that
+//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! ecosystem and application guides. An application calls `tr!` through the i18n crate that
 //! `mf2-build` generates, and names [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]

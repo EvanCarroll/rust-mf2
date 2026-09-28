@@ -80,8 +80,8 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! (`versioning.md`): the user guide is the `docs/` directory of the
-//! mf2-two repository.
+//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! ecosystem and application guides.
 
 #![warn(missing_docs)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.

@@ -16,6 +16,9 @@
 //! | `export` / `import` | flat JSON, which every translation-management system speaks, and XLIFF 2 |
 //! | `watch` | recompile when a locale file changes |
 //! | `convert` | a one-shot migration from Fluent `.ftl` files |
+//!
+//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! ecosystem and application guides.
 
 #![forbid(unsafe_code)]
 // A command returns its error once, at the top; the variants stay readable.

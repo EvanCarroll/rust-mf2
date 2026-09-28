@@ -44,14 +44,15 @@
 # incremental-rebuild scenarios of P0.9 on tools/i18n-fixture, where a
 # translation-only edit must leave the client wasm byte-identical.
 #
-# Job `docs`: every code sample in the user documentation, compiled (Phase 7
-# A13). `cargo xtask docs` assembles the `rust`, `toml` and `mf2` blocks of
-# docs/*.md into the small applications they describe — running the `mf2
-# init` the pages run, and failing if a file a page shows as generated
-# differs from what was generated — then checks each one for the server
-# and for wasm32-unknown-unknown with warnings denied, and publishes the
-# client-only one's catalogs with `mf2 compile --site`. `cargo xtask ci`
-# runs the assembly without the builds.
+# Job `docs`: the mdBook content is assembled and its checked application
+# examples are compiled (Phase 7 A13). `cargo xtask docs` assembles the
+# `rust`, `toml` and `mf2` blocks of docs/*.md — running the `mf2 init` the
+# pages show and checking generated files against their examples — then
+# checks each project for its documented targets with warnings denied. This
+# includes the CLI/Ratatui native example in both feature modes. A client-only
+# example also publishes catalogs with `mf2 compile --site`. GitHub Actions
+# separately builds and deploys the rendered book once the repository is on
+# GitHub. `cargo xtask ci` assembles examples without building them.
 #
 # Job `l4-wasi`: conformance layer L4 on wasm32-wasip1 (plans/01-conformance.md
 # §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
