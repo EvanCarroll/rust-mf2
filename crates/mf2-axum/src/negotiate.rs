@@ -66,6 +66,12 @@ pub trait LocaleSink: Send + Sync + std::fmt::Debug {
 
 /// A cookie, read and written: the only source that remembers a choice the
 /// user made, so it comes first by default.
+///
+/// As a sink it writes only an **explicit** choice — a locale that came from
+/// the query (`?lang=`) or the path. A locale guessed from `Accept-Language`
+/// or the default is not remembered, and a cookie that was read is not
+/// written back, so its expiry does not slide. The client writes the cookie
+/// itself on every switch.
 #[derive(Clone, Debug)]
 pub struct CookieLocale {
     /// The cookie's name.
@@ -125,6 +131,9 @@ impl LocaleSink for CookieLocale {
     }
 
     fn store(&self, negotiated: &Negotiated) -> Option<(HeaderName, HeaderValue)> {
+        if !matches!(negotiated.from, "query" | "path") {
+            return None;
+        }
         let mut cookie = format!(
             "{}={}; Max-Age={}; Path={}; SameSite={}",
             self.name, negotiated.tag, self.max_age, self.path, self.same_site
@@ -389,9 +398,11 @@ impl Negotiator {
 }
 
 impl Default for Negotiator {
-    /// Cookie, then `Accept-Language`, writing the cookie back: what a site
-    /// wants unless it has said otherwise. A path prefix is deliberately not
-    /// here — it changes URLs, so a site opts into it.
+    /// Cookie, then `Accept-Language`, with the cookie as the sink: what a
+    /// site wants unless it has said otherwise. Neither source is an explicit
+    /// choice, so the sink writes nothing until a query or path source is
+    /// added; the client writes the cookie on a switch. A path prefix is
+    /// deliberately not here — it changes URLs, so a site opts into it.
     fn default() -> Negotiator {
         Negotiator::empty()
             .source(CookieLocale::default())
@@ -407,7 +418,10 @@ fn lookup(candidate: &str, locales: &[(&'static str, Dir)]) -> Option<(&'static 
 
 #[cfg(test)]
 mod tests {
-    use super::{AcceptLanguage, Dir, LocaleSource, Negotiator, lookup, quality_milli};
+    use super::{
+        AcceptLanguage, CookieLocale, Dir, LocaleSink, LocaleSource, Negotiated, Negotiator,
+        lookup, quality_milli,
+    };
     use http::Request;
     use std::borrow::Cow;
 
@@ -494,5 +508,35 @@ mod tests {
         let negotiator = negotiator().source(super::PathPrefix);
         assert_eq!(negotiator.negotiate(&parts(&[], "/ar/inbox")).tag, "ar");
         assert!(!negotiator.negotiate(&parts(&[], "/inbox")).matched);
+    }
+
+    fn stored_from(from: &'static str) -> Option<String> {
+        let negotiated = Negotiated {
+            tag: "fr-CA",
+            dir: Dir::Ltr,
+            from,
+            matched: from != "default",
+        };
+        CookieLocale::default()
+            .store(&negotiated)
+            .map(|(_, value)| value.to_str().unwrap_or("").to_owned())
+    }
+
+    #[test]
+    fn the_cookie_is_written_for_an_explicit_choice() {
+        for from in ["query", "path"] {
+            assert_eq!(
+                stored_from(from).as_deref(),
+                Some("mf2_locale=fr-CA; Max-Age=31536000; Path=/; SameSite=Lax; Secure"),
+                "from {from}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_cookie_is_not_written_for_a_guess_or_a_cookie_already_there() {
+        for from in ["cookie", "accept-language", "default"] {
+            assert_eq!(stored_from(from), None, "from {from}");
+        }
     }
 }

@@ -51,6 +51,13 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   the switch was refused and the page stayed in the old language. Every
   control that calls `set_locale` gets this, not only `LocaleSwitcher`;
   `set_locale` returns `Ok` with the reload under way.
+* **Changed: `CookieLocale` writes the cookie only for an explicit
+  choice.** As a sink it writes when the locale came from the query
+  (`?lang=`) or the path, and not when it was guessed from
+  `Accept-Language` or the default, so a guess is no longer remembered as
+  if the reader had chosen it. A cookie that was read is not written back,
+  so its one-year expiry no longer slides with every visit; the client
+  still writes it on every switch.
 
 ## 1.0.0
 

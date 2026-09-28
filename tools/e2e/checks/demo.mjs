@@ -8,6 +8,7 @@
 //     page* — `<html lang dir>`, the preload link — so the client never
 //     negotiates again (04 §11 item 3);
 //   * `Content-Language` and a `Vary` that names every header a source read;
+//     the cookie sink writes only an explicit choice (`?lang=`; Phase 9 B3);
 //   * the catalog is immutable, precompressed, and the bare tag redirects;
 //   * hydration changes no text and logs nothing (P0.10) — in a browser in
 //     UTC, the zone a first visit is served in (`zone.mjs` asserts the
@@ -98,11 +99,8 @@ export async function run(ctx) {
   );
   const vary = (english.headers.vary || '').toLowerCase();
   assert('vary-names-every-source', vary.includes('cookie') && vary.includes('accept-language'), vary);
-  assert(
-    'sink-writes-the-cookie',
-    (english.headers['set-cookie'] || '').includes('mf2_locale=en'),
-    english.headers['set-cookie'],
-  );
+  // Phase 9 B3: a locale guessed from `Accept-Language` is not remembered.
+  assert('sink-leaves-a-guess-unwritten', !english.headers['set-cookie'], english.headers['set-cookie']);
 
   // Accept-Language alone.
   const french = await get('/', { 'accept-language': 'fr-CA,fr;q=0.9,en;q=0.2' });
@@ -118,6 +116,14 @@ export async function run(ctx) {
   const arabicHtml = arabic.text();
   assert('query-beats-everything', attr(arabicHtml, HTML) === 'ar', attr(arabicHtml, HTML));
   assert('rtl-locale-sets-dir', attr(arabicHtml, DIR) === 'rtl', attr(arabicHtml, DIR));
+  // An explicit choice (`?lang=`) is what the sink writes.
+  assert(
+    'sink-writes-an-explicit-choice',
+    (arabic.headers['set-cookie'] || '').includes('mf2_locale=ar'),
+    arabic.headers['set-cookie'],
+  );
+  // A cookie that was read is not written back: its expiry does not slide.
+  assert('sink-leaves-a-read-cookie-alone', !cookieWins.headers['set-cookie'], cookieWins.headers['set-cookie']);
 
   // `mark-fallback-lang`: the note is untranslated in Arabic on purpose, so
   // the Arabic page borrows it from English and says so; English and French

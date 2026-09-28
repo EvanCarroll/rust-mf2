@@ -1016,6 +1016,28 @@ behaviour. Each names what was run.
   switch does" (step 2 and the sentence after the list); the e2e README's
   `csr` row.
 
+## B3 — the cookie only on an explicit choice: what was built
+
+* **`CookieLocale::store`** (`crates/mf2-axum/src/negotiate.rs`) returns
+  `None` unless `negotiated.from` is `"query"` or `"path"`. So a guess
+  (`Accept-Language`, the default) is not remembered, and a cookie that was
+  read is not written back — its `Max-Age` no longer slides. The type's and
+  `Negotiator::default()`'s docs say so: the default lists no explicit
+  source, so its sink writes nothing, and the client writes the cookie on a
+  switch.
+* **Tests:** `the_cookie_is_written_for_an_explicit_choice` (query, path)
+  and `the_cookie_is_not_written_for_a_guess_or_a_cookie_already_there`
+  (cookie, accept-language, default). Negative control: with the guard
+  disabled, the second fails.
+* **e2e:** `demo.mjs`'s `sink-writes-the-cookie` (which asserted the old
+  behaviour on an `Accept-Language` request) became
+  `sink-leaves-a-guess-unwritten`, and two were added:
+  `sink-writes-an-explicit-choice` (`?lang=ar`) and
+  `sink-leaves-a-read-cookie-alone`.
+* **Shown** (2026-09-27, debug `--split` build, Chromium and Firefox):
+  `demo` 186/186, `lazy` 74/74. The changelog's 1.1.0 entry says what
+  changed. No public API change.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
