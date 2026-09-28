@@ -45,6 +45,8 @@ heading = Une route dans son propre fragment
 title = Son code est arrivé quand vous l'avez ouverte
 body = Le code de cette page est un {#strong}fichier wasm à part{/strong}, téléchargé en chemin.
 locale-label = Rendu en
+press = Appuyer
+presses = Appuis : {$count :integer}
 
 [language]
 label = Langue

@@ -258,6 +258,7 @@ impl LazyRoute for LazyPage {
 
     fn view(this: Self) -> AnyView {
         let _ = this;
+        let presses = RwSignal::new(0);
         view! {
             // Its own `<title>`, which a client navigation here sets and
             // leaving restores (WCAG 2.4.2).
@@ -279,6 +280,21 @@ impl LazyRoute for LazyPage {
                     {demo_i18n::tr!("lazy.locale-label")} " "
                     <code id="lazy-locale">{current_locale}</code>
                 </p>
+            </section>
+            <section class="card">
+                // The chunk's own handler and reactive text: a plain
+                // closure, and a message with a signal-valued argument.
+                // Both must work whether the route was loaded directly or
+                // reached by a link.
+                <p id="lazy-presses" role="status">
+                    {demo_i18n::tr!("lazy.presses", count = presses)}
+                </p>
+                <div class="row">
+                    <button id="lazy-add" on:click=move |_| *presses.write() += 1>
+                        {demo_i18n::tr!("lazy.press")}
+                    </button>
+                    <output id="lazy-count">{move || presses.get()}</output>
+                </div>
             </section>
         }
         .into_any()

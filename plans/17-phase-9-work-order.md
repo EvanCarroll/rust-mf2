@@ -922,6 +922,62 @@ behaviour. Each names what was run.
 * **Lazy click (B1).** See B1: click after a direct load, and after `<A href>` navigation. A control copy with mf2 removed from the client works.
 * **Environment.** `trunk build` needs a `wasm-bindgen` CLI matching the lockfile. Servers run as the built binary with `LEPTOS_SITE_ADDR`, `LEPTOS_SITE_ROOT`, `LEPTOS_SITE_PKG_DIR`, `LEPTOS_OUTPUT_NAME` and `LEPTOS_ENV`, set one per variable (zsh does not word-split a variable holding several).
 
+## B1 — lazy route handlers after client navigation: what was built
+
+* **Test first.** `examples/demo-ssr`'s `LazyPage` gained a counter: an
+  `RwSignal`, `<button id="lazy-add">`, `<output id="lazy-count">{move ||
+  n.get()}</output>` and `tr!("lazy.presses", count = presses)` (two new
+  messages in each locale, `lazy.press` and `lazy.presses`).
+  `tools/e2e/checks/lazy.mjs` presses it twice after the link navigation
+  and twice after a direct load; each time the handler must count and the
+  message must follow. Before the fix (2026-09-27, debug `--split` build,
+  Chromium): 35/37 — both `navigated-*` assertions failed (count 0, text
+  unchanged after two presses), both `direct-*` passed, console silent.
+* **Bisected** on the lazy view alone (a scratch probe: navigate, press
+  twice, read the count), each a `cargo leptos build --split`:
+  no `tr!` at all — works after navigation; plus a text `tr!` — works;
+  plus the markup message — works; plus `tr!` with a **signal argument** —
+  fails. The boot (`hydrate_from_async` against `hydrate_lazy`) was not
+  involved, as the review's run without `fn-datetime` had suggested.
+* **The cause is ours.** A description's first format — in `build`,
+  `hydrate`, and `registry::replace` (a rebuild) — ran inside whatever
+  observer was current, so a signal argument subscribed the enclosing
+  render as well as the node's own argument effect. A lazy route reached
+  by a link is built inside the router's view, which re-runs on what it
+  tracked. **Observed** with a temporary log line in `LazyPage::view`
+  (Chromium, debug `--split`): before the fix, after navigation the view
+  ran once, then once more per press (1 → 2 → 3), each run a new signal
+  at 0, rebuilt in place — the button and heading were the same DOM
+  elements after a press (tagged before it); loaded directly it ran once
+  and did not re-run. After the fix it runs once either way and the count
+  reaches 2. Why a hydrated route does not re-run was not traced. No
+  upstream report.
+* **Fixed** in `leptos-mf2`: the view glue's formats (`glue/view.rs`'s
+  `with_text`, and a new `with_marked_text` for `mark-fallback-lang`) and
+  the registry's writes outside the effect (`replace`, and the zone
+  correction in `insert_hydrated`) run under `reactive_graph`'s
+  `untrack`. The argument effect still subscribes: it sets itself as the
+  observer when it runs. The `to_string()` path keeps tracking, since a
+  closure that builds a `String` must re-run.
+* **Shown** (2026-09-27, Chromium and Firefox, debug `--split` build):
+  `lazy` 74/74 (the four new assertions pass in both), `demo` 170/170,
+  `a11y` 720/720 (with `demo-islands` rebuilt on 3704 and `demo-csr`'s
+  `trunk build`), `csr` 88/88, `islands` 58/58. The changelog's 1.1.0
+  entry says what was fixed.
+* **The chunk** (release `--split`, `gzip -9`, 2026-09-27): the old
+  `LazyPage` is 12,277 B (6,188 gz) with and without the fix — identical;
+  the demo README's 11,255 B had drifted before this change. With the
+  counter it is 23,688 B (11,405 gz), now in the README. `cargo xtask ci`
+  green with the fix, its size gates included.
+* **Read, not run — markup messages.** A markup message (`TrRich`) has no
+  argument effect of its own: its fragment is formatted in the enclosing
+  render, left tracked here, since inside a `move || …` closure that is
+  the only way it follows a signal. So a markup message with a signal
+  argument follows it only when something around it re-runs, and in a lazy
+  route reached by a link it would re-run the route as above. The book
+  promises a following signal for a message, not for markup; B10 (or a
+  task of its own) should decide which it says, after running it.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

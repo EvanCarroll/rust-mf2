@@ -52,6 +52,10 @@ heading = A route in its own chunk
 title = Its code arrived when you opened it
 body = This page's code is a {#strong}separate wasm file{/strong}, fetched on the way here.
 locale-label = Rendered in
+# A counter: the chunk's own event handler and reactive text, which must
+# work whether the route was loaded directly or reached by a link.
+press = Press
+presses = Presses: {$count :integer}
 
 [language]
 label = Language

@@ -15,6 +15,9 @@
 //     does not grow the registry;
 //   * a page that *is* the lazy route hydrates through `hydrate_lazy` —
 //     chunk loaded, no text changed — and switches live;
+//   * the chunk's own event handler and reactive text work, whether the
+//     route was reached by a link or loaded directly (B1 of
+//     plans/17-phase-9-work-order.md: after client navigation they did not);
 //   * none of it logs anything.
 
 import { captureSsrSnapshot, chooseLocale, sleep, until, watchConsole, watchNetwork } from '../lib/browser.mjs';
@@ -88,6 +91,7 @@ export async function run(ctx) {
     liveLazy,
     after: await liveNodes(page),
   });
+  await pressWorks(page, assert, 'navigated');
 
   // Back home: the chunk's nodes are dropped, and their slots with them.
   await page.click('a[href="/"]');
@@ -183,6 +187,7 @@ export async function run(ctx) {
     client: directEn.slice(0, 160),
     server: lazyEnServer.slice(0, 160),
   });
+  await pressWorks(lp, assert, 'direct');
   // Leaving a route that was hydrated (rather than built) frees its slots.
   await lp.click('a[href="/"]');
   await lp.waitForSelector('#people', { timeout: 15000 });
@@ -194,6 +199,30 @@ export async function run(ctx) {
 
   data.console = consoleSink;
   assert('console-is-silent', consoleSink.length === 0, consoleSink.slice(0, 6));
+}
+
+/**
+ * Presses the chunk's button twice: its handler counts, the plain reactive
+ * text follows, and so does the message whose argument is the signal.
+ */
+async function pressWorks(page, assert, label) {
+  const before = { count: await text(page, '#lazy-count'), presses: await text(page, '#lazy-presses') };
+  const seen = [];
+  for (const expected of ['1', '2']) {
+    await page.click('#lazy-add');
+    await page
+      .waitForFunction((n) => document.querySelector('#lazy-count')?.textContent.trim() === n, expected, {
+        timeout: 2000,
+      })
+      .catch(() => {});
+    seen.push({ count: await text(page, '#lazy-count'), presses: await text(page, '#lazy-presses') });
+  }
+  assert(`${label}-handler-counts`, before.count === '0' && seen[1].count === '2', { before, seen });
+  assert(
+    `${label}-message-follows-the-signal`,
+    new Set([before.presses, seen[0].presses, seen[1].presses]).size === 3,
+    { before, seen },
+  );
 }
 
 async function switchTo(page, tag) {

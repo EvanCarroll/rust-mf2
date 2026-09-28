@@ -61,15 +61,18 @@ example cannot share one with libraries that are built both ways.
 ## The lazy route
 
 `/lazy` is a `#[lazy_route]`, so under `--split` its view is
-`pkg/split_…lazy_page_view….wasm` (11,255 B, 5,617 B gz in a release
-build), fetched the first time the route is matched — on a client-side
+`pkg/split_…lazy_page_view….wasm` (23,688 B, 11,405 B gz in a release
+build, 2026-09-27), fetched the first time the route is matched — on a client-side
 navigation, or, when the page *is* `/lazy`, preloaded by the server's HTML
 and awaited by `leptos_mf2::hydrate_lazy` before hydration walks it.
 Nothing in `leptos-mf2` is aware of chunks: they share the main module's
 linear memory and thread-locals, so the chunk's descriptions read the
 catalog the boot installed, join the same node registry, and follow the
-same switch. The route has its own `<title>`, a text, an attribute, a markup message and
-the current locale, and leaving it frees every registry slot it took.
+same switch. The route has its own `<title>`, a text, an attribute, a markup message,
+the current locale, and a counter — its own button, a plain reactive
+number and a message whose argument is the signal — which must work both
+when the route is loaded directly and when it is reached by a link. Leaving
+it frees every registry slot it took.
 
 `ar` is right-to-left, so switching to it flips the whole page from `<html
 dir>` alone — the CSS has no second set of rules.

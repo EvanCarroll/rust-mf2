@@ -35,6 +35,14 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   the feature off, the reference application's wasm is 6 bytes smaller
   than before (`cargo xtask size`, raw after `wasm-opt`); an
   unconditional version cost it 392.
+* **Fixed: a lazy route reached by a link was not interactive** when a
+  message in it had a signal as an argument (`tr!("…", count = n)`). The
+  message's first format read the signal in the route's own render, so
+  every change re-ran the route's view with fresh state: a button's
+  handler seemed to do nothing, and reactive text stayed at its first
+  value. Loaded directly, the same route worked. `leptos-mf2` now formats
+  every text, attribute and property untracked outside the node's own
+  argument effect, which alone follows the signal.
 
 ## 1.0.0
 

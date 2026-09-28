@@ -29,6 +29,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
+use reactive_graph::graph::untrack;
 use tachys::html::attribute::any_attribute::AnyAttribute;
 use tachys::html::attribute::{Attribute, AttributeValue};
 use tachys::html::property::IntoProperty;
@@ -116,8 +117,26 @@ impl Mountable for TrState {
 /// The text of `description` against the catalog this render reads, handed
 /// to `body` — borrowed from the catalog when the message is `simple`, and
 /// `""` when there is no catalog at all.
+///
+/// Read **untracked**, as every format a view position makes: a node with a
+/// reactive argument subscribes through its own effect (the registry's
+/// `args_effect`), and the render around it must not. Tracked, a signal
+/// argument subscribed whatever was rendering — for a lazy route reached by
+/// a link, the route's own async render — so the argument's first change
+/// re-ran it and replaced the view with a fresh one, its state and handlers
+/// included (Phase 9 B1).
 fn with_text<D: Description, R>(description: &D, use_: TextUse, body: impl FnOnce(&str) -> R) -> R {
-    text::with_active_text(description, use_, body)
+    untrack(|| text::with_active_text(description, use_, body))
+}
+
+/// [`with_text`] for a text child, with the message's lender beside its
+/// text; untracked for the same reason.
+#[cfg(feature = "mark-fallback-lang")]
+fn with_marked_text<D: Description, R>(
+    description: &D,
+    body: impl FnOnce(&str, Option<lang::Lender<'_>>) -> R,
+) -> R {
+    untrack(|| text::with_active_marked_text(description, body))
 }
 
 /// Walks the hydration cursor exactly as `<&str as RenderHtml>::hydrate`
@@ -178,7 +197,7 @@ fn adopt_marked(
 #[cfg(feature = "mark-fallback-lang")]
 fn build_marked<D: Description>(description: D) -> TrState {
     let wrapper = Wrapper::default();
-    let node = text::with_active_marked_text(&description, |text, lender| {
+    let node = with_marked_text(&description, |text, lender| {
         let node = Rndr::create_text_node(text);
         wrapper.fit(&node, lender);
         node
@@ -206,7 +225,7 @@ fn hydrate_marked<const FROM_SERVER: bool, D: Description>(
     let node = if FROM_SERVER {
         adopt_marked(cursor, position, "", &wrapper)
     } else {
-        text::with_active_marked_text(&description, |text, lender| {
+        with_marked_text(&description, |text, lender| {
             let node = adopt_marked(cursor, position, text, &wrapper);
             Rndr::set_text(&node, text);
             wrapper.fit(&node, lender);
@@ -237,7 +256,7 @@ fn html_marked<D: Description>(
     separator: bool,
     write: impl FnOnce(&str, &mut String, &mut Position),
 ) {
-    text::with_active_marked_text(description, |text, lender| match lender {
+    with_marked_text(description, |text, lender| match lender {
         None => write(text, buf, position),
         Some(lender) => {
             if separator {

@@ -42,7 +42,7 @@ use tachys::renderer::types::{Element, Text};
 use crate::catalog;
 use crate::state::{self, TextUse};
 use reactive_graph::effect::RenderEffect;
-use reactive_graph::graph::{Subscriber, ToAnySubscriber};
+use reactive_graph::graph::{Subscriber, ToAnySubscriber, untrack};
 
 use crate::text::{self, Stored};
 
@@ -278,8 +278,10 @@ pub(crate) fn insert(target: Target, desc: Stored) -> u32 {
 /// [`insert`] for a node that has just hydrated, holding the server's text:
 /// the reader's-zone correction sees it first (`crate::zone`).
 pub(crate) fn insert_hydrated(target: Target, desc: Stored) -> u32 {
+    // Untracked, as every format outside the node's own effect: see
+    // `replace`.
     #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
-    crate::zone::hydrated(&target, &desc);
+    untrack(|| crate::zone::hydrated(&target, &desc));
     insert(target, desc)
 }
 
@@ -316,7 +318,16 @@ pub(crate) fn remove(index: u32) {
 /// under `static-locale` is the usual case: the node registered nothing, so
 /// the new text is written straight to it — or, if the new description has
 /// a reactive argument, it registers now.
+///
+/// The write is **untracked**: the node's argument effect is what follows
+/// its signals. Read in the enclosing render, they would also re-run that
+/// render — the closure this rebuild came from, or a lazy route's view,
+/// replaced whole with fresh state (Phase 9 B1).
 pub(crate) fn replace(index: &mut u32, target: impl FnOnce() -> Option<Target>, desc: Stored) {
+    untrack(move || replace_now(index, target, desc));
+}
+
+fn replace_now(index: &mut u32, target: impl FnOnce() -> Option<Target>, desc: Stored) {
     let Some(catalog) = catalog::active() else {
         return;
     };

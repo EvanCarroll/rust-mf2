@@ -48,6 +48,8 @@ heading = مسار في جزء مستقل
 title = وصل رمزه عندما فتحته
 body = رمز هذه الصفحة {#strong}ملف wasm منفصل{/strong}، يُجلب في الطريق إليها.
 locale-label = اللغة المعروضة
+press = اضغط
+presses = مرات الضغط: {$count :integer}
 
 [language]
 label = اللغة
