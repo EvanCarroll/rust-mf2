@@ -1,4 +1,4 @@
-# Native CLI and TUI applications
+# Native CLI and Ratatui apps
 
 The call sites `tr!` builds are Leptos-free values: a command-line tool or a
 terminal UI formats them as well as a web page does. Two crates make that
@@ -170,8 +170,9 @@ log them.
 
 Two settings differ from the web:
 
-* **Bidi isolation is off.** MF2's default wraps each placeholder in
-  invisible isolation characters (U+2068 … U+2069), which terminals and
+* **Bidi isolation is off.** MF2's default wraps a placeholder whose
+  direction could differ from the message's (a string) in invisible
+  isolation characters (U+2066–U+2069), which terminals and
   logs tend to show as stray characters. An application that shows
   right-to-left text in a terminal that applies them can turn them on with
   `set_bidi(BidiStrategy::Default)`; `dir()` gives the active locale's
@@ -195,7 +196,7 @@ Ratatui's own `Line` and `Text`, which any widget takes. The application
 maps each markup name to a style; the translation decides where the styled
 stretch goes, so the French message above can move it without any change
 to the code. Nested elements combine their styles, and a name with no style
-is plain text.
+keeps the style around it (the paragraph's, or an enclosing element's).
 
 ```rust file=native/src/lib.rs
 #[cfg(feature = "tui")]

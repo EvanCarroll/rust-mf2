@@ -2,9 +2,12 @@
 
 Every crate of rust-mf2 is released together, at one version: `mf2 1.1.0`
 goes with `leptos-mf2 1.1.0` and `mf2-build 1.1.0`, and each asks for the
-others at exactly that version. An application names the few crates it
-uses (`mf2`, `mf2-build`, `mf2-cli`, `leptos-mf2`, `mf2-axum`) at the same
-version, and `cargo update` moves them together.
+others at exactly that version. An application depends on the few crates
+it uses — `mf2` and `mf2-build`, then `leptos-mf2` and `mf2-axum` for a
+Leptos application or `mf2-native` (and `mf2-ratatui`) for a native one —
+at the same version, and `cargo update` moves them together. `mf2-cli` is
+not a dependency: it is the `mf2` command, installed with `cargo install
+mf2-cli`, at the same version as the rest.
 
 The version numbers follow [Semantic Versioning](https://semver.org):
 within 1.x, a patch release fixes things and a minor release adds them;
@@ -73,7 +76,10 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
   is seen and reviewed. From the second release on, each release is also
   compared with the version before it on crates.io by
   [cargo-semver-checks](https://crates.io/crates/cargo-semver-checks), and
-  one that breaks it is refused (`cargo xtask release`).
+  one that breaks it is refused (`cargo xtask release`). The check skips
+  `mf2-macros`: a procedural-macro crate has no Rust API for the tool to
+  read, and its promise is the macros' names and the `tr!` forms, which
+  the project's tests hold.
 * **The compiled catalog (`.mf2b`) and the manifest.** They are what a
   build produces and its server and browser read, not a format to keep. A
   server and a client built together agree; the manifest's hash is how
@@ -93,7 +99,7 @@ false, features = ["leptos-0-8"]` on both; see
 
 | When | What changes | Release |
 |---|---|---|
-| a new Leptos 0.9 pre-release, or 0.9's release | taken as it comes (1.0 is published on `0.9.0-beta`) | patch |
+| a new Leptos 0.9 pre-release, or 0.9's release | taken as it comes (1.1.0 is built on `0.9.0-beta`) | patch |
 | a new Leptos line (0.10) | added as an opt-in feature beside the others | minor |
 | the default line changes, or a line is dropped | an application's build breaks | 2.0 |
 
@@ -114,3 +120,11 @@ itself needs 1.88.
 
 Raising the minimum Rust version is a **minor** release, and the
 changelog says so.
+
+## Where the releases stand
+
+1.0.0 was only partly published: crates.io's limit on new crates stopped
+it after five of them (`mf2-model`, `mf2-resource`, `mf2-syntax`,
+`mf2-catalog`, `mf2-macros`). **1.1.0 is the first release of every
+crate**, and the one to depend on; see the
+[changelog](https://github.com/EvanCarroll/rust-mf2/blob/main/CHANGELOG.md).

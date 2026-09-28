@@ -8,7 +8,7 @@ switch happens:
 |---|---|---|---|
 | **SSR + hydrate** (the default) | the whole application as wasm | live, no reload | [Getting started](getting-started.md) |
 | …with **lazy routes** | the same, split into chunks fetched per route | live, no reload | [below](#lazy-routes) |
-| **Islands** | only the interactive parts | a cookie and a reload (by default) | [below](#islands) |
+| **Islands** | only the interactive parts | the form's `?lang=` and a new page, remembered in a cookie | [below](#islands) |
 | **Client-only** | the whole application, no server | live, remembered in the browser | [below](#client-only) |
 
 In every mode, the wasm contains no message text, ids, argument names or
@@ -150,8 +150,12 @@ hydrate = [
 ]
 ```
 
-Run it with `cargo leptos watch --split`. Without `--split`, a lazy route is
-an ordinary async route in the one wasm, and it works the same.
+Run it with `cargo leptos watch --split`, and build it with `cargo leptos
+build --split`. The flag is not optional here: with `#[lazy_route]` and
+`leptos/lazy`, a build without it leaves the JavaScript importing a
+placeholder (`__wasm_split_placeholder__`) that the browser cannot
+resolve, and nothing hydrates on any page. This is Leptos's behaviour, not
+this library's.
 
 ## Islands
 
@@ -159,17 +163,18 @@ In an islands application, only the components marked `#[island]` are
 compiled to wasm. Everything else renders on the server and ships no
 code at all. **A server-only component costs the wasm nothing**, however
 many messages it uses. `cargo xtask islands-zero` measured this on the
-islands example (2026-09-23). It adds a server-only component with a call
+islands example (2026-09-27). It adds a server-only component with a call
 site in every position (text, attribute, argument, markup) and compares the
-client with and without it. The code section was 185,925 bytes with 1,019
-functions both times, and the wasm shipped 94,904 bytes gzipped both
-times.
+client with and without it. The code section was 165,714 bytes with 865
+functions both times. The data section grew by 8 bytes, so the wasm
+shipped 85,644 and then 85,648 bytes gzipped: no code, and a few bytes of
+data.
 
 Islands change the trade-off for switching. Most of the page has no client
 code, so it cannot follow a live switch. The documented default is
-therefore the `static-locale` feature: a switch writes the language cookie
-and reloads, and the server renders the whole page in the new language,
-server-only parts included. Turn on `islands` in Leptos and `static-locale`
+therefore the `static-locale` feature: the switcher's form submits
+`?lang=`, and the server renders the whole page in the new language,
+server-only parts included, and remembers the choice in the cookie. Turn on `islands` in Leptos and `static-locale`
 in `leptos-mf2`:
 
 ```toml file=islands/Cargo.toml merge
@@ -187,8 +192,8 @@ from the catalog, so an island that contains one must not hydrate before
 the catalog has arrived. Leptos hydrates islands one at a time, in page
 order, and waits for any island that returns a promise. `<IslandsGate/>` is
 an empty island, placed first in `<body>`, that waits for the catalog.
-Every island after it then hydrates against the page's catalog, at no cost
-in page bytes or requests:
+Every island after it then hydrates against the page's catalog. It costs
+no extra request, and a few bytes of page:
 
 ```rust file=islands/src/lib.rs
 use hello_i18n::tr;
@@ -276,11 +281,12 @@ leptos_mf2::islands_gate!();
 The server is the same as in Getting started. Islands change the client,
 not the server.
 
-**Islands with live switching.** Without `static-locale`, islands follow a
-live switch like a hydrated page does. Only the islands follow it, though:
-the server-only parts stay in the language the page was rendered in. That
-is right for a page whose server-only parts have no text, and wrong for
-most pages.
+**Without `static-locale`.** The islands then register their nodes to
+follow a live switch, but the switch does not become live: the switcher
+is not an island, so pressing it still submits `?lang=` and loads a new
+page, and an island's state (a counter, say) starts again. The
+registration costs wasm and memory for nothing, so keep `static-locale`
+on an islands application.
 
 ## Client-only
 
@@ -349,8 +355,9 @@ fn main() {
 ```
 
 The application mounts through the same gate as hydration.
-`mount_to_body` chooses the language, loads the index and that language's
-catalog, sets `<html lang dir>`, and only then mounts. If the boot fails,
+`mount_to_body` loads the index, chooses the language from those it
+lists, loads that language's catalog, sets `<html lang dir>`, and only
+then mounts. If the boot fails,
 it logs one `mf2:` line and mounts nothing:
 
 ```rust file=csr/src/main.rs

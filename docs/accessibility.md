@@ -22,11 +22,13 @@ lists both. Its samples join the [call sites](call-sites.md) library.
 * **A labelled control (1.3.1, 3.3.2, 4.1.2).** The switcher's `<select>`
   is inside a visible `<label>` whose text you supply. It has no fixed
   `id`, so a page can have two switchers without duplicate ids.
-* **Focus stays put.** A live switch rewrites text in place. It does not
-  re-create elements, so focus stays where it was, on the switcher's
-  button.
-* **Bidirectional text.** Arguments are isolated in text a person reads,
-  so a Latin name cannot scramble an Arabic sentence. The isolates are left
+* **Focus stays put.** A live switch rewrites text in place, so focus
+  stays where it was, on the switcher's button. The one exception is a
+  message with markup, whose fragment is built again in the new language:
+  an element inside it (a link, say) is a new element after a switch.
+* **Bidirectional text.** Arguments that need it (strings; not formatted
+  numbers) are isolated in text a person reads, so a Latin name cannot
+  scramble an Arabic sentence. The isolates are left
   out where a program reads the text. [Call sites](call-sites.md#attributes)
   lists which is which.
 * **It works without the wasm.** A server-rendered page is complete, in the
@@ -128,9 +130,10 @@ Some places cannot be marked, and stay as they are:
   would relabel the element's content as well.
 * **Strings** (`to_string()`, `String::from`, `TextProp`,
   `Signal<String>`). A string has no markup to carry a `lang`.
-* **`<title>` and `<textarea>`.** They hold only text, so a span in them
-  would be shown as literal markup. Use the string forms there, which are
-  unmarked: `leptos_meta`'s `<Title text=…>`, and `prop:value`.
+* **Elements that hold only text** (`<title>`, `<textarea>`, `<option>`,
+  `<script>`, `<style>`). A span there would be shown as characters, so a
+  borrowed message in one is written without it, on the server and in the
+  browser.
 
 For those, the answer is to translate the message. Either way:
 
@@ -147,11 +150,13 @@ For those, the answer is to translate the message. Either way:
 
 ## How the examples are checked
 
-The examples in this repository (`examples/demo-ssr`, `demo-islands`,
-`demo-csr`) are audited against WCAG 2.2 AA in every language, right to
-left included. `tools/e2e/checks/a11y.mjs` runs axe-core over 28 pages in
-Chromium and Firefox and finds no violations. It also checks contrast,
-reflow at 320 CSS pixels, text spacing, landmarks, and the switcher from
-the keyboard. The audit and its findings are in
-`plans/phase-7-results.md`. It has not been done with a screen reader; the
+The examples in this repository ([`examples/demo-ssr`](https://github.com/EvanCarroll/rust-mf2/tree/main/examples/demo-ssr),
+[`demo-islands`](https://github.com/EvanCarroll/rust-mf2/tree/main/examples/demo-islands),
+[`demo-csr`](https://github.com/EvanCarroll/rust-mf2/tree/main/examples/demo-csr)) are audited against WCAG 2.2 AA in
+every language, right to left included.
+[`tools/e2e/checks/a11y.mjs`](https://github.com/EvanCarroll/rust-mf2/blob/main/tools/e2e/checks/a11y.mjs) runs axe-core
+over 28 pages in Chromium and Firefox and finds no violations. It also
+checks contrast, reflow at 320 CSS pixels, text spacing, landmarks, and the
+switcher from the keyboard. The audit and its findings are in
+[`plans/phase-7-results.md`](https://github.com/EvanCarroll/rust-mf2/blob/main/plans/phase-7-results.md). It has not been done with a screen reader; the
 browsers' accessibility tree stands in for one.

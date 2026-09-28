@@ -18,7 +18,9 @@ fr = Français
 On a server, `mf2-axum`'s `Negotiator` chooses each request's language. It
 tries an ordered list of **sources**, and the first one that names a
 language this build has wins (`fr-CA` finds `fr`). **Sinks** record the
-result in the response:
+result in the response — `CookieLocale` as a sink writes the cookie only
+for an explicit choice, a language that came from `?lang=` or the path,
+never for a guess from `Accept-Language` or the default:
 
 | Source | Reads |
 |---|---|
@@ -29,24 +31,37 @@ result in the response:
 
 If no source matches, the source language is used, unless
 `.default_locale(…)` names another. The response carries
-`Content-Language` and a `Vary` that names each source's header. The
+`Content-Language` and a `Vary` that names each source's header, and
+`Cookie` as well, because the server also reads the reader's time zone
+from the `mf2_tz` cookie. The
 server is the **only** place a language is negotiated. The client reads it
 from the page (`<html lang>` and the preload link), so hydration cannot
 choose differently.
 
 Getting started lists the sources as query, cookie, then
-`Accept-Language`. A site with a language in its URLs puts the path first:
+`Accept-Language`. A site with a language in its URLs puts the path first.
+A `?lang=` then cannot change the language of `/en/…`, so the switcher's
+form, which submits one, needs the server to send it on to the other
+language's URL: `path_prefix_redirect` answers `/en/page?lang=fr` with a
+redirect to `/fr/page`.
 
 ```rust file=calls/src/lib.rs
 /// A site whose pages live under `/en/…` and `/fr/…`.
 #[cfg(feature = "ssr")]
 pub fn path_negotiator() -> mf2_axum::Negotiator {
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix};
+    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
     Negotiator::empty()
         .source(PathPrefix)
+        .source(QueryParam::default())
         .source(CookieLocale::default())
         .source(AcceptLanguage)
         .sink(CookieLocale::default())
+}
+
+/// The redirect, as a layer on the application's router.
+#[cfg(feature = "ssr")]
+pub fn with_path_redirect(router: axum::Router) -> axum::Router {
+    router.layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
 }
 ```
 
@@ -92,11 +107,41 @@ what the page runs:
 | The page | Pressing the button |
 |---|---|
 | hydrated (`hydrate`) or client-only (`csr`) | switches live, with focus left on the button |
-| `static-locale` (the islands default) | writes the cookie and reloads in the new language |
+| hydrated with `static-locale` | writes the cookie and reloads in the new language |
 | not yet hydrated, hydration failed, or no wasm | submits `?lang=fr`, which the server negotiates |
 
 The last row is why it is a form. The switcher works before the wasm
-arrives and when it never does, and on an islands page it needs no island.
+arrives and when it never does, and on an islands page it needs no island:
+there the switcher is not an island, so no client code runs, and the form's
+`?lang=` and the server's cookie are the switch.
+
+**On a site whose languages live in its URLs**, give the switcher
+`href_of`, the URL of the current page in a language — the shape
+`<AlternateLinks/>` takes. Each option then carries its language's URL,
+and pressing the button goes there instead of switching in place. Without
+the wasm, the form's `?lang=` goes to the server, and
+`path_prefix_redirect` (above) sends it on to the same URL:
+
+```rust file=calls/src/lib.rs
+/// This page's URL in `tag`, on a site under `/en/…` and `/fr/…`.
+fn account_href(tag: &str) -> String {
+    format!("/{tag}/account")
+}
+
+#[component]
+pub fn AccountHeader() -> impl IntoView {
+    view! {
+        <leptos_mf2::LocaleSwitcher
+            label=tr!("language.label")
+            button=tr!("language.apply")
+            href_of=account_href
+        >
+            <leptos_mf2::LocaleOption tag="en">{tr!("language.en")}</leptos_mf2::LocaleOption>
+            <leptos_mf2::LocaleOption tag="fr">{tr!("language.fr")}</leptos_mf2::LocaleOption>
+        </leptos_mf2::LocaleSwitcher>
+    }
+}
+```
 
 The option for the page's language is `selected` in the server's HTML.
 Each option carries its own `lang`, so a screen reader reads "Français"
@@ -129,7 +174,9 @@ A live switch (`leptos_mf2::set_locale("fr")`) does this, in order:
 
 1. it finds the French catalog's URL: from the page's `<CatalogLinks/>`
    if the shell renders them, or else by asking `GET /i18n/fr`, which
-   redirects to it (one extra round trip, only at switch time);
+   redirects to it (one extra round trip, only at switch time). A
+   client-only application finds it in the site's `index.json`, and has no
+   `/i18n/<tag>` to ask;
 2. it fetches the catalog and checks it against the build. A catalog from
    another deploy (the server was redeployed since the page loaded) is
    never read: the choice is remembered as in step 6, and the page reloads

@@ -62,7 +62,9 @@ effect runs per call site, and the node's slot is freed when it unmounts.
 
 ## Attributes
 
-A description can be the value of any attribute:
+A description can be the value of an attribute — any but `class` and
+`style`, which Leptos types as class and style values rather than text, so
+`class=tr!(…)` does not compile:
 
 ```mf2 file=calls/i18n/locales/en/main.mf2
 [search]
@@ -83,10 +85,12 @@ pub fn Search() -> impl IntoView {
 }
 ```
 
-**Bidi isolation is chosen by the attribute's name.** An argument inside a
-message is wrapped in invisible Unicode isolates (U+2066–U+2069). The MF2
-specification makes this the default so that, for example, a Latin name in
-an Arabic sentence cannot reorder the sentence around it. Whether the marks
+**Bidi isolation is chosen by the attribute's name.** An argument whose
+direction could differ from the message's — a string, typically — is
+wrapped in invisible Unicode isolates (U+2066–U+2069; a string gets U+2068
+and U+2069). A formatted number takes the locale's own direction and gets
+none. The MF2 specification makes this the default so that, for example, a
+Latin name in an Arabic sentence cannot reorder the sentence around it. Whether the marks
 belong in the text depends on who reads it. For a person they are right;
 for a program they are junk:
 
@@ -189,7 +193,7 @@ pub fn Order(customer: String, items: u32, total: f64) -> impl IntoView {
 
 | From | Is |
 |---|---|
-| `&str`, `String`, `&String`, `Arc<str>`, `char` | a string. A literal's `&'static str` is kept as it is; other text is counted, not copied again |
+| `&str`, `String`, `&String`, `Arc<str>`, `char` | a string. A literal is kept as it is, an `Arc<str>` is shared as it is, and other text is copied once into a shared string |
 | `i8`…`i64`, `u8`…`u32`, `usize` | an integer |
 | `f32`, `f64` | a floating-point number |
 | `ArgValue::decimal("19.99")` | an exact decimal, as its text |
@@ -239,12 +243,19 @@ application:
 * A **client-only** application renders in the reader's zone from its
   first frame, and writes no cookie.
 
+`with_time_zone` takes an `mf2::TimeZone`: `TimeZone::UTC`,
+`TimeZone::offset(seconds)`, or `TimeZone::named("Europe/Paris")`, which
+returns an `Option` — `None` for a name the server's time-zone database
+does not know — so the application decides what to fall back to:
+`setup().with_time_zone(TimeZone::named("Europe/Paris").unwrap_or(TimeZone::UTC))`.
+
 So a reader on a first visit may see a date change once, just after the
 page becomes interactive. A message that must show one particular zone —
 an event's local time, say — names it, and the reader's zone does not
 apply:
 
 ```mf2 file=calls/i18n/locales/en/main.mf2
+[event]
 starts = Doors open {$when :time timeZone=|Europe/Paris| timeZoneStyle=short}
 ```
 
@@ -349,7 +360,8 @@ pub fn Terms() -> impl IntoView {
 
 Give a handler for **every** markup element of the message, or for none.
 Leaving one out is a compile error, because it is almost always an
-oversight. The element structure comes from the catalog, so the page waits
+oversight. With none, the message renders as its text, the markup left
+out. The element structure comes from the catalog, so the page waits
 for the catalog before it hydrates. Every client entry point on the
 [delivery modes](delivery-modes.md) page does this.
 

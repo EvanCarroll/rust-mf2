@@ -3,13 +3,15 @@
 rust-mf2 is a family of crates for using Unicode MessageFormat 2 (MF2) from
 Rust. Most applications start with the `mf2` facade, then add an integration
 for their application framework. Translation resources are checked and
-compiled by `mf2-build`; the runtime formats call sites against the compiled
-catalog for the active locale.
+compiled by `mf2-build`, which writes the generated module the call sites
+use and one binary catalog (`.mf2b`) per language; at run time the runtime
+formats each call site against the catalog of the active locale.
 
 ```text
-application ──> mf2 call sites ──> mf2 runtime ──> locale catalog
-                     ▲                  ▲
-                     └──── mf2-build ───┘
+build time:  .mf2 resources ──> mf2-build ──> generated module (tr!, ids)
+                                          └─> one .mf2b catalog per language
+
+run time:    application ──> call sites (tr!) ──> runtime ──> active catalog
 ```
 
 The book explains how to use the system. Each crate's rustdoc remains the
@@ -20,7 +22,7 @@ reference for its exact API and feature flags.
 | Crate | Role |
 |---|---|
 | [`mf2`](https://docs.rs/mf2) | Application facade: re-exports the MF2 runtime and call-site API, and carries feature flags for the host and formatting functions. |
-| [`mf2-cli`](https://docs.rs/mf2-cli) | The `mf2` command for creating translation crates, checking resources, compiling catalogs, and converting or exchanging translations. |
+| [`mf2-cli`](https://crates.io/crates/mf2-cli) | The `mf2` command for creating translation crates, checking resources, compiling catalogs, and converting or exchanging translations. |
 | [`mf2-build`](https://docs.rs/mf2-build) | Build-time validation and generation of manifests, catalogs, and the Rust module used by call sites. |
 | [`leptos-mf2`](https://docs.rs/leptos-mf2) | Leptos rendering, reactive arguments, markup rendering, and locale switching. |
 | [`mf2-axum`](https://docs.rs/mf2-axum) | Axum server support for locale negotiation and serving generated catalogs. |
@@ -28,7 +30,9 @@ reference for its exact API and feature flags.
 | [`mf2-ratatui`](https://docs.rs/mf2-ratatui) | Optional: messages as Ratatui `Text` and `Line`, with MF2 markup as styles. |
 
 `mf2` is the facade applications use to write and format messages; it is not
-just an index of package links. The native crates layer on its runtime and
+just an index of package links. It re-exports `leptos-mf2`'s call-site types
+(`Tr`, `TrArgs`, `TrRich`, `TrDyn`, `ArgValue`, `DateTimeValue`, …), so an
+application names them through either crate. The native crates layer on its runtime and
 call-site types. The Leptos crates do the same for server-rendered and
 browser applications.
 
@@ -40,7 +44,7 @@ crates. Most application code does not need to depend on them directly.
 | Crate | Role |
 |---|---|
 | [`mf2-model`](https://docs.rs/mf2-model) | MF2 message data model and shared identifiers. |
-| [`mf2-syntax`](https://docs.rs/mf2-syntax) | Parsing, validation, analysis, and serialization of MF2 resources. |
+| [`mf2-syntax`](https://docs.rs/mf2-syntax) | Parsing, validation, analysis, and serialization of MF2 messages. |
 | [`mf2-resource`](https://docs.rs/mf2-resource) | Reading and writing message resource files. |
 | [`mf2-catalog`](https://docs.rs/mf2-catalog) | Binary catalog format, reader, and writer. |
 | [`mf2-runtime`](https://docs.rs/mf2-runtime) | Message evaluation, formatting, and output sinks. |

@@ -8,7 +8,10 @@ rewrite it reports, with the file, the line and the column. The rest of this
 page is that report: what each item means and how to finish it by hand.
 
 The example is the application of [Getting started](getting-started.md), as
-it would have been written with `leptos-fluent` 0.3. The *before* samples on
+it would have been written with `leptos-fluent` 0.3. That release is built
+on Leptos 0.8, so an application moving from it either moves to Leptos 0.9
+at the same time or keeps 0.8 through this library's opt-in
+([Getting started](getting-started.md), "Leptos 0.9 or 0.8"). The *before* samples on
 this page are `leptos-fluent` code. They are not compiled, since this
 repository does not depend on `leptos-fluent`, but `cargo xtask docs` runs
 the commands below on them, and checks that the rewritten file is the one
@@ -199,7 +202,7 @@ mf2 -C i18n convert --from leptos-fluent . --write
 ```
 
 `.` is the application's crate. The `.ftl` directory is the initializer's
-`locales:` (or `--locales DIR`), and the messages are written into the
+`locales:` (or `--locales DIR`, else `locales/`), and the messages are written into the
 translation crate given with `-C`. The `use` lines name the translation
 crate, `hello_i18n` here, read from its `Cargo.toml` (or `--i18n-crate`).
 
@@ -237,7 +240,8 @@ became depends on where it stands:
 
 | Where the call stands | `leptos-fluent` | After |
 |---|---|---|
-| where Leptos renders it: a child, an attribute or prop value | `tr!(…)`, `move_tr!(…)`, `move \|\| tr!(…)` | `tr!(…)`: the description renders itself and follows a language switch |
+| where Leptos renders it: a child, an attribute or prop value, with arguments that cannot change (literals, or none) | `tr!(…)`, `move_tr!(…)`, `move \|\| tr!(…)` | `tr!(…)`: the description renders itself and follows a language switch |
+| the same, with an argument that may change, in a closure | `move \|\| tr!(…)` | the closure kept, returning `tr!(…).to_string()` |
 | anywhere else: a function, a closure, a `match` arm, an `if` branch | `tr!(…)` | `tr!(…).to_string()`, the same `String` as before |
 | `move_tr!` outside a view, or with an argument that may change | `move_tr!(…)` | `Signal::derive(move \|\| tr!(…).to_string())`, `move_tr!`'s own expansion: the same `Signal<String>` |
 
@@ -282,6 +286,8 @@ For the application above, the report says:
 mf2 convert: 22 entries in 2 locale(s), 2 .mf2 file(s) written; 2 Rust file(s) rewritten; 3 error(s), 0 warning(s)
 ```
 
+The sample's manifest does not name `leptos-fluent`; a real application's
+does, and its report also has a `leptos-fluent-dependency` line for it.
 Each code, and how to finish it:
 
 | Code | What | Instead |
@@ -382,8 +388,9 @@ negotiates each request's language (the initializer's cookie and
 * **Numbers are localized.** `fluent-bundle` printed a number as Rust's
   `f64` does. `:number` groups digits and uses each language's symbols
   (with the `fn-number` feature).
-* **Bidi isolation follows the MF2 specification.** Every placeholder is
-  isolated, where `fluent-bundle` isolated only some. The characters are
+* **Bidi isolation follows the MF2 specification.** A placeholder whose
+  direction could differ from the message's (a string) is isolated; a
+  formatted number, in the locale's own direction, is not. The characters are
   invisible, and attributes a program reads get none
   ([Call sites](call-sites.md)).
 * **Terms are copied.** MF2 has no Fluent terms (`-brand`). The conversion

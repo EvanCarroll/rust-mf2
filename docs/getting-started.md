@@ -114,7 +114,8 @@ never add code to the wasm by itself: if a French translation uses
 and names the message. With no features, a message can still use `:string`,
 `:number`, `:integer` and plural selection. Numbers then use neutral
 symbols (`1234.5`). Turn on `fn-number` for each language's own symbols and
-grouping (`1 234,5` in French), and `fn-datetime` with one date backend for
+grouping (`1 234,5` in French, grouped with a narrow no-break space,
+U+202F), and `fn-datetime` with one date backend for
 dates:
 
 | Feature | Adds |
@@ -175,8 +176,9 @@ units = "used"
 
 `missing = "fallback"` means a message that has not been translated yet
 shows in the source language (and `mf2 check` counts how many there are).
-`strip` keeps message ids and unused data out of the catalogs the browser
-downloads.
+`strip` keeps message ids, attributes and comments out of the catalogs the
+browser downloads, and `"used"` under `[locale_data]` leaves out the
+currency and unit data no message uses.
 
 ## The messages
 
@@ -328,8 +330,8 @@ whose data travels in each language's catalog. A feature that is on but
 that no message uses adds nothing to the wasm.
 
 **Leptos 0.9 or 0.8.** `leptos-mf2` and `mf2-axum` are built for Leptos
-0.9 by default. A requirement of `"0.9.0-beta"` takes every later 0.9
-pre-release and the 0.9 release itself with an ordinary `cargo update`.
+0.9 by default. A requirement of `"0.9.0-beta"` takes every later
+`0.9.0-*` pre-release and the 0.9 releases with an ordinary `cargo update`.
 An application that stays on Leptos 0.8 names the 0.8 crates and turns
 the default line off in both of ours; the rest of the manifest, and every
 source file, is unchanged:
@@ -521,8 +523,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let routes = generate_route_list(App);
 
     let app = Router::new()
-        // 3. `/i18n/*`: the catalogs, served from the binary, precompressed,
-        //    cached for a year (each file's name carries its content hash).
+        // 3. `/i18n/*`: the catalogs, served from the binary, each compressed
+        //    once and kept, cached for a year (each file's name carries its
+        //    content hash).
         .merge(mf2_axum::catalog_routes())
         .leptos_routes_with_context(&leptos_options, routes, context.clone(), {
             let leptos_options = leptos_options.clone();
