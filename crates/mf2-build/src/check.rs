@@ -585,6 +585,25 @@ fn against_source(
             ),
         );
     }
+    // By name, over the whole message: a variant may leave markup out as
+    // long as the translation keeps it somewhere, as a placeholder may be.
+    let here: BTreeSet<&str> = analysis.markup.iter().map(|n| n.nfc.as_ref()).collect();
+    let dropped: Vec<&str> = source_markup.difference(&here).copied().collect();
+    if !dropped.is_empty() {
+        at.say(
+            Lint::DroppedMarkup,
+            0,
+            format!(
+                "the source message has {}, which this translation leaves out, so this \
+                 language loses what it marks (a link, a style)",
+                dropped
+                    .iter()
+                    .map(|m| format!("{{#{m}}}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+        );
+    }
     let source_record = &source_locale.loaded.records[record];
     if source_record.do_not_translate() && source_record.source != at.record.source {
         at.say(

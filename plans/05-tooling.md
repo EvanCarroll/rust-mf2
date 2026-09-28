@@ -314,7 +314,9 @@ The manifest is written as `manifest.mf2m` by `mf2-build` and read by
 
 Rules for translations, enforced by `check`:
 
-* A translation MAY use a subset of the source message's variables and markup.
+* A translation MAY use a subset of the source message's variables. Leaving
+  out markup the source has is an error by default (`dropped-markup`, §5):
+  the element — a link, most often — is gone for that language's readers.
 * A translation MUST NOT use a variable or markup name the source lacks. If a
   language needs extra input (e.g. grammatical gender), the *source* message
   declares it with `.input`, even if its own pattern ignores it. The lint says so.
@@ -472,7 +474,11 @@ a cache hit never re-stringifies a large literal.
 
 Errors (fail the build): syntax and data-model errors in any locale; id present
 in a translation but not the source; translation uses an undeclared variable or
-markup name; `select` given a non-literal; malformed literal values for
+markup name; **a translation leaves out markup the source message has**
+(`dropped-markup`, Phase 10 E1: by name, over the whole message, so a variant
+may leave it out while another keeps it; configurable, since a corpus may drop
+emphasis on purpose — a link gone from one language is the case it exists
+for); `select` given a non-literal; malformed literal values for
 well-known options; a function no registered crate provides (configurable, since
 custom functions are legal); **a function whose client feature is off** —
 `:percent`/`:currency`/`:unit` without `fn-number`, `:datetime`/`:date`/`:time`

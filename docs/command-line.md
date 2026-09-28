@@ -62,6 +62,13 @@ A finding names its file, line and column, the problem, and its code in
 brackets: `missing-translation`, for one, names the first ten missing ids
 of each language. `mf2.toml`'s `[lints]` raises or lowers a code.
 
+A translation that leaves out markup its source message has is an error,
+`dropped-markup`: `Accept our {#link}terms{/link}.` translated as
+`Acceptez nos conditions.` would take the link away from French readers.
+One variant of a message may leave the markup out as long as another keeps
+it, and a corpus that drops emphasis on purpose lowers the code with
+`dropped-markup = "warn"` under `[lints]`.
+
 ## `fmt`: one layout for every file
 
 ```sh run=cli output=fmt.txt

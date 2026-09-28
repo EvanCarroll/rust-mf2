@@ -13,7 +13,7 @@ items =
   many {{{$count} rzeczy}}
   *    {{{$count} rzeczy}}
 
-help = Nacisnij {#kbd}Esc{/kbd}, aby zamknac
+help = Nacisnij {#kbd}Esc{/kbd}, aby {#b}zamknac{/b}
 
 [account]
 name = Nazwa

@@ -84,6 +84,14 @@ lints! {
     UndeclaredVariable = ("undeclared-variable", Error, Error);
     /// A translation uses a markup name the source message does not.
     UndeclaredMarkup = ("undeclared-markup", Error, Error);
+    /// A translation leaves out markup the source message has: a
+    /// `{#link}terms{/link}` gone from the French sentence takes the link
+    /// away from French readers, and nothing at run time says so. An error by
+    /// default, where a dropped placeholder is a warning — a plural variant
+    /// routinely drops `{$count}` ("one" says "a message"), and nothing
+    /// routinely drops a link; a corpus that drops emphasis on purpose may
+    /// turn it down.
+    DroppedMarkup = ("dropped-markup", Error, Allow);
     /// A `select` option is not a literal, so nothing can tell which rules a
     /// message selects by until it runs. An error by default: the catalog
     /// then has to carry both plural rule sets, and the message reports a Bad

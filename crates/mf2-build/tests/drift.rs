@@ -115,12 +115,18 @@ fn drifts() -> Vec<Drift> {
         Drift {
             lint: Lint::UndeclaredMarkup,
             what: "a translation uses markup the source does not",
-            mutate: |files, _, _| edit(files, "pl", "{#kbd}Esc{/kbd}", "{#b}Esc{/b}"),
+            // `{#kbd}` stays: leaving it out is `dropped-markup`'s drift.
+            mutate: |files, _, _| edit(files, "pl", "{#kbd}Esc{/kbd}", "{#kbd}{#b}Esc{/b}{/kbd}"),
         },
         Drift {
             lint: Lint::DroppedPlaceholder,
             what: "a translation drops a placeholder the source shows",
             mutate: |files, _, _| edit(files, "pl", "Czesc, {$name}!", "Czesc!"),
+        },
+        Drift {
+            lint: Lint::DroppedMarkup,
+            what: "a translation leaves out markup the source has",
+            mutate: |files, _, _| edit(files, "pl", "{#kbd}Esc{/kbd}", "Esc"),
         },
         Drift {
             lint: Lint::DoNotTranslate,
@@ -410,6 +416,49 @@ fn unused_id_fires_on_the_ids_no_source_names() {
         &mut report,
     );
     assert!(report.is_empty(), "{}", report.to_text());
+}
+
+/// `dropped-markup` reads the whole message, as `dropped-placeholder` does:
+/// a variant may leave the markup out while another keeps it — Polish `one`
+/// says "a message" with neither the count nor its bold.
+#[test]
+fn markup_that_one_variant_keeps_is_not_dropped() {
+    let en = "@locale en\n---\n\nnew =\n  .input {$n :integer}\n  .match $n\n  \
+              one {{{#b}one{/b} new message}}\n  *   {{{#b}{$n}{/b} new messages}}\n";
+    let pl_kept = "@locale pl\n---\n\nnew =\n  .input {$n :integer}\n  .match $n\n  \
+                   one  {{nowa wiadomosc}}\n  few  {{{#b}{$n}{/b} nowe wiadomosci}}\n  \
+                   many {{{#b}{$n}{/b} nowych wiadomosci}}\n  \
+                   *    {{{#b}{$n}{/b} nowych wiadomosci}}\n";
+    let files = |pl: &str| {
+        vec![
+            ("en".to_owned(), en.to_owned()),
+            ("pl".to_owned(), pl.to_owned()),
+        ]
+    };
+    let outcome = build_corpus(
+        "markup-kept",
+        &files(pl_kept),
+        &with_fn_number(),
+        &Config::default(),
+    );
+    assert!(
+        outcome.report.is_empty(),
+        "a variant may leave markup out:\n{}",
+        outcome.report.to_text()
+    );
+
+    // Left out of every variant, it is reported, by name.
+    let pl_dropped = pl_kept.replace("{#b}", "").replace("{/b}", "");
+    let outcome = build_corpus(
+        "markup-dropped",
+        &files(&pl_dropped),
+        &with_fn_number(),
+        &Config::default(),
+    );
+    let text = outcome.report.to_text();
+    assert!(text.contains("{#b}"), "{text}");
+    assert!(text.contains("[dropped-markup]"), "{text}");
+    assert_eq!(outcome.report.errors(), 1, "{text}");
 }
 
 #[test]

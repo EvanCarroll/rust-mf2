@@ -367,6 +367,35 @@ fn check_names_the_first_missing_translations() {
     );
 }
 
+/// The UX review's case (Phase 10 E1): the French terms sentence lost its
+/// link. `check` refuses it and names the markup; with the link kept, the
+/// same corpus passes.
+#[test]
+fn check_refuses_a_translation_that_drops_markup() {
+    let dir = small_corpus(
+        "cli-check-dropped-markup",
+        &[
+            ("en", "terms = Accept our {#link}terms{/link}.\n"),
+            ("fr", "terms = Acceptez nos conditions.\n"),
+        ],
+    );
+    let out = run(&dir, &["check"]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    let text = stdout(&out);
+    assert!(
+        text.contains("the source message has {#link}, which this translation leaves out")
+            && text.contains("(in terms, locale fr) [dropped-markup]"),
+        "{text}"
+    );
+
+    std::fs::write(
+        dir.join("locales/fr/main.mf2"),
+        "@locale fr\n---\n\nterms = Acceptez nos {#link}conditions{/link}.\n",
+    )
+    .expect("write");
+    ok(&run(&dir, &["check"]));
+}
+
 #[test]
 fn stats_reports_coverage_sizes_and_the_pins() {
     let dir = corpus("cli-stats");

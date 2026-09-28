@@ -107,6 +107,7 @@ pub fn mf2_build::Level::deserialize<__D>(__D) -> core::result::Result<Self, <__
 #[non_exhaustive] pub enum mf2_build::Lint
 pub mf2_build::Lint::BadOptionValue
 pub mf2_build::Lint::DoNotTranslate
+pub mf2_build::Lint::DroppedMarkup
 pub mf2_build::Lint::DroppedPlaceholder
 pub mf2_build::Lint::DuplicateId
 pub mf2_build::Lint::DynamicCurrency

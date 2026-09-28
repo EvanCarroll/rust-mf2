@@ -110,6 +110,13 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   run `mf2 fmt` once, or `mf2 fmt --check` in CI reports the files 1.0
   formatted. `mf2 convert`, `mf2 import` and `mf2 pseudo` write the same
   layout.
+* **Changed: a translation that leaves out the source's markup is an
+  error** (`dropped-markup`), in `mf2 check` and the build. French
+  `Acceptez nos conditions.` for `Accept our {#link}terms{/link}.` used to
+  pass every check and ship without its link. A variant may still leave
+  markup out while another variant of the message keeps it; a corpus that
+  drops markup on purpose sets `dropped-markup = "warn"` (or `"allow"`)
+  under `[lints]`.
 
 ## 1.0.0
 
