@@ -34,20 +34,25 @@ browser, so what you copy here is what CI builds.
   cargo install mf2-cli
   ```
 
-  Until 1.1.0 is on crates.io, install it from a checkout of this
-  repository instead: `cargo install --path crates/mf2-cli`.
+  That installs 1.0.0, the release on crates.io. This page follows the
+  repository, which has changed since; to run exactly what it shows,
+  install from a checkout of this repository instead:
+  `cargo install --path crates/mf2-cli`.
 
 * For a client-only application only, [Trunk](https://trunkrs.dev)
   (`cargo install trunk`), which builds it
   ([Delivery modes](delivery-modes.md#client-only)).
 
-> **1.1.0 is not published yet.** Five crates are available at 1.0.0, and
-> the remaining crates will be published together at 1.1.0. The manifests
-> on these pages name them as that release will:
-> `mf2 = "1"`, `leptos-mf2 = "1"`, `mf2-axum = "1"`,
-> `mf2-build = "1"`. Until then, replace each `"1"` with a path into a
-> checkout, for example `mf2 = { path = "../rust-mf2/crates/mf2" }`. This
-> is what `cargo xtask docs` does when it compiles these pages.
+> **Which version these pages show.** Every crate named here is on
+> crates.io at 1.0.0, and the manifests on these pages name them as
+> crates.io resolves them: `mf2 = "1"`, `leptos-mf2 = "1"`,
+> `mf2-axum = "1"`, `mf2-build = "1"`. The pages follow this repository,
+> though, which has fixes that 1.0.0 lacks: they ship in 2.0.0, the next
+> release (1.1.0 was not published and will not be). `cargo xtask docs`
+> compiles these pages against the repository by replacing each `"1"` with
+> a path into a checkout, for example
+> `mf2 = { path = "../rust-mf2/crates/mf2" }`; do the same to build exactly
+> what CI builds.
 
 ## The shape of an application
 

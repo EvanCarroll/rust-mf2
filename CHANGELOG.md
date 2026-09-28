@@ -7,10 +7,11 @@ minimum Rust version says so here.
 
 ## 1.1.0
 
-Completes the coordinated first release after crates.io's new-crate rate
-limit interrupted 1.0.0 after five crates, and adds native applications.
-Every crate gains author, repository and book metadata, and the project is
-now called Rust MF2. A minor release, not a patch: the native support adds
+**Not published, and it will not be.** All sixteen crates reached
+crates.io at 1.0.0 on 26 September 2026; the next release is 2.0.0,
+which carries what follows. 1.1.0 was prepared as a minor release after
+1.0.0: it adds native applications, gives every crate author, repository
+and book metadata, and calls the project Rust MF2; the native support adds
 public API to `mf2`, `mf2-build` and `mf2-catalog`.
 
 * **Native CLI and terminal apps.** `mf2-native` (new): `NativeI18n` holds

@@ -57,10 +57,11 @@ One macro works in every position: text, attributes, props, strings and
   a labelled form that applies a choice on a button, and bidi isolation is
   on where a person reads the text.
 
-**Status:** 1.1.0 is being prepared for crates.io. Five crates are already
-available at 1.0.0; this release publishes the rest of the family together.
-What it contains, what it measures and its known limitations are in
-[`CHANGELOG.md`](CHANGELOG.md); what 1.x promises is in
+**Status:** 1.0.0 is on crates.io for all sixteen crates of the web
+family. 1.1.0 was not published and will not be: its fixes, and the native
+crates `mf2-native` and `mf2-ratatui`, ship in 2.0.0, the next release.
+What each release contains, what it measures and its known limitations are
+in [`CHANGELOG.md`](CHANGELOG.md); what 1.x promises is in
 [`docs/versioning.md`](docs/versioning.md).
 
 ## Install
@@ -101,8 +102,9 @@ cargo add mf2-ratatui@1           # only for a Ratatui application
 [Native CLI and Ratatui apps](docs/native-apps.md) builds one, from the
 translation crate to the draw loop.
 
-Until 1.1.0 is on crates.io, name the crates by path into a
-checkout of this repository instead.
+`mf2-native` and `mf2-ratatui` are not on crates.io yet (they ship in
+2.0.0): until then, name them by path into a checkout of this repository
+instead.
 
 ## Documentation
 

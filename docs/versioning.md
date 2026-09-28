@@ -1,7 +1,7 @@
 # Versions and what 1.x promises
 
-Every crate of Rust MF2 is released together, at one version: `mf2 1.1.0`
-goes with `leptos-mf2 1.1.0` and `mf2-build 1.1.0`, and each asks for the
+Every crate of Rust MF2 is released together, at one version: `mf2 1.0.0`
+goes with `leptos-mf2 1.0.0` and `mf2-build 1.0.0`, and each asks for the
 others at exactly that version. An application depends on the few crates
 it uses — `mf2` and `mf2-build`, then `leptos-mf2` and `mf2-axum` for a
 Leptos application or `mf2-native` (and `mf2-ratatui`) for a native one —
@@ -33,9 +33,9 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
   `convert`) and their flags. A script that runs under 1.0 runs under 1.x.
 * **The resource format as `mf2 fmt` writes it**: a `.mf2` file that 1.0
   accepts, 1.x accepts, with the same meaning. The layout `fmt` gives it —
-  where it leaves blank lines — may change in a minor release (1.1.0 added
-  some), so a project that runs `mf2 fmt --check` in CI runs `mf2 fmt`
-  once after such an upgrade.
+  where it leaves blank lines — may change in a minor release, so a
+  project that runs `mf2 fmt --check` in CI runs `mf2 fmt` once after such
+  an upgrade.
 
 ## What it does not promise
 
@@ -102,7 +102,7 @@ false, features = ["leptos-0-8"]` on both; see
 
 | When | What changes | Release |
 |---|---|---|
-| a new Leptos 0.9 pre-release, or 0.9's release | taken as it comes (1.1.0 is built on `0.9.0-beta`) | patch |
+| a new Leptos 0.9 pre-release, or 0.9's release | taken as it comes (1.0.0 is built on `0.9.0-beta`) | patch |
 | a new Leptos line (0.10) | added as an opt-in feature beside the others | minor |
 | the default line changes, or a line is dropped | an application's build breaks | 2.0 |
 
@@ -126,8 +126,10 @@ changelog says so.
 
 ## Where the releases stand
 
-1.0.0 was only partly published: crates.io's limit on new crates stopped
-it after five of them (`mf2-model`, `mf2-resource`, `mf2-syntax`,
-`mf2-catalog`, `mf2-macros`). **1.1.0 is the first release of every
-crate**, and the one to depend on; see the
+**1.0.0 is the release to depend on.** All sixteen crates of the 1.0
+family are on crates.io at 1.0.0 (26 September 2026). 1.1.0 was prepared
+but is not published, and will not be: its fixes, and the native crates
+`mf2-native` and `mf2-ratatui` (which have never been published), ship in
+**2.0.0**, the next release. Until then, a native application names those
+two crates by path into a checkout of this repository. See the
 [changelog](https://github.com/EvanCarroll/rust-mf2/blob/main/CHANGELOG.md).
