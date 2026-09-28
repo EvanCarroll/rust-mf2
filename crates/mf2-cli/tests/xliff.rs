@@ -440,6 +440,70 @@ fn xliff_do_not_translate() {
     assert_eq!(pl(&dir), PL);
 }
 
+/// The UX review's first case (Phase 10 E1, E3): a tool dropped the link's
+/// code from the French terms sentence. The document is well-formed and
+/// every code it keeps is the export's, but the message it makes leaves out
+/// `{#link}`: import checks the file as it would be, refuses, and writes
+/// nothing. With the link kept, it lands (the negative control).
+#[test]
+fn import_refuses_a_translation_that_drops_markup() {
+    let dir = scratch("dropped-markup");
+    for (path, body) in [
+        ("mf2.toml", "source_locale = \"en\"\n"),
+        (
+            "locales/en/main.mf2",
+            "@locale en\n---\n\nterms = Accept our {#link}terms{/link}.\n",
+        ),
+        ("locales/fr/main.mf2", "@locale fr\n---\n"),
+    ] {
+        let full = dir.join(path);
+        std::fs::create_dir_all(full.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&full, body).expect("write");
+    }
+    let file = dir.join("fr.xlf");
+    ok(&run(
+        &dir,
+        &[
+            "export",
+            "--format",
+            "xliff",
+            "fr",
+            "-o",
+            file.to_str().expect("utf-8"),
+        ],
+    ));
+    assert_valid(&file);
+    let doc = std::fs::read_to_string(&file).expect("read");
+    let fr = || std::fs::read_to_string(dir.join("locales/fr/main.mf2")).expect("read");
+    let import = |doc: &str| {
+        std::fs::write(&file, doc).expect("write");
+        run(&dir, &["import", "fr", file.to_str().expect("utf-8")])
+    };
+
+    let out = import(&fill(&doc, "terms", "Acceptez nos conditions."));
+    assert!(!out.status.success());
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.contains("the source message has {#link}, which this translation leaves out")
+            && stderr.contains("[dropped-markup]")
+            && stderr.contains("nothing was written"),
+        "{stderr}"
+    );
+    assert_eq!(fr(), "@locale fr\n---\n");
+
+    let stderr = ok(&import(&fill(
+        &doc,
+        "terms",
+        r#"Acceptez nos <pc id="1" dataRefStart="d1" dataRefEnd="d2">conditions</pc>."#,
+    )));
+    assert!(stderr.contains("0 message(s) changed, 1 added"), "{stderr}");
+    assert!(
+        fr().contains("terms = Acceptez nos {#link}conditions{/link}."),
+        "{}",
+        fr()
+    );
+}
+
 /// A new message that selects, translated without its catch-all.
 #[test]
 fn xliff_incomplete() {

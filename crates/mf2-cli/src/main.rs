@@ -118,7 +118,8 @@ enum Command {
     /// Write one locale as flat JSON, or as an XLIFF 2 document against the
     /// source locale.
     Export(exchange::ExportArgs),
-    /// Read a locale back from flat JSON or an XLIFF 2 document.
+    /// Read a locale back from flat JSON or an XLIFF 2 document; write
+    /// nothing if that would bring an error `check` reports.
     Import(exchange::ImportArgs),
     /// Recompile whenever a locale file changes.
     Watch(watch::Args),

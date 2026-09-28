@@ -62,8 +62,9 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// crate's as cargo resolves them — the build checks with those, so a
 /// check with others warns where the build does not and fails where it
 /// succeeds. Without an answer from cargo, none, and a note says so (on
-/// stderr, so that `--format json` stays one document).
-fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
+/// stderr, so that `--format json` stays one document). `mf2 import`
+/// checks what it would write with the same.
+pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     if let Some(given) = args.given() {
         return given;
     }

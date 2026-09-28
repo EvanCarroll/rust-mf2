@@ -555,7 +555,20 @@ settled:
 * **`import` writes a translation back into the container it came from**,
   keeping every section, comment and property; an id the locale does not have
   is reported, not invented, because which section it belongs in is the
-  translator's decision. (An XLIFF document says which: §6.3.)
+  translator's decision. (An XLIFF document says which: §6.3.) *As built in
+  Phase 10 E3:* such an id is refused, and the command exits 1 after writing
+  the rest; the message names XLIFF as the way to add it, and an id the
+  source does not have is named apart.
+* **`import` checks what it would write** (Phase 10 E3; the UX review found
+  it writing an undeclared `$nom` and exiting 0). Both formats first make the
+  files in memory; every check `mf2 check` makes then runs on a copy of
+  `locales/` with those files in it, with `check`'s features (`--features`,
+  else cargo's), and an **error the corpus does not already have** refuses
+  the whole import: it is reported as `check` reports it and nothing is
+  written. An error already there does not stop an import that brings none —
+  another language's, or one raised only because cargo could not name the
+  features. A finding is the same one wherever its line moved; warnings the
+  import brings are printed and do not stop it.
 
 ### 6.1 `mf2 convert --from fluent` — the mapping
 
@@ -1023,7 +1036,9 @@ a changed one is written by the serializer in `mf2 fmt`'s form. A refused
 unit leaves its message as it was and is reported, with the file's and the
 unit's ids — and a refused unit of a `.match` message leaves the whole
 message as it was. The command exits non-zero when anything was refused,
-after writing what was not.
+after writing what was not. *Phase 10 E3:* what was not refused is then
+checked as §6 says — a message it makes that drops the source's markup
+(`dropped-markup`), say — and an error it brings means nothing is written.
 
 | Finding | Code |
 |---|---|

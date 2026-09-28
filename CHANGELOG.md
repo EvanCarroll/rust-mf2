@@ -126,6 +126,15 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   on a `[section]` or at the top of a file now covers every message under
   it for every check, as it already did for XLIFF export's
   `translate="no"`.
+* **Changed: `mf2 import` checks what it would write.** It used to write
+  a translation with a variable its source does not declare (`{$nom}`)
+  and exit 0, leaving the error for the next `mf2 check`. Now, JSON and
+  XLIFF alike, it runs every check `mf2 check` makes on the files as they
+  would be, with the same features (`--features` is new here), and writes
+  nothing if that brings an error, which it reports as `check` does. An
+  error the files already had does not stop it. **JSON import exits 1**
+  when it leaves out ids the language does not have yet, and says to use
+  XLIFF, which adds them where the source has them.
 
 ## 1.0.0
 

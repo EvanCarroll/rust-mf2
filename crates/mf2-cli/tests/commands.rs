@@ -519,6 +519,100 @@ fn export_and_import_round_trip_a_locale() {
     assert!(file.contains('#'), "the comments were lost");
 }
 
+/// The UX review's case (Phase 10 E3): a French translation with a variable
+/// its source does not declare (`$nom`). `import` checks the files as they
+/// would be, as `check` does, and writes nothing. A clean translation lands
+/// (the negative control), and an error the file already had does not stop
+/// an import that brings none.
+#[test]
+fn import_refuses_what_check_would_refuse() {
+    let dir = small_corpus(
+        "cli-import-checked",
+        &[
+            (
+                "en",
+                "greeting = Hello, {$name}!\nfarewell = Goodbye, {$name}!\n",
+            ),
+            (
+                "fr",
+                "greeting = Bonjour, {$name} !\nfarewell = Au revoir, {$name} !\n",
+            ),
+        ],
+    );
+    let fr = dir.join("locales/fr/main.mf2");
+    let json = dir.join("fr.json");
+    let import = |body: &str| {
+        std::fs::write(&json, body).expect("write");
+        run(&dir, &["import", "fr", json.to_str().expect("utf-8")])
+    };
+    let read = || std::fs::read_to_string(&fr).expect("read");
+    let before = read();
+
+    let out = import("{\"greeting\": \"Bonjour, {$nom} !\"}\n");
+    assert!(!out.status.success(), "{}", stderr(&out));
+    let text = stderr(&out);
+    assert!(
+        text.contains("$nom is not an input of the source message")
+            && text.contains("(in greeting, locale fr) [undeclared-variable]")
+            && text.contains("nothing was written"),
+        "{text}"
+    );
+    assert_eq!(read(), before);
+
+    let out = import("{\"greeting\": \"Salut, {$name} !\"}\n");
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(read().contains("greeting = Salut, {$name} !"), "{}", read());
+
+    std::fs::write(
+        &fr,
+        read().replace("Au revoir, {$name}", "Au revoir, {$nom}"),
+    )
+    .expect("write");
+    let out = import("{\"greeting\": \"Coucou, {$name} !\"}\n");
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(
+        read().contains("greeting = Coucou, {$name} !"),
+        "{}",
+        read()
+    );
+}
+
+/// JSON import changes the messages a language has. One it does not have
+/// yet needs a file and a section, which flat JSON does not say: it is left
+/// out, named, with XLIFF as the way to add it, and the command exits 1
+/// after writing the rest (Phase 10 E3). An id the source lacks is named
+/// apart.
+#[test]
+fn import_names_xliff_for_messages_a_language_lacks() {
+    let dir = small_corpus(
+        "cli-import-new",
+        &[
+            ("en", "greeting = Hello\nfarewell = Goodbye\n"),
+            ("fr", "greeting = Bonjour\n"),
+        ],
+    );
+    let json = dir.join("fr.json");
+    std::fs::write(
+        &json,
+        "{\"farewell\": \"Au revoir\", \"greeting\": \"Salut\", \"mystery\": \"?\"}\n",
+    )
+    .expect("write");
+    let out = run(&dir, &["import", "fr", json.to_str().expect("utf-8")]);
+    assert!(!out.status.success(), "{}", stderr(&out));
+    let text = stderr(&out);
+    assert!(
+        text.contains("1 message(s) fr does not have yet were left out: farewell")
+            && text.contains("`mf2 export fr --format xliff`"),
+        "{text}"
+    );
+    assert!(
+        text.contains("1 id(s) are not messages of en and were left out: mystery"),
+        "{text}"
+    );
+    let fr = std::fs::read_to_string(dir.join("locales/fr/main.mf2")).expect("read");
+    assert!(fr.contains("greeting = Salut"), "{fr}");
+}
+
 #[test]
 fn dump_decodes_a_catalog_back_to_messages() {
     let dir = corpus("cli-dump");

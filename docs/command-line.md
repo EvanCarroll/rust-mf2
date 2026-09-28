@@ -169,6 +169,15 @@ mf2 -C i18n import fr fr.json --dry-run
 mf2 import: 0 message(s) would change in fr
 ```
 
+Before it writes anything, `import` runs every check `check` makes on the
+files as they would be, with the same features (`--features` names them).
+A translation that would bring an error — a variable its source does not
+declare, a link left out — is reported as `check` reports it, and nothing
+is written; an error the files already had does not stop it. An XLIFF
+document also adds the messages the language does not have yet, in the
+file and section where the source has them. JSON changes only the messages
+the language has: it names the ones it leaves out, and exits with 1.
+
 ## `pseudo`: find what is not translated
 
 ```sh run=cli output=pseudo.txt

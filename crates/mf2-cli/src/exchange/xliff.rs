@@ -30,7 +30,8 @@ use mf2_resource::{Entry, Head, Id, Meta, Resource, Section, Span, ValueMap, ser
 
 use self::variants::{offers, same_keys};
 use self::xml::{Code, Doc, File, Group, Inline, Item, Note, Unit};
-use crate::error::{Error, Result, read, write};
+use super::Rewrite;
+use crate::error::{Error, Result, read};
 
 // ─────────────────────────────── a locale ───────────────────────────────
 
@@ -805,18 +806,31 @@ pub(crate) struct Checks {
     pub(crate) skip_data: bool,
 }
 
-/// `mf2 import` of an XLIFF document into `target_tag`. Returns how many
-/// messages changed and were added; `Err(Error::Corpus)` after writing
-/// what was not refused, when anything was.
+/// What an XLIFF document asks of the target locale: the files it would
+/// rewrite, and the units it refused. Nothing is written here — `mf2
+/// import` first checks the corpus those files make (Phase 10 E3).
+pub(crate) struct Imported {
+    /// The target's files the document changes, with their new text.
+    pub(crate) rewrites: Vec<Rewrite>,
+    /// Messages changed, not counting those added.
+    pub(crate) changed: usize,
+    /// Messages the target did not have.
+    pub(crate) added: usize,
+    /// One line per refused unit: its code, where it is, and why.
+    pub(crate) refused: Vec<String>,
+}
+
+/// `mf2 import` of an XLIFF document into `target_tag`: what it would
+/// write, less every unit it refuses; `Err(Error::Corpus)` when the
+/// document itself cannot be read (`xliff-malformed`, already reported).
 pub(crate) fn import(
     source_path: &Path,
     source_tag: &str,
     target_path: &Path,
     target_tag: &str,
     text: &str,
-    dry_run: bool,
     checks: Checks,
-) -> Result<(usize, usize)> {
+) -> Result<Imported> {
     let doc = match xml::read(text) {
         Ok(doc) => doc,
         Err(xml::Malformed(why)) => {
@@ -949,22 +963,15 @@ pub(crate) fn import(
     // In source order, so that new messages go in the order the source has.
     added.sort_by_key(|id| built.order.iter().position(|o| o == id));
 
-    write_target(&target, &built, &changed, &added, dry_run)?;
-
-    for r in &reports {
-        eprintln!("{}: {}: {}", r.code.code(), r.at, r.message);
-    }
-    if reports.is_empty() {
-        Ok((changed.len() - added.len(), added.len()))
-    } else {
-        eprintln!(
-            "mf2 import: {} unit(s) refused; {} message(s) {}",
-            reports.len(),
-            changed.len(),
-            if dry_run { "would change" } else { "changed" }
-        );
-        Err(Error::Corpus)
-    }
+    Ok(Imported {
+        rewrites: plan_target(&target, &built, &changed, &added)?,
+        changed: changed.len() - added.len(),
+        added: added.len(),
+        refused: reports
+            .iter()
+            .map(|r| format!("{}: {}: {}", r.code.code(), r.at, r.message))
+            .collect(),
+    })
 }
 
 /// A unit's target as a pattern: text as text, each code replaced by the
@@ -1158,21 +1165,21 @@ fn rebuild(
     Some(message)
 }
 
-/// Writes the changed and added messages into the target locale's files.
-fn write_target(
+/// The target locale's files with the changed and added messages in them:
+/// each file whose text changes.
+fn plan_target(
     target: &Locale,
     built: &Built,
     changed: &BTreeMap<String, String>,
     added: &[String],
-    dry_run: bool,
-) -> Result<()> {
+) -> Result<Vec<Rewrite>> {
     if changed.is_empty() {
-        return Ok(());
+        return Ok(Vec::new());
     }
     let mut out: Vec<(PathBuf, String, Option<String>)> = Vec::new();
     if target.json {
         let Some(file) = target.files.first() else {
-            return Ok(());
+            return Ok(Vec::new());
         };
         let mut pairs: Vec<(&str, &str)> = target
             .entries()
@@ -1240,17 +1247,11 @@ fn write_target(
             out.push((path.clone(), new, text.clone()));
         }
     }
-    for (path, new, before) in out {
-        if before.as_deref() == Some(new.as_str()) {
-            continue;
-        }
-        if dry_run {
-            println!("would rewrite {}", path.display());
-        } else {
-            write(&path, &new)?;
-        }
-    }
-    Ok(())
+    Ok(out
+        .into_iter()
+        .filter(|(_, new, before)| before.as_deref() != Some(new.as_str()))
+        .map(|(path, text, _)| Rewrite { path, text })
+        .collect())
 }
 
 const NOWHERE: Span = Span { start: 0, end: 0 };
@@ -1328,7 +1329,6 @@ fn owned_id(parts: &[String]) -> Id<'static> {
 #[cfg(test)]
 mod tests {
     use super::{Checks, export, import, pair_markup, xliff_id};
-    use crate::error::Error;
 
     /// Negative control for `xliff-code-edited`: with the comparison of
     /// each `<data>` switched off, the edited code is written into the
@@ -1349,19 +1349,17 @@ mod tests {
         let (doc, _) = export(&en, "en", &pl, "pl").expect("export");
         let edited = doc.replacen(">{$name}</data>", ">{$name :string}</data>", 1);
         assert_ne!(edited, doc);
-        let refused = import(&en, "en", &pl, "pl", &edited, false, Checks::default());
-        assert!(matches!(refused, Err(Error::Corpus)));
-        let lands = import(
-            &en,
-            "en",
-            &pl,
-            "pl",
-            &edited,
-            false,
-            Checks { skip_data: true },
+        let refused = import(&en, "en", &pl, "pl", &edited, Checks::default()).expect("read");
+        assert_eq!(refused.refused.len(), 1);
+        assert!(refused.rewrites.is_empty());
+        let lands =
+            import(&en, "en", &pl, "pl", &edited, Checks { skip_data: true }).expect("read");
+        assert!(lands.refused.is_empty());
+        assert_eq!(
+            (lands.changed, lands.added, lands.rewrites.len()),
+            (1, 0, 1)
         );
-        assert!(matches!(lands, Ok((1, 0))), "{lands:?}");
-        let after = std::fs::read_to_string(pl.join("m.mf2")).expect("read");
+        let after = &lands.rewrites[0].text;
         assert!(after.contains("hi = Cześć, {$name :string}!"), "{after}");
         let _ = std::fs::remove_dir_all(&dir);
     }

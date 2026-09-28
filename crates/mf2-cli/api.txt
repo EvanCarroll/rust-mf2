@@ -41,6 +41,7 @@ mf2 fmt
 mf2 import
   --dir, -C <DIR> (global)
   --dry-run
+  --features <LIST>
   <file> (position 2) (required)
   <locale> (position 1) (required)
 mf2 init
