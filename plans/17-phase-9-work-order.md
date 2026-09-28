@@ -101,7 +101,73 @@ of the tree, which a public repository or package cannot carry.
    applications use, promise everything public today, or make the
    internals private by restructuring first.
 
-## Part A — tasks (A0 first; A1–A3 in any order; A4 after A1; A5 after A2; A6 and A7 after A4; A8 last)
+6. **The book's fixes, and the 1.1.0 publish** — **answered (owner,
+   2026-09-27): folded into 1.1.0, before it is published.** A review and
+   an empirical verification of the user guide (Part B) found claims that
+   are false and code that does not do what the book says; some fixes add
+   public API. They land before the publish, so no user sees the broken
+   book or the missing pieces. The question as it was put: fold into
+   1.1.0, ship 1.1.0 as it is and follow with 1.2.0, or correct the book
+   now and schedule the code separately.
+
+7. **A message whose id is known only at run time** — **answered (owner,
+   2026-09-27): a public constructor.** The book told tool authors to use
+   `msg_id!` and `TrDyn`, but `TrDyn`'s only constructor, `tr_dyn`, is
+   `#[doc(hidden)]`. `TrDyn::new` becomes promised API; `tr!` stays the
+   only form a page uses. **B5.** The question as it was put: add a public
+   constructor, or drop the advice.
+
+8. **The switcher on a site whose languages live in the URL** —
+   **answered (owner, 2026-09-27): the switcher learns URLs.** With
+   `PathPrefix` first, `<LocaleSwitcher>`'s `?lang=` cannot change the
+   language (observed: `/en/page?lang=fr` stays English, and so does a
+   `fr` cookie). The switcher gains an optional per-language URL function;
+   without the wasm, the server redirects. **B4.** The question as it was
+   put: teach the switcher URLs, or document a list of links instead.
+
+9. **`class=` and `style=` with a message** — **answered (owner,
+   2026-09-27): documented as a limit, no code.** `class=tr!(…)` does not
+   compile (`TrArgs: IntoClass`); the book says so, with `attr:class=` as
+   the workaround only if a compiled sample shows it works. **B10.** The
+   question as it was put: make them work, or document the limit.
+
+10. **A catalog from another deploy during a switch** — **answered
+    (owner, 2026-09-27): `set_locale` reloads into the new language.** At
+    boot a mismatch already reloads; at a switch it was refused silently
+    (observed: the page stayed French, one console line). `set_locale`
+    itself writes the choice and reloads, so every control gets it. **B2.**
+    The question as it was put: `set_locale` reloads, or only the built-in
+    switcher does.
+
+11. **The server's language cookie** — **answered (owner, 2026-09-27):
+    written only on an explicit choice.** `CookieLocale` wrote a one-year
+    cookie on every response, even when the language came from
+    `Accept-Language` or the default, turning a guess into a remembered
+    choice. It is now written only when the language came from `?lang=` or
+    the path; the client writes it on every switch. **B3.** The question as
+    it was put: only on an explicit choice, or keep and document.
+
+12. **`mf2 check`'s feature set** — **answered (owner, 2026-09-27): ask
+    cargo, fall back to none.** Without `--features` it checked with none,
+    so it warned where the build does not and failed where the build
+    succeeds. It resolves the translation crate's features through cargo,
+    as `compile --site` does, and without cargo checks with none and says
+    so. **B8.** The question as it was put: ask cargo, or keep and
+    document `--features`.
+
+13. **`mf2 fmt` and blank lines** — **answered (owner, 2026-09-27): fmt
+    keeps a blank line after `---` and around multi-line messages.** The
+    book's own files were not in fmt's form (13 of 15 would change).
+    Changes the decision in 05 §5 (recorded there). **B9.** The question
+    as it was put: fmt keeps some blank lines, or the book adopts fmt's
+    form.
+
+14. **What the book gains** — **answered (owner, 2026-09-27): all four.**
+    A command-line chapter; the server's language options; native details
+    (catalog files outside the executable, the matching rules, a Ratatui
+    draw loop); and the small completions. **B11.**
+
+## Part A — tasks (A0 first; A1–A3 in any order; A4 after A1; A5 after A2; A6 and A7 after A4; Part B after A7; A8 last)
 
 | Task | Deliverable | Done when |
 |---|---|---|
@@ -742,6 +808,120 @@ of the tree, which a public repository or package cannot carry.
   commit to release, `cargo xtask spec-sync --check && cargo xtask release
   --publish`.
 
+## Part B — the book, verified (added 2026-09-27; B1 first; B2–B9 in any order; B10 and B11 after the code they describe; B12 with each task; B13 last, then A8)
+
+On 2026-09-27 the user guide (`docs/`) was reviewed, then every claim it
+makes about behaviour was **run**, not read. The method:
+
+* **Sample apps.** The book's own sample applications, as `cargo xtask docs`
+  assembles them under `target/docs/projects`, were copied and built with
+  `cargo leptos` (dev) and `trunk`.
+* **What drove them.** Playwright (Chromium) scripts, curl, native runs,
+  and negative-control variants: a server whose fallback lacks the
+  context, and a second build whose catalogs stand in for "another deploy".
+* **Repo tooling run as-is.** `cargo xtask docs`, `api --check`,
+  `msrv` / `msrv --below`, `islands-zero` and `churn`.
+
+About 130 claims were tested; most hold. The findings below are observed
+behaviour. Each names what was run.
+
+### Refuted (observed the opposite)
+
+| Book | Observed | Task |
+|---|---|---|
+| switching.md: a catalog from another deploy during a switch makes the page reload | Hydrated `hello`; the switch-time fetch of `/i18n/en*` routed to another build's catalog. No navigation. The page stays `fr`; console `mf2: the locale could not be switched; the page is unchanged`. (At boot the same test reloads, as documented.) | B2 |
+| delivery-modes.md: a lazy route behaves like every other part of the page | `lazy` sample built with `--split`. `/visits` loaded directly: the button counts 1→4. Reached via the `<A href>`: it renders and follows a switch, but its `on:click` does nothing, and a `{move \|\| count.get()}` stays at its first value. No console output. The same app with mf2 stripped and `leptos::mount::hydrate_lazy` works both ways. Not the `fn-datetime` boot branch (built without it, it still fails). | B1 |
+| delivery-modes.md: without `--split` a lazy route "works the same" | Built without `--split`: `hello.js` imports `__wasm_split_placeholder__`, the browser cannot resolve it, and nothing hydrates on any page. A Leptos property (`#[lazy_route]` + `leptos/lazy`), already recorded in 16 (the fluent A/B). | B10 |
+| delivery-modes.md: without `static-locale`, islands follow a live switch | Islands sample rebuilt without `static-locale`. The switcher (not an island) still submits `GET /?lang=fr`, and the island's counter resets. | B10 |
+| migrating: the unchanged server honours the initializer's cookie | `Cookie: lang=fr` → `content-language: en`. Only `mf2_locale` is read. | B8, B10 |
+| switching.md: the path-prefix negotiator, with the switcher | `/en/page?lang=fr` → en; `/en/page` + `mf2_locale=fr` → en. `CookieLocale::default()` is also `Secure` on plain HTTP. | B4 |
+| native-apps.md: a catalog from another build "is an error, not wrong text" | `Emit::NativeFiles`. Rebuilding with only a text change keeps the manifest hash; the old file renamed to the new name loads and prints the old text. Only a message-set change is refused (`ManifestMismatch`). | B7 |
+| call-sites.md: `msg_id!` + `TrDyn` for tools | No public constructor (`TrDyn::new` → E0599). The only one is hidden `tr_dyn`. | B5 |
+| call-sites.md: a description can be any attribute's value (and `class` is a plain one) | `class=tr!(…)` → `TrArgs: IntoClass` not satisfied. `style=` is the same. | B10 |
+| getting-started.md: `mf2 check` runs every check the build runs | Bare `check` on `hello`: 2 `neutral-numbers` warnings the build never gives. On date messages: `gated-function` errors where the build succeeds. | B8 |
+| delivery-modes.md: islands-zero figures | Re-run: code 165,714 B / 865 functions both builds; shipped 85,644 → 85,648 B gz; data +8 B (not byte-identical). The book had 185,925 / 1,019 / 94,904 from before Leptos 0.9. | B10 |
+
+### Partly right
+
+| Claim | What was seen | Where it is fixed |
+|---|---|---|
+| The `static-locale` row of the switch table | On islands, the outcome is right, but the mechanism is the form's `GET` plus the server's `Set-Cookie`. No client code runs. | B10 |
+| A description inside `<textarea>` "stays as it is" | Under `mark-fallback-lang` it gets `<span lang="en">`, shown as text. | B6 |
+| "Each placeholder" is isolated | Only arguments that need it are. Strings get FSI/PDI; numbers get nothing. | B10 |
+| Ratatui: "a name with no style is plain text" | It inherits the enclosing style. | B10 |
+| migrating: `move \|\| tr!(…)` → `tr!(…)` | Only with constant arguments. Otherwise the closure is kept, plus `.to_string()`. | B10 |
+| A second conversion run changes nothing | True, but a second `--write` exits 1 ("already exists"), and a dry run reports phantom files. | B8 |
+| `mf2 check` warns about every missing translation | It gives one summary per locale and names no ids. | B8 |
+| `<CatalogLinks/>` lists the other languages | It lists all of them. | B10 |
+| leptos-0-8 plus the default line gives a compile error | The error is there, followed by 8 unrelated tachys errors. | B8 |
+| The book's `.mf2` files are in `mf2 fmt`'s form | `fmt --check` fails on 13 of 15. | B9 |
+
+### Tasks
+
+| Task | Deliverable | Done when |
+|---|---|---|
+| **B1** Lazy route handlers after client navigation | **Test first.** `examples/demo-ssr`'s `LazyPage` gains an `RwSignal`, a `<button id="lazy-add">`, a `{move \|\| n.get()}` and a `tr!` with `count = n`. `tools/e2e/checks/lazy.mjs` clicks it after a direct load and after client navigation. **Then bisect:** a non-reactive `tr!` against the per-node `RenderEffect` (`registry.rs`), then the rich path, then the boot's `hydrate_from_async` against Leptos's `hydrate_lazy` (`boot.rs`). **Fix it here**, or, if the cause is Leptos's, work around it in `boot.rs` and draft an upstream report for the owner to file. | the new check fails before the fix and passes after; `lazy`, `demo` and `a11y` checks green |
+| **B2** A switch reloads on deploy skew | *Owner question 10.* `reload_into` (`boot.rs`, now `static-locale`-only) is available to the live build. `set_locale` on `ManifestMismatch` writes the choice (cookie, or `localStorage` for `csr`), strips `?lang=`, and reloads. The changelog says so. | an e2e check routes the switch-time catalog to another build's (spec below) and sees a reload into the new language; before the fix it fails |
+| **B3** Cookie only on an explicit choice | *Owner question 11.* `CookieLocale::store` returns early unless `negotiated.from` is `"query"` or `"path"`. Changelog entry (the expiry no longer slides). | unit tests per source (query/path write; cookie/accept-language/default do not); `demo` and `a11y` checks green |
+| **B4** The switcher on path-prefix sites | *Owner question 8.* `LocaleSwitcher` gains an optional `href_of: fn(&str) -> String` (the `AlternateLinks` shape). Each `LocaleOption` carries `data-mf2-href`, and the submit handler navigates there. For the no-wasm case, mf2-axum redirects a `?lang=` that disagrees with the path to that language's URL; the API is decided in the task, additive, and goes in `api.txt`. | unit tests for the redirect; an e2e run on a path-prefix variant, with wasm and with wasm blocked, lands on `/fr/…`; `api --check` updated |
+| **B5** `TrDyn::new` | *Owner question 7.* `TrDyn::new<N: Into<Text>, V: Into<ArgValue>>(id: MsgId, args: impl IntoIterator<Item = (N, V)>)`, wrapping `tr_dyn`, which stays hidden. `api.txt` updated. | a compiled ssr-only sample in `call-sites.md`; a test formats a known and an unknown name |
+| **B6** No fallback span in text-only elements | Under `mark-fallback-lang`, no `<span lang>` when the parent is `textarea`, `title`, `option`, `script` or `style`. Server: `html_marked` checks the tag it just wrote (first child). Client: `Wrapper::fit` / mount. | a server HTML test; `csr` e2e fallback assertions green |
+| **B7** Native catalogs checked by content | `content_hash` (SHA-256, 8 bytes; `mf2-build/src/catalog.rs`) moves to `mf2-catalog` behind a `content-hash` feature, shared by `mf2-build` and `mf2-native`. `from_directory` compares each file with the hash in its name, and a mismatch is a new `NativeError` variant. The web client is unchanged: its catalogs come from its own server or build. | test: a renamed catalog from a text-only rebuild is refused; `api --check`, `msrv` and `msrv --below` green |
+| **B8** CLI | *Owner question 12.* **`check`:** resolves the features through `cargo::resolved_features` (with `--offline`); without cargo it prints a note and checks with none. **Missing translations:** the lint names the first missing ids. **`convert`:** unchanged text is not a rewrite, and an output identical to the existing file is not an error; `cookie_name:` is parsed, and the initializer's report says to add `CookieLocale { name, ..Default::default() }` **as an extra source**, since the client always writes `mf2_locale`. **leptos-0-8:** the five `leptos-0-8` cfgs in `glue/view.rs` become `all(leptos-0-8, not(leptos-0-9))`. | `mf2-cli` tests for each; a bare `mf2 -C i18n check` on the book's `hello` equals its build's report; a second `convert --write` on the book's `migrate` exits as the first did and writes nothing; the misconfiguration shows only the `compile_error!` |
+| **B9** `mf2 fmt` blank lines | *Owner question 13.* `serialize_with` writes a blank line after `---`, and around an entry that starts on its own line. `bench/workload-gen` matches. 05 §5 says why. `cargo xtask docs` runs `mf2 fmt --check` on every page's `mf2` blocks. | `fmt --check` green on the corpora and the book; the docs gate refuses a seeded non-canonical block |
+| **B10** Book corrections | Every row above not fixed by code, plus each code change's wording. The lists: **(a)** this work order's review notes (below) and **(b)** the tables above. | `cargo xtask docs` green; `mdbook build` clean |
+| **B11** Book additions | *Owner question 14.* **`docs/command-line.md`:** every `mf2` command and its main flags; `export` / `import` (JSON, XLIFF 2); `convert --from fluent` and its report codes. Its commands are `run=` blocks, and its outputs `generated` blocks. **`switching.md`:** the server options (`Negotiator::default()`, `over`, `QueryParam("…")`, `CookieLocale` fields and `secure` on localhost, `default_locale`, `negotiated()`, options from `locales()`, custom sources and sinks). **`native-apps.md`:** `NativeFiles` output and shipping, the matching rules, `formatter()`, and a Ratatui draw loop in the compiled example. **Small completions:** `TimeZone::named`, Trunk and Rust 1.88 in the prerequisites, `cargo install mf2-cli`, and the "not published yet" note current. SUMMARY and README tables updated. | `cargo xtask docs` green with the new page |
+| **B12** Guards | Each fix above carries its test (named in its row). In addition, the `migrate` page's report block becomes `generated`, so `cargo xtask docs` compares the report text, not only the exit status. | as each row |
+| **B13** Re-verification | This Part's method run again on the corrected book, with the verdicts recorded in `phase-9-results.md`: sample apps built and driven, curl, native runs, `islands-zero`, `churn`, `msrv` and `msrv --below`, `api --check`. | every refuted row now verified; `cargo xtask ci` green |
+
+**Review notes for B10** (from the review; each is a sentence to correct):
+
+* **`README.md` (docs).** Title "Rust MF2". The table matches SUMMARY (the ecosystem and native pages). "For the targets it runs on", not "server and browser". Native apps are in scope.
+* **`ecosystem.md`.**
+  * The diagram: `mf2-build` produces the generated module and the `.mf2b` files, not the runtime.
+  * `mf2` re-exports `leptos-mf2`'s call-site types.
+  * `mf2-syntax` handles messages, not resources.
+  * `mf2-cli` links crates.io.
+* **`getting-started.md`.**
+  * `strip` removes ids, attributes and comments. `[locale_data] "used"` leaves out unused currency and unit data.
+  * `0.9.0-beta` matches later `0.9.0-*` pre-releases and the 0.9 releases.
+  * Catalogs are compressed once and cached.
+  * `1 234,5` is written with U+202F.
+* **`call-sites.md`.**
+  * `starts` needs its own section: it is `post.starts` today.
+  * Text is copied once into a shared string; only an `Arc<str>` is shared as it is.
+  * A markup message with no handlers renders its text.
+  * `TimeZone::named` returns an `Option`.
+* **`switching.md`.**
+  * `Vary` gains `Cookie` because of `mf2_tz`.
+  * A client-only application finds a catalog through `index.json`, with no `/i18n/<tag>` fallback.
+* **`delivery-modes.md`.**
+  * `mount_to_body` loads the index before it chooses.
+  * The gate costs no request, but a few bytes.
+* **`accessibility.md`.**
+  * Focus is kept, but a markup fragment is rebuilt on a switch.
+  * Repository paths become links.
+* **`native-apps.md`.**
+  * The title matches SUMMARY.
+  * The isolation characters are U+2066–U+2069.
+* **`migrating-from-leptos-fluent.md`.**
+  * A real app also gets `leptos-fluent-dependency`.
+  * leptos-fluent 0.3 needs Leptos 0.8: point to the opt-in.
+  * The `.ftl` directory falls back to `locales/`.
+* **`versioning.md`.**
+  * An application names `mf2-native` / `mf2-ratatui`, and installs rather than depends on `mf2-cli`.
+  * Semver checks skip `mf2-macros`.
+  * "1.0 is published" is stated as it stands.
+
+**Probe specs** (the verification's scripts lived in a scratch directory; this is what they did):
+
+* **Switch skew (B2).** Run the app, plus a second build whose manifest differs (one added message). Hydrate the first app (wait until a counter click changes its text). Route `**/i18n/<target>*` to the second server's catalog bytes (`GET <other>/i18n/<target>`, following the redirect). Set `window.__marker`, press the switcher, then count main-frame navigations and check the marker. At boot, route the preload's catalog the same way: expect one navigation and `mf2: this page's catalog is from another deploy; reloading.`
+* **Deploy check at start-up (already green).** `mf2_axum::install` with one catalog swapped for another build's returns `Err(ManifestMismatch)`.
+* **Missing context (already green).** The fallback registered with `file_and_error_handler(shell)`: a 404 for `Accept-Language: fr` renders `lang="en"` with no `Content-Language`, and no log.
+* **Wasm unchanged by a translation edit (already green).** `cmp` of `pkg/hello.wasm` before and after editing `fr/main.mf2` and rebuilding, and under `cargo leptos watch` (about 40 s to serve the new text).
+* **Lazy click (B1).** See B1: click after a direct load, and after `<A href>` navigation. A control copy with mf2 removed from the client works.
+* **Environment.** `trunk build` needs a `wasm-bindgen` CLI matching the lockfile. Servers run as the built binary with `LEPTOS_SITE_ADDR`, `LEPTOS_SITE_ROOT`, `LEPTOS_SITE_PKG_DIR`, `LEPTOS_OUTPUT_NAME` and `LEPTOS_ENV`, set one per variable (zsh does not word-split a variable holding several).
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -762,5 +942,7 @@ of the tree, which a public repository or package cannot carry.
 - [x] the documentation builds as docs.rs builds it (A5)
 - [x] the changelog with 1.0.0 and its known limitations (A6)
 - [x] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7) — green locally on the clean tree; the `release` job is in `ci.yml`, waiting for a runner like every job (no remote yet)
+- [ ] Part B: the book's refuted claims fixed in code or text, each with its guard (B1–B12)
+- [ ] Part B: the book re-verified by running it (B13)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
 - [ ] `plans/phase-9-results.md` written (A8)
