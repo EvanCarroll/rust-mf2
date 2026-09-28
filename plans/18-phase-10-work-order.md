@@ -74,6 +74,9 @@ being finished by new agents. **Everything else is held** (owner,
   seam (`probes/p10-ambient/seam.patch`).
 - **C3's data half** (`acdbc01`): CLDR's `languageMatching` and `territoryContainment` vendored;
   the evidence for question 11.
+- **E1–E3** (`a72d057`, `3f1eed9`, `894c0c4`): `dropped-markup`, an error by default (floor
+  `allow`); `@do-not-translate` messages neither missing nor covered; `mf2 import` checks what it
+  would write and writes nothing on an error it brings, and JSON import names XLIFF for new ids.
 
 **In flight** — each on a branch in its own worktree under `.claude/worktrees/` (never merged
 as-is; results come to `main` as records, probe copies and patches):
@@ -82,7 +85,6 @@ as-is; results come to `main` as records, probe copies and patches):
 |---|---|---|---|
 | **A5** | `p10-a5-display` · `agent-a7b6f4df78ce56a04` | the variant (`70e0b27`); every measurement, base and variant, under that worktree's `target/a5/{base,variant,named}` (`target/a5/measure.sh`, `named.sh`, `twiggy.sh`). First reading: B1 26,400 → 26,317 B gz, B5 8.3 → 8.3, `b5 --view` 10.4 → 10.4, B12 clean in both, B1′ +0 | explain the fixed part's −83 B (twiggy over the named builds); the verdict; the record |
 | **A7** | `p10-a7-names` · `agent-aaa2ebae2e252a3e5` | four commits (`b258474` … `f54cf6d`): the helper crates, the table, the switch in a `LocaleSwitcher` wrapper, each component installing the table; `probes/p10-names/` (naming N1–N5, `coherence.sh`); scratch notes in that worktree's `target/a7-notes.md`. On 0.9: the e2e `demo` 210/210, `lazy` 74/74, `islands` 58/58, `csr` 98/98, `a11y`, `l6-web` 20/20, `l7-web` holding; `cargo xtask leptos-0-8` green; clippy and tests green; the coherence rules confirmed with their errors | v3's `b5 --view` figures (`target/a7-b5v-v3.log`) and the table's cost against the ±64 B gate; the cost in an application that *uses* the components (the size workloads use none); the demos on the 0.8 line (`demo-ssr`'s cargo-leptos build failed: `target/a7-demo-ssr-08-build.log`) and their e2e; the record |
-| **E1–E3** | `p10-e-silent-failures` · `agent-a1177668e49e5d311` | three commits (`82b2a8d` E1, `6d49d31` E2, `59cd8ac` E3); records in that worktree's `target/p10-records/E{1,2,3}.md` | the full `cargo xtask docs`; `cargo xtask ci` on `main` with the three applied; then onto `main` |
 
 **Held** until the in-flight tasks land: A8; Part B (B1 needs A7's record); C3's code; the rest
 of Parts C–G.
@@ -1411,6 +1413,225 @@ earlier run failed `mf2-catalog`'s timing test `linear.rs` under load 10–13
 | **E2** `@do-not-translate` is not missing | Such a message counts neither as missing nor in coverage (`check`, `stats`, JSON and XLIFF exports) | the review's case: "3 of 4 missing" becomes "2 of 3" |
 | **E3** `import` checks what it writes | `mf2 import` (JSON and XLIFF) runs the checks on the result and fails on errors, writing nothing. JSON import either adds ids the language lacks or names XLIFF in its message | the review's `$nom` case refused; a negative control per format |
 | **E4** Server and client warnings | Logged once on the server: a page rendered without the request's language; formatting with no catalogs installed. A browser console warning in debug builds only | the warnings shown once; B1 and B12 unchanged in release (measured) |
+
+## E1 — `dropped-markup`: what was built
+
+Commit `a72d057` on `main`, "Phase 10 E1: `dropped-markup` — a
+translation may not lose the source's markup" (written on the branch
+`p10-e-silent-failures` off `8f6569e`, and cherry-picked unchanged).
+
+**The lint.** `Lint::DroppedMarkup` (`"dropped-markup"`): a translation
+that leaves out markup its source message has. Checked in
+`check::against_source` beside `dropped-placeholder`, the same way: markup
+**names** compared over the **whole message** (the analysis' NFC names), so
+one variant may leave the markup out while another keeps it — Polish `one`
+("a message") drops the bold with the count. Reported once per message at
+its start: `the source message has {#link}, which this translation leaves
+out, so this language loses what it marks (a link, a style)`.
+
+**Its level — a decision, stated here.** The work order says "as
+`dropped-variable` does for variables" (the lint is `dropped-placeholder`,
+a warning with floor `allow`) and "the review's `terms` example refused".
+A warning cannot refuse, so `dropped-markup` is an **error by default with
+floor `allow`**, the catalogue's pattern for "an error, which a corpus that
+means it may turn down" (`dynamic-select`, `do-not-translate`, …). Why it
+differs from `dropped-placeholder`: a plural variant routinely drops
+`{$count}`; nothing routinely drops a link. A corpus that drops emphasis on
+purpose (italics in a script without them) sets `dropped-markup = "warn"`.
+plans/05 §3's rule "a translation MAY use a subset of the source's …
+markup" was changed in the same commit.
+
+**Run by** `mf2 check`, the build (the same `check::corpus` pass
+`Build::run` and `Build::check` share, so a build script now fails on it),
+and `mf2 import` from E3 (commit `894c0c4`).
+
+| Test | What it proves | Result |
+|---|---|---|
+| `tests/drift.rs` `every_lint_fires_on_its_own_drift_and_nothing_else_does` — the new drift `{#kbd}Esc{/kbd}` → `Esc` in `pl` | the lint fires on its drift and no other error does | PASS |
+| same table, `undeclared-markup`'s drift | changed from `{#kbd}…` → `{#b}…` (which also dropped `kbd`) to `{#kbd}{#b}Esc{/b}{/kbd}`, so each drift stays one lint's | PASS |
+| `a_lint_set_to_allow_says_nothing` | floor `allow` works | PASS |
+| `markup_that_one_variant_keeps_is_not_dropped` (new) | Polish `one` without `{#b}`, `few`/`many`/`*` with it: clean; `{#b}` out of every variant: one error naming `{#b}` | PASS |
+| `the_reference_workload_is_clean` | no workload translation drops markup | PASS |
+| `tests/commands.rs` `check_refuses_a_translation_that_drops_markup` (new) | the review's case: `terms = Accept our {#link}terms{/link}.` / `Acceptez nos conditions.` → `mf2 check` exits 1, `… (in terms, locale fr) [dropped-markup]`; with the link kept it passes | PASS |
+| `tests/xliff.rs` `import_refuses_a_translation_that_drops_markup` (E3's commit) | the same case through XLIFF import: refused, nothing written; with the `<pc>` kept, it lands | PASS |
+
+**Corpora in the tree** (`mf2 check --features
+fn-number,fn-datetime,datetime-icu` on each): `tools/i18n-fixture`'s
+Polish `help` had dropped the source's `{#b}` (`Nacisnij {#kbd}Esc{/kbd},
+aby zamknac` against `Press {#kbd}Esc{/kbd} to {#b}close{/b}`); nothing
+relied on it (rg), so it was restored — without that the fixture's build
+script fails. The demos, `bench/churn`, the fixture's two variants and the
+book's projects (`cargo xtask docs --no-build`) drop nothing. L5's corpora
+are identical twins.
+
+**Commands run** (on the branch, `CARGO_BUILD_JOBS=2`): `cargo test -p
+mf2-build` (all pass), `cargo test -p mf2-cli` (all pass),
+`cargo test -p mf2-i18n-fixture --lib`, `cargo clippy -p mf2-build -p
+mf2-cli -p mf2-i18n-fixture --all-targets -- -D warnings`, `cargo fmt
+--all --check`, `cargo xtask docs --no-build`. `crates/mf2-build/api.txt`
+gained `pub mf2_build::Lint::DroppedMarkup` by hand, in the listing's
+sorted place; on `main`, `cargo xtask api --check` confirms it ("18
+listings unchanged"). What ran on `main` with the three applied is in E3's
+record.
+
+**Verdict:** done — the seeded drift and the review's `terms` example are
+refused by `check`, the build and (with E3) `import`.
+
+**For the design (interpretation).** None for A8. The book's lint
+reference (F2) should give `dropped-markup` its section, with the
+`dropped-placeholder` contrast.
+
+## E2 — `@do-not-translate` is not missing: what was built
+
+Commit `3f1eed9` on `main`, "Phase 10 E2: `@do-not-translate` messages
+are neither missing nor covered" (written on the branch
+`p10-e-silent-failures`, and cherry-picked unchanged).
+
+**The rule.** A message the source marks `@do-not-translate` needs no
+translation: it counts neither as missing (where a language lacks it) nor
+as translated (where a language copies it). Coverage is over the messages
+that need translating.
+
+**Where the count comes from.** `check::coverage_of(corpus, locale) ->
+Coverage { tag, translatable, missing }` (the source's ids less its
+do-not-translate ones; those the locale lacks, in manifest order). The
+`missing-translation` lint uses it, and the build's `Outcome` carries one
+per locale in a new `#[doc(hidden)]` field, `coverage`, which `mf2 stats`
+reads — one computation, so `check` and `stats` cannot disagree. Hidden,
+like `Outcome::manifest` and `catalogs`: not in `api.txt`, not promised.
+
+**Where it shows.**
+- `mf2 check` / the build: `2 of 3 messages are missing here and fall back
+  to en: apply, farewell` where it said `3 of 4 …` (text, and the same
+  diagnostic in `--format json`).
+- `mf2 stats`: the coverage and missing columns, and `--format json`'s
+  per-locale `messages` / `missing`, count only messages that need
+  translating; the header says `4 messages (1 marked @do-not-translate)`,
+  and the JSON gains a top-level `do_not_translate`. The catalog's own
+  `missing` / `fallbacks` (what it carries) are unchanged.
+- **XLIFF export: no change needed.** A do-not-translate unit is already
+  `translate="no"` with no `<target>` — XLIFF 2.1's own examples do exactly
+  that (the spec §5.9.8.1, vendored), and tools leave such units out of
+  their counts. A test now asserts the unit has no target.
+- **JSON export: no change.** It writes a language's own messages, with
+  no count: a do-not-translate message the language lacks is not in it,
+  and a copy it has is exported as it stands (on import, E3's checks hold
+  the copy to its source through the `do-not-translate` lint). *This is an
+  interpretation of the work order's "JSON and XLIFF exports": if it meant
+  that `mf2 export` of the source language should leave such messages out
+  of the file a translation tool counts, that is a small follow-up — not
+  done, to keep the export a faithful copy of a language.*
+
+**Also: the mark on a section or a file now covers its entries** in every
+check (the resource loader adds the property to each entry under a
+`@do-not-translate` section head or resource). XLIFF export already treated
+it so (§6.3: `translate="no"` on the file, group or unit); `check` read
+only an entry's own properties, so a `[language]` section marked once
+would still have counted as missing. Consequence: the `do-not-translate`
+lint and `mf2 pseudo`'s copy-as-is now also apply to such entries.
+
+| Test | What it proves | Result |
+|---|---|---|
+| `tests/drift.rs` `do_not_translate_messages_are_neither_missing_nor_covered` (new) | the review's case: en has 4 messages, 1 `@do-not-translate`; fr has 1 → "2 of 3 missing: apply, farewell", `coverage[fr] = (3 translatable, 1 translated)`; the source's coverage has nothing missing; fr copying the do-not-translate message → still 1 of 3 translated; a `@do-not-translate` `[language]` section → fr lacking it reports nothing | PASS |
+| `tests/commands.rs` `do_not_translate_messages_are_not_missing` (new) | through the binary: `check` text "2 of 3 …"; `stats` header "4 messages (1 marked @do-not-translate)", rows fr `33.3%` / `2` and en `100.0%` / `0`; `stats --format json`: `messages` 4, `do_not_translate` 1, fr `messages` 1, `missing` 2 | PASS |
+| `tests/xliff.rs` `the_export_has_the_mapping_of_the_plan` (extended) | the do-not-translate unit `brand` is `translate="no"` and has no `<target>` | PASS |
+| existing `stats_reports_coverage_sizes_and_the_pins`, `check_names_the_first_missing_translations`, the drift table, the workload round trips | nothing else moved | PASS |
+
+**Commands run** (on the branch, `CARGO_BUILD_JOBS=2`): `cargo test -p
+mf2-build`, `cargo test -p mf2-cli` (all pass), `cargo clippy -p mf2-build
+-p mf2-cli --all-targets -- -D warnings`, `cargo fmt --all --check`,
+`cargo xtask docs --no-build`; every corpus in the tree re-checked with
+the new binary (same results as before E2). What ran on `main` with the
+three applied is in E3's record.
+
+**Verdict:** done — the review's case reads "2 of 3" (test), in `check`
+and `stats`, text and JSON.
+
+**Found along the way (interpretation, brief).** A do-not-translate
+message a language lacks is served from the source's catalog, so under
+`mark-fallback-lang` it is wrapped `<span lang="en">` — wrong for a
+language's own name (`Français` read with English rules). The book's
+pattern (each language file copies the names) avoids that; the switcher's
+own `lang` handling may too. Not changed; worth a look when D4 builds the
+options component driven by `language.<tag>` messages.
+
+## E3 — `import` checks what it writes: what was built
+
+Commit `894c0c4` on `main`, "Phase 10 E3: `mf2 import` checks what it
+would write, and writes nothing on an error it brings" (written on the
+branch `p10-e-silent-failures`, and cherry-picked unchanged).
+
+**Plan → check → write.** Both formats first make the files in memory
+(`exchange::Rewrite`; `xliff::import` now returns its rewrites and
+refusals — `plan_target` — instead of writing). Then `checked()` copies
+`locales/` into a scratch directory, puts the rewritten files in it, and
+runs `Build::check` on the corpus as it stands and on the copy, with
+`mf2 check`'s configuration and features (`--features`, new on `import`,
+else cargo's, the same function `check` uses) and `Emit::Module`, so
+nothing is compressed. The findings the copy has and the corpus does not
+(a finding keyed by level, locale, id, lint, error kind and message — not
+by line, which a rewrite moves; the copy's paths mapped back) are printed
+as `check` prints them. **Any error among them: nothing is written**,
+`mf2 import: N error(s) that fr does not have now; nothing was written`,
+exit 1. Otherwise the files are written, the new warnings printed, and the
+summary is as before.
+
+**"Brings", not "has" — a decision.** An error already in the files does
+not stop an import that adds none: another language's error, or one raised
+only because cargo could not name the features on a translator's machine
+(`check` then checks with none, and `:currency` is an error there — before
+and after alike). The review's case is an error the import brings.
+
+**JSON and new ids — a decision.** The work order allows either adding
+them or naming XLIFF. JSON import keeps plans/05 §6's rule (a new message
+needs a file and a section, which flat JSON does not carry; XLIFF does,
+and adds them there) — but a left-out id is now a **refusal**: `mf2
+import: 1 message(s) fr does not have yet were left out: farewell; JSON
+import changes the messages a language has, and XLIFF adds the others
+where the source has them (`mf2 export fr --format xliff`)`, exit 1 after
+writing the rest (as XLIFF's unit refusals do). An id the source lacks is
+named apart. XLIFF's unit-by-unit refusals (§6.3) are unchanged; what they
+leave is checked like the rest. A flat-JSON *locale* is still replaced by
+the document (unchanged).
+
+| Test | What it proves | Result |
+|---|---|---|
+| `tests/commands.rs` `import_refuses_what_check_would_refuse` (new) | the review's `$nom` case (JSON): exit 1, `$nom is not an input of the source message … (in greeting, locale fr) [undeclared-variable]`, "nothing was written", file byte-identical; **negative control:** a clean `Salut, {$name} !` lands; an existing `$nom` in another message does not stop a clean import | PASS |
+| `tests/commands.rs` `import_names_xliff_for_messages_a_language_lacks` (new) | a new id is left out and XLIFF named, an id the source lacks named apart, exit 1, the rest written | PASS |
+| `tests/xliff.rs` `import_refuses_a_translation_that_drops_markup` (new) | the review's `terms` case (XLIFF): the target without the link's `<pc>` is refused (`[dropped-markup]`, nothing written); **negative control:** with the `<pc>` kept it lands, `0 message(s) changed, 1 added` | PASS |
+| `xliff.rs` unit test `without_the_data_check_an_edited_code_lands` (adapted) | the negative control for `xliff-code-edited` still holds, on the returned rewrites | PASS |
+| every existing import test (round trips of the reference workload, each `xliff-*` code, the JSON round trip, the book's `import --dry-run`) | unchanged behavior where nothing is wrong | PASS |
+
+**Cost, measured:** `mf2 import pl pl.json --dry-run` on the 1,600-message
+reference workload (4 locales), one message changed, debug build: 1.18 s
+wall, load average ≈ 11 (other forks building). For scale, `mf2 check
+--features fn-number` on the same corpus took 20.1 s under the same load —
+it compresses every catalog with brotli 11 in a debug build (the review's
+#18; C6's business), which the import's checks skip.
+
+**Commands run** (on the branch, `CARGO_BUILD_JOBS=2`): `cargo test -p
+mf2-cli` (all 106 pass), `cargo test -p mf2-build`, `cargo clippy -p
+mf2-build -p mf2-cli --all-targets -- -D warnings`, `cargo fmt --all
+--check`, `MF2_CLI_API_WRITE=1 cargo test -p mf2-cli --bin mf2 api_txt`
+(`crates/mf2-cli/api.txt` gains `--features <LIST>` under `mf2 import`),
+`cargo xtask docs --no-build` (the book's `import` output is unchanged).
+
+**On `main`, the three together** (picked onto `c0c1d43` without a
+conflict, 2026-09-28; `CARGO_BUILD_JOBS=3`): `cargo xtask ci` green, first
+run — no test failed, `mf2-catalog`'s timing test `linear.rs` included;
+`api --check` "18 listings unchanged"; `package --check` "lists
+unchanged". The full `cargo xtask docs` green: every sample compiled, the
+samples' translation crates rebuilt against the new `mf2-build`. The corpora
+`main` gained since `8f6569e` pass the new checks: `mf2 check --features
+fn-number,fn-datetime,datetime-icu` on `examples/tui/i18n` and
+`probes/p10-{ambient,single-crate,tr-in-crate}` reports nothing
+(`probes/p10-links` holds only English, with nothing to compare).
+
+**Verdict:** done — the review's `$nom` case refused; a negative control
+per format; JSON names XLIFF.
+
+**For the design (interpretation).** F3 (the translator workflow) can now
+say: import checks, XLIFF adds, JSON edits.
 
 ## Part F — the 2.0 book (F1 with or after C8; the rest after D6)
 
