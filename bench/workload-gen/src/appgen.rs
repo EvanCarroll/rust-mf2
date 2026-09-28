@@ -447,7 +447,7 @@ lib-features = ["hydrate"]
 lib-default-features = false
 lib-profile-release = "wasm-release"
 
-# Standalone: not a member of the mf2-two workspace.
+# Standalone: not a member of the rust-mf2 workspace.
 [workspace]
 "#,
         summary = wl.knobs.summary(),

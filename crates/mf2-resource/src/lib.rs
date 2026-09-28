@@ -3,7 +3,7 @@
 //! type.
 //!
 //! Unicode defines no file format for MF2; its specification leaves that to
-//! a future message resource specification. mf2-two adopts the draft being
+//! a future message resource specification. rust-mf2 adopts the draft being
 //! written for it, incubated by the W3C i18n WG.
 //!
 //! ```text

@@ -1,4 +1,4 @@
-# mf2-two
+# Rust MF2
 
 Unicode MessageFormat 2 (MF2) for [Leptos](https://leptos.dev): the full
 specification, one small binary catalog per language loaded when it is

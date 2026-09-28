@@ -1,4 +1,4 @@
-//! `mf2-runtime` — the MessageFormat 2 evaluator of mf2-two: it formats a message **from a catalog**, walking
+//! `mf2-runtime` — the MessageFormat 2 evaluator of rust-mf2: it formats a message **from a catalog**, walking
 //! `mf2-catalog`'s views in place — resolution, declarations (lazily, each at
 //! most once), selection, fallback, the Default Bidi Strategy, format to
 //! parts, markup, the `u:` options — and it holds the function registry, the

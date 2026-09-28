@@ -1,6 +1,6 @@
 # Changelog
 
-Every mf2-two crate is released together, at one version, so this one file
+Every rust-mf2 crate is released together, at one version, so this one file
 covers them all. Newest first. What a version number promises is in
 [`docs/versioning.md`](docs/versioning.md); a release that raises the
 minimum Rust version says so here.

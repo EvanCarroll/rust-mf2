@@ -1,6 +1,9 @@
 [package]
 name = "mf2-runtime"
-description = "The MessageFormat 2 evaluator of mf2-two: formats from a .mf2b catalog (no_std, fmt-free, panic-free): resolution, selection, fallback, bidi, parts, markup, the registry and the core functions."
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The MessageFormat 2 evaluator of rust-mf2: formats from a .mf2b catalog (no_std, fmt-free, panic-free): resolution, selection, fallback, bidi, parts, markup, the registry and the core functions."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -1,6 +1,9 @@
 [package]
 name = "mf2-fn-datetime"
-description = "The MessageFormat 2 date/time functions of mf2-two — :datetime, :date, :time and unannotated date/time values: operand and option semantics, time zones, and the backends (a neutral stub, ICU4X, the browser's Intl.DateTimeFormat); no_std."
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The MessageFormat 2 date/time functions of rust-mf2 — :datetime, :date, :time and unannotated date/time values: operand and option semantics, time zones, and the backends (a neutral stub, ICU4X, the browser's Intl.DateTimeFormat); no_std."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

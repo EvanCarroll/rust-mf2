@@ -1,5 +1,5 @@
 # Built-in template `closure`: the closure-per-site control, reproducing the
-# stack mf2-two replaces (plans/06-size-and-perf.md §1, §3; plans/00 §2 gaps 6
+# stack rust-mf2 replaces (plans/06-size-and-perf.md §1, §3; plans/00 §2 gaps 6
 # and 7): a `move || lookup("id")` closure per text child and attribute,
 # `Signal::derive(move || …)` per reactive prop, a registry of
 # `fn() -> String` closures for deferred labels, message ids as strings and

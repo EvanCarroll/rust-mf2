@@ -1,4 +1,4 @@
-//! Conformance harness for mf2-two (`plans/01-conformance.md`).
+//! Conformance harness for rust-mf2 (`plans/01-conformance.md`).
 //!
 //! Loading the vendored WG suite with `defaultTestProperties` applied, the
 //! ledger key (`file`, `hash`, `nth` — see [`key`]), the ledger

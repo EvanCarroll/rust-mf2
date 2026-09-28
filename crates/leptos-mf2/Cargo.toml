@@ -1,5 +1,8 @@
 [package]
 name = "leptos-mf2"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The call-site description of a message (Tr, TrArgs, TrRich, ArgValue) and, with the `leptos` feature, its Leptos rendering: the tachys view impls, the per-locale catalog, the node registry and the locale switch."
 version.workspace = true
 edition.workspace = true

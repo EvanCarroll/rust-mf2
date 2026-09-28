@@ -63,7 +63,7 @@ const SEMVER_CHECKS: &str = "0.50.0";
 
 /// How this command names itself to crates.io's API, which requires a user
 /// agent.
-const USER_AGENT: &str = "mf2-two-release-check (cargo xtask release)";
+const USER_AGENT: &str = "rust-mf2-release-check (cargo xtask release)";
 
 /// How many times a publish stopped by crates.io's rate limit is resumed.
 const PUBLISH_ATTEMPTS: u32 = 40;
@@ -225,7 +225,7 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
     eprintln!(
         "==> release: {version} is published.\n\
          Next, by hand:\n\
-         * tag it:  git tag -a {tag} -m \"mf2-two {version}\"  (and push the tag where the \
+         * tag it:  git tag -a {tag} -m \"rust-mf2 {version}\"  (and push the tag where the \
          repository lives)\n\
          * after the first release, three sentences stop being true: README.md's status \
          (\"is not published yet\") and its \"Until 1.0.0 is on crates.io\" note, and \

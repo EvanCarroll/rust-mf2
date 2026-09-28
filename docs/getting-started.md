@@ -38,7 +38,7 @@ browser, so what you copy here is what CI builds.
 > release. The manifests on these pages name them as that release will:
 > `mf2 = "1"`, `leptos-mf2 = "1"`, `mf2-axum = "1"`,
 > `mf2-build = "1"`. Until then, replace each `"1"` with a path into a
-> checkout, for example `mf2 = { path = "../mf2-two/crates/mf2" }`. This
+> checkout, for example `mf2 = { path = "../rust-mf2/crates/mf2" }`. This
 > is what `cargo xtask docs` does when it compiles these pages.
 
 ## The shape of an application

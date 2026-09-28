@@ -130,7 +130,7 @@ tests = [
 [[statement]]
 id = "errors.md#8c38b5e0"
 says = "implementation-defined Message Function Error types are allowed"
-na = { kind = "permission", reason = "mf2-two defines none: a handler failure outside the spec's kinds is the generic Message Function Error (`FormatError::MessageFunctionError`)." }
+na = { kind = "permission", reason = "rust-mf2 defines none: a handler failure outside the spec's kinds is the generic Message Function Error (`FormatError::MessageFunctionError`)." }
 
 [[statement]]
 id = "formatting.md#a0d957dc"
@@ -278,7 +278,7 @@ tests = [
 [[statement]]
 id = "formatting.md#15fba86d"
 says = "an implementation may define functions of its own"
-na = { kind = "permission", reason = "not taken: mf2-two ships only the spec's functions; the `:test:*` functions belong to the harness" }
+na = { kind = "permission", reason = "not taken: rust-mf2 ships only the spec's functions; the `:test:*` functions belong to the harness" }
 
 [[statement]]
 id = "formatting.md#c4900edb"
@@ -352,7 +352,7 @@ na = { kind = "by-construction", reason = "`FnContext` is a `Copy` view with get
 [[statement]]
 id = "formatting.md#bccd37b4"
 says = "implementation-defined functions should live in an implementation-defined namespace"
-na = { kind = "by-construction", reason = "mf2-two defines no functions beyond the spec's, so there is nothing to namespace; the harness's own are under `test:`" }
+na = { kind = "by-construction", reason = "rust-mf2 defines no functions beyond the spec's, so there is nothing to namespace; the harness's own are under `test:`" }
 
 [[statement]]
 id = "formatting.md#50b300b9-1"
@@ -677,7 +677,7 @@ tests = [
 [[statement]]
 id = "functions/README.md#2df828a1"
 says = "functions outside the spec should have an implementation- or user-defined namespace"
-na = { kind = "not-implementation", reason = "Binds whoever names a non-spec function. mf2-two names none: its registries hold only the spec's function names, and the suite's own are `test:*`." }
+na = { kind = "not-implementation", reason = "Binds whoever names a non-spec function. rust-mf2 names none: its registries hold only the spec's function names, and the suite's own are `test:*`." }
 
 [[statement]]
 id = "functions/README.md#5241d824"
@@ -687,7 +687,7 @@ na = { kind = "permission", reason = "Not taken up: every option name the defaul
 [[statement]]
 id = "functions/README.md#c9287be8"
 says = "any such extra option has an implementation-specific namespace"
-na = { kind = "by-construction", reason = "mf2-two adds no option to a default function (functions/README.md#5241d824), so there is no extra option to namespace; the option tables that would hold one are crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs and crates/mf2-fn-datetime/src/options.rs." }
+na = { kind = "by-construction", reason = "rust-mf2 adds no option to a default function (functions/README.md#5241d824), so there is no extra option to namespace; the option tables that would hold one are crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs and crates/mf2-fn-datetime/src/options.rs." }
 
 [[statement]]
 id = "functions/README.md#78d013bf"

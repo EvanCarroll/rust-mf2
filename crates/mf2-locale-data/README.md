@@ -1,6 +1,6 @@
 # mf2-locale-data
 
-The CLDR locale data that mf2-two catalogs carry, for the build side
+The CLDR locale data that rust-mf2 catalogs carry, for the build side
 only (never linked into a client): plural rules, text direction, number
 symbols and patterns, currencies and units for every CLDR locale, and
 the per-locale entries built from them.

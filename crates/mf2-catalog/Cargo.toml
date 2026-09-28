@@ -1,5 +1,8 @@
 [package]
 name = "mf2-catalog"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The .mf2b binary catalog: a no_std client reader and (features) the writer, the model-rebuilding decoder and the manifest file."
 version.workspace = true
 edition.workspace = true

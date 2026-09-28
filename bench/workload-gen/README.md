@@ -297,7 +297,7 @@ bound, where the optimiser merges sites a real application keeps apart (P0.1
 measured `dummy` 11.4 B gz per site smaller than `idlit`, which is why
 `idlit` is the baseline).
 
-**`tr`** — mf2-two itself — is not a built-in but a directory,
+**`tr`** — rust-mf2 itself — is not a built-in but a directory,
 `bench/workload-gen/templates/tr`, because it carries the i18n crate its app
 depends on (`i18n/`, pointed at the generated workload through
 `MF2_WORKLOAD_LOCALES`) and names it with `{{template_dir}}`. Use it as

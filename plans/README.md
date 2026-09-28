@@ -1,6 +1,6 @@
 # plans/
 
-Planning documents for **mf2-two**. Start with the master plan; it is the single
+Planning documents for **rust-mf2**. Start with the master plan; it is the single
 source of truth and links to everything else.
 
 | Order | Document | Read it when |

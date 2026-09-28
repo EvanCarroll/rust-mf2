@@ -1,5 +1,5 @@
 //! `mf2-model` — the Unicode MessageFormat 2 (MF2) interchange data model as
-//! Rust types, plus the identities and error kinds every mf2-two crate shares
+//! Rust types, plus the identities and error kinds every rust-mf2 crate shares
 //! and the [`Frontend`] trait a parser implements.
 //!
 //! The data model's structs mirror the specification's `message.json` field

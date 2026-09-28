@@ -8,7 +8,7 @@ use clap::{Args, Parser, Subcommand};
 use workload_gen::model::canary;
 use workload_gen::{Error, Format, Knobs, Template, Workload, locale, repo_root, stats, suite};
 
-/// Deterministic generator of the mf2-two reference workload
+/// Deterministic generator of the rust-mf2 reference workload
 /// (plans/06-size-and-perf.md §2).
 #[derive(Debug, Parser)]
 #[command(name = "workload-gen", version)]

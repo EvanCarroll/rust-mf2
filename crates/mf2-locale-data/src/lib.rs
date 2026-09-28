@@ -1,4 +1,4 @@
-//! `mf2-locale-data` — the locale data mf2-two catalogs carry, build side
+//! `mf2-locale-data` — the locale data rust-mf2 catalogs carry, build side
 //! only: never linked into a client.
 //!
 //! The crate ships its data, derived from Unicode CLDR, in `data/`: a build

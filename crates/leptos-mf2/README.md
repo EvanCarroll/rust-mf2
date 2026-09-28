@@ -1,6 +1,6 @@
 # leptos-mf2
 
-The Leptos side of mf2-two: what a `tr!` call site builds (`Tr`,
+The Leptos side of rust-mf2: what a `tr!` call site builds (`Tr`,
 `TrArgs`, `TrRich`, `ArgValue`) and, with a Leptos target feature
 (`ssr`, `hydrate` or `csr`), how it renders — in text, attributes and
 props — together with the per-locale catalog, the live locale switch,

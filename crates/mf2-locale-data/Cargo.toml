@@ -1,6 +1,9 @@
 [package]
 name = "mf2-locale-data"
-description = "CLDR locale data for mf2-two catalogs (build side): all-locale plural, direction, number, currency and unit tables and the LOCALE entries built from them."
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "CLDR locale data for rust-mf2 catalogs (build side): all-locale plural, direction, number, currency and unit tables and the LOCALE entries built from them."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -1,4 +1,4 @@
-//! Repository automation for mf2-two (`cargo xtask <command>`).
+//! Repository automation for rust-mf2 (`cargo xtask <command>`).
 //!
 //! Network access happens only in the `*-sync` commands, and only to the
 //! upstreams named in `third_party/*/PIN` (see `CLAUDE.md`, "Boundary").
@@ -46,7 +46,7 @@ use clap::{Parser, Subcommand};
 
 use crate::error::{Error, Result};
 
-/// Repository automation for mf2-two.
+/// Repository automation for rust-mf2.
 #[derive(Parser)]
 #[command(name = "xtask", version, about)]
 struct Cli {

@@ -1,4 +1,4 @@
-//! `mf2-fn-number` — the localized numeric functions of mf2-two: the
+//! `mf2-fn-number` — the localized numeric functions of rust-mf2: the
 //! runtime's numeric core
 //! (`mf2_runtime::NumberSpec`, `Number::resolve`) resolves — operand rules,
 //! every digit and rounding option, `signDisplay`, inheritance, selection —

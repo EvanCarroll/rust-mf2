@@ -1,5 +1,8 @@
 [package]
 name = "mf2-cli"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The `mf2` command: check, compile, fmt, stats, dump, pseudo, export/import and watch a MessageFormat 2 corpus."
 version.workspace = true
 edition.workspace = true

@@ -1,4 +1,4 @@
-# mf2-two — master plan
+# rust-mf2 — master plan
 
 **Unicode MessageFormat 2 for Leptos: full spec, lazy-loaded locales, minimal wasm.**
 
@@ -117,7 +117,7 @@ agree on is covered by `manifest_hash`.
 One Cargo workspace; every crate lives here.
 
 ```
-mf2-two/
+rust-mf2/
 ├── Cargo.toml                  workspace: edition 2024, resolver 3, shared lints,
 │                               [workspace.dependencies] at latest versions, wasm size profile
 ├── rust-toolchain.toml         stable + wasm32-unknown-unknown (+ wasm32-wasip1 for L4)

@@ -168,7 +168,7 @@ ABNF, a TypeScript data model and a JSON Schema). It is a prerequisite for the
 DOM Localization proposal. Status: an explainer under incubation — **not a
 standard, and it can change.**
 
-mf2-two adopts it rather than inventing a container: it is the only candidate
+rust-mf2 adopts it rather than inventing a container: it is the only candidate
 with standards backing, it is designed around MF2's multi-line messages, and it
 is nearly what we would have designed anyway.
 

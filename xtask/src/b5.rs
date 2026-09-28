@@ -10,7 +10,7 @@
 //! marginal = (Δ@big − Δ@small) / (sites@big − sites@small),  Δ = tr − baseline
 //! ```
 //!
-//! Three templates: `tr` (mf2-two), `idlit` (the baseline: a `String` from a
+//! Three templates: `tr` (rust-mf2), `idlit` (the baseline: a `String` from a
 //! short per-site literal, in the same positions) and `dummy` (the harshest
 //! bound: the same literal everywhere, which lets the optimiser merge sites a
 //! real application keeps apart).

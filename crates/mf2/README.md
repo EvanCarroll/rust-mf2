@@ -1,7 +1,7 @@
 # mf2
 
 Unicode MessageFormat 2 for [Leptos](https://leptos.dev): the one crate an
-application's code names. It re-exports the public API of the mf2-two
+application's code names. It re-exports the public API of the rust-mf2
 crates and carries the feature flags that choose what a build includes:
 localized numbers (`fn-number`), dates (`fn-datetime` and a backend),
 the host (`host-std` on a server, `host-web` in the browser), the Leptos

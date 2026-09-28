@@ -1,5 +1,8 @@
 [package]
 name = "mf2-build"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The MessageFormat 2 build pipeline: loaders, mf2.toml, the manifest, lints, per-locale catalogs and the generated Rust module."
 version.workspace = true
 edition.workspace = true

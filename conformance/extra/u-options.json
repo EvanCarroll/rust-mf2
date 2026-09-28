@@ -1,7 +1,7 @@
 {
   "$schema": "../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
   "scenario": "Unicode namespace options",
-  "description": "mf2-two's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers): u:id and u:dir set from a variable, or to a value outside their definition (spec/u-namespace.md).",
+  "description": "rust-mf2's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers): u:id and u:dir set from a variable, or to a value outside their definition (spec/u-namespace.md).",
   "defaultTestProperties": {
     "bidiIsolation": "none",
     "locale": "en-US",

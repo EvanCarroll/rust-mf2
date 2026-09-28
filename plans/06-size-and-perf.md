@@ -2,7 +2,7 @@
 
 Part of the [master plan](00-master-plan.md). RFC 2119 keywords apply.
 
-**The budget is the feature.** mf2-two exists because i18n stacks bloat the
+**The budget is the feature.** rust-mf2 exists because i18n stacks bloat the
 wasm. Every number here is enforced by CI, or is a Phase 0 probe whose result
 replaces an estimate. Anything marked *estimate* MUST be replaced by a
 measurement before Phase 1 begins.

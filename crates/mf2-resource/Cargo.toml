@@ -1,5 +1,8 @@
 [package]
 name = "mf2-resource"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The W3C Message Resource container for MessageFormat 2: parser, serializer and data model, generic over the message type (no_std)."
 version.workspace = true
 edition.workspace = true

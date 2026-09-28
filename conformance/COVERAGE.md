@@ -58,7 +58,7 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 | Line | Key words | Statement | Covered by |
 |---:|---|---|---|
 | 289 | SHOULD | function handlers should be able to report every Message Function Error type *The public `Function` trait gets an `ErrorSink` taking every `FormatError`; the cited tests show bad-option and bad-operand from `:test:function` (written against the public trait), bad-variant-key from `:number`, unsupported-operation from `:unit`.* | `fallback.json` #0, `fallback.json` #1, `crates/mf2-runtime/tests/format.rs::selection`, `extra/functions/unit.json` #20 |
-| 289 | MAY | implementation-defined Message Function Error types are allowed | n/a (permission): mf2-two defines none: a handler failure outside the spec's kinds is the generic Message Function Error (`FormatError::MessageFunctionError`). |
+| 289 | MAY | implementation-defined Message Function Error types are allowed | n/a (permission): rust-mf2 defines none: a handler failure outside the spec's kinds is the generic Message Function Error (`FormatError::MessageFunctionError`). |
 
 ## `formatting.md`
 
@@ -113,7 +113,7 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 
 | Line | Key words | Statement | Covered by |
 |---:|---|---|---|
-| 376 | MAY | an implementation may define functions of its own | n/a (permission): not taken: mf2-two ships only the spec's functions; the `:test:*` functions belong to the harness |
+| 376 | MAY | an implementation may define functions of its own | n/a (permission): not taken: rust-mf2 ships only the spec's functions; the `:test:*` functions belong to the harness |
 | 376 | MAY | users may be allowed to define custom functions *taken: the public `Function` trait; the suite's `:test:*` functions are written against it and nothing else* | `pattern-selection.json` #9, `fallback.json` #0, `crates/mf2-runtime/tests/additions.rs::measure_values` |
 | 379 | MUST | custom handlers must be able to return values usable as operands and option values of later expressions | `pattern-selection.json` #9, `pattern-selection.json` #10, `crates/mf2-runtime/tests/additions.rs::measure_values`, `extra/formatting.json` #0, `extra/formatting.json` #1 |
 | 384 | MAY | a handler's resolved value may differ from its operand *taken: `:integer` rounds, `:offset` adds* | `functions/integer.json` #6, `functions/offset.json` #7 |
@@ -122,7 +122,7 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 | 389 | MAY | the options a value carries may differ from those written on the function | n/a (permission): a freedom with no required observable; ours carry the options written plus those the function implies (e.g. `:integer`'s rounding) |
 | 392 | SHOULD | a handler should report Bad Operand for an operand value or type it does not support | `functions/datetime.json` #1, `functions/currency.json` #3, `extra/functions/unit.json` #3, `functions/number.json` #29 |
 | 396 | SHOULD, MUST | handlers get minimal, read-only access to the formatting context, and should run in bounded time | n/a (by-construction): `FnContext` is a `Copy` view with getters only (locale, `u:dir`, host, catalog, time zone); the built-in handlers do bounded work per value — the `format` fuzz target runs them |
-| 399 | SHOULD | implementation-defined functions should live in an implementation-defined namespace | n/a (by-construction): mf2-two defines no functions beyond the spec's, so there is nothing to namespace; the harness's own are under `test:` |
+| 399 | SHOULD | implementation-defined functions should live in an implementation-defined namespace | n/a (by-construction): rust-mf2 defines no functions beyond the spec's, so there is nothing to namespace; the harness's own are under `test:` |
 
 ### Markup Resolution
 
@@ -194,9 +194,9 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 | 45 | RECOMMENDED, SHOULD | options marked recommended should be accepted *`usage` on :unit is accepted (no Bad Option) and reports Unsupported Operation, since conversion is not implemented; `calendar` on the date/time functions is accepted and applied by the ICU4X backend.* | `extra/functions/unit.json` #20, `crates/mf2-fn-datetime/tests/format.rs::every_option_value` |
 | 47 | MAY | functions the spec does not define may be accepted *Any function registered in the `Registry` is accepted; the suite's `:test:*` functions are.* | `pattern-selection.json` #0, `fallback.json` #0, `crates/mf2-runtime/tests/additions.rs::percent_on_the_public_core` |
 | 47 | SHOULD | users should be able to register and use their own functions and handlers *`Registry::new` over `(name, &dyn Function)`; the suite's test functions are written against the public trait only (conformance/l4-runner/src/test_functions.rs).* | `pattern-selection.json` #0, `crates/mf2-runtime/tests/additions.rs::percent_on_the_public_core`, `crates/mf2-runtime/tests/additions.rs::measure_values` |
-| 47 | SHOULD | functions outside the spec should have an implementation- or user-defined namespace | n/a (not-implementation): Binds whoever names a non-spec function. mf2-two names none: its registries hold only the spec's function names, and the suite's own are `test:*`. |
+| 47 | SHOULD | functions outside the spec should have an implementation- or user-defined namespace | n/a (not-implementation): Binds whoever names a non-spec function. rust-mf2 names none: its registries hold only the spec's function names, and the suite's own are `test:*`. |
 | 53 | MAY | extra non-spec options on default functions are allowed | n/a (permission): Not taken up: every option name the default handlers read is the spec's (crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs, crates/mf2-fn-datetime/src/options.rs); other names are ignored. |
-| 53 | MUST | any such extra option has an implementation-specific namespace | n/a (by-construction): mf2-two adds no option to a default function (functions/README.md#5241d824), so there is no extra option to namespace; the option tables that would hold one are crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs and crates/mf2-fn-datetime/src/options.rs. |
+| 53 | MUST | any such extra option has an implementation-specific namespace | n/a (by-construction): rust-mf2 adds no option to a default function (functions/README.md#5241d824), so there is no extra option to namespace; the option tables that would hold one are crates/mf2-runtime/src/number/options.rs, crates/mf2-fn-number/src/measure.rs and crates/mf2-fn-datetime/src/options.rs. |
 | 57 | MAY | non-spec values for spec options may be accepted | n/a (permission): Not taken up: a value outside an option's defined set is Bad Option and the option is ignored (functions/number.json #28, extra/functions/unit.json #18, crates/mf2-fn-datetime/tests/format.rs::bad_option_values). |
 | 57 | NOT RECOMMENDED | implementation-specific option values for default functions are discouraged *None supported: an undefined value is Bad Option.* | `functions/number.json` #28, `functions/offset.json` #3, `extra/functions/unit.json` #18, `crates/mf2-fn-datetime/tests/format.rs::bad_option_values` |
 | 64 | MAY | operands and options may take values of implementation-defined types *Taken up: numeric arguments (integer, float, decimal), date/time arguments, an application's measure value, and a digit size option given as a number.* | `functions/number.json` #24, `crates/mf2-runtime/tests/additions.rs::date_time_arguments`, `crates/mf2/tests/call_site.rs::an_application_value_reaches_a_function_as_its_measure` |

@@ -1,5 +1,8 @@
 [package]
 name = "mf2-model"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The Unicode MessageFormat 2 interchange data model, MsgId, the shared error kinds and the Frontend trait (no_std)."
 version.workspace = true
 edition.workspace = true

@@ -1,4 +1,4 @@
-//! `mf2-syntax` — MessageFormat 2 syntax for mf2-two: a parser to a lossless
+//! `mf2-syntax` — MessageFormat 2 syntax for rust-mf2: a parser to a lossless
 //! concrete syntax tree with error recovery, lowering to the data model of
 //! [`mf2_model`], the six Data Model Errors, a serializer back to MF2 source,
 //! and the variable analysis the build's manifest needs.

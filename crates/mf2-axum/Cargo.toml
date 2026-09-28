@@ -1,5 +1,8 @@
 [package]
 name = "mf2-axum"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Locale negotiation and catalog serving for an Axum + Leptos application: an ordered list of typed sources and sinks, Content-Language and Vary, and /i18n/* served immutable from the catalogs embedded in the server binary."
 version.workspace = true
 edition.workspace = true

@@ -1,5 +1,8 @@
 [package]
 name = "mf2-syntax"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "MessageFormat 2 syntax: a lossless-CST parser with recovery, lowering to the data model, validation, serializer and analysis (no_std)."
 version.workspace = true
 edition.workspace = true

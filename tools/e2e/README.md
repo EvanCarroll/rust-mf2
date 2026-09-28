@@ -1,4 +1,4 @@
-# tools/e2e — browser checks for mf2-two
+# tools/e2e — browser checks for rust-mf2
 
 The permanent Playwright harness (master plan §4). It drives a **running** app
 in real browsers and asserts on what a user or a crawler would see: console

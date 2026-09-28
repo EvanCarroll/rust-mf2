@@ -1,4 +1,4 @@
-//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of mf2-two:
+//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of rust-mf2:
 //! `:datetime`, `:date`, `:time`, and the handler that formats unannotated
 //! date/time values. The semantics — operands, options, errors, time zones
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into

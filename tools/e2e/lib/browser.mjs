@@ -1,4 +1,4 @@
-// Shared helpers for mf2-two browser checks: browser launch with executable
+// Shared helpers for rust-mf2 browser checks: browser launch with executable
 // discovery, console capture, network + Resource Timing collection.
 
 import { chromium, firefox, webkit } from 'playwright';

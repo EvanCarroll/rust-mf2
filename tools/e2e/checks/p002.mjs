@@ -20,7 +20,7 @@ import {
 // Fixture text (the probe's hand-built catalogs).
 const T = {
   en: {
-    title: 'mf2-two vertical slice',
+    title: 'rust-mf2 vertical slice',
     home: 'Home',
     welcome: 'Welcome! Every string on this page comes from a lazily loaded catalog.',
     placeholder: 'Type to search…',
@@ -36,7 +36,7 @@ const T = {
     navLabel: 'Main',
   },
   ar: {
-    title: 'الشريحة العمودية لـ mf2-two',
+    title: 'الشريحة العمودية لـ rust-mf2',
     home: 'الرئيسية',
     welcome: 'مرحبًا! كل نص في هذه الصفحة يأتي من فهرس يُحمَّل عند الحاجة.',
     placeholder: 'اكتب للبحث…',

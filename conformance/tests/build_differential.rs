@@ -59,7 +59,7 @@ fn build_one(
     // runtime's Unknown Function; that is a lint, not a catalog difference.
     // The suite exercises the *runtime's* errors on purpose: functions
     // nothing provides, `select` taken from a variable, option values that
-    // are not what the option takes. mf2-two refuses all three in a real
+    // are not what the option takes. rust-mf2 refuses all three in a real
     // corpus (plans/05 §5), but that is policy — this differential is about
     // the catalog, so the three lints are turned down here.
     for lint in [

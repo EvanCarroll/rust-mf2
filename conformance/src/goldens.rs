@@ -255,7 +255,7 @@ pub fn render(family: &Family) -> Result<String, String> {
     let mut out = String::new();
     let _ = writeln!(
         out,
-        "# mf2-two locale-output goldens: {} — {}.",
+        "# rust-mf2 locale-output goldens: {} — {}.",
         family.name, family.about
     );
     out.push_str(

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// mf2-two browser checks. One script per check under checks/; the app under
+// rust-mf2 browser checks. One script per check under checks/; the app under
 // test must already be running at --base-url.
 //
 //   node run.mjs <check> [--base-url URL] [--browser chromium|firefox|webkit|all]

@@ -1,4 +1,4 @@
-# Built-in template `tr`: mf2-two as an application uses it — `tr!` at every
+# Built-in template `tr`: rust-mf2 as an application uses it — `tr!` at every
 # call site, against the corpus of the same generated workload
 # (plans/06-size-and-perf.md §3, budget B5; plans/13-phase-5b-work-order.md A6).
 #
@@ -17,7 +17,7 @@
 # Format: see bench/workload-gen/README.md.
 
 name = "tr"
-description = "mf2-two: tr! per call site, formatted through one shared helper (budget B5)."
+description = "rust-mf2: tr! per call site, formatted through one shared helper (budget B5)."
 support = "support.rs"
 # `default-features = false` on the i18n crate, whose default is `ssr`: the
 # client must not build the server's half. (This template picks its host by

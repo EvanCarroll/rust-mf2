@@ -1,4 +1,4 @@
-# mf2-two
+# rust-mf2
 
 Unicode MessageFormat 2 (MF2) for Leptos: the full spec, lazily loaded per-locale
 binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: MIT.

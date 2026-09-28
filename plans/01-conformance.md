@@ -2,7 +2,7 @@
 
 Part of the [master plan](00-master-plan.md). RFC 2119 keywords apply.
 
-**Principle.** mf2-two implements *all* of Unicode MessageFormat 2 (MF2), never a
+**Principle.** rust-mf2 implements *all* of Unicode MessageFormat 2 (MF2), never a
 subset. The proof is the official test suite from
 `unicode-org/message-format-wg`, and that proof MUST be re-established at every
 layer of the stack — it is not enough that a parser somewhere passes it. A
@@ -286,7 +286,7 @@ The harness fails when:
    earlier — the first commit of a phase's exit bumps `current_phase`, and must
    leave the harness green;
 5. a test is `skip`ped by tag. **Tags are not a skip reason.** `:currency`,
-   `:percent`, `u:dir`, `u:id` mark optional spec features; mf2-two implements
+   `:percent`, `u:dir`, `u:id` mark optional spec features; rust-mf2 implements
    all of them;
 6. an `until` is later than its layer's deadline in §3 (a ledger cannot
    quietly postpone a layer);

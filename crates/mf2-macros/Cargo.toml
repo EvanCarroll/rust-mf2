@@ -4,6 +4,9 @@
 # manifest's absolute path and hash baked in.
 [package]
 name = "mf2-macros"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "The tr! proc-macro: a call site checked against the manifest at compile time and lowered to a positional description of the message."
 version.workspace = true
 edition.workspace = true

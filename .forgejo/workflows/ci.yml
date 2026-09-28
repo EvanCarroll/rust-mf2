@@ -1,4 +1,4 @@
-# CI for mf2-two (plans/07-phase-0-work-order.md, task A6; plans/08, A9).
+# CI for rust-mf2 (plans/07-phase-0-work-order.md, task A6; plans/08, A9).
 #
 # Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
 # job checks (cargo fmt --check, clippy -D warnings — natively, and for

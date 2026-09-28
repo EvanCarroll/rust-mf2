@@ -1,5 +1,5 @@
 //! `mf2` — Unicode MessageFormat 2 for Leptos: the crate an application
-//! starts from. It re-exports the public API of the mf2-two crates and
+//! starts from. It re-exports the public API of the rust-mf2 crates and
 //! carries the application's feature flags; it has no logic of its own
 //! beyond [`compile_str`] and the call-site core. Beside it, an application
 //! names `leptos-mf2` (the Leptos mode and line), `mf2-axum` (the server),

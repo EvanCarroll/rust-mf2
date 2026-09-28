@@ -1,7 +1,7 @@
 # mf2-model
 
 The Unicode MessageFormat 2 interchange data model as Rust types, and the
-identities (`MsgId`, `Dir`), error kinds and `Frontend` trait the mf2-two
+identities (`MsgId`, `Dir`), error kinds and `Frontend` trait the rust-mf2
 crates share. `no_std`; with `serde`, JSON in the data model's
 interchange shape.
 

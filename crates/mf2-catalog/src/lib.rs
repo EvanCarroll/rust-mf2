@@ -1,4 +1,4 @@
-//! `mf2-catalog` — the `.mf2b` binary catalog of mf2-two: one locale's
+//! `mf2-catalog` — the `.mf2b` binary catalog of rust-mf2: one locale's
 //! messages and locale data, as a lossless encoding of the MF2 data model that the client reads in place.
 //!
 //! An application meets one type of this crate: [`Catalog`], a loaded

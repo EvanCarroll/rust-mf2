@@ -1,4 +1,4 @@
-# Template `tr-view`: mf2-two with the **real leaf** — a description renders
+# Template `tr-view`: rust-mf2 with the **real leaf** — a description renders
 # itself (plans/06-size-and-perf.md §3, budget B5;
 # plans/14-phase-6-work-order.md A7).
 #
@@ -17,7 +17,7 @@
 # Format: see bench/workload-gen/README.md.
 
 name = "tr-view"
-description = "mf2-two with the real leaf: a description renders itself in the view positions (budget B5, the whole mix)."
+description = "rust-mf2 with the real leaf: a description renders itself in the view positions (budget B5, the whole mix)."
 support = "support.rs"
 # `default-features = false` on the i18n crate: its default is `ssr`, and with
 # `ssr` on, the generated module's `host::HOST` is the *server's* host — jiff's

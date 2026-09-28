@@ -1,6 +1,9 @@
 [package]
 name = "mf2-fn-number"
-description = "The localized numeric functions of mf2-two (feature fn-number): locale symbols, grouping and numbering systems over the runtime's numeric core, and :percent, :currency, :unit (no_std, fmt-free, panic-free)."
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The localized numeric functions of rust-mf2 (feature fn-number): locale symbols, grouping and numbering systems over the runtime's numeric core, and :percent, :currency, :unit (no_std, fmt-free, panic-free)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

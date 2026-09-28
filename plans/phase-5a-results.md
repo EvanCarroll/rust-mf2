@@ -135,7 +135,7 @@ with the same verdict `compile_str` reaches.
 Three lints are turned down for the differential and only there:
 `unknown-function`, `dynamic-select` and `bad-option-value`. The suite has
 messages that use all three on purpose, to exercise the *runtime's* errors;
-mf2-two refuses them in a real corpus by policy (05 §5), which is not what
+rust-mf2 refuses them in a real corpus by policy (05 §5), which is not what
 this differential is about. The slicer does not rely on any of them: a
 `select` taken from a variable carries both plural rule sets rather than
 guessing.
