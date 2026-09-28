@@ -1,7 +1,7 @@
 # Versions and what 1.x promises
 
-Every crate of mf2-two is released together, at one version: `mf2 1.2.0`
-goes with `leptos-mf2 1.2.0` and `mf2-build 1.2.0`, and each asks for the
+Every crate of rust-mf2 is released together, at one version: `mf2 1.1.0`
+goes with `leptos-mf2 1.1.0` and `mf2-build 1.1.0`, and each asks for the
 others at exactly that version. An application names the few crates it
 uses (`mf2`, `mf2-build`, `mf2-cli`, `leptos-mf2`, `mf2-axum`) at the same
 version, and `cargo update` moves them together.

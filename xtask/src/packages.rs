@@ -1,5 +1,5 @@
 //! The published packages' metadata (plans/17-phase-9-work-order.md, A1):
-//! exactly the 16 library crates are publishable, at one version, each with
+//! exactly the 18 library crates are publishable, at one version, each with
 //! what crates.io shows, and every dependency between two of them is an
 //! exact requirement — the generated module, the macro and the runtime share
 //! `#[doc(hidden)]` items that the version policy exempts from semver, so
@@ -11,7 +11,7 @@
 //! that use one are left out of the package and run in the workspace (A4;
 //! `cargo xtask package`).
 //!
-//! Every one of the 16 states the one `rust-version` (A3): the MSRV
+//! Every one of the 18 states the one `rust-version` (A3): the MSRV
 //! `[workspace.package]` records and `cargo xtask msrv` measures.
 
 use std::ffi::OsStr;
@@ -23,7 +23,7 @@ use crate::cmd::{cargo, run_capture};
 use crate::error::{Error, Result};
 
 /// The crates published to crates.io (D12), and nothing else.
-pub(crate) const PUBLISHED: [&str; 16] = [
+pub(crate) const PUBLISHED: [&str; 18] = [
     "leptos-mf2",
     "mf2",
     "mf2-axum",
@@ -37,13 +37,15 @@ pub(crate) const PUBLISHED: [&str; 16] = [
     "mf2-locale-data",
     "mf2-macros",
     "mf2-model",
+    "mf2-native",
+    "mf2-ratatui",
     "mf2-resource",
     "mf2-runtime",
     "mf2-syntax",
 ];
 
 /// Every published crate's version (`[workspace.package]`).
-const VERSION: &str = "1.0.0";
+const VERSION: &str = "1.1.0";
 
 /// The licence of a crate that ships data derived from CLDR.
 const CLDR_DATA: [&str; 1] = ["mf2-locale-data"];
@@ -62,7 +64,7 @@ pub(crate) fn metadata(root: &Path) -> Result<Value> {
 }
 
 /// The version the published crates are released at: `mf2`'s (A1's test
-/// holds the 16 to one).
+/// holds the 18 to one).
 pub(crate) fn version(metadata: &Value) -> Option<&str> {
     metadata["packages"]
         .as_array()?
@@ -88,7 +90,7 @@ pub(crate) fn problems(metadata: &Value) -> Vec<String> {
     }
     for name in &publishable {
         if !PUBLISHED.contains(name) {
-            out.push(format!("{name}: publishable, but not one of the 16"));
+            out.push(format!("{name}: publishable, but not one of the 18"));
         }
     }
     let msrv = packages
@@ -203,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn the_sixteen_are_published_and_complete() {
+    fn the_eighteen_are_published_and_complete() {
         let found = problems(&metadata());
         assert!(found.is_empty(), "{}", found.join("\n"));
     }
@@ -224,7 +226,7 @@ mod tests {
     fn a_published_tool_is_caught() {
         let mut m = metadata();
         package(&mut m, "xtask")["publish"] = Value::Null;
-        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 16"]);
+        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 18"]);
     }
 
     #[test]
@@ -237,10 +239,10 @@ mod tests {
             .iter_mut()
             .find(|d| d["name"] == "mf2-runtime")
             .unwrap();
-        dep["req"] = "^1.0.0".into();
+        dep["req"] = "^1.1.0".into();
         assert_eq!(
             problems(&m),
-            ["mf2 → mf2-runtime: `^1.0.0`, not `=1.0.0` (or a path-only dev-dependency)"]
+            ["mf2 → mf2-runtime: `^1.1.0`, not `=1.1.0` (or a path-only dev-dependency)"]
         );
     }
 
@@ -280,7 +282,7 @@ mod tests {
                 "mf2-locale-data: no `readme`",
                 "mf2-macros: rust-version 1.85, not the workspace's 1.88",
                 "mf2-model: keyword \"1st\" is not one crates.io accepts",
-                "mf2-model: version is not 1.0.0",
+                "mf2-model: version is not 1.1.0",
                 "mf2-syntax: no `rust-version`",
             ]
         );

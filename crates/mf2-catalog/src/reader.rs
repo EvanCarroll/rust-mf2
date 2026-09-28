@@ -91,7 +91,7 @@ impl Span {
 /// A validated `.mf2b` catalog (F2): the fetched buffer and the offsets
 /// `new` found. Share it as `Rc<Catalog>` / `Arc<Catalog>`.
 pub struct Catalog {
-    bytes: Vec<u8>,
+    bytes: Bytes,
     version: u16,
     flags: u16,
     hash: u64,
@@ -112,6 +112,42 @@ pub struct Catalog {
     funcs: Span,
     ids: Option<Span>,
     pub(crate) strings: Span,
+}
+
+/// A catalog's buffer. Without `static-bytes` it is the fetched `Vec`, as
+/// it always was, so the client — which never turns the feature on — pays
+/// nothing for it (`cargo xtask size`, 2026-09-27: the reference app's raw
+/// wasm 6 bytes smaller; an unconditional owned-or-static enum cost it
+/// 392).
+#[cfg(not(feature = "static-bytes"))]
+type Bytes = Vec<u8>;
+
+/// A catalog's buffer: fetched (owned), or part of the program itself (an
+/// embedded catalog, never copied) — `static-bytes`, which only a native
+/// application turns on.
+#[cfg(feature = "static-bytes")]
+enum Bytes {
+    Owned(Vec<u8>),
+    Static(&'static [u8]),
+}
+
+#[cfg(feature = "static-bytes")]
+impl Bytes {
+    fn as_slice(&self) -> &[u8] {
+        match self {
+            Bytes::Owned(v) => v,
+            Bytes::Static(b) => b,
+        }
+    }
+}
+
+#[cfg(feature = "static-bytes")]
+impl core::ops::Deref for Bytes {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        self.as_slice()
+    }
 }
 
 /// FALLBACK: the locale table (`str32` × n) and the entries (`u32` each).
@@ -169,6 +205,27 @@ impl Catalog {
     /// LOCALE (with its plural entries) and IDS tables. Strings are checked
     /// when read (F4). Linear in the buffer; allocates nothing; no copy (F2).
     pub fn new(bytes: Vec<u8>, expect_manifest: u64) -> Result<Catalog, CatalogError> {
+        #[cfg(feature = "static-bytes")]
+        let bytes = Bytes::Owned(bytes);
+        Catalog::validate(bytes, expect_manifest)
+    }
+
+    /// As [`Catalog::new`], over bytes that live as long as the program —
+    /// a catalog embedded with `include_bytes!` — without copying them
+    /// (feature `static-bytes`).
+    #[cfg(feature = "static-bytes")]
+    pub fn from_static(
+        bytes: &'static [u8],
+        expect_manifest: u64,
+    ) -> Result<Catalog, CatalogError> {
+        Catalog::validate(Bytes::Static(bytes), expect_manifest)
+    }
+
+    // Always inlined: `new` is the client's only caller, and a separate
+    // function costs its wasm (`cargo xtask size`).
+    #[inline(always)]
+    #[allow(clippy::inline_always)]
+    fn validate(bytes: Bytes, expect_manifest: u64) -> Result<Catalog, CatalogError> {
         let b = bytes.as_slice();
         if b.get(..4) != Some(&MAGIC[..]) {
             return Err(CatalogError::Magic);
@@ -303,9 +360,15 @@ impl Catalog {
         &self.bytes
     }
 
-    /// Gives the buffer back.
+    /// Gives the buffer back (a copy, for a catalog over static bytes).
     pub fn into_bytes(self) -> Vec<u8> {
-        self.bytes
+        #[cfg(not(feature = "static-bytes"))]
+        return self.bytes;
+        #[cfg(feature = "static-bytes")]
+        match self.bytes {
+            Bytes::Owned(v) => v,
+            Bytes::Static(b) => b.to_vec(),
+        }
     }
 
     /// The section table: `(kind, offset, length)` in file order, unknown

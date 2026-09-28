@@ -34,8 +34,9 @@ browser, so what you copy here is what CI builds.
   cargo install --path crates/mf2-cli   # from a checkout of this repository
   ```
 
-> **Not published yet.** The crates are not on crates.io until the first
-> release. The manifests on these pages name them as that release will:
+> **1.1.0 is not published yet.** Five crates are available at 1.0.0, and
+> the remaining crates will be published together at 1.1.0. The manifests
+> on these pages name them as that release will:
 > `mf2 = "1"`, `leptos-mf2 = "1"`, `mf2-axum = "1"`,
 > `mf2-build = "1"`. Until then, replace each `"1"` with a path into a
 > checkout, for example `mf2 = { path = "../rust-mf2/crates/mf2" }`. This

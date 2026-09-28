@@ -30,6 +30,10 @@ manifest = []
 writer = ["manifest", "dep:unicode-normalization"]
 # The model-rebuilding decoder (build side; conformance layer L3).
 decode = []
+# `Catalog::from_static`: a catalog over embedded bytes, not copied (native
+# applications, through mf2-native). Off for the client, which fetches its
+# catalog: the extra buffer kind would cost it a branch on every read.
+static-bytes = []
 
 [dependencies]
 mf2-model.workspace = true
@@ -76,7 +80,7 @@ required-features = ["writer"]
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-features = ["manifest", "writer", "decode"]
+features = ["manifest", "writer", "decode", "static-bytes"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lints]

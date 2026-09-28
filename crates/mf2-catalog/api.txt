@@ -1,5 +1,5 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: manifest,writer,decode
+# nightly-2026-09-24; features: manifest,writer,decode,static-bytes
 pub mod mf2_catalog
 pub use mf2_catalog::Dir
 pub use mf2_catalog::MsgId
@@ -85,6 +85,7 @@ impl mf2_catalog::Catalog
 pub fn mf2_catalog::Catalog::as_bytes(&self) -> &[u8]
 pub fn mf2_catalog::Catalog::cldr_version(&self) -> core::option::Option<mf2_catalog::CldrVersion>
 pub fn mf2_catalog::Catalog::dir(&self) -> mf2_model::id::Dir
+pub fn mf2_catalog::Catalog::from_static(&'static [u8], u64) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
 pub fn mf2_catalog::Catalog::into_bytes(self) -> alloc::vec::Vec<u8>
 pub fn mf2_catalog::Catalog::locale(&self) -> &str
 pub fn mf2_catalog::Catalog::lookup(&self, &str) -> core::option::Option<mf2_model::id::MsgId>

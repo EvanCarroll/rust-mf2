@@ -25,6 +25,8 @@ pub fn mf2_build::DataSet::deserialize<D: serde_core::de::Deserializer<'de>>(D) 
 pub mf2_build::Emit::Both
 pub mf2_build::Emit::Catalogs
 pub mf2_build::Emit::Module
+pub mf2_build::Emit::Native
+pub mf2_build::Emit::NativeFiles
 impl core::clone::Clone for mf2_build::Emit
 pub fn mf2_build::Emit::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::Emit

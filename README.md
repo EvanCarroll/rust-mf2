@@ -1,6 +1,7 @@
 # Rust MF2
 
-Unicode MessageFormat 2 (MF2) for [Leptos](https://leptos.dev): the full
+Unicode MessageFormat 2 (MF2) for Rust applications, including
+[Leptos](https://leptos.dev), native CLI tools and Ratatui TUIs: the full
 specification, one small binary catalog per language loaded when it is
 needed, and a wasm that contains none of the text.
 
@@ -38,6 +39,7 @@ One macro works in every position: text, attributes, props, strings and
   185,925 bytes with and without one full of call sites (`cargo xtask
   islands-zero`, 2026-09-23).
 * **Client-only** applications and **lazy routes** are supported too.
+* **Native CLI and Ratatui apps** use `mf2-native`: one generated corpus, the system's language and time zone, and the locale in app-owned state. `mf2-ratatui` turns messages into Ratatui text, with MF2 markup as styles.
 * **No locale data in the wasm**: no message text, ids, argument names or
   plural rules. A translation edit leaves the wasm byte-for-byte the same,
   so readers keep their cached copy. The library's client code costs
@@ -51,7 +53,8 @@ One macro works in every position: text, attributes, props, strings and
   a labelled form that applies a choice on a button, and bidi isolation is
   on where a person reads the text.
 
-**Status:** 1.0.0 is being prepared for crates.io, and is not published yet.
+**Status:** 1.1.0 is being prepared for crates.io. Five crates are already
+available at 1.0.0; this release publishes the rest of the family together.
 What it contains, what it measures and its known limitations are in
 [`CHANGELOG.md`](CHANGELOG.md); what 1.x promises is in
 [`docs/versioning.md`](docs/versioning.md).
@@ -79,7 +82,7 @@ cargo add mf2-axum@1 --optional   # turned on by the application's `ssr` feature
 Leptos 0.9 is the default; on Leptos 0.8, add both with
 `--no-default-features --features leptos-0-8`.
 [Getting started](docs/getting-started.md) builds a complete application
-step by step. Until 1.0.0 is on crates.io, name the crates by path into a
+step by step. Until 1.1.0 is on crates.io, name the crates by path into a
 checkout of this repository instead.
 
 ## Documentation
@@ -88,6 +91,7 @@ checkout of this repository instead.
 [call sites](docs/call-sites.md), [delivery modes](docs/delivery-modes.md),
 [switching language](docs/switching.md),
 [accessibility](docs/accessibility.md),
+[native CLI and TUI apps](docs/native-apps.md),
 [migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md) and
 [versions](docs/versioning.md); what changed, [`CHANGELOG.md`](CHANGELOG.md).
 CI compiles every code sample in these pages (`cargo xtask docs`).

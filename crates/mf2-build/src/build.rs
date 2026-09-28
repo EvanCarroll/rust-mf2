@@ -66,6 +66,14 @@ pub enum Emit {
     Module,
     /// The catalogs and the table that embeds them, for a server-only crate.
     Catalogs,
+    /// For a native application (`mf2-native`): the manifest, the catalogs,
+    /// and a module that formats through the native host, with nothing
+    /// behind `ssr` and one `CORPUS` value that embeds the catalogs.
+    Native,
+    /// As [`Emit::Native`], but the catalogs are only written to the output
+    /// directory — the application ships them and loads them from a
+    /// directory — and `CORPUS` names their files without embedding them.
+    NativeFiles,
 }
 
 /// A build, configured.
@@ -482,7 +490,8 @@ impl Build {
                 &chain_tags,
                 slice,
                 config,
-                self.emit != Emit::Module,
+                // Only a web server serves them compressed.
+                matches!(self.emit, Emit::Both | Emit::Catalogs),
             )?;
             locales.push(LocaleInfo {
                 tag: tag.clone(),

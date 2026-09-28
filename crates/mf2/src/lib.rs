@@ -103,8 +103,13 @@ extern crate alloc;
 
 #[cfg(feature = "compile")]
 mod compile;
+mod corpus;
 #[cfg(feature = "compile")]
 mod error;
+mod message;
+
+pub use corpus::{CatalogFile, Corpus};
+pub use message::Message;
 
 /// The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
 /// builds, and what formats it against a catalog the caller supplies.

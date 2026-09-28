@@ -5,7 +5,7 @@
 //!
 //! 1. **at once**, so one run names every cheap problem: the tree clean
 //!    (`git status --porcelain`); the version's changelog entry (A6); the
-//!    16's metadata (A1);
+//!    18's metadata (A1);
 //! 2. the package audit (A4, `cargo xtask package --check`: quick, so an
 //!    unaudited file stops the run before the long steps), which also
 //!    leaves each `.crate` in `target/package`;
@@ -185,7 +185,7 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
     crate::msrv::run(root, false)?;
 
     if released.len() == packages::PUBLISHED.len() {
-        eprintln!("==> cargo publish: nothing left to publish; all 16 are on crates.io");
+        eprintln!("==> cargo publish: nothing left to publish; all 18 are on crates.io");
     } else {
         let mut dry = publish_args(&released);
         dry.push("--dry-run".to_owned());
@@ -290,7 +290,7 @@ enum Registered {
     },
 }
 
-/// Each of the 16, as crates.io has it now.
+/// Each of the 18, as crates.io has it now.
 fn lookup_all(root: &Path, version: &str) -> Result<Vec<(&'static str, Registered)>> {
     let mut out = Vec::new();
     for (i, name) in packages::PUBLISHED.iter().enumerate() {

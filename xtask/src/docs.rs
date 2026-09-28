@@ -35,8 +35,9 @@
 //! dependencies on this repository's crates pointed at the working tree (the
 //! pages write them as the first release will publish them), and each is
 //! checked for the targets it runs on, warnings denied, sharing one target
-//! directory. A client-only one also publishes its catalogs with
-//! `mf2 compile --site`, as its page says to.
+//! directory. The native app example is checked both without and with its
+//! optional Ratatui feature. A client-only example also publishes its
+//! catalogs with `mf2 compile --site`, as its page says to.
 
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
@@ -55,6 +56,7 @@ const PAGES: &[&str] = &[
     "docs/delivery-modes.md",
     "docs/switching.md",
     "docs/accessibility.md",
+    "docs/native-apps.md",
     "docs/migrating-from-leptos-fluent.md",
     "README.md",
 ];
@@ -65,6 +67,8 @@ const INDEX_PAGES: &[&str] = &["docs/README.md", "docs/versioning.md"];
 /// This repository's crates, as a documented manifest names them.
 const OUR_CRATES: &[(&str, &str)] = &[
     ("mf2", "crates/mf2"),
+    ("mf2-native", "crates/mf2-native"),
+    ("mf2-ratatui", "crates/mf2-ratatui"),
     ("mf2-build", "crates/mf2-build"),
     ("leptos-mf2", "crates/leptos-mf2"),
     ("mf2-axum", "crates/mf2-axum"),
@@ -176,6 +180,23 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: true,
+    },
+    // native-apps.md: native CLI catalog loading and the optional Ratatui adapter.
+    Project {
+        name: "native",
+        base: None,
+        remove: &[],
+        checks: &[
+            Check {
+                target: None,
+                args: &[],
+            },
+            Check {
+                target: None,
+                args: &["--features", "tui"],
+            },
+        ],
+        site: false,
     },
 ];
 

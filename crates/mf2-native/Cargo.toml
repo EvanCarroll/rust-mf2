@@ -1,0 +1,34 @@
+[package]
+name = "mf2-native"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Native CLI and terminal applications for rust-mf2: one generated corpus, an app-owned locale, the system's language and time zone."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-native"
+keywords = ["messageformat", "mf2", "i18n", "cli"]
+categories = ["internationalization", "localization"]
+exclude = ["package.txt"]
+
+[dependencies]
+mf2 = { workspace = true, features = ["host-std"] }
+# `Catalog::from_static`: embedded catalogs are read in place.
+mf2-catalog = { workspace = true, features = ["static-bytes"] }
+thiserror.workspace = true
+sys-locale.workspace = true
+# The system time zone (`tz-system`); formatting uses mf2-host-std's bundled database.
+jiff = { workspace = true, features = ["std", "tz-system"] }
+
+[dev-dependencies]
+mf2 = { workspace = true, features = ["compile"] }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[lints]
+workspace = true

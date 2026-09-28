@@ -12,6 +12,8 @@ members = [
     "crates/mf2-fn-datetime",
     "crates/mf2-locale-data",
     "crates/mf2-host-std",
+    "crates/mf2-native",
+    "crates/mf2-ratatui",
     "crates/mf2-host-web",
     "crates/mf2-macros",
     "crates/leptos-mf2",
@@ -59,10 +61,10 @@ exclude = [
 ]
 
 [workspace.package]
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 # The MSRV, measured (plans/17-phase-9-work-order.md A3; `cargo xtask msrv`):
-# the 16 published crates inherit it. Raising it is a minor release.
+# the published crates inherit it. Raising it is a minor release.
 rust-version = "1.88"
 license = "MIT"
 authors = ["Evan Carroll"]
@@ -75,27 +77,29 @@ publish = false
 clap = { version = "4.6.7", features = ["derive"] }
 # `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
 thiserror = { version = "2.0.20", default-features = false }
-mf2 = { path = "crates/mf2", version = "=1.0.0" }
-mf2-build = { path = "crates/mf2-build", version = "=1.0.0" }
-mf2-catalog = { path = "crates/mf2-catalog", version = "=1.0.0" }
+mf2 = { path = "crates/mf2", version = "=1.1.0" }
+mf2-build = { path = "crates/mf2-build", version = "=1.1.0" }
+mf2-catalog = { path = "crates/mf2-catalog", version = "=1.1.0" }
 mf2-conformance = { path = "conformance" }
-leptos-mf2 = { path = "crates/leptos-mf2", version = "=1.0.0", default-features = false }
-mf2-fn-number = { path = "crates/mf2-fn-number", version = "=1.0.0" }
-mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=1.0.0" }
+leptos-mf2 = { path = "crates/leptos-mf2", version = "=1.1.0", default-features = false }
+mf2-fn-number = { path = "crates/mf2-fn-number", version = "=1.1.0" }
+mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=1.1.0" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-l5-gen = { path = "conformance/l5/gen" }
 mf2-l5-en-us = { path = "conformance/l5/en-us" }
 mf2-l5-und = { path = "conformance/l5/und" }
 mf2-l5-fr = { path = "conformance/l5/fr" }
 mf2-l5-ar = { path = "conformance/l5/ar" }
-mf2-host-std = { path = "crates/mf2-host-std", version = "=1.0.0" }
-mf2-host-web = { path = "crates/mf2-host-web", version = "=1.0.0" }
-mf2-locale-data = { path = "crates/mf2-locale-data", version = "=1.0.0" }
-mf2-macros = { path = "crates/mf2-macros", version = "=1.0.0" }
-mf2-model = { path = "crates/mf2-model", version = "=1.0.0" }
-mf2-resource = { path = "crates/mf2-resource", version = "=1.0.0" }
-mf2-runtime = { path = "crates/mf2-runtime", version = "=1.0.0" }
-mf2-syntax = { path = "crates/mf2-syntax", version = "=1.0.0" }
+mf2-host-std = { path = "crates/mf2-host-std", version = "=1.1.0" }
+mf2-native = { path = "crates/mf2-native", version = "=1.1.0" }
+mf2-ratatui = { path = "crates/mf2-ratatui", version = "=1.1.0" }
+mf2-host-web = { path = "crates/mf2-host-web", version = "=1.1.0" }
+mf2-locale-data = { path = "crates/mf2-locale-data", version = "=1.1.0" }
+mf2-macros = { path = "crates/mf2-macros", version = "=1.1.0" }
+mf2-model = { path = "crates/mf2-model", version = "=1.1.0" }
+mf2-resource = { path = "crates/mf2-resource", version = "=1.1.0" }
+mf2-runtime = { path = "crates/mf2-runtime", version = "=1.1.0" }
+mf2-syntax = { path = "crates/mf2-syntax", version = "=1.1.0" }
 # mf2-macros: the `tr!` proc-macro (plans/05-tooling.md §4). `full` for the
 # argument expressions a call site writes.
 proc-macro2 = "1.0.107"
@@ -117,6 +121,9 @@ fluent-syntax = "0.12.0"
 fluent-bundle = "0.16.0"
 # The language identifier `fluent-bundle` takes, at the version it uses.
 unic-langid = "0.9.6"
+sys-locale = "0.3.2"
+# mf2-ratatui: the text and style types, which `ratatui` re-exports.
+ratatui-core = { version = "0.1.2", default-features = false }
 # `mf2 convert --from leptos-fluent` (plans/05-tooling.md §6.2): the diff it
 # shows before `--write`.
 similar = "3.2.0"

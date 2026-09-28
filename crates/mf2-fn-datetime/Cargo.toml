@@ -80,7 +80,7 @@ icu_time = { workspace = true, optional = true, features = ["compiled_data"] }
 [dev-dependencies]
 # `datetime-icu`: catalogs with their `icu.blob` (so the tests of this crate
 # always have the ICU4X backend on; they name their backends explicitly).
-# Path-only, not the workspace's `=1.0.0`: `mf2` depends on this crate, so
+# Path-only, not the workspace's `=1.1.0`: `mf2` depends on this crate, so
 # a versioned dev-dependency on it is a cycle `cargo package` cannot
 # resolve. Cargo strips a path-only dev-dependency from the package, and
 # the tests that use `mf2` stay in the workspace (`exclude` above;

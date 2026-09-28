@@ -1,0 +1,31 @@
+[package]
+name = "mf2-ratatui"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Ratatui text from rust-mf2 messages, with MF2 markup as styles."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-ratatui"
+keywords = ["messageformat", "mf2", "i18n", "ratatui", "tui"]
+categories = ["internationalization", "localization", "command-line-utilities"]
+exclude = ["package.txt"]
+
+[dependencies]
+mf2.workspace = true
+mf2-native.workspace = true
+# The text and style types only; `ratatui` re-exports these same types.
+ratatui-core.workspace = true
+
+[dev-dependencies]
+mf2 = { workspace = true, features = ["compile"] }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[lints]
+workspace = true

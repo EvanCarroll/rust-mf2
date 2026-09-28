@@ -15,6 +15,10 @@
 //!   placeholder can actually receive one (#90);
 //! * `host()` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
+//! * `CORPUS` — under [`Emit::Native`] / [`Emit::NativeFiles`] only: the
+//!   above as one `mf2::Corpus` value for `mf2-native`, with each catalog's
+//!   file name and, under `Native`, its bytes. A native build has no client,
+//!   so nothing in it is behind `ssr`;
 //! * `pub use ::mf2 as __mf2;` and the exported `tr!` wrapper, which bakes
 //!   the manifest's absolute path and hash into every expansion — or, with
 //!   [`crate::Build::manifest_inline`], the manifest's bytes, so that an
@@ -71,13 +75,25 @@ pub fn write(module: &Module<'_>) -> String {
     header(&mut s, module);
     identity(&mut s, module);
     locales(&mut s, module);
+    // A native module embeds its catalogs in `CORPUS` alone, so that each
+    // is in the executable once.
     if module.emit == Emit::Both {
         catalogs(&mut s, module, true);
     }
     registry(&mut s, module);
-    host(&mut s, module);
+    if is_native(module.emit) {
+        native_host(&mut s);
+        corpus(&mut s, module);
+    } else {
+        host(&mut s, module);
+    }
     tr(&mut s, module);
     s
+}
+
+/// Whether `emit` builds for a native application.
+pub(crate) const fn is_native(emit: Emit) -> bool {
+    matches!(emit, Emit::Native | Emit::NativeFiles)
 }
 
 /// The catalog table on its own, for a crate only the server binary depends
@@ -351,6 +367,56 @@ pub mod host {{
     let _ = writeln!(s, "}}");
 }
 
+fn native_host(s: &mut String) {
+    let _ = write!(
+        s,
+        "
+/// The host this build formats through: the native one.
+pub mod host {{
+    pub use super::__mf2::host_std::HOST;
+}}
+"
+    );
+}
+
+fn corpus(s: &mut String, m: &Module<'_>) {
+    let _ = write!(
+        s,
+        "
+/// Everything `mf2-native` needs, as one value: the source locale, the
+/// manifest hash, the locales, the registry and each catalog's file name{embedded}.
+pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
+    SOURCE_LOCALE,
+    MANIFEST_HASH,
+    LOCALES,
+    &REGISTRY,
+    &[
+",
+        embedded = if m.emit == Emit::Native {
+            " and bytes"
+        } else {
+            ""
+        }
+    );
+    for locale in m.locales {
+        let bytes = if m.emit == Emit::Native {
+            format!(
+                "Some(include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {:?})))",
+                locale.file_name
+            )
+        } else {
+            "None".to_owned()
+        };
+        let _ = writeln!(
+            s,
+            "        __mf2::CatalogFile::new({tag:?}, {file:?}, {bytes}),",
+            tag = locale.tag,
+            file = locale.file_name
+        );
+    }
+    let _ = writeln!(s, "    ],\n);");
+}
+
 fn tr(s: &mut String, m: &Module<'_>) {
     // Either the manifest's absolute path, or — opt-in — its bytes, which
     // survive a target directory that moves (`Build::manifest_inline`).
@@ -485,6 +551,54 @@ mod tests {
         );
         assert!(code.contains("pub static LOCALES: &[(&str, __mf2::Dir)]"));
         assert!(code.contains("(\"ar\", __mf2::Dir::Rtl),"));
+    }
+
+    #[test]
+    fn a_native_module_has_no_ssr_gate_and_one_corpus() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let mut m = module(&[], &features, &custom, &locales, false);
+
+        m.emit = Emit::Native;
+        let code = write(&m);
+        assert!(!code.contains("ssr"), "{code}");
+        assert!(!code.contains("host_web"), "{code}");
+        assert!(
+            code.contains("pub use super::__mf2::host_std::HOST;"),
+            "{code}"
+        );
+        assert!(!code.contains("pub static CATALOGS:"), "{code}");
+        assert_eq!(code.matches("include_bytes!").count(), 2, "{code}");
+        assert!(
+            code.contains(
+                "__mf2::CatalogFile::new(\"ar\", \"ar.fedcba9876543210.mf2b\", Some(include_bytes!("
+            ),
+            "{code}"
+        );
+
+        m.emit = Emit::NativeFiles;
+        let code = write(&m);
+        assert!(!code.contains("ssr"), "{code}");
+        assert!(!code.contains("include_bytes!"), "{code}");
+        assert!(
+            code.contains("__mf2::CatalogFile::new(\"en\", \"en.0123456789abcdef.mf2b\", None),"),
+            "{code}"
+        );
+    }
+
+    #[test]
+    fn a_web_module_has_no_corpus() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        for emit in [Emit::Both, Emit::Module] {
+            let mut m = module(&[], &features, &custom, &locales, false);
+            m.emit = emit;
+            let code = write(&m);
+            assert!(!code.contains("CORPUS"), "{code}");
+            assert!(!code.contains("CatalogFile"), "{code}");
+        }
     }
 
     #[test]

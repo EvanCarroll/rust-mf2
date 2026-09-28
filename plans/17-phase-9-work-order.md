@@ -5,6 +5,14 @@ apply. Written at the close of Phase 8 (A8) from
 [phase-8-results](phase-8-results.md), the Phase 8 work order's task
 records ([16](16-phase-8-work-order.md)), and the four owner answers below.
 
+**Native-app addition (2026-09-27):** `mf2-native` and `mf2-ratatui` extend
+the original 16 published crates to 18. Release, API, package, docs.rs and
+MSRV tooling tracks 18; verify the two names with the rest at release time.
+The release carrying them is **1.1.0**, not 1.0.1 (owner, 2026-09-27): they
+add public API to `mf2` (`Corpus`, `CatalogFile`, `Message`), `mf2-build`
+(`Emit::Native`, `Emit::NativeFiles`) and `mf2-catalog`
+(`Catalog::from_static`), and additions are a minor release.
+
 Phases 1–8 built the library and the way into it. Phase 9 makes it
 something another project can depend on: the names checked, every public
 item reviewed for a **1.0.0** promise, a written version policy tied to the

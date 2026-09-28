@@ -5,6 +5,37 @@ covers them all. Newest first. What a version number promises is in
 [`docs/versioning.md`](docs/versioning.md); a release that raises the
 minimum Rust version says so here.
 
+## 1.1.0
+
+Completes the coordinated first release after crates.io's new-crate rate
+limit interrupted 1.0.0 after five crates, and adds native applications.
+Every crate gains author, repository and book metadata, and the project is
+now called Rust MF2. A minor release, not a patch: the native support adds
+public API to `mf2`, `mf2-build` and `mf2-catalog`.
+
+* **Native CLI and terminal apps.** `mf2-native` (new): `NativeI18n` holds
+  one generated corpus's catalogs and an app-owned active locale, picks the
+  first of the system's preferred languages the corpus supports (else the
+  source locale), reports where the locale came from, refuses an
+  unsupported explicit locale, and formats in the system's time zone with
+  bidi isolation off (both settable).
+* **`mf2-ratatui`** (new): a message as Ratatui `Text` or `Line`, its
+  markup (`{#name}…{/name}`) as styles the application maps by name. It
+  depends on `ratatui-core` only.
+* **`mf2-build`: `Emit::Native` and `Emit::NativeFiles`.** A module for a
+  native application — the native host, no `ssr` feature to declare — with
+  one `CORPUS` value; the catalogs embedded, or written beside the build
+  for the application to ship.
+* **`mf2`: `Corpus`, `CatalogFile` and `Message`.** `Message` formats any
+  call-site description (`Tr`, `TrArgs`, `TrRich`, `TrDyn`) to text or to
+  parts outside Leptos.
+* **`mf2-catalog`: `Catalog::from_static`** (feature `static-bytes`), a
+  catalog over bytes that live for the whole program (an embedded catalog,
+  not copied). Off for the web client, which pays nothing for it: with
+  the feature off, the reference application's wasm is 6 bytes smaller
+  than before (`cargo xtask size`, raw after `wasm-opt`); an
+  unconditional version cost it 392.
+
 ## 1.0.0
 
 The first release. Unicode MessageFormat 2 for Leptos: the whole

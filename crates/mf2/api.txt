@@ -105,11 +105,48 @@ impl core::fmt::Debug for mf2::CompileError
 pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2::CompileError
 pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::CatalogFile
+impl mf2::CatalogFile
+pub const fn mf2::CatalogFile::bytes(&self) -> core::option::Option<&'static [u8]>
+pub const fn mf2::CatalogFile::file_name(&self) -> &'static str
+pub const fn mf2::CatalogFile::tag(&self) -> &'static str
+impl core::clone::Clone for mf2::CatalogFile
+pub fn mf2::CatalogFile::clone(&self) -> Self
+impl core::fmt::Debug for mf2::CatalogFile
+pub fn mf2::CatalogFile::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::CatalogFile
 #[non_exhaustive] pub struct mf2::Compiled
 pub mf2::Compiled::catalog: mf2_catalog::reader::Catalog
 impl mf2::Compiled
 pub const mf2::Compiled::ID: mf2_model::id::MsgId
 impl core::fmt::Debug for mf2::Compiled
 pub fn mf2::Compiled::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::Corpus
+impl mf2::Corpus
+pub const fn mf2::Corpus::catalogs(&self) -> &'static [mf2::CatalogFile]
+pub const fn mf2::Corpus::locales(&self) -> &'static [(&'static str, mf2_model::id::Dir)]
+pub const fn mf2::Corpus::manifest_hash(&self) -> u64
+pub const fn mf2::Corpus::registry(&self) -> &'static mf2_runtime::function::Registry
+pub const fn mf2::Corpus::source_locale(&self) -> &'static str
+impl core::clone::Clone for mf2::Corpus
+pub fn mf2::Corpus::clone(&self) -> Self
+impl core::fmt::Debug for mf2::Corpus
+pub fn mf2::Corpus::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::Corpus
+pub trait mf2::Message
+pub fn mf2::Message::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::Message::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for leptos_mf2::dynamic::TrDyn
+pub fn leptos_mf2::dynamic::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::dynamic::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for leptos_mf2::tr::Tr
+pub fn leptos_mf2::tr::Tr::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::tr::Tr::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for leptos_mf2::tr::TrArgs
+pub fn leptos_mf2::tr::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::tr::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for leptos_mf2::tr::TrRich
+pub fn leptos_mf2::tr::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn leptos_mf2::tr::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::compile_str(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>
 pub fn mf2::compile_str_stripped(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>

@@ -62,7 +62,7 @@
 # runtime's functions, with generated arguments). wasmtime is pinned (49.0.0)
 # and installed into target/tools with `cargo install --locked`, as locally.
 #
-# Job `msrv`: the 16 published crates on the Rust they state as
+# Job `msrv`: the 18 published crates on the Rust they state as
 # `rust-version` (plans/17-phase-9-work-order.md, A3; docs/versioning.md).
 # `cargo xtask msrv` installs that toolchain with rustup and checks the
 # library targets natively and for wasm32-unknown-unknown, on both Leptos
@@ -79,7 +79,7 @@
 #
 # Job `release`: the release's dry run (plans/17-phase-9-work-order.md, A7;
 # owner question 4): `cargo xtask release` without `--publish` — the tree
-# clean, the changelog entry, the metadata, the 16 names on crates.io (its
+# clean, the changelog entry, the metadata, the 18 names on crates.io (its
 # API, a second apart), the public API against the published version with
 # cargo-semver-checks (pinned, installed into target/tools; nothing to
 # compare with on 1.0.0), then `cargo xtask ci`, the packages' own tests,
@@ -571,7 +571,7 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: cargo xtask spec-sync --check
 
-      - name: The 16 on their rust-version (natively and wasm32, both Leptos lines)
+      - name: The 18 on their rust-version (natively and wasm32, both Leptos lines)
         run: cargo xtask msrv
 
       - name: The release before it must fail
