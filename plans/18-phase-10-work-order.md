@@ -64,7 +64,8 @@ commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 a
 parallel agents; three were stopped by the account's session limit and were
 finished by new agents. **Part A is done except A8**; A9, which the owner
 added afterwards, is done too. A8's two opening questions, on the matcher,
-are answered (questions 15 and 16, 2026-09-28). The owner holds everything
+are answered (questions 15 and 16, 2026-09-28), and C3's text half has read
+the matching rules from the specification. The owner holds everything
 else: the next tasks start from fresh sessions, as listed under "Next".
 
 **Done** — records below, in this file:
@@ -76,6 +77,15 @@ else: the next tasks start from fresh sessions, as listed under "Next".
   seam (`probes/p10-ambient/seam.patch`).
 - **C3's data half** (`acdbc01`): CLDR's `languageMatching` and `territoryContainment` vendored;
   the evidence for question 11.
+- **C3's text half** (`f54f39f`): UTS #35 Part 1 fetched into the cache by `cargo xtask uts35-sync`
+  (`third_party/uts35/PIN`: the CLDR repository at `release-48-2`, `docs/ldml/tr35.md`), never
+  committed. What §4.3–§4.4 say, paraphrased, is in its record below:
+  - the threshold is the implementation's, below the default script distance, so question 15's
+    pairs are refused whatever it is;
+  - `419` counts inside `$americas`;
+  - demotion is the implementation's, a step a little above the default region distance.
+
+  The evidence re-run changed no verdict.
 - **E1–E3** (`a72d057`, `3f1eed9`, `894c0c4`): `dropped-markup`, an error by default (floor
   `allow`); `@do-not-translate` messages neither missing nor covered; `mf2 import` checks what it
   would write and writes nothing on an error it brings, and JSON import names XLIFF for new ids.
@@ -105,29 +115,12 @@ kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-di
 and left it clean; its `target/a9/` goes with that worktree.
 
 **Next, each from a fresh session** (the owner holds everything until then):
-- **C3's text half** (question 16), first, because A8 states the matching rules from it. The
-  specification's text is fetched the way `spec-sync` fetches `spec/` (`xtask/src/spec_sync.rs`):
-  - a `PIN` names the upstream that holds UTS #35 Part 1's source, at the release matching the
-    vendored data (48.2.1). Recalled, not checked: the CLDR repository keeps it as
-    `docs/ldml/tr35.md`. The task confirms that, or pins the published report's versioned page;
-  - `cargo xtask cldr-sync` (or a sibling command) fetches it into `target/xtask-cache/`, checked
-    against the `PIN`'s digest, and never commits it. Nothing in the tree quotes it: plans, code
-    and tests paraphrase it and cite the section, as with `spec/`;
-  - then C3's data record gains what §4.4 says about the threshold, `oneway`, demotion, the
-    paradigm locales and the match-variable groupings (the `419` / `$americas` reading). The
-    evidence is re-run with the rules as read (`target/p10-c3/evidence.py`, untracked, still on
-    this machine), and every verdict that changes is listed. **If the text puts the threshold
-    above the default script distance (50),** following the data serves Traditional ↔ Simplified
-    and Punjabi's two scripts alike (the data scores the two pairs identically), against
-    question 11's Punjabi expectation: back to the owner;
-  - done when: a second sync changes nothing; a digest altered in the `PIN` is refused (the
-    negative control); the text is absent from `git ls-files`; 05 §7 says where it comes from;
-    `cargo xtask ci` green.
 - **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
   exact code, the UX targets, the gate table; the web side into 04 and 05. The matcher's
-  questions are answered (15: follow the data; 16: the text fetched), and its rules come from
-  C3's text half. `Display` and `Debug` are decided (question 14). Part C's API work waits for
-  the owner's review of it.
+  questions are answered (15: follow the data; 16: the text fetched). Its rules come from C3's
+  text half (done). That record's "For A8 and C3" lists what A8 states: the threshold (a match
+  below 50), the demotion (5 per later entry) and the details left open. `Display` and `Debug`
+  are decided (question 14). Part C's API work waits for the owner's review of it.
 - **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
@@ -139,7 +132,8 @@ and left it clean; its `target/a9/` goes with that worktree.
   two options.
 
 **Owner questions found in the work:** none waiting. C3's data half found two; they were asked
-when A8 started, and answered as questions 15 and 16 below.
+when A8 started, and answered as questions 15 and 16 below. C3's text half found none: the case
+it was to send back (a threshold above the default script distance) does not arise.
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -165,6 +159,13 @@ when A8 started, and answered as questions 15 and 16 below.
   times need a quiet machine (A1).
 - C7/C8: Ratatui without its default features needs `layout-cache` (A1).
 - D5: the one-crate web starter writes `watch-additional-files = ["locales"]` (A6).
+- C3, from its text half, each with a test:
+  - state or bound the demotion (an exact match 11th in a reader's list is refused);
+  - `$!X` for a macroregion that straddles a variable (`en-001`);
+  - a desired `und` is not maximized;
+  - the section's worked examples.
+- F (or whoever next edits `README.md`): its "Current work order" still names
+  `plans/17-phase-9-work-order.md` (C3's text half).
 - Every size gate: an A/B is valid only within one tree and one `Cargo.lock` (A4's record).
 - Not scheduled: each `.match` message allocates 4 times inside the runtime (A4);
   `mf2-catalog`'s timing test `linear.rs` failed once under load 10–13 (C3 data).
@@ -2586,7 +2587,7 @@ over one, and on the helpers only `Display` and `Debug` reach
 |---|---|---|
 | **C1** Arguments | A trait `IntoArg` with `#[diagnostic::on_unimplemented]` naming the accepted types, **implemented per type** (a blanket over `Into` would bypass the message): <br>• integers up to 128 bits exact (past `i64`, an exact decimal written without `core::fmt`), and `usize` without saturation; <br>• `bool`, `Cow<'static, str>` (borrowed stays static); <br>• `Path` / `OsStr` / `SystemTime` under std; jiff's `Timestamp`, `Zoned` and civil types under `native`; <br>• signals over `T: IntoArg`; `ArgValue`; `&T` for `Copy` types. <br>The macro emits `IntoArg::into_arg(e)` spanned at the argument; `From` stays for `ArgValue::from`. The `&str` copy is measured, and inlined only if it pays and B5 holds | per-conversion tests through `compile_str`; a trybuild case whose `.stderr` shows the message pointing at the argument; `b5 --view` unchanged |
 | **C2** The ambient store | `mf2::native` provides: <br>• `install(&'static Corpus)` (idempotent; a different corpus is an error) and `install_from_directory` (a partial set of files is accepted; only the source locale's is required); <br>• `set_locale`, `locale()`, `locale_source()`, and `with_locale` (restored by a guard); <br>• the time-zone and bidi settings, and `Catalogs`. <br>**The one ambient lookup** (A4's design). **`Display`**, the always-on `to_string` / `to_plain_string` / `to_cow` (borrowed for a simple message), and `Debug`, as A5 decided. **The system zone** by name, else one that follows the system's DST rules — never a frozen offset | parallel `with_locale` tests; `set_locale` seen from another thread on the next format; B10 through the ambient path; a `TZ=EST5EDT,M3.2.0,M11.1.0` test across DST; `tui-gate` against A1 |
-| **C3** One matcher | **Data:** CLDR's `languageMatching` added to `cargo xtask cldr-sync`'s set (done: the data half), and `likelySubtags` (already vendored) used. UTS #35 Part 1's language-matching section fetched into the cache, never committed (question 16; the text half, first under "Next"). **Scope:** one matcher for native `set_locale`, `Locale::from_str`, web negotiation, and the client-only boot. **Rules:** POSIX names; exact; the script implied by likely subtags; region fallback; another script only where CLDR's data accepts it, with no project rule on top (question 15); the threshold, `oneway`, demotion and match-variable groupings as the specification's text states them. The client's table holds only the corpus's languages and is measured against B1 | a test table, each case with its reason: <br>• `zh-Hant-TW → zh-TW`, and `zh-HK → zh-TW` when there is no `zh-HK`; <br>• `zh-Hant ↛ zh-Hans` and back, `zh-TW ↛ zh-CN` (question 15): the reader's next listed language, else the source; `zh-TW, zh` → Simplified through its plain `zh`; <br>• `sr-Latn ↔ sr-Cyrl`; `pa-Arab ↛ pa-Guru`; <br>• `es-MX → es`, `es → es-MX`; <br>• `fr_CA.UTF-8`, `C`, `POSIX`; <br>• every case the current matchers pass, except those questions 11 and 15 change (e.g. `zh-Hant-TW` → an application's `zh`, today reached by truncation) |
+| **C3** One matcher | **Data:** CLDR's `languageMatching` added to `cargo xtask cldr-sync`'s set (done: the data half), and `likelySubtags` (already vendored) used. UTS #35 Part 1's language-matching section fetched into the cache, never committed (question 16; done: the text half, `cargo xtask uts35-sync`). **Scope:** one matcher for native `set_locale`, `Locale::from_str`, web negotiation, and the client-only boot. **Rules:** POSIX names; exact; the script implied by likely subtags; region fallback; another script only where CLDR's data accepts it, with no project rule on top (question 15); the threshold, `oneway`, demotion and match-variable groupings as the specification's text states them (as read in "C3 (text half)", for A8 to state: a match below 50, the top of the text's range; demotion 5 per later entry; a paradigm wins a tie; a macroregion is in a variable when all its contents are). The client's table holds only the corpus's languages and is measured against B1 | a test table, each case with its reason: <br>• `zh-Hant-TW → zh-TW`, and `zh-HK → zh-TW` when there is no `zh-HK`; <br>• `zh-Hant ↛ zh-Hans` and back, `zh-TW ↛ zh-CN` (question 15): the reader's next listed language, else the source; `zh-TW, zh` → Simplified through its plain `zh`; <br>• `sr-Latn ↔ sr-Cyrl`; `pa-Arab ↛ pa-Guru`; <br>• `es-MX → es`, `es → es-MX`; <br>• `fr_CA.UTF-8`, `C`, `POSIX`; <br>• every case the current matchers pass, except those questions 11 and 15 change (e.g. `zh-Hant-TW` → an application's `zh`, today reached by truncation); <br>• UTS #35 Part 1's worked examples that the rules reproduce, each with its section (listed in "C3 (text half)") |
 | **C4** The generated module | **`enum Locale`** (the build refuses variant-name collisions): `ALL`, `SOURCE`, `tag()`, `dir()`; `FromStr` through C3 (client-path code, since the wasm reaches it), whose error lists the supported locales; `Display`; `format(&impl Message)`; `clap::ValueEnum` under an optional `clap` feature. **Also:** `install()`, `set_locale(Locale)`, `with_locale`, `current_locale()`, and `markup::*` (a name hash per markup name the corpus uses); a prelude; doc comments that fit the mode (no wasm wording in a native module); compile-time choices through A2's cfg macros; one embedded byte table shared by `CATALOGS` and `CORPUS` when `ssr` and `native` are both on | unit tests in `crates/mf2-build/src/codegen.rs`; `codegen-matrix` with the native combinations; L5 unchanged; `scenarios` |
 | **C5** Ratatui | **Conversions:** `From<Tr / TrArgs / TrRich / TrDyn>` for `Span`, `Line` and `Text`. Constant text is borrowed with no allocation; pattern text parts are borrowed as A4 decided; only placeholders allocate. **Traits:** `Styled` with `Item = Line<'static>`, so `.bold()` keeps a message's own markup; `Widget` for the descriptions. **Theme:** an app-wide `Theme` (markup-name hash → `Style`) with `set_theme` and a scoped `with_theme`, and defaults for `b` / `strong`, `i` / `em`, `u`, `s` / `del`, `code` / `kbd`. **Line breaks:** `Text` splits at a line break; `Line` and `Span` join with a space; a `Span` flattens markup — all documented. The old `line` / `text` / `MarkupStyles` go with C8's page | tests on a ratatui-core `Buffer` (text and styles); allocation tests; `Stylize` compiles; A7's coherence set with `leptos` and `ratatui` on |
 | **C6** The build script | **`mf2_build::run()`** reads `mf2`'s features through `links` (else `CARGO_FEATURE_*`), picks what to emit, and prints `cargo::warning=` / `cargo::error=`; it exits non-zero on errors, and prints its rerun lines. **Compression** only for a web server, and no maximum-quality brotli in debug builds (review #18). **Checks:** a clear error when `datetime-icu` is on without `mf2-build`'s `icu-blob`; the single-crate layout with A3's `tr!`; `mf2 check` and `compile --site` read `mf2`'s node in the cargo resolve. **`mf2`** gains `links = "mf2-v2"` and a `build.rs` | A2's scenarios re-run on the real crates; `package --check`; `scenarios`; the edit-loop time with and without the opt-level tip, measured |
@@ -2675,25 +2676,28 @@ Computed by a throwaway reader over the three vendored files
 likely subtags, then per level the first rule that matches (a `oneway` rule
 only in its stated direction), the three distances summed. **The threshold
 is not in the data**: the JSON has no documentation keys, and the rule text
-is UTS #35 Part 1 §4.4 ("Language Matching"), which is not vendored. The
-verdicts below apply **ICU's LocaleMatcher default — a match only when the
-total is below the default script distance, 50** — as recalled, not read
-in the tree; C3 must confirm it against the specification text (see
-"Needs", below).
+is UTS #35 Part 1 §4.4 (Language Matching). The verdicts were first
+computed with **ICU's LocaleMatcher default — a match only when the total
+is below the default script distance, 50** — as recalled. **C3's text half
+read the section (below) and re-ran them:** the threshold is the
+implementation's, below the default script distance, and a match below 50
+is the top of that range; **no verdict changed**. Eight figures rose by 4
+(the data half's reader stopped adding once a total reached 50; the section
+sums the three levels) and are corrected in the table.
 
 | Reader asks → app has | Maximized | Deciding rules | Distance | Verdict |
 |---|---|---|---|---|
-| `zh-Hant` → `zh-Hans` | zh-Hant-TW → zh-Hans-CN | script: #360 `*-*` 50 | 50 | **refuse** |
-| `zh-Hans` → `zh-Hant` | zh-Hans-CN → zh-Hant-TW | script: #360 `*-*` 50 | 50 | **refuse** |
-| `zh` → `zh-TW`, `zh-TW` → `zh` | zh-Hans-CN ↔ zh-Hant-TW | script: #360 50 | 50 | **refuse** |
+| `zh-Hant` → `zh-Hans` | zh-Hant-TW → zh-Hans-CN | script: #360 `*-*` 50; region #377 4 | 54 | **refuse** |
+| `zh-Hans` → `zh-Hant` | zh-Hans-CN → zh-Hant-TW | script: #360 `*-*` 50; region #377 4 | 54 | **refuse** |
+| `zh` → `zh-TW`, `zh-TW` → `zh` | zh-Hans-CN ↔ zh-Hant-TW | script: #360 50; region #377 4 | 54 | **refuse** |
 | `zh-Hant-TW` → `zh-TW` | both zh-Hant-TW (likelySubtags: `zh-Hant` → zh-Hant-TW, `zh-TW` → zh-Hant-TW) | — | 0 | match (exact) |
 | `zh-HK` → `zh-TW` (and back) | zh-Hant-HK ↔ zh-Hant-TW | region: #376 `zh-Hant-*` 5 (HK is `$cnsar`, TW is not) | 5 | match |
 | `zh-HK` → `zh-MO` | zh-Hant-HK → zh-Hant-MO | region: #374 `zh-Hant-$cnsar` 4 | 4 | match |
-| `yue` → `zh-TW` / → `zh` | yue-Hant-HK → zh-Hant-TW / zh-Hans-CN | language #309 `yue`→`zh` 10 oneway; then region 4 / script 50 | 14 / 60 | match / refuse |
+| `yue` → `zh-TW` / → `zh` | yue-Hant-HK → zh-Hant-TW / zh-Hans-CN | language #309 `yue`→`zh` 10 oneway; then region 4 / script 50 and region 4 | 14 / 64 | match / refuse |
 | `sr-Latn` → `sr-Cyrl` (and back) | sr-Latn-RS ↔ sr-Cyrl-RS | script: #335 5 (both ways) | 5 | match |
 | `sr-ME` → `sr` | sr-Latn-ME → sr-Cyrl-RS | script #335 5; region #377 4 | 9 | match |
-| `pa-Arab` → `pa-Guru` (and back) | pa-Arab-PK ↔ pa-Guru-IN | script: #360 50 | 50 | **refuse** |
-| `pa` → `en` / `pa-PK` → `en` | pa-Guru-IN / pa-Arab-PK → en-Latn-US | language #84 30 oneway; script #324 `pa-Guru`→`en-Latn` 10 / #360 50; region 4 | 44 / 80 | match / refuse |
+| `pa-Arab` → `pa-Guru` (and back) | pa-Arab-PK ↔ pa-Guru-IN | script: #360 50; region #377 4 | 54 | **refuse** |
+| `pa` → `en` / `pa-PK` → `en` | pa-Guru-IN / pa-Arab-PK → en-Latn-US | language #84 30 oneway; script #324 `pa-Guru`→`en-Latn` 10 / #360 50; region 4 | 44 / 84 | match / refuse |
 | `es-MX` → `es`, `es` → `es-MX` | es-Latn-MX ↔ es-Latn-ES | region: #370 `es-*-*` 5 | 5 | match |
 | `es-MX` → `es-419`; `es-AR` → `es-MX` | es-Latn-MX → es-Latn-419 … | region: #368 `es-*-$americas` 4 | 4 | match (closer than `es`) |
 | `es-419` → `es`; `es-ES` → `es-419` | … | region: #370 5 | 5 | match |
@@ -2701,7 +2705,7 @@ in the tree; C3 must confirm it against the specification text (see
 | `en-AU` → `en-GB` / → `en-US` | … | region: #365 `en-*-$!enUS`→`en-*-GB` 3 / #367 5 | 3 / 5 | match (prefers en-GB) |
 | `pt-PT` → `pt-BR` (and back); `pt` → `pt-PT` | pt-Latn-PT ↔ pt-Latn-BR | region: #373 `pt-*-*` 5 | 5 | match |
 | `fr-CA` → `fr` (and back) | fr-Latn-CA ↔ fr-Latn-FR | region: #377 `*-*-*` 4 | 4 | match |
-| region implies script: `zh-TW`→`zh-CN`, `pa-PK`→`pa-IN`, `uz-AF`→`uz`, `az-IR`→`az`, `mn-CN`→`mn`, `sd-IN`→`sd` | the scripts differ after maximizing | script: #360 50 | 50 | refuse |
+| region implies script: `zh-TW`→`zh-CN`, `pa-PK`→`pa-IN`, `uz-AF`→`uz`, `az-IR`→`az`, `mn-CN`→`mn`, `sd-IN`→`sd` | the scripts differ after maximizing | script: #360 50; region #377 4 | 54 | refuse |
 | `ca` → `es` / `es` → `ca` | … | #24 `ca`→`es` 20 oneway / #310 `*` 80 | 20 / 80 | match / refuse |
 
 * **`419` and `$americas`.** In the containment data `019` contains `021`,
@@ -2709,24 +2713,30 @@ in the tree; C3 must confirm it against the specification text (see
   `019`'s tree. The `es-MX` → `es-419` = 4 row counts `419` as in
   `$americas` because all its members are; counting only the tree gives 5,
   a tie with `es` (then settled by the paradigm locales, both of which are
-  paradigms, or by order). C3 has to fix this reading from the
-  specification.
-* **Demotion** (ICU's, not in the data): each later entry in the reader's
-  list is demoted by the default region distance (`en-US` ↔ `en-GB` = 5),
-  so a region difference on the reader's first choice ties an exact match
-  on the second, and the earlier wins.
+  paradigms, or by order). **Fixed by C3's text half:** the section's own
+  es-419 examples need `419` inside `$americas`, so a macroregion is in a
+  variable when all its contents are — this reading.
+* **Demotion** (not in the data; the section leaves it to the
+  implementation): each later entry in the reader's list is demoted by 5.
+  The section suggests a step a little above the default region distance
+  (4); 5 is also `en-US` ↔ `en-GB`, which this bullet first mislabelled as
+  the default. A region difference of 5 on the reader's first choice ties
+  an exact match on the second, and the earlier wins; one of 4 (`de-AT` →
+  `de`) beats it.
 
 ### Verdict against question 11's expectations
 
 * **Serbian Latin ↔ Cyrillic: confirmed** (5, both ways).
-* **Punjabi's two scripts: confirmed refused** (no rule; 50).
+* **Punjabi's two scripts: confirmed refused** (no rule; 50, and 54 with
+  the region step).
 * **Spanish regions: confirmed** as the owner described: `es-MX` served when
   the app has it; otherwise `es` (5), preferring `es-419` (4) when the app
   has that; and `es` → `es-MX` (5) when that is all the app has.
 * **Traditional ↔ Simplified: contradicted.** CLDR 48 has no rule between
-  `zh-Hant` and `zh-Hans`; the pair takes the default script distance, 50,
-  which the default threshold refuses — in both directions, and for
-  region-implied scripts too (`zh-TW` ↔ `zh-CN`). Following CLDR's data, a
+  `zh-Hant` and `zh-Hans`; the pair takes the default script distance, 50
+  (54 with the region step), which every threshold the section allows
+  refuses — in both directions, and for region-implied scripts too
+  (`zh-TW` ↔ `zh-CN`). Following CLDR's data, a
   Traditional reader of an application that has only Simplified gets the
   source language, and so does a Simplified reader of an application that
   has only Traditional. (Today's native matcher serves `zh` to `zh-Hant-TW`
@@ -2768,6 +2778,268 @@ owner allows vendoring that section.
 <supported>` for one pair); `cargo xtask ci` green on the commit (one
 earlier run failed `mf2-catalog`'s timing test `linear.rs` under load 10–13
 — a different row on each re-run — and passed on the next).
+
+## C3 (text half) — UTS #35 Part 1's matching rules: what was read
+
+Done so that A8 states the matcher's rules from the specification rather
+than from recollection (question 16). What follows paraphrases the text
+and cites its sections. Nothing is quoted, and the text is not in the tree.
+
+### What was fetched (observed)
+
+* **`cargo xtask uts35-sync`** (commit `f54f39f`) fetched
+  `docs/ldml/tr35.md` from `https://github.com/unicode-org/cldr` at tag
+  **`release-48-2`** = `11299982335beb974c1c63c45265184e759c0f41`
+  (committed 2026-03-16): **345,718 B, SHA-256
+  `01967399eb0cc4aa714d25fa25b8f717bc5d8ce75a704836c77565126c7a7f76`**.
+  It is written to `target/xtask-cache/uts35/docs/ldml/tr35.md` with a
+  `COMMIT` stamp; the clone is `target/xtask-cache/cldr` (shallow,
+  blobless, sparse; 1.8 MB). `third_party/uts35/PIN` records the upstream,
+  tag, commit, date, file and digest.
+* **The recalled path is right:** the CLDR repository keeps Part 1's source
+  as `docs/ldml/tr35.md`. At this tag its header gives version 48.2, dated
+  2026-03-03, revision 78 of the published report (`tr35-78`).
+* **The release.** `uts35-sync --list` shows 674 tags. For 48:
+  `release-48`, `release-48-1` and `release-48-2`, with their milestones,
+  alphas, betas and candidates, and no `release-48-2-1`. 49 has milestones,
+  alphas and betas only. The vendored JSON says only `_cldrVersion` 48, and
+  cldr-json's commit message is `48.2.1`. Taken (inference): cldr-json's
+  48.2.1 packages CLDR 48.2, hence `release-48-2`. The PIN's `data =
+  48.2.1` records the pairing, and both `uts35-sync` and the xtask test
+  `the_text_goes_with_the_vendored_data` refuse a PIN whose `data` is not
+  `third_party/cldr-json/PIN`'s `tag`.
+* **The section numbers.** The markdown's headings carry none. The text's
+  own table relating inheritance, default content, likely subtags and
+  matching (in §4.2) calls the two sections 4.3 Likely Subtags and 4.4
+  Language Matching. The variables are §4.4.1 by position (4.4's one
+  sub-heading).
+* **Its terms.** The closing notice puts the text under Unicode's Terms of
+  Use: private or in-house copies only. Publishing it, or building it into
+  a product or publication, needs Unicode's written permission. That is the
+  reason for cache-only, as for the MF2 specification.
+* **Found and fixed:** `Repo::remote_tag_commit` (`xtask/src/git.rs`, shared
+  with `cldr-sync`) returned `fc1fd058…` for `release-48-2`: the annotated
+  tag's own object, not its commit. `git ls-remote` lists a tag's peeled
+  line only when a pattern names it. The helper now asks for both.
+  `cldr-sync`'s lightweight tag resolves as before; a re-run left
+  `third_party/cldr-json` unchanged (43 files).
+* **Shown** (2026-09-28):
+  * a second `uts35-sync` changes nothing: the PIN, cldr-json's PIN and
+    both cache files hash the same before and after;
+  * with the PIN's digest altered (`01967399…` → `11967399…`), the sync
+    exits 1, naming the file and both digests, and the cache's files keep
+    their modification times;
+  * with `data` altered (48.1.0), it exits 1, naming both releases;
+  * `git ls-files` has no `tr35`;
+  * no tracked text file shares a run of 10 words with the text except
+    `third_party/message-format-wg/LICENSE`, upstream's own file carrying
+    Unicode's same notice. In the new PIN, code and plan text, the only
+    runs of 6 words are the upstream URL and one example's list of locale
+    codes, used as a test input: data, not prose;
+  * `cargo xtask ci` green.
+
+### What the section says (read; paraphrased)
+
+§4.4 unless marked.
+
+* **The procedure.** Take each of the reader's locales in order and, for
+  each, each of the application's. The weighted distance is a demotion
+  for the reader's entry plus the matching distance. A pair replaces the
+  best so far only when strictly smaller, so ties go to the earlier pair.
+  The best pair is the answer only when its weighted distance is below
+  the threshold; otherwise the answer is the application's default
+  locale. The pseudocode has two slips. Its comparison names the best
+  desired locale where it plainly means the best weighted distance. Its
+  fallback puts the default in the desired slot; read: the default
+  supported locale is the result.
+* **The matching distance.** Maximize both tags with likely subtags (§4.3),
+  except a desired `und`, which is left as it is; otherwise it would become
+  English and outrank the reader's real languages. Then take language,
+  script and region in turn. Identical subtags add nothing. Otherwise the
+  rules are searched in file order, and the first that matches adds its
+  distance; `*` matches anything.
+* **The threshold is not a number.** It is the implementation's,
+  typically above the default region distance and below the default
+  script distance (4 and 50 in CLDR 48), and the best pair must be
+  strictly below it.
+* **`oneway`.** Without it a rule matches both ways. With it, only one: the
+  reader's locale against the rule's desired side and the application's
+  against its supported side.
+* **Demotion** is also the implementation's: a positive value that grows
+  with the entry's distance from the head of the reader's list. The text
+  suggests a step a little above the default region distance, so that a
+  regional variant of the first language beats an exact second one. Its
+  example is a reader of `de-AT` then `fr`, and an application with `de`,
+  `fr` and `ja`: the reader should get `de` (4 away), which the text
+  secures with a step above 4. Under its own strict comparison, a step of
+  exactly 4 would tie and keep the earlier pair, so it would do too. The
+  demotion is part of the weighted distance, so it counts against the
+  threshold.
+* **Paradigm locales** (§4.4.1) are preferred within their cluster: of two
+  candidates at the same distance, the paradigm wins. The text gives no
+  number. They also make a macroregion locale the one its cluster matches
+  most closely:
+  * for a reader of `es-419`, `es-MX` beats `es`;
+  * for a reader of `es-MX`, `es-419` beats `es`;
+  * and `es-419` beats its own sub-locales, such as `es-CR`.
+
+  The text's illustrative paradigms include Russian and leave Portuguese
+  out; CLDR 48's list is en, en-GB, es, es-419, pt-BR, pt-PT, and the data
+  governs.
+* **Match variables** (§4.4.1). A value combines regions with `+` (union)
+  and `-` (difference), strictly left to right, and `$!X` is every region
+  not in `$X`. A macroregion in a value stands for its contents,
+  recursively (the text writes macrolanguages, but its examples are
+  regions). The text's sample `$enUS` lacks CA and PH, which CLDR 48 has;
+  again the data governs.
+* **The `419` / `$americas` reading.** The text does not say outright
+  whether a locale whose region is itself a macroregion (`es-419`) lies
+  inside a variable. Read literally, its expansion leaves only leaf regions
+  in the set. But it gives the reason for 019: to put `en-US` in one
+  cluster with `es-419` and everything under it. And its three `es-419`
+  examples (above) need `419` inside `$americas`. Counting a macroregion
+  as inside when all its contents are (the data half's reading)
+  reproduces all three; the literal reading reproduces none (the re-run,
+  below). **Read: a macroregion is in a variable when all its contents
+  are.** So `es-MX` → `es-419` is 4 (#368) and `es-MX` → `es` is 5 (#370),
+  as the data half had it.
+* **§4.2**, in its table relating inheritance, default content, likely
+  subtags and matching: parent locales and default content are not to be
+  used for matching or for likely subtags. That confirms keeping
+  `parentLocales.json` in the cache only.
+* **§4.3, likely subtags.** A tag with language, script and region is
+  taken as it is. Otherwise look up language-script-region,
+  language-script, language-region, then language; the first hit fills
+  only the empty fields (and `und`). No hit is an error the implementation
+  signals as it chooses; returning the input with `Zzzz` / `ZZ` is one of
+  the options listed. An implementation may leave `und` out of maximizing.
+* **Not binding on C3:** a worked example in percentages (the older model
+  that multiplied them; the algorithm and the data add distances); an
+  optional mode that scales language distances up so that script
+  differences dominate; geographic closeness between regions as an
+  optional refinement.
+
+### The evidence re-run with the rules as read (observed)
+
+`target/p10-c3/evidence.py` (untracked; the data half's reader kept as
+`evidence_v1.py`, with its output `evidence_v1.out`) now follows the
+text:
+* §4.3's lookup order;
+* every level summed, and identical subtags adding nothing;
+* a macroregion counted in a variable when all its contents are, with the
+  literal reading beside it;
+* the best-match loop: a demotion of 5 per later entry, weighted distances
+  compared strictly, a paradigm winning a tie for the same reader entry,
+  and a threshold of 50.
+
+Output: `target/p10-c3/evidence_v2.out`.
+
+* **No verdict changed:** 0 of the data half's 39 pairs.
+* **Eight figures rose by 4**, the region step now added, and all are
+  still refusals: `zh-Hant` ↔ `zh-Hans`, `zh` ↔ `zh-TW` and `pa-Arab` ↔
+  `pa-Guru` 50 → 54; `yue` → `zh` 60 → 64; `pa-PK` → `en` 80 → 84. The
+  region-implied row is now 54 too. The data half's table is corrected in
+  place.
+* **The literal reading of `419`** would move five pairs: `es-MX` →
+  `es-419`, `es-AR` → `es-419` and `es-419` → `es-MX` from 4 to 5, and
+  `es-419` → `es` and `es-ES` → `es-419` from 5 to 4 (#369, with `419` then
+  outside the Americas). Every verdict would still be a match, but the
+  preferences the text states would reverse.
+* **The text's and the plan's cases, run as lists** (the reader's list
+  against the application's locales; threshold 50):
+
+| Reader | Application | Result | Weighted | The text or plan says | With the literal `419` |
+|---|---|---|---|---|---|
+| en-US, de, fr, gsw, it | ja-JP, de, zh-TW | de | 5 | de (§4.4, opening) | same |
+| zh | ja-JP, de, zh-TW | the default | 54 | **zh-TW** (§4.4, opening) | same |
+| de-AT, fr | de, fr, ja | de | 4 | de (§4.4, demotion) | same |
+| und, it | en, it | it | 5 | it (§4.4, `und`) | same |
+| en-SA | en-GU, en, en-IN, en-GB | en-GB | 3 | en-GB (§4.4.1, paradigm) | same |
+| es-419 | es-MX, es | es-MX | 4 | es-MX (§4.4.1) | es |
+| es-MX | es-419, es | es-419 | 4 | es-419 (§4.4.1) | es-419, only by order (a tie at 5) |
+| es-MX | es-CR, es-419 | es-419 | 4 | es-419 (§4.4.1) | es-CR |
+| en, fr | fr-CA, ru | fr-CA | 9 | fr-CA (§4.2's table) | same |
+| zh-Hant-TW | zh-TW, zh | zh-TW | 0 | zh-TW (C3) | same |
+| zh-HK | zh-TW, zh | zh-TW | 5 | zh-TW (C3) | same |
+| zh-Hant | zh, en | the default | 54 | the default (C3; question 15) | same |
+| zh-TW, zh | zh, en | zh | 5 | zh, through the plain `zh` (C3) | same |
+| pa-Arab, en | pa-Guru, en | en | 5 | en (question 11) | same |
+| sr-Latn | sr, en | sr | 5 | sr (question 11) | same |
+| es-MX | es, en | es | 5 | es (question 11) | same |
+| es | es-MX, en | es-MX | 5 | es-MX (question 11) | same |
+| ten languages, zh-Hant 10th | zh-Hant, en | zh-Hant | 45 | — | same |
+| eleven languages, zh-Hant 11th | zh-Hant, en | the default | 50 | — | same |
+
+* **One of the text's examples is not reproduced:** the section's opening
+  illustration. It has a reader of plain Chinese, offered `ja-JP`, `de` and
+  `zh-TW`, best served `zh-TW`. `zh-TW` is the closest of the three, but at
+  54 (script 50 + region 4) it is above any threshold the text allows, so
+  the steps return the default. Read (interpretation): the illustration
+  ranks the candidates and leaves the threshold out. The steps govern, and
+  they agree with question 15.
+* **`en-SA`:** CLDR 48 settles it by rule #365 (`en-*-$!enUS` → `en-*-GB`
+  3, against 4 for `en-IN`), so the paradigm tie-break is not what picks
+  `en-GB` there.
+* **No script-level rule pairs a script with itself.** So the data half's
+  handling of that level (it searched the rules when only the languages
+  differed) could not have changed a result.
+
+### Question 11's and question 15's expectations, as read
+
+* Serbian Latin ↔ Cyrillic served (5). Punjabi's two scripts refused (54).
+  Spanish regions as the owner described (`es-MX` → `es` 5, → `es-419` 4;
+  `es` → `es-MX` 5). Traditional ↔ Simplified refused (54) both ways, and
+  `zh-TW` ↔ `zh-CN` too: question 15's decision, which the text's
+  algorithm gives for every threshold in its range.
+* **The case to be sent back to the owner, a threshold above the default
+  script distance, does not arise:** the text puts the threshold below it.
+
+### For A8 and C3 (interpretation, brief)
+
+* **The threshold to state: a match when the weighted distance is below
+  50.** That is the top of the text's range; for whole-number distances,
+  any threshold between 49 and 50 behaves identically.
+  * The owner's answers need a threshold above 5: Serbian's scripts and
+    Spanish regions.
+  * Following the data with nothing on top (question 15) keeps every
+    acceptance the data scores below the script distance: `ca` → `es` 20,
+    `yue` → `zh-TW` 14, `pa` → `en` 44. A lower threshold would quietly
+    undo some of them.
+  * It is also the reading the data half's verdicts used.
+* **Demotion: 5 per later entry,** the step the text suggests. Counted
+  against the threshold, it caps how deep in a reader's list a match can
+  come from: an exact match 10th in the list is served (45), 11th not
+  (50). C3 either states this or bounds the demotion, with a test either
+  way.
+* **Paradigms** are a tie-break among the application's locales for the
+  same reader entry. A tie across entries goes to the earlier entry, which
+  is what the demotion is for.
+* **Open for C3, a test each:**
+  * `$!X` for a macroregion that straddles a variable (`en-001` against
+    `$enUS`). With `$!X` as every region not in `$X`, `en-001` → `en-GB` is
+    3, by #365.
+  * A desired `und` is not maximized.
+  * A tag that likely subtags cannot fill keeps its empty fields (`Zzzz` /
+    `ZZ`).
+* **C3's test table** can take the text's own examples above, all but the
+  opening illustration, each with its section.
+* **The client's table** does not change with this reading. The rules,
+  variables and paradigms are the data's, and the containment is needed
+  only for the macroregion codes that the corpus and its readers use.
+
+**Commands:**
+* `cargo xtask uts35-sync --list`;
+* `cargo xtask uts35-sync --tag release-48-2` (the pin);
+* `cargo xtask uts35-sync`, twice: nothing changed (hashes in
+  `target/p10-c3/uts35-{before,after}.sha`);
+* the two refusals: the digest, then `data`, altered, with the PIN restored
+  after each (`sha256sum`: `4bcc7470…` before and after);
+* `cargo xtask cldr-sync`, after the `remote_tag_commit` fix;
+* `python3 target/p10-c3/evidence.py`, the tables above
+  (`evidence.py <desired> <supported>` for one pair);
+* `python3 target/p10-c3/shared_runs.py <N> <file>…`, the quoting check;
+* `cargo xtask ci`, green on `f54f39f`'s tree (log
+  `target/p10-c3/ci-text-half.log`).
 
 ## Part D — the web (D1 after B4; D2–D4 after D1; D5 after D3 and C7; D6 last)
 
