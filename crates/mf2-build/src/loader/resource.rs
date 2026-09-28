@@ -67,9 +67,26 @@ fn read_into(loaded: &mut Loaded, index: usize, file: &SourceFile) {
         });
     }
     loaded.declared.push(resource.locale().map(str::to_owned));
+    let resource_dnt = has_dnt(&resource.meta);
     for entry in resource.iter() {
         let id = entry.id().to_string();
         let e = entry.entry;
+        let mut meta: Vec<Property> = e
+            .meta
+            .iter()
+            .map(|m| Property {
+                name: m.name.to_string(),
+                value: m.value.as_ref().map(ToString::to_string),
+            })
+            .collect();
+        // `@do-not-translate` on the file or the section covers the entry,
+        // as the XLIFF export's `translate="no"` does.
+        if !has_dnt(&e.meta) && (resource_dnt || entry.section.is_some_and(|h| has_dnt(&h.meta))) {
+            meta.push(Property {
+                name: DO_NOT_TRANSLATE.to_owned(),
+                value: None,
+            });
+        }
         loaded.records.push(Record {
             id,
             source: e.value.to_string(),
@@ -79,16 +96,15 @@ fn read_into(loaded: &mut Loaded, index: usize, file: &SourceFile) {
             value_span: e.value_span,
             map: e.map.clone(),
             comment: e.comment.as_ref().map(|c| c.text.to_string()),
-            meta: e
-                .meta
-                .iter()
-                .map(|m| Property {
-                    name: m.name.to_string(),
-                    value: m.value.as_ref().map(ToString::to_string),
-                })
-                .collect(),
+            meta,
         });
     }
+}
+
+const DO_NOT_TRANSLATE: &str = "do-not-translate";
+
+fn has_dnt(meta: &[mf2_resource::Meta<'_>]) -> bool {
+    meta.iter().any(|m| m.name == DO_NOT_TRANSLATE)
 }
 
 /// One file, formatted canonically (`mf2 fmt`): `None` when it has a syntax

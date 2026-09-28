@@ -117,6 +117,15 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   markup out while another variant of the message keeps it; a corpus that
   drops markup on purpose sets `dropped-markup = "warn"` (or `"allow"`)
   under `[lints]`.
+* **Changed: a message marked `@do-not-translate` is not missing.** It
+  needs no translation, so `missing-translation` and `mf2 stats` leave it
+  out of both the count and the total: a language with one of four
+  messages, whose source marks one of them `@do-not-translate`, is missing
+  two of three, not three of four, and a copy of it is not counted as
+  translated. `mf2 stats --format json` adds `do_not_translate`. The mark
+  on a `[section]` or at the top of a file now covers every message under
+  it for every check, as it already did for XLIFF export's
+  `translate="no"`.
 
 ## 1.0.0
 

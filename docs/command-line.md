@@ -62,6 +62,12 @@ A finding names its file, line and column, the problem, and its code in
 brackets: `missing-translation`, for one, names the first ten missing ids
 of each language. `mf2.toml`'s `[lints]` raises or lowers a code.
 
+A message the source marks `@do-not-translate` — a brand, or a language's
+own name — needs no translation. A language that does not have it shows the
+source's, and it is not counted as missing, here or in `stats`; one that
+copies it has to copy it exactly (`do-not-translate`). The mark on a
+`[section]`, or at the top of a file, covers every message under it.
+
 A translation that leaves out markup its source message has is an error,
 `dropped-markup`: `Accept our {#link}terms{/link}.` translated as
 `Acceptez nos conditions.` would take the link away from French readers.
@@ -108,8 +114,10 @@ catalog holds, and its content-hashed name. `-v` lists the files.
 
 ## `stats`, `dump`: what is in a catalog
 
-`mf2 -C i18n stats` prints, for each language, how many messages it has
-and lacks, and its catalog's size raw, gzipped and brotli-compressed; then
+`mf2 -C i18n stats` prints, for each language, how many of the messages
+that need translating it has and lacks (not those marked
+`@do-not-translate`), and its catalog's size raw, gzipped and
+brotli-compressed; then
 the locale data each catalog carries, entry by entry. `--format json` for
 a dashboard.
 

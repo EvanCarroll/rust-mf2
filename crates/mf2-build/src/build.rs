@@ -116,6 +116,10 @@ pub struct Outcome {
     pub manifest_hash: u64,
     /// Everything the build has to say.
     pub report: Report,
+    /// Per locale, in tag order: how many of the messages that need
+    /// translating it has, which `mf2 stats` reports.
+    #[doc(hidden)]
+    pub coverage: Vec<crate::check::Coverage>,
     /// One catalog per locale, in tag order.
     #[doc(hidden)]
     pub catalogs: Vec<Catalog>,
@@ -408,18 +412,17 @@ impl Build {
             config,
             &mut report,
         );
-        crate::check::corpus(
-            &crate::check::Corpus {
-                sources: &sources,
-                models: &models,
-                indexes: &indexes,
-                source_index,
-                manifest: &built,
-            },
-            config,
-            features,
-            &mut report,
-        );
+        let checked = crate::check::Corpus {
+            sources: &sources,
+            models: &models,
+            indexes: &indexes,
+            source_index,
+            manifest: &built,
+        };
+        crate::check::corpus(&checked, config, features, &mut report);
+        let coverage: Vec<crate::check::Coverage> = (0..tags.len())
+            .map(|locale| crate::check::coverage_of(&checked, locale))
+            .collect();
 
         // A corpus with errors is not written: the catalog writer would
         // refuse half of what the lints just reported (a translation using a
@@ -430,6 +433,7 @@ impl Build {
                 manifest_hash: built.manifest.hash(),
                 manifest: built.manifest,
                 report,
+                coverage,
                 catalogs: Vec::new(),
                 locales: Vec::new(),
                 source_locale: config.source_locale.clone(),
@@ -532,6 +536,7 @@ impl Build {
             manifest_hash: built.manifest.hash(),
             manifest: built.manifest,
             report,
+            coverage,
             catalogs,
             locales,
             source_locale: config.source_locale.clone(),

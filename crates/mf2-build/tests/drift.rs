@@ -461,6 +461,77 @@ fn markup_that_one_variant_keeps_is_not_dropped() {
     assert_eq!(outcome.report.errors(), 1, "{text}");
 }
 
+/// The UX review's case (Phase 10 E2): French had one of four messages, and
+/// one of the three it lacked was a language's own name, marked
+/// `@do-not-translate`. It needs no translation, so French is missing two
+/// of three — not three of four — and a copy of it is not a translation.
+#[test]
+fn do_not_translate_messages_are_neither_missing_nor_covered() {
+    let en = "@locale en\n---\n\ngreeting = Hello\nfarewell = Goodbye\napply = Apply\n\n\
+              @do-not-translate\nlanguage-fr = Français\n";
+    let files = |fr: &str| {
+        vec![
+            ("en".to_owned(), en.to_owned()),
+            ("fr".to_owned(), fr.to_owned()),
+        ]
+    };
+    let config = Config::default();
+    let outcome = build_corpus(
+        "dnt-missing",
+        &files("@locale fr\n---\n\ngreeting = Bonjour\n"),
+        &with_fn_number(),
+        &config,
+    );
+    let text = outcome.report.to_text();
+    assert!(
+        text.contains("2 of 3 messages are missing here and fall back to en: apply, farewell"),
+        "{text}"
+    );
+    let fr = &outcome.coverage[1];
+    assert_eq!(
+        (fr.tag.as_str(), fr.translatable, fr.translated()),
+        ("fr", 3, 1)
+    );
+    assert_eq!(outcome.coverage[0].missing, Vec::<String>::new());
+
+    // A copy of the language's name is not a translation: still one of
+    // three.
+    let outcome = build_corpus(
+        "dnt-copied",
+        &files("@locale fr\n---\n\ngreeting = Bonjour\nlanguage-fr = Français\n"),
+        &with_fn_number(),
+        &config,
+    );
+    assert!(
+        outcome
+            .report
+            .to_text()
+            .contains("2 of 3 messages are missing here"),
+        "{}",
+        outcome.report.to_text()
+    );
+    assert_eq!(outcome.coverage[1].translated(), 1);
+
+    // `@do-not-translate` on a section covers its entries, as XLIFF's
+    // `translate="no"` on a group does.
+    let en = "@locale en\n---\n\ngreeting = Hello\n\n@do-not-translate\n[language]\n\
+              en = English\nfr = Français\n";
+    let outcome = build_corpus(
+        "dnt-section",
+        &[
+            ("en".to_owned(), en.to_owned()),
+            (
+                "fr".to_owned(),
+                "@locale fr\n---\n\ngreeting = Bonjour\n".to_owned(),
+            ),
+        ],
+        &with_fn_number(),
+        &config,
+    );
+    assert!(outcome.report.is_empty(), "{}", outcome.report.to_text());
+    assert_eq!(outcome.coverage[1].translatable, 1);
+}
+
 #[test]
 fn every_lint_has_a_seeded_drift() {
     let seeded: BTreeSet<Lint> = drifts().into_iter().map(|d| d.lint).collect();

@@ -34,12 +34,22 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         .features(args.features.features())
         .check()?;
     let total = outcome.manifest.ids.len();
+    // Coverage counts only the messages that need translating: one marked
+    // `@do-not-translate` is neither missing where it is absent nor
+    // translated where it is copied.
+    let coverage = |tag: &str| outcome.coverage.iter().find(|c| c.tag == tag);
+    let do_not_translate = total - outcome.coverage.first().map_or(total, |c| c.translatable);
 
     match args.format {
         Format::Text => {
             println!(
-                "corpus {} — {total} messages, source locale {}, manifest {:#018x}",
+                "corpus {} — {total} messages{}, source locale {}, manifest {:#018x}",
                 dir.display(),
+                if do_not_translate > 0 {
+                    format!(" ({do_not_translate} marked @do-not-translate)")
+                } else {
+                    String::new()
+                },
                 outcome.source_locale,
                 outcome.manifest_hash
             );
@@ -55,12 +65,15 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 "locale", "coverage", "missing", "raw", "gz", "br"
             );
             for catalog in &outcome.catalogs {
-                let own = total - catalog.missing;
+                let (translated, translatable, missing) = coverage(&catalog.tag)
+                    .map_or((0, 0, 0), |c| {
+                        (c.translated(), c.translatable, c.missing.len())
+                    });
                 println!(
                     "{:<8} {:>8.1}% {:>8} {:>9} {:>9} {:>9}  {}",
                     catalog.tag,
-                    percent(own, total),
-                    catalog.missing,
+                    percent(translated, translatable),
+                    missing,
                     catalog.bytes.len(),
                     catalog.gz.len(),
                     catalog.br.len(),
@@ -94,12 +107,14 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 .iter()
                 .map(|catalog| {
                     let entries = entries(catalog);
+                    let (translated, missing) = coverage(&catalog.tag)
+                        .map_or((0, 0), |c| (c.translated(), c.missing.len()));
                     serde_json::json!({
                         "locale": catalog.tag,
                         "file": catalog.file_name(),
                         "hash": catalog.hash,
-                        "messages": total - catalog.missing,
-                        "missing": catalog.missing,
+                        "messages": translated,
+                        "missing": missing,
                         "fallbacks": catalog.fallbacks,
                         "raw": catalog.bytes.len(),
                         "gz": catalog.gz.len(),
@@ -113,6 +128,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 .collect();
             let report = serde_json::json!({
                 "messages": total,
+                "do_not_translate": do_not_translate,
                 "source_locale": outcome.source_locale,
                 "manifest_hash": format!("{:#018x}", outcome.manifest_hash),
                 "cldr": format!("{}.{}.{}", CLDR.major, CLDR.minor, CLDR.patch),

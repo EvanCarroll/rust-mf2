@@ -620,6 +620,53 @@ fn against_source(
 
 // ───────────────────────────────── coverage ──────────────────────────────
 
+/// What a locale has of the messages that need translating: the source's
+/// messages but those marked `@do-not-translate` (a brand, a language's own
+/// name), which need none — a locale without them is not missing anything,
+/// and a copy of one is not a translation (Phase 10 E2).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Coverage {
+    /// The locale.
+    pub tag: String,
+    /// How many of the corpus's messages need translating.
+    pub translatable: usize,
+    /// Those this locale does not have, in the manifest's order.
+    pub missing: Vec<String>,
+}
+
+impl Coverage {
+    /// How many of the messages that need translating the locale has.
+    pub fn translated(&self) -> usize {
+        self.translatable - self.missing.len()
+    }
+}
+
+/// The coverage of `locale`: of the source locale, every message it needs.
+pub fn coverage_of(corpus: &Corpus<'_>, locale: usize) -> Coverage {
+    let source = &corpus.sources[corpus.source_index];
+    let needs_translating = |id: &&String| {
+        corpus.indexes[corpus.source_index]
+            .get(id.as_str())
+            .is_none_or(|&record| !source.loaded.records[record].do_not_translate())
+    };
+    let ids: Vec<&String> = corpus
+        .manifest
+        .manifest
+        .ids
+        .iter()
+        .filter(needs_translating)
+        .collect();
+    Coverage {
+        tag: corpus.sources[locale].tag.clone(),
+        translatable: ids.len(),
+        missing: ids
+            .into_iter()
+            .filter(|id| !corpus.indexes[locale].contains_key(id.as_str()))
+            .cloned()
+            .collect(),
+    }
+}
+
 /// How many of the corpus's messages a locale is missing, once per locale,
 /// naming the first few (`plans/05-tooling.md` §5: "reported with counts
 /// per locale").
@@ -628,14 +675,8 @@ fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Co
         return;
     }
     let source = &corpus.sources[locale];
-    let ids: Vec<&str> = corpus
-        .manifest
-        .manifest
-        .ids
-        .iter()
-        .filter(|id| !corpus.indexes[locale].contains_key(id.as_str()))
-        .map(String::as_str)
-        .collect();
+    let coverage = coverage_of(corpus, locale);
+    let ids: Vec<&str> = coverage.missing.iter().map(String::as_str).collect();
     let missing = ids.len();
     if missing == 0 {
         return;
@@ -644,7 +685,7 @@ fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Co
     if level == Level::Allow {
         return;
     }
-    let total = corpus.manifest.manifest.ids.len();
+    let total = coverage.translatable;
     let path = source
         .loaded
         .files

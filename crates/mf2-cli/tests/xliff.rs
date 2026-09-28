@@ -202,6 +202,12 @@ fn the_export_has_the_mapping_of_the_plan() {
     let few = &few[..few.find("</unit>").expect("end")];
     assert!(few.contains("<source><ph id=\"1\" dataRef=\"d1\" disp=\"{$count}\"/> files</source>"));
     assert!(!few.contains("<target>"));
+    // A message marked @do-not-translate is `translate="no"` and has no
+    // target: it is no work for a tool to count, as it is not missing for
+    // `check` and `stats` (Phase 10 E2).
+    let brand = &doc[doc.find(r#"<unit id="brand""#).expect("brand")..];
+    let brand = &brand[..brand.find("</unit>").expect("end")];
+    assert!(!brand.contains("<target>"), "{brand}");
 }
 
 /// Owner question 7 in practice: a translator fills Polish `few` of an

@@ -396,6 +396,58 @@ fn check_refuses_a_translation_that_drops_markup() {
     ok(&run(&dir, &["check"]));
 }
 
+/// The UX review's case (Phase 10 E2): French has one of four messages, and
+/// one of the three it lacks is a language's own name, marked
+/// `@do-not-translate`. `check` and `stats`, as text and as JSON, count two
+/// of three missing.
+#[test]
+fn do_not_translate_messages_are_not_missing() {
+    let dir = small_corpus(
+        "cli-do-not-translate",
+        &[
+            (
+                "en",
+                "greeting = Hello\nfarewell = Goodbye\napply = Apply\n\n\
+                 @do-not-translate\nlanguage-fr = Français\n",
+            ),
+            ("fr", "greeting = Bonjour\n"),
+        ],
+    );
+    let text = ok(&run(&dir, &["check"]));
+    assert!(
+        text.contains("2 of 3 messages are missing here and fall back to en: apply, farewell"),
+        "{text}"
+    );
+
+    let text = ok(&run(&dir, &["stats"]));
+    assert!(
+        text.contains("4 messages (1 marked @do-not-translate)"),
+        "{text}"
+    );
+    let row = |tag: &str| -> Vec<String> {
+        text.lines()
+            .find(|l| l.split_whitespace().next() == Some(tag))
+            .unwrap_or_else(|| panic!("no row for {tag}: {text}"))
+            .split_whitespace()
+            .map(str::to_owned)
+            .collect()
+    };
+    assert_eq!(row("fr")[1..3], ["33.3%", "2"], "{text}");
+    assert_eq!(row("en")[1..3], ["100.0%", "0"], "{text}");
+
+    let json = ok(&run(&dir, &["stats", "--format", "json"]));
+    let value: serde_json::Value = serde_json::from_str(&json).expect("json");
+    assert_eq!(value["messages"], 4);
+    assert_eq!(value["do_not_translate"], 1);
+    let fr = value["locales"]
+        .as_array()
+        .expect("an array")
+        .iter()
+        .find(|l| l["locale"] == "fr")
+        .expect("fr");
+    assert_eq!((&fr["messages"], &fr["missing"]), (&1.into(), &2.into()));
+}
+
 #[test]
 fn stats_reports_coverage_sizes_and_the_pins() {
     let dir = corpus("cli-stats");

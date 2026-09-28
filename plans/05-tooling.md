@@ -486,7 +486,10 @@ without `fn-datetime` — reported with file and line, so a translation can neve
 silently add formatting code to the wasm (see [03-runtime](03-runtime.md) §5.1).
 
 Warnings (configurable to errors): id missing in a translation (falls back —
-reported once per locale, with the count and the first ten ids, Phase 9 B8); `neutral-numbers` — the corpus formats numbers
+reported once per locale, with the count and the first ten ids, Phase 9 B8; a
+message the source marks `@do-not-translate` needs no translation and counts
+neither as missing nor in `stats`' coverage, Phase 10 E2 — the mark on a
+section or a file covers its entries, as §6.3's `translate="no"` does); `neutral-numbers` — the corpus formats numbers
 but `fn-number` is off, so digits render without locale symbols; `unpaired-markup`
 — an open without a close or the reverse; a plural `.match` that does not mention every
 category the *target* locale has; source text not in NFC; placeholder present in
@@ -518,7 +521,7 @@ the list — they are names users choose as much as option names are.*
 | `mf2 check` | all lints, machine-readable output for CI (`--format json`); without `--features`, the i18n crate's features as cargo resolves them (§3), so a bare `check` reports what the build reports (Phase 9 B8) |
 | `mf2 compile` | catalogs without cargo (for CSR/static hosting and debugging); `--site DIR` writes only what a static host serves — the catalogs and the `index.json` a client-only application reads to find them (Phase 7 A2, [04](04-leptos-integration.md) §8). With `--site` the functions are the i18n crate's features as `cargo metadata` resolves them (only `fn-number`, `fn-datetime` and `datetime-icu` change a catalog); a `--features` that names others fails, with both lists, and writes nothing — so the catalogs are built for the wasm's functions without the list being written twice (Phase 7 A6). DIR must be a cargo package |
 | `mf2 fmt` | canonical formatting of `.mf2` resources |
-| `mf2 stats` | per-locale coverage, catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
+| `mf2 stats` | per-locale coverage (of the messages that need translating: not those marked `@do-not-translate`, Phase 10 E2), catalog sizes raw/gz/br, locale-data breakdown, CLDR + spec pins |
 | `mf2 dump <file.mf2b>` | decode a catalog back to MF2 source / data-model JSON |
 | `mf2 pseudo` | generate pseudo-locales (`en-XA` expanded/accented, `ar-XB` RTL) |
 | `mf2 export` / `import` | flat JSON, and XLIFF 2 (`export --format xliff`; `import` tells the two apart by content) against the standard vendored under `third_party/` (owner, 2026-09-24; built in Phase 8, [16](16-phase-8-work-order.md) A6; the mapping is §6.3) |

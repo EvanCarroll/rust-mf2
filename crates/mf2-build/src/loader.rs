@@ -77,7 +77,8 @@ pub struct Record {
     pub map: ValueMap,
     /// The comment above the entry — translator context.
     pub comment: Option<String>,
-    /// The entry's properties (`@param`, `@do-not-translate`, …).
+    /// The entry's properties (`@param`, `@do-not-translate`, …), and a
+    /// `@do-not-translate` of its file or section, which covers it.
     pub meta: Vec<Property>,
 }
 
