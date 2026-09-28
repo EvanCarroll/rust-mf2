@@ -1,0 +1,209 @@
+@locale fr
+---
+
+[app]
+title = Trace réseau v{$version}
+tagline = Un outil de diagnostic réseau, traduit avec MessageFormat 2.
+
+[header]
+target = Cible : {#host}{$source}{/host} → {#host}{$destination}{/host}
+protocol = Protocole : {$protocol}
+privileged = privilégié
+unprivileged = non privilégié
+status-running = État : {#ok}en cours{/ok}
+
+status-frozen =
+  .input {$seconds :integer}
+  .match $seconds
+  one {{État : {#warn}figé{/warn} depuis {$seconds} seconde}}
+  many {{État : {#warn}figé{/warn} depuis {$seconds} secondes}}
+  *   {{État : {#warn}figé{/warn} depuis {$seconds} secondes}}
+
+# The verb agrees with the failed probes, not with the total: French selects
+# on another value than English does.
+failures =
+  .input {$failed :integer}
+  .match $failed
+  one {{{$failed} sonde sur {$total :integer} a échoué ({$rate :percent maximumFractionDigits=1})}}
+  many {{{$failed} sondes sur {$total :integer} ont échoué ({$rate :percent maximumFractionDigits=1})}}
+  *   {{{$failed} sondes sur {$total :integer} ont échoué ({$rate :percent maximumFractionDigits=1})}}
+
+discovered =
+  .input {$hops :integer}
+  .input {$flows :integer}
+  .match $hops $flows
+  one one {{Découverts : {$hops} saut et {$flows} flux unique}}
+  one *   {{Découverts : {$hops} saut et {$flows} flux uniques}}
+  many one {{Découverts : {$hops} sauts et {$flows} flux unique}}
+  many *   {{Découverts : {$hops} sauts et {$flows} flux uniques}}
+  *   one {{Découverts : {$hops} sauts et {$flows} flux unique}}
+  *   *   {{Découverts : {$hops} sauts et {$flows} flux uniques}}
+
+hidden = masqué
+unknown = inconnu
+
+[hint]
+help = {#key}h{/key} aide
+settings = {#key}s{/key} paramètres
+language = {#key}l{/key} langue
+freeze = {#key}f{/key} figer
+details = {#key}d{/key} détails
+chart = {#key}c{/key} graphique
+quit = {#key}q{/key} quitter
+
+[hops]
+title = Sauts
+
+[column]
+hop = #
+host = Hôte
+loss = Perte%
+sent = Env
+received = Reç
+last = Dern
+average = Moy
+best = Min
+worst = Max
+deviation = ÉcT
+jitter = Gigue
+status = État
+asn = ASN
+location = Géo
+
+[details]
+title = Saut {$ttl :integer}
+host = Hôte : {#host}{$host}{/host}
+loss = Perte : {$loss :percent maximumFractionDigits=1}
+sent = Envoyées : {$sent :integer}
+received = Reçues : {$received :integer}
+last = Dernière : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+average = Moyenne : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+best = Meilleure : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+worst = Pire : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+deviation = Écart type : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+jitter = Gigue : {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+asn = AS{$asn :integer useGrouping=never} · {$name}
+asn-pending = Recherche de l'AS en cours
+location = Emplacement : {$city}, {$country}
+
+addresses =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} adresse}}
+  many {{{$count} adresses}}
+  *   {{{$count} adresses}}
+
+dns-pending = Résolution…
+dns-failed = Échec de la recherche
+dns-timeout = Délai de recherche dépassé
+nav = {#key}←{/key} saut précédent · {#key}→{/key} saut suivant
+
+[chart]
+title = Temps aller-retour
+samples = Échantillons
+rtt = RTT (ms)
+hop = Saut {$ttl :integer}
+frequency = Fréquence n° {$ttl :integer}
+history = Échantillons n° {$ttl :integer}
+zoom = Zoom ×{$factor :integer}
+
+[settings]
+title = Paramètres
+info = {#key}←{/key} {#key}→{/key} changer d'onglet · {#key}↑{/key} \
+  {#key}↓{/key} choisir · {#key}Échap{/key} fermer
+tab-interface = Interface
+tab-interface-about = L'apparence et le comportement de l'interface du terminal
+tab-trace = Trace
+tab-trace-about = Comment les sondes sont envoyées et quand elles expirent
+tab-dns = DNS
+tab-dns-about = Comment les adresses sont résolues en noms
+tab-geoip = GeoIP
+tab-geoip-about = D'où viennent les emplacements
+tab-keys = Touches
+tab-keys-about = Quelle touche fait quoi
+tab-theme = Thème
+tab-theme-about = Les couleurs de chaque partie de l'interface
+tab-columns = Colonnes
+tab-columns-about = Les colonnes que le tableau affiche
+on = activé
+off = désactivé
+auto = automatique
+interval = Intervalle entre sondes : {$ms :integer} ms
+max-ttl = Nombre maximal de sauts : {$hops :integer}
+timeout = Délai d'expiration : {$ms :integer} ms
+reverse-dns = DNS inverse : {$state}
+mode = Mode : {$mode}
+geoip = Recherches GeoIP : {$state}
+asn = Recherches d'ASN : {$state}
+
+[help]
+title = Aide
+settings = Appuyez sur {#key}s{/key} pour afficher tous les paramètres
+keys = Appuyez sur {#key}k{/key} pour afficher tous les raccourcis
+columns = Appuyez sur {#key}c{/key} pour afficher toutes les colonnes
+license = Distribué sous licence MIT.
+copyright = Copyright les auteurs de l'exemple.
+close = Appuyez sur une touche pour fermer
+
+[language]
+title = Langue
+current = {$name} (actuelle)
+
+[flows]
+title = Flux
+
+# "flux" is the same in the singular and the plural: no selection needed.
+count = {$count :integer} flux
+selected = Flux {$id :integer}
+running = En cours
+frozen = Figé
+
+[log]
+title = Événements
+awaiting = En attente de données…
+started = Trace lancée vers {#host}{$host}{/host}
+permission = {#alert}Permission refusée{/alert} : lancez avec des \
+  privilèges, ou utilisez le mode non privilégié.
+resolve = {#alert}Impossible de résoudre{/alert} {#host}{$host}{/host}
+failed = Échec de la trace : {$error}
+quit = Appuyez sur {#key}q{/key} pour quitter
+
+dns-pending =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} recherche en attente}}
+  many {{{$count} recherches en attente}}
+  *   {{{$count} recherches en attente}}
+
+[status]
+
+summary =
+  .input {$hops :integer}
+  .input {$sent :integer}
+  .match $hops $sent
+  one one {{{$hops} saut · {$sent} sonde envoyée · {$failed :integer} en échec}}
+  one *   {{{$hops} saut · {$sent} sondes envoyées · {$failed :integer} en échec}}
+  many one {{{$hops} sauts · {$sent} sonde envoyée · {$failed :integer} en échec}}
+  many *   {{{$hops} sauts · {$sent} sondes envoyées · {$failed :integer} en échec}}
+  *   one {{{$hops} sauts · {$sent} sonde envoyée · {$failed :integer} en échec}}
+  *   *   {{{$hops} sauts · {$sent} sondes envoyées · {$failed :integer} en échec}}
+
+loss = Perte {$rate :percent maximumFractionDigits=1}
+
+elapsed =
+  .input {$minutes :integer}
+  .match $minutes
+  one {{En cours depuis {$minutes} minute}}
+  many {{En cours depuis {$minutes} minutes}}
+  *   {{En cours depuis {$minutes} minutes}}
+
+frozen = {#warn}Figé{/warn} : appuyez sur {#key}f{/key} pour reprendre
+privacy = Confidentialité : sauts masqués après {$ttl :integer}
+no-response = Pas de réponse
+
+@do-not-translate
+[language-name]
+en = English
+de = Deutsch
+es = Español
+fr = Français

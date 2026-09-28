@@ -1,0 +1,202 @@
+@locale de
+---
+
+[app]
+title = Netzwerk-Trace v{$version}
+tagline = Ein Netzwerk-Diagnosewerkzeug, übersetzt mit MessageFormat 2.
+
+[header]
+target = Ziel: {#host}{$source}{/host} → {#host}{$destination}{/host}
+protocol = Protokoll: {$protocol}
+privileged = privilegiert
+unprivileged = unprivilegiert
+status-running = Status: {#ok}läuft{/ok}
+
+# The styled word moves to the end of the sentence.
+status-frozen =
+  .input {$seconds :integer}
+  .match $seconds
+  one {{Status: seit {$seconds} Sekunde {#warn}angehalten{/warn}}}
+  *   {{Status: seit {$seconds} Sekunden {#warn}angehalten{/warn}}}
+
+failures =
+  .input {$total :integer}
+  .match $total
+  one {{{$failed :integer} von {$total} Probe fehlgeschlagen ({$rate :percent maximumFractionDigits=1})}}
+  *   {{{$failed :integer} von {$total} Proben fehlgeschlagen ({$rate :percent maximumFractionDigits=1})}}
+
+discovered =
+  .input {$hops :integer}
+  .input {$flows :integer}
+  .match $hops $flows
+  one one {{{$hops} Hop und {$flows} eindeutiger Flow entdeckt}}
+  one *   {{{$hops} Hop und {$flows} eindeutige Flows entdeckt}}
+  *   one {{{$hops} Hops und {$flows} eindeutiger Flow entdeckt}}
+  *   *   {{{$hops} Hops und {$flows} eindeutige Flows entdeckt}}
+
+hidden = verborgen
+unknown = unbekannt
+
+[hint]
+help = {#key}h{/key} Hilfe
+settings = {#key}s{/key} Einstellungen
+language = {#key}l{/key} Sprache
+freeze = {#key}f{/key} Anhalten
+details = {#key}d{/key} Details
+chart = {#key}c{/key} Diagramm
+quit = {#key}q{/key} Beenden
+
+[hops]
+title = Hops
+
+[column]
+hop = #
+host = Host
+loss = Verl%
+sent = Ges
+received = Empf
+last = Letzt
+average = Mittel
+best = Best
+worst = Schl
+deviation = StAbw
+jitter = Jitter
+status = Sts
+asn = ASN
+location = Geo
+
+[details]
+title = Hop {$ttl :integer}
+host = Host: {#host}{$host}{/host}
+loss = Verlust: {$loss :percent maximumFractionDigits=1}
+sent = Gesendet: {$sent :integer}
+received = Empfangen: {$received :integer}
+last = Letzte: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+average = Mittelwert: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+best = Beste: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+worst = Schlechteste: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+deviation = Standardabweichung: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+jitter = Jitter: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+asn = AS{$asn :integer useGrouping=never} · {$name}
+asn-pending = AS-Abfrage läuft
+location = Standort: {$city}, {$country}
+
+addresses =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} Adresse}}
+  *   {{{$count} Adressen}}
+
+dns-pending = Wird aufgelöst…
+dns-failed = Abfrage fehlgeschlagen
+dns-timeout = Zeitüberschreitung bei der Abfrage
+nav = {#key}←{/key} vorheriger Hop · {#key}→{/key} nächster Hop
+
+[chart]
+title = Umlaufzeit
+samples = Messwerte
+rtt = RTT (ms)
+hop = Hop {$ttl :integer}
+frequency = Häufigkeit Nr. {$ttl :integer}
+history = Messwerte Nr. {$ttl :integer}
+zoom = Zoom ×{$factor :integer}
+
+[settings]
+title = Einstellungen
+info = {#key}←{/key} {#key}→{/key} Reiter wechseln · {#key}↑{/key} \
+  {#key}↓{/key} auswählen · {#key}Esc{/key} schließen
+tab-interface = Oberfläche
+tab-interface-about = Wie die Terminaloberfläche aussieht und sich verhält
+tab-trace = Trace
+tab-trace-about = Wie Proben gesendet werden und wann sie ablaufen
+tab-dns = DNS
+tab-dns-about = Wie Adressen in Namen aufgelöst werden
+tab-geoip = GeoIP
+tab-geoip-about = Woher die Standorte kommen
+tab-keys = Tasten
+tab-keys-about = Welche Taste was bewirkt
+tab-theme = Farbschema
+tab-theme-about = Die Farben jedes Teils der Oberfläche
+tab-columns = Spalten
+tab-columns-about = Welche Spalten die Tabelle zeigt
+on = an
+off = aus
+auto = automatisch
+interval = Probenintervall: {$ms :integer} ms
+max-ttl = Höchstzahl Hops: {$hops :integer}
+timeout = Zeitlimit: {$ms :integer} ms
+reverse-dns = Reverse-DNS: {$state}
+mode = Modus: {$mode}
+geoip = GeoIP-Abfragen: {$state}
+asn = ASN-Abfragen: {$state}
+
+[help]
+title = Hilfe
+settings = {#key}s{/key} drücken, um alle Einstellungen zu zeigen
+keys = {#key}k{/key} drücken, um alle Tastenbelegungen zu zeigen
+columns = {#key}c{/key} drücken, um alle Spalten zu zeigen
+license = Veröffentlicht unter der MIT-Lizenz.
+copyright = Copyright die Autoren des Beispiels.
+close = Beliebige Taste drücken, um zu schließen
+
+[language]
+title = Sprache
+current = {$name} (aktuell)
+
+[flows]
+title = Flows
+
+count =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} Flow}}
+  *   {{{$count} Flows}}
+
+selected = Flow {$id :integer}
+running = Läuft
+frozen = Angehalten
+
+[log]
+title = Ereignisse
+awaiting = Warte auf Daten…
+started = Trace zu {#host}{$host}{/host} gestartet
+permission = {#alert}Zugriff verweigert{/alert}: mit Rechten starten oder den unprivilegierten Modus verwenden.
+resolve = {#host}{$host}{/host} {#alert}konnte nicht aufgelöst werden{/alert}
+failed = Trace fehlgeschlagen: {$error}
+quit = {#key}q{/key} drücken, um zu beenden
+
+dns-pending =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} Abfrage ausstehend}}
+  *   {{{$count} Abfragen ausstehend}}
+
+[status]
+
+summary =
+  .input {$hops :integer}
+  .input {$sent :integer}
+  .match $hops $sent
+  one one {{{$hops} Hop · {$sent} Probe gesendet · {$failed :integer} fehlgeschlagen}}
+  one *   {{{$hops} Hop · {$sent} Proben gesendet · {$failed :integer} fehlgeschlagen}}
+  *   one {{{$hops} Hops · {$sent} Probe gesendet · {$failed :integer} fehlgeschlagen}}
+  *   *   {{{$hops} Hops · {$sent} Proben gesendet · {$failed :integer} fehlgeschlagen}}
+
+loss = Verlust {$rate :percent maximumFractionDigits=1}
+
+elapsed =
+  .input {$minutes :integer}
+  .match $minutes
+  one {{Läuft seit {$minutes} Minute}}
+  *   {{Läuft seit {$minutes} Minuten}}
+
+frozen = {#warn}Angehalten{/warn}: {#key}f{/key} drücken, um fortzusetzen
+privacy = Datenschutz: Hops nach {$ttl :integer} verborgen
+no-response = Keine Antwort
+
+@do-not-translate
+[language-name]
+en = English
+de = Deutsch
+es = Español
+fr = Français

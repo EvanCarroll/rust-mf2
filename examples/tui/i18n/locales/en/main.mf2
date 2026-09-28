@@ -1,0 +1,212 @@
+# The messages of one trippy-shaped frame: a header with a key-hint bar, a
+# table of hops, the selected hop's details, chart titles, settings, help, a
+# language menu, flows, an event log and a status line.
+#
+# Markup says what a stretch of text is (a key, a host, an alert); the
+# application decides how each looks. The translation decides where it goes.
+@locale en
+---
+
+[app]
+title = Network trace v{$version}
+tagline = A network diagnostic tool, translated with MessageFormat 2.
+
+[header]
+target = Target: {#host}{$source}{/host} → {#host}{$destination}{/host}
+protocol = Protocol: {$protocol}
+privileged = privileged
+unprivileged = unprivileged
+status-running = Status: {#ok}running{/ok}
+
+status-frozen =
+  .input {$seconds :integer}
+  .match $seconds
+  one {{Status: {#warn}frozen{/warn} for {$seconds} second}}
+  *   {{Status: {#warn}frozen{/warn} for {$seconds} seconds}}
+
+failures =
+  .input {$total :integer}
+  .match $total
+  one {{{$failed :integer} of {$total} probe failed ({$rate :percent maximumFractionDigits=1})}}
+  *   {{{$failed :integer} of {$total} probes failed ({$rate :percent maximumFractionDigits=1})}}
+
+discovered =
+  .input {$hops :integer}
+  .input {$flows :integer}
+  .match $hops $flows
+  one one {{Discovered {$hops} hop and {$flows} unique flow}}
+  one *   {{Discovered {$hops} hop and {$flows} unique flows}}
+  *   one {{Discovered {$hops} hops and {$flows} unique flow}}
+  *   *   {{Discovered {$hops} hops and {$flows} unique flows}}
+
+hidden = hidden
+unknown = unknown
+
+# The key-hint bar. The key is part of the message, so a translation puts it
+# where its word order wants it.
+[hint]
+help = {#key}h{/key}elp
+settings = {#key}s{/key}ettings
+language = {#key}l{/key}anguage
+freeze = {#key}f{/key}reeze
+details = {#key}d{/key}etails
+chart = {#key}c{/key}hart
+quit = {#key}q{/key}uit
+
+[hops]
+title = Hops
+
+# The hops table's column headers: short, like a terminal table's.
+[column]
+hop = #
+host = Host
+loss = Loss%
+sent = Snd
+received = Recv
+last = Last
+average = Avg
+best = Best
+worst = Wrst
+deviation = StDev
+jitter = Jttr
+status = Sts
+asn = ASN
+location = Geo
+
+[details]
+title = Hop {$ttl :integer}
+host = Host: {#host}{$host}{/host}
+loss = Loss: {$loss :percent maximumFractionDigits=1}
+sent = Sent: {$sent :integer}
+received = Received: {$received :integer}
+last = Last: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+average = Average: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+best = Best: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+worst = Worst: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+deviation = Standard deviation: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+jitter = Jitter: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+asn = AS{$asn :integer useGrouping=never} · {$name}
+asn-pending = AS lookup pending
+location = Location: {$city}, {$country}
+
+addresses =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} address}}
+  *   {{{$count} addresses}}
+
+dns-pending = Resolving…
+dns-failed = Lookup failed
+dns-timeout = Lookup timed out
+nav = {#key}←{/key} previous hop · {#key}→{/key} next hop
+
+[chart]
+title = Round-trip time
+samples = Samples
+rtt = RTT (ms)
+hop = Hop {$ttl :integer}
+frequency = Frequency #{$ttl :integer}
+history = Samples #{$ttl :integer}
+zoom = Zoom ×{$factor :integer}
+
+[settings]
+title = Settings
+info = {#key}←{/key} {#key}→{/key} change tab · {#key}↑{/key} \
+  {#key}↓{/key} select · {#key}Esc{/key} close
+tab-interface = Interface
+tab-interface-about = How the terminal interface looks and behaves
+tab-trace = Trace
+tab-trace-about = How probes are sent and when they time out
+tab-dns = DNS
+tab-dns-about = How addresses are resolved to names
+tab-geoip = GeoIP
+tab-geoip-about = Where locations come from
+tab-keys = Keys
+tab-keys-about = Which key does what
+tab-theme = Theme
+tab-theme-about = The colours of each part of the interface
+tab-columns = Columns
+tab-columns-about = Which columns the table shows
+on = on
+off = off
+auto = auto
+interval = Probe interval: {$ms :integer} ms
+max-ttl = Maximum hops: {$hops :integer}
+timeout = Timeout: {$ms :integer} ms
+reverse-dns = Reverse DNS: {$state}
+mode = Mode: {$mode}
+geoip = GeoIP lookups: {$state}
+asn = ASN lookups: {$state}
+
+[help]
+title = Help
+settings = Press {#key}s{/key} to show every setting
+keys = Press {#key}k{/key} to show every key binding
+columns = Press {#key}c{/key} to show every column
+license = Distributed under the MIT license.
+copyright = Copyright the example's authors.
+close = Press any key to close
+
+[language]
+title = Language
+current = {$name} (current)
+
+[flows]
+title = Flows
+
+count =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} flow}}
+  *   {{{$count} flows}}
+
+selected = Flow {$id :integer}
+running = Running
+frozen = Frozen
+
+# The event log: what happened, newest last.
+[log]
+title = Events
+awaiting = Awaiting data…
+started = Trace started to {#host}{$host}{/host}
+permission = {#alert}Permission denied{/alert}: run with privileges, or use unprivileged mode.
+resolve = {#alert}Could not resolve{/alert} {#host}{$host}{/host}
+failed = Trace failed: {$error}
+quit = Press {#key}q{/key} to quit
+
+dns-pending =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} lookup pending}}
+  *   {{{$count} lookups pending}}
+
+[status]
+
+summary =
+  .input {$hops :integer}
+  .input {$sent :integer}
+  .match $hops $sent
+  one one {{{$hops} hop · {$sent} probe sent · {$failed :integer} failed}}
+  one *   {{{$hops} hop · {$sent} probes sent · {$failed :integer} failed}}
+  *   one {{{$hops} hops · {$sent} probe sent · {$failed :integer} failed}}
+  *   *   {{{$hops} hops · {$sent} probes sent · {$failed :integer} failed}}
+
+loss = Loss {$rate :percent maximumFractionDigits=1}
+
+elapsed =
+  .input {$minutes :integer}
+  .match $minutes
+  one {{Running for {$minutes} minute}}
+  *   {{Running for {$minutes} minutes}}
+
+frozen = {#warn}Frozen{/warn}: press {#key}f{/key} to resume
+privacy = Privacy: hops after {$ttl :integer} hidden
+no-response = No response
+
+# Each language's name in that language, the same in every catalog.
+@do-not-translate
+[language-name]
+en = English
+de = Deutsch
+es = Español
+fr = Français

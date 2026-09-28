@@ -1,0 +1,734 @@
+# The baseline's catalog, in upstream trippy's layout: one table per message,
+# one value per locale, `%{name}` placeholders.
+
+[app_title]
+en = "Network trace"
+de = "Netzwerk-Trace"
+es = "Traza de red"
+fr = "Trace réseau"
+
+[tagline]
+en = "A network diagnostic tool, translated with MessageFormat 2."
+de = "Ein Netzwerk-Diagnosewerkzeug, übersetzt mit MessageFormat 2."
+es = "Una herramienta de diagnóstico de red, traducida con MessageFormat 2."
+fr = "Un outil de diagnostic réseau, traduit avec MessageFormat 2."
+
+[target]
+en = "Target"
+de = "Ziel"
+es = "Destino"
+fr = "Cible"
+
+[protocol]
+en = "Protocol: %{protocol}"
+de = "Protokoll: %{protocol}"
+es = "Protocolo: %{protocol}"
+fr = "Protocole : %{protocol}"
+
+[privileged]
+en = "privileged"
+de = "privilegiert"
+es = "con privilegios"
+fr = "privilégié"
+
+[unprivileged]
+en = "unprivileged"
+de = "unprivilegiert"
+es = "sin privilegios"
+fr = "non privilégié"
+
+[status]
+en = "Status"
+de = "Status"
+es = "Estado"
+fr = "État"
+
+[status_running]
+en = "running"
+de = "läuft"
+es = "en marcha"
+fr = "en cours"
+
+[status_frozen]
+en = "frozen"
+de = "angehalten"
+es = "congelado"
+fr = "figé"
+
+[status_failures]
+en = "%{failure_count} of %{total_probes} (%{failure_rate}%) probes failed"
+de = "%{failure_count} von %{total_probes} (%{failure_rate}%) Proben fehlgeschlagen"
+es = "%{failure_count} de %{total_probes} (%{failure_rate}%) sondas fallaron"
+fr = "%{failure_count} sur %{total_probes} (%{failure_rate}%) sondes ont échoué"
+
+[discovered_flows]
+en = "discovered %{hop_count} hops and %{flow_count} unique %{plural_flows}"
+de = "%{hop_count} Hops und %{flow_count} eindeutige %{plural_flows} entdeckt"
+es = "descubiertos %{hop_count} saltos y %{flow_count} %{plural_flows} únicos"
+fr = "%{hop_count} sauts et %{flow_count} %{plural_flows} uniques découverts"
+
+[flow]
+en = "flow"
+de = "Flow"
+es = "flujo"
+fr = "flux"
+
+[flows]
+en = "flows"
+de = "Flows"
+es = "flujos"
+fr = "flux"
+
+[hidden]
+en = "hidden"
+de = "verborgen"
+es = "oculto"
+fr = "masqué"
+
+[unknown]
+en = "unknown"
+de = "unbekannt"
+es = "desconocido"
+fr = "inconnu"
+
+[header_help]
+en = "help"
+de = "Hilfe"
+es = "ayuda"
+fr = "aide"
+
+[header_settings]
+en = "settings"
+de = "Einstellungen"
+es = "ajustes"
+fr = "paramètres"
+
+[header_language]
+en = "language"
+de = "Sprache"
+es = "idioma"
+fr = "langue"
+
+[header_freeze]
+en = "freeze"
+de = "Anhalten"
+es = "congelar"
+fr = "figer"
+
+[header_details]
+en = "details"
+de = "Details"
+es = "detalles"
+fr = "détails"
+
+[header_chart]
+en = "chart"
+de = "Diagramm"
+es = "gráfico"
+fr = "graphique"
+
+[header_quit]
+en = "quit"
+de = "Beenden"
+es = "salir"
+fr = "quitter"
+
+[title_hops]
+en = "Hops"
+de = "Hops"
+es = "Saltos"
+fr = "Sauts"
+
+[column_hop]
+en = "#"
+de = "#"
+es = "#"
+fr = "#"
+
+[column_host]
+en = "Host"
+de = "Host"
+es = "Host"
+fr = "Hôte"
+
+[column_loss]
+en = "Loss%"
+de = "Verl%"
+es = "Pérd%"
+fr = "Perte%"
+
+[column_sent]
+en = "Snd"
+de = "Ges"
+es = "Env"
+fr = "Env"
+
+[column_received]
+en = "Recv"
+de = "Empf"
+es = "Rec"
+fr = "Reç"
+
+[column_last]
+en = "Last"
+de = "Letzt"
+es = "Últ"
+fr = "Dern"
+
+[column_average]
+en = "Avg"
+de = "Mittel"
+es = "Med"
+fr = "Moy"
+
+[column_best]
+en = "Best"
+de = "Best"
+es = "Mejor"
+fr = "Min"
+
+[column_worst]
+en = "Wrst"
+de = "Schl"
+es = "Peor"
+fr = "Max"
+
+[column_deviation]
+en = "StDev"
+de = "StAbw"
+es = "DesvEst"
+fr = "ÉcT"
+
+[column_jitter]
+en = "Jttr"
+de = "Jitter"
+es = "Jitter"
+fr = "Gigue"
+
+[column_status]
+en = "Sts"
+de = "Sts"
+es = "Est"
+fr = "État"
+
+[column_asn]
+en = "ASN"
+de = "ASN"
+es = "ASN"
+fr = "ASN"
+
+[column_location]
+en = "Geo"
+de = "Geo"
+es = "Geo"
+fr = "Géo"
+
+[no_response]
+en = "No response"
+de = "Keine Antwort"
+es = "Sin respuesta"
+fr = "Pas de réponse"
+
+[dns_pending]
+en = "Resolving…"
+de = "Wird aufgelöst…"
+es = "Resolviendo…"
+fr = "Résolution…"
+
+[dns_failed]
+en = "Lookup failed"
+de = "Abfrage fehlgeschlagen"
+es = "La consulta falló"
+fr = "Échec de la recherche"
+
+[dns_timeout]
+en = "Lookup timed out"
+de = "Zeitüberschreitung bei der Abfrage"
+es = "La consulta expiró"
+fr = "Délai de recherche dépassé"
+
+[asn_pending]
+en = "AS lookup pending"
+de = "AS-Abfrage läuft"
+es = "Consulta de AS pendiente"
+fr = "Recherche de l'AS en cours"
+
+[hop]
+en = "Hop"
+de = "Hop"
+es = "Salto"
+fr = "Saut"
+
+[host]
+en = "Host"
+de = "Host"
+es = "Host"
+fr = "Hôte"
+
+[loss]
+en = "Loss"
+de = "Verlust"
+es = "Pérdida"
+fr = "Perte"
+
+[sent]
+en = "Sent"
+de = "Gesendet"
+es = "Enviadas"
+fr = "Envoyées"
+
+[received]
+en = "Received"
+de = "Empfangen"
+es = "Recibidas"
+fr = "Reçues"
+
+[last]
+en = "Last"
+de = "Letzte"
+es = "Última"
+fr = "Dernière"
+
+[average]
+en = "Average"
+de = "Mittelwert"
+es = "Media"
+fr = "Moyenne"
+
+[best]
+en = "Best"
+de = "Beste"
+es = "Mejor"
+fr = "Meilleure"
+
+[worst]
+en = "Worst"
+de = "Schlechteste"
+es = "Peor"
+fr = "Pire"
+
+[deviation]
+en = "Standard deviation"
+de = "Standardabweichung"
+es = "Desviación estándar"
+fr = "Écart type"
+
+[jitter]
+en = "Jitter"
+de = "Jitter"
+es = "Jitter"
+fr = "Gigue"
+
+[location]
+en = "Location"
+de = "Standort"
+es = "Ubicación"
+fr = "Emplacement"
+
+[address]
+en = "address"
+de = "Adresse"
+es = "dirección"
+fr = "adresse"
+
+[addresses]
+en = "addresses"
+de = "Adressen"
+es = "direcciones"
+fr = "adresses"
+
+[previous_hop]
+en = "previous hop"
+de = "vorheriger Hop"
+es = "salto anterior"
+fr = "saut précédent"
+
+[next_hop]
+en = "next hop"
+de = "nächster Hop"
+es = "salto siguiente"
+fr = "saut suivant"
+
+[chart_title]
+en = "Round-trip time"
+de = "Umlaufzeit"
+es = "Tiempo de ida y vuelta"
+fr = "Temps aller-retour"
+
+[samples]
+en = "Samples"
+de = "Messwerte"
+es = "Muestras"
+fr = "Échantillons"
+
+[rtt]
+en = "RTT (ms)"
+de = "RTT (ms)"
+es = "RTT (ms)"
+fr = "RTT (ms)"
+
+[frequency]
+en = "Frequency"
+de = "Häufigkeit"
+es = "Frecuencia"
+fr = "Fréquence"
+
+[zoom]
+en = "Zoom"
+de = "Zoom"
+es = "Zoom"
+fr = "Zoom"
+
+[title_flows]
+en = "Flows"
+de = "Flows"
+es = "Flujos"
+fr = "Flux"
+
+[flow_label]
+en = "Flow"
+de = "Flow"
+es = "Flujo"
+fr = "Flux"
+
+[flow_running]
+en = "Running"
+de = "Läuft"
+es = "En marcha"
+fr = "En cours"
+
+[flow_frozen]
+en = "Frozen"
+de = "Angehalten"
+es = "Congelado"
+fr = "Figé"
+
+[title_settings]
+en = "Settings"
+de = "Einstellungen"
+es = "Ajustes"
+fr = "Paramètres"
+
+[settings_info]
+en = "← → change tab · ↑ ↓ select · Esc close"
+de = "← → Reiter wechseln · ↑ ↓ auswählen · Esc schließen"
+es = "← → cambiar de pestaña · ↑ ↓ elegir · Esc cerrar"
+fr = "← → changer d'onglet · ↑ ↓ choisir · Échap fermer"
+
+[settings_tab_interface_title]
+en = "Interface"
+de = "Oberfläche"
+es = "Interfaz"
+fr = "Interface"
+
+[settings_tab_interface_desc]
+en = "How the terminal interface looks and behaves"
+de = "Wie die Terminaloberfläche aussieht und sich verhält"
+es = "Cómo se ve y se comporta la interfaz del terminal"
+fr = "L'apparence et le comportement de l'interface du terminal"
+
+[settings_tab_trace_title]
+en = "Trace"
+de = "Trace"
+es = "Traza"
+fr = "Trace"
+
+[settings_tab_trace_desc]
+en = "How probes are sent and when they time out"
+de = "Wie Proben gesendet werden und wann sie ablaufen"
+es = "Cómo se envían las sondas y cuándo expiran"
+fr = "Comment les sondes sont envoyées et quand elles expirent"
+
+[settings_tab_dns_title]
+en = "DNS"
+de = "DNS"
+es = "DNS"
+fr = "DNS"
+
+[settings_tab_dns_desc]
+en = "How addresses are resolved to names"
+de = "Wie Adressen in Namen aufgelöst werden"
+es = "Cómo se resuelven las direcciones en nombres"
+fr = "Comment les adresses sont résolues en noms"
+
+[settings_tab_geoip_title]
+en = "GeoIP"
+de = "GeoIP"
+es = "GeoIP"
+fr = "GeoIP"
+
+[settings_tab_geoip_desc]
+en = "Where locations come from"
+de = "Woher die Standorte kommen"
+es = "De dónde vienen las ubicaciones"
+fr = "D'où viennent les emplacements"
+
+[settings_tab_keys_title]
+en = "Keys"
+de = "Tasten"
+es = "Teclas"
+fr = "Touches"
+
+[settings_tab_keys_desc]
+en = "Which key does what"
+de = "Welche Taste was bewirkt"
+es = "Qué hace cada tecla"
+fr = "Quelle touche fait quoi"
+
+[settings_tab_theme_title]
+en = "Theme"
+de = "Farbschema"
+es = "Tema"
+fr = "Thème"
+
+[settings_tab_theme_desc]
+en = "The colours of each part of the interface"
+de = "Die Farben jedes Teils der Oberfläche"
+es = "Los colores de cada parte de la interfaz"
+fr = "Les couleurs de chaque partie de l'interface"
+
+[settings_tab_columns_title]
+en = "Columns"
+de = "Spalten"
+es = "Columnas"
+fr = "Colonnes"
+
+[settings_tab_columns_desc]
+en = "Which columns the table shows"
+de = "Welche Spalten die Tabelle zeigt"
+es = "Qué columnas muestra la tabla"
+fr = "Les colonnes que le tableau affiche"
+
+[on]
+en = "on"
+de = "an"
+es = "activado"
+fr = "activé"
+
+[off]
+en = "off"
+de = "aus"
+es = "desactivado"
+fr = "désactivé"
+
+[auto]
+en = "auto"
+de = "automatisch"
+es = "automático"
+fr = "automatique"
+
+[probe_interval]
+en = "Probe interval"
+de = "Probenintervall"
+es = "Intervalo entre sondas"
+fr = "Intervalle entre sondes"
+
+[max_ttl]
+en = "Maximum hops"
+de = "Höchstzahl Hops"
+es = "Máximo de saltos"
+fr = "Nombre maximal de sauts"
+
+[timeout]
+en = "Timeout"
+de = "Zeitlimit"
+es = "Tiempo de espera"
+fr = "Délai d'expiration"
+
+[reverse_dns]
+en = "Reverse DNS"
+de = "Reverse-DNS"
+es = "DNS inverso"
+fr = "DNS inverse"
+
+[mode]
+en = "Mode"
+de = "Modus"
+es = "Modo"
+fr = "Mode"
+
+[geoip_lookups]
+en = "GeoIP lookups"
+de = "GeoIP-Abfragen"
+es = "Consultas GeoIP"
+fr = "Recherches GeoIP"
+
+[asn_lookups]
+en = "ASN lookups"
+de = "ASN-Abfragen"
+es = "Consultas de ASN"
+fr = "Recherches d'ASN"
+
+[title_help]
+en = "Help"
+de = "Hilfe"
+es = "Ayuda"
+fr = "Aide"
+
+[help_show_settings]
+en = "Press [%{key}] to show every setting"
+de = "[%{key}] drücken, um alle Einstellungen zu zeigen"
+es = "Pulse [%{key}] para ver todos los ajustes"
+fr = "Appuyez sur [%{key}] pour afficher tous les paramètres"
+
+[help_show_bindings]
+en = "Press [%{key}] to show every key binding"
+de = "[%{key}] drücken, um alle Tastenbelegungen zu zeigen"
+es = "Pulse [%{key}] para ver todas las teclas"
+fr = "Appuyez sur [%{key}] pour afficher tous les raccourcis"
+
+[help_show_columns]
+en = "Press [%{key}] to show every column"
+de = "[%{key}] drücken, um alle Spalten zu zeigen"
+es = "Pulse [%{key}] para ver todas las columnas"
+fr = "Appuyez sur [%{key}] pour afficher toutes les colonnes"
+
+[help_license]
+en = "Distributed under the MIT license."
+de = "Veröffentlicht unter der MIT-Lizenz."
+es = "Distribuido bajo la licencia MIT."
+fr = "Distribué sous licence MIT."
+
+[help_copyright]
+en = "Copyright the example's authors."
+de = "Copyright die Autoren des Beispiels."
+es = "Copyright de los autores del ejemplo."
+fr = "Copyright les auteurs de l'exemple."
+
+[help_close]
+en = "Press any key to close"
+de = "Beliebige Taste drücken, um zu schließen"
+es = "Pulse cualquier tecla para cerrar"
+fr = "Appuyez sur une touche pour fermer"
+
+[title_language]
+en = "Language"
+de = "Sprache"
+es = "Idioma"
+fr = "Langue"
+
+[language_current]
+en = "%{name} (current)"
+de = "%{name} (aktuell)"
+es = "%{name} (actual)"
+fr = "%{name} (actuelle)"
+
+[language_en]
+en = "English"
+de = "English"
+es = "English"
+fr = "English"
+
+[language_de]
+en = "Deutsch"
+de = "Deutsch"
+es = "Deutsch"
+fr = "Deutsch"
+
+[language_es]
+en = "Español"
+de = "Español"
+es = "Español"
+fr = "Español"
+
+[language_fr]
+en = "Français"
+de = "Français"
+es = "Français"
+fr = "Français"
+
+[title_events]
+en = "Events"
+de = "Ereignisse"
+es = "Eventos"
+fr = "Événements"
+
+[awaiting_data]
+en = "Awaiting data…"
+de = "Warte auf Daten…"
+es = "Esperando datos…"
+fr = "En attente de données…"
+
+[trace_started]
+en = "Trace started to"
+de = "Trace gestartet zu"
+es = "Traza iniciada hacia"
+fr = "Trace lancée vers"
+
+[permission_denied]
+en = "Permission denied"
+de = "Zugriff verweigert"
+es = "Permiso denegado"
+fr = "Permission refusée"
+
+[permission_hint]
+en = "run with privileges, or use unprivileged mode."
+de = "mit Rechten starten oder den unprivilegierten Modus verwenden."
+es = "ejecute con privilegios o use el modo sin privilegios."
+fr = "lancez avec des privilèges, ou utilisez le mode non privilégié."
+
+[resolve_failed]
+en = "Could not resolve"
+de = "Konnte nicht aufgelöst werden"
+es = "No se pudo resolver"
+fr = "Impossible de résoudre"
+
+[trace_failed]
+en = "Trace failed: %{error}"
+de = "Trace fehlgeschlagen: %{error}"
+es = "La traza falló: %{error}"
+fr = "Échec de la trace : %{error}"
+
+[press_to_quit]
+en = "Press [%{key}] to quit"
+de = "[%{key}] drücken, um zu beenden"
+es = "Pulse [%{key}] para salir"
+fr = "Appuyez sur [%{key}] pour quitter"
+
+[dns_lookups_pending]
+en = "%{count} lookups pending"
+de = "%{count} Abfragen ausstehend"
+es = "%{count} consultas pendientes"
+fr = "%{count} recherches en attente"
+
+[frozen_for]
+en = "for %{seconds} seconds"
+de = "seit %{seconds} Sekunden"
+es = "desde hace %{seconds} segundos"
+fr = "depuis %{seconds} secondes"
+
+[summary]
+en = "%{hops} hops · %{sent} probes sent · %{failed} failed"
+de = "%{hops} Hops · %{sent} Proben gesendet · %{failed} fehlgeschlagen"
+es = "%{hops} saltos · %{sent} sondas enviadas · %{failed} con fallo"
+fr = "%{hops} sauts · %{sent} sondes envoyées · %{failed} en échec"
+
+[loss_rate]
+en = "Loss %{rate}%"
+de = "Verlust %{rate}%"
+es = "Pérdida %{rate}%"
+fr = "Perte %{rate}%"
+
+[running_for]
+en = "Running for %{minutes} minutes"
+de = "Läuft seit %{minutes} Minuten"
+es = "En marcha desde hace %{minutes} minutos"
+fr = "En cours depuis %{minutes} minutes"
+
+[frozen]
+en = "Frozen"
+de = "Angehalten"
+es = "Congelado"
+fr = "Figé"
+
+[press_to_resume]
+en = "press [%{key}] to resume"
+de = "[%{key}] drücken, um fortzusetzen"
+es = "pulse [%{key}] para continuar"
+fr = "appuyez sur [%{key}] pour reprendre"
+
+[privacy]
+en = "Privacy: hops after %{ttl} hidden"
+de = "Datenschutz: Hops nach %{ttl} verborgen"
+es = "Privacidad: saltos ocultos a partir del %{ttl}"
+fr = "Confidentialité : sauts masqués après %{ttl}"

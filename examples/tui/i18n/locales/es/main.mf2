@@ -1,0 +1,211 @@
+@locale es
+---
+
+[app]
+title = Traza de red v{$version}
+tagline = Una herramienta de diagnóstico de red, traducida con MessageFormat 2.
+
+[header]
+target = Destino: {#host}{$source}{/host} → {#host}{$destination}{/host}
+protocol = Protocolo: {$protocol}
+privileged = con privilegios
+unprivileged = sin privilegios
+status-running = Estado: {#ok}en marcha{/ok}
+
+status-frozen =
+  .input {$seconds :integer}
+  .match $seconds
+  one {{Estado: {#warn}congelado{/warn} desde hace {$seconds} segundo}}
+  many {{Estado: {#warn}congelado{/warn} desde hace {$seconds} segundos}}
+  *   {{Estado: {#warn}congelado{/warn} desde hace {$seconds} segundos}}
+
+failures =
+  .input {$total :integer}
+  .match $total
+  one {{{$failed :integer} de {$total} sonda falló ({$rate :percent maximumFractionDigits=1})}}
+  many {{{$failed :integer} de {$total} sondas fallaron ({$rate :percent maximumFractionDigits=1})}}
+  *   {{{$failed :integer} de {$total} sondas fallaron ({$rate :percent maximumFractionDigits=1})}}
+
+discovered =
+  .input {$hops :integer}
+  .input {$flows :integer}
+  .match $hops $flows
+  one one {{Descubiertos {$hops} salto y {$flows} flujo único}}
+  one *   {{Descubiertos {$hops} salto y {$flows} flujos únicos}}
+  many one {{Descubiertos {$hops} saltos y {$flows} flujo único}}
+  many *   {{Descubiertos {$hops} saltos y {$flows} flujos únicos}}
+  *   one {{Descubiertos {$hops} saltos y {$flows} flujo único}}
+  *   *   {{Descubiertos {$hops} saltos y {$flows} flujos únicos}}
+
+hidden = oculto
+unknown = desconocido
+
+[hint]
+help = {#key}h{/key} ayuda
+settings = {#key}s{/key} ajustes
+language = {#key}l{/key} idioma
+freeze = {#key}f{/key} congelar
+details = {#key}d{/key} detalles
+chart = {#key}c{/key} gráfico
+quit = {#key}q{/key} salir
+
+[hops]
+title = Saltos
+
+[column]
+hop = #
+host = Host
+loss = Pérd%
+sent = Env
+received = Rec
+last = Últ
+average = Med
+best = Mejor
+worst = Peor
+deviation = DesvEst
+jitter = Jitter
+status = Est
+asn = ASN
+location = Geo
+
+[details]
+title = Salto {$ttl :integer}
+host = Host: {#host}{$host}{/host}
+loss = Pérdida: {$loss :percent maximumFractionDigits=1}
+sent = Enviadas: {$sent :integer}
+received = Recibidas: {$received :integer}
+last = Última: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+average = Media: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+best = Mejor: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+worst = Peor: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+deviation = Desviación estándar: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+jitter = Jitter: {$ms :number minimumFractionDigits=1 maximumFractionDigits=1} ms
+asn = AS{$asn :integer useGrouping=never} · {$name}
+asn-pending = Consulta de AS pendiente
+location = Ubicación: {$city}, {$country}
+
+addresses =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} dirección}}
+  many {{{$count} direcciones}}
+  *   {{{$count} direcciones}}
+
+dns-pending = Resolviendo…
+dns-failed = La consulta falló
+dns-timeout = La consulta expiró
+nav = {#key}←{/key} salto anterior · {#key}→{/key} salto siguiente
+
+[chart]
+title = Tiempo de ida y vuelta
+samples = Muestras
+rtt = RTT (ms)
+hop = Salto {$ttl :integer}
+frequency = Frecuencia n.º {$ttl :integer}
+history = Muestras n.º {$ttl :integer}
+zoom = Zoom ×{$factor :integer}
+
+[settings]
+title = Ajustes
+info = {#key}←{/key} {#key}→{/key} cambiar de pestaña · \
+  {#key}↑{/key} {#key}↓{/key} elegir · {#key}Esc{/key} cerrar
+tab-interface = Interfaz
+tab-interface-about = Cómo se ve y se comporta la interfaz del terminal
+tab-trace = Traza
+tab-trace-about = Cómo se envían las sondas y cuándo expiran
+tab-dns = DNS
+tab-dns-about = Cómo se resuelven las direcciones en nombres
+tab-geoip = GeoIP
+tab-geoip-about = De dónde vienen las ubicaciones
+tab-keys = Teclas
+tab-keys-about = Qué hace cada tecla
+tab-theme = Tema
+tab-theme-about = Los colores de cada parte de la interfaz
+tab-columns = Columnas
+tab-columns-about = Qué columnas muestra la tabla
+on = activado
+off = desactivado
+auto = automático
+interval = Intervalo entre sondas: {$ms :integer} ms
+max-ttl = Máximo de saltos: {$hops :integer}
+timeout = Tiempo de espera: {$ms :integer} ms
+reverse-dns = DNS inverso: {$state}
+mode = Modo: {$mode}
+geoip = Consultas GeoIP: {$state}
+asn = Consultas de ASN: {$state}
+
+[help]
+title = Ayuda
+settings = Pulse {#key}s{/key} para ver todos los ajustes
+keys = Pulse {#key}k{/key} para ver todas las teclas
+columns = Pulse {#key}c{/key} para ver todas las columnas
+license = Distribuido bajo la licencia MIT.
+copyright = Copyright de los autores del ejemplo.
+close = Pulse cualquier tecla para cerrar
+
+[language]
+title = Idioma
+current = {$name} (actual)
+
+[flows]
+title = Flujos
+
+count =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} flujo}}
+  many {{{$count} flujos}}
+  *   {{{$count} flujos}}
+
+selected = Flujo {$id :integer}
+running = En marcha
+frozen = Congelado
+
+[log]
+title = Eventos
+awaiting = Esperando datos…
+started = Traza iniciada hacia {#host}{$host}{/host}
+permission = {#alert}Permiso denegado{/alert}: ejecute con privilegios o use el modo sin privilegios.
+resolve = {#alert}No se pudo resolver{/alert} {#host}{$host}{/host}
+failed = La traza falló: {$error}
+quit = Pulse {#key}q{/key} para salir
+
+dns-pending =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} consulta pendiente}}
+  many {{{$count} consultas pendientes}}
+  *   {{{$count} consultas pendientes}}
+
+[status]
+
+summary =
+  .input {$hops :integer}
+  .input {$sent :integer}
+  .match $hops $sent
+  one one {{{$hops} salto · {$sent} sonda enviada · {$failed :integer} con fallo}}
+  one *   {{{$hops} salto · {$sent} sondas enviadas · {$failed :integer} con fallo}}
+  many one {{{$hops} saltos · {$sent} sonda enviada · {$failed :integer} con fallo}}
+  many *   {{{$hops} saltos · {$sent} sondas enviadas · {$failed :integer} con fallo}}
+  *   one {{{$hops} saltos · {$sent} sonda enviada · {$failed :integer} con fallo}}
+  *   *   {{{$hops} saltos · {$sent} sondas enviadas · {$failed :integer} con fallo}}
+
+loss = Pérdida {$rate :percent maximumFractionDigits=1}
+
+elapsed =
+  .input {$minutes :integer}
+  .match $minutes
+  one {{En marcha desde hace {$minutes} minuto}}
+  many {{En marcha desde hace {$minutes} minutos}}
+  *   {{En marcha desde hace {$minutes} minutos}}
+
+frozen = {#warn}Congelado{/warn}: pulse {#key}f{/key} para continuar
+privacy = Privacidad: saltos ocultos a partir del {$ttl :integer}
+no-response = Sin respuesta
+
+@do-not-translate
+[language-name]
+en = English
+de = Deutsch
+es = Español
+fr = Français

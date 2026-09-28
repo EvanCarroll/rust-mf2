@@ -1,0 +1,23 @@
+# The translation crate, as the user guide's native page writes one for 1.x:
+# the messages, a build script that runs `mf2-build`, and a one-line
+# `src/lib.rs` that includes what it generates.
+[package]
+name = "demo-tui-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+build = "build.rs"
+
+# The functions a message may use are this crate's features; a native
+# application turns them on by default. `fn-number`: `:percent` and localized
+# numbers.
+[features]
+default = ["fn-number"]
+fn-number = ["mf2/fn-number"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2", features = ["host-std"] }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }

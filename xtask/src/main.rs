@@ -36,6 +36,7 @@ mod report;
 mod scenarios;
 mod size;
 mod spec_sync;
+mod tui_gate;
 mod xliff_sync;
 
 use std::ffi::OsString;
@@ -167,6 +168,28 @@ enum Command {
         /// Reuse the workloads and applications already there.
         #[arg(long)]
         keep: bool,
+    },
+    /// What translating a terminal UI costs (Phase 10, A1): `examples/tui`'s
+    /// trippy-shaped frame drawn with MF2 and with an in-house
+    /// re-implementation of trippy's own approach — allocations and time per
+    /// frame, and stripped sizes. The binaries run alternately.
+    TuiGate {
+        /// Runs of each binary; the time reported is their median.
+        #[arg(long, default_value_t = 31)]
+        runs: usize,
+        /// Frames each run times in each language.
+        #[arg(long, default_value_t = 50)]
+        frames: usize,
+        /// Alternate with the binaries a `--save-baseline` kept in DIR.
+        #[arg(long, value_name = "DIR")]
+        baseline: Option<PathBuf>,
+        /// Keep this build's binaries in DIR, for a later `--baseline`.
+        #[arg(long, value_name = "DIR")]
+        save_baseline: Option<PathBuf>,
+        /// Also measure the user guide's native project (after `cargo xtask
+        /// docs` has assembled it): its stripped size, with and without `tui`.
+        #[arg(long)]
+        book: bool,
     },
     /// The conversions under churn (Phase 7, A5): P0.11's churning list on
     /// leptos-mf2, one row shape per variant, built as a client-only site
@@ -427,6 +450,22 @@ fn run(command: Command) -> Result<()> {
                 publish,
                 allow_dirty,
                 baseline_rev,
+            },
+        ),
+        Command::TuiGate {
+            runs,
+            frames,
+            baseline,
+            save_baseline,
+            book,
+        } => tui_gate::run(
+            &root,
+            &tui_gate::Options {
+                runs,
+                frames,
+                baseline,
+                save_baseline,
+                book,
             },
         ),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),

@@ -51,6 +51,9 @@ pub(crate) enum Error {
     /// A release check failed, or the publish was refused.
     #[error("release: {0}")]
     Release(String),
+    /// The terminal UI's measurement could not be made, or did not repeat.
+    #[error("tui-gate: {0}")]
+    TuiGate(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \
