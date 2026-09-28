@@ -1501,6 +1501,31 @@ Rust 1.88"; `cargo xtask msrv --below` — "Rust 1.87 fails, as it must";
 `cargo xtask api --check` — "18 listings unchanged". `cargo xtask ci`:
 see the exit.
 
+## A8 — the Phase 9 results and what follows v1: what was built
+
+* **[`plans/phase-9-results.md`](phase-9-results.md):** the exit criteria
+  and their verdicts, the release's figures with their commands, B13's
+  verdicts on the book, what the phase found and did not fix, the owner
+  questions. It says plainly that the master plan's "dry run green in CI"
+  holds locally only: the `release` job has never run on a runner.
+* **The "Later" list** (master plan §9) is now an ordered list, proposed
+  here for the owner to confirm or reorder: hygiene after the release,
+  dev hot reload, editor tooling, per-route chunks, a lazy `JsString`
+  cache, ICU MessageFormat 1 import, server push in production, narrower
+  NAMES references, a v2 catalog container. The reasons are in the
+  results. Two findings joined the first group: item docs that cite
+  `plans/` (A5) and `mf2-locale-data`'s packaged zones-vector test, which
+  pins a length that moves with each `icu_time_data` patch (A0).
+* **The exit:** `current_phase = "P9"` in `conformance/ledger.toml`;
+  `CLAUDE.md` says Phases 1–9 are done and what is next; `plans/README.md`
+  and the master plan's work-order list mark 17 done.
+* **Found at the bump:** two negative-control tests in
+  `conformance/tests/ledger.rs` (`an_overdue_open_note_is_red`,
+  `until_after_the_layer_deadline_is_red`) needed a phase after the
+  current one, and P9 is the last; at `P9` both failed. Each now sets its
+  own copy of the ledger to P8 and asserts the same refusals. Then `cargo
+  xtask ci` green: 612 tests, 612 entries at P9, 164 statements, 0 gaps.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -1523,5 +1548,5 @@ see the exit.
 - [x] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7) — green locally on the clean tree; the `release` job is in `ci.yml`, waiting for a runner like every job (no remote yet)
 - [x] Part B: the book's refuted claims fixed in code or text, each with its guard (B1–B12)
 - [x] Part B: the book re-verified by running it (B13) — every refuted row verified or now described as it behaves; three more sentences corrected (§B13)
-- [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
-- [ ] `plans/phase-9-results.md` written (A8)
+- [x] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"` (2026-09-28)
+- [x] `plans/phase-9-results.md` written (A8)

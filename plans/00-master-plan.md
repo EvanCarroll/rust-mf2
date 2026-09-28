@@ -443,18 +443,34 @@ everything before it).
   order: [17](17-phase-9-work-order.md).
 
 ### Later, deliberately not now
-Per-route catalog chunks (bits already reserved); dev hot reload — `mf2
-watch` pushing a recompiled catalog to open pages without a rebuild (owner,
-2026-09-24; Phase 7 A6 measured the rebuild loop at 4–5 s on the example);
-editor tooling (tree-sitter
-grammar, LSP diagnostics from `mf2-syntax`); ICU MessageFormat 1 import; server
-push of catalog updates in production; catalog text as JS strings — a lazy
-`JsString` cache, then possibly a v2 catalog container using the JS String
-Builtins' imported string constants
-([stretch_goals_after_v1/prob_builtin_strings](stretch_goals_after_v1/prob_builtin_strings.md);
-v1 keeps the four seams listed there); narrower string references in the
-catalog's NAMES section, up to 1.1 % of a catalog's brotli size
-([stretch_goals_after_v1/names_reference_width](stretch_goals_after_v1/names_reference_width.md)).
+Reviewed into a post-1.0 order at the close of Phase 9 (A8, 2026-09-28;
+proposed, the owner may reorder); the reasons are in
+[phase-9-results](phase-9-results.md), "What follows v1". None needs a 2.0:
+the catalog format and the manifest are outside 1.x's promise. First, when
+they happen: the owner's publish of 1.1.0, and Leptos 0.9's release as a
+patch.
+
+1. Hygiene after the release: item docs that cite `plans/`, the zones
+   vector test against time-zone data releases, a markup message with a
+   signal argument in a lazy route, a date in an island in a browser,
+   WebKit and a screen reader.
+2. Dev hot reload — `mf2 watch` pushing a recompiled catalog to open pages
+   without a rebuild (owner, 2026-09-24; Phase 7 A6 measured the rebuild
+   loop at 4–5 s on the example).
+3. Editor tooling: LSP diagnostics from `mf2-syntax`, then a tree-sitter
+   grammar.
+4. Per-route catalog chunks (bits already reserved, D6).
+5. A lazy `JsString` cache for catalog text
+   ([stretch_goals_after_v1/prob_builtin_strings](stretch_goals_after_v1/prob_builtin_strings.md)
+   form A; v1 keeps the four seams listed there).
+6. ICU MessageFormat 1 import.
+7. Server push of catalog updates in production.
+8. Narrower string references in the catalog's NAMES section, up to 1.1 %
+   of a catalog's brotli size
+   ([stretch_goals_after_v1/names_reference_width](stretch_goals_after_v1/names_reference_width.md)).
+9. A v2 catalog container using the JS String Builtins' imported string
+   constants (prob_builtin_strings form B), only if (5) shows the strings
+   are worth it.
 
 ## 10. Risks
 
@@ -489,7 +505,7 @@ catalog's NAMES section, up to 1.1 % of a catalog's brotli size
   [13-phase-5b-work-order](13-phase-5b-work-order.md) (done),
   [14-phase-6-work-order](14-phase-6-work-order.md) (done),
   [15-phase-7-work-order](15-phase-7-work-order.md) (done),
-  [16-phase-8-work-order](16-phase-8-work-order.md) and
-  [17-phase-9-work-order](17-phase-9-work-order.md) (next).
+  [16-phase-8-work-order](16-phase-8-work-order.md) (done) and
+  [17-phase-9-work-order](17-phase-9-work-order.md) (done).
 * Conventions are in [05-tooling](05-tooling.md) §8.
 * A change that moves a budget or a ledger status says why in its commit.
