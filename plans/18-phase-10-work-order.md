@@ -63,8 +63,9 @@ Kept current so that any task can be picked up cold, from this file and the
 commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
 parallel agents; three were stopped by the account's session limit and were
 finished by new agents. **Part A is done except A8**; A9, which the owner
-added afterwards, is done too. The owner holds everything else: the next
-tasks start from fresh sessions, as listed under "Next".
+added afterwards, is done too. A8's two opening questions, on the matcher,
+are answered (questions 15 and 16, 2026-09-28). The owner holds everything
+else: the next tasks start from fresh sessions, as listed under "Next".
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -104,10 +105,29 @@ kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-di
 and left it clean; its `target/a9/` goes with that worktree.
 
 **Next, each from a fresh session** (the owner holds everything until then):
+- **C3's text half** (question 16), first, because A8 states the matching rules from it. The
+  specification's text is fetched the way `spec-sync` fetches `spec/` (`xtask/src/spec_sync.rs`):
+  - a `PIN` names the upstream that holds UTS #35 Part 1's source, at the release matching the
+    vendored data (48.2.1). Recalled, not checked: the CLDR repository keeps it as
+    `docs/ldml/tr35.md`. The task confirms that, or pins the published report's versioned page;
+  - `cargo xtask cldr-sync` (or a sibling command) fetches it into `target/xtask-cache/`, checked
+    against the `PIN`'s digest, and never commits it. Nothing in the tree quotes it: plans, code
+    and tests paraphrase it and cite the section, as with `spec/`;
+  - then C3's data record gains what §4.4 says about the threshold, `oneway`, demotion, the
+    paradigm locales and the match-variable groupings (the `419` / `$americas` reading). The
+    evidence is re-run with the rules as read (`target/p10-c3/evidence.py`, untracked, still on
+    this machine), and every verdict that changes is listed. **If the text puts the threshold
+    above the default script distance (50),** following the data serves Traditional ↔ Simplified
+    and Punjabi's two scripts alike (the data scores the two pairs identically), against
+    question 11's Punjabi expectation: back to the owner;
+  - done when: a second sync changes nothing; a digest altered in the `PIN` is refused (the
+    negative control); the text is absent from `git ls-files`; 05 §7 says where it comes from;
+    `cargo xtask ci` green.
 - **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
-  exact code, the UX targets, the gate table; the web side into 04 and 05. It starts by asking
-  owner questions 1 and 2 below, since the matcher's rules go into the design. `Display` and
-  `Debug` are decided (question 14). Part C's API work waits for the owner's review of it.
+  exact code, the UX targets, the gate table; the web side into 04 and 05. The matcher's
+  questions are answered (15: follow the data; 16: the text fetched), and its rules come from
+  C3's text half. `Display` and `Debug` are decided (question 14). Part C's API work waits for
+  the owner's review of it.
 - **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
@@ -118,14 +138,8 @@ and left it clean; its `target/a9/` goes with that worktree.
   holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its other
   two options.
 
-**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks both first):
-1. *C3, before A8 states the matching rules:* CLDR's data refuses Traditional ↔ Simplified
-   Chinese (no rule; the default script distance, 50), where question 11's answer expected
-   Traditional → Simplified to be served. Follow the data, or add a documented project rule?
-2. *C3:* the matching algorithm's normative text (UTS #35 Part 1 §4.4 — the threshold,
-   `oneway`, demotion, match-variable groupings) is not in the tree, and the network rule does
-   not reach it. Work from the C3 data record and ICU's documented behaviour, or allow vendoring
-   that section?
+**Owner questions found in the work:** none waiting. C3's data half found two; they were asked
+when A8 started, and answered as questions 15 and 16 below.
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -139,6 +153,9 @@ and left it clean; its `target/a9/` goes with that worktree.
   check (it needs a debug-profile build) now that `{}` is allowed: A8's call.
 - F (the book): `.to_string()` is the leanest; `{}` costs a few dozen bytes, `{:?}` about 1 KB,
   and `unwrap()` / `assert_eq!` on a description reach `{:?}` (A9).
+- F (the book): Traditional and Simplified Chinese don't fall back to each other, as CLDR's data
+  says; a Traditional reader served the source language means the application needs a
+  Traditional catalog, and on the web E4's warning shows it (question 15).
 - D6 / CI: a `Display` / `Debug` check on the demos needs a debug-profile client build; a release
   build with names kept misses what LLVM inlines (A9).
 - Every size investigation that keeps names: `wasm-opt --strip-dwarf` before `-Oz`, or the
@@ -284,7 +301,7 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
       `zh-Hant-TW` → `zh-TW`.
     - A missing script falls back only where CLDR says readers accept it. Expected, and confirmed
       once the file is vendored: Traditional↔Simplified and Serbian Latin↔Cyrillic yes; Punjabi's
-      two scripts no.
+      two scripts no. (The file confirmed Serbian and Punjabi, not Chinese: question 15.)
     - Spanish regions fall back as the owner described.
     - One matcher everywhere (C3).
 
@@ -356,6 +373,50 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     *Then, after the measurement:*
     > Which should browser builds get for `{}` on a message? — Lean Display, allowed; or refuse it
     > in browser builds.
+15. **Traditional and Simplified Chinese** (found by C3's data half; asked when A8 started,
+    2026-09-28) — **answered: follow the data.** No project rule goes on top of CLDR's.
+    - **The finding.** CLDR 48 has no rule between `zh-Hant` and `zh-Hans`, so the pair takes
+      the default script distance (50), exactly as Punjabi's two scripts do. Whatever threshold
+      the specification sets, the two pairs fall on the same side of it. With the threshold as
+      recalled (C3's text half confirms it), both are refused, in both directions, and so is
+      `zh-TW` ↔ `zh-CN`, whose regions imply the scripts.
+    - **What readers get.** A Traditional reader of an application that has only Simplified gets
+      the next language on their list that the application has, else the source language; the
+      reverse likewise. A list that also names plain `zh` gets Simplified through that entry
+      (likely subtags read `zh` as `zh-Hans-CN`); by recollection, Chrome's and Firefox's lists
+      for `zh-TW` do. Natively a system usually names one language, so there the change shows.
+    - **What changes from 1.x** (C3 lists each case): `zh-Hant-TW` and `zh-TW` no longer reach an
+      application's `zh` by truncation; the web's "any locale of the same language" step goes.
+    - **What tells the developer:** on the web, E4's warning (a page rendered without the
+      request's language); the fix is a Traditional catalog. The book says so (F).
+    - **Rejected:** a documented project rule, Traditional → Simplified (the owner's first
+      expectation, question 9) or both ways; and a per-application setting in `mf2.toml`.
+
+    *As put,* after the background (the data confirms Serbian, Punjabi and Spanish; it scores
+    Chinese as it scores Punjabi, so it cannot give both expectations; what a Traditional reader
+    sees under each option; today's behaviour served Simplified by truncation):
+    > When an app has Simplified Chinese but not Traditional (or the reverse), what should a
+    > reader of the missing script get? — Follow the data; Traditional → Simplified (our
+    > documented rule); both directions; each app decides (one line in its `mf2.toml`).
+16. **The matching algorithm's text** (found by C3's data half; asked with question 15) —
+    **answered: fetch it, cache only.**
+    - UTS #35 Part 1's language-matching section (§4.4: the threshold, `oneway`, demotion, the
+      paradigm locales, match-variable groupings) comes from a pinned upstream, at the release
+      matching the vendored CLDR data. It is checked against a digest in a `PIN`, written to
+      `target/xtask-cache/`, and never committed, as `spec/` is (D13).
+    - The network rule reaches it through that `PIN` and a `cargo xtask *-sync` command, as it
+      reaches every upstream.
+    - Nothing in the tree quotes it; plans, code and tests paraphrase it and cite the section.
+      C3's text half does the fetch and records what the section says.
+    - **Rejected:** working from the data and ICU's behaviour as recalled. The threshold decides
+      question 15's pairs, and the `419` / `$americas` reading decides whether a Mexican reader
+      prefers an application's `es-419` to its `es`, so a wrong recollection would go unnoticed.
+
+    *As put*, after the background (the data holds only distances; the rules for combining them
+    are in the specification, which is not in the tree; two results already depend on it):
+    > May the build fetch the Unicode specification's language-matching section, the way it
+    > already fetches the MessageFormat specification? — Fetch it, cache only; or work from
+    > what we know (ICU's behaviour as recalled, each assumption a test with its reason).
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
@@ -483,7 +544,7 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
    | Helper crates and the function table (B1) | A7 | the above, **and the demos' shipped wasm (demo-ssr, demo-csr, demo-islands) within ±64 B gz** — the size workloads render no component, and A7 measured the table at +459 / +130 / −8 B gz there; e2e green on both Leptos lines | static dispatch in place of the table (A7's record); then back to the owner with the other two options from question 13 |
    | The ambient store (C2) | 1.x `NativeI18n`; the port's `RefCell` | time per frame ≤ 1.x (alternating binaries); stripped size ≤ 1.x | the explicit `Catalogs` path; drop the thread override |
    | Ratatui conversions (C5) | 1.x `mf2-ratatui`; an **in-house re-implementation** of upstream trippy's `t!` (a TOML map, the locale `String` cloned per call, `%{x}` replace; not copied code) | allocations per frame ≤ both; time ≤ 1.x | a reusable-buffer API |
-   | The matcher (C3) | both matchers' current tests | every current case still passes, except the changes decided in question 11 (each listed); the client table measured against B1 | the client uses the server's choice |
+   | The matcher (C3) | both matchers' current tests | every current case still passes, except the changes decided in questions 11 and 15 (each listed); the client table measured against B1 | the client uses the server's choice |
    | `links` (C6) | today's forwarding | every A2 scenario; the wasm byte-identical across a translation edit (P0.9's scenario) | function features stay on the translation crate |
    | In-crate `tr!` (C6) | textual scope | A3 passes under cargo and rust-analyzer | textual scope, documented, with a clear error |
    | Server layer (D3) | the `_with_context` e2e results | e2e green without the context | keep the context wiring |
@@ -2525,7 +2586,7 @@ over one, and on the helpers only `Display` and `Debug` reach
 |---|---|---|
 | **C1** Arguments | A trait `IntoArg` with `#[diagnostic::on_unimplemented]` naming the accepted types, **implemented per type** (a blanket over `Into` would bypass the message): <br>• integers up to 128 bits exact (past `i64`, an exact decimal written without `core::fmt`), and `usize` without saturation; <br>• `bool`, `Cow<'static, str>` (borrowed stays static); <br>• `Path` / `OsStr` / `SystemTime` under std; jiff's `Timestamp`, `Zoned` and civil types under `native`; <br>• signals over `T: IntoArg`; `ArgValue`; `&T` for `Copy` types. <br>The macro emits `IntoArg::into_arg(e)` spanned at the argument; `From` stays for `ArgValue::from`. The `&str` copy is measured, and inlined only if it pays and B5 holds | per-conversion tests through `compile_str`; a trybuild case whose `.stderr` shows the message pointing at the argument; `b5 --view` unchanged |
 | **C2** The ambient store | `mf2::native` provides: <br>• `install(&'static Corpus)` (idempotent; a different corpus is an error) and `install_from_directory` (a partial set of files is accepted; only the source locale's is required); <br>• `set_locale`, `locale()`, `locale_source()`, and `with_locale` (restored by a guard); <br>• the time-zone and bidi settings, and `Catalogs`. <br>**The one ambient lookup** (A4's design). **`Display`**, the always-on `to_string` / `to_plain_string` / `to_cow` (borrowed for a simple message), and `Debug`, as A5 decided. **The system zone** by name, else one that follows the system's DST rules — never a frozen offset | parallel `with_locale` tests; `set_locale` seen from another thread on the next format; B10 through the ambient path; a `TZ=EST5EDT,M3.2.0,M11.1.0` test across DST; `tui-gate` against A1 |
-| **C3** One matcher | **Data:** CLDR's `languageMatching` added to `cargo xtask cldr-sync`'s set, and `likelySubtags` (already vendored) used. **Scope:** one matcher for native `set_locale`, `Locale::from_str`, web negotiation, and the client-only boot. **Rules:** POSIX names; exact; the script implied by likely subtags; region fallback; another script only where CLDR's data accepts it. The client's table holds only the corpus's languages and is measured against B1 | a test table, each case with its reason: <br>• `zh-Hant-TW → zh-TW`, and `zh-HK → zh-TW` when there is no `zh-HK`; <br>• Traditional → Simplified when no Traditional; <br>• `sr-Latn ↔ sr-Cyrl`; `pa-Arab ↛ pa-Guru`; <br>• `es-MX → es`, `es → es-MX`; <br>• `fr_CA.UTF-8`, `C`, `POSIX`; <br>• every case the current matchers pass, except those question 11 changes |
+| **C3** One matcher | **Data:** CLDR's `languageMatching` added to `cargo xtask cldr-sync`'s set (done: the data half), and `likelySubtags` (already vendored) used. UTS #35 Part 1's language-matching section fetched into the cache, never committed (question 16; the text half, first under "Next"). **Scope:** one matcher for native `set_locale`, `Locale::from_str`, web negotiation, and the client-only boot. **Rules:** POSIX names; exact; the script implied by likely subtags; region fallback; another script only where CLDR's data accepts it, with no project rule on top (question 15); the threshold, `oneway`, demotion and match-variable groupings as the specification's text states them. The client's table holds only the corpus's languages and is measured against B1 | a test table, each case with its reason: <br>• `zh-Hant-TW → zh-TW`, and `zh-HK → zh-TW` when there is no `zh-HK`; <br>• `zh-Hant ↛ zh-Hans` and back, `zh-TW ↛ zh-CN` (question 15): the reader's next listed language, else the source; `zh-TW, zh` → Simplified through its plain `zh`; <br>• `sr-Latn ↔ sr-Cyrl`; `pa-Arab ↛ pa-Guru`; <br>• `es-MX → es`, `es → es-MX`; <br>• `fr_CA.UTF-8`, `C`, `POSIX`; <br>• every case the current matchers pass, except those questions 11 and 15 change (e.g. `zh-Hant-TW` → an application's `zh`, today reached by truncation) |
 | **C4** The generated module | **`enum Locale`** (the build refuses variant-name collisions): `ALL`, `SOURCE`, `tag()`, `dir()`; `FromStr` through C3 (client-path code, since the wasm reaches it), whose error lists the supported locales; `Display`; `format(&impl Message)`; `clap::ValueEnum` under an optional `clap` feature. **Also:** `install()`, `set_locale(Locale)`, `with_locale`, `current_locale()`, and `markup::*` (a name hash per markup name the corpus uses); a prelude; doc comments that fit the mode (no wasm wording in a native module); compile-time choices through A2's cfg macros; one embedded byte table shared by `CATALOGS` and `CORPUS` when `ssr` and `native` are both on | unit tests in `crates/mf2-build/src/codegen.rs`; `codegen-matrix` with the native combinations; L5 unchanged; `scenarios` |
 | **C5** Ratatui | **Conversions:** `From<Tr / TrArgs / TrRich / TrDyn>` for `Span`, `Line` and `Text`. Constant text is borrowed with no allocation; pattern text parts are borrowed as A4 decided; only placeholders allocate. **Traits:** `Styled` with `Item = Line<'static>`, so `.bold()` keeps a message's own markup; `Widget` for the descriptions. **Theme:** an app-wide `Theme` (markup-name hash → `Style`) with `set_theme` and a scoped `with_theme`, and defaults for `b` / `strong`, `i` / `em`, `u`, `s` / `del`, `code` / `kbd`. **Line breaks:** `Text` splits at a line break; `Line` and `Span` join with a space; a `Span` flattens markup — all documented. The old `line` / `text` / `MarkupStyles` go with C8's page | tests on a ratatui-core `Buffer` (text and styles); allocation tests; `Stylize` compiles; A7's coherence set with `leptos` and `ratatui` on |
 | **C6** The build script | **`mf2_build::run()`** reads `mf2`'s features through `links` (else `CARGO_FEATURE_*`), picks what to emit, and prints `cargo::warning=` / `cargo::error=`; it exits non-zero on errors, and prints its rerun lines. **Compression** only for a web server, and no maximum-quality brotli in debug builds (review #18). **Checks:** a clear error when `datetime-icu` is on without `mf2-build`'s `icu-blob`; the single-crate layout with A3's `tr!`; `mf2 check` and `compile --site` read `mf2`'s node in the cargo resolve. **`mf2`** gains `links = "mf2-v2"` and a `build.rs` | A2's scenarios re-run on the real crates; `package --check`; `scenarios`; the edit-loop time with and without the opt-level tip, measured |
@@ -2670,9 +2731,12 @@ in the tree; C3 must confirm it against the specification text (see
   source language, and so does a Simplified reader of an application that
   has only Traditional. (Today's native matcher serves `zh` to `zh-Hant-TW`
   by truncation; the web's likewise, then any `zh`.) The owner expected
-  Traditional → Simplified to be accepted.
+  Traditional → Simplified to be accepted. **Decided (question 15): follow
+  the data**, with no project rule on top.
 
-**Needs (for the coordinator):** (1) the owner's decision on Traditional ↔
+**Needs (for the coordinator) — answered 2026-09-28:** question 15 follows
+the data; question 16 fetches the section into the cache (C3's text half,
+under "Next"). As first written: (1) the owner's decision on Traditional ↔
 Simplified — CLDR's refusal, or a documented project rule on top of the data;
 (2) the matching algorithm's normative text (UTS #35 Part 1 §4.4: the
 threshold, `oneway`, paradigm locales, demotion, groupings in match
