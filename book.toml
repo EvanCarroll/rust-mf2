@@ -8,3 +8,9 @@ src = "docs"
 # Book workflow deploys that directory to GitHub Pages.
 build-dir = "target/mdbook"
 create-missing = false
+
+[output.html]
+# The book is served from https://evancarroll.github.io/rust-mf2/; the 404
+# page needs the path prefix to find its stylesheets and scripts.
+site-url = "/rust-mf2/"
+git-repository-url = "https://github.com/EvanCarroll/rust-mf2"

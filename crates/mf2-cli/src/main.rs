@@ -17,7 +17,7 @@
 //! | `watch` | recompile when a locale file changes |
 //! | `convert` | a one-shot migration from Fluent `.ftl` files |
 //!
-//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
 //! ecosystem and application guides.
 
 #![forbid(unsafe_code)]

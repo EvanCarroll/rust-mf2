@@ -55,7 +55,7 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
 //! ecosystem and application guides. Its getting-started page shows the files this crate
 //! reads, and `versioning.md` what 1.x promises about their format.
 

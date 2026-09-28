@@ -20,7 +20,7 @@ embedded) or `Emit::NativeFiles` (catalogs shipped beside the executable and
 loaded with `NativeI18n::from_directory`). Argument parsing and persistence
 stay with the application.
 
-See the [native application guide](https://chattyness.github.io/rust-mf2/native-apps.html);
+See the [native application guide](https://evancarroll.github.io/rust-mf2/native-apps.html);
 [`mf2-ratatui`](https://docs.rs/mf2-ratatui) turns messages into Ratatui text.
 
 ## License

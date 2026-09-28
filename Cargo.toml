@@ -69,7 +69,7 @@ rust-version = "1.88"
 license = "MIT"
 authors = ["Evan Carroll"]
 repository = "https://github.com/EvanCarroll/rust-mf2"
-homepage = "https://chattyness.github.io/rust-mf2/"
+homepage = "https://evancarroll.github.io/rust-mf2/"
 publish = false
 
 # Every dependency is declared once, here, at its latest version.

@@ -18,7 +18,7 @@ let line = mf2_ratatui::line(&i18n, &my_i18n::tr!("status", host = host), &style
 The application names the styles; the translation decides where they go.
 It depends on `ratatui-core`, whose types `ratatui` re-exports.
 
-See the [native application guide](https://chattyness.github.io/rust-mf2/native-apps.html).
+See the [native application guide](https://evancarroll.github.io/rust-mf2/native-apps.html).
 
 ## License
 

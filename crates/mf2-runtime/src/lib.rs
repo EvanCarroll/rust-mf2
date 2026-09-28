@@ -21,7 +21,7 @@
 //!
 //! Getting started, call sites, delivery modes, switching language,
 //! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://chattyness.github.io/rust-mf2/) for the
+//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
 //! ecosystem and application guides. An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), which re-exports it; a custom function is
 //! written against [`Function`].

@@ -87,7 +87,7 @@ checkout of this repository instead.
 
 ## Documentation
 
-The [Rust MF2 book](https://chattyness.github.io/rust-mf2/) explains the
+The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) explains the
 ecosystem, crate roles, application workflows and integrations. Its source
 and chapter links are in [`docs/`](docs/README.md). Start with the
 [ecosystem overview](docs/ecosystem.md), then choose a path:
