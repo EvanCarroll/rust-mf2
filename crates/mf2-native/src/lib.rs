@@ -2,7 +2,7 @@
 //! catalogs, select a supported locale, and format the call-site
 //! descriptions `tr!` builds — in a CLI or a terminal UI, without Leptos.
 //!
-//! See the [native application guide](https://evancarroll.github.io/rust-mf2/native-apps.html).
+//! See the user guide's [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html).
 //!
 //! The i18n crate's build script runs `mf2_build` with `Emit::Native`,
 //! which generates one `CORPUS` value; the locale then belongs to

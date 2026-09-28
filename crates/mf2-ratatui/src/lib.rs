@@ -24,7 +24,7 @@
 //! The types are `ratatui-core`'s, which `ratatui` re-exports, so the
 //! result goes straight into a `Paragraph` or any other widget.
 //!
-//! See the [native application guide](https://evancarroll.github.io/rust-mf2/native-apps.html).
+//! See the user guide's [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html).
 
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
