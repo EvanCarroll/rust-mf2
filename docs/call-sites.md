@@ -453,6 +453,21 @@ pub fn Commands() -> impl IntoView {
 `tr!` needs the id and the argument names when it is compiled. A tool that
 formats messages chosen by data (a preview, a test fixture, a server
 formatting a message named in a request) can use `hello_i18n::msg_id!("id")`
-and `TrDyn`. `TrDyn` carries argument names and matches them at run time.
-It is not for the browser: it puts names in the wasm, which is what `tr!`
-exists to avoid.
+and `TrDyn::new`. `TrDyn` carries argument names and matches them at run
+time: a name the message does not have is ignored, and a variable no name
+matches shows its fallback text. It is not for the browser: it puts names
+in the wasm, which is what `tr!` exists to avoid. So this sample is compiled
+for the server only:
+
+```rust file=calls/src/lib.rs
+/// A notice the server formats in the request's language, chosen by data.
+#[cfg(feature = "ssr")]
+pub fn notice(kind: &str, fields: Vec<(String, String)>) -> Option<String> {
+    let id = match kind {
+        "saved" => hello_i18n::msg_id!("file.saved"),
+        "signed" => hello_i18n::msg_id!("signature.text"),
+        _ => return None,
+    };
+    Some(leptos_mf2::TrDyn::new(id, fields).to_plain_string())
+}
+```

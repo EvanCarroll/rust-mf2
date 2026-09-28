@@ -1038,6 +1038,25 @@ behaviour. Each names what was run.
   `demo` 186/186, `lazy` 74/74. The changelog's 1.1.0 entry says what
   changed. No public API change.
 
+## B5 — `TrDyn::new`: what was built
+
+* **`TrDyn::new<N: Into<Text>, V: Into<ArgValue>>(id, impl IntoIterator<Item
+  = (N, V)>)`** in `crates/leptos-mf2/src/dynamic.rs`, over the hidden
+  `tr_dyn`, which stays hidden. `api.txt` gains the one line (`mf2`
+  re-exports the type, and its listing does not list inherent methods of a
+  re-export, so only `leptos-mf2`'s moved).
+* **Test:** `crates/mf2/tests/call_site.rs`'s
+  `a_run_time_message_is_built_by_its_public_constructor` — a known name
+  formats; an unknown one (`nom`, with an integer value) is ignored and the
+  variable shows its fallback.
+* **The book:** `docs/call-sites.md`'s "When the id is only known at run
+  time" names `TrDyn::new` and gains a sample under
+  `#[cfg(feature = "ssr")]` (the `calls` project is checked for `ssr` and
+  `hydrate`, so the sample compiles for the server only, as the page says
+  it should be used): a server function picking `msg_id!("file.saved")` or
+  `msg_id!("signature.text")` from data and formatting it with
+  `to_plain_string()`.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

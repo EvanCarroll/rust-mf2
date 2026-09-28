@@ -46,6 +46,27 @@ pub fn tr_dyn(id: MsgId, args: impl Into<Box<[(Text, ArgValue)]>>) -> TrDyn {
 }
 
 impl TrDyn {
+    /// A message chosen at run time, with its arguments by name: for a tool
+    /// or a server whose message and arguments arrive as data. Take the id
+    /// from the generated module's `msg_id!("…")`. A name the message does
+    /// not declare is ignored when it formats; a variable no name matches is
+    /// an Unresolved Variable, shown as its fallback text.
+    ///
+    /// Not for the browser: the names travel in the wasm, which is what
+    /// `tr!` exists to avoid.
+    #[must_use]
+    pub fn new<N: Into<Text>, V: Into<ArgValue>>(
+        id: MsgId,
+        args: impl IntoIterator<Item = (N, V)>,
+    ) -> TrDyn {
+        tr_dyn(
+            id,
+            args.into_iter()
+                .map(|(name, value)| (name.into(), value.into()))
+                .collect::<Vec<_>>(),
+        )
+    }
+
     /// The message's id.
     #[must_use]
     pub const fn id(&self) -> MsgId {

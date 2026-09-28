@@ -58,6 +58,9 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   if the reader had chosen it. A cookie that was read is not written back,
   so its one-year expiry no longer slides with every visit; the client
   still writes it on every switch.
+* **`TrDyn::new`**, a public constructor for a message whose id is known
+  only at run time (`msg_id!("…")`) and whose arguments arrive by name —
+  for a tool or a server. `tr!` stays the form a page uses.
 
 ## 1.0.0
 

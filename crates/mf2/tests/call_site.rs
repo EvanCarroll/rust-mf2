@@ -325,3 +325,19 @@ fn named_arguments_may_deliberately_mismatch_the_message() {
         "Hello, \u{2068}Grace\u{2069}!"
     );
 }
+
+#[test]
+fn a_run_time_message_is_built_by_its_public_constructor() {
+    let c = compiled("Hello, {$name}!");
+
+    let known = mf2::TrDyn::new(Compiled::ID, [("name", "Ada")]);
+    assert_eq!(text(&c, |f| known.format(f)), "Hello, \u{2068}Ada\u{2069}!");
+
+    // A name the message does not have is ignored, and the variable is
+    // left to its fallback.
+    let unknown = mf2::TrDyn::new(Compiled::ID, [(String::from("nom"), 42)]);
+    assert_eq!(
+        text(&c, |f| unknown.format(f)),
+        "Hello, \u{2068}{$name}\u{2069}!"
+    );
+}

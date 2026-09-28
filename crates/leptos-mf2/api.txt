@@ -388,6 +388,7 @@ impl leptos_mf2::TrDyn
 pub fn leptos_mf2::TrDyn::args(&self) -> &[(leptos_mf2::Text, leptos_mf2::ArgValue)]
 pub fn leptos_mf2::TrDyn::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
 pub const fn leptos_mf2::TrDyn::id(&self) -> mf2_model::id::MsgId
+pub fn leptos_mf2::TrDyn::new<N: core::convert::Into<leptos_mf2::Text>, V: core::convert::Into<leptos_mf2::ArgValue>>(mf2_model::id::MsgId, impl core::iter::traits::collect::IntoIterator<Item = (N, V)>) -> leptos_mf2::TrDyn
 pub fn leptos_mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn leptos_mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 impl leptos_mf2::TrDyn
