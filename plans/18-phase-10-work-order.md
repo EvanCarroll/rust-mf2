@@ -62,9 +62,9 @@ kept open by each decision, not built.
 Kept current so that any task can be picked up cold, from this file and the
 commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
 parallel agents; three were stopped by the account's session limit and were
-finished by new agents. **Part A is done except A8.** The owner holds
-everything else: the next tasks start from fresh sessions, as listed under
-"Next".
+finished by new agents. **Part A is done except A8, and A9, which the owner
+added afterwards.** The owner holds everything else: the next tasks start
+from fresh sessions, as listed under "Next".
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -93,10 +93,15 @@ everything else: the next tasks start from fresh sessions, as listed under
 kept until B1 has taken what it reuses from `p10-a7-names`.
 
 **Next, each from a fresh session** (the owner holds everything until then):
-- **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
-  exact code, the UX targets, the gate table; the web side into 04 and 05. It starts by asking
-  owner questions 1 and 2 below, since the matcher's rules go into the design. Part C's API work
-  waits for the owner's review of it.
+- **A9**, what `Display` / `Debug` cost the browser's wasm (added by the owner, 2026-09-28). A5's
+  positive control measured +16.6 KB gz for one `{}` and one `{:?}` together, in the fixture
+  client only. A9 splits that figure, measures it in the size workloads and the demos, measures
+  the ways to shrink or remove it, and lists the ways a description reaches `Display` with no
+  `format!` in the application. It runs before A8 states the `Display` trade-off.
+- **A8** (after A9), the design for the owner's review: `plans/19-native-and-terminal.md`, the
+  four samples' exact code, the UX targets, the gate table; the web side into 04 and 05. It starts
+  by asking owner questions 1 and 2 below, since the matcher's rules go into the design. Part C's
+  API work waits for the owner's review of it.
 - **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
   record: reuse the branch's helper crates, line aliases and component wrappers; **the function
   table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
@@ -123,7 +128,8 @@ kept until B1 has taken what it reuses from `p10-a7-names`.
   placeholder is a string (A3).
 - A8 (a design trade-off to state): with `Display` always on, `format!("{}", tr!(…))` in a
   browser build compiles and pulls in `core::fmt`, ≈ 16.6 KB gz; 1.x refused it at compile time,
-  and so would A5's fallback (`Display` only with the std modes) (A5).
+  and so would A5's fallback (`Display` only with the std modes) (A5). A9 investigates the figure
+  first.
 - C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).
 - C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
   times need a quiet machine (A1).
@@ -454,7 +460,7 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
    - custom functions;
    - several message sets in one process: the store keyed by corpus later.
 
-## Part A — the plan, baselines and probes (A0 first, then A1; A2–A7 in any order; A8 after A2–A7)
+## Part A — the plan, baselines and probes (A0 first, then A1; A2–A7 in any order; A9 after A5; A8 after A2–A7 and A9)
 
 Probe crates live under `probes/p10-*`, which the workspace already
 excludes. They are deleted at the exit; each probe's result stays in its
@@ -471,6 +477,7 @@ task record.
 | **A6** Probe: a single-crate web application | Getting started's `hello` with `build.rs` and `locales/` in the application crate, checked for: <br>• both builds, and `watch` (is `watch-additional-files` still needed?); <br>• a translation-only edit leaves the wasm byte-identical (as `cargo xtask scenarios` does); <br>• `--split`; <br>• rust-analyzer; <br>• A3's in-crate `tr!` | one crate for the web too (then the web starter offers it), or why not recorded |
 | **A7** Probe: names and coherence | 1. `mf2::leptos` with no root rename. The components come from per-line helper crates through a function table: on both lines, under SSR, hydrate and islands; B1 measured for the table's indirection. <br>2. No Leptos procedural macro outside the six components. <br>3. `pub mod axum` against `use axum::…` inside `mf2`. <br>4. With `leptos` and `ratatui` both on, every intended impl compiles, and the rules are recorded: <br>• never `From<Tr> for Cow<str>` (it collides through `Span`'s blanket impl); <br>• no `FromIterator<Tr> for Line`; <br>• `Cell` and `ListItem` come through their blankets over `Into<Text>` | the module and crate names confirmed; the coherence rules for 19 |
 | **A8** The design, for the owner's review | A new companion, `plans/19-native-and-terminal.md`: the store and the lookup order, the Ratatui conversions and theme, the generated module, the build, the in-crate `tr!`, the argument conversion, and the per-mode API. **The exact target code of the four samples**, the UX targets and the gate table. The web side's design goes to 04 and 05 | the owner has reviewed it. This gates Part C's API work; Part B can start before |
+| **A9** Probe: what `Display` / `Debug` cost the browser's wasm (added by the owner, 2026-09-28) | **What A5 left open.** In a client that formats no description, A5 found none of our `Display` / `Debug` code and no new `core::fmt`. Its positive control, one `format!("{save} {items:?}")` in the fixture client (a `Tr` through `{}`, a `TrArgs` through `{:?}`), cost **+16,604 B gz** after `wasm-opt`: both at once, and in the fixture only. The `tr` workload already holds 72 items matching B12's fmt pattern (10,354 B with names kept, from `core`, `alloc`, `std` and Leptos's stack), so what an application pays is not known. On A5's variant (the branch `p10-a5-display`, or `probes/p10-display/display.patch` at `2fb7f54`), in one tree and one lock, with A5's scripts: <br>• **the split:** nothing formatted (the base), `{}` alone, `{:?}` alone, both, and the inherent `to_string()` (the fmt-free control), over `Tr`, `TrArgs`, `TrRich` and `TrDyn`; <br>• **in applications:** the fixture client, `tr` and `tr-view` at 1,860 sites, and the three demos (`probes/p10-names/measure-demo.mjs`); <br>• **what the bytes are:** twiggy's dominators, `core::fmt`'s own code apart from our impls; <br>• **the ways to shrink it,** each measured: `Display` through `write_str` instead of `Formatter::pad` (then `{:<12}` no longer pads), and whatever the dominators point to (e.g. `Debug` written through `write_str`, without `core::fmt`'s number and string-escape code); <br>• **the ways to remove it:** A5's fallback (`Display` only with the std modes) and a target `cfg` (no `Display` on `wasm32-unknown-unknown`, whatever the features). Each brings back 1.x's compile error for `{}` in a browser build, whose text is recorded. The same choice for `Debug`, which 1.x had on `Tr` only; <br>• **the silent paths:** where a description reaches `Display` with no `format!` in the application. Generic code bounded on `ToString` or `Display` takes the blanket `ToString`, not the inherent `to_string()`. Searched in Leptos 0.8 and 0.9 and in our own crates; each path found is shown compiling, or ruled out; <br>• **a check:** whether CI can catch our types' `Display` / `Debug` in the demos' client builds (the shipped wasm has no names; e.g. A5's `twiggy.sh` over a build that keeps them) | every figure recorded here with its command; the silent paths listed; a recommendation for A8: A5's design with a rule in the book (and the check), a way to shrink it, or a way to remove it. If it changes what A5 adopted, A8 puts it to the owner |
 
 ## A1 — stale statements and 1.x baselines: what was built
 
@@ -2400,7 +2407,7 @@ say: import checks, XLIFF adds, JSON edits.
 
 ## The order that keeps `cargo xtask ci` green
 
-- **A0–A8:** plans, docs, excluded workspaces and xtask code, each with its tests.
+- **A0–A9:** plans, docs, excluded workspaces and xtask code, each with its tests.
 - **B1 is one atomic commit.** A type cannot live in two crates, and the shim keeps every old path
   working, in examples and the book too.
 - **Internal users move one at a time behind the shims** (B2–B4).
