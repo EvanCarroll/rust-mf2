@@ -1,4 +1,4 @@
-//! `mf2-catalog` — the `.mf2b` binary catalog of rust-mf2: one locale's
+//! `mf2-catalog` — the `.mf2b` binary catalog of Rust MF2: one locale's
 //! messages and locale data, as a lossless encoding of the MF2 data model that the client reads in place.
 //!
 //! An application meets one type of this crate: [`Catalog`], a loaded
@@ -28,10 +28,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application starts at
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application starts at
 //! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]

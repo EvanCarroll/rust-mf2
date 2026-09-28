@@ -42,9 +42,11 @@
 //! types from their rendering is not expressible; splitting them by feature
 //! is, and that is what this crate does.
 //!
-//! An application names this crate beside `mf2`, for the mode and the
-//! Leptos line; a build with no mode pulls in no Leptos crate, no tachys and
-//! no `reactive_graph`.
+//! A Leptos application names this crate beside `mf2`, for the mode and
+//! the Leptos line; a build with no mode pulls in no Leptos crate, no tachys
+//! and no `reactive_graph`. That is how a native application (`mf2-native`,
+//! `mf2-ratatui`) has this crate among its dependencies and no Leptos code:
+//! it gets the call-site types through `mf2`.
 //!
 //! Client-path code: `no_std` + `alloc`
 //! (the Leptos layer adds `std`, which its dependencies need anyway),
@@ -52,10 +54,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application starts at
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application starts at
 //! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]

@@ -1,4 +1,4 @@
-//! `mf2-syntax` — MessageFormat 2 syntax for rust-mf2: a parser to a lossless
+//! `mf2-syntax` — MessageFormat 2 syntax for Rust MF2: a parser to a lossless
 //! concrete syntax tree with error recovery, lowering to the data model of
 //! [`mf2_model`], the six Data Model Errors, a serializer back to MF2 source,
 //! and the variable analysis the build's manifest needs.
@@ -24,10 +24,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application formatting messages starts at
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application formatting messages starts at
 //! [`mf2`](https://docs.rs/mf2); this crate is the stand-alone parser, for
 //! tools.
 

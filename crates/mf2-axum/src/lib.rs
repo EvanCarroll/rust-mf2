@@ -34,10 +34,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application starts at
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application starts at
 //! [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]

@@ -1,4 +1,4 @@
-//! `mf2` — the command line over `mf2-build` (`plans/05-tooling.md` §6).
+//! `mf2` — the command line over `mf2-build`.
 //!
 //! Everything it does, a `build.rs` does too; the difference is that these
 //! run without cargo, so a translator, a CI job or a static site can use
@@ -15,10 +15,11 @@
 //! | `pseudo` | `en-XA` and `ar-XB` from the source locale |
 //! | `export` / `import` | flat JSON, which every translation-management system speaks, and XLIFF 2 |
 //! | `watch` | recompile when a locale file changes |
-//! | `convert` | a one-shot migration from Fluent `.ftl` files |
+//! | `convert` | a one-shot migration from Fluent `.ftl` files, or from `leptos-fluent` (messages and call sites) |
 //!
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides.
+//! Every command, its flags and its report codes: the
+//! [command-line chapter](https://evancarroll.github.io/rust-mf2/command-line.html)
+//! of the [Rust MF2 book](https://evancarroll.github.io/rust-mf2/).
 
 #![forbid(unsafe_code)]
 // A command returns its error once, at the top; the variants stay readable.

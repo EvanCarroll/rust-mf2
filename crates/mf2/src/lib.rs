@@ -1,9 +1,14 @@
-//! `mf2` — Unicode MessageFormat 2 for Leptos: the crate an application
-//! starts from. It re-exports the public API of the rust-mf2 crates and
-//! carries the application's feature flags; it has no logic of its own
-//! beyond [`compile_str`] and the call-site core. Beside it, an application
-//! names `leptos-mf2` (the Leptos mode and line), `mf2-axum` (the server),
-//! and `mf2-build` in its i18n crate's build script.
+//! `mf2` — Unicode MessageFormat 2 for Rust applications: Leptos web
+//! applications, and native command-line and terminal applications. It is
+//! the crate an application starts from. It re-exports the public API of
+//! the Rust MF2 crates and carries the application's feature flags; its own
+//! code is small: [`compile_str`], [`include_generated!`], and [`Corpus`]
+//! and [`Message`] for native applications.
+//!
+//! Beside it, every application names `mf2-build` in its i18n crate's
+//! build script. A web application adds `leptos-mf2` (the Leptos mode and
+//! line) and `mf2-axum` (the server); a native one adds `mf2-native` (the
+//! catalogs and the active locale) and, for a terminal UI, `mf2-ratatui`.
 //!
 //! | Feature | Adds |
 //! |---|---|
@@ -20,15 +25,16 @@
 //! documentation shows `ssr` on Leptos 0.9, and `leptos-mf2`'s front page
 //! lists what the client modes add. `host-web` and `intl` are for
 //! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
-//! is not shown here.
+//! is not shown here. A native application turns on no Leptos mode, and
+//! `host-std`.
 //!
-//! Beyond the re-exports the facade carries one thing of its own: the
-//! **call-site core** — [`Tr`],
-//! [`TrArgs`], [`TrRich`], [`ArgValue`] and the lowering that borrows them
-//! into the runtime's [`Arg`], with [`include_generated!`] and the `tr!`
-//! proc-macro behind it. It is Leptos-free, so a server, a test and
-//! `mf2-cli` use it as they are; `leptos-mf2` adds rendering, the catalog
-//! context and the reactive argument on top of it.
+//! The facade also re-exports the **call-site core** — [`Tr`], [`TrArgs`],
+//! [`TrRich`], [`ArgValue`] and the lowering that borrows them into the
+//! runtime's [`Arg`] — which `leptos-mf2` defines (its front page says
+//! why), with the `tr!` proc-macro behind [`include_generated!`]. With no
+//! Leptos mode on it compiles no Leptos code, so a server, a test and a
+//! native application use it as they are; a Leptos mode adds rendering,
+//! the catalog context and the reactive argument.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -78,10 +84,9 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides.
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
 
 #![warn(missing_docs)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.

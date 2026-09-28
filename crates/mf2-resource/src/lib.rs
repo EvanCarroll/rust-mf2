@@ -3,7 +3,7 @@
 //! type.
 //!
 //! Unicode defines no file format for MF2; its specification leaves that to
-//! a future message resource specification. rust-mf2 adopts the draft being
+//! a future message resource specification. Rust MF2 adopts the draft being
 //! written for it, incubated by the W3C i18n WG.
 //!
 //! ```text
@@ -53,11 +53,11 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. Its getting-started page shows the files this crate
-//! reads, and `versioning.md` what 1.x promises about their format.
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! Its getting-started chapter shows the files this crate
+//! reads, and its versioning chapter what 1.x promises about their format.
 
 #![warn(missing_docs)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.

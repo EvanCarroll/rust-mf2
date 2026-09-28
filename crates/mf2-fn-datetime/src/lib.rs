@@ -1,4 +1,4 @@
-//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of rust-mf2:
+//! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of Rust MF2:
 //! `:datetime`, `:date`, `:time`, and the handler that formats unannotated
 //! date/time values. The semantics — operands, options, errors, time zones
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into
@@ -122,10 +122,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application reaches this crate through
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), as `mf2::fn_datetime` (feature `fn-datetime`).
 //!
 //! [`Arg::DateTime`]: mf2_runtime::Arg::DateTime

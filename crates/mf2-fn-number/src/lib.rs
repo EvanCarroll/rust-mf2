@@ -1,4 +1,4 @@
-//! `mf2-fn-number` — the localized numeric functions of rust-mf2: the
+//! `mf2-fn-number` — the localized numeric functions of Rust MF2: the
 //! runtime's numeric core
 //! (`mf2_runtime::NumberSpec`, `Number::resolve`) resolves — operand rules,
 //! every digit and rounding option, `signDisplay`, inheritance, selection —
@@ -28,10 +28,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application reaches this crate through
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), as `mf2::fn_number` (feature `fn-number`).
 
 #![warn(missing_docs)]

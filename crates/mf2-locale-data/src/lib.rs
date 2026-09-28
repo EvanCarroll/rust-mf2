@@ -1,4 +1,4 @@
-//! `mf2-locale-data` — the locale data rust-mf2 catalogs carry, build side
+//! `mf2-locale-data` — the locale data Rust MF2 catalogs carry, build side
 //! only: never linked into a client.
 //!
 //! The crate ships its data, derived from Unicode CLDR, in `data/`: a build
@@ -33,10 +33,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application reaches this crate through `mf2-build`
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application reaches this crate through `mf2-build`
 //! and [`mf2`](https://docs.rs/mf2)'s `compile` feature.
 
 #![warn(missing_docs)]

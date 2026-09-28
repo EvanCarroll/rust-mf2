@@ -1,4 +1,4 @@
-//! `mf2-runtime` — the MessageFormat 2 evaluator of rust-mf2: it formats a message **from a catalog**, walking
+//! `mf2-runtime` — the MessageFormat 2 evaluator of Rust MF2: it formats a message **from a catalog**, walking
 //! `mf2-catalog`'s views in place — resolution, declarations (lazily, each at
 //! most once), selection, fallback, the Default Bidi Strategy, format to
 //! parts, markup, the `u:` options — and it holds the function registry, the
@@ -19,10 +19,10 @@
 //!
 //! # The user guide
 //!
-//! Getting started, call sites, delivery modes, switching language,
-//! accessibility, migrating from `leptos-fluent`, and what 1.x promises
-//! See the [rust-mf2 book](https://evancarroll.github.io/rust-mf2/) for the
-//! ecosystem and application guides. An application reaches this crate through
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide: how the crates fit together, web and native applications, the
+//! command line, and what 1.x promises.
+//! An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), which re-exports it; a custom function is
 //! written against [`Function`].
 

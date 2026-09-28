@@ -29,7 +29,7 @@
 //! BCP-47 id through ICU4X's IANA parser, with the plan's offset.
 //!
 //! ICU4X writes through `core::fmt::Write` and carries its own `core::fmt`
-//! and panic paths: B12 covers rust-mf2's crates, and this code is the
+//! and panic paths: B12 covers Rust MF2's crates, and this code is the
 //! feature's documented cost (06 B4).
 
 #[cfg(feature = "datetime-icu")]
