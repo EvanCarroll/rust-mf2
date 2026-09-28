@@ -1,0 +1,24 @@
+# v4-env/mf2.toml added (source_locale = "en"), so that the build script does not rerun on every build
+$ cargo build -p v4-env; cargo build -p v4-env -v   (target/)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.97s
+       Fresh v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.22s
+$ mv target target-moved; touch v4-env/src/after.rs
+$ MF2_PROBE_TRACE=trace CARGO_TARGET_DIR=target-moved cargo build -p v4-env -v
+       Fresh thiserror-impl v2.0.21
+       Fresh thiserror v2.0.21
+       Dirty v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env): the file `v4-env/src/after.rs` has changed (1790590243.041217788s, 1s after last build at 1790590242.237220274s)
+   Compiling v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env)
+     Running `~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name …`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+# what the expansions saw:
+tr_env MF2_MANIFEST=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m OUT_DIR=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out
+tr_outdir <repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m
+tr_env MF2_MANIFEST=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m OUT_DIR=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out
+tr_outdir <repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m
+tr_env MF2_MANIFEST=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m OUT_DIR=<repo>/probes/p10-tr-in-crate/target-moved/debug/build/v4-env-61e0a8378bc95c7e/out
+# the build script output, as stored:
+cargo::rustc-env=MF2_MANIFEST=<repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-5575474335161c9f/out/manifest.mf2m
+root-output: <repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-5575474335161c9f/out
+cargo::rustc-env=MF2_MANIFEST=<repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-61e0a8378bc95c7e/out/manifest.mf2m
+root-output: <repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-61e0a8378bc95c7e/out

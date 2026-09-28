@@ -1,0 +1,11 @@
+   Compiling v5-glob v0.0.0 (<repo>/probes/p10-tr-in-crate/v5-glob)
+warning: unused import: `crate::tr`
+  --> v5-glob/src/after.rs:13:9
+   |
+13 |     use crate::tr;
+   |         ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `v5-glob` (lib) generated 1 warning (run `cargo fix --lib -p v5-glob` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s

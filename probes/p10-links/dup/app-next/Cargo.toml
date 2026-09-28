@@ -1,0 +1,14 @@
+# Two semver-incompatible versions of the same package (0.1 and 0.2), both
+# `links = "mf2-v2"`.
+[workspace]
+resolver = "3"
+
+[package]
+name = "p10-links-dup-next"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+mf2 = { package = "p10-links-mf2", path = "../../mf2" }
+mf2-next = { package = "p10-links-mf2", path = "../mf2-next" }

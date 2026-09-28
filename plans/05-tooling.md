@@ -355,12 +355,17 @@ uses none.
 
 ## 4. Build orchestration (decision D8; settled by probe P0.9)
 
-> **Amended for 2.0, pending its probes** (owner, 2026-09-28; master plan
-> D19): `links` metadata carries `mf2`'s features to the build script, so no
-> translation crate declares or forwards features; `mf2_build::run()` is the
-> whole build script; native applications default to one crate, with a
-> path-addressable in-crate `tr!`. [18](18-phase-10-work-order.md) A2, A3, C6
-> settle each part, and this section is rewritten with C6.
+> **Amended for 2.0** (owner, 2026-09-28; master plan D19): `links` metadata
+> carries `mf2`'s features to the build script, so no translation crate
+> declares or forwards features; `mf2_build::run()` is the whole build
+> script; native applications default to one crate, with a path-addressable
+> in-crate `tr!`. **Both probes passed** ([18](18-phase-10-work-order.md)'s
+> records): A2 adopted "`links` + cfg macros" (`DEP_MF2_V2_FEATURES`; the
+> including crate names `mf2` as a normal dependency; compile-time choices
+> at item level through `mf2`'s macros); A3 chose a hidden exported wrapper
+> re-exported as `tr` with a crate `prelude` (its record holds the rule for
+> a translation crate and its consumers, written for this section). A6
+> found one crate works for the web too. This section is rewritten with C6.
 
 ```
 my-app-i18n/            ← a crate in the application's workspace

@@ -1,0 +1,15 @@
+   Compiling v1-today v0.0.0 (<repo>/probes/p10-tr-in-crate/v1-today)
+error: malformed `path` attribute input
+  --> v1-today/src/lib.rs:13:1
+   |
+13 | #[path = concat!(env!("OUT_DIR"), "/mf2_generated.rs")]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: for more information, visit <https://doc.rust-lang.org/reference/items/modules.html#the-path-attribute>
+help: must be of the form
+   |
+13 - #[path = concat!(env!("OUT_DIR"), "/mf2_generated.rs")]
+13 + #[path = "file"]
+   |
+
+error: could not compile `v1-today` (lib) due to 1 previous error

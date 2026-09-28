@@ -1,0 +1,79 @@
+# Phase 10 A6: Getting started's `hello` (its lazy-route form, from
+# delivery-modes.md) as ONE crate — build.rs, mf2.toml and locales/ in the
+# application itself, no translation crate. 1.x crates by path; the
+# generated `tr!` in A3's shape (3c), which build.rs stands in for.
+[workspace]
+
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2" }
+leptos = { version = "0.9.0-beta", default-features = false }
+leptos-mf2 = { path = "../../../crates/leptos-mf2" }
+leptos_meta = "0.9.0-beta"
+leptos_router = "0.9.0-beta"
+
+axum = { version = "0.8", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+leptos_axum = { version = "0.9.0-beta", optional = true }
+mf2-axum = { path = "../../../crates/mf2-axum", optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }
+
+[features]
+# The functions a message may use. The build script reads them from THIS
+# crate's features (1.x: CARGO_FEATURE_*), so both builds turn them on.
+fn-number = ["mf2/fn-number"]
+hydrate = [
+    "fn-number",
+    "mf2/host-web",
+    "mf2/hydrate",
+    "leptos/hydrate",
+    "leptos/lazy",
+    "leptos-mf2/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+]
+ssr = [
+    "fn-number",
+    "mf2/host-std",
+    "mf2/ssr",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptos-mf2/ssr",
+    "dep:axum",
+    "dep:leptos_axum",
+    "dep:mf2-axum",
+    "dep:tokio",
+]
+
+[package.metadata.leptos]
+output-name = "hello"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+site-addr = "127.0.0.1:3960"
+reload-port = 3961
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

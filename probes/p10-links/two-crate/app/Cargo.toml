@@ -1,0 +1,16 @@
+[package]
+name = "p10-links-app"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[dependencies]
+i18n = { package = "p10-links-i18n", path = "../i18n" }
+mf2 = { package = "p10-links-mf2", path = "../../mf2", features = ["fn-number"] }
+widgets = { package = "p10-links-widgets", path = "../widgets" }
+
+# The only place a feature is written.
+[features]
+ssr = ["mf2/ssr"]
+hydrate = ["mf2/hydrate"]

@@ -1,0 +1,27 @@
+# Phase 10 A3 — `tr!` inside its own crate (plans/18-phase-10-work-order.md).
+# A standalone workspace (the root workspace excludes probes/); deleted at the
+# phase's exit, its result recorded in the work order.
+[workspace]
+resolver = "3"
+members = [
+    "v1-today",
+    "v1-consumer",
+    "v3-local",
+    "v3-consumer",
+    "v4-env",
+    "v4-env-macro",
+    "v5-prelude",
+    "v5-glob",
+]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace.dependencies]
+mf2 = { path = "../../crates/mf2", features = ["host-std"] }
+mf2-build = { path = "../../crates/mf2-build" }
+mf2-catalog = { path = "../../crates/mf2-catalog", features = ["manifest"] }
+proc-macro2 = "1"
+quote = "1"

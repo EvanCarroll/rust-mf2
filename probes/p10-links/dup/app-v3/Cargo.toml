@@ -1,0 +1,17 @@
+# The next major carries its major in the name (`links = "mf2-v3"`): two
+# majors in one graph resolve.
+[workspace]
+resolver = "3"
+
+[package]
+name = "p10-links-dup-v3"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+mf2 = { package = "p10-links-mf2", path = "../../mf2" }
+mf2-v3 = { package = "p10-links-mf2", path = "../mf2-v3" }
+
+[build-dependencies]
+mf2-build = { package = "p10-links-mf2-build", path = "../../mf2-build" }

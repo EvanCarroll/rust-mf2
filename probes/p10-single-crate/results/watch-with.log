@@ -1,0 +1,39 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.95s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --lib --target-dir=<repo>/probes/p10-single-crate/hello/target/front --target=wasm32-unknown-unknown --no-default-features --features=hydrate
+       Front generating JS/WASM with wasm-bindgen
+    Finished generating JS/WASM for front in 8.587072369s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.31s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --bin=hello --no-default-features --features=ssr
+     Serving at http://127.0.0.1:3960 (with graceful shutdown)
+listening on http://127.0.0.1:3960
+    Creating ignore list from '.gitignore' file
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.50s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --lib --target-dir=<repo>/probes/p10-single-crate/hello/target/front --target=wasm32-unknown-unknown --no-default-features --features=hydrate
+    Finished generating JS/WASM for front (wasm unchanged; reusing previous output)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.39s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --bin=hello --no-default-features --features=ssr
+       Watch updated Server, Assets. Server restarting
+     Serving at http://127.0.0.1:3960 (with graceful shutdown)
+listening on http://127.0.0.1:3960
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.21s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --lib --target-dir=<repo>/probes/p10-single-crate/hello/target/front --target=wasm32-unknown-unknown --no-default-features --features=hydrate
+    Finished generating JS/WASM for front (wasm unchanged; reusing previous output)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 18.18s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+       Cargo finished cargo build --package=hello --bin=hello --no-default-features --features=ssr
+       Watch updated Assets, Server. Server restarting
+     Serving at http://127.0.0.1:3960 (with graceful shutdown)
+listening on http://127.0.0.1:3960
+    Received 'SIGTERM' shutdown signal. Shutting down...
+       Serve received interrupt signal

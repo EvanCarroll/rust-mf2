@@ -1,0 +1,42 @@
+$ cargo report future-incompatibilities --id 5   (in the consumer of a git dependency that allows the lint)
+The following warnings were discovered during the build. These warnings are an
+indication that the packages contain code that will become an error in a
+future release of Rust. These warnings typically cover changes to close
+soundness problems, unintended or undocumented behavior, or critical problems
+that cannot be fixed in a backwards-compatible fashion, and are not expected
+to be in wide use.
+
+Each warning should contain a link for more information on what the warning
+means and how to resolve it.
+
+to solve this problem, you can try the following approaches:
+
+- ensure the maintainers know of this problem (e.g. creating a bug report if needed)
+or even helping with a fix (e.g. by creating a pull request)
+  - v1dep@0.0.0
+  - repository: <not found>
+  - detailed warning command: `cargo report future-incompatibilities --id 5 --package v1dep@0.0.0`
+
+- use your own version of the dependency with the `[patch]` section in `Cargo.toml`
+For more information, see:
+https://doc.rust-lang.org/cargo/reference/overriding-dependencies.html#the-patch-section
+
+The package `v1dep v0.0.0 (file://<repo>/probes/p10-tr-in-crate/target/gitdep/v1dep#d0c87c27)` currently triggers the following future incompatibility lints:
+> warning: macro-expanded `macro_export` macros from the current crate cannot be referred to by absolute paths
+>   --> ~/.cargo/git/checkouts/v1dep-64f5a18cad30864d/d0c87c2/src/before.rs:10:5
+>    |
+> 10 |     crate::tr!("hello")
+>    |     ^^^^^^^^^
+>    |
+> note: the macro is defined here
+>   --> <repo>/probes/p10-tr-in-crate/target/debug/build/v1dep-fccd894654496be5/out/mf2_generated.rs:65:1
+>    |
+> 65 | / macro_rules! tr {
+> 66 | |     ($($t:tt)*) => {
+> 67 | |         $crate::__mf2::__tr_impl!("<repo>/probes/p10-tr-in-crate/target/debug/build/v1dep-fccd8946...
+> 68 | |     };
+> 69 | | }
+>    | |_^
+>    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+>    = note: for more information, see issue #52234 <https://github.com/rust-lang/rust/issues/52234>
+> 

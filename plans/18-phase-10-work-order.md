@@ -571,6 +571,306 @@ B10's time, taken under load, is recorded but is not a baseline (above).
 * The book's native project measures nothing of the TUI until its `main`
   reaches it (C8).
 
+## A2 — `links` metadata: what was built
+
+Probe: `probes/p10-links/` (its README lists how to re-run each row), run on
+2026-09-28 with cargo 1.98.1, cargo-leptos 0.3.9 and rust-analyzer
+1.98.0-nightly (b30f3df 2026-06-11).
+
+* **The stand-in `mf2`** (`p10-links-mf2`, named `mf2` by its dependents)
+  has `links = "mf2-v2"` and the real crate's features (`ssr`, `hydrate`,
+  `csr`, `leptos`, `axum`, `native`, `ratatui`, `fn-number`, `fn-datetime`,
+  `datetime-icu`, `datetime-intl`, `intl`, `static-locale`,
+  `mark-fallback-lang`, `compile`). Its `build.rs` prints
+  `cargo::metadata=features=<sorted, comma-separated, without default>` and
+  `cargo::metadata=target=$TARGET`.
+* **The cfg-forwarding macros** in it: `__if_ssr!`, `__if_not_ssr!`,
+  `__if_hydrate!` (each defined twice, under a `cfg` and its negation: the
+  tokens pass through or vanish), and `__use_host!(HOST)` (four
+  definitions: the three-way browser-host choice `codegen.rs` makes today
+  with `#[cfg(all(not(feature = "ssr"), …))]` on the *including* crate's
+  features).
+* **The stand-in `mf2-build`**: `run()` is the whole build script. It
+  reads `DEP_MF2_V2_FEATURES`, else the crate's own `CARGO_FEATURE_*`, and
+  writes a module whose text is the same in every build except for what
+  the script decides (`BUILD_DECIDED_EMIT`; `EMITTED_FOR_SSR` /
+  `EMITTED_FOR_NATIVE` only when it saw them). Compile-time choices go
+  through the macros (`CATALOGS` only under `ssr`; `host::HOST`).
+  `report()` prints the build script's view next to `mf2`'s `cfg!` truth.
+  With `P10_RUN_LOG` set, each script run appends a line.
+* **Scenarios**, each its own workspace: a one-crate application
+  (`single/`); an application with a translation crate that has no
+  features and a second dependent using the macros (`two-crate/`); `mf2`
+  as normal plus build dependency, and as build dependency only
+  (`host-target/`); cargo-leptos's two builds (`leptos-app/`, no Leptos
+  crate — see "Scope"); rust-analyzer (`ra/`, `ra-control/`); duplicate
+  `links` (`dup/`); `mf2`'s own test through a translation-crate
+  dev-dependency (`fixture/`).
+
+### Rows
+
+| # | Row | Result | Observed | Command (in `probes/p10-links/`) |
+|---|---|---|---|---|
+| 1 | The variable's name | **confirmed** | `DEP_MF2_V2_FEATURES` and `DEP_MF2_V2_TARGET`: the `links` value upper-cased with `-` → `_`, then the key. The dependent's warning: `p10-links-single [x86_64-unknown-linux-gnu] via links: features=[fn-number,native] … vars=DEP_MF2_V2_FEATURES=fn-number,native DEP_MF2_V2_TARGET=x86_64-unknown-linux-gnu`. A present but empty value means `mf2` with no features (`DEP_MF2_V2_FEATURES=`); absent means no `links` at all | `cd single && cargo build -v --features native` |
+| 2 | One-crate application | **PASS** | `build saw [fn-number,native] via links …; mf2 compiled with [native,fn-number]; build decided … emit=native`; with `--features ssr`: `emit=web server; macros chose ssr=true … catalogs=1 host=host_std::HOST`; with `hydrate,datetime-intl`: `emit=web client; macros chose … host=host_web::INTL_HOST` | `cd single && cargo build -v --features <f> && ./target/debug/p10-links-single` |
+| 3 | Two crates: the translation crate sees what the application turned on | **PASS** | The application names `mf2` with `fn-number` and turns on `mf2/ssr`; the translation crate names `mf2` with no features and has no `[features]`: `i18n: build saw [fn-number,ssr] via links …; macros chose ssr=true … catalogs=1 host=host_std::HOST`; the second dependent (no features, no build script): `widgets: server widgets; mf2 compiled with [ssr,fn-number]`. `--workspace --features p10-links-app/ssr`: the same. **But** `cargo build -p p10-links-i18n` alone: `features=[]` — that build compiles `mf2` with no features, so the script's view still equals the compiled one | `cd two-crate && cargo build -v -p p10-links-app --features ssr`; `… -p p10-links-i18n` |
+| 4 | Host vs target: `mf2` as a normal dependency (`hydrate`) and a build-dependency (`native`, `compile`) | **PASS** — the target instance's | Two instances built (`--cfg feature="compile" … "native"` and `--cfg feature="hydrate"`); the script got `DEP_MF2_V2_FEATURES=hydrate DEP_MF2_V2_TARGET=x86_64-unknown-linux-gnu`; with `--target wasm32-unknown-unknown`: `hydrate` and `wasm32-unknown-unknown`. **`mf2` as a build-dependency only: no `DEP_MF2_V2_*` at all** (`via own CARGO_FEATURE_*: features=[] mf2-target=(unset) vars=`) | `cd host-target && cargo build -v -p p10-links-both [--target wasm32-unknown-unknown]`; `… -p p10-links-build-only` |
+| 5 | cargo-leptos: two builds, two values | **PASS** | `cargo build --package=p10-links-leptos-app --bin=p10-links-leptos-app --no-default-features --features=ssr` → the translation crate's script saw `[fn-number,ssr]` on `x86_64-unknown-linux-gnu`; `cargo build … --lib --target-dir=…/target/front --target=wasm32-unknown-unknown --no-default-features --features=hydrate` → `[fn-number,hydrate]` on `wasm32-unknown-unknown` (cargo-leptos 0.3.9 gives the client build a target directory of its own) | `cd leptos-app && cargo leptos build` |
+| 6 | A second `cargo leptos build` does nothing | **PASS** | Builds 2 and 3: no `Compiling` line, no script run (the run log stays at the first build's two lines), and `target/site/pkg/p10_links.wasm` and the server binary byte-identical (sha256 `931f868bc3fdfd25…`, `f06558561d23336c…` before and after). cargo-leptos re-runs its own wasm-bindgen step each time (≈ 160 ms), as for any application | `cd leptos-app && cargo leptos build` × 3; `sha256sum` |
+| 7 | The macros' choices in cargo-leptos's builds | **PASS** | The wasm holds no `catalog bytes` (the `ssr`-only `CATALOGS`) and names only `host_web::HOST`; the server binary holds `catalog bytes` and `host_std::HOST`. The generated files differ only in the script's decisions (`BUILD_DECIDED_EMIT: "web server"` / `"web client"`; `EMITTED_FOR_SSR` in the server's) | `grep -a -c 'catalog bytes'` on both artefacts |
+| 8 | rust-analyzer | **PASS** | From a deleted `target/`, `rust-analyzer analysis-stats .` ran the scripts through cargo (the file it left says `BUILD_SAW: "fn-number,ssr"` and has `EMITTED_FOR_SSR`), collected the generated items (`EMITTED_FOR_SSR`, `CATALOGS`, `MACRO_SAW_SSR`, `report`) and inferred everything: `exprs: 656, ??ty: 0`, `pats: 89, ??ty: 0`. **Negative control** — two references to items this build does not have (`MACRO_SAW_HYDRATE`, `EMITTED_FOR_NATIVE`): `exprs: 662, ??ty: 4`, `pats: 92, ??ty: 2`. `rust-analyzer diagnostics .`: only `inactive-code` hints in `mf2`, e.g. "code is inactive due to #[cfg] directives: feature = "ssr" is enabled" and "… feature = "hydrate" is disabled" — its `cfg`s for `mf2` match the build. **Two limits of the RA command line, not of `links`:** `rust-analyzer unresolved-references` panics on any crate, the three-line `ra-control/` included ("Try to use attached db, but not db is attached"); `diagnostics` does not report an unresolved value path (the negative control printed nothing where cargo gives E0425) — hence `analysis-stats` | `cd ra && rm -rf target && rust-analyzer analysis-stats .`; `rust-analyzer diagnostics .` |
+| 9 | A feature toggle reruns the dependent's script, and only what it must | **PASS** | `single/`, `native` → `ssr`: `mf2` recompiled as a new unit, its script and the application's run, the application compiles; back to `native`: every unit `Fresh`, no script runs; the same for `hydrate,datetime-intl` → `ssr`. `two-crate/`, `ssr` → `hydrate`: `mf2` recompiled, `mf2`'s and the translation crate's scripts run (the latter is **not recompiled**: the same `build/p10-links-i18n-6a6f157356afc973/build-script-build` every time), the translation crate, the second dependent and the application recompile, `mf2-build` `Fresh`; back: all `Fresh`. No `rerun-if-env-changed` is printed or needed: a new feature set is a new unit of `mf2`, and the dependent's script-run unit (and its `OUT_DIR`) is new with it | `cargo build -v --features …`, in turn |
+| 10 | Also: a translation-only edit; `check` and `build` alternating | **PASS** | Editing `i18n/locales/en.mf2`: `Dirty p10-links-i18n …: the file i18n/locales has changed`, only that script runs, with the same metadata (`[fn-number,ssr]`); `mf2` `Fresh`. `cargo check`, `build`, `check`: no script runs (0 in the log), only the edited crate rebuilds in each mode | `cd two-crate && cargo build -v …`; `cargo check -v …` |
+| 11 | `cargo metadata` carries the features (for `mf2 check`) | **PASS, with two caveats** | `resolve.nodes[]`, `mf2`'s node: `["default","fn-number"]`; with `--features p10-links-app/ssr`: `["default","fn-number","ssr"]`. **(a)** the set is the union over every workspace member plus the given `--features` (with both `ssr` and `hydrate` passed, both listed) — it is not per build side. **(b)** host and target instances are merged: `host-target/` shows `["compile","default","hydrate","native"]` where the builds used `[hydrate]` and `[compile,native]`, also with `--filter-platform wasm32-unknown-unknown` | `cargo metadata --format-version 1 [--features …] \| jq '.resolve.nodes[] \| select(.id \| contains("p10-links-mf2@")) \| .features'` |
+| 12 | A duplicate `links` | **the error, recorded** | Two packages with `links = "mf2-v2"`: the error in block (a) below. The same for two semver-incompatible versions of one package (0.1.0 and 0.2.0). The next major with `links = "mf2-v3"` resolves beside it, and a script depending on both gets `DEP_MF2_V2_*` and `DEP_MF2_V3_*` | `cd dup/app-copy && cargo build`; `dup/app-next`, `dup/app-v3` |
+| 13 | `cargo package` / `cargo publish --dry-run` | **PASS** | `Packaged 6 files, 8.0KiB (3.0KiB compressed)`, verified by building; `publish --dry-run`: `Uploading p10-links-mf2 v0.1.0 … warning: aborting upload due to dry run`, exit 0; the normalized manifest keeps `build = "build.rs"` and `links = "mf2-v2"`. Still passes with the path-only dev-dependency of row 14. **`links` without a build script is a manifest error** (block (b) below) | `cargo package -p p10-links-mf2 --allow-dirty`; `cargo publish --dry-run -p p10-links-mf2 --allow-dirty`; `cd dup/mf2-nobuild && cargo build` |
+| 14 | Also: `mf2`'s own test through a translation crate that depends on `mf2` (the dev-dependency cycle) | **PASS** | `cargo test -p p10-links-mf2 --test generated`: the fixture's script saw `[]`; with `--features ssr`: `[ssr]`, and `MACRO_SAW_SSR == cfg!(feature = "ssr")` holds | `cargo test -p p10-links-mf2 --test generated [--features ssr]` |
+| 15 | cfg-forwarding macros under unification | **PASS** | Rows 3 and 7: the application turns `ssr` on; the translation crate's generated module (same text in every build) and the second dependent's own code follow `mf2`'s compiled `cfg`, with no `cfg(feature)` of their own. In every build observed, the script's decisions and the macros' agreed. **One finding:** a choice made *inside a function* through a macro lints differently per mode (`unused_mut` in one build, `unused_assignments` in the other); choices made at item level (a whole `static`, `fn` or `use`) do not | rows 2, 3, 5, 7 |
+
+(a) Row 12, `dup/app-copy` (paths shortened to `<p10-links>`):
+
+```text
+error: failed to select a version for `p10-links-mf2-copy`.
+    ... required by package `p10-links-dup-copy v0.0.0 (<p10-links>/dup/app-copy)`
+versions that meet the requirements `*` are: 0.1.0
+package `p10-links-mf2-copy` links to the native library `mf2-v2`, but it conflicts with a previous package which links to `mf2-v2` as well:
+package `p10-links-mf2 v0.1.0 (<p10-links>/mf2)`
+    ... which satisfies path dependency `mf2` of package `p10-links-dup-copy v0.0.0 (<p10-links>/dup/app-copy)`
+note: only one package in the dependency graph may specify the same links value to ensure that only one copy of a native library is linked in the final binary
+for more information, see https://doc.rust-lang.org/cargo/reference/resolver.html#links
+help: try to adjust your dependencies so that only one package uses the `links = "mf2-v2"` value
+failed to select a version for `p10-links-mf2-copy` which could resolve this conflict
+```
+
+(b) Row 13, `dup/mf2-nobuild`:
+
+```text
+error: failed to parse manifest at `<p10-links>/dup/mf2-nobuild/Cargo.toml`
+
+Caused by:
+  package specifies that it links to `mf2-v2` but does not have a custom build script
+```
+
+**Scope.** The cargo-leptos application has no Leptos crate in it: the
+question is how the features reach the build script, and cargo-leptos runs
+the same two cargo builds (features, targets, its own target directory for
+the client) with or without it. Leptos's own no-op rebuild under
+cargo-leptos is P0.9's and the demos'. C6 re-runs these scenarios on the
+real crates, with Leptos, per its "Done when".
+
+### Verdict
+
+**D19's first half is adopted as "`links` + cfg macros".** Every row passes.
+The fallback (the translation crate keeps its function features) is not
+needed. Nothing needs the owner.
+
+### For C6, C4 and D3 (interpretation)
+
+- `mf2`'s `build.rs` prints `cargo::metadata=features=…`. The `cargo::` form
+  needs Rust 1.77; the MSRV is 1.88. `mf2_build::run()` reads
+  `DEP_MF2_V2_FEATURES`: an empty value means no features, an absent one a
+  crate that does not name `mf2` directly. It then errors, or falls back to
+  `CARGO_FEATURE_*` for 1.x-shaped crates.
+- The crate that includes the module must name `mf2` as a **normal**
+  dependency (row 4). `mf2-build` must never depend on `mf2`: `cargo
+  metadata`, and so an editor's `cfg`s, would see the union of both
+  instances (row 11b).
+- Split the choices this way. The build script decides what to *emit*
+  (native or web, server catalogs, compression) from the metadata. The
+  generated text makes its *compile-time* choices at item level through
+  `mf2`'s cfg macros (rows 7, 15). That puts the choices in `mf2` and keeps
+  the generated file lint-clean in every mode.
+- `mf2 check` reads `mf2`'s node from `cargo metadata`, with the
+  application's `--features`. For a cargo-leptos application that means
+  the function features, which are the same on both sides; the mode
+  features differ per side, and `metadata` gives their union (row 11a).
+- A build-dependency's features cannot travel this way. If `mf2`'s
+  `datetime-icu` is on while `mf2-build` lacks `icu-blob`, `run()` must say
+  so; it can test `cfg!(feature = "icu-blob")` in itself. This is C6's
+  "clear error".
+- More metadata keys cost nothing (row 1's `target`). A `version` key would
+  let `run()` refuse a mismatch between `mf2` and `mf2-build`.
+- A translation crate built on its own (`-p i18n`) sees only what that
+  build turns on. That is correct for that build, but it is not the
+  application's set (row 3).
+- Cargo replays a fresh script's `cargo::warning` lines on every build (rows
+  6, 9). The real build's lint warnings already work this way.
+
+## A3 — `tr!` inside its own crate: what was built
+
+**The probe.** `probes/p10-tr-in-crate/`, a standalone workspace with path
+dependencies on the real `mf2` and `mf2-build` (the tree at `2fb7f54`), a
+two-message corpus (`hello`, `greet = Hello, {$name}!`, in `en` and `fr`),
+and `Emit::Native` so that no Leptos is compiled. Every variant uses the real
+`mf2-build` module and the real `__tr_impl!` proc macro; only the *wrapper*
+that reaches it is varied — for variant 3 the build script cuts
+`mf2-build`'s generated `tr!` wrapper off the module and appends the
+variant's shape, for variant 4 two stand-in proc macros forward to
+`__tr_impl!`. `./run.sh` compiles every case (102, one feature set each) and
+writes each compiler output to `results/<case>.txt`; the scenarios run by
+hand (invalidation, relocation, rust-analyzer, a git dependency's
+future-compatibility report: `gitdep.sh`) are in `results/` with their
+commands. rustc 1.98.1, rust-analyzer 1.98.0-nightly (2026-06-11).
+
+### The five variants
+
+| # | Shape | Result | Observed |
+|---|---|---|---|
+| 1 | today's: `#[macro_export] macro_rules! tr` inside `include_generated!` | **unqualified only, and only after the include** | unqualified after the include (a module declared after it, or the root): PASS. Unqualified in a module declared *before* it: `error: cannot find macro `tr` in this scope` — and rustc's own help is `consider importing this macro through its public re-export: use crate::tr;`, which is the next error. `crate::tr!`, `use crate::tr;`, `super::tr!`, `self::tr!` and `$crate::tr!` in a macro of the crate, before or after the include: `error: macro-expanded `macro_export` macros from the current crate cannot be referred to by absolute paths` … `= warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!` … `= note: #[deny(macro_expanded_macro_exports_accessed_by_absolute_paths)] (part of #[deny(future_incompatible)]) on by default` (rustc #52234). Another crate: `v1_today::tr!` and `use v1_today::tr;` PASS. Also tried: `#[path = concat!(env!("OUT_DIR"), "/mf2_generated.rs")] mod generated;` → `error: malformed `path` attribute input … must be of the form #[path = "file"]` |
+| 2 | 1 + `#![allow(macro_expanded_macro_exports_accessed_by_absolute_paths)]` | **compiles, not adoptable** | Every path spelling compiles (unqualified before the include still fails). Every build of the crate then ends `warning: the following packages contain code that will be rejected by a future version of Rust: v1-today …`; `cargo report future-incompatibilities` shows the lint at each call site. **For a dependency that is not local** (the allowing crate committed to a git repository, `gitdep.sh`), the same warning is printed in every *consumer's* build, and the report tells the consumer to "ensure the maintainers know of this problem" or `[patch]` the dependency |
+| 3a | `macro_rules! tr` (not exported) + `pub(crate) use tr;` | in-crate yes, other crates **no** | In the crate: every spelling PASS, before and after the include, except unqualified before it. An import after the include is redundant (textual scope wins): `warning: unused import: crate::tr`. A crate that never calls it: `warning: unused macro definition: tr`. Another crate: `error[E0603]: macro `tr` is private` |
+| 3b | exported `tr` + `pub(crate) use tr;` at the root | **fails to compile** | `error[E0255]: the name `tr` is defined multiple times` … `tr must be defined only once in the macro namespace of this module`; and a prelude's `pub use super::tr;` is #52234 again |
+| **3c** | `#[doc(hidden)] #[macro_export] macro_rules! __mf2_tr` + `pub use __mf2_tr as tr;` + `pub mod prelude { pub use super::tr; }` | **everything but one spelling, one name everywhere** | In the crate, before and after the include: `crate::tr!`, `use crate::tr;`, `use crate::prelude::*;` PASS, no lint, no warning; unqualified at the root after the include PASS. Unqualified in a module without an import: `cannot find macro `tr`` with rustc's help `use crate::tr;` — which now compiles. Another crate: `my::tr!`, `use my::tr;`, `use my::prelude::*;` PASS. A **binary** crate (a module before the include with the prelude, one after with `use crate::tr`, the root): PASS, no warning |
+| 3d | 3a + `#[macro_export] macro_rules! __mf2_tr_export` re-exported as `exports::tr` | in-crate as 3a; other crates only as `my::exports::tr` | `my::tr!` from another crate: `error[E0603]: macro `tr` is private` |
+| 3e | 3c + a textual `macro_rules! tr` for the code after the include | **ambiguous where both are in scope** | Unqualified after the include PASS; but `use crate::tr;` or `use crate::prelude::*;` in a module after the include: `error[E0659]: tr is ambiguous` … `ambiguous because of a conflict between a macro_rules name and a non-macro_rules name from another module` |
+| 4 | an env-driven proc macro, by path (`use v4_env_macro::tr_env;`) | **works; not chosen** | `tr_env!` reads `MF2_MANIFEST` / `MF2_MANIFEST_HASH` from the build script's `cargo::rustc-env`; `tr_outdir!` reads `$OUT_DIR/manifest.mf2m`. Before, after and at the root: PASS. **Invalidation:** `$other` added to the source's `greet` → both call sites report `message greet needs argument other (its variables: $name, $other); write tr!("greet", name = …, other = …)` at the id; reverted → PASS; a translation-only edit reruns the build script and recompiles the crate, as today. **Relocated target directory** (`mv target target-moved`, a source touched, `CARGO_TARGET_DIR=target-moved`): the build script stays fresh, and both macros saw the *moved* path — the stored output still says `target/…`, so cargo rewrote the old `OUT_DIR` prefix in the replayed `rustc-env`. **rust-analyzer:** expands both; the seeded negative controls are reported at the call site (`unknown message id helo; did you mean hello?`, `message greet has no variable $nme …`), no `unresolved-macro-call` / `unresolved-proc-macro` |
+| 5 | a library prelude's `tr` (glob-imported) against a generated `tr` | **conflict** | Root glob + generated `tr`, call at the root: PASS (the generated one). A module *after* the include with the glob: `error[E0659]: tr is ambiguous` (today's shape and 3a's alike). A module *before* the include with the glob: the prelude's `tr` is chosen **silently** (the stand-in's `compile_error!("the PRELUDE's tr! was chosen")` fired). Glob + explicit `use crate::tr;` after the include: today's shape → #52234; 3a → PASS with `unused import` |
+
+**rust-analyzer** (`rust-analyzer diagnostics .` over the probe with 3c's call
+sites on and seeded controls, 49 s): 3c and 4 both expand; each seeded error
+is reported at its id or argument; the only other diagnostics are
+`inactive-code` hints and one clippy hint in `mf2-catalog`
+(`results/ra-diagnostics.txt`).
+
+### Verdict
+
+**The in-crate mechanism: 3c.** The generated module exports the wrapper
+under a hidden name and re-exports it as `tr` (and `msg_id` alike), and adds
+a `prelude`. Because `tr` is then a `use` of the exported macro — not the
+macro itself — it can be named by path in the crate that includes it, which
+the exported macro cannot. It is today's wrapper, proc macro, manifest path,
+hash and relocation fallback, unchanged; only two lines of the module move.
+Variant 4 works too (and survives relocation without a fallback), but it
+gives the crate a second spelling (`mf2::tr!` inside, `my::tr!` outside), a
+new public proc macro in `mf2`, and variant 5 shows that a `tr` in `mf2`'s
+own prelude collides with a generated one. **Done when:** met.
+
+**Proposed text for 05 §4** (replacing "and **inside the i18n crate itself
+only unqualified** … fixture's tests are written that way"):
+
+> **`tr!` in its own crate and in others** (2.0; Phase 10 A3). The module
+> exports the wrapper under a hidden name and names it `tr` with a `use`,
+> and does the same for `msg_id`:
+>
+> ```rust
+> #[doc(hidden)] #[macro_export] macro_rules! __mf2_tr { … }   // path and hash baked in, as before
+> pub use __mf2_tr as tr;
+> pub mod prelude { pub use super::tr; /* and the other generated names */ }
+> ```
+>
+> A `macro_export` macro that arrives through `include!` cannot be named by
+> a path in its own crate (rustc #52234); a `use` of it can. So:
+> * **in the crate that includes the module** — a one-crate application, or
+>   a library with messages of its own — any module, declared before or
+>   after the include, writes `use crate::tr;` or `use crate::prelude::*;`
+>   (or `crate::tr!(…)`); at the root, after the include, `tr!` needs no
+>   import. A module that forgets gets rustc's own suggestion, `use
+>   crate::tr;`, which compiles;
+> * **in a crate that depends on a translation crate** — `my_i18n::tr!(…)`,
+>   `use my_i18n::tr;` or `use my_i18n::prelude::*;`, as in 1.x;
+> * **three rules keep the name unambiguous:** the module defines no
+>   textual `macro_rules! tr` beside the re-export (the two are ambiguous,
+>   E0659, wherever both are in scope); `mf2`'s own prelude has no `tr` (a
+>   glob-imported `tr` is ambiguous with the generated one after the
+>   include, and silently chosen before it); and
+>   `macro_expanded_macro_exports_accessed_by_absolute_paths` is never
+>   allowed — a crate that allows it prints a future-incompatibility warning
+>   in every build that depends on it.
+>
+> Upgrading from 1.x: a module declared after the include that called `tr!`
+> unqualified now imports it (`use crate::tr;` or the prelude).
+
+### Found along the way
+
+- **A missing `mf2.toml` rebuilds the crate on every build.** `mf2-build`
+  prints `cargo::rerun-if-changed=<crate>/mf2.toml` whether or not the file
+  exists; cargo reports `Dirty v4-env …: the file v4-env/mf2.toml is missing`
+  and reruns the build script and recompiles the crate each time, with
+  nothing edited (`results/v4.no-mf2-toml-rebuilds.txt`). D19 makes
+  `mf2.toml` optional, so C6 has to print the line only for a file that
+  exists (or watch the directory for its creation). Observed on 1.x.
+- **`neutral-numbers` fires on a corpus with no number in it:** a single
+  `{$name}` placeholder draws "this locale formats numbers but fn-number is
+  off" once per locale, because an unannotated placeholder may receive a
+  number. Recorded; not in A3's scope.
+
+### What it means for the design (A8, C6, C7)
+
+- C4/C6 generate 3c's shape (`__mf2_tr` + `pub use … as tr`, `__mf2_msg_id`
+  + `msg_id`) and the crate `prelude`; the 2.0 samples write `use
+  crate::prelude::*;` (or `use crate::tr;`) in each module that calls
+  `tr!` — the work order's `src/ui.rs` sample needs that line.
+- `mf2`'s own prelude (if 2.0 has one) must not contain `tr`.
+- The native one-crate default (D19) needs nothing more from the compiler;
+  the in-crate part of D19 is settled without a fallback.
+- C7's `mf2 init` scaffold note and the fixture's comment about
+  "unqualified only" go; "Upgrading from 1.x" gains the import line.
+
+## A6 — a single-crate web application: what was built
+
+**The probe.** `probes/p10-single-crate/hello/`: Getting started's `hello`
+in its lazy-route form (delivery-modes.md), as **one crate** — `build.rs`,
+`mf2.toml` and `locales/` in the application, no translation crate, no
+workspace members. The 1.x crates by path (the tree at `2fb7f54`); Leptos
+0.9.0-beta2; cargo-leptos 0.3.9. `build.rs` runs `mf2-build` (`Emit::Both`)
+and swaps the generated wrappers for A3's shape (3c), standing in for what
+2.0's codegen would emit. `src/lib.rs` includes the module and keeps 1.x's
+hand-shaped `setup()`. `tr!` is called from `src/pages.rs` (declared before
+the include; `use crate::prelude::*`), `src/app.rs` (after it; `use
+crate::tr`), the crate root (no import) and the server binary `src/main.rs`
+(another crate; `use hello::tr`). Only `fn-number` is on (the corpus uses
+`:integer`; hello's `fn-datetime` / `datetime-icu` were left off to spare the
+machine). Everything ran under load (load average 12–18, other forks
+building): times are indicative only.
+
+| Check | Result | Observed | Command |
+|---|---|---|---|
+| both builds | **PASS** | `cargo check --features ssr` (lib + server binary); `cargo leptos build`: the server (`--features=ssr`) and the wasm (`--lib --target=wasm32-unknown-unknown --features=hydrate`), first build 14 min 21 s cold at `CARGO_BUILD_JOBS=1` | `results/build-first.log` |
+| a translation edit leaves the wasm byte-identical | **PASS** | wasm `4758729623dccb0e` at every step: nothing changed, mtime only, a translation-only edit (fr `visit-again`), a source-text edit (en `visit-again`), each reverted; `MANIFEST_HASH` `0x445b_1e6d_8cf8_c8e0` throughout. The server binary changes with each text edit (its catalogs are embedded) and returns to `59af98f49826615d` on each revert. Each edit recompiles the one crate in both builds (8–21 s a step) — in the two-crate layout it is the i18n crate *and* the application | `./scenario.sh` → `results/scenario.txt` |
+| `--split` | **PASS** | `cargo leptos build --split` emits `split___visits_view_….wasm` for the lazy route. Served (`cargo leptos serve --split`) and opened in Chromium: `/?lang=fr` renders in French with `Content-Language: fr` and `Vary: cookie, accept-language`; clicking the link to `/visits` navigates client-side (no document request) and fetches the chunk; the button, a switch to English and "Apply" fetch only `/i18n/en.….mf2b` and give "You have been here 2 times." (count kept, title switched). Console: only the probe's missing favicon | `results/browser/README.txt` |
+| `cargo leptos watch`: is `watch-additional-files` still needed? | **still needed** | Without it: no restart within 240 s of a locale edit, while a control edit to `src/app.rs` restarted it 27 s later. With `watch-additional-files = ["locales"]`: restarted 18 s after the edit, the edit served, then the revert served | `./watch.sh without`, `./watch.sh with` → `results/watch-*.txt` |
+| rust-analyzer | **PASS** | `rust-analyzer diagnostics .` (with `default = ["ssr"]` for the run; 156 s): the seeded misspelt id before the include (`unknown message id vistis; did you mean visits?`) and the seeded wrong argument after it (`message greeting has no variable $nmae …`) reported at the call sites; no `unresolved-macro-call` / `unresolved-proc-macro`. One unrelated error: an `E0507` rust-analyzer reports in 1.x `leptos-mf2`'s `text.rs:191` (`*slot = buf` in a `LocalKey::with` closure), which rustc compiles | `results/ra-diagnostics.txt` |
+| A3's in-crate `tr!` from several modules | **PASS** | before the include through the prelude, after it by `use crate::tr`, at the root with no import, and from the server binary by `use hello::tr`; in `ssr`, `hydrate` and `--split` builds | the builds above |
+
+**Verdict.** **One crate for the web works**: both builds, the wasm
+byte-identical across translation edits, `--split`, hydration and a live
+switch, rust-analyzer, and `tr!` from every module. The web starter (D5) can
+offer it. **Done when:** met.
+
+### What the one-crate layout still needs (observed)
+
+- **`watch-additional-files = ["locales"]`** — cargo-leptos watches the
+  sources, not `locales/`, in one crate as in two. A one-crate starter
+  writes the line itself: the manifest is the application's own, which 1.x's
+  `mf2 init` could not assume.
+- **The function features, twice.** 1.x's build reads the *including*
+  crate's `CARGO_FEATURE_*`, so the application declares `fn-number =
+  ["mf2/fn-number"]` and turns it on from both `ssr` and `hydrate` (and
+  `mf2/host-std` + `mf2/ssr`, `mf2/host-web` + `mf2/hydrate`) — A2's `links`
+  metadata is what removes this.
+- **`mf2 check` sees none of those features.** In the directory,
+  `mf2 check` resolves the crate with cargo's defaults, where neither `ssr`
+  nor `hydrate` is on, so it warns `neutral-numbers` for each locale (a
+  false warning: both builds have `fn-number`); `mf2 check --features
+  fn-number` reports nothing. In the two-crate layout the application names
+  the features on the i18n crate's dependency, which the plain resolve does
+  see.
+- **`setup()` is still hand-written** in `src/lib.rs` (D3's generated setup
+  removes it).
+
+### What it means for the design (A8, C6, D3, D5)
+
+- D5: `mf2 init --ssr` / `--islands` / `--csr` can offer the one-crate
+  layout, writing `watch-additional-files = ["locales"]`; the two-crate
+  layout stays for a workspace where several crates share one corpus.
+- C6: `mf2 check` / `compile --site` must see the features the *builds*
+  use. If 2.0 puts the function features on the `mf2` dependency itself
+  (unconditionally, not behind `ssr` / `hydrate`), `mf2`'s node in a plain
+  resolve carries them and the gap closes; otherwise `mf2 check` needs
+  cargo-leptos's `bin-features` / `lib-features`.
+- A3's shape (3c) needs nothing more on the web: the prelude and `use
+  crate::tr` work in `ssr`, `hydrate` and a split chunk.
+
 ## Part B — one crate, with every old path kept by shims (B1 after A1 and A7; B2–B4 after B1; B5 with or after B4)
 
 | Task | Deliverable | Done when |

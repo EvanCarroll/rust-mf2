@@ -1,0 +1,17 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: Language
+        - combobox "Language" [ref=e15]:
+          - option "English" [selected]
+          - option "Français"
+      - button "Apply" [active] [ref=e16]
+  - navigation [ref=e8]:
+    - link "Hello, MessageFormat 2" [ref=e17] [cursor=pointer]:
+      - /url: /
+    - link "Visit again" [ref=e18] [cursor=pointer]:
+      - /url: /visits
+  - main [ref=e11]:
+    - status [ref=e13]: You have been here 2 times.
+    - button "Visit again" [ref=e19]

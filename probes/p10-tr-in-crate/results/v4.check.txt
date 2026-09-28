@@ -1,0 +1,2 @@
+    Checking v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.42s

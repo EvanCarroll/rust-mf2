@@ -1,0 +1,21 @@
+@locale en
+---
+
+app-title = Hello, MessageFormat 2
+greeting = Hello, {$name}!
+
+# A plural: the number picks the variant, by this language's rules.
+visits =
+  .input {$count :integer}
+  .match $count
+  one {{You have been here once.}}
+  *   {{You have been here {$count} times.}}
+
+visit-again = Visit again
+not-found = There is nothing here.
+
+[language]
+label = Language
+apply = Apply
+en = English
+fr = Français

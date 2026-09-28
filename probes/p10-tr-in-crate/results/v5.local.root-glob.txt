@@ -1,0 +1,2 @@
+   Compiling v5-glob v0.0.0 (<repo>/probes/p10-tr-in-crate/v5-glob)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s

@@ -1,0 +1,15 @@
+# Variant 4's application side: the build script prints the manifest's path
+# and hash as `cargo::rustc-env`, and modules before and after the include
+# call the env-driven stand-ins by path.
+[package]
+name = "v4-env"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+mf2.workspace = true
+v4-env-macro = { path = "../v4-env-macro" }
+
+[build-dependencies]
+mf2-build.workspace = true

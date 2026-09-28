@@ -1,0 +1,21 @@
+@locale fr
+---
+
+app-title = Bonjour, MessageFormat 2
+greeting = Bonjour, {$name} !
+
+visits =
+  .input {$count :integer}
+  .match $count
+  one  {{Vous êtes venu une fois.}}
+  many {{Vous êtes venu {$count} fois.}}
+  *    {{Vous êtes venu {$count} fois.}}
+
+visit-again = Revenir
+not-found = Il n’y a rien ici.
+
+[language]
+label = Langue
+apply = Appliquer
+en = English
+fr = Français

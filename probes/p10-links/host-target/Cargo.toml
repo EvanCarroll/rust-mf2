@@ -1,0 +1,6 @@
+# Scenario 3: `mf2` both as a normal dependency and as a build-dependency,
+# with different features (resolver 3 builds two instances); and `mf2` as a
+# build-dependency only. Which instance's metadata reaches the build script?
+[workspace]
+resolver = "3"
+members = ["both", "build-only"]

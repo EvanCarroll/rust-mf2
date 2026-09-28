@@ -1,0 +1,10 @@
+   Compiling v3-local v0.0.0 (<repo>/probes/p10-tr-in-crate/v3-local)
+    Checking v3-consumer v0.0.0 (<repo>/probes/p10-tr-in-crate/v3-consumer)
+error[E0432]: unresolved import `v3_local::exports`
+  --> v3-consumer/src/lib.rs:22:19
+   |
+22 |     use v3_local::exports::tr;
+   |                   ^^^^^^^ could not find `exports` in `v3_local`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `v3-consumer` (lib) due to 1 previous error

@@ -1,0 +1,10 @@
+# Phase 10 A2 probe (plans/18-phase-10-work-order.md): can `links` metadata
+# carry `mf2`'s features to the build script of a crate that depends on it?
+#
+# This workspace holds the two stand-ins; each scenario under it is a
+# workspace of its own (an application decides its own features, and cargo
+# unifies features across a workspace).
+[workspace]
+resolver = "3"
+members = ["mf2", "mf2-build", "fixture"]
+exclude = ["single", "two-crate", "host-target", "leptos-app", "dup", "ra", "ra-control"]

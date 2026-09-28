@@ -1,0 +1,13 @@
+# The translation crate: no `[features]` block, `mf2` with no features.
+[package]
+name = "p10-links-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[dependencies]
+mf2 = { package = "p10-links-mf2", path = "../../mf2" }
+
+[build-dependencies]
+mf2-build = { package = "p10-links-mf2-build", path = "../../mf2-build" }

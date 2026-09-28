@@ -1,0 +1,13 @@
+# Two packages with the same `links` value in one graph.
+[workspace]
+resolver = "3"
+
+[package]
+name = "p10-links-dup-copy"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+mf2 = { package = "p10-links-mf2", path = "../../mf2" }
+mf2-copy = { package = "p10-links-mf2-copy", path = "../mf2-copy" }

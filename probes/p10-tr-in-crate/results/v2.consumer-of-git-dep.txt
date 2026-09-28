@@ -1,0 +1,4 @@
+$ cargo check   (a consumer crate whose dependency v1dep, from a git repository, allows the lint; target/gitdep/)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.67s
+warning: the following packages contain code that will be rejected by a future version of Rust: v1dep v0.0.0 (file://<repo>/probes/p10-tr-in-crate/target/gitdep/v1dep#d0c87c27)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`

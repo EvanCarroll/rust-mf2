@@ -1,0 +1,15 @@
+# A crate that depends on a translation crate (variant 1's other side), and
+# the future-compatibility report when the translation crate allows the lint
+# (variant 2).
+[package]
+name = "v1-consumer"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[features]
+dep-allows-52234 = ["v1-today/allow-52234", "v1-today/before-crate-path"]
+
+[dependencies]
+mf2.workspace = true
+v1-today = { path = "../v1-today" }

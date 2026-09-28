@@ -1,0 +1,17 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: Langue
+        - combobox "Langue" [ref=e6]:
+          - option "English" [selected]
+          - option "Français"
+      - button "Appliquer" [ref=e7]
+  - navigation [ref=e8]:
+    - link "Bonjour, MessageFormat 2" [ref=e9] [cursor=pointer]:
+      - /url: /
+    - link "Revenir" [ref=e10] [cursor=pointer]:
+      - /url: /visits
+  - main [ref=e11]:
+    - status [ref=e13]: Vous êtes venu 2 fois.
+    - button "Revenir" [active] [ref=e14]

@@ -1,0 +1,12 @@
+source_locale = "en"
+
+[catalog]
+strip = [
+    "cold",
+    "ids",
+]
+missing = "fallback"
+
+[locale_data]
+currencies = "used"
+units = "used"

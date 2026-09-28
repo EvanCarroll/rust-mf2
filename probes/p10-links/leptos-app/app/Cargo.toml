@@ -1,0 +1,32 @@
+[package]
+name = "p10-links-leptos-app"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+i18n = { package = "p10-links-leptos-i18n", path = "../i18n" }
+mf2 = { package = "p10-links-mf2", path = "../../mf2", features = ["fn-number"] }
+# The version the repository's demos use, which the installed cargo-leptos
+# already handles.
+wasm-bindgen = { version = "=0.2.128", optional = true }
+
+[features]
+ssr = ["mf2/ssr"]
+hydrate = ["mf2/hydrate", "dep:wasm-bindgen"]
+
+[package.metadata.leptos]
+output-name = "p10_links"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+site-addr = "127.0.0.1:3920"
+reload-port = 3921
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"

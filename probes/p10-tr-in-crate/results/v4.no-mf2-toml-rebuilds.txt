@@ -1,0 +1,11 @@
+$ cargo build -p v4-env -v   # twice, nothing edited, no mf2.toml
+       Dirty v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env): the file `v4-env/mf2.toml` is missing
+   Compiling v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env)
+     Running `<repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-e5a00d45c9f0a201/build-script-build` …`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.63s
+
+       Dirty v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env): the file `v4-env/mf2.toml` is missing
+   Compiling v4-env v0.0.0 (<repo>/probes/p10-tr-in-crate/v4-env)
+     Running `<repo>/probes/p10-tr-in-crate/target/debug/build/v4-env-e5a00d45c9f0a201/build-script-build` …`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.55s
+

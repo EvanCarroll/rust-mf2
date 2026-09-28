@@ -1,0 +1,6 @@
+# Scenario 5: rust-analyzer. The two-crate layout, with the application's
+# `ssr` always on, and references in the application that resolve only if
+# the editor's view agrees with the build's.
+[workspace]
+resolver = "3"
+members = ["app", "i18n"]
