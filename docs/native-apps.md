@@ -216,10 +216,10 @@ the features decide what the catalogs hold, and so their names.
 installer that copies the files itself. A file must keep that name.
 
 Each file is checked when it is loaded: its bytes against the hash in its
-name, and its manifest against the build's. So a catalog from another
-build is an error, not wrong text — `NativeError::ContentMismatch` when
-its content differs (even if only a translation changed), and
-`ManifestMismatch` when its messages are not the build's.
+name, then its manifest against the build's. So a catalog from another
+build is an error, not wrong text: `NativeError::ContentMismatch`, whether
+only a translation changed or the messages did — the bytes differ either
+way, and that check comes first.
 
 ## Ratatui
 

@@ -1409,6 +1409,98 @@ behaviour. Each names what was run.
   The command-line page uses the same mechanism six times.
 * Each code task's own guard is in its record (B3–B9).
 
+## B13 — re-verification: what was run
+
+Run on 2026-09-28, on the tree after B12 (`7245a36`), by the review's
+method. Browsers: Chromium 143.0.7499.4 and Firefox 155.0 (Playwright);
+cargo-leptos 0.3.9, trunk 0.21.13, rustc 1.98.1.
+
+* **The book assembled.** `cargo xtask docs` (the full build): green,
+  every sample compiled for its targets. Its projects were copied to
+  `target/b13/` (git-ignored; `/tmp` is a 7.7 GB tmpfs here, too small for
+  the builds) and built as a reader builds them: `cargo leptos build`
+  (dev; `lazy` with `--split`), `trunk build` for `csr`, `cargo build` for
+  `native`. Servers ran as the built binaries with the `LEPTOS_*`
+  variables; the client-only site from a static file server.
+* **Variants**, each a copy with one change: a second `hello` build with
+  one added message (the probe spec's "another deploy"); `hello` with the
+  book's path-prefix samples pasted in as written (`path_negotiator`,
+  `with_path_redirect`, `AccountHeader` with `href_of`, on a route
+  `/:lang/account`); `hello` with the migration page's extra source
+  (`CookieLocale { name: "lang", .. }`); `hello` with `mark-fallback-lang`
+  and a message only in English, in a `<p>`, a `<textarea>` and an
+  `<option>`; `islands` without `static-locale`; `lazy` without `--split`;
+  `native` with `Emit::NativeFiles`.
+* **The probes** (Playwright scripts, not committed, as in the review):
+  `hello` 13 assertions, `lazy` 8, path-prefix 6, `islands` 7 per build,
+  `csr` 7, fallback 16; each run in both engines.
+
+**The refuted rows, now:**
+
+| Row | What was run | Verdict |
+|---|---|---|
+| switch skew | `hello`, its French catalog answered once by the second build's (its own server, the redirect followed) | **verified.** One navigation into `fr`, the marker gone, `mf2_locale=fr`, `?lang=` gone, one line: `mf2: the catalog is from another deploy; reloading into the new locale.` At boot, the `en` preload answered the same way: one reload, then hydrated, `mf2: this page's catalog is from another deploy; reloading.` 13/13 in both |
+| a lazy route like any other part | `lazy --split`, loaded directly and reached by the `<A href>` | **verified.** Both ways: three presses count 1 → 4, a live switch keeps 4 ("Vous êtes venu 4 fois."), a press after it gives 5; console silent. 8/8 in both |
+| without `--split` | `lazy` built without it | **as the book now says:** `hello.js` imports `__wasm_split_placeholder__`, the browser cannot resolve it (a `TypeError` in both), and nothing hydrates |
+| islands without `static-locale` | `islands` rebuilt without it | **as the book now says:** pressing the switcher is a `GET /?lang=fr`, the server's page in French, `mf2_locale=fr` from the server, the island's count back at "une fois"; the same outcome as with `static-locale` (7/7 each, both engines). The debug wasm is 2,708 B larger without it |
+| the migrated server and the `lang` cookie | curl on `hello` (whose server is the migrated app's), then with the report's extra source | **as the book now says:** `Cookie: lang=fr` → `content-language: en`; with the source added → `fr`, and `lang=fr; mf2_locale=en` → `en` |
+| path prefix and the switcher | the book's samples, pasted in | **verified.** `/en/account?lang=fr` → `303`, `location: /fr/account` (`&tab=2` kept); `/?lang=fr` not redirected; the path outranks an `mf2_locale=fr` cookie. With the wasm and with it blocked, the switch lands on `/fr/account` in French. 6/6 in both |
+| native catalogs from another build | `NativeFiles`; a text-only rebuild, then a message-set change | **verified.** `mf2 -C i18n compile --features fn-number --out` writes the build's own names (`en.604bd7743d02f2a4.mf2b`, `fr.12d01d9d7b6d52c4.mf2b`; without the feature, other names, as the page warns). After the text-only rebuild the old directory lacks the new name (`Io`, not found); the old bytes renamed to it → `ContentMismatch { actual: "12d01d9d7b6d52c4" }`; a fresh compile → the new text. **Found:** after a message-set change the renamed old file is also `ContentMismatch` — the content check comes first — where the page said `ManifestMismatch`; the page corrected |
+| `msg_id!` + `TrDyn` | `calls` compiled by `cargo xtask docs`; `a_run_time_message_is_built_by_its_public_constructor` in `cargo xtask ci` | **verified** |
+| `class=` / `style=` | `class=tr!(…)` and `style=tr!(…)` added to `calls` | **as the book now says:** E0277, `Tr: IntoClass` / `Tr: IntoStyle`; `title=` and `aria-label=` beside them compile |
+| `mf2 check` = the build | bare `mf2 -C i18n check` | **verified.** `hello`: "9 messages in 2 locales, nothing to report", and its build no warning; `calls` (dates, currency): clean, where `--features ""` gives the three `gated-function` errors; with one message only in English, check and build print the same line, naming it |
+| islands-zero figures | `cargo xtask islands-zero` | **moved slightly since the book's run:** code 165,705 B / 864 functions both builds, data 23,446 B both, shipped 85,726 B gz both (not byte-identical). The page now gives this run and mentions the earlier +8 B |
+
+**The partly-right rows, now:** the islands switch is the form's `GET` and
+the server's `Set-Cookie` (above); `<textarea>` and `<option>` hold the
+borrowed message with no span, as served and after a switch either way,
+while the `<p>` beside them is marked in French and plain in English —
+16/16 in both engines, which runs B6's client half (read, not run, in
+B6); only the string argument is isolated (`Bonjour, ⁨Ada⁩ !`; the count
+has none); Ratatui: an unstyled name inside `ok` takes `ok`'s style, and
+one outside it the paragraph's (a small program over `mf2_ratatui::line`);
+the converted `components.rs` is the page's, closure and `.to_string()`
+included; the conversion re-run from the page's `before` files — dry run,
+`--write`, `--write`, dry run: each exits 1 with the same three findings,
+the first `--write`'s output equal to the page's `generated` report, the
+second `0 .mf2 file(s) written (2 unchanged)`, the tree unchanged after
+it; `mf2 check` names the missing ids; `<CatalogLinks/>` gives both `en`
+and `fr`; `hello-0-8` with the default features left on gives one error,
+the `compile_error!`; the pages' `mf2` blocks pass `fmt --check` (the docs
+gate).
+
+**Also run, as the book says:** `Vary: cookie, accept-language`;
+`Content-Language`; `Set-Cookie` only for `?lang=`; the 404 rendered in the
+negotiated language; `/i18n/fr` a `307` with `no-cache` to the hashed file,
+served `br` and `immutable` for a year; a live switch leaves focus on the
+button and no reload; native language matching (`LANG=fr_CA.UTF-8`,
+`LANGUAGE=de:fr`, `LC_ALL=fr_CA@euro` → French; `LANG=C`, `sr_RS` →
+English; `--lang de` → `UnknownLocale`); the client-only site: `fr-CA` →
+`fr` through `index.json` with no `/i18n/<tag>` request, a live switch
+remembered in `localStorage` and kept on reload, skew reloads into the new
+language (B2's byte-flip, as its check does).
+
+**Found and corrected in the book** (three sentences, no code):
+* `native-apps.md` — the `ManifestMismatch` sentence (above).
+* `switching.md` — "A `Secure` cookie is not stored from a page served over
+  plain HTTP": both engines stored the default `Secure` cookie from
+  `http://127.0.0.1` and returned it; from `http://10.10.10.1` (a local
+  bridge address) neither stored it. The page now names the loopback
+  exception and when `secure: false` is needed.
+* `delivery-modes.md` — the islands-zero figures (above).
+
+**Seen, not the book's:** Chromium warns twice on the trunk-built page that
+the `integrity` attribute is ignored on preloads — trunk writes it; not
+our HTML. Chromium keeps a bare `?` after `?lang=` is removed on the skew
+reload (recorded in B2).
+
+**The repository's tooling** (2026-09-28, each alone): `cargo xtask
+islands-zero` (above, 74 s); `cargo xtask churn` 84/84 — no row shape
+grows the heap in either engine; `cargo xtask msrv` — "the 18 build on
+Rust 1.88"; `cargo xtask msrv --below` — "Rust 1.87 fails, as it must";
+`cargo xtask api --check` — "18 listings unchanged". `cargo xtask ci`:
+see the exit.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).
@@ -1430,6 +1522,6 @@ behaviour. Each names what was run.
 - [x] the changelog with 1.0.0 and its known limitations (A6)
 - [x] `cargo xtask release` green as a dry run in CI; the publish is the owner's (A7) — green locally on the clean tree; the `release` job is in `ci.yml`, waiting for a runner like every job (no remote yet)
 - [x] Part B: the book's refuted claims fixed in code or text, each with its guard (B1–B12)
-- [ ] Part B: the book re-verified by running it (B13)
+- [x] Part B: the book re-verified by running it (B13) — every refuted row verified or now described as it behaves; three more sentences corrected (§B13)
 - [ ] `cargo xtask ci` green; the conformance harness green at `current_phase = "P9"`
 - [ ] `plans/phase-9-results.md` written (A8)

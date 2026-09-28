@@ -93,9 +93,10 @@ and lists its sources, as Getting started does. Each part can be changed:
   The client writes the cookie under `mf2_locale` on every switch, so a
   different `name` is for an **extra** source that reads a cookie another
   system wrote, listed after the default one. A `Secure` cookie is not
-  stored from a page served over plain HTTP, so a development server
-  without TLS sets `secure: false` (Getting started ties it to
-  `debug_assertions`).
+  stored from a page served over plain HTTP — browsers make an exception
+  for `127.0.0.1` and `localhost` — so a development server reached without
+  TLS at any other address (a phone on the local network, say) sets
+  `secure: false` (Getting started ties it to `debug_assertions`).
 * **`.default_locale("fr")`** answers a request no source matched in
   French instead of the source language, if the build has French.
 * **`Negotiator::over(locales, default)`** starts from an explicit table

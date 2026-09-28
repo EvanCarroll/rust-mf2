@@ -163,12 +163,14 @@ In an islands application, only the components marked `#[island]` are
 compiled to wasm. Everything else renders on the server and ships no
 code at all. **A server-only component costs the wasm nothing**, however
 many messages it uses. `cargo xtask islands-zero` measured this on the
-islands example (2026-09-27). It adds a server-only component with a call
+islands example (2026-09-28). It adds a server-only component with a call
 site in every position (text, attribute, argument, markup) and compares the
-client with and without it. The code section was 165,714 bytes with 865
-functions both times. The data section grew by 8 bytes, so the wasm
-shipped 85,644 and then 85,648 bytes gzipped: no code, and a few bytes of
-data.
+client with and without it. The code section was 165,705 bytes with 864
+functions both times, and the data section 23,446 bytes both times, so the
+wasm shipped 85,726 bytes gzipped both times. The two files are not
+identical byte for byte, but no section grew. (An earlier run, 2026-09-27,
+saw the data section grow by 8 bytes: a few bytes of data at most, and no
+code.)
 
 Islands change the trade-off for switching. Most of the page has no client
 code, so it cannot follow a live switch. The documented default is
