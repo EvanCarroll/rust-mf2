@@ -9,5 +9,6 @@ api.txt
 src/context.rs
 src/lib.rs
 src/negotiate.rs
+src/redirect.rs
 src/serve.rs
 tests/time_zone.rs

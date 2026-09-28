@@ -205,6 +205,7 @@ web-sys = { version = "0.3.105", default-features = false, features = [
     "History",
     "HtmlElement",
     "HtmlLinkElement",
+    "HtmlSelectElement",
     "Navigator",
     "Node",
     "Request",

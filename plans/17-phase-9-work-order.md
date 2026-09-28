@@ -1038,6 +1038,54 @@ behaviour. Each names what was run.
   `demo` 186/186, `lazy` 74/74. The changelog's 1.1.0 entry says what
   changed. No public API change.
 
+## B4 — the switcher on path-prefix sites: what was built
+
+* **`LocaleSwitcher`'s optional `href_of: fn(&str) -> String`**
+  (`#[prop(optional)]`, so every existing call compiles unchanged). The
+  switcher provides it to its options as a context; each `LocaleOption`
+  then renders `data-mf2-href` with its language's URL. The submit handler
+  (`hydrate`, `csr`) reads the selected option's `data-mf2-href` and, when
+  there is one, assigns `location` to it instead of calling `set_locale`.
+  `HtmlSelectElement` joined the workspace's `web-sys` features (it was
+  enabled through tachys already).
+* **Without the wasm: `mf2_axum::path_prefix_redirect`**, an
+  `axum::middleware::from_fn` middleware (`src/redirect.rs`) — the API
+  decided here, one additive function: a `GET` or `HEAD` whose first path
+  segment names a locale and whose `?lang=` (leptos-mf2's `LOCALE_QUERY`,
+  `QueryParam::default()`'s) names another is answered `303` to the same
+  path under that locale, `?lang=` removed and every other parameter kept.
+  A path with no locale segment, a query that agrees or names no locale
+  of the build, passes through. Matching is negotiation's own `lookup`
+  (`en-GB` → `en`). Unit tests for each case.
+* **The e2e variant** is `examples/demo-ssr` itself: a route
+  `/:lang/about` with a second switcher given `href_of`, `PathPrefix`
+  first in the negotiator (every other path names no locale and falls
+  through, so the rest of the demo is unchanged), and the middleware.
+  `demo.mjs`'s `pathPrefix`: the redirect (`/en/about?lang=fr` → 303
+  `/fr/about`; other parameters kept; `/?lang=fr` not redirected); the path
+  outranks the cookie; the options carry their URLs; then, with the wasm
+  and with it blocked, the switch lands on `/fr/about` in French, the
+  cookie `fr` (written because the locale came from the path, B3), and no
+  console error. **Negative control**, kept in the check: the same page
+  with the options' `data-mf2-href` removed switches in place and stays on
+  `/en/about` — the handler is what moves it.
+* **Shown** (2026-09-27, debug `--split` build, Chromium and Firefox):
+  `demo` 210/210, `lazy` 74/74; `curl -si '/en/about?lang=fr'` → `303
+  See Other`, `location: /fr/about`.
+* **API** (`api.txt`): `mf2-axum` +1 line (`path_prefix_redirect`);
+  `leptos-mf2`'s `LocaleSwitcherProps` gains the public field `href_of`, and
+  its builder one type parameter. Adding a field to a struct a caller can
+  build by literal is a break by `cargo-semver-checks`' rules — harmless
+  here only because `leptos-mf2` has never been published (the partial
+  1.0.0 stopped before it), so 1.1.0 is its first version and has no
+  baseline.
+* **Also run** with this build (2026-09-27, Chromium and Firefox; demo-islands
+  and demo-csr rebuilt): `csr` 98/98, `islands` 58/58, `a11y` 720/720 —
+  which is also B6's `csr` fallback criterion.
+* **For B10/B11:** `switching.md`'s path-prefix section should show
+  `href_of` on the switcher and the middleware, and drop the refuted
+  sentence.
+
 ## B5 — `TrDyn::new`: what was built
 
 * **`TrDyn::new<N: Into<Text>, V: Into<ArgValue>>(id, impl IntoIterator<Item

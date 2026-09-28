@@ -412,7 +412,10 @@ impl Default for Negotiator {
 }
 
 /// The one matcher, shared with a client-only application's boot.
-fn lookup(candidate: &str, locales: &[(&'static str, Dir)]) -> Option<(&'static str, Dir)> {
+pub(crate) fn lookup(
+    candidate: &str,
+    locales: &[(&'static str, Dir)],
+) -> Option<(&'static str, Dir)> {
     leptos_mf2::lookup_locale(candidate, locales)
 }
 

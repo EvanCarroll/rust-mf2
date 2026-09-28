@@ -19,7 +19,9 @@
 //! and a second route, `/lazy`, whose code is a wasm chunk of its own under
 //! `cargo leptos --split`: text, an attribute and a markup message rendered
 //! from the catalog the main module installed, switching live, and freeing
-//! its registry slots when the reader leaves it.
+//! its registry slots when the reader leaves it. A third, `/<tag>/about`,
+//! has its language in its URL: its switcher goes to the other language's
+//! URL instead of switching in place.
 //!
 //! Layout is flexbox, the SVG is an external file, and the page carries
 //! schema.org `inLanguage` so that the locale is machine-readable as well as
@@ -113,6 +115,7 @@ pub fn App() -> impl IntoView {
                         // Under `--split`, this route's view is its own wasm
                         // chunk, fetched when the route is first matched.
                         <Route path=path!("/lazy") view={Lazy::<LazyPage>::new()} />
+                        <Route path=path!("/:lang/about") view=AboutPage />
                     </Routes>
                 </main>
 
@@ -136,6 +139,32 @@ fn current_locale() -> String {
     #[cfg(not(feature = "ssr"))]
     leptos_mf2::track_locale();
     html_lang().0
+}
+
+/// A page whose language is its URL's first segment, as on a site that
+/// wants a crawlable URL per language (`mf2_axum::PathPrefix`). A `?lang=`
+/// cannot change it, so its switcher takes each language's URL.
+#[component]
+fn AboutPage() -> impl IntoView {
+    view! {
+        <section id="about">
+            <p>{demo_i18n::tr!("tagline")}</p>
+            <LocaleSwitcher
+                label=demo_i18n::tr!("language.label")
+                button=demo_i18n::tr!("language.apply")
+                href_of=about_href
+            >
+                <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
+                <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
+                <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
+            </LocaleSwitcher>
+        </section>
+    }
+}
+
+/// This page's URL in `tag`.
+fn about_href(tag: &str) -> String {
+    format!("/{tag}/about")
 }
 
 #[component]

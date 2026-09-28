@@ -58,6 +58,13 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   if the reader had chosen it. A cookie that was read is not written back,
   so its one-year expiry no longer slides with every visit; the client
   still writes it on every switch.
+* **The switcher on a site whose languages live in its URLs.**
+  `LocaleSwitcher` takes an optional `href_of` (the shape `AlternateLinks`
+  takes): each option carries its language's URL, and the button goes
+  there instead of switching in place, which a `?lang=` could not do under
+  `PathPrefix`. Without the wasm, the form's `?lang=` reaches the server,
+  and the new `mf2_axum::path_prefix_redirect` middleware sends a request
+  whose `?lang=` disagrees with its path to that language's URL.
 * **`TrDyn::new`**, a public constructor for a message whose id is known
   only at run time (`msg_id!("…")`) and whose arguments arrive by name —
   for a tool or a server. `tr!` stays the form a page uses.

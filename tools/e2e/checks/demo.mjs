@@ -28,6 +28,8 @@
 //     a text node that keeps its identity throughout (Phase 7 A14);
 //   * a switch that meets a catalog from another deploy reloads into the
 //     new locale, remembered in the cookie (Phase 9 B2);
+//   * on a page whose language is in its URL, the switcher goes to the
+//     other language's URL, with the wasm and without it (Phase 9 B4);
 //   * no message text is in the client bundle (B6).
 
 import {
@@ -368,6 +370,7 @@ export async function run(ctx) {
   // ------------------------------------------ a switch meets a new deploy ---
 
   await switchSkew(browser, baseUrl, assert, data);
+  await pathPrefix(browser, baseUrl, assert, data, get);
 
   // ----------------------------------------------------------- canary ---
 
@@ -610,6 +613,87 @@ async function switchSkew(browser, baseUrl, assert, data) {
     'skew-switch-says-why-once',
     after.mf2.length === 1 && after.mf2[0].includes('another deploy'),
     after.mf2,
+  );
+  await context.close();
+}
+
+/**
+ * Phase 9 B4: a page whose language is in its URL (`/<tag>/about`, the path
+ * prefix first in the negotiator). A `?lang=` cannot change it, so its
+ * switcher — given `href_of` — goes to the chosen language's URL: with the
+ * wasm, by the submit handler; without it, by the form's `?lang=` and the
+ * server's redirect.
+ */
+async function pathPrefix(browser, baseUrl, assert, data, get) {
+  const SWITCHER = '#about .mf2-locale-switcher';
+
+  // The server alone: the path wins over the query, and the redirect.
+  const plain = await get('/en/about?lang=fr');
+  assert('path-prefix-redirects-a-disagreeing-query', plain.status === 303 && plain.headers.location === '/fr/about', {
+    status: plain.status,
+    location: plain.headers.location,
+  });
+  const kept = await get('/en/about?x=1&lang=ar');
+  assert('path-prefix-redirect-keeps-other-parameters', kept.headers.location === '/ar/about?x=1', kept.headers.location);
+  const home = await get('/?lang=fr');
+  assert('no-prefix-no-redirect', home.status === 200 && attr(home.text(), HTML) === 'fr', home.status);
+  const fr = await get('/fr/about', { cookie: 'mf2_locale=en', 'accept-language': 'en' });
+  assert('path-prefix-outranks-cookie', attr(fr.text(), HTML) === 'fr', attr(fr.text(), HTML));
+  assert(
+    'path-prefix-options-carry-their-urls',
+    ['en', 'fr', 'ar'].every((tag) => fr.text().includes(`data-mf2-href="/${tag}/about"`)),
+  );
+
+  const run = async (label, blockWasm) => {
+    const context = await browser.newContext();
+    if (blockWasm) await context.route('**/*.wasm', (route) => route.abort());
+    const page = await context.newPage();
+    const messages = [];
+    watchConsole(page, messages);
+    await page.goto(`${baseUrl}/en/about`, { waitUntil: 'load' });
+    if (!blockWasm) await hydrated(page);
+    await chooseLocale(page, 'fr', SWITCHER);
+    let landed = true;
+    try {
+      await page.waitForURL(`${baseUrl}/fr/about`, { timeout: 5000 });
+      await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, { timeout: 5000 });
+    } catch {
+      landed = false;
+    }
+    const cookies = await context.cookies(baseUrl);
+    const after = {
+      landed,
+      url: page.url(),
+      lang: await page.getAttribute('html', 'lang'),
+      cookie: cookies.find((c) => c.name === 'mf2_locale')?.value,
+      errors: blockWasm ? [] : messages.filter((m) => m.type === 'error').map((m) => m.text),
+    };
+    data[`pathPrefix_${label}`] = after;
+    assert(`path-prefix-switch-${label}-lands-on-the-url`, landed && after.lang === 'fr', after);
+    assert(`path-prefix-switch-${label}-remembers-the-path`, after.cookie === 'fr', after.cookie);
+    assert(`path-prefix-switch-${label}-is-silent`, after.errors.length === 0, after.errors);
+    await context.close();
+  };
+  await run('wasm', false);
+  await run('no-wasm', true);
+
+  // The control: the same switcher with its options' URLs taken away
+  // switches in place, as on a page without `href_of` — the URL stays.
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/en/about`, { waitUntil: 'load' });
+  await hydrated(page);
+  await page.evaluate(() => {
+    for (const o of document.querySelectorAll('#about option')) o.removeAttribute('data-mf2-href');
+  });
+  await chooseLocale(page, 'fr', SWITCHER);
+  await page.waitForFunction(() => document.documentElement.lang === 'fr', undefined, { timeout: 5000 }).catch(() => {});
+  const control = { url: page.url(), lang: await page.getAttribute('html', 'lang') };
+  data.pathPrefix_control = control;
+  assert(
+    'path-prefix-control-without-urls-stays-in-place',
+    control.lang === 'fr' && control.url === `${baseUrl}/en/about`,
+    control,
   );
   await context.close();
 }

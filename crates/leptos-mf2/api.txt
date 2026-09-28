@@ -38,12 +38,13 @@ pub fn leptos_mf2::components::LocaleOptionProps::builder() -> LocaleOptionProps
 pub struct leptos_mf2::components::LocaleSwitcherProps
 pub leptos_mf2::components::LocaleSwitcherProps::button: leptos::text_prop::TextProp
 pub leptos_mf2::components::LocaleSwitcherProps::children: leptos::children::Children
+pub leptos_mf2::components::LocaleSwitcherProps::href_of: core::option::Option<fn(&str) -> alloc::string::String>
 pub leptos_mf2::components::LocaleSwitcherProps::label: leptos::text_prop::TextProp
 impl leptos::component::Props for leptos_mf2::components::LocaleSwitcherProps
 pub type leptos_mf2::components::LocaleSwitcherProps::Builder = LocaleSwitcherPropsBuilder
 pub fn leptos_mf2::components::LocaleSwitcherProps::builder() -> Self::Builder
 impl leptos_mf2::components::LocaleSwitcherProps
-pub fn leptos_mf2::components::LocaleSwitcherProps::builder() -> LocaleSwitcherPropsBuilder<((), (), ())>
+pub fn leptos_mf2::components::LocaleSwitcherProps::builder() -> LocaleSwitcherPropsBuilder<((), (), (), ())>
 pub fn leptos_mf2::components::AlternateLinks(leptos_mf2::components::AlternateLinksProps) -> impl leptos::into_view::IntoView
 pub fn leptos_mf2::components::CatalogLinks() -> impl leptos::into_view::IntoView
 pub fn leptos_mf2::components::CatalogPreload() -> impl leptos::into_view::IntoView

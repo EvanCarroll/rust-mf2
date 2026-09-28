@@ -65,6 +65,7 @@ compile_error!(
 
 mod context;
 mod negotiate;
+mod redirect;
 mod serve;
 
 pub use context::{negotiated, provide_locale};
@@ -72,6 +73,7 @@ pub use negotiate::{
     AcceptLanguage, CookieLocale, LocaleSink, LocaleSource, Negotiated, Negotiator, PathPrefix,
     QueryParam,
 };
+pub use redirect::path_prefix_redirect;
 pub use serve::{CATALOG_PREFIX, catalog_routes};
 
 /// Installs the application's generated i18n module on the server: the

@@ -2,7 +2,11 @@
 
 One page that uses every position the integration supports, so that what
 breaks is visible rather than theoretical, and a second route, `/lazy`,
-whose code is a wasm chunk of its own (Phase 7 A3). It is what
+whose code is a wasm chunk of its own (Phase 7 A3). A third,
+`/<tag>/about`, has its language in its URL: the path prefix is the
+negotiator's first source, its switcher is given `href_of` and goes to the
+chosen language's URL, and `mf2_axum::path_prefix_redirect` does the same
+for the form's `?lang=` when there is no wasm (Phase 9 B4). It is what
 `tools/e2e/checks/demo.mjs` and `tools/e2e/checks/lazy.mjs` drive.
 
 ## Build and run

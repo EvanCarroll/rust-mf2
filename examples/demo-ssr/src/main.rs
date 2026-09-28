@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use demo_ssr::{App, shell};
     use leptos::prelude::*;
     use leptos_axum::{LeptosRoutes, file_and_error_handler_with_context, generate_route_list};
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
+    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
     use std::sync::Arc;
 
     // The generated module, installed once: the registry, the host, the
@@ -22,11 +22,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // builds fails at boot rather than in a request.
     mf2_axum::install(demo_i18n::setup(), demo_i18n::CATALOGS)?;
 
-    // Negotiation: an ordered list. A query parameter first, so that a link
-    // can force a locale for a screenshot or a test; then the cookie the
-    // switcher wrote; then what the browser asked for.
+    // Negotiation: an ordered list. A path prefix first, for the pages whose
+    // language is in their URL (`/fr/about`; any other path names no locale
+    // and falls through); then a query parameter, so that a link can force a
+    // locale for a screenshot or a test; then the cookie the switcher wrote;
+    // then what the browser asked for.
     let negotiator = Arc::new(
         Negotiator::empty()
+            .source(PathPrefix)
             .source(QueryParam::default())
             .source(CookieLocale::default())
             .source(AcceptLanguage)
@@ -56,6 +59,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             move || shell(leptos_options.clone())
         })
         .fallback(file_and_error_handler_with_context(context, shell))
+        // On a page whose language is in its URL, the switcher's form
+        // (without the wasm) submits `?lang=`, which the path outranks: send
+        // it to that language's URL instead.
+        .layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
         .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

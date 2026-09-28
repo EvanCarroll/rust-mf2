@@ -183,6 +183,13 @@ pub fn AlternateLinks(
 /// page may carry two switchers (a header and a footer). The options are
 /// [`LocaleOption`]s the caller writes, each carrying its own `lang`.
 ///
+/// **A site whose languages live in its URLs** (`/fr/…`, `mf2-axum`'s
+/// `PathPrefix`) passes `href_of`, the shape [`AlternateLinks`] takes: each
+/// option then carries its language's URL as `data-mf2-href`, and the submit
+/// navigates there instead of switching in place — a `?lang=` cannot
+/// outrank the path. Without the wasm the form's `?lang=` still goes to the
+/// server, and `mf2_axum::path_prefix_redirect` sends it on to that URL.
+///
 /// ```ignore
 /// <LocaleSwitcher label=tr!("choose-language") button=tr!("apply-language")>
 ///     <LocaleOption tag="en">{tr!("language-en")}</LocaleOption>
@@ -202,8 +209,13 @@ pub fn LocaleSwitcher(
     button: TextProp,
     /// The options: one [`LocaleOption`] per locale offered.
     children: Children,
+    /// For a site whose languages live in its URLs: the URL of the current
+    /// page in the given locale. The submit then navigates there.
+    #[prop(optional)]
+    href_of: Option<fn(&str) -> String>,
 ) -> impl IntoView {
     let select = NodeRef::<leptos::html::Select>::new();
+    provide_context(SwitcherHref(href_of));
     view! {
         <form
             class="mf2-locale-switcher"
@@ -235,12 +247,17 @@ pub fn LocaleOption(
     children: Children,
 ) -> impl IntoView {
     let selected = html_lang().0 == tag;
+    let href = use_context::<SwitcherHref>().and_then(|SwitcherHref(f)| f.map(|f| f(tag)));
     view! {
-        <option value=tag lang=tag selected=selected>
+        <option value=tag lang=tag selected=selected data-mf2-href=href>
             {children()}
         </option>
     }
 }
+
+/// The enclosing switcher's `href_of`, for its options.
+#[derive(Clone, Copy)]
+struct SwitcherHref(Option<fn(&str) -> String>);
 
 /// What the form's submit does on the client: switch in place, and on
 /// failure leave the page alone. Without client code the browser submits the
@@ -259,6 +276,15 @@ fn switch_on_submit(event: &leptos::ev::SubmitEvent, select: NodeRef<leptos::htm
         else {
             return;
         };
+        // A site whose languages live in its URLs: go to the chosen
+        // option's URL, where the server renders the page in its language.
+        if let Some(href) = selected_href(&element) {
+            event.prevent_default();
+            if let Some(window) = web_sys::window() {
+                let _ = window.location().assign(&href);
+            }
+            return;
+        }
         event.prevent_default();
         leptos::task::spawn_local(async move {
             if let Err(error) = crate::set_locale(&tag).await {
@@ -269,4 +295,12 @@ fn switch_on_submit(event: &leptos::ev::SubmitEvent, select: NodeRef<leptos::htm
             }
         });
     }
+}
+
+/// The selected option's `data-mf2-href`, if it has one.
+#[cfg(any(feature = "hydrate", feature = "csr"))]
+fn selected_href(select: &web_sys::HtmlSelectElement) -> Option<String> {
+    let index = u32::try_from(select.selected_index()).ok()?;
+    let option = select.item(index)?;
+    option.get_attribute("data-mf2-href")
 }
