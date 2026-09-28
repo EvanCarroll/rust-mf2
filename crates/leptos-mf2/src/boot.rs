@@ -20,8 +20,9 @@
 //! **Switching.** [`set_locale`] fetches, validates, swaps the thread-local,
 //! walks the node registry, notifies the derived conversions, and updates
 //! `<html lang dir>`. On failure the old catalog stays and the error is
-//! returned — a manifest mismatch is a deploy skew, so the caller reloads
-//! rather than misreads.
+//! returned — except a manifest mismatch, a deploy skew: this wasm cannot
+//! read the new deploy's catalogs, so `set_locale` remembers the choice and
+//! reloads into it rather than misreads.
 //!
 //! **How the client learns another locale's URL** is owner question 1, and
 //! this module implements *both* candidates so that Phase 6 can measure them
@@ -153,7 +154,12 @@ pub async fn preload_locale(tag: &str) -> Result<(), LoadError> {
 /// Switches to `tag`: fetch → validate → swap → update every live node →
 /// notify the derived conversions → `<html lang dir>`.
 ///
-/// On failure the active catalog is untouched.
+/// On failure the active catalog is untouched and the error is returned —
+/// except a catalog from another deploy ([`LoadError::ManifestMismatch`]):
+/// the server has moved on to a build this wasm cannot read, so the choice
+/// is remembered as below, the page reloads into it, and `Ok` is returned
+/// with the navigation under way. Every control that calls `set_locale`
+/// gets that, not only [`LocaleSwitcher`](crate::LocaleSwitcher).
 ///
 /// The choice is remembered for the next visit. A server-rendered page
 /// writes the cookie the server negotiates from
@@ -173,7 +179,17 @@ pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
     if state::dir_of(tag).is_none() {
         return Err(LoadError::UnknownLocale);
     }
-    switch_live(tag).await?;
+    match switch_live(tag).await {
+        Ok(()) => {}
+        Err(LoadError::ManifestMismatch) => {
+            web_sys::console::error_1(&JsValue::from_str(
+                "mf2: the catalog is from another deploy; reloading into the new locale.",
+            ));
+            let window = web_sys::window().ok_or(LoadError::Fetch)?;
+            return reload_into(&window, tag);
+        }
+        Err(error) => return Err(error),
+    }
     #[cfg(feature = "csr")]
     remember_locale(tag);
     #[cfg(not(feature = "csr"))]
@@ -201,16 +217,19 @@ pub async fn set_locale(tag: &str) -> Result<(), LoadError> {
     reload_into(&window, tag)
 }
 
-/// A client-only application's `static-locale` switch: there is no server
-/// to tell, so the choice goes where the next boot reads it first.
-#[cfg(all(feature = "static-locale", feature = "csr"))]
+/// A client-only application's reload into `tag` — a `static-locale`
+/// switch, or a live one that met another deploy's catalog: there is no
+/// server to tell, so the choice goes where the next boot reads it first.
+#[cfg(feature = "csr")]
 fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     remember_locale(tag);
     window.location().reload().map_err(|_| LoadError::Fetch)
 }
 
-/// The cookie the server negotiates from, and a navigation.
-#[cfg(all(feature = "static-locale", not(feature = "csr")))]
+/// A server-rendered page's reload into `tag` — a `static-locale` switch,
+/// or a live one that met another deploy's catalog: the cookie the server
+/// negotiates from, and a navigation.
+#[cfg(not(feature = "csr"))]
 fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     write_locale_cookie(window, tag)?;
     let location = window.location();

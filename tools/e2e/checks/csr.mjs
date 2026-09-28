@@ -22,6 +22,8 @@
 //     is wrapped when the page mounts in Arabic and when a switch reaches
 //     Arabic — around the text node French built — and unwrapped when a
 //     switch leaves it (Phase 7 A14);
+//   * a switch that meets a catalog from another deploy remembers the
+//     choice and reloads into it (Phase 9 B2);
 //   * a failed boot (no catalog, no index) logs one `mf2:` line and mounts
 //     nothing, rather than trapping or rendering an empty page;
 //   * no message text is in the client bundle (B6).
@@ -74,6 +76,7 @@ export async function run(ctx) {
   try {
     await firstVisit(ctx, base, index);
     await negotiation(ctx, base);
+    await switchSkew(ctx, base);
     await failedBoot(ctx, base, 'no-catalog', '**/i18n/*.mf2b');
     await failedBoot(ctx, base, 'no-index', '**/i18n/index.json');
     await canary(ctx, base);
@@ -224,6 +227,82 @@ async function negotiation(ctx, base) {
   await page.goto(`${base}/`, { waitUntil: 'load' });
   await mounted(page);
   assert('unknown-remembered-locale-is-ignored', (await lang(page)) === 'fr', await lang(page));
+  await context.close();
+}
+
+/** Where a catalog's header holds its `manifest_hash` (`mf2-catalog`'s
+ * `format::header::MANIFEST_HASH`). */
+const MANIFEST_HASH_AT = 8;
+
+/**
+ * A switch that meets a catalog from another deploy (Phase 9 B2): the
+ * choice goes to `localStorage` and the page reloads into it. The other
+ * deploy's catalog is this build's with its manifest hash altered, served
+ * once (see `demo.mjs`'s `switchSkew`).
+ */
+async function switchSkew(ctx, base) {
+  const { browser, assert, data } = ctx;
+  const context = await browser.newContext({ locale: 'en-US' });
+  const page = await context.newPage();
+  const console_ = [];
+  watchConsole(page, console_);
+  await page.goto(`${base}/`, { waitUntil: 'load' });
+  await mounted(page);
+
+  let skewed = 0;
+  await page.route('**/i18n/fr.*', async (route) => {
+    if (skewed > 0) {
+      await route.continue();
+      return;
+    }
+    skewed += 1;
+    const response = await route.fetch();
+    const body = Buffer.from(await response.body());
+    body[MANIFEST_HASH_AT] ^= 0xff;
+    await route.fulfill({
+      status: 200,
+      contentType: response.headers()['content-type'] ?? 'application/octet-stream',
+      body,
+    });
+  });
+  let navigations = 0;
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) navigations += 1;
+  });
+  await page.evaluate(() => {
+    window.__beforeSwitch = true;
+  });
+
+  await chooseLocale(page, 'fr');
+  let reloaded = true;
+  try {
+    await page.waitForFunction(
+      () => document.documentElement.lang === 'fr' && window.__beforeSwitch === undefined,
+      undefined,
+      { timeout: 5000 },
+    );
+    await mounted(page);
+  } catch {
+    reloaded = false;
+  }
+  const after = {
+    skewed,
+    navigations,
+    reloaded,
+    lang: await lang(page),
+    stored: await page.evaluate(() => localStorage.getItem('mf2_locale')),
+    mf2: worth(console_).filter((m) => m.text.startsWith('mf2:')).map((m) => m.text),
+  };
+  data.switchSkew = after;
+  assert('skew-switch-served-the-other-deploys-catalog', skewed === 1, skewed);
+  assert('skew-switch-reloads-into-the-new-locale', reloaded && after.lang === 'fr', after);
+  assert('skew-switch-navigates-once', navigations === 1, navigations);
+  assert('skew-switch-remembers-the-choice', after.stored === 'fr', after.stored);
+  assert(
+    'skew-switch-says-why-once',
+    after.mf2.length === 1 && after.mf2[0].includes('another deploy'),
+    after.mf2,
+  );
   await context.close();
 }
 

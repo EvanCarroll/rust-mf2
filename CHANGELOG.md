@@ -43,6 +43,14 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   value. Loaded directly, the same route worked. `leptos-mf2` now formats
   every text, attribute and property untracked outside the node's own
   argument effect, which alone follows the signal.
+* **Changed: a switch that meets another deploy's catalog reloads.** When
+  the server has been redeployed since the page loaded, `set_locale` now
+  remembers the new language (the cookie, or `localStorage` in a
+  client-only application), takes `?lang=` out of the address and reloads
+  into it, logging one `mf2:` line — as a page already did at boot. Before,
+  the switch was refused and the page stayed in the old language. Every
+  control that calls `set_locale` gets this, not only `LocaleSwitcher`;
+  `set_locale` returns `Ok` with the reload under way.
 
 ## 1.0.0
 

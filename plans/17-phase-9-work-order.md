@@ -978,6 +978,44 @@ behaviour. Each names what was run.
   promises a following signal for a message, not for markup; B10 (or a
   task of its own) should decide which it says, after running it.
 
+## B2 — a switch reloads on deploy skew: what was built
+
+* **Test first.** `tools/e2e/checks/demo.mjs` gained `switchSkew`: load
+  `/?lang=en`, hydrate, mark the window, then switch to French while
+  `**/i18n/fr*` is answered **once** with this build's French catalog, its
+  `manifest_hash` (header bytes 8–15) altered by one byte. That stands in
+  for the probe spec's second build: the hash is the first thing the reader
+  checks and all that tells two builds' catalogs apart, and it costs no
+  second build. After that one answer the route passes through, as a new
+  deploy serves its own wasm and catalogs together. Six assertions: the
+  skewed catalog was served, the page reloads into `fr` (marker gone),
+  exactly one main-frame navigation, `mf2_locale=fr`, no `?lang=` in the
+  address, one `mf2:` line naming another deploy. Before the fix
+  (2026-09-27, debug `--split` build, Chromium): 86/91 — the five after the
+  first failed as the review saw it: no navigation, the page `en`, the
+  cookie `en`, `?lang=en` kept, console `mf2: the locale could not be
+  switched; the page is unchanged`.
+* **Fixed** in `leptos-mf2`'s `boot.rs`: the live `set_locale` matches
+  `switch_live`'s result, and on `ManifestMismatch` logs `mf2: the catalog
+  is from another deploy; reloading into the new locale.` and returns
+  `reload_into(tag)`, which is no longer `static-locale`-only (both
+  variants: the cookie, `?lang=` removed and a navigation; `csr`:
+  `localStorage` and a reload). `Ok` is returned with the navigation under
+  way, so `LocaleSwitcher` logs nothing more. No public API change (`api
+  --check` unaffected). Clippy clean for wasm with `hydrate`, `csr`,
+  `hydrate,static-locale`, `csr,static-locale` and `hydrate,fn-datetime`.
+* **Also `csr`.** `tools/e2e/checks/csr.mjs` gained the same case against
+  `examples/demo-csr` (`**/i18n/fr.*`), asserting `localStorage` instead of
+  the cookie.
+* **Shown** (2026-09-27, Chromium and Firefox): `demo` 182/182, `csr`
+  98/98, `lazy` 74/74. **Seen, left:** Chromium keeps a bare `?` in the
+  address after `?lang=` is removed (`location.set_search("")`; Firefox
+  drops it) — the same function the `static-locale` switch has always
+  used; harmless to the server.
+* **Words.** The changelog's 1.1.0 entry; `docs/switching.md`'s "What a
+  switch does" (step 2 and the sentence after the list); the e2e README's
+  `csr` row.
+
 ## Standing
 
 * **No agent publishes, pushes, tags or rewrites history** (CLAUDE.md).

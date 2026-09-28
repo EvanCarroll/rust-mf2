@@ -131,7 +131,9 @@ A live switch (`leptos_mf2::set_locale("fr")`) does this, in order:
    if the shell renders them, or else by asking `GET /i18n/fr`, which
    redirects to it (one extra round trip, only at switch time);
 2. it fetches the catalog and checks it against the build. A catalog from
-   another deploy makes the page reload rather than be read wrongly;
+   another deploy (the server was redeployed since the page loaded) is
+   never read: the choice is remembered as in step 6, and the page reloads
+   into the new language, which the new deploy's server renders;
 3. it installs the catalog and rewrites every registered text node,
    attribute and markup fragment directly, with no effect per call site;
 4. it notifies derived props (`TextProp`, `Signal<String>`) and closures
@@ -141,7 +143,7 @@ A live switch (`leptos_mf2::set_locale("fr")`) does this, in order:
 6. it remembers the choice for the next visit: the cookie on a
    server-rendered page, `localStorage` in a client-only application.
 
-If any step before the install fails, the page stays as it was and
+If any other step before the install fails, the page stays as it was and
 `set_locale` returns the error.
 
 ## Your own control

@@ -25,6 +25,8 @@
 //     adopted by hydration as the same node, removed by a switch to a
 //     locale that has its own text and put back by a switch home — around
 //     a text node that keeps its identity throughout (Phase 7 A14);
+//   * a switch that meets a catalog from another deploy reloads into the
+//     new locale, remembered in the cookie (Phase 9 B2);
 //   * no message text is in the client bundle (B6).
 
 import {
@@ -357,6 +359,10 @@ export async function run(ctx) {
 
   await borrowedText(browser, baseUrl, assert, data);
 
+  // ------------------------------------------ a switch meets a new deploy ---
+
+  await switchSkew(browser, baseUrl, assert, data);
+
   // ----------------------------------------------------------- canary ---
 
   const bundle = await context.request.get(`${baseUrl}/pkg/demo_ssr.js`);
@@ -514,6 +520,92 @@ function checkAttributeBidi(assert, stage, { value, data, title }) {
     title?.replace(/[\u2066-\u2069]/g, '') === value,
     shown,
   );
+}
+
+/** Where a catalog's header holds its `manifest_hash` (`mf2-catalog`'s
+ * `format::header::MANIFEST_HASH`): 8 bytes after the magic and version. */
+const MANIFEST_HASH_AT = 8;
+
+/**
+ * A switch that meets a catalog from another deploy (Phase 9 B2). The
+ * server has moved on; this page's wasm cannot read the new build's
+ * catalogs. `set_locale` must remember the choice and reload into it — at
+ * boot a mismatch already reloads — rather than refuse and leave the page
+ * in the old language.
+ *
+ * The "other deploy" is this build's French catalog with its manifest hash
+ * altered, served once: the hash is the first thing the reader checks, and
+ * it is all that tells two builds' catalogs apart. After the reload the
+ * route serves the real bytes, as the new deploy's server would serve its
+ * own wasm and catalogs together.
+ */
+async function switchSkew(browser, baseUrl, assert, data) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const messages = [];
+  watchConsole(page, messages);
+  await page.goto(`${baseUrl}/?lang=en`, { waitUntil: 'load' });
+  await hydrated(page);
+
+  let skewed = 0;
+  await page.route('**/i18n/fr*', async (route) => {
+    if (skewed > 0) {
+      await route.continue();
+      return;
+    }
+    skewed += 1;
+    const response = await route.fetch();
+    const body = Buffer.from(await response.body());
+    body[MANIFEST_HASH_AT] ^= 0xff;
+    // The decoded bytes, so none of the response's encoding headers.
+    await route.fulfill({
+      status: 200,
+      contentType: response.headers()['content-type'] ?? 'application/octet-stream',
+      body,
+    });
+  });
+  let navigations = 0;
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) navigations += 1;
+  });
+  await page.evaluate(() => {
+    window.__beforeSwitch = true;
+  });
+
+  await chooseLocale(page, 'fr');
+  let reloaded = true;
+  try {
+    await page.waitForFunction(
+      () => document.documentElement.lang === 'fr' && window.__beforeSwitch === undefined,
+      undefined,
+      { timeout: 5000 },
+    );
+    await hydrated(page);
+  } catch {
+    reloaded = false;
+  }
+  const cookies = await context.cookies(baseUrl);
+  const after = {
+    skewed,
+    navigations,
+    reloaded,
+    lang: await page.getAttribute('html', 'lang'),
+    url: page.url(),
+    cookie: cookies.find((c) => c.name === 'mf2_locale')?.value,
+    mf2: messages.filter((m) => m.text.startsWith('mf2:')).map((m) => m.text),
+  };
+  data.switchSkew = after;
+  assert('skew-switch-served-the-other-deploys-catalog', skewed === 1, skewed);
+  assert('skew-switch-reloads-into-the-new-locale', reloaded && after.lang === 'fr', after);
+  assert('skew-switch-navigates-once', navigations === 1, navigations);
+  assert('skew-switch-remembers-the-choice', after.cookie === 'fr', after.cookie);
+  assert('skew-switch-drops-the-query', !new URL(after.url).searchParams.has('lang'), after.url);
+  assert(
+    'skew-switch-says-why-once',
+    after.mf2.length === 1 && after.mf2[0].includes('another deploy'),
+    after.mf2,
+  );
+  await context.close();
 }
 
 /** Waits until the wasm has booted and hydration has registered its nodes. */
