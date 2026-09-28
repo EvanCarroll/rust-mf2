@@ -1,0 +1,25 @@
+[package]
+name = "naming"
+description = "A stand-in for 2.0's mf2: `pub mod leptos` and `pub mod axum` beside those crates, the lines reached through internal aliases."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["leptos-0-9", "axum"]
+leptos-0-9 = ["dep:leptos_0_9"]
+leptos-0-8 = ["dep:leptos_0_8"]
+axum = ["dep:axum"]
+# Negative controls, one at a time.
+# N1: the 1.x root rename beside `pub mod leptos`.
+n1-root-rename = ["leptos-0-8"]
+# N3: a `use axum::…` at the crate root, beside `pub mod axum`.
+n3-axum-root-use = ["axum"]
+# N4: an expression path `axum::…` at the crate root.
+n4-axum-root-path = ["axum"]
+
+[dependencies]
+leptos_0_9 = { package = "leptos", version = "0.9.0-beta", default-features = false, features = ["ssr"], optional = true }
+leptos_0_8 = { package = "leptos", version = "0.8.20", default-features = false, features = ["ssr"], optional = true }
+axum = { version = "0.8.9", default-features = false, optional = true }

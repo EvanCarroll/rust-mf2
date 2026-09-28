@@ -60,10 +60,11 @@ kept open by each decision, not built.
 ## Where the work stands (handoff, 2026-09-28)
 
 Kept current so that any task can be picked up cold, from this file and the
-commits. The first session ran Part A as parallel agents; three of them were
-stopped by the account's session limit (2026-09-28, about 07:40) and are
-being finished by new agents. **Everything else is held** (owner,
-2026-09-28): nothing below "Held" starts until the in-flight tasks land.
+commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
+parallel agents; three were stopped by the account's session limit and were
+finished by new agents. **Part A is done except A8.** The owner holds
+everything else: the next tasks start from fresh sessions, as listed under
+"Next".
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -81,18 +82,32 @@ being finished by new agents. **Everything else is held** (owner,
   `Display` on the four descriptions, the always-on inherent `to_string` / `to_plain_string` and
   `Debug` everywhere are **adopted** — no `Display`, `Debug` or `core::fmt` reaches a client
   wasm; B1 26,400 → 26,317 B gz (gzip noise on 79 fewer raw bytes), B5 +0.03 B, B12 clean.
+- **A7** (probe branch `p10-a7-names`; `probes/p10-names/`, with the crate changes as
+  `helper-crates.patch`): `mf2::leptos` with no root rename, the components in per-line helper
+  crates, hydration green on both lines (the six browser checks on 0.9, and on 0.8 through
+  copies of the demos); the coherence rules confirmed with their errors. The table's cost: see B1
+  below.
 
-**In flight** — each on a branch in its own worktree under `.claude/worktrees/` (never merged
-as-is; results come to `main` as records, probe copies and patches):
+**In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
+(`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
+kept until B1 has taken what it reuses from `p10-a7-names`.
 
-| Task | Branch · worktree | Done | Left |
-|---|---|---|---|
-| **A7** | `p10-a7-names` · `agent-aaa2ebae2e252a3e5` | four commits (`b258474` … `f54cf6d`): the helper crates, the table, the switch in a `LocaleSwitcher` wrapper, each component installing the table; `probes/p10-names/` (naming N1–N5, `coherence.sh`); scratch notes in that worktree's `target/a7-notes.md`. On 0.9: the e2e `demo` 210/210, `lazy` 74/74, `islands` 58/58, `csr` 98/98, `a11y`, `l6-web` 20/20, `l7-web` holding; `cargo xtask leptos-0-8` green; clippy and tests green; the coherence rules confirmed with their errors | v3's `b5 --view` figures (`target/a7-b5v-v3.log`) and the table's cost against the ±64 B gate; the cost in an application that *uses* the components (the size workloads use none); the demos on the 0.8 line (`demo-ssr`'s cargo-leptos build failed: `target/a7-demo-ssr-08-build.log`) and their e2e; the record |
+**Next, each from a fresh session** (the owner holds everything until then):
+- **A8**, the design for the owner's review: `plans/19-native-and-terminal.md`, the four samples'
+  exact code, the UX targets, the gate table; the web side into 04 and 05. It starts by asking
+  owner questions 1 and 2 below, since the matcher's rules go into the design. Part C's API work
+  waits for the owner's review of it.
+- **B1**, the merge (after A1 and A7, both done; it may start before A8's review). From A7's
+  record: reuse the branch's helper crates, line aliases and component wrappers; **the function
+  table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
+  on the client; the size workloads render no component, so B1 and `b5 --view` did not see it).
+  B1 therefore measures the demos too (`probes/p10-names/measure-demo.mjs`), tries the untested
+  static dispatch A7 describes (a trait of the table's entries, implemented by the Leptos layer
+  for a zero-sized type, the components generic over it), and keeps the cheaper one. If neither
+  holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its other
+  two options.
 
-**Held** until the in-flight tasks land: A8; Part B (B1 needs A7's record); C3's code; the rest
-of Parts C–G.
-
-**Owner questions, to ask when their task starts** (found in the work, not yet asked):
+**Owner questions, to ask when their task starts** (found in the work, not yet asked; A8 asks both first):
 1. *C3, before A8 states the matching rules:* CLDR's data refuses Traditional ↔ Simplified
    Chinese (no rule; the default script distance, 50), where question 11's answer expected
    Traditional → Simplified to be served. Follow the data, or add a documented project rule?
@@ -420,7 +435,7 @@ let hint = tr!("help");                                // `{#key}h{/key}elp`: th
    | Change | Baseline (A1) | Gate | Fallback |
    |---|---|---|---|
    | The merge (B1–B4, D1) | B1, B5, whole app, B7, B12 | B1 within ±64 B gz, B5 within ±0.2 B a site, B7 catalogs byte-identical, B12 clean | revert the offending impl (e.g. `Display` only with the std modes) |
-   | Helper crates and the function table (B1) | A7 | the above; e2e green on both Leptos lines | back to the owner with the other two options from question 13 |
+   | Helper crates and the function table (B1) | A7 | the above, **and the demos' shipped wasm (demo-ssr, demo-csr, demo-islands) within ±64 B gz** — the size workloads render no component, and A7 measured the table at +459 / +130 / −8 B gz there; e2e green on both Leptos lines | static dispatch in place of the table (A7's record); then back to the owner with the other two options from question 13 |
    | The ambient store (C2) | 1.x `NativeI18n`; the port's `RefCell` | time per frame ≤ 1.x (alternating binaries); stripped size ≤ 1.x | the explicit `Catalogs` path; drop the thread override |
    | Ratatui conversions (C5) | 1.x `mf2-ratatui`; an **in-house re-implementation** of upstream trippy's `t!` (a TOML map, the locale `String` cloned per call, `%{x}` replace; not copied code) | allocations per frame ≤ both; time ≤ 1.x | a reusable-buffer API |
    | The matcher (C3) | both matchers' current tests | every current case still passes, except the changes decided in question 11 (each listed); the client table measured against B1 | the client uses the server's choice |
@@ -1519,6 +1534,415 @@ offer it. **Done when:** met.
   cargo-leptos's `bin-features` / `lib-features`.
 - A3's shape (3c) needs nothing more on the web: the prelude and `use
   crate::tr` work in `ssr`, `hydrate` and a split chunk.
+
+## A7 — names and coherence: what was built
+
+* **Where.** The probe branch `p10-a7-names` (worktree
+  `.claude/worktrees/agent-aaa2ebae2e252a3e5`, off `2fb7f54`; not merged,
+  and kept for B1). On `main`: `probes/p10-names/`, copied from the branch,
+  with the branch's crate changes as `probes/p10-names/helper-crates.patch`. Two sessions: the first built and checked the branch on 0.9 and
+  was stopped by the session limit; the second finished the measurements,
+  the 0.8 line and this record.
+  * `b258474` — the six components in per-line helper crates behind a table
+    (**v1**: `install()` installs the table, the client switch inside it);
+  * `7dbcfd8` — the client switch out of the table, into a `LocaleSwitcher`
+    wrapper (**v2**);
+  * `9c945ed` — each component installs the table, not `install()` (**v3**,
+    the branch's form);
+  * `f54cf6d` — `probes/p10-names/coherence.sh`;
+  * `6014948` — the scripts behind this record (`probes/p10-names/`
+    `demos-0-8.py`, `measure-demo.mjs`, `twiggy-norm-diff.py`, `README.md`).
+
+  Scratch, in that worktree's git-ignored `target/`: `a7-notes.md` (first
+  session), `a7-*.log`, `a7-demo-size/` (the demos' A/B: every shipped
+  `pkg`/`dist`, `named/` with the twiggy tables), `a7-demo-0-8/` (the 0.8
+  copies and their e2e logs).
+* **The helper crates.** `crates/mf2-leptos-ui-0-9` owns `src/ui.rs`: the six
+  components, written with `view!`, `#[component]` and `#[prop]` as in 1.x.
+  `crates/mf2-leptos-ui-0-8/src/ui.rs` is a symlink to it. The 0.8 crate
+  binds `extern crate leptos_0_8 as leptos;` — legal there, because that crate
+  has no module named `leptos`. Each crate depends on its own line, on
+  `mf2-catalog` (for `Dir`) and, for `hydrate` and `csr`, on
+  `js-sys` / `wasm-bindgen` / `web-sys`. Its `ssr` / `hydrate` / `csr`
+  features are exclusive (`compile_error!`). `forbid(unsafe_code)`; clippy's
+  `unwrap_used`, `expect_used`, `indexing_slicing` and `panic` are denied.
+  `publish = false` on the branch. `cargo package -p mf2-leptos-ui-0-8 --list
+  --allow-dirty` lists `src/ui.rs`, so the link is packaged as a file.
+* **No root rename.** Both lines are dependencies under names of their own
+  (`leptos_0_9`, `tachys_0_3`, `reactive_graph_0_3`, `leptos_axum_0_9`
+  beside the existing `*_0_8`), in `[workspace.dependencies]`. `leptos-mf2`
+  reaches the active line through a private module:
+
+  ```rust
+  #[cfg(feature = "leptos")]
+  mod line {
+      #[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
+      pub(crate) use ::{leptos_0_8 as leptos, mf2_leptos_ui_0_8 as ui,
+          reactive_graph_0_2 as reactive_graph, tachys_0_2 as tachys};
+      #[cfg(feature = "leptos-0-9")]
+      pub(crate) use ::{leptos_0_9 as leptos, mf2_leptos_ui_0_9 as ui,
+          reactive_graph_0_3 as reactive_graph, tachys_0_3 as tachys};
+  }
+  ```
+
+  Each module imports what it names (`use crate::line::{leptos, tachys};`),
+  so the bodies are unchanged. `mf2-axum` does the same
+  (`line::{leptos, leptos_axum}`). At `2fb7f54` the crate roots renamed three
+  crates (`leptos-mf2`) and two (`mf2-axum`); on the branch the only
+  `extern crate … as leptos` is in `mf2-leptos-ui-0-8/src/lib.rs`. The
+  integration tests bind the line themselves (`#[cfg(feature =
+  "leptos-0-9")] extern crate leptos_0_9 as leptos;`).
+* **The function table** (v3). The helper defines `pub struct Table`;
+  `leptos-mf2` fills it as a `static` struct literal (its `ssr` fields are
+  `cfg`'d, which a constructor's arguments could not be):
+
+  | Field | Type | Filled with (`leptos-mf2`) | Modes |
+  |---|---|---|---|
+  | `locales` | `fn() -> &'static [(&'static str, Dir)]` | `state::locales` | all |
+  | `source_locale` | `fn() -> &'static str` | `state::source_locale` | all |
+  | `is_current` | `fn(&str) -> bool` | the active catalog's locale is `tag` (no catalog: the source locale) | all |
+  | `locale_query` | `&'static str` | `links::LOCALE_QUERY` | all |
+  | `islands_gate` | `&'static str` | `links::ISLANDS_GATE` | all |
+  | `preload` | `fn() -> Option<(String, Option<String>)>` | the page catalog's URL and the reader's zone | `ssr` |
+  | `catalog_links` | `fn() -> Vec<(&'static str, String)>` | every locale's catalog URL | `ssr` |
+  | `catalog_link_rel` | `&'static str` | `links::CATALOG_LINK_REL` | `ssr` |
+
+  * **Outside the table:** the client's switch, a `OnceLock<fn(String)>` in
+    the helper (`install_switch`, `hydrate` / `csr` only).
+  * **Who installs it:** each of the six, re-exported by `leptos-mf2` as a
+    plain `fn X(props: XProps) -> impl IntoView` (not `#[component]`),
+    calls `ui::install(&TABLE)` — a `OnceLock<&'static Table>`; later calls
+    are a check — and returns `ui::X(props)`. `LocaleSwitcher` also installs
+    the switch. The wrappers take the helper's own `*Props` (re-exported),
+    so `view!` builds them exactly as it built 1.x's components.
+    `install()` installs nothing, as in 1.x.
+  * **Reading it:** the helper reads the table through `table() ->
+    Option<&'static Table>`. With nothing installed, every component renders
+    as with no languages, and nothing panics.
+* **`mf2::leptos`**, a stand-in for 2.0's module: `#[cfg(feature =
+  "leptos")] pub mod leptos { pub use leptos_mf2::{AlternateLinks,
+  CatalogLinks, CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher,
+  Setup, html_lang, install}; }`. `examples/demo-ssr` and `demo-islands`
+  import the components from it; `demo-csr` still uses `leptos_mf2::…`.
+* **The Ratatui probe** (`leptos-mf2`'s `ratatui` feature,
+  `src/ratatui_probe.rs`). For `Tr`, `TrArgs`, `TrRich` and `TrDyn`:
+  `From<_>` for `Span<'static>`, `Line<'static>` and `Text<'static>`;
+  `Widget`; `Styled<Item = Line<'static>>`; `Display`. The bodies are
+  placeholders: what is under test is that the impls coexist with the Leptos
+  glue. The `probe-cow`, `probe-fromiter`, `probe-cell` and
+  `probe-listitem` features add one forbidden impl each.
+* **`probes/p10-names/`** (`cargo check` only; its `README.md` lists every
+  file):
+  * `naming` — a stand-in `mf2` with `pub mod leptos` and `pub mod axum`
+    beside those crates;
+  * `naming-n2` — the 0.9 line under its real name;
+  * `naming-app` — an application beside both;
+  * `coherence` — what a Ratatui application writes, with Leptos on too;
+  * the scripts `controls.sh`, `coherence.sh`, `demos-0-8.py`,
+    `measure-demo.mjs` and `twiggy-norm-diff.py`.
+
+### Why three forms
+
+Measured with `b5 --view`, below. **v1** put the client switch in the table,
+and `install()` — which every application calls — installed it. The
+`tr-view` client's fixed part grew **+4,407 B gz**: the switch reaches the
+catalog fetch, the registry's walk, the cookie and the address. **v2** moved
+the switch to the `LocaleSwitcher` wrapper, and the rest of the table stayed
+in `install()`: **+249 B gz**. **v3** installs nothing from `install()`, so
+an application that renders none of the six links neither the table nor
+what it points at.
+
+### The checks, per Leptos line
+
+Tools: rustc 1.98.1, cargo-leptos 0.3.9, trunk 0.21.13, wasm-bindgen 0.2.128
+(CLI; the library 0.2.129 in the demos' locks), wasm-opt 120, twiggy 0.8.0,
+Node 23.11, Playwright 1.63.0 (Chromium and Firefox). The worktree's lock:
+leptos 0.9.0-beta2 / 0.8.21, tachys 0.3.0-beta3 / 0.2.19, reactive_graph
+0.3.0-beta3 / 0.2.15, leptos_axum 0.9.0-beta2 / 0.8.10, ratatui 0.30.2
+(the probe's lock), ratatui-core 0.1.2, ratatui-widgets 0.3.2, axum 0.8.9.
+
+**Which commit each ran on.** No tracked file in the worktree changed after
+06:46:56, and v3 was committed at 06:47:38 (`git reflog`; file mtimes).
+Every run of the first session that finished after 06:47 therefore ran on
+v3's content: the 0.9 e2e checks (07:02–07:16), `l6-web` (07:13),
+`l7-web` (07:29), `leptos-0-8` (06:50), clippy (06:47) and the tests
+(06:48). The base measurements (`size` 05:51, `b5 --view` 05:55:13) finished
+before the first edits were applied (05:55:20); until then the helper
+crates were untracked files outside the build. The second session re-ran
+clippy, the tests, `leptos-0-8`, the naming and the coherence checks at
+`f54cf6d`; each was unchanged, and every unit was fresh.
+
+| Check | Leptos 0.9 | Leptos 0.8 | Observed | Command (log, under the worktree's `target/`) |
+|---|---|---|---|---|
+| clippy `-D warnings`, CI's `leptos-mf2` set (`ssr,mark-fallback-lang` all targets; wasm32: `hydrate`, `hydrate,static-locale`, `csr`, `csr,static-locale,mark-fallback-lang`, `hydrate,fn-datetime,static-locale,mark-fallback-lang`, `csr,fn-datetime`), `mf2-axum` and `mf2` all targets | **PASS** | **PASS** (the xtask's five clippy steps) | every step `Finished`, no warning | 0.9: `bash target/a7-draft/lint.sh` (`a7-lint-head.log`); 0.8: `cargo xtask leptos-0-8` |
+| clippy `-D warnings` on each helper crate itself, `ssr`, and `hydrate` / `csr` on wasm32 | **PASS** (`mf2-leptos-ui-0-9`) | **PASS** (`mf2-leptos-ui-0-8`) | six runs, `Finished`, no warning | `cargo clippy -p mf2-leptos-ui-0-{9,8} --features <mode> [--target wasm32-unknown-unknown] -- -D warnings` (`a7-lint-helpers-head.log`) |
+| tests: `leptos-mf2` `render` 14 (the switcher's markup: a `GET` form, `select name="lang"` inside its label, the page's option `selected`), `time_zone` 8 (the preload link and its zone), `fallback_lang` 8, `churn` 1; `mf2-axum` 13 + 4 (`time_zone` renders `CatalogPreload`) | **PASS** | **PASS**, the same counts | `test result: ok` for each | 0.9: `bash target/a7-draft/test09.sh` (`a7-test09-head.log`); 0.8: the xtask |
+| `cargo xtask leptos-0-8` — the tree's own 0.8 check, the nightly job `leptos-0-8` | — | **PASS** | both lines at once refused: "leptos-mf2: \`leptos-0-8\` is on, and so is the default \`leptos-0-9\`. For Leptos 0.8, every dependency on leptos-mf2 and mf2-axum needs \`default-features = false\` beside \`features = ["leptos-0-8"]\`."; the clippy and test steps above; conformance `layers` 4 and `l6` 3 | `CARGO_BUILD_JOBS=2 cargo xtask leptos-0-8` at `f54cf6d` (`a7-leptos-0-8-head.log`; 7.5 s, every unit fresh from `a7-leptos-0-8-v3.log`) |
+| e2e `demo` | **210/210** (first session) | **210/210** | Chromium 105, Firefox 105 each: the preload link and the catalog from it, hydration changes no text, a live switch reaches text, attributes, `<title>` and `<html lang dir>`, the path-prefix switcher with and without the wasm, no message text in the client | `node run.mjs demo --base-url http://127.0.0.1:3702 --browser chromium,firefox`: 0.9 `a7-e2e-demo-09.log`; 0.8 `a7-demo-0-8/e2e-demo-08.log` |
+| e2e `lazy` (`--split`) | **74/74** | **74/74** | the chunk fetched on navigation only; a direct `/lazy` load hydrates through `hydrate_lazy` and switches live | `node run.mjs lazy …`: `a7-e2e-lazy-09.log`; `a7-demo-0-8/e2e-lazy-08.log` |
+| e2e `islands` | **58/58** | **58/58** | the gate the first island (`mf2_islands_gate`, the table's name), the switcher a `GET` form and not an island, no island hydrates before the catalog; the control without the gate traps | `node run.mjs islands --base-url http://127.0.0.1:3704 …`: `a7-e2e-islands-09.log`; `a7-demo-0-8/e2e-islands-08.log` |
+| e2e `csr` | **98/98** | **98/98** | the 0.8 run served the 0.8 copy's `dist` (it fetched `demo-csr-7cebfc3c1dabd481_bg.wasm`, not the 0.9 build's `…44f34a8b…`) | `node run.mjs csr …`: `a7-e2e-csr-09.log`; `a7-demo-0-8/e2e-csr-08.log` |
+| e2e `zone` | **40/40** (second session) | **40/40** | in `America/New_York` and `Asia/Kolkata`: a reload is served in the reader's zone and the preload link states it (the table's `preload`) | `node run.mjs zone --base-url http://127.0.0.1:3702 …`: `a7-e2e-zone-09.log`; `a7-demo-0-8/e2e-zone-08.log` |
+| e2e `a11y` (28 pages of the three demos) | **720/720** | **720/720** | axe clean, the switcher's keyboard behaviour, and every negative control failing as designed | `MF2_ISLANDS_URL=http://127.0.0.1:3704 node run.mjs a11y --base-url http://127.0.0.1:3702 …`: `a7-e2e-a11y-09.log`; `a7-demo-0-8/e2e-a11y-08.log` |
+| `cargo xtask l6-web` | **20/20** | not run: no 0.8 mode (L6 on 0.8 runs natively inside `leptos-0-8`) | "every engine hydrated the page and switched locale" | `a7-l6-web.log` |
+| `cargo xtask l7-web` | **34/34** | not run: no 0.8 mode | L7 444/444, L7c 444/444, L7d 325/444 (+119 documented degradations), L7cd 325/444 (+119); "the ledger's L7 columns hold in chromium, firefox" | `a7-l7-web.log` |
+| no Leptos procedural macro outside the six | **PASS** | **PASS** (one source) | 6 `#[component]`, 7 `view!`, 3 `#[prop]`, all in `mf2-leptos-ui-0-9/src/ui.rs`; none in `leptos-mf2`, `mf2-axum` or `mf2`. At `2fb7f54` the same 6 / 7 / 3 were in `leptos-mf2/src/components.rs` | `rg` over the four crates' `src/`, comment lines excluded; `git grep … 2fb7f54` |
+| naming (`probes/p10-names`) | **PASS** | **PASS** | `cargo check --workspace` (`naming` with `leptos-0-9,axum`, `naming-n2`, `naming-app`, `coherence`) and `-p naming --no-default-features --features leptos-0-8,axum`: `Finished`; N1–N5 below | `bash probes/p10-names/controls.sh` (`a7-naming-head.log`, `a7-naming-errors-head.log`) |
+| coherence, `leptos` and `ratatui` both on | **PASS** | not run (the impls do not depend on the line) | `leptos-mf2 --no-default-features --features ratatui`; `--features ssr,ratatui`; `--features hydrate,ratatui --target wasm32-unknown-unknown`; `coherence` for `ssr` and for `hydrate`: `Finished`. The four controls fail with E0119 (below) | `bash probes/p10-names/coherence.sh` (`a7-coherence-head.log`, `a7-coherence-errors-head.log`) |
+
+**The 0.8 line, exactly.**
+* **The tree's own check.** The tree builds the demos on 0.9 only. Its 0.8
+  check is `cargo xtask leptos-0-8` (`.forgejo/workflows/nightly.yml`, job
+  `leptos-0-8`; phase 8 A0). The one 0.8 application build in the tree is
+  `cargo xtask fluent-ab`: its mf2 side renders `CatalogPreload` and
+  `CatalogLinks`. It is a snapshot benchmark that builds the 1,860-site
+  reference application several times, and was not run.
+* **The first session's failure is not A7's.** Its `demo-ssr` 0.8 copy
+  (`target/a7-draft/demo08.py`) fails identically at `2fb7f54`:
+  `CARGO_BUILD_JOBS=1 cargo leptos build --split` in the copy
+  (`a7-demo-0-8/demo-ssr-08-base-orig.log`) gives "package \`demo-ssr\`
+  depends on \`leptos\` with feature \`lazy\` but \`leptos\` does not have
+  that feature". `cargo info leptos@0.8.21` lists no `lazy` feature. The
+  demo turns it on for 0.9's lazy-route hydration.
+* **The browser checks on 0.8.** `python3 probes/p10-names/demos-0-8.py head`
+  copies the three demos with:
+  * the Leptos crates at 0.8, and `leptos-mf2` / `mf2-axum` with
+    `default-features = false, features = ["leptos-0-8", …]`;
+  * `demo-ssr` without `leptos/lazy`;
+  * `demo-csr`'s trunk hook pointed at the worktree's manifest;
+  * a copy of the harness beside them.
+
+  Then `CARGO_BUILD_JOBS=1 cargo leptos build [--split]` or `trunk build`,
+  each server on its own port, and the checks from the copied harness.
+  `cargo tree` shows leptos 0.8.21, tachys 0.2.19, reactive_graph 0.2.15,
+  leptos_axum 0.8.10, leptos_router 0.8.16, leptos_meta 0.8.7 and
+  `mf2-leptos-ui-0-8`, with no 0.9 crate, in each server and client build.
+  All six checks passed, as in the table.
+
+### Sizes
+
+**B1, the size gate** (`tr` against `idlit` and `dummy`, at 1,860 and 3,720
+sites). The workloads were generated once at base, and every form was
+measured in the same tree with the same per-app locks:
+* base: `CARGO_BUILD_JOBS=2 cargo xtask size --out target/size-base`;
+* each form after it: the same, with `--keep`.
+
+| Form | `tr` opt gz, 1,860 / 3,720 | B1 fixed | B5 a site | whole app, 1,860 sites | Log |
+|---|---:|---:|---:|---:|---|
+| base `2fb7f54` | 693,671 / 1,203,351 | **26,402 B gz** | 8.3 | 41,861 | `a7-size-base.final.log` |
+| v1 | identical | 26,402 | 8.3 | 41,861 | `a7-size-v1.log` |
+| v2 | identical | 26,402 | 8.3 | 41,861 | `a7-size-v2.log` |
+| v3 | identical | **26,402** | 8.3 | 41,861 | `a7-size-v3.log` (second session: `leptos-mf2` and both `tr` apps rebuilt at 13:02–13:05; the apps' lock `a1f1bcb3…` unchanged) |
+
+Every stage is identical in all four runs: bindgen gz, opt raw and opt gz.
+The `tr` template has no Leptos layer. In its app, `cargo tree --locked
+--offline -e features -i leptos-mf2 --target wasm32-unknown-unknown
+--no-default-features --features hydrate` shows `leptos-mf2` with no
+feature on, and no `mf2-leptos-ui-*` crate in the graph. So v3 did not
+strictly need the run; it was run to have the figure.
+
+**`b5 --view`** (`tr-view`, where a description renders itself, against
+`idlit-view`). Base: `CARGO_BUILD_JOBS=2 cargo xtask b5 --view --out
+target/b5v`; each form after it: the same, with `--keep` (the logs say
+"reusing"). `idlit-view` (528,251 / 892,759) and `dummy` were identical in
+all four runs.
+
+| Form | `tr-view` opt gz, 1,860 / 3,720 | opt raw Δ, both scales | fixed | Δ fixed | marginal a site | Δ marginal | Log |
+|---|---:|---:|---:|---:|---:|---:|---|
+| base | 572,533 / 956,400 | — | 24,923 | — | 10.408 | — | `a7-b5v-base.final.log` |
+| v1 | 577,182 / 961,291 | +11,102 / +11,094 | 29,330 | **+4,407** | 10.538 | +0.130 | `a7-b5v-v1.log` |
+| v2 | 572,817 / 956,719 | +898 / +890 | 25,172 | **+249** | 10.427 | +0.019 | `a7-b5v-v2.log` |
+| v3 | 572,543 / 956,470 | +93 / +93 | 24,873 | **−50** | 10.440 | +0.032 | `a7-b5v-v3.log` |
+
+Fixed and marginal are the xtask's difference of differences. The marginals
+are recomputed from the logged sizes; the xtask prints them to one decimal
+(10.4 / 10.5 / 10.4 / 10.4). v3's whole-app change is +10 B gz at 1,860
+sites and +70 B gz at 3,720. **Against the gate (±64 B gz fixed,
+±0.2 B a site), v3 meets it in the size workloads.** Neither workload
+renders any of the six components.
+
+**The demos: the table in applications that use the components.** Measured
+in the one worktree, with each demo's own `Cargo.lock` kept. The steps:
+1. At `f54cf6d`: `CARGO_BUILD_JOBS=1 cargo leptos build --release
+   [--split] --frontend-only --cargo-offline` in `examples/demo-ssr`
+   (`--split`, the README's size command) and `examples/demo-islands`, and
+   `CARGO_BUILD_JOBS=1 trunk build --release` in `examples/demo-csr`.
+2. `git switch --detach 2fb7f54`, and the same.
+3. `git switch p10-a7-names`, the v3 locks restored, and the same again.
+
+The base builds changed only the two helper crates' lock entries
+(`a7-demo-size/locks/*.base-vs-v3.diff`). Every registry package kept its
+version, and the v3 locks were restored byte for byte (sha256 `f2a99bf9…`,
+`c1a6f667…`, `7b92fa28…`). The second v3 build reproduced the first:
+demo-islands and demo-csr byte for byte. In demo-ssr the `.wasm` files and
+`demo_ssr.js` were identical; only the split loader `__wasm_split.js`
+differed, in the order in which it lists two names. Measured with `node
+probes/p10-names/measure-demo.mjs <pkg|dist>`: gzip −9 and brotli q11 via
+Node's zlib, as phase 7 measured demo-ssr (`a7-demo-size/*.md`).
+
+| Demo (mode) | Components on the client | wasm, base → v3 (raw / gz / br) | Δ wasm | Δ every shipped file (gz / br) |
+|---|---|---|---:|---:|
+| demo-ssr (`hydrate`, `--split`) | 3 `LocaleSwitcher`, 6 `LocaleOption` (the shell's `CatalogPreload` and `CatalogLinks` render on the server only) | 758,046 / 317,580 / 252,342 → 759,440 / 318,039 / 252,795 | +1,394 / **+459** / +453 | **+454** / +464 (the lazy chunk 0 raw, −4 gz; `demo_ssr.js` 0 raw) |
+| demo-csr (`csr`, trunk) | 1 `LocaleSwitcher`, 3 `LocaleOption` | 207,692 / 91,293 / 77,722 → 208,020 / 91,423 / 77,772 | +328 / **+130** / +50 | **+127** / +47 |
+| demo-islands (islands) | none (the switcher is not an island) | 197,382 / 85,357 / 72,289 → 197,371 / 85,349 / 72,328 | −11 / −8 / +39 | −9 / +41 |
+
+**Where demo-ssr's bytes are.** The same client was built by cargo with its
+symbol names kept, at base and at v3:
+`CARGO_PROFILE_WASM_RELEASE_STRIP=none cargo build --lib --target
+wasm32-unknown-unknown --profile wasm-release --no-default-features
+--features hydrate --target-dir target/a7-named/demo-ssr --offline`.
+Then `twiggy top -n 1000000 -f json` on each, joined with `python3
+probes/p10-names/twiggy-norm-diff.py`, which drops crate hashes and closure
+numbers so that renames cancel (`a7-demo-size/named/*.norm-diff.txt`). The
+net, before wasm-bindgen and wasm-opt:
+* **code +1,339 B**, `.rodata` +344 B, types and imports +8 B (the name
+  section, +3,797 B, does not ship);
+* items new in v3:
+  * `OnceLock<&Table>`: `initialize` 105 B and `Once::call` 176 B;
+  * `OnceLock<fn(String)>`: the same, 105 B and 176 B;
+  * `is_current`: 171 B, linked through the table (`html_lang` stays, since
+    the page uses it);
+  * `switch`: 110 B (its 1,137 B async body moved from `switch_on_submit`);
+  * `install` 75 B, `install_switch` 75 B, `install_table` 16 B;
+  * the wrappers' `FnOnce::call_once` shims: 64 B and 60 B;
+  * `__component_locale_switcher` +44 B, `LocaleSwitcher` +32 B,
+    `LocaleOption` +20 B;
+* everything else nets to about zero: inlining moved, and identical-code
+  folding kept a different name.
+
+Part of `.rodata` is a second absolute source path: the shipped wasm
+carries `…/crates/mf2-leptos-ui-0-9/src/ui.rs` beside
+`…/crates/leptos-mf2/src/components.rs` (`strings`). demo-csr, the same
+way: code +353 B, `.rodata` +40 B. `html_lang` −181 B (no longer linked),
+`is_current` +145, `switch` +96, `install_table` +77.
+
+### Naming: N1–N5 (rustc 1.98.1)
+
+| # | What | Observed |
+|---|---|---|
+| N1 | 1.x's root rename, `extern crate leptos_0_8 as leptos;`, beside `pub mod leptos` | **E0260** "the name \`leptos\` is defined multiple times … previous definition of the module \`leptos\` here … \`leptos\` reimported here" (`naming/src/lib.rs:76`) — the reason 0.8 cannot keep the root rename under `mf2::leptos` |
+| N2 | the 0.9 line under its real name `leptos`, `pub mod leptos`, and a bare `use leptos::prelude::RwSignal;` at the crate root | **E0432** "unresolved import \`leptos::prelude\` … could not find \`prelude\` in \`leptos\`". The local module wins; there is no ambiguity error. In the same crate, `#[::leptos::component]` and `::leptos::view!` at the root compile: only 0.8's `extern crate` binding clashed |
+| N3 | `use axum::Router;` at the crate root beside `pub mod axum` | **E0603** "struct import \`Router\` is private": it resolved to `crate::axum`, whose private `use axum::Router` it names |
+| N4 | `axum::Router` as a type and as an expression path at the root | **E0603** twice, the same |
+| N5 | an application: `use naming::leptos;` (the module itself), then `use leptos::prelude::RwSignal as _;` beside its own `leptos` dependency | **E0432** "unresolved import \`leptos::prelude::RwSignal\` … no \`RwSignal\` in \`leptos::prelude\`"; "cannot find macro \`view\` in this scope" ×2; **E0405** "cannot find trait \`IntoView\`" ×2; and the application's own `use leptos::prelude::*` is reported unused. Importing the module shadows the application's `leptos` crate in every bare path of that module |
+
+Positive, in the same probe: inside `pub mod axum`, `use axum::Router`
+names the crate (a module is not in its own scope); `::axum::Router` at the
+root names the crate; an application naming `naming::leptos::…` /
+`naming::axum::…` by path, beside its own `leptos` and `axum`, compiles.
+The comments in `naming-n2` and `naming-app` still expect E0659 for N2, N3
+and N5; what rustc 1.98.1 reports is the table above.
+
+**The rules, for 19:**
+* inside `mf2`, reach the Leptos lines through internal aliases, never a
+  crate-root `extern crate … as leptos`;
+* inside `mf2`, name the `axum` crate as `::axum::…` wherever the `axum`
+  module is in scope at the crate root;
+* the book tells applications to import items from `mf2::leptos` or to write
+  full paths, never `use mf2::leptos;` in a module that uses the `leptos`
+  crate.
+
+### Coherence: the rules and their errors
+
+The positive set compiles with `leptos` and `ratatui` both on (`ssr`, and
+`hydrate` on wasm32) and with `ratatui` alone. `coherence/src/lib.rs`:
+* `Paragraph::new(t)` and `Block::bordered().title(t)`;
+* `Row::new([t, t])`, `Cell::from(t)`, `ListItem::new(t)`,
+  `List::new([t, t])` and `Tabs::new([t, t])`;
+* `t.bold()` and `t.fg(Color::Yellow).italic()` through `Styled`;
+* `[t, t].into_iter().collect::<Line>()`, `Span::from(t)`, `Text::from(r)`
+  and `t.render(area, buf)`;
+* `format!("{t} {a}")`, and `t.to_string()` choosing the inherent method;
+* `view! { <p title=t>{t}</p> }` in the same scope.
+
+The four controls (`cargo check -p coherence --features probe-*`):
+* **Never `From<Tr> for Cow<str>`.** `probe-cow` gives **E0119**
+  "conflicting implementations of trait \`From<tr::Tr>\` for type
+  \`ratatui_core::text::Span<'_>\`". It is reported at our `From<Tr> for
+  Span<'static>`: "conflicting implementation in crate \`ratatui_core\`: -
+  impl<'a, T> From<T> for ratatui_core::text::Span<'a> where T: Into<Cow<'a,
+  str>>;".
+* **No `FromIterator<Tr> for Line`.** `probe-fromiter` gives **E0119**
+  "conflicting implementations of trait \`FromIterator<tr::Tr>\` for type
+  \`ratatui_core::text::Line<'_>\` … impl<'a, T> FromIterator<T> for
+  ratatui_core::text::Line<'a> where T: Into<ratatui_core::text::Span<'a>>;".
+  `Line` already collects descriptions through that blanket.
+* **`Cell` and `ListItem` come through their blankets over `Into<Text>`.**
+  * `probe-cell` gives **E0119** "conflicting implementations of trait
+    \`From<tr::Tr>\` for type \`ratatui_widgets::table::Cell<'_>\` … impl<'a,
+    T> From<T> for ratatui_widgets::table::Cell<'a> where T:
+    Into<ratatui_core::text::Text<'a>>;".
+  * `probe-listitem` gives **E0119** "… for type \`ListItem<'_>\` …
+    impl<'a, T> From<T> for ListItem<'a> where T:
+    Into<ratatui_core::text::Text<'a>>;".
+
+### Verdict
+
+**Done when** ("the module and crate names confirmed; the coherence rules
+for 19"):
+* **Names: confirmed.**
+  * `mf2::leptos` works with no root rename, on both lines.
+  * `mf2-leptos-ui-0-9` and `-0-8` build and render on their lines.
+  * `pub mod axum` sits beside `axum`, with one rule at the crate root.
+  * No Leptos procedural macro is outside the six (item 2).
+* **The coherence rules: confirmed**, each with its error (item 4).
+* **Hydration: not broken on either line.** The six browser checks of the
+  demos are green on 0.9 and on 0.8 (on 0.8 through copies, since the tree
+  builds the demos on 0.9 only). `l6-web` and `l7-web` are green on 0.9;
+  they have no 0.8 mode.
+* **The table's cost (item 1).**
+  * **In the gate's own measurements, v3 meets ±64 B gz:** B1 is unchanged
+    at 26,402 B gz, and `b5 --view` moves −50 B gz fixed, +0.03 B a site.
+  * **In applications that render the switcher on the client, v3 costs more
+    than ±64 B gz:** +130 B gz in demo-csr and +459 B gz in demo-ssr (the
+    wasm; +127 and +454 over every shipped file). An islands application
+    whose switcher stays on the server pays nothing (−8).
+* **The fallback.** Question 13's is "back to the owner with the other two
+  options". Under the coordinator's rule, it applies **if applications that
+  render the switcher count as a configuration that matters**. That call is
+  the coordinator's; the owner was not asked.
+
+### What B1 should reuse from the branch, and what to change (interpretation, brief)
+
+* **Reuse:**
+  * the helpers' shape: one `ui.rs`, a link in the 0.8 crate, and
+    `extern crate leptos_0_8 as leptos;` only there;
+  * the renamed line dependencies, and the private `line` alias module in the
+    Leptos and Axum layers;
+  * wrappers that take the helper's `*Props`, so `view!` is unchanged;
+  * nothing installed by `install()`: v1 and v2 show what that costs every
+    application;
+  * `table()` as an `Option`, so a missing table cannot panic;
+  * the tests' line binding;
+  * `probes/p10-names/demos-0-8.py` for B1's "e2e on both Leptos lines": the
+    tree has no other way to run the browser checks on 0.8.
+* **Change — the install mechanism, if the demos' figures count.** About
+  1,230 B of demo-ssr's +1,339 B of code are that mechanism:
+  * two `std::sync::OnceLock`s (with `Once`);
+  * the install calls and the wrappers' shims;
+  * `is_current`, linked because a table entry points at it;
+  * the switch behind a function pointer.
+
+  One untested option would remove all of it: static dispatch. The
+  helper declares a trait whose associated functions are the table's
+  entries, `leptos-mf2` implements it for a zero-sized type, and the
+  components are generic over it. There would be no `OnceLock` and no
+  function pointer, and nothing would be linked that a page does not call.
+  Its cost is not measured.
+* **Measure applications that use the components.** B1's size gate should
+  cover them, since `size` and `b5 --view` render none of the six:
+  demo-ssr, demo-csr and demo-islands, with `measure-demo.mjs`.
+* **Leave out of B1:**
+  * the `ratatui` / `probe-*` features, `ratatui_probe.rs` and the
+    `ratatui-widgets` workspace dependency (C5 builds the real impls);
+  * `publish = false` on the helpers;
+  * the demos' import change (the work order keeps the examples on the shims
+    until C8 and D6).
+* **B1 decides:**
+  * whether the `*Props` types, which the wrappers' signatures expose, belong
+    in the per-mode `api.txt`;
+  * what a checkout without symlink support (`core.symlinks=false`) gets for
+    the 0.8 helper's `ui.rs`. `cargo package` follows the link.
 
 ## Part B — one crate, with every old path kept by shims (B1 after A1 and A7; B2–B4 after B1; B5 with or after B4)
 

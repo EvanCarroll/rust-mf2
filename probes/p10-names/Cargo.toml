@@ -1,0 +1,21 @@
+# Phase 10 A7, items 3 and 4 (plans/18-phase-10-work-order.md): names and
+# coherence, checked with `cargo check` only. A standalone workspace; the
+# root workspace excludes `probes/`.
+#
+# * `naming` — a stand-in `mf2` with `pub mod leptos` and `pub mod axum`
+#   beside the crates of those names, reached through internal aliases;
+#   its `n1-*` / `n3-*` features are the negative controls.
+# * `naming-n2` — the same with the 0.9 line under the real name `leptos`
+#   (a second crate: cargo refuses one package under two names).
+# * `naming-app` — an application that names the stand-in's modules beside
+#   its own `leptos` and `axum`.
+# * `coherence` — the real call-site types with `leptos` and `ratatui` on.
+[workspace]
+resolver = "3"
+members = ["naming", "naming-n2", "naming-app", "coherence"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+publish = false
+version = "0.0.0"

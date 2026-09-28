@@ -1,0 +1,23 @@
+[package]
+name = "coherence"
+description = "Phase 10 A7 item 4: what an application writes with the call-site types, Leptos and Ratatui all on."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["ssr"]
+# The Leptos mode the types are built with (the glue differs per mode).
+ssr = ["leptos-mf2/ssr", "leptos/ssr"]
+hydrate = ["leptos-mf2/hydrate", "leptos/hydrate"]
+# The rules' negative controls, on the real crate.
+probe-cow = ["leptos-mf2/probe-cow"]
+probe-fromiter = ["leptos-mf2/probe-fromiter"]
+probe-cell = ["leptos-mf2/probe-cell"]
+probe-listitem = ["leptos-mf2/probe-listitem"]
+
+[dependencies]
+leptos-mf2 = { path = "../../../crates/leptos-mf2", features = ["ratatui"] }
+leptos = { version = "0.9.0-beta", default-features = false }
+ratatui = "0.30"
