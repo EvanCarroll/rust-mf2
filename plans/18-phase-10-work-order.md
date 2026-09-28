@@ -77,13 +77,16 @@ being finished by new agents. **Everything else is held** (owner,
 - **E1–E3** (`a72d057`, `3f1eed9`, `894c0c4`): `dropped-markup`, an error by default (floor
   `allow`); `@do-not-translate` messages neither missing nor covered; `mf2 import` checks what it
   would write and writes nothing on an error it brings, and JSON import names XLIFF for new ids.
+- **A5** (probe branch `p10-a5-display`; the variant kept as `probes/p10-display/display.patch`):
+  `Display` on the four descriptions, the always-on inherent `to_string` / `to_plain_string` and
+  `Debug` everywhere are **adopted** — no `Display`, `Debug` or `core::fmt` reaches a client
+  wasm; B1 26,400 → 26,317 B gz (gzip noise on 79 fewer raw bytes), B5 +0.03 B, B12 clean.
 
 **In flight** — each on a branch in its own worktree under `.claude/worktrees/` (never merged
 as-is; results come to `main` as records, probe copies and patches):
 
 | Task | Branch · worktree | Done | Left |
 |---|---|---|---|
-| **A5** | `p10-a5-display` · `agent-a7b6f4df78ce56a04` | the variant (`70e0b27`); every measurement, base and variant, under that worktree's `target/a5/{base,variant,named}` (`target/a5/measure.sh`, `named.sh`, `twiggy.sh`). First reading: B1 26,400 → 26,317 B gz, B5 8.3 → 8.3, `b5 --view` 10.4 → 10.4, B12 clean in both, B1′ +0 | explain the fixed part's −83 B (twiggy over the named builds); the verdict; the record |
 | **A7** | `p10-a7-names` · `agent-aaa2ebae2e252a3e5` | four commits (`b258474` … `f54cf6d`): the helper crates, the table, the switch in a `LocaleSwitcher` wrapper, each component installing the table; `probes/p10-names/` (naming N1–N5, `coherence.sh`); scratch notes in that worktree's `target/a7-notes.md`. On 0.9: the e2e `demo` 210/210, `lazy` 74/74, `islands` 58/58, `csr` 98/98, `a11y`, `l6-web` 20/20, `l7-web` holding; `cargo xtask leptos-0-8` green; clippy and tests green; the coherence rules confirmed with their errors | v3's `b5 --view` figures (`target/a7-b5v-v3.log`) and the table's cost against the ±64 B gate; the cost in an application that *uses* the components (the size workloads use none); the demos on the 0.8 line (`demo-ssr`'s cargo-leptos build failed: `target/a7-demo-ssr-08-build.log`) and their e2e; the record |
 
 **Held** until the in-flight tasks land: A8; Part B (B1 needs A7's record); C3's code; the rest
@@ -103,6 +106,9 @@ of Parts C–G.
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
   placeholder is a string (A3).
+- A8 (a design trade-off to state): with `Display` always on, `format!("{}", tr!(…))` in a
+  browser build compiles and pulls in `core::fmt`, ≈ 16.6 KB gz; 1.x refused it at compile time,
+  and so would A5's fallback (`Display` only with the std modes) (A5).
 - C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).
 - C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
   times need a quiet machine (A1).
@@ -1132,6 +1138,322 @@ All pass; the three-test binary passed 20 of 20 repeated runs.
   on (the request context before the native store, D17's order). In a
   native-only build that step is compiled out; with both features unified
   in one workspace, every native format pays it. C2 should time it.
+
+## A5 — `Display` / `Debug` against B12: what was built
+
+* **Where.** The probe branch `p10-a5-display` (one commit, **`70e0b27`** on
+  `2fb7f54`; not merged). On `main`: `probes/p10-display/` holds the
+  variant as `display.patch`, the scripts (`measure.sh`, `named.sh`,
+  `twiggy.sh`, `ours.sh`, `clippy-variant.sh`, the positive control's
+  `control.sh` / `control-stripped.sh`) and the analysis (`analysis/*.py`).
+  The saved outputs stay in that worktree's git-ignored `target/a5/`
+  (`{base,variant}/`, `named/`, `analysis/`'s outputs) until the worktree
+  is removed.
+* **The variant** (`crates/leptos-mf2`, 11 files, +243 −55):
+  * `src/display.rs`, new and compiled in every build, holds the string
+    conversions, moved out of the Leptos-only `glue/view.rs`: the inherent
+    `to_string()` (isolated), `to_plain_string()`, `to_display_string()`,
+    `From<_> for String`, and **`Display` for `Tr`, `TrArgs`, `TrRich`,
+    `TrDyn`**. With a Leptos mode they read the ambient catalog:
+    `text::to_string`, and for `Display` a new `text::fmt_display` that
+    writes the text through `Formatter::pad` (so `{:<12}` pads) with no
+    `String` in between. With no Leptos mode both write nothing: a stand-in
+    until C2's native store.
+  * `to_string` carries `#[allow(clippy::inherent_to_string_shadow_display,
+    reason = "the client's fmt-free form of what `Display` writes (B12, 06
+    §3); both produce the same text")]`, in place of 1.x's
+    `inherent_to_string` allow.
+  * **`Debug`**: derived on `TrArgs`, `TrDyn`, `DateTimeValue`, `Stored`,
+    `RequestI18n`, `Handler<H>`, `Flat<F>`, `SignalArg<S>`; hand-written for
+    `TrRich` (id, arguments, number of handlers), `ArgValue` (`Custom(..)`,
+    `Source(..)`), `Text` (the text, quoted), `ArgList` (a list),
+    `NestingHandler(..)`, `FlatHandler(..)`. `Tr` had it already.
+  * `tests/render.rs`: `{}`, `ToString::to_string` and the inherent
+    `to_string()` give the same isolated text; `{:<16}` pads; the `Debug`
+    shapes (`TrArgs { id: MsgId(0), args: [Str("Ada")] }`,
+    `TrRich { …, handlers: 1 }`, `Custom(..)`).
+* **How it was measured.** `bash target/a5/measure.sh base` at `2fb7f54`
+  (2026-09-28, 04:53–06:45), then `… variant` at `70e0b27` (06:45–07:36).
+  Each runs `cargo xtask size`, `cargo xtask b5 --view`,
+  `cargo xtask b12-generated` and `bash bench/b12/check.sh` with
+  `CARGO_BUILD_JOBS=2`, and keeps every wasm. `bash target/a5/named.sh
+  base|variant` rebuilt three clients with their symbol names kept
+  (`strip = false`, `wasm-opt -Oz --debuginfo`) for twiggy: `tr` at 1,860
+  sites, `tr-view` at 1,860 sites (a view workload generated once into
+  `target/a5wl`), and the fixture client. In the `tr` app `leptos-mf2` is
+  the Leptos-free core (`workload-i18n/hydrate` turns on only
+  `mf2/host-web`), and its sites format through `Tr::format`. `tr-view`
+  has the Leptos layer, and its string positions call the inherent
+  `to_string()` that the variant moved.
+* **The A/B is valid** (checked):
+  * HEAD moved to `70e0b27` at 06:37:42 (`git reflog --date=iso`), while
+    the base's `check.sh` was running (06:36:30–06:45:08). B12's harnesses
+    depend only on `mf2-catalog`, `mf2-runtime`, `mf2-fn-number`,
+    `mf2-fn-datetime` and `mf2-host-web` (`bench/b12/*/Cargo.toml`), none
+    of which the variant touches, and base and variant `b12.txt` and
+    `size.tsv` are byte-identical. Every other base figure, and the base's
+    named builds (05:46–06:05), finished before 06:37:42;
+  * **one resolution.** Each generated app has its own `Cargo.lock`, which
+    each run resolves again. The variant's named build of `tr`, in the
+    target directory the base's used, rebuilt only `leptos-mf2`, `mf2`,
+    `workload-i18n` and the app; no dependency unit was built (the
+    `.fingerprint` files written after 07:00). The `idlit`, `idlit-view`
+    and `dummy` wasm are byte-identical between the runs at both scales
+    (`cmp` over `target/a5/{base,variant}/wasm/`);
+  * this worktree's base (26,400 / 8.3 / 41,871) is not A1's main-tree
+    figure (26,676 / 8.2 / 41,889) nor A4's worktree's (26,416 / 8.3 /
+    41,872) at the same commit: a lock of its own, as A4's record says. The
+    gates below compare within this tree.
+
+### Figures
+
+| Figure | Base `2fb7f54` | Variant `70e0b27` | Change | Gate | Command |
+|---|---:|---:|---:|---|---|
+| **B1, fixed** | 26,400 B gz | 26,317 | **−83** | ±64 | `cargo xtask size` |
+| **B5**, per site | 8.318 B gz (shown 8.3) | 8.350 (8.3) | **+0.032** | ±0.2 | same |
+| **whole app**, 1,860 sites | 41,871 B gz | 41,848 | **−23** | ambition 105,120 | same |
+| the `dummy` bound: per site / fixed | 25.2 / 27,383 | 25.3 / 27,300 | | reported | same |
+| `tr` at 1,860 sites: opt raw / opt gz | 2,419,654 / 693,681 | 2,419,575 / 693,658 | −79 / −23 | | same |
+| `tr` at 3,720 sites | 4,455,995 / 1,203,373 | 4,455,916 / 1,203,410 | −79 / +37 | | same |
+| `idlit`, `dummy`, both scales | | | byte-identical | | `cmp` |
+| `b5 --view`: per site, against `idlit-view` | 10.398 B gz (10.4) | 10.398 (10.4) | 0 | ±0.2 | `cargo xtask b5 --view` |
+| `b5 --view`: fixed | 24,956 B gz | 24,958 | +2 | | same |
+| `tr-view` at 1,860 / 3,720: opt raw | 1,890,880 / 3,375,262 | 1,890,883 / 3,375,265 | +3 / +3 | | same |
+| `tr-view` at 1,860 / 3,720: opt gz | 572,548 / 956,397 | 572,550 / 956,399 | +2 / +2 | | same |
+| `idlit-view`, `dummy` | | | byte-identical | | `cmp` |
+| **B1′** on the generated module (F − E) | +0 B | +0 B | | +0 | `cargo xtask b12-generated` |
+| B13 (B − A) | 13,573 B avoided | 13,573 | 0 | 13,599 ± 10 % | same |
+| the fixture client, raw: E / F | 349,158 / 349,158 | 349,158 / 349,158 | 0 | | same |
+| the fixture client, raw: A / B | 365,010 / 378,583 | 365,001 / 378,574 | −9 / −9 | | same |
+| **B12** | clean | clean; report byte-identical | | clean | `bash bench/b12/check.sh` |
+
+B12's per-harness figures are identical in both runs: the reader 6,781 B gz;
+B1's runtime part 18,888 (the core numbers 5,407); B2 2,022; B3 5,486;
+B1′ for `fn-number` and `fn-datetime` 0; the date semantics 3,605; B4
+`datetime-intl` 5,157 plus 672 of JS; B1′ for `intl` −63. Each gated
+harness shows no panic import, 0 fmt symbols and 0 panic symbols; the control
+harness shows both. The verdict line, both times: "B12: clean (no panic
+path, no core::fmt in the reader, the runtime, the numeric and the date
+functions); B13: shown".
+
+### Why B1's fixed part moved −83 B gz
+
+Observed:
+
+1. **The arithmetic.** `b5::delta` (`xtask/src/b5.rs`) fits two scales:
+   marginal = (Δ@3720 − Δ@1860) / 1,860 and fixed = Δ@1860 − 1,860 ×
+   marginal, where Δ = `tr` − `idlit`. Because 3,720 = 2 × 1,860, that is
+   **fixed = 2·Δ@1860 − Δ@3720**, and the whole app is Δ@1860. `idlit` did
+   not change, so the fixed part moved 2 × (−23) − (+37) = **−83**, the
+   whole app −23, and B5 (37 + 23) / 1,860 = +0.032.
+2. **The delivered bytes.** The variant's `tr` wasm is **79 B smaller at
+   both scales**, as a fixed change should be. The code section is −78 B
+   and the function section −1 B: one function fewer (9,009 → 9,008;
+   15,924 → 15,923). The data section (124,732 B), the element section and
+   every other section are the same size, so no string constant came in (a
+   reachable `Debug` impl would bring its names). Command:
+   `python3 target/a5/analysis/sizes.py BASE VARIANT` over the kept
+   `opt.wasm` files.
+3. **Why gzip reads −23 at one scale and +37 at the other.** With one
+   function fewer, every function after it is renumbered. At 1,860 sites
+   272 bodies (1,394,833 B, 62 % of the code) differ in their bytes; at
+   3,720 sites 602 (2,763,348 B, 66 %) do. In each case all but the seven
+   below keep their length (`python3 target/a5/analysis/bodies.py BASE
+   VARIANT`, with call targets normalised). The compressor's matches change
+   with them. The same files read differently with each compressor:
+
+   | | raw | flate2 level 9 (the gate) | `gzip -9 -n` | `brotli -q 11` |
+   |---|---:|---:|---:|---:|
+   | `tr` at 1,860 sites | −79 | −23 | −30 | −130 |
+   | `tr` at 3,720 sites | −79 | +37 | +127 | −473 |
+   | **the fixed part** (2·δ₁ − δ₂) | −79 | **−83** | −187 | +213 |
+   | `tr-view` at 1,860 / 3,720 sites | +3 / +3 | +2 / +2 | +7 / 0 | −273 / −759 |
+
+   (`gzip -9 -n -c F | wc -c` and `brotli -q 11 -c F | wc -c` over
+   `target/a5/{base,variant}/wasm/…/opt.wasm`; the gate's column is
+   `cargo xtask size`'s.)
+4. **Which code.** At the function level the `tr` change is **seven bodies
+   (717 B) replaced by six (639 B)**, the same sets at both scales, and all
+   of them destructors. Method: `wasm-dis` over the measured `opt.wasm`,
+   then `python3 target/a5/analysis/match.py`, which normalises every
+   index, name and constant and names each changed function by its text in
+   the named builds.
+   * `drop_glue::<ArgValue>` 162 → 165 B; `Arc<DateTimeValue>::drop_slow`
+     105 → 66 B.
+   * `drop_glue::<Text>` (141 B) and `drop_glue::<Arc<str>>` (126 B) are
+     functions of their own in the variant. Both named builds have them;
+     the measured base does not.
+   * Three base bodies (171, 98, 94 B) and one variant body (132 B) have no
+     twin in the named builds.
+   * One copy fewer of two shared drop shapes (the text of
+     `drop_glue::<SplitLoaderFuture>`, 50 B; a generic
+     `drop_glue::<Arc<…>>`, 37 B), and one copy more of a 9 B `Weak::drop`
+     shape.
+
+   In `tr-view` one function changed: `drop_glue::<ArgValue>`, 162 → 165 B.
+   It is the same `Arc` release, written with `ptr + 4` held in a local and
+   an `if` in place of a `br_if`. So the moved `to_string()`, which
+   `tr-view`'s string positions call, compiles to the same code.
+5. **Where that code runs** (`twiggy paths -d 3 -r 12` on the named base
+   `tr`). `Arc<dyn ArgSource>::drop_slow` and `Arc<DateTimeValue>::drop_slow`
+   are reached only through `drop_glue::<[ArgValue]>` and
+   `drop_glue::<ArgValue>`, from the template's one formatting helper
+   `support::s::<TrArgs>` and from
+   `tr::with_args::<(), TrArgs::write::{closure}>`. That is the destructor
+   of a `TrArgs` after it has been formatted: one copy per application,
+   hence the same −79 B at both scales.
+
+Interpretation (brief; not established): the variant adds non-generic items
+that rustc compiles whether or not anything calls them. `From<TrArgs> for
+String` and its siblings take a description by value and drop it, and the
+`Debug` impls walk `ArgValue`. Fat LTO removes them as unused, but the
+destructors they share were optimised while they were present, and were
+inlined differently. The named builds (`strip = false`, `--debuginfo`) show
+−160 B where the measured show −79, which fits an effect that depends on
+layout.
+
+### What twiggy sees
+
+* **Nothing of ours is `Display`, `Debug` or `core::fmt`** in the variant's
+  three named builds (`bash target/a5/twiggy.sh variant`;
+  `bash target/a5/ours.sh target/a5/named/variant/size-wl-1860-tr`). The
+  items that match B12's fmt pattern are **identical in name and size** to
+  the base's, once binaryen's `.N` suffixes are dropped: `tr` 72 items /
+  10,354 B, `tr-view` 72 / 10,354 B, the fixture 32 / 3,272 B. All of them
+  belong to `core`, `alloc`, `std` and Leptos's stack (`hydration_context`,
+  `leptos`, `wasm_bindgen`, `wasm_split_helpers`, `async_once_cell`). The
+  list of every `Display` / `Debug` impl in `tr` is the same in both.
+* **`twiggy diff`** on the named builds
+  (`twiggy diff -n 60 target/a5/named/base/X/opt.wasm target/a5/named/variant/X/opt.wasm`):
+  * **`tr`, +53 B:** the name section +213 and the code −160, all
+    destructors. `Arc<dyn ArgSource>::drop_slow` −96;
+    `Weak<dyn ArgSource>::drop` −89 against `Weak<dyn SharedContext>::drop`
+    +89 (one merged body under another name);
+    `Arc<DateTimeValue>::drop_slow` −39;
+    `drop_glue::<Arc<oneshot::Inner<Option<Owner>>>>` −39;
+    `Weak<oneshot::Inner<…>>::drop` +11; `drop_glue::<ArgValue>` +3.
+  * **`tr-view`, +2 B:** `drop_glue::<ArgValue>` +3; a 57 B body renamed
+    from `drop_glue::<TrArgs>` to `drop_glue::<ArgList>`; names −1.
+  * **The fixture, +3 B:** renamed duplicates (`.165` → `.170`, present in
+    both builds), and destructors of `ArgValue`, `Text`, `Arc<str>` and
+    `Arc<dyn ArgSource>` moving by ±5 to ±19 B.
+* **The named builds are not the measured ones.** With their names stripped
+  (`wasm-opt --strip-debug --strip-producers`), named `tr` goes 2,422,903 →
+  2,422,743 (−160) where the measured goes 2,419,654 → 2,419,575 (−79);
+  `tr-view` is +3 in both. That is why the measured files were compared
+  function by function above.
+* **The check can fail (positive control).** The fixture client was built
+  with one `format!("{save} {items:?}")`, where `save` is a `Tr` and
+  `items` a `TrArgs` (a working-tree edit in `target/a5-dev`, reverted and
+  never committed).
+  * The named build (`target/a5-dev/target/a5/control.sh`, then
+    `twiggy.sh`'s fmt grep) has **79 fmt items (20,175 B)** against 32
+    (3,272 B). **11 are ours**: `<Tr as Display>::fmt`; `Debug` for
+    `TrArgs`, `ArgList`, `ArgValue`, `Text`, `Option<Text>` and
+    `Arc<DateTimeValue>`; `mf2-runtime`'s `Date` and `Time`.
+  * Built as `b12-generated` builds its A (`control-stripped.sh
+    plain|control`): **365,001 → 405,860 B raw; after `wasm-opt -Oz`
+    328,579 → 364,332; `gzip -9` of that 87,371 → 103,975 (+16,604 B)**.
+
+### Lints and tests
+
+`bash target/a5/clippy-variant.sh` (in `target/a5-dev`, 2026-09-28; log:
+`target/a5/clippy-variant.log`) ran two kinds of step:
+* every `cargo xtask ci` clippy step that compiles `leptos-mf2`:
+  `--workspace --all-targets`, the nine `wasm32-unknown-unknown` feature
+  sets, and `ssr,mark-fallback-lang --all-targets`;
+* two steps CI lacks: the Leptos-free core,
+  `-p leptos-mf2 --no-default-features --lib`, on the host and on wasm32.
+
+**All exit 0** with `-D warnings`, and none reports a lint in our crates.
+The only warning is the future-incompatibility note for the dependency
+`proc-macro-error2` 2.0.1. `cargo test -p leptos-mf2 --features ssr --test
+render`: 15 passed, the new test among them. The earlier session's
+`target/a5/dev-clippy-workspace.log` holds only `exit 0`. Several of the
+steps were already fresh in `target/a5-dev/target`, and cargo replays a
+fresh unit's warnings.
+
+* **`Debug` coverage**
+  (`cargo clippy -p leptos-mf2 --features ssr -- -W missing_debug_implementations`,
+  and the same with `--target wasm32-unknown-unknown --features hydrate`;
+  outputs in `target/a5/missing-debug-{ssr,hydrate}.txt`). In `leptos-mf2`
+  only the glue's tachys render states still lack `Debug`: `TrState`,
+  `TrAttrState`, `TrRichState`. Outside this probe, 13 public types of
+  `mf2-runtime` lack it (`Arg`, `Value`, `Part`, `ExpressionPart`,
+  `MarkupPart`, `MarkupOptions`, `FnContext`, `Options`, `OptionValue`,
+  `Number`, `Digits`, `Measure`, `NumberOut`), and 18 of `mf2-catalog`
+  (`Entry` and the views).
+* **Not run:** `cargo xtask ci` as a whole. `cargo xtask api --check` would
+  fail on the branch (inferred, not run): `crates/leptos-mf2/api.txt`
+  lists trait impls (`impl core::fmt::Debug for leptos_mf2::Tr`, line 262),
+  and the commit adds `Display` and `Debug` impls without regenerating it.
+
+### Verdict
+
+* **Adopted**:
+  * `Display` for the four descriptions;
+  * the always-on inherent `to_string` / `to_plain_string`, with the
+    `inherent_to_string_shadow_display` allow and B12 as its reason;
+  * `Debug` on the call-site types, hand-written for `Custom` / `Source`.
+
+  The fallback ("`Display` only with the std modes") is not needed.
+* **B1: −83 B gz, outside the ±64 B band, downward. Judged as holding.** The
+  band is there to catch a cost, and this move's cause is identified:
+  * the delivered code is 79 B smaller at both scales, all of it in the
+    destructors of the argument values;
+  * no `Display`, `Debug` or `core::fmt` code, and no new data, reached the
+    client;
+  * the −83 is the fixed part's extrapolation (2 × −23 − 37) of two gzip
+    readings of opposite sign.
+
+  The whole app at the reference scale (−23 B gz) and B5 (+0.032 B a site)
+  are inside their tolerances, and `b5 --view` moved +2 B fixed and 0 a
+  site. The −79 B is not a saving to bank: it is the same destructors
+  inlined differently, and the next change to the crate can move it back.
+* **B12: clean.** `check.sh` is clean and byte-identical in both runs, but
+  its harnesses do not compile `leptos-mf2`, so it cannot see this change.
+  The twiggy check over the workload builds does see it; it finds nothing
+  of ours, and its positive control shows it would. B1′ is +0 and B13
+  13,573 B in both.
+* **Done when**: met. Nothing needs the owner; one trade-off is left for
+  A8 below.
+
+### What it means for C2 (interpretation)
+
+* **Take the probe's API, not its stand-in.** Without a Leptos mode the
+  probe's `to_string()` returns `""` and `Display` writes nothing. If that
+  shipped it would be a new silent failure, of the kind Part E removes. C2
+  backs both with the native store's lookup (A4: formatting before
+  `install()` panics and names it); a build with neither mode should not
+  offer them.
+* **Use A4's shape for the native forms.** The probe's `Display` is generic
+  per description (`ambient::fmt<D>` → `text::fmt_display<D>`). On the web
+  client that costs nothing, because nothing links it. A4 measured
+  per-type `Display` impls at +3,784 B in a stripped CLI, and chose one
+  non-generic forwarder taking a trait object. The inherent `to_string`
+  stays (A4: faster, and one allocation against `ToString`'s two).
+* **What adopting gives up.** In 1.x, and under the fallback,
+  `format!("{}", tr!(…))` in a browser build does not compile. With
+  `Display` always on it compiles and pays for `core::fmt`: the control's
+  one `{}` and one `{:?}` cost +16.6 KB gz after `wasm-opt`. B12 thus
+  moves from a type error to a rule applications must follow.
+  `tr.to_string()` stays fmt-free, because method resolution picks the
+  inherent method, and the book (F) should tell browser code to use it.
+  The work order's rule decides on bytes alone; A8 may want to put this
+  trade-off to the owner.
+* **`Debug` in 2.0.** A description's `Debug` shows `MsgId(0)`, the number:
+  the description carries no name (B6). A8 should state whether 2.0's
+  "`Debug` everywhere" covers the runtime's and the catalog's public types
+  (31 lack it). `check.sh` does see `mf2-runtime`, so adding them there is
+  B12-checked directly.
+* **Reading a ±64 B size gate** (B1 and every later size gate). The fixed
+  part is an extrapolation, 2·δ₁ − δ₂, so it doubles gzip's noise: the same
+  −79 B raw read −83 B with flate2, −187 with `gzip -9` and +213 with
+  brotli. Before reaching for a fallback, read a move outside ±64 B
+  alongside the raw bytes at both scales (a fixed change is equal at both)
+  and a function-level diff.
+* **The adopting change** regenerates `crates/leptos-mf2/api.txt`, and any
+  other listing that shows these impls, with `cargo xtask api`.
 
 ## A6 — a single-crate web application: what was built
 
