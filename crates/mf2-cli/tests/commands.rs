@@ -286,6 +286,87 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     assert!(!out.status.success(), "{}", stdout(&out));
 }
 
+/// A corpus in a fresh directory: per locale, the body of its `main.mf2`.
+fn small_corpus(name: &str, locales: &[(&str, &str)]) -> PathBuf {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(name);
+    let _ = std::fs::remove_dir_all(&dir);
+    for (tag, body) in locales {
+        std::fs::create_dir_all(dir.join("locales").join(tag)).expect("mkdir");
+        std::fs::write(
+            dir.join("locales").join(tag).join("main.mf2"),
+            format!("@locale {tag}\n---\n\n{body}"),
+        )
+        .expect("write");
+    }
+    std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
+    dir
+}
+
+#[test]
+fn check_takes_the_i18n_crates_features_from_cargo() {
+    // Without `fn-number`, `:percent` is an error (and `:integer` would be a
+    // `neutral-numbers` warning, once the corpus has no errors).
+    let dir = small_corpus(
+        "cli-check-features",
+        &[("en", "share = {$n :percent}\nitems = {$n :integer}\n")],
+    );
+
+    // Not a cargo package: checked with no features, and a note says so,
+    // on stderr (the JSON stays one document).
+    let out = run(&dir, &["check"]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
+    assert!(
+        stderr(&out).contains("note: checking with no function features")
+            && stderr(&out).contains("no Cargo.toml"),
+        "{}",
+        stderr(&out)
+    );
+    let out = run(&dir, &["check", "--format", "json"]);
+    let _: serde_json::Value = serde_json::from_slice(&out.stdout).expect("one JSON document");
+
+    // The i18n crate turns `fn-number` on by default: a bare check is
+    // clean, as the build is, and says nothing about cargo.
+    i18n_crate(&dir, "\"fn-number\"");
+    let out = run(&dir, &["check"]);
+    let text = ok(&out);
+    assert!(text.contains("nothing to report"), "{text}");
+    assert!(stderr(&out).is_empty(), "{}", stderr(&out));
+
+    // `--features` still wins over cargo's.
+    let out = run(&dir, &["check", "--features", ""]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
+
+    // …and cargo's are the crate's as the build enables them.
+    i18n_crate(&dir, "");
+    let out = run(&dir, &["check"]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
+    ok(&run(&dir, &["check", "--features", "fn-number"]));
+}
+
+#[test]
+fn check_names_the_first_missing_translations() {
+    let source = (0..13)
+        .map(|n| format!("m{n:02} = Text"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let dir = small_corpus(
+        "cli-check-missing",
+        &[("en", &source), ("fr", "m00 = Texte\n")],
+    );
+    let text = ok(&run(&dir, &["check"]));
+    assert!(
+        text.contains(
+            "12 of 13 messages are missing here and fall back to en: \
+             m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, and 2 more \
+             (locale fr) [missing-translation]"
+        ),
+        "{text}"
+    );
+}
+
 #[test]
 fn stats_reports_coverage_sizes_and_the_pins() {
     let dir = corpus("cli-stats");

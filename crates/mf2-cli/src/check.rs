@@ -5,12 +5,14 @@ use std::path::Path;
 use clap::Args as ClapArgs;
 use mf2_build::{Build, Config};
 
+use crate::cargo::resolved_features;
 use crate::error::{Error, Result};
 use crate::{FeatureArgs, Format};
 
 /// `mf2 check`.
 #[derive(Debug, ClapArgs)]
 pub(crate) struct Args {
+    // Without `--features`, the i18n crate's, as cargo resolves them.
     #[command(flatten)]
     features: FeatureArgs,
     /// How to report.
@@ -29,7 +31,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
     let mut outcome = Build::at(dir, std::env::temp_dir().join("mf2-check"))
         .config(config.clone())
-        .features(args.features.features())
+        .features(features(dir, &args.features))
         .check()?;
     if !args.src.is_empty() {
         unused_ids(&mut outcome, &config, &args.src)?;
@@ -54,6 +56,27 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         return Err(Error::Corpus);
     }
     Ok(())
+}
+
+/// The features to check with: `--features` if given, else the i18n
+/// crate's as cargo resolves them — the build checks with those, so a
+/// check with others warns where the build does not and fails where it
+/// succeeds. Without an answer from cargo, none, and a note says so (on
+/// stderr, so that `--format json` stays one document).
+fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
+    if let Some(given) = args.given() {
+        return given;
+    }
+    match resolved_features(dir, true) {
+        Ok((_, resolved)) => resolved,
+        Err(e) => {
+            eprintln!(
+                "note: checking with no function features, as cargo could not name the \
+                 i18n crate's ({e}); --features names them"
+            );
+            mf2_build::Features::default()
+        }
+    }
 }
 
 /// The `unused-id` lint needs what the application's sources say, which only

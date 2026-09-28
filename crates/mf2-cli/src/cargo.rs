@@ -1,6 +1,6 @@
 //! What cargo says the i18n crate's features are, so that `mf2 compile
-//! --site` builds the catalogs for the functions the wasm is built with
-//! (`plans/05-tooling.md` §6).
+//! --site` builds the catalogs for the functions the wasm is built with,
+//! and `mf2 check` checks what the build checks (`plans/05-tooling.md` §6).
 
 use std::path::Path;
 use std::process::Command;
@@ -12,7 +12,9 @@ use crate::error::{Error, Result};
 
 /// The i18n crate in `dir`: its package name and the features cargo resolves
 /// for it, unified across its workspace as `cargo metadata` reports them.
-pub(crate) fn resolved_features(dir: &Path) -> Result<(String, Features)> {
+/// `offline` keeps cargo off the network: it answers from what it has
+/// already fetched, or fails.
+pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Features)> {
     let fail = |message: String| Error::Cargo {
         dir: dir.to_owned(),
         message,
@@ -20,7 +22,7 @@ pub(crate) fn resolved_features(dir: &Path) -> Result<(String, Features)> {
     let manifest = dir.join("Cargo.toml");
     if !manifest.is_file() {
         return Err(fail(
-            "no Cargo.toml here; --site takes the functions from the i18n crate's features".into(),
+            "no Cargo.toml here; the functions are the i18n crate's features".into(),
         ));
     }
     let manifest = manifest
@@ -28,11 +30,14 @@ pub(crate) fn resolved_features(dir: &Path) -> Result<(String, Features)> {
         .map_err(|source| Error::io(&manifest, source))?;
     // Under `cargo run` (a trunk hook) `CARGO` is the cargo that ran us.
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-    let output = Command::new(cargo)
+    let mut command = Command::new(cargo);
+    command
         .args(["metadata", "--format-version", "1", "--manifest-path"])
-        .arg(&manifest)
-        .output()
-        .map_err(|e| fail(e.to_string()))?;
+        .arg(&manifest);
+    if offline {
+        command.arg("--offline");
+    }
+    let output = command.output().map_err(|e| fail(e.to_string()))?;
     if !output.status.success() {
         return Err(fail(
             String::from_utf8_lossy(&output.stderr).trim().to_owned(),

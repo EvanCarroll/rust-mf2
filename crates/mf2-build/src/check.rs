@@ -601,20 +601,23 @@ fn against_source(
 
 // ───────────────────────────────── coverage ──────────────────────────────
 
-/// How many of the corpus's messages a locale is missing, once per locale
-/// (`plans/05-tooling.md` §5: "reported with counts per locale").
+/// How many of the corpus's messages a locale is missing, once per locale,
+/// naming the first few (`plans/05-tooling.md` §5: "reported with counts
+/// per locale").
 fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Config) {
     if locale == corpus.source_index {
         return;
     }
     let source = &corpus.sources[locale];
-    let missing = corpus
+    let ids: Vec<&str> = corpus
         .manifest
         .manifest
         .ids
         .iter()
         .filter(|id| !corpus.indexes[locale].contains_key(id.as_str()))
-        .count();
+        .map(String::as_str)
+        .collect();
+    let missing = ids.len();
     if missing == 0 {
         return;
     }
@@ -636,19 +639,35 @@ fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Co
         None,
         match config.catalog.missing {
             Missing::Fallback => format!(
-                "{missing} of {total} messages are missing here and fall back to {}",
-                config.chain(&source.tag).join(", ")
+                "{missing} of {total} messages are missing here and fall back to {}: {}",
+                config.chain(&source.tag).join(", "),
+                first_ids(&ids)
             ),
             Missing::Empty => format!(
                 "{missing} of {total} messages are missing here and ship empty \
-                 (`[catalog] missing = \"empty\"`)"
+                 (`[catalog] missing = \"empty\"`): {}",
+                first_ids(&ids)
             ),
             Missing::Id => format!(
                 "{missing} of {total} messages are missing here and ship as their id \
-                 (`[catalog] missing = \"id\"`)"
+                 (`[catalog] missing = \"id\"`): {}",
+                first_ids(&ids)
             ),
         },
     );
+}
+
+/// How many ids a report names before it counts the rest.
+const IDS_SHOWN: usize = 10;
+
+/// The first [`IDS_SHOWN`] of `ids`, then how many more there are.
+fn first_ids(ids: &[&str]) -> String {
+    let shown = ids.len().min(IDS_SHOWN);
+    let list = ids[..shown].join(", ");
+    match ids.len() - shown {
+        0 => list,
+        more => format!("{list}, and {more} more"),
+    }
 }
 
 /// An id no `tr!` in the application's sources names
@@ -678,8 +697,6 @@ pub fn unused_ids(
     if unused.is_empty() {
         return;
     }
-    let shown: Vec<&str> = unused.iter().copied().take(10).collect();
-    let more = unused.len().saturating_sub(shown.len());
     let mut sink = Sink::new(report, locale);
     sink.add(
         level,
@@ -688,14 +705,9 @@ pub fn unused_ids(
         mf2_resource::Position { line: 1, column: 1 },
         None,
         format!(
-            "{} id(s) no source file names: {}{}",
+            "{} id(s) no source file names: {}",
             unused.len(),
-            shown.join(", "),
-            if more > 0 {
-                format!(", and {more} more")
-            } else {
-                String::new()
-            }
+            first_ids(&unused)
         ),
     );
 }

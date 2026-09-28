@@ -84,7 +84,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// resolves them — the wasm is built from the same crate, and a catalog
 /// built for other functions is one the wasm rejects or misformats.
 fn site_features(dir: &Path, args: &FeatureArgs) -> Result<mf2_build::Features> {
-    let (krate, resolved) = resolved_features(dir)?;
+    let (krate, resolved) = resolved_features(dir, false)?;
     if let Some(given) = args.given()
         && given.for_catalogs() != resolved.for_catalogs()
     {

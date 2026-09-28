@@ -167,11 +167,15 @@ fn a_locale_that_lacks_a_message_falls_back() {
     let pl = outcome.catalog("pl").expect("pl");
     assert_eq!(pl.missing, 2);
     assert_eq!(pl.fallbacks, 2);
-    // The report says so once, with the count.
+    // The report says so once, with the count, and names them.
     let text = outcome.report.to_text();
+    let line = text
+        .lines()
+        .find(|l| l.contains("2 of 3 messages are missing here and fall back to en: "))
+        .unwrap_or_else(|| panic!("{text}"));
     assert!(
-        text.contains("2 of 3 messages are missing here and fall back to en"),
-        "{text}"
+        line.contains("farewell") && line.contains("count") && !line.contains("greeting"),
+        "{line}"
     );
 
     // And the fallback text is English, flagged as such.
