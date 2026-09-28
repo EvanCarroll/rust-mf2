@@ -12,8 +12,9 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 3. **Phases 1–9 are done; Phase 10 is next.**
    - Release: 1.0.0 is on crates.io; 1.1.0 will not be published (owner, 2026-09-28); the next
      release is **2.0.0**.
-   - Phase 10 — 2.0, the user experience — is next, from
-     `plans/18-phase-10-work-order.md`, starting with its task A1.
+   - Phase 10 — 2.0, the user experience — is under way, from
+     `plans/18-phase-10-work-order.md`. Its section "Where the work stands" says what is done,
+     what is in flight (and on which branch and worktree), and what is held; read it first.
    - Its decisions are the master plan's D16–D24: one crate, `mf2` with features; native and
      Ratatui first; the web's setup; one CLDR-based matcher; the silent failures; the book.
    - `vendor/` (the owner's trippy port and reference checkouts) and `comparison.md` are untracked

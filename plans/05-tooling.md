@@ -1090,8 +1090,10 @@ with every locale compiled in). The CLDR `@integer`/`@decimal` samples are
 turned into tests for the runtime evaluator automatically.
 
 **Two inputs** (Phase 4, A2). `third_party/cldr-json/` vendors the supplemental
-files and the 11-locale panel's `numbers.json`, `currencies.json` and
-`units.json` (unchanged); `cargo xtask cldr-sync` also materialises, in its
+files (Phase 10 C3 added `languageMatching.json` and
+`territoryContainment.json`, for the one locale matcher, D21) and the
+11-locale panel's `numbers.json`, `currencies.json` and `units.json`
+(unchanged); `cargo xtask cldr-sync` also materialises, in its
 cache `target/xtask-cache/cldr-json` and **never vendored**, those three files
 for **every** locale (766 at 48.2.1; 2,301 files, 143 MB) plus
 `availableLocales.json`, `defaultContent.json` and
