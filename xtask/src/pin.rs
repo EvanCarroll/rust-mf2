@@ -1,7 +1,7 @@
 //! `third_party/*/PIN` files: ordered `key = value` fields; a value continues on
 //! following lines that start with whitespace.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -122,6 +122,40 @@ fn parse_digests(text: &str) -> std::result::Result<BTreeMap<String, String>, St
     Ok(out)
 }
 
+/// `<sha256>  <path>` lines, sorted by path: a PIN's `digests` field for
+/// `files`.
+pub(crate) fn digest_listing(files: &BTreeMap<String, Vec<u8>>) -> String {
+    let mut out = String::new();
+    for (path, bytes) in files {
+        let _ = writeln!(out, "{}  {path}", sha256_hex(bytes));
+    }
+    out.trim_end().to_owned()
+}
+
+/// Where the fetched `files` and the digests a PIN records disagree, one
+/// line per file: a different digest, a file fetched but not recorded, or a
+/// file recorded but not fetched. Empty when every file matches.
+pub(crate) fn digest_problems(
+    files: &BTreeMap<String, Vec<u8>>,
+    want: &BTreeMap<String, String>,
+) -> Vec<String> {
+    let mut problems = Vec::new();
+    let paths: BTreeSet<&String> = files.keys().chain(want.keys()).collect();
+    for path in paths {
+        match (files.get(path), want.get(path)) {
+            (Some(bytes), Some(digest)) if sha256_hex(bytes).eq_ignore_ascii_case(digest) => {}
+            (Some(bytes), Some(digest)) => problems.push(format!(
+                "{path}: sha256 {}, the PIN says {digest}",
+                sha256_hex(bytes)
+            )),
+            (Some(_), None) => problems.push(format!("{path}: fetched, not in the PIN")),
+            (None, Some(_)) => problems.push(format!("{path}: in the PIN, not fetched")),
+            (None, None) => {}
+        }
+    }
+    problems
+}
+
 /// Lower-case hex SHA-256 of `bytes`.
 pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
     use sha2::{Digest, Sha256};
@@ -135,7 +169,9 @@ pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{Pin, parse_digests};
+    use std::collections::BTreeMap;
+
+    use super::{Pin, digest_listing, digest_problems, parse_digests};
 
     #[test]
     fn digests_are_sha256sum_lines() {
@@ -143,6 +179,35 @@ mod tests {
         assert_eq!(d["schemas/a.xsd"], "ab");
         assert_eq!(d["b.html"], "cd");
         assert!(parse_digests("nospace").is_err());
+    }
+
+    #[test]
+    fn a_listing_holds_its_files_and_nothing_else() {
+        let files: BTreeMap<String, Vec<u8>> = [("b.md", &b"b\n"[..]), ("a/c.md", b"c\n")]
+            .into_iter()
+            .map(|(p, b)| (p.to_owned(), b.to_vec()))
+            .collect();
+        let listing = digest_listing(&files);
+        assert_eq!(listing.lines().count(), 2);
+        assert!(listing.lines().next().unwrap().ends_with("  a/c.md"));
+        let want = parse_digests(&listing).unwrap();
+        assert!(digest_problems(&files, &want).is_empty());
+
+        let mut altered = want.clone();
+        altered.insert("b.md".to_owned(), "0".repeat(64));
+        let mut dropped = want.clone();
+        dropped.remove("b.md");
+        let mut extra = want;
+        extra.insert("d.md".to_owned(), "0".repeat(64));
+        for (want, says) in [
+            (altered, "b.md: sha256 "),
+            (dropped, "b.md: fetched, not in the PIN"),
+            (extra, "d.md: in the PIN, not fetched"),
+        ] {
+            let problems = digest_problems(&files, &want);
+            assert_eq!(problems.len(), 1, "{problems:?}");
+            assert!(problems[0].starts_with(says), "{problems:?}");
+        }
     }
 
     #[test]

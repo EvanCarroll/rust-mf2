@@ -1,0 +1,23 @@
+upstream = https://github.com/unicode-org/cldr
+tag      = release-48-2
+commit   = 11299982335beb974c1c63c45265184e759c0f41
+date     = 2026-03-16
+data     = 48.2.1
+files    = docs/ldml/tr35.md
+digests  = 01967399eb0cc4aa714d25fa25b8f717bc5d8ce75a704836c77565126c7a7f76  docs/ldml/tr35.md
+contents = UTS #35 (LDML) Part 1, Core, as the CLDR repository keeps the source of the published
+           report: at this tag, version 48.2 (revision 78,
+           https://www.unicode.org/reports/tr35/tr35-78/tr35.html). Read for its language-matching
+           section (§4.4) and the likely subtags it builds on (§4.3), whose rules the one locale
+           matcher follows (master plan D21; plans/18-phase-10-work-order.md C3). `data` is the
+           release of the vendored CLDR data the text goes with (third_party/cldr-json/PIN's `tag`;
+           the CLDR repository has release-48-2 and no release-48-2-1, so cldr-json's 48.2.1 is
+           taken as a packaging of CLDR 48.2); `uts35-sync` and an xtask test refuse any other.
+           NOT vendored (owner, 2026-09-28, question 16; D13): `cargo xtask uts35-sync` fetches it
+           into target/xtask-cache/uts35/ and checks it against the digests above; plans, code and
+           tests paraphrase it and cite the section, and nothing in the tree quotes it
+license  = Unicode's Terms of Use, which the text's closing notice applies to it: private or in-house
+           copies only; publishing it, or building it into a product or publication, needs
+           Unicode's written permission. So, like the MF2 specification (D13), it stays in the cache
+refresh  = cargo xtask uts35-sync [--tag <release tag>]   (--list: upstream's tags; --tag re-pins:
+           it records the tag's commit and date, the CLDR data's release and the digests)

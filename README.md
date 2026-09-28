@@ -140,7 +140,9 @@ a Ratatui mode — is the application
   specification text is not among them: its license does not allow public
   redistribution, so `cargo xtask spec-sync` fetches it, at the pinned commit
   and checked against recorded digests, into `target/xtask-cache/`. The
-  conformance tests need it; run the command once after cloning.
+  conformance tests need it; run the command once after cloning. UTS #35
+  Part 1, whose language-matching rules the locale matcher follows, is
+  fetched the same way by `cargo xtask uts35-sync`; nothing builds from it.
 
 ```sh
 cargo xtask spec-sync          # fetch the MF2 specification text (once)

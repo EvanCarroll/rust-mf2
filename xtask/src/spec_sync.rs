@@ -16,15 +16,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use std::fmt::Write as _;
-
 use mf2_conformance::spec::{SPEC_DIR, SPEC_STAMP};
 use mf2_conformance::{Suite, SuiteTest, diff};
 
 use crate::error::{Error, Result};
 use crate::fsx;
 use crate::git::{Repo, is_full_sha};
-use crate::pin::{Pin, sha256_hex};
+use crate::pin::{Pin, digest_listing, digest_problems};
 
 /// What is vendored, relative to both the upstream root and the vendor directory.
 const VENDORED: &[&str] = &["test", "LICENSE"];
@@ -186,32 +184,10 @@ pub(crate) fn run(root: &Path, rev: Option<&str>, check: bool) -> Result<()> {
     Ok(())
 }
 
-/// `<sha256>  <path>` lines, sorted by path.
-fn digest_listing(spec: &Tree) -> String {
-    let mut out = String::new();
-    for (path, bytes) in spec {
-        let _ = writeln!(out, "{}  {path}", sha256_hex(bytes));
-    }
-    out.trim_end().to_owned()
-}
-
 /// Every fetched file has the digest the PIN records, and every recorded
 /// file was fetched.
 fn verify_digests(commit: &str, spec: &Tree, want: &BTreeMap<String, String>) -> Result<()> {
-    let mut problems = Vec::new();
-    let paths: BTreeSet<&String> = spec.keys().chain(want.keys()).collect();
-    for path in paths {
-        match (spec.get(path), want.get(path)) {
-            (Some(bytes), Some(digest)) if sha256_hex(bytes).eq_ignore_ascii_case(digest) => {}
-            (Some(bytes), Some(digest)) => problems.push(format!(
-                "{path}: sha256 {}, the PIN says {digest}",
-                sha256_hex(bytes)
-            )),
-            (Some(_), None) => problems.push(format!("{path}: fetched, not in the PIN")),
-            (None, Some(_)) => problems.push(format!("{path}: in the PIN, not fetched")),
-            (None, None) => {}
-        }
-    }
+    let problems = digest_problems(spec, want);
     if problems.is_empty() {
         Ok(())
     } else {

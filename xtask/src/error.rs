@@ -155,6 +155,11 @@ pub(crate) enum Error {
     #[error("xliff-sync: {0}")]
     Xliff(String),
 
+    /// `cargo xtask uts35-sync` could not fetch or check UTS #35's text, or
+    /// its PIN no longer goes with the vendored CLDR data.
+    #[error("uts35-sync: {0}")]
+    Uts35(String),
+
     #[error("ci step failed: {0}")]
     CiStepFailed(String),
 

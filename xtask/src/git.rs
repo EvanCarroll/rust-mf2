@@ -153,24 +153,26 @@ impl Repo {
     }
 
     /// The commit a remote tag points at (peeled), via `git ls-remote`.
+    ///
+    /// An annotated tag's commit is on its peeled line (`refs/tags/<tag>^{}`),
+    /// which `ls-remote` lists only when a pattern matches that name too: the
+    /// tag's own name alone gives the tag object (seen on the CLDR
+    /// repository's `release-48-2`).
     pub(crate) fn remote_tag_commit(&self, tag: &str) -> Result<Option<String>> {
         let plain = format!("refs/tags/{tag}");
         let peeled = format!("refs/tags/{tag}^{{}}");
-        let out = self.git_text(&["ls-remote", "--tags", "origin", &plain])?;
-        let mut direct = None;
-        let mut deref = None;
-        for line in out.lines() {
-            let mut parts = line.split('\t');
-            let (Some(oid), Some(name)) = (parts.next(), parts.next()) else {
-                continue;
-            };
-            if name == peeled {
-                deref = Some(oid.to_owned());
-            } else if name == plain {
-                direct = Some(oid.to_owned());
-            }
-        }
-        Ok(deref.or(direct))
+        let out = self.git_text(&["ls-remote", "--tags", "origin", &plain, &peeled])?;
+        Ok(parse_tags(&out)
+            .into_iter()
+            .find(|(name, _)| name == tag)
+            .map(|(_, commit)| commit))
+    }
+
+    /// Every tag of `origin` and the commit it names (annotated tags peeled),
+    /// sorted by name, via `git ls-remote`.
+    pub(crate) fn remote_tags(&self) -> Result<Vec<(String, String)>> {
+        let out = self.git_text(&["ls-remote", "--tags", "origin"])?;
+        Ok(parse_tags(&out))
     }
 
     /// Lists the regular files under `paths` (files or directories) at `commit`.
@@ -258,4 +260,46 @@ impl Repo {
 fn git_in(dir: &Path, args: &[&str]) -> Result<Vec<u8>> {
     let args: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
     run_capture(OsStr::new("git"), &args, dir, ENV)
+}
+
+/// `git ls-remote --tags` output as `(tag, commit)`: an annotated tag's
+/// peeled line (`refs/tags/<tag>^{}`) names its commit and wins over the
+/// tag object's own.
+fn parse_tags(ls_remote: &str) -> Vec<(String, String)> {
+    let mut tags: BTreeMap<String, (Option<String>, Option<String>)> = BTreeMap::new();
+    for line in ls_remote.lines() {
+        let Some((oid, name)) = line.split_once('\t') else {
+            continue;
+        };
+        let Some(name) = name.strip_prefix("refs/tags/") else {
+            continue;
+        };
+        match name.strip_suffix("^{}") {
+            Some(tag) => tags.entry(tag.to_owned()).or_default().1 = Some(oid.to_owned()),
+            None => tags.entry(name.to_owned()).or_default().0 = Some(oid.to_owned()),
+        }
+    }
+    tags.into_iter()
+        .filter_map(|(tag, (direct, peeled))| Some((tag, peeled.or(direct)?)))
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_tags;
+
+    #[test]
+    fn annotated_tags_name_their_commit() {
+        let out = "aaaa\trefs/tags/release-2\n\
+                   bbbb\trefs/tags/release-10\n\
+                   cccc\trefs/tags/release-10^{}\n\
+                   dddd\trefs/heads/main\n";
+        assert_eq!(
+            parse_tags(out),
+            [
+                ("release-10".to_owned(), "cccc".to_owned()),
+                ("release-2".to_owned(), "aaaa".to_owned()),
+            ]
+        );
+    }
 }

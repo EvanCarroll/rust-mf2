@@ -37,6 +37,7 @@ mod scenarios;
 mod size;
 mod spec_sync;
 mod tui_gate;
+mod uts35_sync;
 mod xliff_sync;
 
 use std::ffi::OsString;
@@ -73,6 +74,21 @@ enum Command {
     },
     /// Vendor the CLDR JSON subset named in third_party/cldr-json/PIN.
     CldrSync,
+    /// Fetch UTS #35 Part 1 (Core), whose language-matching section the
+    /// locale matcher follows, from the CLDR repository at the tag in
+    /// `third_party/uts35/PIN` into `target/xtask-cache/uts35` (never
+    /// vendored), checked against the PIN's digests.
+    #[command(name = "uts35-sync")]
+    Uts35Sync {
+        /// Re-pin at this release tag of the CLDR repository: record its
+        /// commit and date, the vendored CLDR data's release and the digests.
+        #[arg(long, value_name = "TAG", conflicts_with = "list")]
+        tag: Option<String>,
+        /// List the upstream's tags and the commits they name; fetch nothing
+        /// else.
+        #[arg(long)]
+        list: bool,
+    },
     /// Regenerate crates/mf2-locale-data/data/ from the vendored CLDR JSON and the
     /// cldr-sync cache (offline; the all-locale number table needs the cache).
     LocaleData,
@@ -398,6 +414,7 @@ fn run(command: Command) -> Result<()> {
     match command {
         Command::SpecSync { rev, check } => spec_sync::run(&root, rev.as_deref(), check),
         Command::CldrSync => cldr_sync::run(&root),
+        Command::Uts35Sync { tag, list } => uts35_sync::run(&root, tag.as_deref(), list),
         Command::LocaleData => locale_data::run(&root),
         Command::ResourceSync => Err(Error::ResourceSyncBlocked),
         Command::XliffSync { list, check } => xliff_sync::run(&root, list, check),

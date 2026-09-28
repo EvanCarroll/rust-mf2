@@ -1132,6 +1132,22 @@ panel locale resolving to its vendored record, for numbers, currencies and
 units — and regenerates the whole number, currency and unit tables from the
 cache in `#[ignore]`d tests.
 
+**The matching rules' text** (Phase 10 C3, D21). How the vendored
+`languageMatching.json` is applied — on top of the likely subtags — is
+stated in UTS #35 Part 1, §4.4 (Language Matching) and §4.3 (Likely
+Subtags), and nowhere in the data. That text is **not vendored**: its
+terms (Unicode's Terms of Use) allow no public copies, and the owner chose
+the cache (question 16), as for the MF2 specification (D13). `cargo xtask
+uts35-sync` fetches `docs/ldml/tr35.md` from the CLDR repository at the tag
+in `third_party/uts35/PIN` (`release-48-2`, the release behind the vendored
+48.2.1 data; the PIN's `data` field names that data, and both the command
+and an xtask test refuse a PIN whose `data` differs from
+`third_party/cldr-json/PIN`'s `tag`), checks it against the PIN's SHA-256
+and writes it to `target/xtask-cache/uts35/`, stamped with the commit;
+`--tag` re-pins and `--list` shows the upstream's tags. Nothing builds from
+it: it is there to be read, and plans, code and tests paraphrase it and
+cite the section.
+
 **The `-full` locale files are resolved.** At 48.2.1 every locale's
 `numbers.json` spells out everything it inherits (`en-AU` carries all of
 `en`'s fields); no default-content locale (`en-US`, `ar-001`, …) has its own
