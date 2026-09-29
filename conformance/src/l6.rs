@@ -13,7 +13,7 @@
 //!   text node. This is the whole suite, and it is where a rendering bug
 //!   shows up as a wrong page rather than a wrong `String`;
 //! * **markup** — a message with markup is rendered again through
-//!   [`Flat`](leptos_mf2::Flat) handlers, one marker element per markup
+//!   [`Flat`](mf2::leptos::Flat) handlers, one marker element per markup
 //!   part, and the markers' order, kind, name and options must equal the
 //!   markup entries of `expParts`. That is the only place the *renderer's*
 //!   view of markup can be checked against the suite, because a `String` has
@@ -30,8 +30,8 @@
 use std::sync::{Arc, OnceLock};
 
 use leptos::prelude::*;
-use leptos_mf2::{ArgValue, Flat, RequestI18n, Setup, TrArgs, markup};
-use mf2::{Dir, MarkupKind, MarkupPart, Registry, markup_key};
+use mf2::leptos::{Flat, RequestI18n, Setup};
+use mf2::{ArgValue, Dir, MarkupKind, MarkupPart, Registry, TrArgs, markup, markup_key};
 use mf2_runtime::BidiStrategy;
 use serde_json::Value;
 use tachys::view::RenderHtml;
@@ -65,7 +65,7 @@ static LOCALES: &[(&str, Dir)] = &[
 fn installed() {
     static ONCE: OnceLock<()> = OnceLock::new();
     ONCE.get_or_init(|| {
-        leptos_mf2::install(Setup::new(
+        mf2::leptos::install(Setup::new(
             &mf2_l4_runner::DEFAULT_REGISTRY,
             &mf2::host_std::HOST,
             0,

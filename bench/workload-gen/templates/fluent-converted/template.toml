@@ -33,8 +33,7 @@ name = "fluent-converted"
 description = "fluent-view as mf2 convert --from leptos-fluent rewrites it: tr-view with the documented differences (plans/16 A4)."
 support = "support.rs"
 dependencies = [
-    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
-    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2", default-features = false, features = ["leptos-0-8"] }',
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2", features = ["leptos-0-8"] }',
     'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',
 ]
 # `fluent-view`'s Leptos line, 0.8: a converted application is migrated to
@@ -44,8 +43,8 @@ prelude = "use workload_i18n::tr;"
 boot = "crate::support::boot();"
 
 [features]
-hydrate = ["workload-i18n/hydrate", "leptos-mf2/hydrate"]
-ssr = ["workload-i18n/ssr", "leptos-mf2/ssr"]
+hydrate = ["workload-i18n/hydrate", "mf2/hydrate"]
+ssr = ["workload-i18n/ssr", "mf2/ssr"]
 
 # (2) names unquoted; (3) a signal read with `.get()`, as `fluent-view` does.
 [args]

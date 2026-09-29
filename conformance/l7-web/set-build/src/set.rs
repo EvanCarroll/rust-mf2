@@ -2,10 +2,10 @@
 // and its call sites (`plans/15-phase-7-work-order.md` A4). Included by each
 // of the four set crates; see `mf2-l7-set-build`.
 
-/// Everything `leptos_mf2::install` needs, from the generated module.
+/// Everything `mf2::leptos::install` needs, from the generated module.
 #[must_use]
-pub fn setup() -> ::leptos_mf2::Setup {
-    ::leptos_mf2::Setup::new(
+pub fn setup() -> ::mf2::leptos::Setup {
+    ::mf2::leptos::Setup::new(
         registry(),
         &host::HOST,
         MANIFEST_HASH,

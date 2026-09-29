@@ -239,7 +239,7 @@ fn finish_mf2(root: &Path, app: &Path, ids: &Ids) -> Result<()> {
         ("use crate::support::I18nProvider;\n\n", ""),
         (
             "use crate::components::*;\n",
-            "use crate::components::*;\nuse leptos_mf2::{CatalogLinks, CatalogPreload, html_lang};\n",
+            "use crate::components::*;\nuse mf2::leptos::{CatalogLinks, CatalogPreload, html_lang};\n",
         ),
         ("        <I18nProvider>\n", ""),
         ("        </I18nProvider>\n", ""),

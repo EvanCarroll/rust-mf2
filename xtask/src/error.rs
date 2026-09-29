@@ -29,7 +29,8 @@ pub(crate) enum Error {
     /// The `leptos-fluent` A/B could not be built or measured.
     #[error("fluent-ab: {0}")]
     FluentAb(String),
-    /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
+    /// `mf2`'s Leptos layer on the Leptos 0.8 line, or the refusal of both
+    /// lines at once, failed.
     #[error("leptos-0-8: {0}")]
     Leptos08(String),
     /// A combination of `mf2`'s features that must be refused compiled, or

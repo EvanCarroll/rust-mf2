@@ -1,6 +1,7 @@
 // Phase 7 A5 (plans/15-phase-7-work-order.md): P0.11's churning list on
-// leptos-mf2 itself — what each row shape costs the heap when rows are
-// created and dropped by the hundred thousand between two locale switches.
+// mf2's Leptos layer itself — what each row shape costs the heap when rows
+// are created and dropped by the hundred thousand between two locale
+// switches.
 //
 // The harness is `bench/churn` (its lib.rs says what each variant is);
 // `cargo xtask churn` builds it into target/churn/site/, which this check

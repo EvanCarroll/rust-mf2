@@ -3,10 +3,10 @@
 
 mf2::include_generated!();
 
-/// Everything `leptos_mf2::install` needs, from the generated module.
+/// Everything `mf2::leptos::install` needs, from the generated module.
 #[must_use]
-pub fn setup() -> mf2::leptos_mf2::Setup {
-    mf2::leptos_mf2::Setup::new(
+pub fn setup() -> mf2::leptos::Setup {
+    mf2::leptos::Setup::new(
         registry(),
         &host::HOST,
         MANIFEST_HASH,

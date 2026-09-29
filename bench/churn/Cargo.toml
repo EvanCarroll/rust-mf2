@@ -7,7 +7,7 @@ resolver = "3"
 
 [package]
 name = "churn-harness"
-description = "Phase 7 A5: P0.11's churning list on leptos-mf2 — the heap under 100k churned rows, per row shape (text, attribute, argument, TextProp, Signal<String>, to_string(), Oco)."
+description = "Phase 7 A5: P0.11's churning list on mf2's Leptos layer — the heap under 100k churned rows, per row shape (text, attribute, argument, TextProp, Signal<String>, to_string(), Oco)."
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
@@ -20,8 +20,7 @@ crate-type = ["cdylib"]
 any_spawner = { version = "0.3.0", features = ["wasm-bindgen"] }
 churn-i18n = { path = "i18n" }
 leptos = { version = "0.9.0-beta", features = ["csr"] }
-leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["csr"] }
-mf2 = { path = "../../crates/mf2", features = ["csr"] }
+mf2 = { path = "../../crates/mf2", features = ["leptos", "csr"] }
 wasm-bindgen = "0.2.128"
 wasm-bindgen-futures = "0.4.78"
 web-sys = { version = "0.3.105", features = ["Element"] }

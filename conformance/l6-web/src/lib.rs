@@ -35,10 +35,10 @@ pub const PAGE_LOCALE: &str = "en-US";
 /// The twin: the same messages, a different tag and a different catalog.
 pub const TWIN_LOCALE: &str = "en-GB";
 
-/// Everything `leptos_mf2::install` needs, from the generated module.
+/// Everything `mf2::leptos::install` needs, from the generated module.
 #[must_use]
-pub fn setup() -> leptos_mf2::Setup {
-    leptos_mf2::Setup::new(
+pub fn setup() -> mf2::leptos::Setup {
+    mf2::leptos::Setup::new(
         registry(),
         &host::HOST,
         MANIFEST_HASH,
@@ -80,8 +80,8 @@ fn render(case: Case) -> AnyView {
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(setup());
-    leptos_mf2::hydrate_body(Page);
+    mf2::leptos::install(setup());
+    mf2::leptos::hydrate_body(Page);
 }
 
 /// How many nodes follow the locale: what the check polls to know that
@@ -89,7 +89,7 @@ pub fn hydrate() {
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mf2_live_nodes() -> usize {
-    leptos_mf2::live_nodes()
+    mf2::leptos::live_nodes()
 }
 
 /// Switches to `tag` and reports what happened, so that a failure in the
@@ -97,7 +97,7 @@ pub fn mf2_live_nodes() -> usize {
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub async fn mf2_set_locale(tag: String) -> Result<(), wasm_bindgen::JsValue> {
-    leptos_mf2::set_locale(&tag)
+    mf2::leptos::set_locale(&tag)
         .await
         .map_err(|e| wasm_bindgen::JsValue::from_str(&e.to_string()))
 }

@@ -266,8 +266,9 @@ const STEPS: &[&[&str]] = &[
     ],
     // The `leptos-mf2` shim with no mode of its own while `mf2` has one: an
     // application that names its mode on `mf2` alone, beside a crate on the
-    // shim's `leptos` (as `conformance/l7-web/sets/*` are). In 1.x `mf2/ssr`
-    // turned on `leptos-mf2/ssr`; the layer's 1.x paths must still resolve.
+    // shim's `leptos` (as `conformance/l7-web/sets/*` were until Phase 10's
+    // B4). In 1.x `mf2/ssr` turned on `leptos-mf2/ssr`; the layer's 1.x
+    // paths must still resolve.
     &[
         "test",
         "-p",

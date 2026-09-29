@@ -25,16 +25,15 @@ support = "support.rs"
 # client of every real application leaves out. Phase 6 measured it that way
 # and read the difference as tachys' (plans/15-phase-7-work-order.md A8).
 dependencies = [
-    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2" }',
-    'leptos-mf2 = { path = "{{template_dir}}/../../../../crates/leptos-mf2" }',
+    'mf2 = { path = "{{template_dir}}/../../../../crates/mf2", features = ["leptos"] }',
     'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',
 ]
 prelude = "use workload_i18n::tr;"
 boot = "crate::support::boot();"
 
 [features]
-hydrate = ["workload-i18n/hydrate", "leptos-mf2/hydrate"]
-ssr = ["workload-i18n/ssr", "leptos-mf2/ssr"]
+hydrate = ["workload-i18n/hydrate", "mf2/hydrate"]
+ssr = ["workload-i18n/ssr", "mf2/ssr"]
 
 [args]
 sep = ", "

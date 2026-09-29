@@ -14,14 +14,13 @@ fn-number = ["mf2/fn-number"]
 fn-datetime = ["mf2/fn-datetime"]
 datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
 datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
-ssr = ["mf2/host-std", "leptos-mf2/ssr"]
+ssr = ["mf2/host-std", "mf2/ssr"]
 client = ["mf2/host-web"]
 
 [dependencies]
-mf2 = { path = "../../../../crates/mf2" }
+mf2 = { path = "../../../../crates/mf2", features = ["leptos"] }
 mf2-l4-runner = { path = "../../../l4-runner" }
 leptos = { version = "0.9.0-beta", default-features = false }
-leptos-mf2 = { path = "../../../../crates/leptos-mf2", features = ["leptos"] }
 
 [build-dependencies]
 mf2-l7-set-build = { path = "../../set-build" }

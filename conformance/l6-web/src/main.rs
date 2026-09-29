@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use leptos::prelude::*;
-use leptos_mf2::RequestI18n;
+use mf2::leptos::RequestI18n;
 use mf2_l6_web::{PAGE_LOCALE, Page, TWIN_LOCALE, setup};
 use tachys::view::RenderHtml;
 
@@ -34,15 +34,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out = root.join("target/l6-web");
     std::fs::create_dir_all(out.join("i18n"))?;
 
-    leptos_mf2::install(setup());
-    leptos_mf2::install_catalogs(mf2_l6_web::CATALOGS)?;
+    mf2::leptos::install(setup());
+    mf2::leptos::install_catalogs(mf2_l6_web::CATALOGS)?;
 
     // Every catalog, under the content-hashed name the page will ask for.
-    for entry in leptos_mf2::catalog_entries() {
+    for entry in mf2::leptos::catalog_entries() {
         std::fs::write(out.join("i18n").join(entry.file), entry.bytes)?;
     }
 
-    let catalog = leptos_mf2::catalog(PAGE_LOCALE).ok_or("the page's catalog is not installed")?;
+    let catalog = mf2::leptos::catalog(PAGE_LOCALE).ok_or("the page's catalog is not installed")?;
     let body = Owner::new().with(|| {
         RequestI18n::new(Arc::clone(&catalog)).provide();
         RenderHtml::to_html(Page())
@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "l6-page: {} cases, {} catalogs → {}",
         mf2_l6_web::CASES.len(),
-        leptos_mf2::catalog_entries().len(),
+        mf2::leptos::catalog_entries().len(),
         out.display()
     );
     Ok(())
@@ -76,8 +76,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// the same two the shell of a real application emits (04 §6).
 fn link_tags() -> String {
     let mut out = String::new();
-    for entry in leptos_mf2::catalog_entries() {
-        let href = leptos_mf2::links::catalog_href(entry.file);
+    for entry in mf2::leptos::catalog_entries() {
+        let href = mf2::leptos::links::catalog_href(entry.file);
         if entry.tag == PAGE_LOCALE {
             out.push_str(&format!(
                 "<link rel=\"preload\" as=\"fetch\" crossorigin=\"anonymous\" href=\"{href}\" data-mf2>"

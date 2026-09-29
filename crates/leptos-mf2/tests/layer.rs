@@ -3,8 +3,9 @@
 //!
 //! In 1.x, `mf2/ssr` turned on `leptos-mf2/ssr`. The layer is `mf2`'s now, so
 //! in an application that names its mode on `mf2` alone, a crate that depends
-//! on this one with only `leptos` (as `conformance/l7-web/sets/*` do) sees it
-//! with no mode of its own, and must still reach the layer through it.
+//! on this one with only `leptos` (as `conformance/l7-web/sets/*` did until
+//! Phase 10's B4) sees it with no mode of its own, and must still reach the
+//! layer through it.
 //! `cargo xtask ci` runs this in that arrangement:
 //!
 //! ```sh

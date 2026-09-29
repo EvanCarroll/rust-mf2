@@ -1,5 +1,5 @@
 //! The churn harness (`plans/15-phase-7-work-order.md` A5): P0.11's
-//! churning list, on `leptos-mf2` itself rather than the probe's glue.
+//! churning list, on `mf2::leptos` itself rather than the probe's glue.
 //!
 //! P0.11 settled D7 on the node registry because an effect per node leaks
 //! under churn — a dropped `RenderEffect` stays in the locale trigger's
@@ -134,8 +134,8 @@ fn element(id: &str) -> web_sys::Element {
 #[wasm_bindgen]
 pub async fn boot() -> Result<String, JsValue> {
     let _ = any_spawner::Executor::init_wasm_bindgen();
-    leptos_mf2::install(churn_i18n::setup());
-    leptos_mf2::load_client_catalog()
+    mf2::leptos::install(churn_i18n::setup());
+    mf2::leptos::load_client_catalog()
         .await
         .map_err(|_| JsValue::from_str("the boot failed"))?;
     let root = Owner::new();
@@ -144,7 +144,7 @@ pub async fn boot() -> Result<String, JsValue> {
     COUNT.set(Some(RwSignal::new(1)));
     ROOT.with_borrow_mut(|o| *o = Some(root));
     LIST.with_borrow_mut(|o| *o = Some(list));
-    Ok(leptos_mf2::active()
+    Ok(mf2::leptos::active()
         .map(|c| c.locale().to_owned())
         .unwrap_or_default())
 }
@@ -188,7 +188,7 @@ pub fn churn(nodes: u32, rows: u32, variant: &str) {
 /// A live switch: fetch, swap, relocalize the registry, notify.
 #[wasm_bindgen]
 pub async fn switch_locale(tag: String) -> Result<(), JsValue> {
-    leptos_mf2::set_locale(&tag)
+    mf2::leptos::set_locale(&tag)
         .await
         .map_err(|_| JsValue::from_str("the switch failed"))
 }
@@ -197,7 +197,7 @@ pub async fn switch_locale(tag: String) -> Result<(), JsValue> {
 /// with the trigger's subscriber set, dead subscribers included.
 #[wasm_bindgen]
 pub fn notify() {
-    leptos_mf2::changed().notify();
+    mf2::leptos::changed().notify();
 }
 
 /// Live heap bytes (the counting allocator).
@@ -215,5 +215,5 @@ pub fn heap_allocs() -> f64 {
 /// Live registry slots.
 #[wasm_bindgen]
 pub fn live_nodes() -> u32 {
-    u32::try_from(leptos_mf2::live_nodes()).unwrap_or(u32::MAX)
+    u32::try_from(mf2::leptos::live_nodes()).unwrap_or(u32::MAX)
 }

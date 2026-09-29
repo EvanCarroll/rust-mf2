@@ -47,7 +47,7 @@ all-functions = [
 ssr = [
     "leptos/ssr",
     "leptos/islands",
-    "leptos-mf2/ssr",
+    "mf2/ssr",
     "tachys/ssr",
     "mf2-l7-set-en-us/ssr",
     "mf2-l7-set-und/ssr",
@@ -57,11 +57,11 @@ ssr = [
 hydrate = [
     "leptos/hydrate",
     "leptos/islands",
-    "leptos-mf2/hydrate",
+    "mf2/hydrate",
     "tachys/hydrate",
     "client",
 ]
-csr = ["leptos/csr", "leptos-mf2/csr", "client"]
+csr = ["leptos/csr", "mf2/csr", "client"]
 # What both browser builds share.
 client = [
     "mf2-l7-set-en-us/client",
@@ -73,7 +73,9 @@ client = [
 ]
 
 [dependencies]
-mf2 = { path = "../../crates/mf2" }
+# `mf2::leptos` on the Leptos 0.9 line; `ssr`, `hydrate` and `csr` above
+# pick the mode.
+mf2 = { path = "../../crates/mf2", features = ["leptos"] }
 # An island's props are serialized into the page; the derive names `serde`.
 serde = { version = "1.0.229", features = ["derive"] }
 mf2-l7-set-en-us = { path = "sets/en-us" }
@@ -81,7 +83,6 @@ mf2-l7-set-und = { path = "sets/und" }
 mf2-l7-set-fr = { path = "sets/fr" }
 mf2-l7-set-ar = { path = "sets/ar" }
 leptos = { version = "0.9.0-beta", default-features = false }
-leptos-mf2 = { path = "../../crates/leptos-mf2" }
 tachys = { version = "0.3.0-beta", default-features = false }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 # The exported `async fn`s lower to promises through this crate.

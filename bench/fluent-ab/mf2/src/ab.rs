@@ -62,7 +62,7 @@ pub fn ab_format(kind: u32, iters: u32) -> usize {
 #[wasm_bindgen]
 pub fn ab_switch(tag: String) -> bool {
     leptos::task::spawn_local(async move {
-        let _ = leptos_mf2::set_locale(&tag).await;
+        let _ = mf2::leptos::set_locale(&tag).await;
     });
     true
 }
@@ -72,6 +72,6 @@ pub fn ab_switch(tag: String) -> bool {
 #[wasm_bindgen]
 pub fn ab_preload(tag: String) {
     leptos::task::spawn_local(async move {
-        let _ = leptos_mf2::preload_locale(&tag).await;
+        let _ = mf2::leptos::preload_locale(&tag).await;
     });
 }

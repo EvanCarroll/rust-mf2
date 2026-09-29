@@ -142,7 +142,7 @@ async function runPage(browser, base, mode, set) {
     // has it — and the browser's `en-US` finds the twin, `en-GB`, by its
     // language (`lookup_locale`), ahead of the set's own locale. So the page
     // starts from a remembered choice of the set's locale, which the boot
-    // ranks first (`leptos_mf2::links::LOCALE_STORAGE_KEY`).
+    // ranks first (`mf2::leptos::links::LOCALE_STORAGE_KEY`).
     await context.addInitScript(
       `try { localStorage.setItem('mf2_locale', ${JSON.stringify(set.locale)}); } catch {}`,
     );

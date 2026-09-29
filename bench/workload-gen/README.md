@@ -226,9 +226,9 @@ provider = "I18nProvider"          # optional: a component of the support module
                                    # the app's router is wrapped in (a library
                                    # that keeps its state in a context)
 leptos = "0.8"                     # optional: the Leptos line, "0.9" (default) or
-                                   # "0.8"; a template naming leptos-mf2 on 0.8
-                                   # also gives it `default-features = false,
-                                   # features = ["leptos-0-8"]`
+                                   # "0.8"; a template naming mf2's Leptos layer
+                                   # also gives `mf2` the line's feature:
+                                   # `leptos`, or `leptos-0-8` on 0.8
 
 [args]                             # how one argument renders inside {{args}}
 sep = ", "

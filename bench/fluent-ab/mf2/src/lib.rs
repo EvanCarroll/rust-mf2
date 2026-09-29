@@ -22,9 +22,9 @@ pub mod ab;
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
-    leptos_mf2::install(workload_i18n::setup());
+    mf2::leptos::install(workload_i18n::setup());
     #[cfg(not(feature = "ab-bench"))]
-    leptos_mf2::hydrate_lazy(app::App);
+    mf2::leptos::hydrate_lazy(app::App);
     #[cfg(feature = "ab-bench")]
-    leptos_mf2::hydrate_lazy(ab::app);
+    mf2::leptos::hydrate_lazy(ab::app);
 }

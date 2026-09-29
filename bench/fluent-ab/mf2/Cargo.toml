@@ -1,11 +1,13 @@
 # The migrated application's manifest, finished by hand as
 # docs/migrating-from-leptos-fluent.md says: `leptos-fluent` gives way to the
-# translation crate (`mf2 init --no-messages`, then `mf2 convert`) and
-# `leptos-mf2`, on the Leptos line `leptos-fluent` is on (0.8), and `ssr` and
-# `hydrate` forward to them. `cargo xtask fluent-ab` copies it over the
-# converted application, `{{ROOT}}` replaced with the repository's path (our
-# crates are not published yet, so they are path dependencies, as the
-# documentation's own builds make them).
+# translation crate (`mf2 init --no-messages`, then `mf2 convert`) and `mf2`'s
+# Leptos layer, on the Leptos line `leptos-fluent` is on (0.8: `leptos-0-8`),
+# and `ssr` and `hydrate` forward to them. It names `mf2` where the guide
+# still names the 1.x shim `leptos-mf2` (Phase 10 B4; the guide follows with
+# the web book, D6). `cargo xtask fluent-ab` copies it over the converted
+# application, `{{ROOT}}` replaced with the repository's path (our crates are
+# not published yet, so they are path dependencies, as the documentation's
+# own builds make them).
 #
 # Everything else — the profile, `[package.metadata.leptos]`, the versions —
 # is the `fluent-view` manifest's, so that the two builds differ only in the
@@ -32,13 +34,12 @@ leptos_axum = { version = "0.8.10", optional = true }
 axum = { version = "0.8.9", optional = true }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"], optional = true }
 wasm-bindgen = "0.2.128"
-leptos-mf2 = { path = "{{ROOT}}/crates/leptos-mf2", default-features = false, features = ["leptos-0-8"] }
-mf2 = { path = "{{ROOT}}/crates/mf2" }
+mf2 = { path = "{{ROOT}}/crates/mf2", features = ["leptos-0-8"] }
 mf2-axum = { path = "{{ROOT}}/crates/mf2-axum", default-features = false, features = ["leptos-0-8"], optional = true }
 workload-i18n = { path = "i18n" }
 
 [features]
-hydrate = ["leptos/hydrate", "leptos-mf2/hydrate", "mf2/hydrate", "workload-i18n/hydrate"]
+hydrate = ["leptos/hydrate", "mf2/hydrate", "workload-i18n/hydrate"]
 ssr = [
     "dep:axum",
     "dep:tokio",
@@ -46,7 +47,6 @@ ssr = [
     "dep:mf2-axum",
     "leptos/ssr",
     "leptos_router/ssr",
-    "leptos-mf2/ssr",
     "mf2/ssr",
     "workload-i18n/ssr",
 ]

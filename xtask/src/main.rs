@@ -209,8 +209,8 @@ enum Command {
         book: bool,
     },
     /// The conversions under churn (Phase 7, A5): P0.11's churning list on
-    /// leptos-mf2, one row shape per variant, built as a client-only site
-    /// and run in the browser; no shape may grow the heap
+    /// mf2's Leptos layer, one row shape per variant, built as a client-only
+    /// site and run in the browser; no shape may grow the heap
     /// (tools/e2e/checks/churn.mjs).
     Churn {
         /// Engines: `all` (Chromium, Firefox, and `WebKit` where installed)
@@ -228,8 +228,8 @@ enum Command {
     /// Also run by `ci`.
     Refusals,
     /// The Leptos 0.8 opt-in (Phase 8, A0): `leptos-0-8` beside the default
-    /// line refused with the fix named; then, on 0.8, `leptos-mf2` linted
-    /// for ssr, hydrate and csr, its render, churn and `fallback_lang`
+    /// line refused with the fix named; then, on 0.8, `mf2`'s Leptos layer
+    /// linted for ssr, hydrate and csr, its render, churn and `fallback_lang`
     /// tests, `mf2-axum`'s tests and conformance layer L6.
     #[command(name = "leptos-0-8")]
     Leptos08 {

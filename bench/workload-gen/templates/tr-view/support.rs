@@ -11,7 +11,7 @@
 pub fn boot() {
     #[cfg(feature = "hydrate")]
     {
-        leptos_mf2::install(leptos_mf2::Setup::new(
+        mf2::leptos::install(mf2::leptos::Setup::new(
             workload_i18n::registry(),
             &workload_i18n::host::HOST,
             workload_i18n::MANIFEST_HASH,
@@ -38,8 +38,8 @@ pub fn boot() {
                     _ => return,
                 }
             }
-            if let Ok(catalog) = leptos_mf2::read_catalog(bytes) {
-                leptos_mf2::set_active(catalog);
+            if let Ok(catalog) = mf2::leptos::read_catalog(bytes) {
+                mf2::leptos::set_active(catalog);
             }
         }
     }

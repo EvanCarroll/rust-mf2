@@ -17,7 +17,7 @@ cargo xtask fluent-ab --no-build --runs 20     # measure again what target/fluen
 | File | What it is |
 |---|---|
 | [`SNAPSHOT.md`](SNAPSHOT.md), [`snapshot.json`](snapshot.json) | the snapshot: the commit measured, the versions, the date, the machine's load, the command, every figure |
-| `mf2/` | the migrated application's hand-finishing, as [the migration guide](../../docs/migrating-from-leptos-fluent.md) describes it: `Cargo.toml`, `src/lib.rs`, `src/main.rs`, `src/support.rs` |
+| `mf2/` | the migrated application's hand-finishing, as [the migration guide](../../docs/migrating-from-leptos-fluent.md) describes it: `Cargo.toml`, `src/lib.rs`, `src/main.rs`, `src/support.rs`. Since Phase 10 B4 it names `mf2` (`leptos-0-8`) and `mf2::leptos` where the guide names the 1.x shim `leptos-mf2`; the guide follows with the web book (D6) |
 | `mf2/src/ab.rs`, `fluent/ab.rs` | the timing hooks, one per side, compiled only into the timed build (`ab-bench`); the message ids are filled in from the workload |
 
 Neither application is committed: both are generated, and `leptos-fluent`
@@ -83,7 +83,7 @@ functions (`ab_mount`, `ab_format`, `ab_switch`, `ab_preload`) that the size
 build does not contain. The switch and format hooks do the same thing on both
 sides through each library's own API: `leptos-fluent`'s `move_tr!` / `tr!`
 under its provider and `I18n::language`; mf2's `tr!` and
-`leptos_mf2::set_locale`. mf2's switch fetches the catalog, so it is
+`mf2::leptos::set_locale`. mf2's switch fetches the catalog, so it is
 preloaded, and both sides are warmed by a switch there and back before the
 timed one.
 

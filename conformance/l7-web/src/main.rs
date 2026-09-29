@@ -16,7 +16,7 @@
 //!   what a client-only page, which has no server text to agree with, is
 //!   compared against.
 //!
-//! One set per run, because `leptos_mf2::install` is once per process.
+//! One set per run, because `mf2::leptos::install` is once per process.
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -26,7 +26,7 @@ use leptos::config::LeptosOptions;
 use leptos::hydration::HydrationScripts;
 use leptos::prelude::*;
 use leptos::serde_json::{Value, json};
-use leptos_mf2::{IslandsGate, RequestI18n};
+use mf2::leptos::{IslandsGate, RequestI18n};
 use mf2_l7_web::{Cases, SET_ATTR, SETS, TWIN, set_index};
 use tachys::view::RenderHtml;
 
@@ -43,18 +43,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let set = &SETS[index];
     std::fs::create_dir_all(out.join("i18n"))?;
 
-    leptos_mf2::install((set.setup)());
-    leptos_mf2::install_catalogs(set.catalogs)?;
-    for entry in leptos_mf2::catalog_entries() {
+    mf2::leptos::install((set.setup)());
+    mf2::leptos::install_catalogs(set.catalogs)?;
+    for entry in mf2::leptos::catalog_entries() {
         std::fs::write(out.join("i18n").join(entry.file), entry.bytes)?;
     }
-    let page = leptos_mf2::catalog(&locale).ok_or("the set's catalog is not installed")?;
-    let twin = leptos_mf2::catalog(TWIN).ok_or("the twin's catalog is not installed")?;
+    let page = mf2::leptos::catalog(&locale).ok_or("the set's catalog is not installed")?;
+    let twin = mf2::leptos::catalog(TWIN).ok_or("the twin's catalog is not installed")?;
 
     // The islands page, rendered as a request in the set's locale would be.
     let (lang, dir, scripts, body) = Owner::new().with(|| {
         RequestI18n::new(Arc::clone(&page)).provide();
-        let (lang, dir) = leptos_mf2::html_lang();
+        let (lang, dir) = mf2::leptos::html_lang();
         let options = LeptosOptions::builder()
             .output_name(OUTPUT_NAME)
             .site_pkg_dir("pkg-islands")
@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     write(&out.join(format!("csr-{locale}.html")), &csr)?;
 
     let mut catalogs = leptos::serde_json::Map::new();
-    for entry in leptos_mf2::catalog_entries() {
+    for entry in mf2::leptos::catalog_entries() {
         catalogs.insert(entry.tag.to_owned(), Value::from(entry.file));
     }
     write(
@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "l7-page: {locale}: {} cases, {} catalogs → {}",
         (set.len)(),
-        leptos_mf2::catalog_entries().len(),
+        mf2::leptos::catalog_entries().len(),
         out.display()
     );
     Ok(())
@@ -133,8 +133,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// what the shell of a real application emits (04 §6).
 fn link_tags(locale: &str) -> String {
     let mut out = String::new();
-    for entry in leptos_mf2::catalog_entries() {
-        let href = leptos_mf2::links::catalog_href(entry.file);
+    for entry in mf2::leptos::catalog_entries() {
+        let href = mf2::leptos::links::catalog_href(entry.file);
         if entry.tag == locale {
             let _ = write!(
                 out,

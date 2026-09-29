@@ -53,8 +53,8 @@
 #   grow the heap.
 # * `leptos-0-8` (a job of its own; plans/16 A0, plans/04 §10): the Leptos
 #   0.8 opt-in — both lines at once refused with the fix named; then, on
-#   0.8, leptos-mf2 linted for ssr, hydrate and csr, its render, churn and
-#   fallback_lang tests, mf2-axum's tests and conformance layer L6
+#   0.8, mf2's Leptos layer linted for ssr, hydrate and csr, its render,
+#   churn and fallback_lang tests, mf2-axum's tests and conformance layer L6
 #   (`cargo xtask leptos-0-8`). Not allowed to fail: 0.8 is supported.
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
@@ -497,9 +497,10 @@ jobs:
           if-no-files-found: ignore
 
       # plans/15-phase-7-work-order.md A5: P0.11's churning list on
-      # leptos-mf2, one row shape per variant (text, attribute, argument,
-      # TextProp, Signal<String>, to_string(), Oco); the heap must stay flat
-      # over 100,000 churned rows. Here because this job has the engines.
+      # mf2's Leptos layer, one row shape per variant (text, attribute,
+      # argument, TextProp, Signal<String>, to_string(), Oco); the heap must
+      # stay flat over 100,000 churned rows. Here because this job has the
+      # engines.
       - name: The conversions under churn (exit 1 on a row shape that leaks)
         run: cargo xtask churn --browser chromium,firefox
 
@@ -559,5 +560,5 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: cargo xtask spec-sync --check
 
-      - name: leptos-mf2, mf2-axum and layer L6 on Leptos 0.8
+      - name: mf2's Leptos layer, mf2-axum and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8

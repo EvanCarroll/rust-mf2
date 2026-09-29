@@ -32,7 +32,7 @@ pub struct Set {
     /// The set's locale: the page's, before any switch.
     pub locale: &'static str,
     /// The generated `Setup`.
-    pub setup: fn() -> leptos_mf2::Setup,
+    pub setup: fn() -> mf2::leptos::Setup,
     /// How many call sites the page holds.
     pub len: fn() -> usize,
     /// Call site `index`'s message id.
@@ -128,12 +128,12 @@ pub fn hydrate() {
         leptos::logging::error!("l7: the page names no set");
         return;
     };
-    leptos_mf2::install((SETS[set].setup)());
-    leptos_mf2::hydrate_islands();
+    mf2::leptos::install((SETS[set].setup)());
+    mf2::leptos::hydrate_islands();
 }
 
 // The island `IslandsGate` renders.
-leptos_mf2::islands_gate!();
+mf2::leptos::islands_gate!();
 
 /// The client-only entry point: install the page's set and mount it once its
 /// catalog, chosen from the published index, is installed.
@@ -145,8 +145,8 @@ pub fn start() {
         leptos::logging::error!("l7: the page names no set");
         return;
     };
-    leptos_mf2::install((SETS[set].setup)());
-    leptos_mf2::mount_to_body(move || view! { <Cases set islands=false /> });
+    mf2::leptos::install((SETS[set].setup)());
+    mf2::leptos::mount_to_body(move || view! { <Cases set islands=false /> });
 }
 
 /// How many nodes follow the locale: what the check polls to know that the
@@ -154,14 +154,14 @@ pub fn start() {
 #[cfg(any(feature = "hydrate", feature = "csr"))]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mf2_live_nodes() -> usize {
-    leptos_mf2::live_nodes()
+    mf2::leptos::live_nodes()
 }
 
 /// Switches to `tag` and reports what happened.
 #[cfg(any(feature = "hydrate", feature = "csr"))]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub async fn mf2_set_locale(tag: String) -> Result<(), wasm_bindgen::JsValue> {
-    leptos_mf2::set_locale(&tag)
+    mf2::leptos::set_locale(&tag)
         .await
         .map_err(|e| wasm_bindgen::JsValue::from_str(&e.to_string()))
 }

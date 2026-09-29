@@ -1,7 +1,7 @@
 //! `cargo xtask churn`: the conversions under churn
 //! (`plans/15-phase-7-work-order.md` A5).
 //!
-//! Builds `bench/churn` — P0.11's churning list on `leptos-mf2`, one row
+//! Builds `bench/churn` — P0.11's churning list on `mf2::leptos`, one row
 //! shape per variant — into `target/churn/site/` as a client-only site (the
 //! harness page, the wasm bound with `wasm-bindgen`, the catalogs and their
 //! index from `mf2 compile --site`), then runs `tools/e2e/checks/churn.mjs`,
