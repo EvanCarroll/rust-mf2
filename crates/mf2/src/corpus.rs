@@ -6,6 +6,8 @@
 use mf2_catalog::Dir;
 use mf2_runtime::Registry;
 
+use crate::LanguageMatching;
+
 /// A corpus as a native build generates it: the generated module's
 /// `CORPUS`. Never written by hand; read it through its methods.
 #[derive(Clone, Copy, Debug)]
@@ -15,6 +17,14 @@ pub struct Corpus {
     locales: &'static [(&'static str, Dir)],
     registry: &'static Registry,
     catalogs: &'static [CatalogFile],
+    /// The build's cut of CLDR's language-matching data for these locales
+    /// (the generated `LANGUAGE_MATCHING`): what a native application
+    /// matches a language with, as CLDR's whole table would.
+    #[cfg_attr(
+        not(feature = "native"),
+        allow(dead_code, reason = "read by `mf2::native`")
+    )]
+    language_matching: Option<&'static LanguageMatching>,
 }
 
 /// One locale's compiled catalog: its file name and, when the build
@@ -43,7 +53,25 @@ impl Corpus {
             locales,
             registry,
             catalogs,
+            language_matching: None,
         }
+    }
+
+    /// The same, with the build's cut of CLDR's language-matching data for
+    /// its locales: what the generated module calls. A corpus without one
+    /// matches with no data.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn with_language_matching(mut self, matching: &'static LanguageMatching) -> Corpus {
+        self.language_matching = Some(matching);
+        self
+    }
+
+    /// What a language is matched with among these locales
+    /// (plans/19-native-and-terminal.md §9).
+    #[cfg(feature = "native")]
+    pub(crate) fn language_matching(&self) -> &'static LanguageMatching {
+        self.language_matching.unwrap_or(&LanguageMatching::EMPTY)
     }
 
     /// The locale the manifest was built from, the final fallback.

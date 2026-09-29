@@ -623,3 +623,182 @@ pub fn numbers_table(inputs: &NumberInputs<'_>, cldr: &str) -> Result<String, Er
     }
     Ok(out)
 }
+
+/// The text of `data/matching.txt` from `likelySubtags.json`,
+/// `languageMatching.json` and `territoryContainment.json`
+/// (`cldr-core/supplemental`): the likely subtags without `und`, and the
+/// paradigm locales, match variables and rules of language matching, each
+/// variable with the regions inside it. The assumptions the matcher's
+/// packing rests on are checked, so that a CLDR update breaking one is an
+/// error here rather than a wrong table.
+pub fn matching_table(
+    likely_json: &str,
+    matching_json: &str,
+    containment_json: &str,
+    cldr: &str,
+) -> Result<String, Error> {
+    use crate::matching::{Matching, Rule, Variable};
+
+    let shape = |what: &str| Error::Shape(what.to_owned());
+    let assume = |what: String| Error::Assumption(what);
+    let likely: Value = serde_json::from_str(likely_json)?;
+    let likely = likely
+        .pointer("/supplemental/likelySubtags")
+        .and_then(Value::as_object)
+        .ok_or_else(|| shape("likelySubtags"))?;
+    let mut table = BTreeMap::new();
+    for (from, to) in likely {
+        if from == "und" || from.starts_with("und-") {
+            continue;
+        }
+        let to = to.as_str().ok_or_else(|| shape(from))?;
+        if to.split('-').count() != 3 {
+            return Err(assume(format!(
+                "likely {from} → {to} is not language-script-region"
+            )));
+        }
+        table.insert(from.clone(), to.to_owned());
+    }
+
+    let matching: Value = serde_json::from_str(matching_json)?;
+    let written = matching
+        .pointer("/supplemental/languageMatching/written-new")
+        .ok_or_else(|| shape("languageMatching/written-new"))?;
+    let paradigms = written
+        .pointer("/paradigmLocales/_locales")
+        .and_then(Value::as_array)
+        .ok_or_else(|| shape("paradigmLocales"))?
+        .iter()
+        .map(|v| {
+            v.as_str()
+                .map(str::to_owned)
+                .ok_or_else(|| shape("a paradigm locale"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let containment: Value = serde_json::from_str(containment_json)?;
+    let containment = containment
+        .pointer("/supplemental/territoryContainment")
+        .and_then(Value::as_object)
+        .ok_or_else(|| shape("territoryContainment"))?;
+    // A macroregion's own entry (not its `-status-grouping` or
+    // `-status-deprecated` extras): what it stands for in a variable.
+    let contents = |code: &str| -> Option<Vec<String>> {
+        containment
+            .get(code)?
+            .get("_contains")?
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
+    };
+    let macros: Vec<&String> = containment.keys().filter(|k| !k.contains('-')).collect();
+    let mut variables = Vec::new();
+    let names = written
+        .get("matchVariables")
+        .and_then(Value::as_object)
+        .ok_or_else(|| shape("matchVariables"))?;
+    for (name, v) in names {
+        let value = v
+            .get("_value")
+            .and_then(Value::as_str)
+            .ok_or_else(|| shape(name))?;
+        // `+` is union and `-` difference, strictly left to right (§4.4.1).
+        let mut set = BTreeSet::new();
+        let mut op = '+';
+        let mut token = String::new();
+        for ch in value.chars().chain(core::iter::once('+')) {
+            if ch == '+' || ch == '-' {
+                let part = leaves(&token, &contents, &mut BTreeSet::new());
+                if op == '+' {
+                    set.extend(part);
+                } else {
+                    set.retain(|r| !part.contains(r));
+                }
+                op = ch;
+                token.clear();
+            } else {
+                token.push(ch);
+            }
+        }
+        // A macroregion is inside when all its contents are (18, C3's text
+        // half: the reading the specification's `es-419` examples need).
+        let inside: Vec<String> = macros
+            .iter()
+            .filter(|m| {
+                let l = leaves(m, &contents, &mut BTreeSet::new());
+                !l.is_empty() && l.is_subset(&set)
+            })
+            .map(|m| (*m).clone())
+            .collect();
+        set.extend(inside);
+        variables.push(Variable {
+            name: name.clone(),
+            value: value.to_owned(),
+            regions: set.into_iter().collect(),
+        });
+    }
+
+    let mut rules = Vec::new();
+    for r in written
+        .get("languageMatch")
+        .and_then(Value::as_array)
+        .ok_or_else(|| shape("languageMatch"))?
+    {
+        let field = |k: &str| r.get(k).and_then(Value::as_str).ok_or_else(|| shape(k));
+        let desired = field("_desired")?.to_owned();
+        let supported = field("_supported")?.to_owned();
+        let distance = r
+            .get("_distance")
+            .and_then(Value::as_u64)
+            .and_then(|d| u8::try_from(d).ok())
+            .ok_or_else(|| shape("_distance"))?;
+        let oneway = r.get("_oneway").and_then(Value::as_bool).unwrap_or(false);
+        if desired.split('-').count() != supported.split('-').count() {
+            return Err(assume(format!(
+                "rule {desired} {supported}: sides of two levels"
+            )));
+        }
+        rules.push(Rule {
+            desired,
+            supported,
+            distance,
+            oneway,
+        });
+    }
+    let m = Matching {
+        cldr: cldr.to_owned(),
+        paradigms,
+        variables,
+        rules,
+        likely: table,
+    };
+    // What the packing rests on: each level's default last, no `*` in any
+    // other rule of the first two levels, and every code packable.
+    m.encode().map_err(|e| assume(e.to_string()))?;
+    Ok(m.text())
+}
+
+/// The regions `code` stands for: itself, or a macroregion's contents,
+/// recursively.
+fn leaves(
+    code: &str,
+    contents: &dyn Fn(&str) -> Option<Vec<String>>,
+    seen: &mut BTreeSet<String>,
+) -> BTreeSet<String> {
+    match contents(code) {
+        None => BTreeSet::from([code.to_owned()]),
+        Some(children) => {
+            let mut out = BTreeSet::new();
+            for child in children {
+                if seen.insert(child.clone()) {
+                    out.extend(leaves(&child, contents, seen));
+                }
+            }
+            out
+        }
+    }
+}

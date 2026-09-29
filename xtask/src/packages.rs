@@ -52,8 +52,10 @@ pub(crate) const PUBLISHED: [&str; 20] = [
 /// Every published crate's version (`[workspace.package]`).
 const VERSION: &str = "1.1.0";
 
-/// The licence of a crate that ships data derived from CLDR.
-const CLDR_DATA: [&str; 1] = ["mf2-locale-data"];
+/// The crates that ship data derived from CLDR, whose licence is
+/// `MIT AND Unicode-3.0`: `mf2-locale-data`'s tables, and `mf2`'s
+/// language-matching table (Phase 10 C3).
+const CLDR_DATA: [&str; 2] = ["mf2", "mf2-locale-data"];
 
 /// crates.io's limit on keywords and on categories.
 const MAX_TERMS: usize = 5;

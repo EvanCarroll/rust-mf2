@@ -1092,7 +1092,7 @@ library that only returns descriptions needs no mode. One that formats turns on
 
 | Module | What an application names | Mode |
 |---|---|---|
-| `mf2` (root) | the types above; `IntoArg`; `Message`; `UnknownLocale` (the error of `Locale::from_str`); `Dir`; `include_generated!`; `compile_str` (`compile`); the runtime's formatter, sinks and function traits, as in 1.x | always |
+| `mf2` (root) | the types above; `IntoArg`; `Message`; `UnknownLocale` (the error of `Locale::from_str`); `Dir`; `LanguageMatching` (the type of the generated `LANGUAGE_MATCHING`; C3); `include_generated!`; `compile_str` (`compile`); the runtime's formatter, sinks and function traits, as in 1.x | always |
 | `mf2::native` | `Catalogs` (1.x's `NativeI18n`, explicit, with no globals); `Error`; `set_bidi` / `bidi`; `set_time_zone` / `time_zone`; `locale_source` and what it returns, `LocaleSource` (1.x's name, beside `mf2::axum`'s trait; §16) | `native` |
 | `mf2::ratatui` | `Theme`, `Markup`; `set_theme`, `with_theme`, `theme` | `ratatui` |
 | `mf2::leptos` | the six components and their props; `html_lang`; `islands_gate!`; `Setup`, `LoadError`, `track_locale`; the boots `hydrate_body`, `hydrate_lazy`, `hydrate_islands` (`hydrate`) and `mount_to_body` (`csr`); `RequestI18n` (`ssr`) | a Leptos mode |
@@ -1546,7 +1546,58 @@ language" step goes (question 15).
 
 **The client carries only the corpus's languages.** The rules whose supported
 side is one of them, or `*`, and the likely subtags they need. C3 measures its
-cut against B1. Server and native builds carry the whole table.
+cut against B1. Server builds carry the whole table; a native build carries
+its corpus's cut too, which gives it the same answers (C3, below).
+
+**As built (C3;** [18](18-phase-10-work-order.md), C3's entry**).** Where the
+design above did not settle a detail, or C3 measured a better way to meet it:
+- **The data.** `cargo xtask locale-data` extracts the three vendored files
+  into `mf2-locale-data`'s `data/matching.txt` (the likely subtags without
+  `und`, the paradigm locales, the variables with the regions inside each,
+  the 378 rules in the data's order) and packs the whole of it into `mf2`'s
+  `src/matching/cldr.rs`; the drift test holds both to `third_party/`. The
+  packing turns the first two levels' rules into ordered pairs (the first
+  rule in the data's order decides a pair, a two-way rule gives both) and
+  checks what that rests on: only each level's default has a `*` there.
+- **`mf2::LanguageMatching`** is the table's type, a build fact like
+  `Corpus`: its constructor and its matching methods are hidden, for the
+  generated code and the tests. **`mf2-build` generates the corpus's cut,
+  `LANGUAGE_MATCHING`**, beside `LOCALES`, from the tags alone, so a
+  translation edit leaves it as it is. A cut gives the corpus's locales, for
+  any reader, exactly what the whole table gives (a test checks eight
+  corpora against every tag the table fills).
+- **Who carries what.** A server (`host-std`) matches with the whole table,
+  since `Negotiator::over` and `lookup_locale` take any locales. **A native
+  application matches with its corpus's cut, not the whole table:** the
+  generated `CORPUS` carries it, and a native application only ever matches
+  against its own corpus, for which the answers are the same. The whole
+  table cost `tui-mf2` +38,008 B stripped, the cut +4,568 B (C3's entry).
+  A browser's client carries the cut when its setup does:
+  `Setup::with_language_matching(&LANGUAGE_MATCHING)`, for a client-only
+  application (routed to C4: the generated `setup()` passes it under `csr`).
+  A hydrated page's client never matches, since it takes the server's
+  choice, and carries none.
+- **Without a table** (a setup written by hand without it, a corpus built by
+  hand), the matcher runs with no data: nothing is filled in and only the
+  three default distances apply, so a tag finds its own language's locales
+  (`fr-CA` finds `fr`), the first in the build's order among several, and
+  no other script or language.
+- **Small readings, each with a test:** a value that is no tag (`*`, `C`,
+  `POSIX`, empty) takes no place in the reader's list; `Zzzz` and `ZZ` are no
+  script and no region (§4.3's canonicalization); an extended language
+  subtag is skipped (`zh-yue-HK` reads as `zh-HK`); what follows the region
+  (variants, extensions, private use) and a POSIX `@modifier` are ignored;
+  `und` is filled in on neither side — a reader's by the text's rule, an
+  application's because none offers text in no language, so the table
+  leaves `und`'s likely subtags out.
+- **The text's worked examples** are tests, each with its section; the
+  opening illustration is a test too, of the default it gets (54).
+- **Native:** choosing a language allocates nothing (a test counts); 1.x
+  copied the tag into a `String` on every `set_locale` and `with_locale`.
+- **The web's negotiation** matches each source's candidates as one list
+  (`Accept-Language` in quality order), with the demotion, rather than one
+  candidate at a time; the client-only boot matches `navigator.languages`
+  so too.
 
 ## 10. The generated module
 
@@ -1570,7 +1621,7 @@ compile-time choices go through `mf2`'s cfg-forwarding macros, at item level
 | `setup()` | | | ✓ | ✓ | | |
 | `impl FromRequestParts for Locale` | | | | | ✓ | |
 | `markup::*` | | | | | | ✓ |
-| the build's facts: `MANIFEST_HASH`, `SOURCE_LOCALE`, `LOCALES`, `registry()`, `host`, `CORPUS` / `CATALOGS` | ✓, documented as such | | | | | |
+| the build's facts: `MANIFEST_HASH`, `SOURCE_LOCALE`, `LOCALES`, `LANGUAGE_MATCHING` (C3, §9), `registry()`, `host`, `CORPUS` / `CATALOGS` | ✓, documented as such | | | | | |
 
 **`Locale`:**
 - **variants** are the tags in UpperCamelCase (`pt-BR` is `PtBr`). The build
@@ -1820,7 +1871,10 @@ approved as written. The ones to look at first came first.
   step costs a native format about 6–7 ns (under load); a POSIX TZ rule in
   the runtime's `TimeZone`, evaluated by the host; `Debug` on the 31 types.
 - **C3:** §9. `$!X` for a straddling macroregion, and a test for the stated
-  demotion.
+  demotion. *Done* ([18](18-phase-10-work-order.md), C3's entry): §9's "As
+  built"; `en-001` is in `$!enUS` (3 to `en-GB`); an exact match 11th in a
+  reader's list is refused; native builds carry the corpus's cut, not the
+  whole table.
 - **C4:** §10. The generated names' collisions, and a way to rename them if an
   application needs one.
 - **C5:** §8. Collecting descriptions into a `Line` flattens their markup: the

@@ -7,7 +7,8 @@
 //
 //   * the locale comes from the browser: the reader's languages on a first
 //     visit (`fr-CA` finds `fr`; a language the build lacks gets the source
-//     locale), and the remembered choice afterwards, ahead of the languages;
+//     locale; a reader of Breton gets French, by CLDR's data the client
+//     carries), and the remembered choice afterwards, ahead of the languages;
 //   * the boot reads the catalog index through `index.html`'s preload (one
 //     request) and fetches one catalog, the chosen locale's, and nothing
 //     renders before it is installed: the first frame is already in the
@@ -212,6 +213,10 @@ async function negotiation(ctx, base) {
     ['fr-CA', 'fr'],
     ['ar-EG', 'ar'],
     ['de-DE', 'en'],
+    // CLDR's data in the client (plans/19-native-and-terminal.md §9): a
+    // reader of Breton is served French (a one-way rule, 20), which no
+    // truncation gives. The boot matches with the build's cut of the table.
+    ['br-FR', 'fr'],
   ]) {
     const context = await browser.newContext({ locale });
     const page = await context.newPage();

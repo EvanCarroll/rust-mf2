@@ -124,26 +124,33 @@ ratatui = { version = "0.30", default-features = false, features = ["crossterm"]
 ### Choosing the language
 
 `NativeI18n::embedded` loads every catalog of the corpus and checks each
-one against the build. It selects the first of the system's preferred
-languages that the corpus supports — `fr_CA.UTF-8` finds `fr` — and the
-source locale when none is. `locale_source()` says which happened.
+one against the build. It selects the language that best serves the
+system's preferred languages — `fr_CA.UTF-8` finds `fr` — and the source
+locale when none is close enough. `locale_source()` says which happened.
 
-The system's preferred languages are read in order, and the first one
-that matches wins. A language matches a supported one:
+The languages are compared by CLDR's language-matching data, the way the
+Unicode locale standard (UTS #35) describes, and the same way on a web
+server and in a browser:
 
-1. as it is, ignoring case, with `_` read as `-` and a POSIX `.charset`
-   or `@modifier` left out: `fr_CA.UTF-8` is `fr-CA`. `C`, `POSIX`, `*`
-   and an empty value never match;
-2. else with subtags dropped from the end: `fr-CA-x-private`, then
-   `fr-CA`, then `fr`;
-3. else as any supported locale of the same language (`fr-BE` finds
-   `fr-FR`) — except for a language written in more than one script
-   (`zh`, `sr`, `uz`, …) or a tag that names a script, where another
-   region can mean another script, so only steps 1 and 2 count.
+1. each tag is read as a language, a script and a region, ignoring case,
+   with `_` read as `-` and a POSIX `.charset` or `@modifier` left out
+   (`fr_CA.UTF-8` is `fr-CA`), and filled in with its likely script and
+   region (`zh-TW` is Traditional Chinese of Taiwan, `zh` Simplified of
+   China). `C`, `POSIX`, `*` and an empty value never match;
+2. two tags are as far apart as CLDR's data says for each part that
+   differs: another region of the same language is close (`fr-CA` finds
+   `fr`, `es-MX` finds `es`, and `es-419` first when the corpus has it);
+   another script is close only where CLDR says its readers read it
+   (Serbian's Latin and Cyrillic, yes; Traditional and Simplified Chinese,
+   no); another language only where CLDR says its readers understand it
+   (a reader of Catalan is served Spanish);
+3. the system's list is weighed as one: a regional variant of the first
+   language (`de-AT` finds `de`) beats an exact match of the second, and
+   only a language close enough is chosen.
 
 A language the user names explicitly goes through `set_locale`, which
-uses the same rules and returns an error for a language the corpus does
-not have, so a mistyped `--lang` is reported rather than ignored.
+uses the same rules and returns an error for a language nothing in the
+corpus serves, so a mistyped `--lang` is reported rather than ignored.
 
 ```rust file=native/src/main.rs
 use clap::Parser;

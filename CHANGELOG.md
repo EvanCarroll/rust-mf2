@@ -227,6 +227,50 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   derived, or written by hand where a field has none (a handler, a host, an
   application's value, a byte table: each shows what identifies it). A
   browser build links none of it unless it formats one with `{:?}`.
+* **Changed: one locale matcher, by CLDR's data.** Everything that chooses
+  a language now chooses the same way: a native application's `install`,
+  `set_locale`, `with_locale`, `Catalogs::format` and `NativeI18n`;
+  `mf2-axum`'s negotiation and `lookup_locale`; a client-only
+  application's boot. Each tag is filled in by CLDR's likely subtags
+  (`zh-TW` is Traditional Chinese of Taiwan), the distance CLDR's
+  language-matching data gives is added for each part that differs, a
+  reader's later languages count for less, and a language is served only
+  when it is close enough — the algorithm of UTS #35 Part 1. Case, `_`
+  and POSIX names read as before (`fr_CA.UTF-8` finds `fr`); `C`, `POSIX`,
+  `*` and an empty value still match nothing. What a 1.x application sees
+  change:
+  * `zh-Hant-TW` and `zh-Hant` find the application's `zh-TW`, where 1.x
+    truncated them to `zh` first;
+  * Traditional Chinese (`zh-TW`, `zh-Hant`, `zh-HK`) no longer gets the
+    application's Simplified `zh` or `zh-CN`, nor Simplified the
+    Traditional: CLDR has no rule between the two scripts, so the reader
+    gets their next language, else the source language (a list that also
+    names plain `zh` gets Simplified through it). Likewise the other script
+    of a language CLDR does not serve across: `pa-PK` does not find `pa`,
+    nor `uz-AF` `uz`, where 1.x's web negotiation took any locale of the
+    same language;
+  * Serbian's Latin and Cyrillic are served for each other (`sr-Cyrl` and
+    `sr-RS` find `sr-Latn`), which 1.x's native matcher refused;
+  * a language CLDR says a reader understands is served when theirs is
+    missing — a reader of Breton gets French, of Catalan Spanish, of Swiss
+    German German — where 1.x gave the source language;
+  * of several regions, the closest: an Australian reader gets `en-GB`
+    before `en-US`, a Mexican one `es-419` before `es`;
+  * a reader's list is weighed as one — `Accept-Language` in quality order,
+    `navigator.languages`, the system's languages: a regional variant of
+    the first language (`de-AT` finds `de`) beats an exact match of the
+    second, and nothing past the tenth language is served.
+
+  Natively, choosing a language no longer copies the tag. A server matches
+  with CLDR's whole table. **`mf2-build` generates `LANGUAGE_MATCHING`**,
+  the part of the table the corpus's languages need, which gives them the
+  same answers; a native application's `CORPUS` carries it (`mf2::native`
+  matches with it), and a client-only application hands it to its setup,
+  `Setup::new(…).with_language_matching(&LANGUAGE_MATCHING)`. A client
+  whose setup does not carry it matches with no data: it finds a locale of
+  the reader's own language (`fr-CA` still finds `fr`), the first in the
+  build's order among several, and no other script or language. Its type
+  is `mf2::LanguageMatching`.
 
 ## 1.0.0
 

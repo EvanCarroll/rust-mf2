@@ -53,6 +53,31 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         "directions.txt",
         &mf2_locale_data::extract::directions_table(&likely, &scripts, &tag)?,
     )?;
+    // Language matching (plans/19-native-and-terminal.md §9): the table the
+    // build cuts per corpus, and the whole of it as `mf2` carries it.
+    let matching = mf2_locale_data::extract::matching_table(
+        &likely,
+        &read(&supplemental.join("languageMatching.json"))?,
+        &read(&supplemental.join("territoryContainment.json"))?,
+        &tag,
+    )?;
+    write("matching.txt", &matching)?;
+    let module = mf2_locale_data::matching::Matching::parse(&matching)?.mf2_module()?;
+    let path = root
+        .join("crates")
+        .join("mf2")
+        .join("src")
+        .join("matching")
+        .join("cldr.rs");
+    fs::write(&path, &module).map_err(|source| Error::IoAt {
+        path: path.clone(),
+        source,
+    })?;
+    eprintln!(
+        "locale-data: {} ({} bytes, CLDR {tag})",
+        path.display(),
+        module.len()
+    );
 
     let full = cache_root(root, &commit)?;
     let main = full.join("cldr-numbers-full").join("main");

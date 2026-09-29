@@ -235,7 +235,9 @@ const STEPS: &[&[&str]] = &[
     // Phase 10 C2: the store, before `install` (a binary that never
     // installs), `install_from_directory` (one that does), and the system's
     // zone as a POSIX rule (a child process whose `TZ` is one), each here
-    // with `native` alone, where the ambient forms panic before `install`.
+    // with `native` alone, where the ambient forms panic before `install`;
+    // and (C3) choosing a language with no allocation, in a binary that
+    // counts them.
     &[
         "test",
         "-p",
@@ -251,6 +253,8 @@ const STEPS: &[&[&str]] = &[
         "uninstalled",
         "--test",
         "from_directory",
+        "--test",
+        "locale_allocations",
     ],
     &[
         "test",

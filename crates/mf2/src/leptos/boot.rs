@@ -637,8 +637,9 @@ fn remember_locale(tag: &str) {
 }
 
 /// The locale a client-only application starts in: the one it remembered,
-/// else the reader's first `navigator.languages` entry this build has
-/// (matched as `mf2-axum` matches `Accept-Language`, by
+/// else the one that best serves the reader's `navigator.languages` (and
+/// `navigator.language`), as a list — each later entry demoted — matched
+/// as `mf2-axum` matches `Accept-Language` (the one matcher,
 /// [`lookup_locale`](crate::leptos::lookup_locale)), else the source locale.
 ///
 /// It never fails: a remembered locale the build no longer has, or a reader
@@ -647,23 +648,24 @@ fn remember_locale(tag: &str) {
 #[must_use]
 pub fn client_locale() -> &'static str {
     let locales = state::locales();
-    let pick = |candidate: &str| state::lookup_locale(candidate, locales).map(|(tag, _)| tag);
-    if let Some(tag) = storage()
+    if let Some((tag, _)) = storage()
         .and_then(|s| s.get_item(LOCALE_STORAGE_KEY).ok().flatten())
         .as_deref()
-        .and_then(pick)
+        .and_then(|remembered| state::lookup_locale(remembered, locales))
     {
         return tag;
     }
     if let Some(window) = web_sys::window() {
         let navigator = window.navigator();
-        for language in navigator.languages().iter() {
-            if let Some(tag) = language.as_string().as_deref().and_then(pick) {
-                return tag;
-            }
-        }
-        // Older engines have no `languages`; every engine has `language`.
-        if let Some(tag) = navigator.language().as_deref().and_then(pick) {
+        // Older engines have no `languages`; every engine has `language`,
+        // which is otherwise the list's first entry again.
+        let mut languages: Vec<String> = navigator
+            .languages()
+            .iter()
+            .filter_map(|l| l.as_string())
+            .collect();
+        languages.extend(navigator.language());
+        if let Some((tag, _)) = state::best_locale(languages.iter().map(String::as_str), locales) {
             return tag;
         }
     }

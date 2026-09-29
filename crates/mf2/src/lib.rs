@@ -247,6 +247,7 @@ mod dynamic;
 mod error;
 mod into_arg;
 mod markup;
+mod matching;
 mod message;
 mod tr;
 
@@ -275,6 +276,7 @@ pub mod ratatui;
 pub mod leptos;
 
 pub use corpus::{CatalogFile, Corpus};
+pub use matching::LanguageMatching;
 pub use message::Message;
 
 /// The call-site core: what `tr!` builds, and what formats it against a

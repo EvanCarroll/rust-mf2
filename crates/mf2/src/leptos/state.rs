@@ -14,6 +14,8 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use mf2_catalog::Dir;
 use mf2_runtime::{BidiStrategy, FormatContext, Host, Registry, TimeZone};
 
+use crate::LanguageMatching;
+
 use std::sync::OnceLock;
 
 /// Where formatted text is going, which is what decides bidi isolation.
@@ -99,6 +101,9 @@ pub struct Setup {
     /// The time zone a date is shown in when its message names none and
     /// the reader's zone is not known yet.
     pub time_zone: TimeZone,
+    /// The build's cut of CLDR's language-matching data
+    /// ([`Setup::with_language_matching`]).
+    matching: Option<&'static LanguageMatching>,
 }
 
 impl Setup {
@@ -118,7 +123,31 @@ impl Setup {
             source_locale,
             locales,
             time_zone: TimeZone::UTC,
+            matching: None,
         }
+    }
+
+    /// The same, with the build's cut of CLDR's language-matching data for
+    /// its locales, the generated `LANGUAGE_MATCHING`: what a client-only
+    /// (`csr`) application's boot matches the reader's languages with, so
+    /// that `fr-CA` finds `fr`, `zh-Hant-TW` finds `zh-TW`, and a reader of
+    /// Breton is served French, as a server would choose.
+    ///
+    /// Without it a client matches with no data: a tag finds its own
+    /// language's locales (`fr-CA` still finds `fr`), but nothing is filled
+    /// in and no other language is accepted. A hydrated page's client never
+    /// matches — it takes the server's choice — and needs none; carrying one
+    /// there would only add bytes. A server matches with CLDR's whole table
+    /// whatever its setup says.
+    ///
+    /// ```ignore
+    /// Setup::new(registry(), &host::HOST, MANIFEST_HASH, SOURCE_LOCALE, LOCALES)
+    ///     .with_language_matching(&LANGUAGE_MATCHING)
+    /// ```
+    #[must_use]
+    pub const fn with_language_matching(mut self, matching: &'static LanguageMatching) -> Setup {
+        self.matching = Some(matching);
+        self
     }
 
     /// The same with another default time zone. The reader's zone, once
@@ -205,43 +234,55 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
     locales().iter().find(|(t, _)| *t == tag).map(|(_, d)| *d)
 }
 
-/// RFC 4647 lookup of `candidate` among `locales`: the candidate, then the
-/// candidate with its last subtag removed, and so on; then any locale whose
-/// language subtag matches, so that `fr` finds `fr-CA` when that is all the
-/// build has. Case-insensitive; `*` and the empty range match nothing.
+/// The locale of `locales` that best serves a reader of `candidate`: the
+/// one matcher (plans/19-native-and-terminal.md §9), CLDR's language-matching
+/// data read as UTS #35 Part 1 states — the tag filled in by likely
+/// subtags, a distance per field, a match only below 50. `fr-CA` and
+/// `fr_CA.UTF-8` find `fr`, and `fr` finds `fr-CA`; `zh-Hant-TW` finds
+/// `zh-TW`; `sr-Latn` finds `sr`; `zh-TW` does not find `zh-CN`, nor
+/// `pa-Arab` `pa`. `*`, `C` and the empty range match nothing.
 ///
 /// One matcher for both sides: `mf2-axum` negotiates a request with it, and
 /// a client-only application its stored choice and `navigator.languages`.
+/// A server matches with CLDR's whole table; a browser's client with the
+/// build's cut for its locales, which gives them the same answers, when
+/// its [`Setup`] carries one.
 #[must_use]
 pub fn lookup_locale(
     candidate: &str,
     locales: &[(&'static str, Dir)],
 ) -> Option<(&'static str, Dir)> {
-    if candidate.is_empty() || candidate == "*" {
-        return None;
+    best_locale([candidate], locales)
+}
+
+/// [`lookup_locale`] over a reader's list, best first: each later entry is
+/// demoted, so that a regional variant of the first language beats an
+/// exact second one, and none past the tenth can match.
+#[doc(hidden)]
+#[must_use]
+pub fn best_locale<'a>(
+    candidates: impl IntoIterator<Item = &'a str>,
+    locales: &[(&'static str, Dir)],
+) -> Option<(&'static str, Dir)> {
+    let at = matching().best_match(candidates, locales)?;
+    locales.get(at).copied()
+}
+
+/// The data the matcher reads: CLDR's whole table where this build carries
+/// it (a server, or a native build beside), else the cut the setup
+/// installed, else none.
+fn matching() -> &'static LanguageMatching {
+    #[cfg(feature = "host-std")]
+    {
+        LanguageMatching::cldr()
     }
-    let mut range = candidate;
-    loop {
-        if let Some(found) = locales
-            .iter()
-            .find(|(tag, _)| tag.eq_ignore_ascii_case(range))
-        {
-            return Some(*found);
-        }
-        match range.rfind('-') {
-            Some(at) => range = range.get(..at).unwrap_or(""),
-            None => break,
-        }
+    #[cfg(not(feature = "host-std"))]
+    {
+        RUNTIME
+            .get()
+            .and_then(|r| r.setup.matching)
+            .unwrap_or(&LanguageMatching::EMPTY)
     }
-    let language = candidate.split('-').next().unwrap_or(candidate);
-    locales
-        .iter()
-        .find(|(tag, _)| {
-            tag.split('-')
-                .next()
-                .is_some_and(|l| l.eq_ignore_ascii_case(language))
-        })
-        .copied()
 }
 
 /// The formatting context for a position, with the request's bidi override

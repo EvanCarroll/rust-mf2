@@ -3,7 +3,9 @@
 
 mf2::include_generated!();
 
-/// Everything `leptos_mf2::install` needs, from the generated module.
+/// Everything `leptos_mf2::install` needs, from the generated module, and
+/// the part of CLDR's language-matching data the boot chooses the reader's
+/// language with.
 #[must_use]
 pub fn setup() -> mf2::leptos_mf2::Setup {
     mf2::leptos_mf2::Setup::new(
@@ -13,4 +15,5 @@ pub fn setup() -> mf2::leptos_mf2::Setup {
         SOURCE_LOCALE,
         LOCALES,
     )
+    .with_language_matching(&LANGUAGE_MATCHING)
 }

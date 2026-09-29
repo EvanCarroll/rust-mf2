@@ -50,7 +50,8 @@ fn corpus(
         Box::leak(locales.into()),
         &REGISTRY,
         Box::leak(files.into()),
-    );
+    )
+    .with_language_matching(mf2::LanguageMatching::cldr());
     (Box::leak(Box::new(corpus)), raw)
 }
 

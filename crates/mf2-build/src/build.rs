@@ -508,12 +508,22 @@ impl Build {
 
         let unannotated = catalogs.iter().any(|c| c.slice.unannotated);
         let manifest_bytes = built.manifest.write();
+        // The part of CLDR's language-matching data these locales need
+        // (plans/19-native-and-terminal.md §9): all a browser's client
+        // carries of it. It depends on the tags alone, so a translation
+        // edit leaves it, and the module, as they are.
+        let tags: Vec<&str> = locales.iter().map(|l| l.tag.as_str()).collect();
+        let language_matching = mf2_locale_data::matching::Matching::shipped()?
+            .cut(&tags)
+            .encode()?
+            .rust("__mf2::LanguageMatching");
         let module = codegen::Module {
             facade: &self.facade,
             manifest_path: &self.out_dir.join(MANIFEST_FILE),
             manifest_hash: built.manifest.hash(),
             source_locale: &config.source_locale,
             locales: &locales,
+            language_matching: &language_matching,
             functions: &built.manifest.functions,
             custom: &config.functions,
             features,

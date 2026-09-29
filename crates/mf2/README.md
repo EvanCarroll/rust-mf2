@@ -38,4 +38,6 @@ promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/v
 
 ## License
 
-MIT (`LICENSE`).
+MIT (`LICENSE`) for the code. `src/matching/cldr.rs`, the locale matcher's
+table, is derived from the Unicode CLDR and is under the Unicode License v3
+(`LICENSE-UNICODE`); the package's licence is `MIT AND Unicode-3.0`.

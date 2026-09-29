@@ -16,7 +16,11 @@
 //!   `units.json`
 //!   (`data/currencies.txt`, `data/units.txt`, deduplicated against the
 //!   parents and CLDR's fallbacks), and the `currency.data` / `unit.data`
-//!   entries for the configured sets (`currency`, `unit`).
+//!   entries for the configured sets (`currency`, `unit`);
+//! * **language matching**, from `likelySubtags.json`,
+//!   `languageMatching.json` and `territoryContainment.json`
+//!   (`data/matching.txt`): what `mf2`'s one locale matcher reads, cut to a
+//!   corpus's languages for its generated module (`matching`).
 //!
 //! A corpus's needs — which entries, which currencies and units — are
 //! `LocaleNeeds` / `NumberNeeds` (`NumberNeeds::add_message` reads them
@@ -55,6 +59,8 @@ pub mod extract;
 #[cfg(feature = "icu-blob")]
 #[doc(hidden)]
 pub mod icu_blob;
+#[doc(hidden)]
+pub mod matching;
 #[doc(hidden)]
 pub mod number;
 #[doc(hidden)]

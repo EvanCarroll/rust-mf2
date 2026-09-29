@@ -96,8 +96,8 @@ fn store_of(
 }
 
 /// Installs `corpus`'s embedded catalogs (`mf2_build::Emit::Native`) as the
-/// process's, and makes the first of the system's preferred languages the
-/// corpus has the app-wide language, else its source language
+/// process's, and makes the language that best serves the system's
+/// preferred languages the app-wide language, else its source language
 /// ([`locale_source`] says which). Call it once, at start-up; a second call
 /// with the same corpus does nothing.
 ///
@@ -146,11 +146,13 @@ fn choose(store: &Catalogs) {
     );
 }
 
-/// Makes the language `locale` matches (case-insensitive, `_` read as `-`,
-/// `fr-CA` falling back to `fr`) the app-wide language: every thread's
-/// next format uses it, but a thread inside [`with_locale`]. An unsupported
-/// locale is an error and changes nothing, so a mistyped `--lang` is
-/// reported, not ignored.
+/// Makes the language that best serves `locale` the app-wide language: the
+/// corpus's closest by CLDR's language-matching data, if close enough
+/// (`fr_CA.UTF-8` finds `fr`, `zh-Hant-TW` finds `zh-TW`, `sr-Latn` finds
+/// `sr`; plans/19-native-and-terminal.md §9). Every thread's next format
+/// uses it, but a thread inside [`with_locale`]. A locale nothing serves is
+/// an error and changes nothing, so a mistyped `--lang` is reported, not
+/// ignored.
 ///
 /// # Panics
 ///
@@ -196,8 +198,9 @@ pub fn locale_source() -> LocaleSource {
     }
 }
 
-/// Runs `body` with this thread formatting in the language `locale` matches,
-/// and returns what it returns; the thread's language before is restored
+/// Runs `body` with this thread formatting in the language that best serves
+/// `locale` (as [`set_locale`] chooses it), and returns what it returns;
+/// the thread's language before is restored
 /// when `body` returns or unwinds. Other threads are not affected, so tests
 /// pinned to different languages run in parallel.
 ///

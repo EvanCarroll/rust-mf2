@@ -5,14 +5,15 @@
 //! and audited, file by file:
 //!
 //! * every file comes from the crate's own directory — the licence symlinks
-//!   (`LICENSE` → the root's; `mf2-locale-data`'s `LICENSE-UNICODE` →
-//!   `third_party/cldr-json/LICENSE`) and `mf2-leptos-ui-0-8`'s `src/ui.rs`
+//!   (`LICENSE` → the root's; `mf2-locale-data`'s and `mf2`'s
+//!   `LICENSE-UNICODE` → `third_party/cldr-json/LICENSE`) and
+//!   `mf2-leptos-ui-0-8`'s `src/ui.rs`
 //!   (→ `mf2-leptos-ui-0-9`'s: one source for both Leptos lines) are the
 //!   only files packaged from outside it, and each must point where it says;
 //! * no file is a copy of anything under `third_party/`, `plans/` or the
 //!   specification cache (`target/xtask-cache/`; the text Unicode does not
 //!   let us redistribute, D13), compared by SHA-256 — `LICENSE-UNICODE` is
-//!   the one expected copy;
+//!   the one expected copy, in each crate that ships CLDR-derived data;
 //! * the `.crate` is under crates.io's 10 MB limit.
 //!
 //! The file list is `crates/<name>/package.txt`: written without `--check`,
@@ -55,10 +56,16 @@ const GENERATED: [&str; 3] = ["Cargo.toml", "Cargo.lock", ".cargo_vcs_info.json"
 
 /// The packaged files that are symlinks out of their crate, and where each
 /// must point (from the repository root). `None`: every crate.
-const LINKS: [(Option<&str>, &str, &str); 3] = [
+const LINKS: [(Option<&str>, &str, &str); 4] = [
     (None, "LICENSE", "LICENSE"),
     (
         Some("mf2-locale-data"),
+        "LICENSE-UNICODE",
+        "third_party/cldr-json/LICENSE",
+    ),
+    // `src/matching/cldr.rs`, CLDR's language-matching table (Phase 10 C3).
+    (
+        Some("mf2"),
         "LICENSE-UNICODE",
         "third_party/cldr-json/LICENSE",
     ),

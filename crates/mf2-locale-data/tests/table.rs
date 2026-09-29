@@ -1,8 +1,9 @@
 //! The committed `data/` tables against their CLDR sources.
 //!
-//! * `data/plurals.txt` and `data/directions.txt` are exactly what `cargo
-//!   xtask locale-data` generates from the vendored CLDR JSON: they cannot
-//!   drift from `third_party/cldr-json`.
+//! * `data/plurals.txt`, `data/directions.txt` and `data/matching.txt` (and
+//!   `mf2`'s `src/matching/cldr.rs`, the last packed as `mf2` reads it) are
+//!   exactly what `cargo xtask locale-data` generates from the vendored CLDR
+//!   JSON: they cannot drift from `third_party/cldr-json`.
 //! * `data/numbers.txt`, `data/currencies.txt` and `data/units.txt` cover
 //!   every CLDR locale and are generated from the `cargo xtask cldr-sync`
 //!   cache (`target/xtask-cache/cldr-json`, never vendored). Offline, it is held to `third_party/` where the vendored
@@ -152,6 +153,31 @@ fn committed_table_matches_the_vendored_cldr() {
     assert!(
         fresh == committed,
         "data/directions.txt is stale: run `cargo xtask locale-data`"
+    );
+    // Language matching (plans/19-native-and-terminal.md §9): the table the
+    // build cuts, and the whole of it as `mf2` carries it.
+    let fresh = mf2_locale_data::extract::matching_table(
+        &read("likelySubtags.json"),
+        &read("languageMatching.json"),
+        &read("territoryContainment.json"),
+        tag,
+    )
+    .expect("extracts");
+    let committed =
+        fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("data/matching.txt"))
+            .expect("committed table");
+    assert!(
+        fresh == committed,
+        "data/matching.txt is stale: run `cargo xtask locale-data`"
+    );
+    let module = mf2_locale_data::matching::Matching::parse(&fresh)
+        .and_then(|m| m.mf2_module())
+        .expect("encodes");
+    let committed = fs::read_to_string(root.join("crates/mf2/src/matching/cldr.rs"))
+        .expect("mf2's committed table");
+    assert!(
+        module == committed,
+        "crates/mf2/src/matching/cldr.rs is stale: run `cargo xtask locale-data`"
     );
     assert_eq!(tag, "48.2.1");
     let v = mf2_locale_data::CLDR_VERSION;

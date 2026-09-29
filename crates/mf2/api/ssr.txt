@@ -156,6 +156,7 @@ pub mf2::leptos::Setup::source_locale: &'static str
 pub mf2::leptos::Setup::time_zone: mf2_runtime::datetime::TimeZone
 impl mf2::leptos::Setup
 pub const fn mf2::leptos::Setup::new(&'static mf2_runtime::function::Registry, &'static dyn mf2_runtime::host::Host, u64, &'static str, &'static [(&'static str, mf2_model::id::Dir)]) -> mf2::leptos::Setup
+pub const fn mf2::leptos::Setup::with_language_matching(self, &'static mf2::LanguageMatching) -> mf2::leptos::Setup
 pub const fn mf2::leptos::Setup::with_time_zone(self, mf2_runtime::datetime::TimeZone) -> mf2::leptos::Setup
 impl core::clone::Clone for mf2::leptos::Setup
 pub fn mf2::leptos::Setup::clone(&self) -> Self
@@ -383,6 +384,12 @@ impl<H: mf2::MarkupHandler + 'static> mf2::IntoMarkupHandler for mf2::Handler<H>
 pub fn mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
 impl<H> core::fmt::Debug for mf2::Handler<H>
 pub fn mf2::Handler<H>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::LanguageMatching
+impl core::clone::Clone for mf2::LanguageMatching
+pub fn mf2::LanguageMatching::clone(&self) -> Self
+impl core::fmt::Debug for mf2::LanguageMatching
+pub fn mf2::LanguageMatching::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::LanguageMatching
 pub struct mf2::NestingHandler(_)
 impl mf2::NestingHandler
 pub fn mf2::NestingHandler::call(&self, tachys::view::any_view::AnyView) -> tachys::view::any_view::AnyView

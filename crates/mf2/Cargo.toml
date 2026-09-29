@@ -7,7 +7,9 @@ description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+# `src/matching/cldr.rs`, CLDR's language-matching table, is derived from
+# the Unicode CLDR (`LICENSE-UNICODE`), as `mf2-locale-data`'s tables are.
+license = "MIT AND Unicode-3.0"
 publish = true
 readme = "README.md"
 documentation = "https://docs.rs/mf2"
@@ -193,6 +195,9 @@ any_spawner = { workspace = true, features = ["futures-executor"] }
 # `tests/fallback_lang.rs` writes catalogs that borrow a message from another
 # locale, which `compile_str` (one locale, nothing missing) never does.
 mf2-catalog = { workspace = true, features = ["writer"] }
+# `tests/matching.rs` cuts CLDR's language-matching table to a corpus, as
+# `mf2-build` does, and checks the cut against the whole.
+mf2-locale-data.workspace = true
 mf2-syntax.workspace = true
 
 # The call-site core formats against a catalog the caller supplies: the test
@@ -254,6 +259,12 @@ required-features = ["native", "compile"]
 name = "system_zone"
 required-features = ["native", "compile", "fn-datetime"]
 
+# Phase 10 C3: choosing a language reads the tag where it lies; a binary of
+# its own, whose allocator counts.
+[[test]]
+name = "locale_allocations"
+required-features = ["native", "compile"]
+
 # The one lookup with a Leptos mode beside `native`, on the host: the
 # request's or the page's catalog first, then the store's. It needs a mode
 # (and its line) too; with none it is empty.
@@ -266,6 +277,12 @@ required-features = ["native", "compile"]
 [[test]]
 name = "ratatui"
 required-features = ["ratatui", "compile"]
+
+# The one locale matcher over CLDR's whole table, which a server and a
+# native application carry (`host-std`).
+[[test]]
+name = "matching"
+required-features = ["host-std"]
 
 # docs.rs, as `cargo xtask docs-rs` builds it. `cargo xtask api` lists this
 # crate's public API per mode instead ([package.metadata.api], below).

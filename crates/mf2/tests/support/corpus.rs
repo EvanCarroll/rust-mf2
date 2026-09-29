@@ -93,13 +93,16 @@ pub(crate) fn corpus_of(
         files.push(CatalogFile::new(tag, name, embed.then_some(bytes)));
         raw.push((name, bytes.to_vec()));
     }
+    // Matched as a generated corpus is, over CLDR's whole table, which
+    // gives these locales what the build's cut would.
     let corpus = Corpus::new(
         languages[0].0,
         manifest.hash(),
         Box::leak(locales.into_boxed_slice()),
         &REGISTRY,
         Box::leak(files.into_boxed_slice()),
-    );
+    )
+    .with_language_matching(mf2::LanguageMatching::cldr());
     (Box::leak(Box::new(corpus)), raw)
 }
 

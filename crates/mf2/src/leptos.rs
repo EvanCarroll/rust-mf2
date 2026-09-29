@@ -86,6 +86,10 @@ pub use markup::{Flat, FlatHandler, NestingHandler};
 /// A signal as an argument, read when the message formats.
 pub use signal::{SignalArg, signal_arg};
 
+/// [`lookup_locale`] over a reader's list: what `mf2-axum` negotiates each
+/// source's candidates with.
+#[doc(hidden)]
+pub use state::best_locale;
 /// What an application installs once, and what it can ask about the build.
 pub use state::{
     Setup, TextUse, dir_of, install, locales, lookup_locale, manifest_hash, setup, source_locale,

@@ -60,6 +60,13 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
     runtime's access to it (`FnContext::catalog`, `Formatter::simple_ref`,
     `StrRef`, `Sink::push_catalog_text`, `plural_category`), and the
     manifest (`Manifest`, `Compiled::manifest`);
+  * the locale matcher's table and its entry points, which the generated
+    module, the native module and the web server call
+    (`LanguageMatching::new`, `LanguageMatching::EMPTY`,
+    `LanguageMatching::best_match`, `LanguageMatching::distance_of`,
+    `LanguageMatching::cldr`, `Corpus::with_language_matching`,
+    `mf2::leptos::best_locale`); `LanguageMatching` itself, the generated
+    `LANGUAGE_MATCHING` and `Setup::with_language_matching` are promised;
   * the switches and helpers the function crates and the build share
     (`INTL_NUMBERS`, `Number::format_by_host`,
     `mf2_fn_datetime::icu::prime`, `literal_options`,

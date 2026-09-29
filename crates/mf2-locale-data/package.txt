@@ -9,6 +9,7 @@ README.md
 api.txt
 data/currencies.txt
 data/directions.txt
+data/matching.txt
 data/numbers.txt
 data/plurals.txt
 data/units.txt
@@ -20,6 +21,7 @@ src/extract.rs
 src/extract/measure.rs
 src/icu_blob.rs
 src/lib.rs
+src/matching.rs
 src/number.rs
 src/number/pattern.rs
 src/number/table.rs

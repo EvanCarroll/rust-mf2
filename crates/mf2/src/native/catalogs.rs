@@ -14,7 +14,7 @@ use mf2_runtime::{
 };
 
 use super::Error;
-use super::locale::{LocaleSource, match_locale, negotiate};
+use super::locale::{LocaleSource, best};
 use crate::{CatalogFile, Corpus, Message};
 
 /// A generated corpus's catalogs, explicitly: `format(locale, &message)`
@@ -180,10 +180,11 @@ impl Catalogs {
         self.available.iter().map(|(tag, _)| *tag)
     }
 
-    /// Formats `message` in `locale` — the catalog it matches
-    /// (case-insensitive, `_` read as `-`, `fr-CA` falling back to `fr`),
-    /// else the source locale's — discarding MF2 errors (the text shows the
-    /// fallback the specification defines).
+    /// Formats `message` in `locale` — the catalog of the language that
+    /// best serves it, by CLDR's language-matching data (`fr_CA.UTF-8`
+    /// finds `fr`, `zh-Hant-TW` finds `zh-TW`), else the source locale's —
+    /// discarding MF2 errors (the text shows the fallback the specification
+    /// defines).
     #[must_use]
     pub fn format(&self, locale: &str, message: &impl Message) -> String {
         self.format_at(self.index_or_source(locale), message)
@@ -234,10 +235,10 @@ impl Catalogs {
 
     // ------------------------------------------------ for the store and 1.x
 
-    /// The index, among the corpus's locales, of the locale `locale`
-    /// matches among those there is a catalog for.
+    /// The index, among the corpus's locales, of the locale that best
+    /// serves `locale` among those there is a catalog for.
     pub(crate) fn index(&self, locale: &str) -> Option<usize> {
-        let tag = match_locale(locale, &self.available)?;
+        let tag = best(self.corpus.language_matching(), [locale], &self.available)?;
         self.position(tag)
     }
 
@@ -254,11 +255,14 @@ impl Catalogs {
         self.corpus.locales().iter().position(|(t, _)| *t == tag)
     }
 
-    /// The locale the system prefers, among those there is a catalog for,
-    /// and whether it came from the system or is the source locale.
+    /// The locale the system's list of preferred languages is best served
+    /// in, among those there is a catalog for (the one matcher, the list's
+    /// later entries demoted), and whether it came from the system or is
+    /// the source locale.
     pub(crate) fn system_choice(&self) -> (usize, LocaleSource) {
         let system = sys_locale::get_locales().collect::<Vec<_>>();
-        match negotiate(system.iter().map(String::as_str), &self.available)
+        let matching = self.corpus.language_matching();
+        match best(matching, system.iter().map(String::as_str), &self.available)
             .and_then(|tag| self.position(tag))
         {
             Some(i) => (i, LocaleSource::System),

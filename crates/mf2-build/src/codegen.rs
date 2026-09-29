@@ -6,6 +6,10 @@
 //! * `MANIFEST_HASH` and `SOURCE_LOCALE` — what the wasm and every catalog
 //!   agree on (F6);
 //! * `LOCALES` — the tags and their base direction;
+//! * `LANGUAGE_MATCHING` — CLDR's language-matching data cut to those
+//!   locales' languages (`mf2_locale_data::matching`): what the one matcher
+//!   reads in a browser's client, which carries no more of CLDR's table
+//!   than that (plans/19-native-and-terminal.md §9);
 //! * `CATALOGS` — the catalogs themselves, **only under `ssr`**: the server
 //!   binary is self-contained, and keeping the names and hashes out of the
 //!   client is what makes its wasm byte-identical across translation edits
@@ -49,6 +53,10 @@ pub struct Module<'a> {
     pub source_locale: &'a str,
     /// Every locale, in tag order.
     pub locales: &'a [LocaleInfo],
+    /// CLDR's language-matching data cut to the locales' languages, as a
+    /// Rust expression of `mf2::LanguageMatching`
+    /// (`mf2_locale_data::matching::Encoded::rust`).
+    pub language_matching: &'a str,
     /// The function identifiers the corpus uses, ascending.
     pub functions: &'a [String],
     /// `mf2.toml`'s `[functions]`: identifier → Rust path.
@@ -204,7 +212,17 @@ pub static LOCALES: &[(&str, __mf2::Dir)] = &[
 pub fn has_locale(tag: &str) -> bool {{
     LOCALES.iter().any(|(t, _)| *t == tag)
 }}
-"
+
+/// CLDR's language-matching data, cut to these locales' languages: the rules
+/// that can serve one of them, and the likely subtags of the languages whose
+/// readers those rules accept. For every reader it gives the answers CLDR's
+/// whole table gives, and it is all a browser's client carries of that
+/// table. A client-only application's boot matches the reader's languages
+/// with it once its setup carries it
+/// (`Setup::with_language_matching(&LANGUAGE_MATCHING)`).
+pub static LANGUAGE_MATCHING: __mf2::LanguageMatching = {matching};
+",
+        matching = m.language_matching
     );
 }
 
@@ -384,7 +402,8 @@ fn corpus(s: &mut String, m: &Module<'_>) {
         s,
         "
 /// Everything `mf2::native` needs, as one value: the source locale, the
-/// manifest hash, the locales, the registry and each catalog's file name{embedded}.
+/// manifest hash, the locales, the registry, each catalog's file name{embedded},
+/// and the part of CLDR's language-matching data they need.
 pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
     SOURCE_LOCALE,
     MANIFEST_HASH,
@@ -414,7 +433,7 @@ pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
             file = locale.file_name
         );
     }
-    let _ = writeln!(s, "    ],\n);");
+    let _ = writeln!(s, "    ],\n)\n.with_language_matching(&LANGUAGE_MATCHING);");
 }
 
 fn tr(s: &mut String, m: &Module<'_>) {
@@ -526,7 +545,36 @@ mod tests {
             messages: 3,
             emit: Emit::Both,
             manifest_bytes: None,
+            language_matching: "__mf2::LanguageMatching::EMPTY",
         }
+    }
+
+    #[test]
+    fn the_module_carries_the_corpus_cut_of_the_matching_data() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let cut = mf2_locale_data::matching::Matching::shipped()
+            .expect("the shipped table")
+            .cut(&["en", "ar"])
+            .encode()
+            .expect("encodes")
+            .rust("__mf2::LanguageMatching");
+        let mut m = module(&[], &features, &custom, &locales, false);
+        m.language_matching = &cut;
+        let code = write(&m);
+        assert!(
+            code.contains("pub static LANGUAGE_MATCHING: __mf2::LanguageMatching = __mf2::LanguageMatching::new(\n"),
+            "{code}"
+        );
+        // Numbers only: no catalog name or hash, no text of the corpus.
+        let start = code.find("pub static LANGUAGE_MATCHING").unwrap_or(0);
+        let table = &code[start..];
+        let table = &table[..table.find(");\n").unwrap_or(table.len())];
+        assert!(!table.contains(".mf2b") && !table.contains('"'), "{table}");
+        // English's and Arabic's paradigms and match variables, and the
+        // languages whose readers accept either.
+        assert!(table.lines().count() > 100, "{table}");
     }
 
     #[test]
@@ -570,6 +618,11 @@ mod tests {
         );
         assert!(!code.contains("pub static CATALOGS:"), "{code}");
         assert_eq!(code.matches("include_bytes!").count(), 2, "{code}");
+        // The corpus carries the cut its locales are matched with.
+        assert!(
+            code.contains("\n.with_language_matching(&LANGUAGE_MATCHING);"),
+            "{code}"
+        );
         assert!(
             code.contains(
                 "__mf2::CatalogFile::new(\"ar\", \"ar.fedcba9876543210.mf2b\", Some(include_bytes!("

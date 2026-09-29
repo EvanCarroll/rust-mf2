@@ -310,6 +310,12 @@ impl<H: mf2::MarkupHandler + 'static> mf2::IntoMarkupHandler for mf2::Handler<H>
 pub fn mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
 impl<H> core::fmt::Debug for mf2::Handler<H>
 pub fn mf2::Handler<H>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::LanguageMatching
+impl core::clone::Clone for mf2::LanguageMatching
+pub fn mf2::LanguageMatching::clone(&self) -> Self
+impl core::fmt::Debug for mf2::LanguageMatching
+pub fn mf2::LanguageMatching::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::LanguageMatching
 #[repr(transparent)] pub struct mf2::Tr
 impl mf2::Tr
 pub fn mf2::Tr::format(self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String

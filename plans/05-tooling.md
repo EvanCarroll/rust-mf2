@@ -1208,6 +1208,19 @@ and writes it to `target/xtask-cache/uts35/`, stamped with the commit;
 it: it is there to be read, and plans, code and tests paraphrase it and
 cite the section.
 
+**The matching table** (Phase 10 C3, D21; [19](19-native-and-terminal.md)
+§9). `cargo xtask locale-data` writes `data/matching.txt` (177,718 B: CLDR's
+likely subtags without `und`, 7,310 lines; the paradigm locales; each match
+variable with its value and the regions inside it, a macroregion counted
+when all its contents are; the 378 rules in the data's order) and packs the
+whole of it into `mf2`'s `src/matching/cldr.rs`, the table a server carries.
+`mf2-build` cuts the table to a corpus's languages (`Matching::cut`) and
+generates the cut as the module's `LANGUAGE_MATCHING`, which a native
+application's `CORPUS` and a client-only application's setup carry. The
+extractor checks what the packing rests on (each level's default last, no
+other `*` in the first two levels, every code packable), and the drift test
+holds both files to `third_party/`.
+
 **The `-full` locale files are resolved.** At 48.2.1 every locale's
 `numbers.json` spells out everything it inherits (`en-AU` carries all of
 `en`'s fields); no default-content locale (`en-US`, `ar-001`, …) has its own

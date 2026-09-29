@@ -542,11 +542,15 @@ markup structure), and here also so that the first frame is already in the
 chosen locale.
 
 * **The locale** is the first of: the tag remembered in `localStorage`
-  (`mf2_locale`), each of `navigator.languages`, `navigator.language`, the
-  source locale — each matched by `lookup_locale`, the RFC 4647 lookup
-  `mf2-axum` negotiates `Accept-Language` with (moved into this crate so
-  that the two sides cannot disagree). A remembered tag the build no longer
-  has is ignored. `<html lang dir>` is set before mounting.
+  (`mf2_locale`), the locale that best serves `navigator.languages` and
+  `navigator.language` as one list, the source locale — each through the one
+  matcher `mf2-axum` negotiates `Accept-Language` with
+  ([19](19-native-and-terminal.md) §9; `lookup_locale`, moved into this
+  crate so that the two sides cannot disagree). The client matches with the
+  build's cut of CLDR's table when its setup carries it
+  (`Setup::with_language_matching`; Phase 10 C3), else with no data. A
+  remembered tag the build no longer has is ignored. `<html lang dir>` is
+  set before mounting.
 * **The catalog's URL** comes from `i18n/index.json`, `{"<tag>": "<file>"}`
   with each file relative to the index, which `index.html` preloads
   (`<link rel=preload as=fetch crossorigin data-mf2-index href=…>`; without

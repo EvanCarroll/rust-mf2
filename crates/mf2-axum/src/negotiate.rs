@@ -336,15 +336,18 @@ impl Negotiator {
         for source in &self.sources {
             candidates.clear();
             source.candidates(parts, &mut candidates);
-            for candidate in &candidates {
-                if let Some((tag, dir)) = lookup(candidate, self.locales) {
-                    return Negotiated {
-                        tag,
-                        dir,
-                        from: source.name(),
-                        matched: true,
-                    };
-                }
+            // A source's candidates are one reader's list, best first: the
+            // one matcher weighs them together (a later entry demoted), as
+            // UTS #35 Part 1 matches a list.
+            if let Some((tag, dir)) =
+                leptos_mf2::best_locale(candidates.iter().map(AsRef::as_ref), self.locales)
+            {
+                return Negotiated {
+                    tag,
+                    dir,
+                    from: source.name(),
+                    matched: true,
+                };
             }
         }
         Negotiated {
@@ -411,7 +414,8 @@ impl Default for Negotiator {
     }
 }
 
-/// The one matcher, shared with a client-only application's boot.
+/// The one matcher (plans/19-native-and-terminal.md §9), shared with a
+/// client-only application's boot: the locale that best serves one tag.
 pub(crate) fn lookup(
     candidate: &str,
     locales: &[(&'static str, Dir)],
@@ -443,13 +447,35 @@ mod tests {
     }
 
     #[test]
-    fn lookup_truncates_then_falls_back_to_the_language() {
+    fn lookup_finds_the_closest_language_by_cldr() {
         assert_eq!(lookup("en", LOCALES).map(|l| l.0), Some("en"));
+        // Another region of English: 5 (`en-*-*`).
         assert_eq!(lookup("EN-GB", LOCALES).map(|l| l.0), Some("en"));
-        // `fr` is not in the list, but `fr-CA` is.
+        // `fr` is not in the list, but `fr-CA` is: 4 (`*-*-*`).
         assert_eq!(lookup("fr", LOCALES).map(|l| l.0), Some("fr-CA"));
         assert_eq!(lookup("de", LOCALES), None);
         assert_eq!(lookup("*", LOCALES), None);
+    }
+
+    #[test]
+    fn a_source_list_is_matched_as_one_list() {
+        let negotiator = Negotiator::over(
+            &[("de", Dir::Ltr), ("fr", Dir::Ltr), ("zh", Dir::Ltr)],
+            "de",
+        )
+        .source(AcceptLanguage);
+        let pick = |header: &str| {
+            negotiator
+                .negotiate(&parts(&[("accept-language", header)], "/"))
+                .tag
+        };
+        // UTS #35 Part 1's demotion example: a regional variant of the first
+        // language (4) beats an exact second one (5).
+        assert_eq!(pick("de-AT, fr;q=0.9"), "de");
+        // Traditional Chinese is not served Simplified (question 15), but
+        // the list's plain `zh` is: 5.
+        assert_eq!(pick("zh-TW, zh;q=0.9"), "zh");
+        assert_eq!(pick("zh-TW, fr;q=0.5"), "fr");
     }
 
     #[test]

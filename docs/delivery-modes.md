@@ -296,9 +296,15 @@ A client-only application has no server. The browser does everything,
 and any static file host can serve the site. Three things are different:
 
 * **The language comes from the browser**: the one the reader chose last
-  time (kept in `localStorage`), else the first of `navigator.languages`
-  that the build has (`fr-CA` finds `fr`), else the source language. A
-  switch is live, and is remembered.
+  time (kept in `localStorage`), else the one that best serves
+  `navigator.languages` (`fr-CA` finds `fr`), chosen as a server chooses
+  from `Accept-Language`, else the source language. A switch is live, and
+  is remembered. To choose as a server does, by CLDR's language-matching
+  data, the page needs the part of that data its languages need, which the
+  build generates: a client-only translation crate's `setup()` adds
+  `.with_language_matching(&LANGUAGE_MATCHING)` after `Setup::new(…)`.
+  Without it the page finds only a locale of the reader's own language
+  (`fr-CA` still finds `fr`).
 * **The catalogs are published beside the wasm**, by `mf2 compile --site`.
   There is no server to embed them in. The translation crate generates only
   the module (`Emit::Module`), so the wasm names no catalog file.

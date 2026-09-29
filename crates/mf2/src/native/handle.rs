@@ -45,8 +45,8 @@ impl fmt::Debug for NativeI18n {
 
 impl NativeI18n {
     /// Loads the catalogs the build embedded (`mf2_build::Emit::Native`)
-    /// and selects the first of the system's preferred locales the corpus
-    /// supports, else its source locale.
+    /// and selects the locale that best serves the system's preferred
+    /// locales, else its source locale.
     ///
     /// Nothing is copied: each catalog reads the executable's own bytes.
     pub fn embedded(corpus: &'static Corpus) -> Result<Self, Error> {
@@ -113,10 +113,11 @@ impl NativeI18n {
         self.catalogs.corpus().locales().iter().map(|(tag, _)| *tag)
     }
 
-    /// Makes `locale` the active locale: the supported locale it matches
-    /// (case-insensitive, `_` read as `-`, `fr-CA` falling back to `fr`).
-    /// An unsupported locale is an error and leaves the active one as it
-    /// was, so a mistyped `--lang` is reported, not ignored.
+    /// Makes the supported locale that best serves `locale` the active
+    /// locale, by CLDR's language-matching data (`fr_CA.UTF-8` finds `fr`,
+    /// `zh-Hant-TW` finds `zh-TW`). A locale nothing serves is an error and
+    /// leaves the active one as it was, so a mistyped `--lang` is reported,
+    /// not ignored.
     pub fn set_locale(&mut self, locale: &str) -> Result<(), Error> {
         self.active = self
             .catalogs
