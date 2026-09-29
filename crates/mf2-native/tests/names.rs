@@ -1,5 +1,4 @@
-//! 1.x's names and paths, as the shim keeps them: each is `mf2`'s own item,
-//! 1.x's `LocaleSource` among them under its old name.
+//! 1.x's names and paths, as the shim keeps them: each is `mf2`'s own item.
 
 use core::any::TypeId;
 
@@ -16,7 +15,7 @@ fn same<A: ?Sized + 'static, B: ?Sized + 'static>() -> bool {
 fn each_1x_name_is_the_item_mf2_defines() {
     assert!(same::<NativeI18n, mf2::native::NativeI18n>());
     assert!(same::<NativeError, mf2::native::NativeError>());
-    assert!(same::<LocaleSource, mf2::native::LocaleOrigin>());
+    assert!(same::<LocaleSource, mf2::native::LocaleSource>());
     assert!(same::<BidiStrategy, mf2::BidiStrategy>());
     assert!(same::<Corpus, mf2::Corpus>());
     assert!(same::<Dir, mf2::Dir>());

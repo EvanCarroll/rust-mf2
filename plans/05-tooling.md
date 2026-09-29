@@ -1315,10 +1315,12 @@ moved twice). Since B2 it carries the native module too.
   over the generated `Corpus` (catalogs embedded and read in place, or
   files beside the executable checked against the content hash in their
   names), the system's preferred languages and time zone, `NativeError`,
-  and `LocaleOrigin` (1.x's `LocaleSource`, renamed because `mf2::axum`'s
-  trait of that name joins the crate). Never in a browser build: with
-  `hydrate` or `csr` it is a `compile_error!`. `mf2-native` is a shim that
-  re-exports it under 1.x's names ([19](19-native-and-terminal.md) §3–§5).
+  and `LocaleSource`, which keeps its 1.x name beside `mf2::axum`'s trait
+  of that name: items in different modules keep their names
+  ([18](18-phase-10-work-order.md) question 23). Never in a browser build:
+  with `hydrate` or `csr` it is a `compile_error!`. `mf2-native` is a shim
+  that re-exports it under 1.x's names ([19](19-native-and-terminal.md)
+  §3–§5).
 * **The runtime's API**, re-exported: the formatter, the sinks, the
   function traits and the default functions; `fn_number` and `fn_datetime`
   with their features, and the hosts (`host-std`, `host-web`).

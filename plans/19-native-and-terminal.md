@@ -1090,7 +1090,7 @@ library that only returns descriptions needs no mode. One that formats turns on
 | Module | What an application names | Mode |
 |---|---|---|
 | `mf2` (root) | the types above; `IntoArg`; `Message`; `UnknownLocale` (the error of `Locale::from_str`); `Dir`; `include_generated!`; `compile_str` (`compile`); the runtime's formatter, sinks and function traits, as in 1.x | always |
-| `mf2::native` | `Catalogs` (1.x's `NativeI18n`, explicit, with no globals); `Error`; `set_bidi` / `bidi`; `set_time_zone` / `time_zone`; `locale_source` and what it returns, `LocaleOrigin` (1.x's `LocaleSource`; §16) | `native` |
+| `mf2::native` | `Catalogs` (1.x's `NativeI18n`, explicit, with no globals); `Error`; `set_bidi` / `bidi`; `set_time_zone` / `time_zone`; `locale_source` and what it returns, `LocaleSource` (1.x's name, beside `mf2::axum`'s trait; §16) | `native` |
 | `mf2::ratatui` | `Theme`, `Markup`; `set_theme`, `with_theme`, `theme` | `ratatui` |
 | `mf2::leptos` | the six components and their props; `html_lang`; `islands_gate!`; `Setup`, `LoadError`, `track_locale`; the boots `hydrate_body`, `hydrate_lazy`, `hydrate_islands` (`hydrate`) and `mount_to_body` (`csr`); `RequestI18n` (`ssr`) | a Leptos mode |
 | `mf2::axum` | `Negotiator` (a tower layer), `Negotiated`, the source and sink traits and their four built-in sources, `catalog_routes`, `path_prefix_redirect`, `negotiated` | `axum` |

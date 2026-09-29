@@ -5,13 +5,9 @@ use mf2_catalog::Dir;
 
 /// Where the active locale came from, as
 /// [`NativeI18n::locale_source`](super::NativeI18n::locale_source) says.
-///
-/// 1.x's `mf2_native::LocaleSource`, which the `mf2-native` crate still
-/// names so. Here it has a name of its own: in the Axum integration, a
-/// `LocaleSource` is where a request's locale can come from.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[non_exhaustive]
-pub enum LocaleOrigin {
+pub enum LocaleSource {
     /// The application chose it with
     /// [`NativeI18n::set_locale`](super::NativeI18n::set_locale).
     Explicit,

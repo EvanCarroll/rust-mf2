@@ -37,7 +37,7 @@ use crate::{CatalogFile, Corpus, Message};
 mod locale;
 
 pub use crate::error::NativeError;
-pub use locale::LocaleOrigin;
+pub use locale::LocaleSource;
 
 use locale::{match_locale, negotiate};
 
@@ -52,7 +52,7 @@ pub struct NativeI18n {
     catalogs: Vec<Catalog>,
     cx: FormatContext,
     active: usize,
-    source: LocaleOrigin,
+    source: LocaleSource,
 }
 
 /// The active locale, where it came from, the catalogs and the formatting
@@ -141,8 +141,8 @@ impl NativeI18n {
         }
         let system = sys_locale::get_locales().collect::<Vec<_>>();
         let (tag, source) = match negotiate(system.iter().map(String::as_str), corpus.locales()) {
-            Some(tag) => (tag, LocaleOrigin::System),
-            None => (corpus.source_locale(), LocaleOrigin::Source),
+            Some(tag) => (tag, LocaleSource::System),
+            None => (corpus.source_locale(), LocaleSource::Source),
         };
         let active = corpus
             .locales()
@@ -173,7 +173,7 @@ impl NativeI18n {
     /// Where the active locale came from — to tell a user that their system
     /// language is not supported, say.
     #[must_use]
-    pub const fn locale_source(&self) -> LocaleOrigin {
+    pub const fn locale_source(&self) -> LocaleSource {
         self.source
     }
 
@@ -207,7 +207,7 @@ impl NativeI18n {
             .and_then(|tag| self.corpus.locales().iter().position(|(t, _)| *t == tag))
             .ok_or_else(|| NativeError::UnknownLocale(locale.to_owned()))?;
         self.active = active;
-        self.source = LocaleOrigin::Explicit;
+        self.source = LocaleSource::Explicit;
         Ok(())
     }
 

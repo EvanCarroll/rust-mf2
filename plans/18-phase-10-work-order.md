@@ -138,7 +138,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **B2** (`90c8b2a`, whose three renames went in one commit early, with `46303b9`; the scripts in
   `probes/p10-b2/`, their outputs in the measurement worktree's `target/p10-b2/`): `mf2-native`'s
   code is `mf2::native`, behind `native` (which implies `host-std`, and beside `hydrate` or `csr`
-  is a `compile_error!`); `LocaleSource` is **`LocaleOrigin`**, a name for the owner to confirm;
+  is a `compile_error!`); `LocaleSource` keeps 1.x's name (B2's `LocaleOrigin` undone by B1's
+  review fixes, question 23);
   `NativeI18n` and `NativeError` keep 1.x's names for C2; `mf2-native` a shim with 1.x's names;
   the tests in `crates/mf2/tests/native.rs`. **Every web artifact byte-identical** (B1 26,344 B gz,
   B5 8.334 B a site, B7's catalogs, the three demos' wasm, `b5 --view`), B12 clean; `ci` (with
@@ -269,8 +270,8 @@ the owner's review, which approved them (question 17).
   `plans/17-phase-9-work-order.md` (C3's text half).
 - From A8 (19 §16):
   - ~~B2 / D1: `mf2::native::LocaleSource` (an enum) and `mf2::axum::LocaleSource` (a trait) now
-    share one crate. B2 renames the native one.~~ **Done by B2:** `mf2::native::LocaleOrigin`, for
-    the owner to confirm.
+    share one crate. B2 renames the native one.~~ **Settled by question 23:** no clash, no rename;
+    B2's `LocaleOrigin` is undone by B1's review fixes.
   - C4: the generated names (`install`, `Locale`, `markup`, …) can collide with an application's
     own root items (E0428). A way to rename them waits until an application needs one.
   - C5: collecting descriptions into a `Line` flattens their markup (Ratatui's blanket goes
@@ -3047,17 +3048,16 @@ code's own cost, over a base that already formats text, so the row holds.
   * **Names.** `NativeI18n` and `NativeError` keep 1.x's names. 19 §4's
     `Catalogs` is `NativeI18n` reshaped (`format(locale, &message)`, no
     active locale), and its `Error` is what C2's `install_from_directory`
-    returns, so C2 names both as it builds that API. **`LocaleSource` is
-    `LocaleOrigin`** (19 §16), with its three variants; `locale_source()`
-    keeps its name, as 19 §4 and §5 write it. 19 names none, so the name
-    is the owner's to confirm. Chosen because the enum says where the
-    active locale came from, as its documentation always read. The other
-    candidates: `LocaleChoice`, or `LocaleSourceKind`, which keeps the
-    function's word.
+    returns, so C2 names both as it builds that API. `LocaleSource` was
+    renamed `LocaleOrigin` here, since 19 §16 then counted it a clash
+    with `mf2::axum::LocaleSource`; the owner answered that items in
+    different modules keep their names (question 23), and B1's review
+    fixes undid the rename: **`mf2::native::LocaleSource`**, 1.x's name,
+    with its three variants, and `locale_source()`.
   * **`Debug`** (19 §6): `NativeI18n` has one, written by hand: the active
     locale, where it came from, the catalogs (each `Catalog`'s own: locale,
     messages, bytes) and the formatting context. A derived one would print
-    the corpus's embedded bytes. `NativeError` and `LocaleOrigin` derive
+    the corpus's embedded bytes. `NativeError` and `LocaleSource` derive
     it, as in 1.x.
 * **The `native` feature.** It implies `host-std`, and turns on
   `sys-locale`, jiff's `std` and `tz-system`, and `mf2-catalog`'s
@@ -3076,7 +3076,7 @@ code's own cost, over a base that already formats text, so the row holds.
   `native` beside `ssr`.
 * **What the shim keeps working.** `mf2-native` depends on `mf2` with
   `native` and re-exports, under 1.x's names and paths, `NativeI18n`,
-  `NativeError`, `LocaleSource` (= `mf2::native::LocaleOrigin`), and
+  `NativeError`, `LocaleSource`, and
   `BidiStrategy`, `Corpus`, `Dir`, `Message`, `TimeZone`. It has no
   features, as 1.x's had none, so its paths do not depend on how an
   application names features: the gap the review of B1 found in
