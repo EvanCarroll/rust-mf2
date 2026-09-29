@@ -100,7 +100,7 @@ fn five_arguments_spill_to_the_heap_and_stay_in_order() {
 
 #[test]
 fn a_source_is_read_once_per_format_and_at_format_time() {
-    /// What `leptos-mf2` does with a signal: read it when the formatter
+    /// What the Leptos layer does with a signal: read it when the formatter
     /// asks, which is inside the reactive context that is rendering.
     struct Counter(AtomicU32);
 
@@ -230,7 +230,7 @@ fn an_application_value_reaches_a_function_as_its_measure() {
 
 #[test]
 fn a_rich_call_site_finds_its_handler_by_the_name_the_catalog_gives() {
-    /// A handler stands in for `leptos-mf2`'s: the core only carries it.
+    /// A handler stands in for the Leptos layer's: the core only carries it.
     struct Element(&'static str);
 
     impl MarkupHandler for Element {

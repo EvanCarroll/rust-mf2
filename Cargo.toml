@@ -17,6 +17,8 @@ members = [
     "crates/mf2-host-web",
     "crates/mf2-macros",
     "crates/leptos-mf2",
+    "crates/mf2-leptos-ui-0-9",
+    "crates/mf2-leptos-ui-0-8",
     "crates/mf2-axum",
     "crates/mf2",
     "xtask",
@@ -97,6 +99,10 @@ mf2-host-std = { path = "crates/mf2-host-std", version = "=1.1.0" }
 mf2-native = { path = "crates/mf2-native", version = "=1.1.0" }
 mf2-ratatui = { path = "crates/mf2-ratatui", version = "=1.1.0" }
 mf2-host-web = { path = "crates/mf2-host-web", version = "=1.1.0" }
+# The six Leptos components, one helper crate per Leptos line, which `mf2`
+# re-exports (owner question 13 of Phase 10).
+mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=1.1.0" }
+mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=1.1.0" }
 mf2-locale-data = { path = "crates/mf2-locale-data", version = "=1.1.0" }
 mf2-macros = { path = "crates/mf2-macros", version = "=1.1.0" }
 mf2-model = { path = "crates/mf2-model", version = "=1.1.0" }
@@ -173,14 +179,16 @@ ryu = "1.0.23"
 # mf2-host-web: the browser's normalize() and String(x); no_std (no `std`,
 # no `unsafe-eval`).
 js-sys = { version = "0.3.105", default-features = false }
-# leptos-mf2 (`plans/04-leptos-integration.md` §10): Leptos 0.9, the default
-# line, beta or not (D10); a requirement on a pre-release admits every later
-# one and the release, so a new 0.9 is taken by an ordinary `cargo update`.
-# `tachys` and `reactive_graph` are named directly — the glue module is
-# written against tachys — and unify with the ones `leptos` pulls in.
+# Leptos 0.9 (`plans/04-leptos-integration.md` §10), the default line, beta
+# or not (D10); a requirement on a pre-release admits every later one and the
+# release, so a new 0.9 is taken by an ordinary `cargo update`. Under its own
+# name for the crates that name it so: the 0.9 helper crate, whose `view!`
+# and `#[component]` expand to `::leptos`, the conformance harness and
+# mf2-axum. `mf2` names it `leptos_0_9` (below). `tachys` is named directly —
+# the glue is written against it — and unifies with the one `leptos` pulls
+# in.
 leptos = { version = "0.9.0-beta", default-features = false }
 tachys = { version = "0.3.0-beta", default-features = false }
-reactive_graph = { version = "0.3.0-beta", default-features = false }
 oco_ref = "0.2.1"
 any_spawner = "0.3.0"
 # mf2-axum: the server. `leptos_axum` provides the request's `Parts` and a
@@ -189,13 +197,22 @@ axum = { version = "0.8.9", default-features = false }
 http = "1.5.0"
 leptos_axum = "0.9.0-beta"
 # The Leptos 0.8 line, an opt-in (04 §10): the same crates under the names
-# the `leptos-0-8` features of leptos-mf2, mf2-axum and the conformance
-# harness turn on, in place of the 0.9 ones above. A crate's root renames
-# them back (`extern crate leptos_0_8 as leptos`), so one source serves both.
+# the `leptos-0-8` features of mf2, mf2-axum and the conformance harness turn
+# on, in place of the 0.9 ones above. `mf2` reaches both lines under these
+# names through a private alias module, since its module `leptos` takes
+# that name at its root; mf2-axum, the conformance harness and the 0.8
+# helper crate rename the 0.8 line back (`extern crate leptos_0_8 as
+# leptos`), so one source serves both.
 leptos_0_8 = { package = "leptos", version = "0.8.20", default-features = false }
 tachys_0_2 = { package = "tachys", version = "0.2.18", default-features = false }
 reactive_graph_0_2 = { package = "reactive_graph", version = "0.2.14", default-features = false }
 leptos_axum_0_8 = { package = "leptos_axum", version = "0.8.10" }
+# The 0.9 line under names of its own too, for `mf2` (Phase 10 A7): its
+# module `mf2::leptos` takes the name `leptos`, so no crate of that name is
+# in its scope.
+leptos_0_9 = { package = "leptos", version = "0.9.0-beta", default-features = false }
+tachys_0_3 = { package = "tachys", version = "0.3.0-beta", default-features = false }
+reactive_graph_0_3 = { package = "reactive_graph", version = "0.3.0-beta", default-features = false }
 wasm-bindgen-futures = "0.4.78"
 # The client half: the hydration cursor's nodes, the catalog fetch, one
 # console diagnostic. No `#[wasm_bindgen]` item of ours, so
@@ -268,7 +285,7 @@ missing_panics_doc = "allow"
 similar_names = "allow"
 too_many_lines = "allow"
 # Client-path crates (mf2-catalog reader, mf2-runtime, mf2-fn-*, mf2-host-web,
-# leptos-mf2) additionally deny, in their own lib.rs: clippy::unwrap_used,
+# mf2, mf2-leptos-ui-*) additionally deny, in their own lib.rs: clippy::unwrap_used,
 # clippy::expect_used, clippy::indexing_slicing, clippy::panic, and forbid the
 # fmt machinery on the client path (plans/06-size-and-perf.md, B12).
 

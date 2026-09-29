@@ -95,54 +95,74 @@ dependency on ours.
 No closure, no `String`, no `Signal`, no `HashMap`, no id string and no argument
 or markup name is emitted at the call site.
 
-### 2.1 The Leptos-free core (`mf2`), and its two extension points
+### 2.1 The call-site types in `mf2`, the Leptos layer as `mf2::leptos`, and the two extension points
 
-> **Superseded for 2.0** (owner, 2026-09-28; master plan D16, D20). The types
-> return to `mf2`, where every integration that needs a foreign trait on them
-> lives behind a feature: the Leptos layer as `mf2::leptos`, Ratatui and
-> `Display`. The six built-in components move to one helper crate per Leptos
-> line. This section describes 1.x, and it is rewritten when
-> [18](18-phase-10-work-order.md) B1 lands. The 2.0 design is §12 and
-> [19](19-native-and-terminal.md) §3–§4.
+**Where these types live** (2.0: owner, 2026-09-28, master plan D16 and
+D20; built by Phase 10's B1, [18](18-phase-10-work-order.md)). `Tr`,
+`TrArgs`, `TrRich`, `TrDyn`, `ArgValue`, `ArgList`, `ArgSource`,
+`DateTimeValue`, `Text` and the markup traits are **defined once, in
+`mf2`**, with only additive impls behind features — the one arrangement
+that survives cargo's feature unification
+([phase-6-results](phase-6-results.md), "A hazard found the hard way"). A
+build with no mode compiles no Leptos code: the types format against a
+catalog the caller supplies, so a server, a test, `mf2-cli` and a native
+application use them as they are ([19](19-native-and-terminal.md) §4).
 
-**Where these types live** (owner, 2026-09-23; Phase 5b's owner question 1,
-[13](13-phase-5b-work-order.md)). `Tr`, `TrArgs`, `TrRich` and `ArgValue` are
-a **Leptos-free core in the facade** — `mf2::Tr`, `mf2::TrArgs`,
-`mf2::ArgValue` — formatting against a catalog the caller supplies, so a
-server, a test and `mf2-cli` can use them with no Leptos in the tree. L5
-needs them in Phase 5b, before `leptos-mf2` exists.
+**Where their Leptos impls live.** The orphan rule decides it: `impl Render
+for Tr` needs the trait or the type to belong to the implementing crate,
+`Render` is tachys', so the impl is in the crate that defines `Tr`. The same
+holds for `AttributeValue`, `IntoProperty`, `From<Tr> for TextProp` and
+`From<Signal<T>> for ArgValue`. They are the Leptos layer, the module
+`mf2::leptos` (`crates/mf2/src/leptos/`), compiled with a mode (`ssr`,
+`hydrate`, `csr`) and a line (`leptos` for 0.9, `leptos-0-8`); §12.1 has the
+features. Inside `mf2` each line is a dependency under a name of its own
+(`leptos_0_9`, `tachys_0_3`, …, `leptos_0_8`, …), reached through a private
+alias module (`crate::line`): the module `leptos` has that name at the
+crate root, so no crate is bound to it there (Phase 10 A7).
 
-`leptos-mf2` (Phase 6) then *adds* rendering, the catalog context and the
-reactive argument; it does **not** re-declare `ArgValue`. `Reactive` is
-therefore not a variant of the core enum.
+**The six components** (the switcher, its options, the preload and catalog
+links, `hreflang`, the islands gate) are written with `view!` and
+`#[component]`, which write `::leptos` into the crate that uses them. They
+live in one helper crate per line, `mf2-leptos-ui-0-9` and
+`mf2-leptos-ui-0-8`, each compiling the same `src/ui.rs` (the 0.8 crate's is
+a link to the 0.9 crate's) against its line under the name `leptos`. The
+helpers cannot depend on `mf2` (Cargo forbids the cycle), so each component
+is generic over the helper's `Layer` trait — what it reads from `mf2`: the
+languages, the page's own, the preload and link URLs, the client's switch —
+and `mf2` implements it for a type of its own (`mf2::leptos::components::Mf2`,
+hidden) and wraps each component in a function that takes the helper's
+props with that type chosen, so `view!` builds it as any component. The
+calls resolve when the component is compiled: nothing is installed at
+start-up and nothing goes through a function pointer (B1 measured this
+against A7's function table: [18](18-phase-10-work-order.md), B1's record).
 
-**Which crate declares them** (Phase 6 A1, 2026-09-23). The contract above
-is unchanged — `mf2::Tr`, `mf2::TrArgs`, `mf2::ArgValue` are these types,
-an application names one crate, and a build without the `leptos` feature
-compiles no Leptos code at all. What moved is the `mod`: the types are
-**declared in `leptos-mf2` and re-exported by `mf2`**, because Rust's
-orphan rule leaves no alternative. `impl Render for Tr` needs either the
-trait or the type to belong to the implementing crate; `Render` is tachys'.
-The same holds for `AttributeValue`, `IntoProperty`, `From<Tr> for
-TextProp` and `From<Signal<T>> for ArgValue`. Splitting a type from its
-rendering is not expressible in Rust; splitting them by *feature* is, and
-that is what `leptos-mf2`'s `leptos` feature does — off, it is the
-Leptos-free core, with no `leptos`, `tachys` or `reactive_graph` in the
-tree. Phase 5b's arrangement (the core in the facade) was correct while
-`leptos-mf2` did not exist; this is the same core, in the crate that must
-own it.
+**`leptos-mf2`** is a shim: it depends on `mf2`, forwards its features
+(`leptos-0-9`, its default, to `mf2`'s `leptos`; `leptos-0-8`; the modes;
+`static-locale`, `mark-fallback-lang`, `fn-datetime`), and re-exports
+every item under 1.x's path. `mf2::leptos_mf2` (hidden) is 1.x's path
+through the facade, which the examples, the book and `mf2 init` name until
+they move to `mf2::leptos`.
+
+**1.x, for the record.** Phase 5b put the core in the facade; Phase 6 moved
+its declaration into `leptos-mf2`, re-exported by `mf2`, because the orphan
+rule kept the types with their `Render` impl and Leptos had to be an
+optional part of that crate (a `leptos` feature, off in the core). 2.0
+reverses the arrow: `mf2` owns the types and the layer, and `leptos-mf2`
+depends on it.
 
 The two extension points, as built:
 
-* **`markup(h)`** is one name with two definitions, chosen by the feature,
-  so that the macro's expansion never changes. Without `leptos` it takes
-  `H: MarkupHandler + 'static`, as Phase 5b's core did. With it, it takes
-  `IntoMarkupHandler`: a **nesting** closure `Fn(AnyView) -> impl IntoAny`
-  (the common case — `|c| view! { <kbd>{c}</kbd> }` infers with no
-  annotation), a `Flat` closure over `&MarkupPart` (§7; what L6 compares
-  against `expParts`), or an `Arc<dyn MarkupHandler>` already built. Both
-  erase to one of two concrete handler types, so the renderer downcasts to
-  a type it knows rather than to the call site's closure.
+* **`markup(h)`** is one name whose accepted forms the mode chooses, so
+  that the macro's expansion never changes. Without a mode it takes
+  `IntoMarkupHandler`'s core forms: `Handler(h)` over a
+  `MarkupHandler + 'static` the caller wrote (Phase 5b's core took it
+  bare), or an `Arc<dyn MarkupHandler>` already built. With one it also
+  takes a **nesting** closure `Fn(AnyView) -> impl IntoAny` (the common
+  case — `|c| view! { <kbd>{c}</kbd> }` infers with no annotation) and a
+  `Flat` closure over `&MarkupPart` (§7; what L6 compares against
+  `expParts`). Both erase to one of two concrete handler types, so the
+  renderer downcasts to a type it knows rather than to the call site's
+  closure.
 * **`From<Signal<T>> for ArgValue`** for each of `reactive_graph`'s
   readable signals — `Signal`, `ReadSignal`, `RwSignal`, `Memo` and their
   `Arc` forms — through one `SignalArg<S>`: one instance per signal type,
@@ -173,8 +193,8 @@ pub trait MarkupHandler: Send + Sync {      // TrRich's handlers
 }
 ```
 
-`leptos-mf2`'s `impl From<Signal<T>> for ArgValue` wraps the signal in its own
-`ArgSource`. One `ArgValue` across both crates, and the core resolves a
+The Leptos layer's `impl From<Signal<T>> for ArgValue` wraps the signal in its own
+`ArgSource`. One `ArgValue` whatever the mode, and the core resolves a
 `Source` the same way wherever it formats — bounded, so a source that returns
 a source cannot loop; it resolves to `Unset`, which is an Unresolved
 Variable.
@@ -182,7 +202,7 @@ Variable.
 Markup handlers go through `markup(h)`, which the expansion names and which
 therefore has to exist in both phases: Phase 5b's core takes anything that
 already implements `MarkupHandler`, and Phase 6 supplies the one that takes a
-view closure (a blanket impl for closures is impossible — `leptos-mf2` cannot
+view closure (a blanket impl for closures was impossible while `leptos-mf2` held the layer apart from the core — it could not
 implement a foreign trait for a bare `F`). The **expansion does not change**
 between the two, which is the point of fixing it here.
 
@@ -204,7 +224,7 @@ time — the runtime never sees a signal:
 `Text` is `Static(&'static str) | Shared(Arc<str>)`: `&'static str` costs
 nothing, everything else is counted so that cloning a description — which a
 re-format does on every locale change — never copies text. (`Oco` is Leptos',
-so the core cannot use it; `leptos-mf2` converts, `Counted` to `Shared`,
+so the core cannot use it; the Leptos layer converts, `Counted` to `Shared`,
 without copying.)
 
 Formatting is the same three methods on each of the three types, taking the
@@ -795,9 +815,11 @@ and its UX target is 19 §2.
   - `::axum` is written at the crate root;
   - there is no root rename.
 
-  The helper crates reach `mf2` through the function table the components
-  install (A7's v3), or through static dispatch if that holds the demos' size
-  gate (B1).
+  The helper crates reach `mf2` through static dispatch: each component is
+  generic over the helper's `Layer` trait, and `mf2` implements it (§2.1).
+  B1 measured it against the function table the components would install
+  (A7's v3) in the three demos and kept it, the cheaper in each and the one
+  within the gate ([18](18-phase-10-work-order.md), B1's record).
 - **Applications** import items from `mf2::leptos`, and never `use
   mf2::leptos;` beside the `leptos` crate (A7, N5).
 
@@ -922,7 +944,7 @@ that neither is linked (D6).
 
 ### 12.7 What becomes of §2–§10
 
-- **§2.1:** the types return to `mf2`. B1 rewrites the section.
+- **§2.1:** the types return to `mf2`; rewritten by B1.
 - **§3, §4, §7, §8 and §9:** unchanged in substance.
 - **§5:** the storage is unchanged. The lookup order is 19 §5's: the request or
   the page first, then the native store where `native` is also on.

@@ -2,19 +2,22 @@
 //! (`plans/16-phase-8-work-order.md` A0; `plans/04-leptos-integration.md`
 //! §10).
 //!
-//! Leptos 0.9 is the default line; 0.8 is `default-features = false,
-//! features = ["leptos-0-8"]` on `leptos-mf2` and `mf2-axum`, which then
+//! Leptos 0.9 is the default line: `mf2`'s `leptos` feature. 0.8 is `mf2`'s
+//! `leptos-0-8` — and, through the 1.x shims, `default-features = false,
+//! features = ["leptos-0-8"]` on `leptos-mf2` and `mf2-axum` — which then
 //! depend on the 0.8 crates under renamed names. Both lines are in the one
 //! lock file, so this runs in the working tree.
 //!
-//! 1. **Both lines at once is an error that says what to write:** `leptos-0-8`
-//!    beside the default features must fail, naming `default-features =
-//!    false`.
-//! 2. **On 0.8:** `leptos-mf2` linted for `ssr` natively (every target, with
-//!    `mark-fallback-lang`) and for `hydrate` (also with `fn-datetime`) and
-//!    `csr` on `wasm32-unknown-unknown`; its `render`, `time_zone`, `churn`
-//!    and `fallback_lang` tests; `mf2-axum`'s tests; and conformance layer L6 (the `layers` and
-//!    `l6` tests of `mf2-conformance`).
+//! 1. **Both lines at once is an error that says what to write:** `mf2`'s
+//!    `leptos` beside `leptos-0-8` must fail, naming both; and `leptos-0-8`
+//!    beside the `leptos-mf2` shim's default features must fail, naming
+//!    `default-features = false`.
+//! 2. **On 0.8:** `mf2`'s Leptos layer (and its 0.8 helper crate) linted for
+//!    `ssr` natively (every target, with `mark-fallback-lang`) and for
+//!    `hydrate` (also with `fn-datetime`) and `csr` on
+//!    `wasm32-unknown-unknown`; its `render`, `time_zone`, `churn` and
+//!    `fallback_lang` tests; `mf2-axum`'s tests; and conformance layer L6
+//!    (the `layers` and `l6` tests of `mf2-conformance`).
 //!
 //! `--negative-control` runs step 2 on a copy of the tracked tree (under
 //! `target/leptos-0-8/tree`) whose glue gives the two `to_html_with_buf`
@@ -29,11 +32,14 @@ use crate::cmd::{cargo, run_capture, run_inherit_env};
 use crate::error::{Error, Result};
 use crate::fsx;
 
-/// What the error for both lines at once must say.
-const BOTH: &str = "`default-features = false` beside `features = [\"leptos-0-8\"]`";
+/// What the error for both lines at once must say, on `mf2` itself.
+const BOTH: &str = "both Leptos lines are on, `leptos` (Leptos 0.9) and `leptos-0-8`";
+
+/// …and what it must say to an application on the 1.x shims.
+const BOTH_SHIM: &str = "`default-features = false` beside `features = [\"leptos-0-8\"]`";
 
 /// The glue whose line-switched impls the negative control swaps.
-const GLUE: &str = "crates/leptos-mf2/src/glue/view.rs";
+const GLUE: &str = "crates/mf2/src/leptos/glue/view.rs";
 
 fn fail(message: impl Into<String>) -> Error {
     Error::Leptos08(message.into())
@@ -62,12 +68,12 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
 
     let wasm = "wasm32-unknown-unknown";
     let deny = ["--", "-D", "warnings"];
-    let mf2 = ["-p", "leptos-mf2", "--no-default-features", "--features"];
+    let mf2 = ["-p", "mf2", "--features"];
     let steps: [Vec<&str>; 11] = [
         [
             &["clippy"][..],
             &mf2,
-            &["ssr,leptos-0-8,mark-fallback-lang", "--all-targets"],
+            &["ssr,leptos-0-8,compile,mark-fallback-lang", "--all-targets"],
             &deny,
         ]
         .concat(),
@@ -100,14 +106,24 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
             &deny,
         ]
         .concat(),
-        [&["test"][..], &mf2, &["ssr,leptos-0-8", "--test", "render"]].concat(),
         [
             &["test"][..],
             &mf2,
-            &["ssr,leptos-0-8", "--test", "time_zone"],
+            &["ssr,leptos-0-8,compile", "--test", "render"],
         ]
         .concat(),
-        [&["test"][..], &mf2, &["csr,leptos-0-8", "--test", "churn"]].concat(),
+        [
+            &["test"][..],
+            &mf2,
+            &["ssr,leptos-0-8,compile,fn-datetime", "--test", "time_zone"],
+        ]
+        .concat(),
+        [
+            &["test"][..],
+            &mf2,
+            &["csr,leptos-0-8,compile,host-std", "--test", "churn"],
+        ]
+        .concat(),
         [
             &["test"][..],
             &mf2,
@@ -156,24 +172,33 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
         ));
     }
     eprintln!(
-        "==> leptos-0-8: leptos-mf2 lints for ssr, hydrate and csr and passes render, time_zone, \
-         churn and fallback_lang; mf2-axum's tests and layer L6 pass — all on Leptos 0.8"
+        "==> leptos-0-8: mf2's Leptos layer lints for ssr, hydrate and csr and passes render, \
+         time_zone, churn and fallback_lang; mf2-axum's tests and layer L6 pass — all on Leptos 0.8"
     );
     Ok(())
 }
 
-/// Step 1: `leptos-0-8` with the default `leptos-0-9` still on.
+/// Step 1: both lines at once, on `mf2` itself and through the 1.x shim
+/// whose default is still Leptos 0.9.
 fn refuses_both(root: &Path) -> Result<()> {
+    refuses(
+        root,
+        &["-p", "mf2", "--features", "ssr,leptos,leptos-0-8"],
+        BOTH,
+    )?;
+    refuses(
+        root,
+        &["-p", "leptos-mf2", "--features", "ssr,leptos-0-8"],
+        BOTH_SHIM,
+    )
+}
+
+/// `cargo check ARGS` must fail, and its first error must say `says`.
+fn refuses(root: &Path, args: &[&str], says: &str) -> Result<()> {
     let output = Command::new(cargo())
-        .args([
-            "check",
-            "-p",
-            "leptos-mf2",
-            "--features",
-            "ssr,leptos-0-8",
-            "--color",
-            "never",
-        ])
+        .arg("check")
+        .args(args)
+        .args(["--color", "never"])
         .current_dir(root)
         .output()
         .map_err(|source| Error::Spawn {
@@ -181,10 +206,11 @@ fn refuses_both(root: &Path) -> Result<()> {
             source,
         })?;
     let stderr = String::from_utf8_lossy(&output.stderr);
+    let shown = format!("cargo check {}", args.join(" "));
     if output.status.success() {
-        return Err(fail(
-            "`leptos-0-8` beside the default `leptos-0-9` compiled; it must be a compile error",
-        ));
+        return Err(fail(format!(
+            "`{shown}` compiled; both Leptos lines at once must be a compile error"
+        )));
     }
     // From the first line that starts an error to the blank line ending it.
     let first = stderr
@@ -195,9 +221,9 @@ fn refuses_both(root: &Path) -> Result<()> {
             let rest = &stderr[at..];
             rest.find("\n\n").map_or(rest, |end| &rest[..end])
         });
-    if !first.contains(BOTH) {
+    if !first.contains(says) {
         return Err(fail(format!(
-            "both lines at once fail, but the first error does not say {BOTH:?}:\n{first}"
+            "`{shown}` fails, but its first error does not say {says:?}:\n{first}"
         )));
     }
     eprintln!("{first}");
@@ -208,8 +234,8 @@ fn refuses_both(root: &Path) -> Result<()> {
 /// impl negated, so that `leptos-0-8` compiles the 0.9 form. Fails if there
 /// are not exactly the two pairs the glue is known to have.
 fn swap_glue(path: &Path) -> Result<()> {
-    const OLD: &str = "#[cfg(feature = \"leptos-0-8\")]";
-    const NEW: &str = "#[cfg(not(feature = \"leptos-0-8\"))]";
+    const OLD: &str = "#[cfg(all(feature = \"leptos-0-8\", not(feature = \"leptos\")))]";
+    const NEW: &str = "#[cfg(not(all(feature = \"leptos-0-8\", not(feature = \"leptos\"))))]";
     let text = fsx::read_to_string(path)?;
     let lines: Vec<&str> = text.split_inclusive('\n').collect();
     let mut out = String::with_capacity(text.len());

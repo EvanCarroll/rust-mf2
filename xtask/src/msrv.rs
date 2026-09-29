@@ -1,7 +1,7 @@
-//! `cargo xtask msrv`: the 18 published crates built on the oldest Rust they
+//! `cargo xtask msrv`: the 20 published crates built on the oldest Rust they
 //! claim (`plans/17-phase-9-work-order.md` A3; `docs/versioning.md`).
 //!
-//! The MSRV is `rust-version` in `[workspace.package]`, which the 18 inherit
+//! The MSRV is `rust-version` in `[workspace.package]`, which the 20 inherit
 //! (A1's metadata test holds them to it). It was measured, not assumed:
 //! Rust 1.88, since Leptos 0.9.0-beta, its 0.8 line and several of their
 //! dependencies declare 1.88, and our own code uses `let` chains and
@@ -13,10 +13,11 @@
 //! need a newer Rust — into `target/msrv/<toolchain>`, against the working
 //! tree's lock file:
 //!
-//! 1. natively on Leptos 0.9, all 18 with every feature an application can
+//! 1. natively on Leptos 0.9, all 20 with every feature an application can
 //!    turn on at once for its server (`ssr`, both function crates with the
 //!    ICU4X date backend, the compiler, the CLI's `icu-blob`, `serde`, …);
-//! 2. natively on the Leptos 0.8 opt-in, `leptos-mf2` and `mf2-axum`;
+//! 2. natively on the Leptos 0.8 opt-in, `mf2`, its 0.8 helper, the
+//!    `leptos-mf2` shim and `mf2-axum`;
 //! 3. `wasm32-unknown-unknown`, `hydrate` with the ICU4X date backend;
 //! 4. `wasm32-unknown-unknown`, `csr` with the `intl` option and the `Intl`
 //!    date backend;
@@ -35,10 +36,10 @@ use crate::error::{Error, Result};
 const WASM: &str = "wasm32-unknown-unknown";
 
 /// Every feature an application can turn on at once for its server, across
-/// the 18 (step 1; also what `cargo xtask package --test` tests the unpacked
+/// the 20 (step 1; also what `cargo xtask package --test` tests the unpacked
 /// packages with).
 pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,\
-     mf2/ssr,mf2/static-locale,mf2/mark-fallback-lang,mf2-catalog/decode,mf2-catalog/static-bytes,\
+     mf2/leptos,mf2/ssr,mf2/static-locale,mf2/mark-fallback-lang,mf2-catalog/decode,mf2-catalog/static-bytes,\
      mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
      mf2-runtime/fixed-decimal";
 
@@ -81,6 +82,8 @@ const STEPS: [(&str, &[&str]); 5] = [
             "mf2-fn-datetime",
             "-p",
             "leptos-mf2",
+            "-p",
+            "mf2-leptos-ui-0-9",
             "--features",
             SERVER_FEATURES,
         ],
@@ -89,12 +92,16 @@ const STEPS: [(&str, &[&str]); 5] = [
         "native, Leptos 0.8",
         &[
             "-p",
+            "mf2",
+            "-p",
+            "mf2-leptos-ui-0-8",
+            "-p",
             "leptos-mf2",
             "-p",
             "mf2-axum",
             "--no-default-features",
             "--features",
-            "leptos-mf2/ssr,leptos-mf2/leptos-0-8,mf2-axum/leptos-0-8",
+            "mf2/ssr,mf2/leptos-0-8,leptos-mf2/leptos-0-8,mf2-axum/leptos-0-8",
         ],
     ),
     (
@@ -105,11 +112,9 @@ const STEPS: [(&str, &[&str]); 5] = [
             "-p",
             "mf2",
             "-p",
-            "leptos-mf2",
-            "-p",
             "mf2-host-web",
             "--features",
-            "mf2/hydrate,mf2/host-web,mf2/fn-number,mf2/datetime-icu,mf2/intl",
+            "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/datetime-icu,mf2/intl",
         ],
     ),
     (
@@ -119,10 +124,8 @@ const STEPS: [(&str, &[&str]); 5] = [
             WASM,
             "-p",
             "mf2",
-            "-p",
-            "leptos-mf2",
             "--features",
-            "mf2/csr,mf2/host-web,mf2/fn-number,mf2/datetime-intl,mf2/intl",
+            "mf2/leptos,mf2/csr,mf2/fn-number,mf2/datetime-intl,mf2/intl",
         ],
     ),
     (
@@ -131,8 +134,7 @@ const STEPS: [(&str, &[&str]); 5] = [
             "--target",
             WASM,
             "-p",
-            "leptos-mf2",
-            "--no-default-features",
+            "mf2",
             "--features",
             "hydrate,leptos-0-8,fn-datetime",
         ],
@@ -170,17 +172,17 @@ pub(crate) fn run(root: &Path, below: bool) -> Result<()> {
             }
             (Ok(()), true) => {
                 return Err(fail(format!(
-                    "Rust {toolchain} builds the 18: `rust-version = \"{msrv}\"` is not \
+                    "Rust {toolchain} builds the 20: `rust-version = \"{msrv}\"` is not \
                      the oldest (measure again and lower it)"
                 )));
             }
         }
     }
-    eprintln!("msrv: the 18 build on Rust {toolchain}");
+    eprintln!("msrv: the 20 build on Rust {toolchain}");
     Ok(())
 }
 
-/// `rust-version` as the 18 state it (`mf2`'s; the metadata test holds
+/// `rust-version` as the 20 state it (`mf2`'s; the metadata test holds
 /// the others to it).
 fn workspace_msrv(root: &Path) -> Result<String> {
     let args = ["metadata", "--no-deps", "--format-version", "1"].map(OsStr::new);

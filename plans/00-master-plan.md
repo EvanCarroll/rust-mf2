@@ -163,8 +163,10 @@ rust-mf2/
 │   ├── mf2-macros/             tr! proc-macro
 │   ├── mf2-cli/                `mf2` binary (clap)
 │   ├── mf2-axum/               negotiation, catalog serving, preload headers
-│   ├── leptos-mf2/             Tr types, glue/view.rs, context, hydrate entrypoints, switcher
-│   └── mf2/                    facade: re-exports + feature flags apps actually touch
+│   ├── mf2-leptos-ui-0-9/      the six Leptos components (switcher, links, gate), Leptos 0.9
+│   ├── mf2-leptos-ui-0-8/      the same source (src/ui.rs a link), Leptos 0.8
+│   ├── leptos-mf2/             1.x's Leptos layer, now a shim: re-exports mf2's, forwards features
+│   └── mf2/                    the crate apps name: Tr types, the Leptos layer (mf2::leptos), re-exports, features
 ├── conformance/                crate mf2-conformance: L1–L7 harnesses, ledger.toml,
 │                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md;
 │                               l4-runner/ (L4's client side, also wasm32-wasip1),
@@ -204,8 +206,9 @@ rust-mf2/
 | `mf2-macros` | `syn`, `quote`, `mf2-catalog[manifest]` | expansion only |
 | `mf2-cli` | `mf2-build`, `clap` | **never** |
 | `mf2-axum` | `axum`, `mf2-catalog` | **never** |
-| `leptos-mf2` | `leptos`, `mf2-runtime`, `mf2-host-web` (client) / `mf2-host-std` (server) | yes |
-| `mf2` (facade, [05](05-tooling.md) §9) | re-exports the above by feature | re-exports only |
+| `mf2-leptos-ui-0-9` / `-0-8` | its Leptos line, `mf2-model` | the active line's, with a mode |
+| `leptos-mf2` (a shim since Phase 10 B1) | `mf2` | re-exports only |
+| `mf2` ([05](05-tooling.md) §9) | `mf2-runtime`, `mf2-catalog`, `mf2-macros`; by feature the function crates, the hosts, the Leptos lines and their helper | **yes** — the call-site types; the Leptos layer with a mode |
 
 CI asserts the "never" column with `cargo tree -e normal --target
 wasm32-unknown-unknown` on the demo app.
@@ -222,14 +225,15 @@ The table above is the tree until Phase 10's tasks land. At P10's exit:
   (`mf2-leptos-ui-0-9`, `mf2-leptos-ui-0-8`).
   - They use `view!` / `#[component]` against their own line under its real name.
   - `mf2::leptos` re-exports them.
-  - They reach `mf2`'s state through a function table `mf2` installs, since they cannot depend on
-    it.
+  - They cannot depend on `mf2`, so each component is generic over the helper's `Layer` trait, which
+    `mf2` implements (static dispatch: B1 kept it over the function table `mf2` would install, since
+    it held the demos' size gate and the table did not).
 - **What an application names:** `mf2`, plus `mf2-build` in its build script; `mf2-cli` is the
   tool.
 - **In the client wasm:** `mf2` (the core and `leptos`) and the active UI helper.
 - **Never in the client wasm:** `native`, `ratatui`, `axum`.
-- **The dependency-table cells above for `leptos-mf2` and `mf2-axum`** are rewritten when B1 and D1
-  land ([18](18-phase-10-work-order.md)).
+- **The dependency-table cells above:** `leptos-mf2`'s and `mf2`'s were rewritten when B1 landed;
+  `mf2-axum`'s are when D1 lands ([18](18-phase-10-work-order.md)).
 
 ## 5. Client feature flags (through the `mf2` facade)
 
@@ -313,7 +317,7 @@ ledger; a phase cannot exit with its layer red.
 | D17 | **Native apps get an app-wide current language with a per-thread override.** <br>• `install()`, which returns nothing (embedded catalogs cannot fail to load; owner, A8's review); `set_locale(Locale)`, seen by the next format on any thread; `with_locale` for parallel tests; `Locale::format` with no global. <br>• `NativeI18n` kept as the explicit `mf2::native::Catalogs`. <br>• A native-only build formatting with nothing installed panics, naming `install()`. <br>• One ambient lookup: request (ssr) or client (hydrate/csr), then the native thread, then the native global. <br>• `Display` and every conversion use it | **decided by owner (2026-09-28)**; A4's probe met the cost gate (a 112-message frame at 0.86–0.88 × 1.x's time, 227 allocations against 413, the stripped CLI 5,248 B smaller; text borrowed through a hidden runtime seam that costs 0 B on the size gate); C2 re-measures it on the real crates ([18](18-phase-10-work-order.md)) |
 | D18 | **Ratatui.** <br>• `From<Tr…>` for `Span` / `Line` / `Text`, with constant text borrowed; `Widget`; `Styled` with `Item = Line`, so `Stylize` works. <br>• One app-wide theme (markup name → `Style`), with defaults for common names; generated `markup::*` constants, so a typo is a compile error; a scoped `with_theme`. <br>• No per-call styles | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) C5 |
 | D19 | **Build orchestration 2.0** (amends D8). <br>• `links` metadata carries `mf2`'s features to the build script; compile-time choices use cfg-forwarding macros in `mf2`. <br>• `mf2_build::run()` is the whole build script; `mf2.toml` is optional. <br>• Native apps default to one crate. <br>• The in-crate `tr!` gets a path-addressable form | **adopted: both probes passed** (2026-09-28) — A2: `links` + cfg macros, every row green; A3: the wrapper exported under a hidden name and re-exported as `tr`, with a crate `prelude`; A6: one crate works for the web too. The fallbacks (function features on the translation crate; textual scope) are not needed. C6 builds it ([18](18-phase-10-work-order.md)) |
-| D20 | **Leptos in one crate** (amends D10). <br>• `mf2::leptos`, with the 0.9 line from `leptos` (the default line) and the 0.8 line from `leptos-0-8`. <br>• The six built-in components live in one helper crate per line, which uses `view!` / `#[component]` normally and which `mf2::leptos` re-exports. They reach `mf2` through a function table, since Leptos's procedural macros write `::leptos` into the crate using them. <br>• The rest of the layer reaches each line through internal aliases. <br>• A module named after the framework, never a generic `web` | **decided by owner (2026-09-28)**; A7's probe confirmed the names with no root rename, hydration on both lines and the coherence rules; the table meets the gate on the size workloads but costs +459 B gz (demo-ssr) and +130 B gz (demo-csr) in apps that render the switcher on the client, so B1 gates the demos and tries static dispatch (a trait the helpers' components are generic over) first (fallback: back to the owner; [18](18-phase-10-work-order.md)) |
+| D20 | **Leptos in one crate** (amends D10). <br>• `mf2::leptos`, with the 0.9 line from `leptos` (the default line) and the 0.8 line from `leptos-0-8`. <br>• The six built-in components live in one helper crate per line, which uses `view!` / `#[component]` normally and which `mf2::leptos` re-exports (Leptos's procedural macros write `::leptos` into the crate using them). They reach `mf2` through a trait each component is generic over and `mf2` implements (static dispatch), not the function table first planned (B1). <br>• The rest of the layer reaches each line through internal aliases. <br>• A module named after the framework, never a generic `web` | **decided by owner (2026-09-28)**; A7's probe confirmed the names with no root rename, hydration on both lines and the coherence rules; the table meets the gate on the size workloads but costs +459 B gz (demo-ssr) and +130 B gz (demo-csr) in apps that render the switcher on the client, so B1 gates the demos and tries static dispatch (a trait the helpers' components are generic over) first (fallback: back to the owner; [18](18-phase-10-work-order.md)). **Built by B1 with static dispatch**, the cheaper of the two in every demo (in one tree: demo-ssr −136 B gz against the table's +339, demo-csr +11 against +183, demo-islands +1 against +7), within the gate; the fallback was not needed |
 | D21 | **One locale matcher everywhere.** <br>• Used by native, `Locale::from_str`, web negotiation and the client boot. <br>• POSIX names; the script implied by CLDR's likely subtags (so `zh-Hant-TW` finds `zh-TW`); region fallback (`es-MX` → `es`); another script only where CLDR's language-matching data accepts it. <br>• No project rule on top of the data: Traditional ↔ Simplified Chinese has no CLDR rule, scores like Punjabi's two scripts, and is not served across. <br>• The algorithm (threshold, `oneway`, demotion, match-variable groupings) as UTS #35 Part 1 states it, the text fetched into the cache (D13). <br>• That file is added to `cldr-sync`'s set, and the client carries only the corpus's languages | **decided by owner (2026-09-28)**; Chinese and the text: questions 15–16; [18](18-phase-10-work-order.md) C3 |
 | D22 | **Web defaults.** <br>• `Negotiator::default()` = `?lang=` → cookie → `Accept-Language`, and the switcher's parameter comes from the query source. <br>• A generated `setup()` / `install()` on each side, and no feature block in the translation crate. <br>• `Locale` in the switcher; `set_locale` / `preload_locale` callable on both sides; a reactive `current_locale()`; a prelude. <br>• Plain Axum served by the `axum` feature | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) D1–D5 |
 | D23 | **2.0.0, skipping 1.1.0** (amends D11, D12). <br>• 1.0.0 is on crates.io for the 16 original crates; 1.1.0 was never published. <br>• 2.0.0 carries 1.1.0's queued fixes. <br>• 16 published crates (D16, D20). <br>• The public API listed and semver-checked per mode (core, ssr, hydrate, csr, native, ratatui, axum). <br>• Two questions for release time: final stubs of `leptos-mf2` / `mf2-axum`, and whether to reserve the unpublished names | **decided by owner (2026-09-28)**; [18](18-phase-10-work-order.md) B5, G1–G2 |

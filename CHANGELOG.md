@@ -135,6 +135,27 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   error the files already had does not stop it. **JSON import exits 1**
   when it leaves out ids the language does not have yet, and says to use
   XLIFF, which adds them where the source has them.
+* **Changed: the call-site types and the Leptos layer are `mf2`'s.** `Tr`,
+  `TrArgs`, `TrRich`, `TrDyn`, `ArgValue` and the rest are defined in
+  `mf2`, and the Leptos layer is the module `mf2::leptos`, chosen by
+  `mf2`'s own features: a Leptos line (`leptos` for Leptos 0.9, the
+  default line, or `leptos-0-8`) and a mode (`ssr`, `hydrate` or `csr`,
+  each now implying its host). Two modes, both lines, or a mode with no
+  line is a compile error that says what to write. `mf2`'s `leptos`
+  feature, which named the layer, now names the 0.9 line; a mode is what
+  turns the layer on. The six components live in two new crates,
+  `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, one per Leptos line, which
+  `mf2::leptos` re-exports. **`leptos-mf2` is a shim** that re-exports
+  everything under 1.x's paths and forwards its features to `mf2`'s, so a
+  1.x application compiles unchanged.
+* **Descriptions print.** Under a Leptos mode `Tr`, `TrArgs`, `TrRich` and
+  `TrDyn` implement `Display`: the text the fmt-free `to_string()` builds,
+  padded as the format asks, so `{}` costs a browser build a few dozen
+  bytes where `.to_string()` costs none. Every public type of `mf2`
+  implements `Debug`; the call-site types write it without core's float
+  and string-escape code (about 1 KB in a browser build rather than
+  12–16 KB), so a float shows at most six fraction digits and a quote in a
+  text is not escaped.
 
 ## 1.0.0
 

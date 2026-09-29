@@ -5,7 +5,7 @@
 //!
 //! 1. **at once**, so one run names every cheap problem: the tree clean
 //!    (`git status --porcelain`); the version's changelog entry (A6); the
-//!    18's metadata (A1);
+//!    20's metadata (A1);
 //! 2. the package audit (A4, `cargo xtask package --check`: quick, so an
 //!    unaudited file stops the run before the long steps), which also
 //!    leaves each `.crate` in `target/package`;
@@ -87,19 +87,15 @@ const PARTIAL_INITIAL_RELEASE: [&str; 5] = [
 
 /// Features left out of a crate's cargo-semver-checks run, by crate.
 /// cargo-semver-checks builds a placeholder crate that depends on the one it
-/// checks, so a dependency's feature cannot be passed (`leptos-mf2/leptos-0-9`
-/// is refused as "not allowed to contain slashes"), and `mf2`'s Leptos layer
-/// does not compile without a Leptos line. That layer is `leptos-mf2`'s,
-/// re-exported, and checked there; `mf2`'s re-exports of it are held by its
-/// `api.txt`.
+/// checks, so a dependency's feature cannot be passed, and 1.0.0's `mf2`
+/// does not compile its Leptos layer (`leptos`, or a mode) without a line
+/// from `leptos-mf2` (`leptos-mf2/leptos-0-9`, refused as "not allowed to
+/// contain slashes"). Since Phase 10's B1 the layer is `mf2`'s own, held by
+/// its `api.txt`; B5 checks it per mode, against baseline feature sets that
+/// spell 1.0.0's line.
 const SEMVER_WITHOUT: [(&str, &[&str]); 1] = [(
     "mf2",
-    &[
-        "ssr",
-        "static-locale",
-        "mark-fallback-lang",
-        "leptos-mf2/leptos-0-9",
-    ],
+    &["leptos", "ssr", "static-locale", "mark-fallback-lang"],
 )];
 
 /// What the command does after its checks.
@@ -185,7 +181,7 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
     crate::msrv::run(root, false)?;
 
     if released.len() == packages::PUBLISHED.len() {
-        eprintln!("==> cargo publish: nothing left to publish; all 18 are on crates.io");
+        eprintln!("==> cargo publish: nothing left to publish; all 20 are on crates.io");
     } else {
         let mut dry = publish_args(&released);
         dry.push("--dry-run".to_owned());
@@ -290,7 +286,7 @@ enum Registered {
     },
 }
 
-/// Each of the 18, as crates.io has it now.
+/// Each of the 20, as crates.io has it now.
 fn lookup_all(root: &Path, version: &str) -> Result<Vec<(&'static str, Registered)>> {
     let mut out = Vec::new();
     for (i, name) in packages::PUBLISHED.iter().enumerate() {

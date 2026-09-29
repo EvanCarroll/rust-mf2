@@ -1,0 +1,68 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: ssr
+pub mod mf2_leptos_ui_0_8
+pub struct mf2_leptos_ui_0_8::AlternateLinksProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::AlternateLinksProps::_layer: core::marker::PhantomData<L>
+pub mf2_leptos_ui_0_8::AlternateLinksProps::href_of: fn(&str) -> alloc::string::String
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::AlternateLinksProps<L>
+pub type mf2_leptos_ui_0_8::AlternateLinksProps<L>::Builder = AlternateLinksPropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::AlternateLinksProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::AlternateLinksProps<L>
+pub fn mf2_leptos_ui_0_8::AlternateLinksProps<L>::builder() -> AlternateLinksPropsBuilder<L, ((), ())>
+pub struct mf2_leptos_ui_0_8::CatalogLinksProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::CatalogLinksProps::_layer: core::marker::PhantomData<L>
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::CatalogLinksProps<L>
+pub type mf2_leptos_ui_0_8::CatalogLinksProps<L>::Builder = CatalogLinksPropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::CatalogLinksProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::CatalogLinksProps<L>
+pub fn mf2_leptos_ui_0_8::CatalogLinksProps<L>::builder() -> CatalogLinksPropsBuilder<L, (())>
+pub struct mf2_leptos_ui_0_8::CatalogPreloadProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::CatalogPreloadProps::_layer: core::marker::PhantomData<L>
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::CatalogPreloadProps<L>
+pub type mf2_leptos_ui_0_8::CatalogPreloadProps<L>::Builder = CatalogPreloadPropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::CatalogPreloadProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::CatalogPreloadProps<L>
+pub fn mf2_leptos_ui_0_8::CatalogPreloadProps<L>::builder() -> CatalogPreloadPropsBuilder<L, (())>
+pub struct mf2_leptos_ui_0_8::IslandsGateProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::IslandsGateProps::_layer: core::marker::PhantomData<L>
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::IslandsGateProps<L>
+pub type mf2_leptos_ui_0_8::IslandsGateProps<L>::Builder = IslandsGatePropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::IslandsGateProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::IslandsGateProps<L>
+pub fn mf2_leptos_ui_0_8::IslandsGateProps<L>::builder() -> IslandsGatePropsBuilder<L, (())>
+pub struct mf2_leptos_ui_0_8::LocaleOptionProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::LocaleOptionProps::_layer: core::marker::PhantomData<L>
+pub mf2_leptos_ui_0_8::LocaleOptionProps::children: leptos::children::Children
+pub mf2_leptos_ui_0_8::LocaleOptionProps::tag: &'static str
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::LocaleOptionProps<L>
+pub type mf2_leptos_ui_0_8::LocaleOptionProps<L>::Builder = LocaleOptionPropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::LocaleOptionProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::LocaleOptionProps<L>
+pub fn mf2_leptos_ui_0_8::LocaleOptionProps<L>::builder() -> LocaleOptionPropsBuilder<L, ((), (), ())>
+pub struct mf2_leptos_ui_0_8::LocaleSwitcherProps<L: mf2_leptos_ui_0_8::Layer>
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::_layer: core::marker::PhantomData<L>
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::button: leptos::text_prop::TextProp
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::children: leptos::children::Children
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::href_of: core::option::Option<fn(&str) -> alloc::string::String>
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::label: leptos::text_prop::TextProp
+impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::LocaleSwitcherProps<L>
+pub type mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::Builder = LocaleSwitcherPropsBuilder<L>
+pub fn mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::builder() -> Self::Builder
+impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::LocaleSwitcherProps<L>
+pub fn mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::builder() -> LocaleSwitcherPropsBuilder<L, ((), (), (), (), ())>
+pub trait mf2_leptos_ui_0_8::Layer: 'static
+pub const mf2_leptos_ui_0_8::Layer::CATALOG_LINK_REL: &'static str
+pub const mf2_leptos_ui_0_8::Layer::ISLANDS_GATE: &'static str
+pub const mf2_leptos_ui_0_8::Layer::LOCALE_QUERY: &'static str
+pub fn mf2_leptos_ui_0_8::Layer::catalog_links() -> alloc::vec::Vec<(&'static str, alloc::string::String)>
+pub fn mf2_leptos_ui_0_8::Layer::html_lang() -> (alloc::string::String, &'static str)
+pub fn mf2_leptos_ui_0_8::Layer::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
+pub fn mf2_leptos_ui_0_8::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>)>
+pub fn mf2_leptos_ui_0_8::Layer::source_locale() -> &'static str
+pub fn mf2_leptos_ui_0_8::Layer::switch(alloc::string::String)
+pub fn mf2_leptos_ui_0_8::AlternateLinks<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::AlternateLinksProps<L>) -> impl leptos::into_view::IntoView
+pub fn mf2_leptos_ui_0_8::CatalogLinks<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::CatalogLinksProps<L>) -> impl leptos::into_view::IntoView
+pub fn mf2_leptos_ui_0_8::CatalogPreload<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::CatalogPreloadProps<L>) -> impl leptos::into_view::IntoView
+pub fn mf2_leptos_ui_0_8::IslandsGate<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::IslandsGateProps<L>) -> impl leptos::into_view::IntoView
+pub fn mf2_leptos_ui_0_8::LocaleOption<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::LocaleOptionProps<L>) -> impl leptos::into_view::IntoView
+pub fn mf2_leptos_ui_0_8::LocaleSwitcher<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::LocaleSwitcherProps<L>) -> impl leptos::into_view::IntoView

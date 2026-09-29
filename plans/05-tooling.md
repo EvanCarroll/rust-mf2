@@ -1284,46 +1284,52 @@ that keeps an allocation alive.
 **Boundary.** The repository is self-contained; the rule is stated once, in the
 root `CLAUDE.md` ("Boundary").
 
-## 9. The `mf2` facade
+## 9. The `mf2` crate
 
-> **Stale, and superseded for 2.0** (owner, 2026-09-28; master plan D16). As
-> built in 1.x, the call-site core lives in `leptos-mf2` ([04](04-leptos-integration.md)
-> §2.1), and `mf2` has no `axum` or `build` feature. In 2.0, `mf2` becomes the
-> one crate an application names, with `leptos`, `axum`, `native` and
-> `ratatui` as feature-gated modules. The text below is rewritten when
-> [18](18-phase-10-work-order.md) B1 lands; the 2.0 design is §9.1 (Phase 10 A8).
+The one crate an application names (D16). Since Phase 10's B1 it **defines**
+the call-site types and carries the Leptos layer; before, it re-exported
+them from `leptos-mf2` ([04](04-leptos-integration.md) §2.1 has why they
+moved twice).
 
-The one crate an application names. It re-exports the public API of
-`mf2-runtime`, `leptos-mf2` (feature `leptos`), `mf2-axum` (feature `axum`) and
-the build entry point (feature `build`), carries the user-facing feature flags of
-the master plan §5 and forwards them, and offers `mf2::compile_str` (std only:
-parse + `writer::single`) for ad-hoc formatting on servers and in tests. Created
-in Phase 3 (runtime + features), extended in P4 (function features), P5b and P6
-(Leptos and Axum re-exports).
+* **The call-site core** every `tr!` expansion goes through — `Tr`, `TrArgs`,
+  `TrRich`, `TrDyn`, their constructors `tr` / `tr_args0`…`tr_args4` /
+  `tr_args_n` / `tr_rich` / `tr_dyn`, `ArgValue` with a `From` for every
+  `Arg` variant and the two extension traits `ArgSource` and
+  `MarkupHandler`, and the lowering that borrows an `&[ArgValue]` into the
+  runtime's `&[Arg<'a>]`. With no mode it is Leptos-free, so a server, a
+  test, `mf2-cli` and a native application use it with no Leptos in the
+  tree, and it is **client-path code** (`no_std`, `forbid(unsafe_code)`, no
+  `core::fmt`, no panicking operation — the discipline of `mf2-runtime`),
+  because it is what 2,000 call sites of a wasm build are made of (B5).
+  `Debug` on every public type is written through `write_str`, without
+  core's float and escape code, and is linked only where something formats
+  a description with `{:?}` ([19](19-native-and-terminal.md) §6).
+* **The Leptos layer**, `mf2::leptos`, with a mode (`ssr`, `hydrate`, `csr`,
+  each implying its host) and a line (`leptos` for 0.9, `leptos-0-8`):
+  [04](04-leptos-integration.md) §2.1 and §12.1. With a mode the
+  descriptions also have the ambient forms — `to_string()`,
+  `to_plain_string()`, `From<_> for String`, and `Display`, which pads the
+  text `to_string()` builds (19 §6).
+* **The runtime's API**, re-exported: the formatter, the sinks, the
+  function traits and the default functions; `fn_number` and `fn_datetime`
+  with their features, and the hosts (`host-std`, `host-web`).
+* **`mf2::compile_str`** (`compile`; std only: parse + `writer::single`) for
+  ad-hoc formatting on servers and in tests.
+* **`Corpus` and `Message`** for native applications.
+* **`__mf2`** is the path the generated module re-exports the crate under,
+  **`mf2::include_generated!()`** includes what `mf2-build` wrote
+  (`$OUT_DIR/mf2_generated.rs`; `include_generated!(catalogs)` for the
+  catalog-only crate of `Emit::Catalogs`), and **`mf2::__tr_impl`**
+  re-exports `mf2-macros`' proc-macro so that the generated `tr!` wrapper
+  reaches it through `__mf2` alone.
 
-Beyond the re-exports it carries exactly one thing of its own, added in P5b:
-the **call-site core** every `tr!` expansion goes through
-([04](04-leptos-integration.md) §2.1) — `Tr`, `TrArgs`, `TrRich`, their
-constructors `tr` / `tr_args1`…`tr_args4` / `tr_args_n` / `tr_rich`,
-`ArgValue` with a `From` for every `Arg` variant and the two extension traits
-`ArgSource` and `MarkupHandler`, and the lowering that borrows an
-`&[ArgValue]` into the runtime's `&[Arg<'a>]`. It is Leptos-free, so a
-server, a test and `mf2-cli` use it with no Leptos in the tree, and it is
-**client-path code** (`no_std`, `forbid(unsafe_code)`, no `core::fmt`, no
-panicking operation — the discipline of `mf2-runtime`), because it is what
-2,000 call sites of a wasm build are made of (B5).
-
-Also P5b: `__mf2` is the path the generated module re-exports the facade
-under, `mf2::include_generated!()` includes what `mf2-build` wrote
-(`$OUT_DIR/mf2_generated.rs`; `include_generated!(catalogs)` for the
-catalog-only crate of `Emit::Catalogs`), and `mf2::__tr_impl` re-exports
-`mf2-macros`' proc-macro so that the generated `tr!` wrapper reaches it
-through `__mf2` alone.
+B2–B4 and D1 add `native`, `ratatui` and `axum` (§9.1).
 
 ### 9.1 2.0: the one crate (Phase 10 A8)
 
-Designed on 2026-09-28 and approved by the owner the same day; B1–B4 and D1 build it, and
-then rewrite §9. The design is [19](19-native-and-terminal.md):
+Designed on 2026-09-28 and approved by the owner the same day; B1–B4 and D1 build it (B1,
+the types and the Leptos layer, rewrote §9 above). The design is
+[19](19-native-and-terminal.md):
 - **§3, the features and modules**: `native`, `ratatui`, `leptos` /
   `leptos-0-8`, the modes, `axum`, `clap`, and 1.x's function features;
 - **§4, the call-site types and the API per mode**, which B5's per-mode

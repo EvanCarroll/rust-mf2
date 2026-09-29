@@ -1,40 +1,41 @@
 //! `mf2` — Unicode MessageFormat 2 for Rust applications: Leptos web
 //! applications, and native command-line and terminal applications. It is
-//! the crate an application starts from. It re-exports the public API of
-//! the Rust MF2 crates and carries the application's feature flags; its own
-//! code is small: [`compile_str`], [`include_generated!`], and [`Corpus`]
-//! and [`Message`] for native applications.
+//! the crate an application names; beside it, the application's build
+//! script names `mf2-build`.
 //!
-//! Beside it, every application names `mf2-build` in its i18n crate's
-//! build script. A web application adds `leptos-mf2` (the Leptos mode and
-//! line) and `mf2-axum` (the server); a native one adds `mf2-native` (the
-//! catalogs and the active locale) and, for a terminal UI, `mf2-ratatui`.
+//! What a `tr!` call site builds is a small **description** of a message —
+//! [`Tr`], [`TrArgs`], [`TrRich`], [`TrDyn`] — and nothing is formatted
+//! until something renders or stringifies it. The descriptions and their
+//! arguments ([`ArgValue`]) are defined here, once, with every integration
+//! added behind a feature:
 //!
 //! | Feature | Adds |
 //! |---|---|
-//! | *(core)* | [`mf2_runtime`]: the formatter, `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
+//! | *(core)* | the descriptions, formatted against a [`Formatter`] the caller builds; [`mf2_runtime`]'s formatter: `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
+//! | `leptos` / `leptos-0-8` | the Leptos line the layer renders with: Leptos 0.9 (the default line) or 0.8 |
+//! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host |
+//! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
+//! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
-//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on |
+//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
 //! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
 //! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
 //! | `intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
-//! The Leptos modes (`ssr`, `hydrate`, `csr`) exclude each other; this
-//! documentation shows `ssr` on Leptos 0.9, and `leptos-mf2`'s front page
-//! lists what the client modes add. `host-web` and `intl` are for
-//! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
-//! is not shown here. A native application turns on no Leptos mode, and
-//! `host-std`.
+//! A Leptos mode needs a line, and the modes exclude each other: an
+//! application writes the line on its `mf2` dependency (`features =
+//! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
+//! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
+//! 0.9; [`leptos`] lists what the client modes add. `host-web` and `intl`
+//! are for `wasm32-unknown-unknown`, so
+//! [`host_web`](https://docs.rs/mf2-host-web) is not shown here. A native
+//! application turns on no Leptos mode, and `host-std`.
 //!
-//! The facade also re-exports the **call-site core** — [`Tr`], [`TrArgs`],
-//! [`TrRich`], [`ArgValue`] and the lowering that borrows them into the
-//! runtime's [`Arg`] — which `leptos-mf2` defines (its front page says
-//! why), with the `tr!` proc-macro behind [`include_generated!`]. With no
-//! Leptos mode on it compiles no Leptos code, so a server, a test and a
-//! native application use it as they are; a Leptos mode adds rendering,
-//! the catalog context and the reactive argument.
+//! A build with no mode compiles no Leptos code, so a server, a test and a
+//! native application use the descriptions as they are: formatted against a
+//! catalog the caller supplies.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -88,15 +89,16 @@
 //! guide: how the crates fit together, web and native applications, the
 //! command line, and what 1.x promises.
 
-#![warn(missing_docs)]
+#![warn(missing_docs, missing_debug_implementations)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
 // The Leptos layer's items name the modes an application turns on, not the
-// `leptos` feature they imply (`doc(cfg(...))` below).
+// line they need (`doc(cfg(...))` below).
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![forbid(unsafe_code)]
 // The call-site core is what 2,000 client call sites are made of, so the
-// facade keeps `mf2-runtime`'s client-path discipline (B12).
+// crate keeps `mf2-runtime`'s client-path discipline (B12): no panicking
+// operation, and no `core::fmt` on the client path.
 #![deny(
     clippy::unwrap_used,
     clippy::expect_used,
@@ -105,54 +107,158 @@
 )]
 
 extern crate alloc;
+// The Leptos layer needs `std`, which its dependencies need anyway.
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+extern crate std;
 
+// An application renders on one side or the other, and the two need
+// different code: `ssr` keeps the catalog in the request's context, the
+// other two in a `thread_local!`. Saying so here turns a confusing cascade
+// of missing-item errors into one sentence.
+#[cfg(all(feature = "ssr", any(feature = "hydrate", feature = "csr")))]
+compile_error!(
+    "mf2: turn on exactly one of `ssr`, `hydrate` and `csr`. cargo unifies \
+     features across a workspace, so an application that is built both ways \
+     belongs in a workspace of its own — as `examples/demo-ssr` and \
+     `conformance/l6-web` are."
+);
+#[cfg(all(feature = "hydrate", feature = "csr"))]
+compile_error!("mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+
+// The Leptos line: `leptos` is 0.9, the default line; `leptos-0-8` the
+// other. A mode needs exactly one. The layer below is compiled only with a
+// mode and a line, so each of these mistakes shows its own sentence and
+// nothing else.
+#[cfg(all(feature = "leptos", feature = "leptos-0-8"))]
+compile_error!(
+    "mf2: both Leptos lines are on, `leptos` (Leptos 0.9) and `leptos-0-8`: \
+     turn on one. Through leptos-mf2 or mf2-axum, whose default is Leptos \
+     0.9, Leptos 0.8 needs `default-features = false` beside \
+     `features = [\"leptos-0-8\"]` on every dependency on them."
+);
+#[cfg(all(feature = "ssr", not(any(feature = "leptos", feature = "leptos-0-8"))))]
+compile_error!(
+    "mf2: `ssr` needs a Leptos line: turn on `leptos` (Leptos 0.9) or \
+     `leptos-0-8` beside it."
+);
+#[cfg(all(
+    feature = "hydrate",
+    not(any(feature = "leptos", feature = "leptos-0-8"))
+))]
+compile_error!(
+    "mf2: `hydrate` needs a Leptos line: turn on `leptos` (Leptos 0.9) or \
+     `leptos-0-8` beside it."
+);
+#[cfg(all(feature = "csr", not(any(feature = "leptos", feature = "leptos-0-8"))))]
+compile_error!(
+    "mf2: `csr` needs a Leptos line: turn on `leptos` (Leptos 0.9) or \
+     `leptos-0-8` beside it."
+);
+
+// Each Leptos line is a dependency under a name of its own (`leptos_0_9`,
+// `leptos_0_8`, …), reached through these internal aliases. There is no
+// rename at the crate root: the module `leptos` has that name, and a crate
+// bound to it there would clash with it. The six components, which need
+// `view!` and `#[component]`, are the line's helper crate's (`ui`).
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+mod line {
+    #[cfg(all(feature = "leptos-0-8", not(feature = "leptos")))]
+    pub(crate) use ::{
+        leptos_0_8 as leptos, mf2_leptos_ui_0_8 as ui, reactive_graph_0_2 as reactive_graph,
+        tachys_0_2 as tachys,
+    };
+    #[cfg(feature = "leptos")]
+    pub(crate) use ::{
+        leptos_0_9 as leptos, mf2_leptos_ui_0_9 as ui, reactive_graph_0_3 as reactive_graph,
+        tachys_0_3 as tachys,
+    };
+}
+
+mod arg;
 #[cfg(feature = "compile")]
 mod compile;
 mod corpus;
-#[cfg(feature = "compile")]
+mod debug;
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+mod display;
+mod dynamic;
 mod error;
+mod markup;
 mod message;
+mod tr;
+
+// The Leptos layer (its documentation is the module's own: an outer doc
+// comment here would make rustdoc resolve the module's links at the root).
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
+)]
+pub mod leptos;
 
 pub use corpus::{CatalogFile, Corpus};
 pub use message::Message;
 
-/// The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
-/// builds, and what formats it against a catalog the caller supplies.
-///
-/// It is declared in `leptos-mf2` and named here, because Rust's orphan rule
-/// keeps a type and its `Render` impl in one crate (that crate's `lib.rs`
-/// says why). Without the `leptos` feature nothing of Leptos is compiled,
-/// so `mf2::Tr` is the Leptos-free description §2.1 describes.
-pub use leptos_mf2::{
-    ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler, Text,
-    Tr, TrArgs, TrDyn, TrRich,
-};
+/// The call-site core: what `tr!` builds, and what formats it against a
+/// catalog the caller supplies.
+pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
+pub use dynamic::TrDyn;
+pub use markup::{Handler, IntoMarkupHandler};
+pub use tr::{MarkupHandler, Tr, TrArgs, TrRich};
 
 /// What `tr!` and the generated module expand to; never written by hand.
 #[doc(hidden)]
-pub use leptos_mf2::{
-    markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
-};
+pub use dynamic::tr_dyn;
+#[doc(hidden)]
+pub use markup::markup;
+#[doc(hidden)]
+pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_rich};
 
-/// The Leptos layer (`plans/04-leptos-integration.md` §§3–7).
-#[cfg(feature = "leptos")]
+/// The markup handlers and the reactive argument of the Leptos layer, where
+/// 1.x named them; [`leptos`] is their home.
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
 #[cfg_attr(
     docsrs,
     doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
 )]
-pub use leptos_mf2::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
+#[doc(no_inline)]
+pub use leptos::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
 
-/// The Leptos layer in full, for what this facade does not name one by one.
-#[cfg(feature = "leptos")]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "ssr", feature = "hydrate", feature = "csr")))
-)]
-pub use leptos_mf2;
+/// 1.x's `mf2::leptos_mf2`, the Leptos layer as its own crate: every item it
+/// named, under the path it named it. What the `leptos-mf2` shim re-exports,
+/// and what the examples, the book and `mf2 init` still name until they
+/// move to [`leptos`].
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+#[doc(hidden)]
+pub mod leptos_mf2 {
+    pub use crate::leptos::*;
+    pub use crate::{
+        ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler,
+        Text, Tr, TrArgs, TrDyn, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2,
+        tr_args3, tr_args4, tr_dyn, tr_rich,
+    };
+}
 
 /// The proc-macro behind the generated `tr!` wrapper — reached as
-/// `__mf2::__tr_impl!`, never named by an application (`plans/05-tooling.md`
-/// §4).
+/// `__mf2::__tr_impl!`, never named by an application.
 #[doc(hidden)]
 pub use mf2_macros::__tr_impl;
 
@@ -162,7 +268,7 @@ pub use mf2_macros::__msg_id_impl;
 
 /// Includes what `mf2-build` wrote into `OUT_DIR`: the manifest hash, the
 /// locale table, the closed-world registry, the host, `__mf2` and the `tr!`
-/// wrapper (`plans/05-tooling.md` §4). An i18n crate's whole `src/lib.rs` is
+/// wrapper. An i18n crate's whole `src/lib.rs` is
 ///
 /// ```ignore
 /// mf2::include_generated!();
@@ -182,6 +288,49 @@ macro_rules! include_generated {
     ($file:literal) => {
         include!(concat!(env!("OUT_DIR"), "/", $file));
     };
+}
+
+/// What [`leptos::islands_gate!`] is; never named by this path.
+#[cfg(all(feature = "hydrate", any(feature = "leptos", feature = "leptos-0-8")))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __islands_gate {
+    () => {
+        $crate::__islands_gate_export! {}
+    };
+}
+
+/// The export [`leptos::islands_gate!`] writes into the application.
+///
+/// A macro of its own, so that the one `mf2::leptos` re-exports carries no
+/// `#[rustfmt::skip]`: rustc counts a macro with a tool attribute as
+/// macro-expanded, and such a macro cannot be re-exported by path from its
+/// own crate. rustfmt re-indents a `$crate` attribute inside a macro on
+/// every run, so this one is not formatted.
+#[cfg(all(feature = "hydrate", any(feature = "leptos", feature = "leptos-0-8")))]
+#[doc(hidden)]
+#[macro_export]
+#[rustfmt::skip]
+macro_rules! __islands_gate_export {
+    () => {
+        #[$crate::leptos::__private::wasm_bindgen::prelude::wasm_bindgen(
+            wasm_bindgen = $crate::leptos::__private::wasm_bindgen,
+            wasm_bindgen_futures = $crate::leptos::__private::wasm_bindgen_futures,
+            js_name = "mf2_islands_gate"
+        )]
+        #[doc(hidden)]
+        pub async fn __mf2_islands_gate(_island: $crate::leptos::__private::web_sys::HtmlElement) {
+            $crate::leptos::wait_for_catalog().await
+        }
+    };
+}
+
+/// What [`leptos::islands_gate!`] is in a server build: nothing to export.
+#[cfg(not(all(feature = "hydrate", any(feature = "leptos", feature = "leptos-0-8"))))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __islands_gate {
+    () => {};
 }
 
 /// The manifest (build side: `mf2-catalog`'s `manifest` feature).

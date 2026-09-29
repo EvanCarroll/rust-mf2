@@ -3,7 +3,7 @@ name = "leptos-mf2"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "The call-site description of a message (Tr, TrArgs, TrRich, ArgValue) and, with the `leptos` feature, its Leptos rendering: the tachys view impls, the per-locale catalog, the node registry and the locale switch."
+description = "1.x's Leptos layer of Rust MF2, kept as a shim: it re-exports `mf2::leptos` and the call-site types from `mf2`, where they now live, and forwards its features to mf2's."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -13,134 +13,38 @@ readme = "README.md"
 documentation = "https://docs.rs/leptos-mf2"
 keywords = ["leptos", "messageformat", "mf2", "i18n", "wasm"]
 categories = ["internationalization", "localization", "web-programming", "wasm", "gui"]
-# Every integration test uses `mf2`, which the package does not carry (the
-# path-only dev-dependency below): they run in the workspace.
-exclude = [
-    "tests/",
-    # Its own file list (`cargo xtask package`).
-    "package.txt",
-]
+# Its own file list (`cargo xtask package`).
+exclude = ["package.txt"]
 
+# Every feature forwards to `mf2`'s, where the Leptos layer now is.
 [features]
-# Leptos 0.9, the default line (D10; `plans/04-leptos-integration.md` §10).
+# Leptos 0.9, the default line: `mf2`'s `leptos`.
 default = ["leptos-0-9"]
-# The Leptos layer (`plans/04-leptos-integration.md` §§3–7). Off, this crate
-# is the Leptos-free call-site core and compiles no Leptos code at all: the
-# types a server, a test and `mf2-cli` format with (§2.1). The two live in
-# one crate because Rust's orphan rule requires it — `impl Render for Tr`
-# needs either the trait or the type to be ours, and the trait is tachys'.
-#
-# The layer needs a Leptos line, exactly one: `leptos-0-9` (the default) or
-# `leptos-0-8`. The target features below turn the layer on, and a layer
-# with no line, or with both, is a compile error that says what to write.
-leptos = [
-    "dep:oco_ref",
-    "dep:js-sys",
-    "dep:wasm-bindgen",
-    "dep:web-sys",
-]
-# Leptos 0.9 (tachys 0.3): the dependencies only; the layer is the target
-# feature's. A build that wants the core alone turns the default features
-# off, as the `mf2` facade does.
-leptos-0-9 = ["dep:leptos", "dep:tachys", "dep:reactive_graph"]
-# Leptos 0.8 (tachys 0.2), an opt-in: with `default-features = false`, in
-# place of `leptos-0-9`. The same source, the 0.8 crates renamed back at the
-# crate root, and the glue's two `to_html_with_buf` impls in 0.2's form.
-leptos-0-8 = ["dep:leptos_0_8", "dep:tachys_0_2", "dep:reactive_graph_0_2"]
-# The three Leptos targets. An application turns exactly one on and forwards
-# it to every leptos-aware dependency, as cargo-leptos does.
-ssr = ["leptos", "leptos?/ssr", "tachys?/ssr", "leptos_0_8?/ssr", "tachys_0_2?/ssr"]
-hydrate = [
-    "leptos",
-    "leptos?/hydrate",
-    "tachys?/hydrate",
-    "leptos_0_8?/hydrate",
-    "tachys_0_2?/hydrate",
-    "dep:any_spawner",
-    "dep:wasm-bindgen-futures",
-]
-csr = ["leptos", "leptos?/csr", "leptos_0_8?/csr", "dep:wasm-bindgen-futures"]
-# Strategy C of D7 (`plans/04-leptos-integration.md` §4): no live update — a
-# locale switch is a cookie and a navigation. Rendered nodes then register
-# nothing, which is the natural fit for islands.
-static-locale = []
-# WCAG 3.1.2, Language of Parts (`plans/04-leptos-integration.md` §9): text
-# the catalog borrowed from a fallback locale renders inside a `<span lang>`,
-# identically on server and client.
-#
-# Only a borrowed message in a view position (a text child, a rich
-# fragment) is wrapped, so a page with no missing translation is unchanged;
-# `dir` is added when the lender's direction differs from the page's.
-# Attributes and strings cannot carry a `lang` of their own and stay
-# unmarked (`docs/accessibility.md`). Off, nothing of it is compiled
-# (`plans/15-phase-7-work-order.md` §"A14 — design").
-mark-fallback-lang = []
-# Dates in the reader's time zone (`plans/03-runtime.md` §6.1,
-# `plans/04-leptos-integration.md` §6): the client reads the browser's zone,
-# corrects a page rendered in another after hydrating, and writes the
-# `mf2_tz` cookie the server renders the next page in. `mf2`'s `fn-datetime`
-# turns it on; off, no byte of it is in the client, and a server reads no
-# zone.
-fn-datetime = []
+# 1.x's name for "the Leptos layer", which a mode turns on; the layer is
+# `mf2`'s now, and a mode is what compiles it.
+leptos = []
+leptos-0-9 = ["mf2/leptos"]
+# Leptos 0.8, an opt-in: with `default-features = false`, in place of
+# `leptos-0-9`.
+leptos-0-8 = ["mf2/leptos-0-8"]
+# The three Leptos modes: exactly one.
+ssr = ["leptos", "mf2/ssr"]
+hydrate = ["leptos", "mf2/hydrate"]
+csr = ["leptos", "mf2/csr"]
+static-locale = ["mf2/static-locale"]
+mark-fallback-lang = ["mf2/mark-fallback-lang"]
+# Dates in the reader's time zone, which `mf2`'s `fn-datetime` compiles
+# along with the date functions.
+fn-datetime = ["mf2/fn-datetime"]
 
 [dependencies]
-mf2-catalog.workspace = true
-mf2-runtime.workspace = true
-thiserror.workspace = true
-
-leptos = { workspace = true, optional = true }
-tachys = { workspace = true, optional = true }
-reactive_graph = { workspace = true, optional = true }
-leptos_0_8 = { workspace = true, optional = true }
-tachys_0_2 = { workspace = true, optional = true }
-reactive_graph_0_2 = { workspace = true, optional = true }
-oco_ref = { workspace = true, optional = true }
-
-any_spawner = { workspace = true, optional = true }
-js-sys = { workspace = true, optional = true }
-wasm-bindgen-futures = { workspace = true, optional = true }
-wasm-bindgen = { workspace = true, optional = true }
-web-sys = { workspace = true, optional = true }
-
-# A dev-dependency cycle (cargo allows exactly this one): the tests compile a
-# catalog with `mf2::compile_str` and format it through the native host, which
-# is how a server uses this crate.
-[dev-dependencies]
-# Path-only, not the workspace's `=1.1.0`: `mf2` depends on this crate, so
-# a versioned dev-dependency on it is a cycle `cargo package` cannot
-# resolve. Cargo strips a path-only dev-dependency from the package, and
-# the tests that use `mf2` stay in the workspace (`exclude` above;
-# plans/17-phase-9-work-order.md A4).
-mf2 = { path = "../mf2", features = ["compile", "host-std", "fn-datetime"] }
-# `tests/churn.rs` runs the client's effects natively.
-any_spawner = { workspace = true, features = ["futures-executor"] }
-# `tests/fallback_lang.rs` writes catalogs that borrow a message from another
-# locale, which `compile_str` (one locale, nothing missing) never does.
-mf2-catalog = { workspace = true, features = ["writer"] }
-mf2-syntax.workspace = true
-
-[[test]]
-name = "render"
-required-features = ["ssr"]
-
-[[test]]
-name = "time_zone"
-required-features = ["ssr"]
-
-[[test]]
-name = "churn"
-required-features = ["csr"]
-
-[[test]]
-name = "fallback_lang"
-required-features = ["ssr", "mark-fallback-lang"]
+mf2.workspace = true
 
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
 # The modes (`ssr`, `hydrate`, `csr`) exclude each other: the docs show
-# the server on the default line, and the front page names what the
-# client modes add.
+# the server on the default line.
 features = ["ssr", "fn-datetime", "static-locale", "mark-fallback-lang"]
 targets = ["x86_64-unknown-linux-gnu"]
 

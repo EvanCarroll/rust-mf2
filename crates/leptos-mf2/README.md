@@ -1,28 +1,34 @@
 # leptos-mf2
 
-The Leptos side of Rust MF2: what a `tr!` call site builds (`Tr`,
-`TrArgs`, `TrRich`, `ArgValue`) and, with a Leptos target feature
-(`ssr`, `hydrate` or `csr`), how it renders — in text, attributes and
-props — together with the per-locale catalog, the live locale switch,
-`<html lang dir>`, and the reader's time zone for dates.
+1.x's Leptos layer of Rust MF2, kept as a shim. Everything it named — the
+call-site types (`Tr`, `TrArgs`, `TrRich`, `ArgValue`), the rendering, the
+per-locale catalog, the live switch, the components, `<html lang dir>` and
+the reader's time zone — now lives in [`mf2`](https://docs.rs/mf2): the
+Leptos layer as `mf2::leptos`, the call-site types at `mf2`'s root. This
+crate re-exports all of it under the paths 1.x used, and forwards its
+features to `mf2`'s, so a 1.x application keeps compiling.
 
-Without a target feature it compiles no Leptos code at all: `mf2`
-depends on it for the call-site types, so it also appears in a native
-application's dependencies. The types live here because Rust's orphan
-rule requires Leptos's rendering traits to be implemented in the crate
-that defines them.
+A new application names `mf2` alone, with its Leptos line:
 
-Leptos 0.9 is the default line; for 0.8, turn default features off and
-`leptos-0-8` on. `static-locale` makes a switch a navigation (for
-islands), and `mark-fallback-lang` marks text borrowed from a fallback
-language with its own `lang`.
+```toml
+[dependencies]
+mf2 = { version = "2", features = ["leptos"] }   # Leptos 0.9; `leptos-0-8` for 0.8
+
+[features]
+ssr = ["leptos/ssr", "mf2/ssr"]
+hydrate = ["leptos/hydrate", "mf2/hydrate"]
+```
+
+Here, Leptos 0.9 is the default line (`leptos-0-9`); for 0.8, turn default
+features off and `leptos-0-8` on.
 
 API documentation: <https://docs.rs/leptos-mf2>.
 
 The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user guide.
 
-Versions: every Rust MF2 crate is released together, and 1.x keeps the
-promise [the book's versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html) states; the minimum Rust version is 1.88.
+Versions: every Rust MF2 crate is released together, and the book's
+[versioning chapter](https://evancarroll.github.io/rust-mf2/versioning.html)
+states what each release promises; the minimum Rust version is 1.88.
 
 ## License
 

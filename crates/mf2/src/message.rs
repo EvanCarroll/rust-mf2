@@ -1,7 +1,7 @@
 //! One trait over the call-site descriptions, for code that formats any of
 //! them outside Leptos (a native application, a terminal UI adapter).
 
-use leptos_mf2::{Tr, TrArgs, TrDyn, TrRich};
+use crate::{Tr, TrArgs, TrDyn, TrRich};
 use mf2_runtime::{ErrorSink, Formatter, PartSink, Sink};
 
 /// A call-site description `tr!` builds: formatted to text, or to parts.

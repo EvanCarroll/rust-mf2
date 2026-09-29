@@ -156,10 +156,10 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 | Line | Key words | Statement | Covered by |
 |---:|---|---|---|
 | 725 | MAY | the formatted result may take whatever form suits it *taken: a string, and a flat sequence of parts (`Formatter::parts`)* | `crates/mf2-runtime/tests/format.rs::parts_output`, `u-options.json` #0 |
-| 734 | SHOULD | result types should suit users, including further processing of the result *parts for programs, elements for Leptos views, a string for plain text* | `crates/mf2-runtime/tests/format.rs::parts_output`, `crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order` |
+| 734 | SHOULD | result types should suit users, including further processing of the result *parts for programs, elements for Leptos views, a string for plain text* | `crates/mf2-runtime/tests/format.rs::parts_output`, `crates/mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order` |
 | 734 | SHOULD | users should be encouraged to treat a formatted string as opaque, for display only | n/a (not-implementation): concerns what the documentation tells users, not behaviour; the user documentation (Phase 7 A13) must say it |
 | 739 | MUST | markup formats to an empty string by default when formatting to a string | `syntax.json` #20, `syntax.json` #101, `syntax.json` #103 |
-| 739 | MAY | how markup is represented may be made customisable *taken: leptos-mf2 renders markup as elements through per-name handlers* | `crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order`, `conformance/tests/l6.rs::the_markup_half_is_not_vacuous` |
+| 739 | MAY | how markup is represented may be made customisable *taken: the Leptos layer (`mf2::leptos`) renders markup as elements through per-name handlers* | `crates/mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order`, `conformance/tests/l6.rs::the_markup_half_is_not_vacuous` |
 
 ### Formatting Fallback Values
 
@@ -172,9 +172,9 @@ Tests are named `file #index` (a suite test; `extra/` is ours, in the WG schema)
 | Line | Key words | Statement | Covered by |
 |---:|---|---|---|
 | 806 | SHOULD | a formatted value that mixes directions should be made to display correctly on its own (e.g. with marks) *CLDR's own marks are kept: `ar` and `he` numbers and units carry U+200E around signs and percent (conformance/goldens/)* | `crates/mf2-fn-number/tests/cldr.rs::panel`, `conformance/tests/goldens.rs::goldens_are_current` |
-| 828 | MUST | the Default Bidi Strategy is the default when formatting a message to a single string *`FormatContext::new` defaults to `BidiStrategy::Default`; the L4 runner formats the suite's `default` cases with an unmodified `FormatContext::new`. leptos-mf2's `to_string()` and `String::from` are isolated; `to_plain_string()` is the plain form (04 §9, revised in Phase 7 A12)* | `u-options.json` #4, `bidi.json` #1, `crates/mf2-runtime/tests/format.rs::bidi`, `crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
-| 835 | MAY | other bidi isolation strategies may be offered *taken: leptos-mf2 picks Default or none by position (04 §9)* | `crates/leptos-mf2/tests/render.rs::an_attribute_is_isolated_or_plain_by_its_name`, `crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
-| 837 | MAY | a strategy that does no bidi processing may be offered *taken: `BidiStrategy::None`* | `fallback.json` #2, `crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
+| 828 | MUST | the Default Bidi Strategy is the default when formatting a message to a single string *`FormatContext::new` defaults to `BidiStrategy::Default`; the L4 runner formats the suite's `default` cases with an unmodified `FormatContext::new`. The Leptos layer's `to_string()` and `String::from` are isolated; `to_plain_string()` is the plain form (04 §9, revised in Phase 7 A12)* | `u-options.json` #4, `bidi.json` #1, `crates/mf2-runtime/tests/format.rs::bidi`, `crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
+| 835 | MAY | other bidi isolation strategies may be offered *taken: the Leptos layer (`mf2::leptos`) picks Default or none by position (04 §9)* | `crates/mf2/tests/render.rs::an_attribute_is_isolated_or_plain_by_its_name`, `crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
+| 837 | MAY | a strategy that does no bidi processing may be offered *taken: `BidiStrategy::None`* | `fallback.json` #2, `crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not` |
 | 892 | SHOULD NOT | a value's direction should not be found by inspecting its formatted characters *Arabic text through `:string` in an Arabic message is isolated with FSI (direction unknown), not RLI: nothing reads the characters* | `u-options.json` #9, `bidi.json` #14 |
 
 ## `functions/README.md`

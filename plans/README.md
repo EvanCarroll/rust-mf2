@@ -9,7 +9,7 @@ source of truth and links to everything else.
 | 1 | [01-conformance.md](01-conformance.md) | touching anything that parses, encodes, formats or renders a message |
 | 2 | [02-catalog-format.md](02-catalog-format.md) | working on `mf2-catalog`, `mf2-build`, or the runtime's reader |
 | 3 | [03-runtime.md](03-runtime.md) | working on `mf2-runtime`, `mf2-fn-*`, `mf2-host-*` |
-| 4 | [04-leptos-integration.md](04-leptos-integration.md) | working on `leptos-mf2`, `mf2-macros`, `mf2-axum`, examples |
+| 4 | [04-leptos-integration.md](04-leptos-integration.md) | working on `mf2`'s Leptos layer (`mf2::leptos`), `mf2-leptos-ui-0-9` / `-0-8`, the `leptos-mf2` shim, `mf2-macros`, `mf2-axum`, examples |
 | 5 | [05-tooling.md](05-tooling.md) | working on `mf2-syntax`, `mf2-resource`, `mf2-build`, `mf2-cli`; the parser performance gate; repository conventions |
 | 6 | [06-size-and-perf.md](06-size-and-perf.md) | budgets, the reference workload, Phase 0 probes, the size gate |
 | 7 | [07-phase-0-work-order.md](07-phase-0-work-order.md) | Phase 0 tasks, dependencies, exit checklist (done) |

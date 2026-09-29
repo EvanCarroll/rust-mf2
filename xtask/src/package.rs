@@ -1,13 +1,14 @@
-//! `cargo xtask package [--check] [--test]`: the 18 published crates as
+//! `cargo xtask package [--check] [--test]`: the 20 published crates as
 //! crates.io receives them (`plans/17-phase-9-work-order.md` A4).
 //!
 //! `cargo package --no-verify` writes each `.crate`; each is then read back
 //! and audited, file by file:
 //!
-//! * every file comes from the crate's own directory — the two licence
-//!   symlinks (`LICENSE` → the root's; `mf2-locale-data`'s `LICENSE-UNICODE`
-//!   → `third_party/cldr-json/LICENSE`) are the only files packaged from
-//!   outside it, and each must point where it says;
+//! * every file comes from the crate's own directory — the licence symlinks
+//!   (`LICENSE` → the root's; `mf2-locale-data`'s `LICENSE-UNICODE` →
+//!   `third_party/cldr-json/LICENSE`) and `mf2-leptos-ui-0-8`'s `src/ui.rs`
+//!   (→ `mf2-leptos-ui-0-9`'s: one source for both Leptos lines) are the
+//!   only files packaged from outside it, and each must point where it says;
 //! * no file is a copy of anything under `third_party/`, `plans/` or the
 //!   specification cache (`target/xtask-cache/`; the text Unicode does not
 //!   let us redistribute, D13), compared by SHA-256 — `LICENSE-UNICODE` is
@@ -54,12 +55,19 @@ const GENERATED: [&str; 3] = ["Cargo.toml", "Cargo.lock", ".cargo_vcs_info.json"
 
 /// The packaged files that are symlinks out of their crate, and where each
 /// must point (from the repository root). `None`: every crate.
-const LINKS: [(Option<&str>, &str, &str); 2] = [
+const LINKS: [(Option<&str>, &str, &str); 3] = [
     (None, "LICENSE", "LICENSE"),
     (
         Some("mf2-locale-data"),
         "LICENSE-UNICODE",
         "third_party/cldr-json/LICENSE",
+    ),
+    // The six Leptos components, compiled once per Leptos line from one
+    // source (Phase 10 B1).
+    (
+        Some("mf2-leptos-ui-0-8"),
+        "src/ui.rs",
+        "crates/mf2-leptos-ui-0-9/src/ui.rs",
     ),
 ];
 
@@ -147,7 +155,7 @@ pub(crate) fn run(root: &Path, check: bool, test: bool) -> Result<()> {
 }
 
 /// The workspace's publishable crates (A1's metadata test holds them to the
-/// 18), from `cargo metadata`.
+/// 20), from `cargo metadata`.
 fn publishable(root: &Path) -> Result<Vec<Published>> {
     let args = ["metadata", "--format-version", "1", "--no-deps"].map(OsStr::new);
     let bytes = run_capture(&cargo(), &args, root, &[])?;

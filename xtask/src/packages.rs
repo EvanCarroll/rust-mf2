@@ -1,5 +1,5 @@
 //! The published packages' metadata (plans/17-phase-9-work-order.md, A1):
-//! exactly the 18 library crates are publishable, at one version, each with
+//! exactly the 20 library crates are publishable, at one version, each with
 //! what crates.io shows, and every dependency between two of them is an
 //! exact requirement — the generated module, the macro and the runtime share
 //! `#[doc(hidden)]` items that the version policy exempts from semver, so
@@ -11,7 +11,7 @@
 //! that use one are left out of the package and run in the workspace (A4;
 //! `cargo xtask package`).
 //!
-//! Every one of the 18 states the one `rust-version` (A3): the MSRV
+//! Every one of the 20 states the one `rust-version` (A3): the MSRV
 //! `[workspace.package]` records and `cargo xtask msrv` measures.
 
 use std::ffi::OsStr;
@@ -22,8 +22,11 @@ use serde_json::Value;
 use crate::cmd::{cargo, run_capture};
 use crate::error::{Error, Result};
 
-/// The crates published to crates.io (D12), and nothing else.
-pub(crate) const PUBLISHED: [&str; 18] = [
+/// The crates published to crates.io (D12), and nothing else: the 18 of
+/// 1.x and, since Phase 10's B1, the two helper crates of the Leptos
+/// components (D20). At Phase 10's exit the four shims fold away and 16
+/// remain (plans/00-master-plan.md §4.1).
+pub(crate) const PUBLISHED: [&str; 20] = [
     "leptos-mf2",
     "mf2",
     "mf2-axum",
@@ -34,6 +37,8 @@ pub(crate) const PUBLISHED: [&str; 18] = [
     "mf2-fn-number",
     "mf2-host-std",
     "mf2-host-web",
+    "mf2-leptos-ui-0-8",
+    "mf2-leptos-ui-0-9",
     "mf2-locale-data",
     "mf2-macros",
     "mf2-model",
@@ -64,7 +69,7 @@ pub(crate) fn metadata(root: &Path) -> Result<Value> {
 }
 
 /// The version the published crates are released at: `mf2`'s (A1's test
-/// holds the 18 to one).
+/// holds the 20 to one).
 pub(crate) fn version(metadata: &Value) -> Option<&str> {
     metadata["packages"]
         .as_array()?
@@ -90,7 +95,7 @@ pub(crate) fn problems(metadata: &Value) -> Vec<String> {
     }
     for name in &publishable {
         if !PUBLISHED.contains(name) {
-            out.push(format!("{name}: publishable, but not one of the 18"));
+            out.push(format!("{name}: publishable, but not one of the 20"));
         }
     }
     let msrv = packages
@@ -205,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    fn the_eighteen_are_published_and_complete() {
+    fn the_twenty_are_published_and_complete() {
         let found = problems(&metadata());
         assert!(found.is_empty(), "{}", found.join("\n"));
     }
@@ -226,7 +231,7 @@ mod tests {
     fn a_published_tool_is_caught() {
         let mut m = metadata();
         package(&mut m, "xtask")["publish"] = Value::Null;
-        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 18"]);
+        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 20"]);
     }
 
     #[test]

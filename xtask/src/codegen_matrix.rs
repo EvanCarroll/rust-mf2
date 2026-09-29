@@ -21,19 +21,24 @@ const FIXTURE: &str = "mf2-i18n-fixture";
 /// The client target.
 const WASM: &str = "wasm32-unknown-unknown";
 
-/// Server combinations: what an application's `ssr` build forwards.
-const SERVER: [&str; 6] = [
+/// Server combinations: what an application's `ssr` build forwards. The
+/// last two also turn on `mf2`'s Leptos layer, on each line (Phase 10 B1):
+/// the generated module beside the description types' Leptos impls.
+const SERVER: [&str; 8] = [
     "ssr",
     "ssr,fn-number",
     "ssr,fn-datetime",
     "ssr,fn-datetime,datetime-icu",
     "ssr,fn-number,fn-datetime",
     "ssr,fn-number,fn-datetime,datetime-icu",
+    "ssr,fn-number,fn-datetime,mf2/leptos,mf2/ssr",
+    "ssr,fn-datetime,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
 ];
 
 /// Client combinations: what its `hydrate` build forwards. `intl` is the
-/// client-only option of decision D4.
-const CLIENT: [&str; 7] = [
+/// client-only option of decision D4. The last three also turn on `mf2`'s
+/// Leptos layer, on each line and in both client modes (Phase 10 B1).
+const CLIENT: [&str; 10] = [
     "hydrate",
     "hydrate,fn-number",
     "hydrate,fn-number,intl",
@@ -41,6 +46,9 @@ const CLIENT: [&str; 7] = [
     "hydrate,fn-datetime,datetime-icu",
     "hydrate,fn-datetime,datetime-intl",
     "hydrate,fn-number,fn-datetime,datetime-intl,intl",
+    "hydrate,fn-number,fn-datetime,mf2/leptos,mf2/hydrate",
+    "hydrate,mf2/leptos,mf2/csr,mf2/static-locale",
+    "hydrate,fn-datetime,mf2/leptos-0-8,mf2/hydrate",
 ];
 
 pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {

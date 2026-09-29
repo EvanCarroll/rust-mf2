@@ -433,7 +433,7 @@ says = "result types should suit users, including further processing of the resu
 note = "parts for programs, elements for Leptos views, a string for plain text"
 tests = [
     "crates/mf2-runtime/tests/format.rs::parts_output",
-    "crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
+    "crates/mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
 ]
 
 [[statement]]
@@ -453,9 +453,9 @@ tests = [
 [[statement]]
 id = "formatting.md#cf7a225a"
 says = "how markup is represented may be made customisable"
-note = "taken: leptos-mf2 renders markup as elements through per-name handlers"
+note = "taken: the Leptos layer (`mf2::leptos`) renders markup as elements through per-name handlers"
 tests = [
-    "crates/leptos-mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
+    "crates/mf2/tests/render.rs::markup_becomes_elements_in_the_message_s_own_order",
     "conformance/tests/l6.rs::the_markup_half_is_not_vacuous",
 ]
 
@@ -481,21 +481,21 @@ tests = [
 [[statement]]
 id = "formatting.md#d22b98bc"
 says = "the Default Bidi Strategy is the default when formatting a message to a single string"
-note = "`FormatContext::new` defaults to `BidiStrategy::Default`; the L4 runner formats the suite's `default` cases with an unmodified `FormatContext::new`. leptos-mf2's `to_string()` and `String::from` are isolated; `to_plain_string()` is the plain form (04 §9, revised in Phase 7 A12)"
+note = "`FormatContext::new` defaults to `BidiStrategy::Default`; the L4 runner formats the suite's `default` cases with an unmodified `FormatContext::new`. The Leptos layer's `to_string()` and `String::from` are isolated; `to_plain_string()` is the plain form (04 §9, revised in Phase 7 A12)"
 tests = [
     "u-options.json@c0679749",
     "bidi.json@d37df91b",
     "crates/mf2-runtime/tests/format.rs::bidi",
-    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+    "crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
 ]
 
 [[statement]]
 id = "formatting.md#40ece2ba"
 says = "other bidi isolation strategies may be offered"
-note = "taken: leptos-mf2 picks Default or none by position (04 §9)"
+note = "taken: the Leptos layer (`mf2::leptos`) picks Default or none by position (04 §9)"
 tests = [
-    "crates/leptos-mf2/tests/render.rs::an_attribute_is_isolated_or_plain_by_its_name",
-    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+    "crates/mf2/tests/render.rs::an_attribute_is_isolated_or_plain_by_its_name",
+    "crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
 ]
 
 [[statement]]
@@ -504,7 +504,7 @@ says = "a strategy that does no bidi processing may be offered"
 note = "taken: `BidiStrategy::None`"
 tests = [
     "fallback.json@9e95263f",
-    "crates/leptos-mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
+    "crates/mf2/tests/render.rs::a_string_is_isolated_and_a_plain_string_is_not",
 ]
 
 [[statement]]

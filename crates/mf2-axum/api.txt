@@ -114,7 +114,7 @@ pub fn mf2_axum::QueryParam::candidates<'r>(&self, &'r http::request::Parts, &mu
 pub fn mf2_axum::QueryParam::name(&self) -> &'static str
 pub fn mf2_axum::QueryParam::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub fn mf2_axum::catalog_routes<S>() -> axum::routing::Router<S> where S: core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
-pub fn mf2_axum::install(leptos_mf2::state::Setup, &[(&'static str, &'static str, &'static [u8])]) -> core::result::Result<(), leptos_mf2::error::LoadError>
+pub fn mf2_axum::install(mf2::leptos::state::Setup, &[(&'static str, &'static str, &'static [u8])]) -> core::result::Result<(), mf2::error::LoadError>
 pub fn mf2_axum::negotiated() -> core::option::Option<mf2_axum::Negotiated>
 pub async fn mf2_axum::path_prefix_redirect(axum_core::extract::Request, axum::middleware::from_fn::Next) -> axum_core::response::Response
 pub fn mf2_axum::provide_locale(&mf2_axum::Negotiator) -> mf2_axum::Negotiated

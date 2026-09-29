@@ -3,7 +3,7 @@ name = "mf2"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — re-exports of the Rust MF2 crates and their feature flags, and compile_str for ad-hoc messages."
+description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — the call-site types, the Leptos layer behind a feature, the formatter, and compile_str for ad-hoc messages."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -21,19 +21,19 @@ default = []
 # `compile_str`: parse, validate, analyze and write a one-message catalog
 # (std, server and tests; never in a client).
 compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
-# Locale-aware numbers (plans/00-master-plan.md §5): symbols, grouping,
-# numbering systems, :percent (and :currency, :unit) — mf2-fn-number.
+# Locale-aware numbers: symbols, grouping, numbering systems, :percent (and
+# :currency, :unit) — mf2-fn-number.
 fn-number = ["dep:mf2-fn-number"]
-# Dates and times (plans/03-runtime.md §5.1): :datetime, :date, :time and
-# unannotated date/time values — mf2-fn-datetime.
-# With the Leptos layer, also the reader's time zone (leptos-mf2's
-# `fn-datetime`).
-fn-datetime = ["dep:mf2-fn-datetime", "leptos-mf2/fn-datetime"]
-# The date backends (plans/03-runtime.md §5.1–§5.2), each implying
-# `fn-datetime`: `datetime-icu` — ICU4X on client and server, data from the
-# catalog's `icu.blob` (which `compile_str` then emits); `datetime-intl` — the
-# browser's `Intl.DateTimeFormat` on wasm32-unknown-unknown, ICU4X with
-# compiled data elsewhere.
+# Dates and times: :datetime, :date, :time and unannotated date/time values
+# — mf2-fn-datetime. With a Leptos mode, also dates in the reader's time
+# zone: the client reads the browser's zone, corrects a page rendered in
+# another after hydrating, and writes the `mf2_tz` cookie the server renders
+# the next page in; off, no byte of it is in the client.
+fn-datetime = ["dep:mf2-fn-datetime"]
+# The date backends, each implying `fn-datetime`: `datetime-icu` — ICU4X on
+# client and server, data from the catalog's `icu.blob` (which `compile_str`
+# then emits); `datetime-intl` — the browser's `Intl.DateTimeFormat` on
+# wasm32-unknown-unknown, ICU4X with compiled data elsewhere.
 # With `host-web`, each also gives the browser host its date methods: named
 # zones from the browser's data (both), `Intl.DateTimeFormat` (`datetime-intl`).
 datetime-icu = [
@@ -46,31 +46,82 @@ datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
-# The `intl` client option (plans/00-master-plan.md §5, owner decision 4;
-# plans/03-runtime.md §5.3): on wasm32-unknown-unknown the numeric functions
+# The `intl` client option: on wasm32-unknown-unknown the numeric functions
 # format and select through the browser's Intl.NumberFormat and
 # Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
 # Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
 # keeps the Rust path.
 intl = ["mf2-runtime/intl", "mf2-fn-number?/intl", "mf2-host-web?/intl"]
-# The Leptos layer (`plans/04-leptos-integration.md` §§3–7): the tachys view
-# impls for the description types, the catalog context, the node registry and
-# the locale switch. Off, the call-site core compiles with no Leptos crate,
-# no tachys and no reactive_graph in the tree.
-leptos = ["leptos-mf2/leptos"]
-# The three Leptos targets; an application turns exactly one on and forwards
-# it to every leptos-aware dependency, as cargo-leptos does.
-ssr = ["leptos", "leptos-mf2/ssr"]
-hydrate = ["leptos", "leptos-mf2/hydrate"]
-csr = ["leptos", "leptos-mf2/csr"]
-# A locale switch is a cookie and a navigation (D7 strategy C).
-static-locale = ["leptos-mf2/static-locale"]
-# WCAG 3.1.2: text borrowed from a fallback locale renders inside
-# `<span lang [dir]>` in a view position — see `leptos-mf2`'s manifest.
-mark-fallback-lang = ["leptos-mf2/mark-fallback-lang"]
+# The Leptos line the layer renders with. `leptos` is Leptos 0.9, the
+# default line; `leptos-0-8` is Leptos 0.8. Neither is a default feature: an
+# application writes one on its `mf2` dependency, and a mode needs one. Both
+# at once, or a mode with neither, is a compile error that says what to
+# write. Each line is a dependency under a name of its own, with its helper
+# crate of components (`mf2-leptos-ui-0-9`, `mf2-leptos-ui-0-8`).
+leptos = ["dep:leptos_0_9", "dep:tachys_0_3", "dep:reactive_graph_0_3", "dep:mf2-leptos-ui-0-9"]
+leptos-0-8 = [
+    "dep:leptos_0_8",
+    "dep:tachys_0_2",
+    "dep:reactive_graph_0_2",
+    "dep:mf2-leptos-ui-0-8",
+]
+# The three Leptos modes: the Leptos layer (`mf2::leptos`), rendered on the
+# server (`ssr`), hydrated in the browser (`hydrate`) or built there
+# (`csr`). An application turns exactly one on, in its own feature of the
+# same name, beside Leptos's. Each implies its host.
+ssr = [
+    "host-std",
+    "dep:oco_ref",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:web-sys",
+    "leptos_0_9?/ssr",
+    "tachys_0_3?/ssr",
+    "mf2-leptos-ui-0-9?/ssr",
+    "leptos_0_8?/ssr",
+    "tachys_0_2?/ssr",
+    "mf2-leptos-ui-0-8?/ssr",
+]
+hydrate = [
+    "host-web",
+    "dep:oco_ref",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:web-sys",
+    "dep:any_spawner",
+    "dep:wasm-bindgen-futures",
+    "leptos_0_9?/hydrate",
+    "tachys_0_3?/hydrate",
+    "mf2-leptos-ui-0-9?/hydrate",
+    "leptos_0_8?/hydrate",
+    "tachys_0_2?/hydrate",
+    "mf2-leptos-ui-0-8?/hydrate",
+]
+csr = [
+    "host-web",
+    "dep:oco_ref",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:web-sys",
+    "dep:wasm-bindgen-futures",
+    "leptos_0_9?/csr",
+    "mf2-leptos-ui-0-9?/csr",
+    "leptos_0_8?/csr",
+    "mf2-leptos-ui-0-8?/csr",
+]
+# No live update: a locale switch is a cookie and a navigation. Rendered
+# nodes then register nothing, which is the natural fit for islands.
+static-locale = []
+# WCAG 3.1.2, Language of Parts: text the catalog borrowed from a fallback
+# locale renders inside a `<span lang>`, identically on server and client.
+# Only a borrowed message in a view position (a text child, a rich
+# fragment) is wrapped, so a page with no missing translation is unchanged;
+# `dir` is added when the lender's direction differs from the page's.
+# Attributes and strings cannot carry a `lang` of their own and stay
+# unmarked. Off, nothing of it is compiled.
+mark-fallback-lang = []
 
 [dependencies]
-leptos-mf2.workspace = true
 mf2-catalog.workspace = true
 mf2-fn-number = { workspace = true, optional = true }
 mf2-fn-datetime = { workspace = true, optional = true }
@@ -83,27 +134,72 @@ mf2-runtime.workspace = true
 mf2-syntax = { workspace = true, optional = true }
 thiserror.workspace = true
 
+# The Leptos layer: each line under names of its own, and its helper.
+leptos_0_9 = { workspace = true, optional = true }
+tachys_0_3 = { workspace = true, optional = true }
+reactive_graph_0_3 = { workspace = true, optional = true }
+mf2-leptos-ui-0-9 = { workspace = true, optional = true }
+leptos_0_8 = { workspace = true, optional = true }
+tachys_0_2 = { workspace = true, optional = true }
+reactive_graph_0_2 = { workspace = true, optional = true }
+mf2-leptos-ui-0-8 = { workspace = true, optional = true }
+oco_ref = { workspace = true, optional = true }
+# The client half: the hydration cursor's nodes, the catalog fetch, one
+# console diagnostic. No `#[wasm_bindgen]` item of ours, so
+# `forbid(unsafe_code)` holds.
+any_spawner = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
+
+[dev-dependencies]
+# `tests/churn.rs` runs the client's effects natively.
+any_spawner = { workspace = true, features = ["futures-executor"] }
+# `tests/fallback_lang.rs` writes catalogs that borrow a message from another
+# locale, which `compile_str` (one locale, nothing missing) never does.
+mf2-catalog = { workspace = true, features = ["writer"] }
+mf2-syntax.workspace = true
+
 # The call-site core formats against a catalog the caller supplies: the test
 # builds one with `compile_str` and formats it through the native host.
 [[test]]
 name = "call_site"
 required-features = ["compile", "host-std", "fn-datetime"]
 
+# Rendering a description through the view types, on the server. Each of
+# these also needs a Leptos line, which a mode requires anyway.
+[[test]]
+name = "render"
+required-features = ["ssr", "compile"]
+
+[[test]]
+name = "time_zone"
+required-features = ["ssr", "compile", "fn-datetime"]
+
+# The client half, natively.
+[[test]]
+name = "churn"
+required-features = ["csr", "compile", "host-std"]
+
+[[test]]
+name = "fallback_lang"
+required-features = ["ssr", "mark-fallback-lang"]
+
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-# `ssr` alone names no Leptos line (this crate depends on leptos-mf2
-# without its default); an application's own dependency on leptos-mf2
-# names 0.9, as `leptos-mf2/leptos-0-9` does here.
+# The server on Leptos 0.9: the modes exclude each other, and `mf2::leptos`
+# names what the client modes add.
 features = [
     "compile",
     "fn-number",
     "datetime-icu",
     "host-std",
+    "leptos",
     "ssr",
     "static-locale",
     "mark-fallback-lang",
-    "leptos-mf2/leptos-0-9",
 ]
 targets = ["x86_64-unknown-linux-gnu"]
 

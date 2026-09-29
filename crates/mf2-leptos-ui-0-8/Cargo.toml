@@ -1,0 +1,39 @@
+[package]
+name = "mf2-leptos-ui-0-8"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The built-in Leptos 0.8 components of Rust MF2: the locale switcher and its options, the catalog preload and links, the hreflang block and the islands gate. Applications name `mf2`, which re-exports them."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-leptos-ui-0-8"
+keywords = ["leptos", "messageformat", "mf2", "i18n", "wasm"]
+categories = ["internationalization", "localization", "web-programming", "wasm", "gui"]
+# The package\'s file list (`cargo xtask package`) is not part of it.
+exclude = ["package.txt"]
+
+[features]
+# The Leptos modes, which `mf2` forwards: exactly one.
+ssr = ["leptos_0_8/ssr"]
+hydrate = ["leptos_0_8/hydrate", "dep:js-sys", "dep:wasm-bindgen", "dep:web-sys"]
+csr = ["leptos_0_8/csr", "dep:js-sys", "dep:wasm-bindgen", "dep:web-sys"]
+
+[dependencies]
+leptos_0_8.workspace = true
+mf2-model.workspace = true
+js-sys = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
+
+# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
+# target `cargo xtask api` lists the public API with (api.txt).
+[package.metadata.docs.rs]
+features = ["ssr"]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[lints]
+workspace = true

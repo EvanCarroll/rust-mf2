@@ -3,11 +3,13 @@
 Unicode MessageFormat 2 for Rust applications — web applications with
 [Leptos](https://leptos.dev), and native command-line and terminal
 applications. `mf2` is the one crate an application's code names. It
-re-exports the public API of the Rust MF2 crates and carries the feature
-flags that choose what a build includes: localized numbers
-(`fn-number`), dates (`fn-datetime` and a backend), the host
-(`host-std` natively, `host-web` in the browser), the Leptos target
-(`ssr`, `hydrate` or `csr`), and `compile_str` for an ad-hoc message.
+defines what a `tr!` call site builds (`Tr`, `TrArgs`, `TrRich`,
+`ArgValue`), carries the Leptos layer as `mf2::leptos`, re-exports the
+formatter of the Rust MF2 crates, and carries the feature flags that choose
+what a build includes: the Leptos line (`leptos` for 0.9, `leptos-0-8`) and
+mode (`ssr`, `hydrate` or `csr`), localized numbers (`fn-number`), dates
+(`fn-datetime` and a backend), the host (`host-std` natively, `host-web` in
+the browser), and `compile_str` for an ad-hoc message.
 
 Messages are written in MF2, checked when the application compiles, and
 compiled to one small binary catalog per language. On the web, the
@@ -15,13 +17,13 @@ browser loads a language's catalog when it needs it, and the client wasm
 contains none of the text.
 
 An application's translation crate depends on `mf2` and, as a build
-dependency, [`mf2-build`](https://docs.rs/mf2-build). Beside them, a web
-application adds [`leptos-mf2`](https://docs.rs/leptos-mf2) and
-[`mf2-axum`](https://docs.rs/mf2-axum); a native one adds
+dependency, [`mf2-build`](https://docs.rs/mf2-build). A web application's
+server adds [`mf2-axum`](https://docs.rs/mf2-axum); a native one adds
 [`mf2-native`](https://docs.rs/mf2-native) and, for a terminal UI,
-[`mf2-ratatui`](https://docs.rs/mf2-ratatui). For native applications
-`mf2` also provides `Corpus`, the one value a native build generates, and
-`Message`, which formats any `tr!` call site outside Leptos.
+[`mf2-ratatui`](https://docs.rs/mf2-ratatui). `leptos-mf2`, where 1.x
+kept the Leptos layer, is now a shim over `mf2::leptos`. For native
+applications `mf2` also provides `Corpus`, the one value a native build
+generates, and `Message`, which formats any `tr!` call site outside Leptos.
 
 API documentation: <https://docs.rs/mf2>.
 
