@@ -52,10 +52,11 @@ host-web = ["dep:mf2-host-web"]
 # their names, `content-hash`); the system's preferred languages
 # (`sys-locale`) and time zone (jiff's `tz-system`). std, and never in a
 # browser build: with `hydrate` or `csr` it is a compile error. Implies the
-# native host.
+# native host. `dep:jiff` too, so that cargo adds no public feature `jiff`.
 native = [
     "host-std",
     "dep:sys-locale",
+    "dep:jiff",
     "jiff/std",
     "jiff/tz-system",
     "mf2-catalog/static-bytes",
