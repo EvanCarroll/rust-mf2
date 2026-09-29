@@ -208,20 +208,37 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   Natively, `tui-mf2`'s allocations per frame identical and +1,760 B stripped (the exact path of
   its `usize` arguments; routed to C2). The inline short string for a `&str` was measured and not
   kept. The checks are in the record.
+- **C2** (`c5b602e`; record below, after C1's): the ambient store in `mf2::native`, A4's shape —
+  `install(&CORPUS)` (nothing returned; a panic naming the catalog, or a second corpus),
+  `install_from_directory` (a partial set, the source language's file required), `set_locale`,
+  `locale()`, `locale_source()`, `with_locale(&CORPUS, …)` (before `install` too), the bidi and
+  zone settings; `Catalogs`, the explicit form, and `Error` (1.x's `NativeError`); 1.x's
+  `NativeI18n` rebuilt on `Catalogs` for the shim. With `native` the descriptions have `Display`,
+  `to_string()`, `to_plain_string()` and `to_cow()` (a simple message borrowed from the
+  executable), through the one lookup: the request's or the page's catalog, then the thread's
+  language, then the app-wide one. The system zone by name, else its POSIX rule
+  (`TimeZone::rules`, evaluated by the native host), never a frozen offset; `Debug` on the
+  runtime's and the catalog's 31 types. The browser checks green at HEAD, on both lines. Natively
+  `tui-mf2` 1,804,776 B stripped (−160,544 against 1.x's: the frozen zone's `Timestamp::now()`
+  linked jiff's error formatting), allocations identical, time not resolved from 1.x's; B10
+  through the store 0 allocations for a simple message, 1 for a 1-argument one (1.x 1 and 2.27);
+  the lookup's first step, with `ssr` unified, about 6–7 ns a format. The web within every budget
+  (B1 26,728 → 26,733 B gz, B5 8.2, the clients' code the same with two functions in another
+  order), B12 clean. The checks are in the record.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **C2** (the ambient store), as Part C's heading orders (C1 and C2 after B1–B3; C3 before C4),
+- **C3** (one matcher), as Part C's heading orders (C1 and C2 after B1–B3; C3 before C4),
   then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
   `mf2`'s listed modes (B5's record).
 
-**Owner questions found in the work:** none waiting. C1 found none. B5 found none. B4 found none.
-B3 found none. The browser-only refusal found none. B1's review fixes found one, answered as
+**Owner questions found in the work:** none waiting. C2 found none. C1 found none. B5 found none.
+B4 found none. B3 found none. The browser-only refusal found none. B1's review fixes found one, answered as
 question 24: `native` beside a browser mode is refused only when compiling for the browser, and
 B3's `ratatui` and D1's `axum` follow it; the browser-only refusal built it, and B3 built
 `ratatui`'s. Questions 25 and 26 were asked with it: both measurement worktrees are removed, and
@@ -238,10 +255,24 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From C2 (its record):
+  - Every change to a client-path crate: adding items no client reaches (a `Debug` impl) can move
+    LLVM's inlining or function order in every client; read a names-kept build
+    (`probes/p10-c2/named.sh`) before calling a web move noise.
+  - C3: the native matcher copies the candidate tag into a `String` on every `set_locale` and
+    `with_locale`.
+  - C5 / C8: `examples/tui` still measures 1.x's API over C2's `Catalogs`; the store's frame is
+    measured when C8 moves it, against C5's gate.
+  - C9: the trippy port's size against upstream starts from a native build without jiff's error
+    formatting (C2's −160 KB).
+  - F: `with_locale(&CORPUS, …)` before C4's typed form; a second corpus is refused by `install`
+    and served by `Catalogs`; before `install`, a native-only build panics, a web one shows no
+    text.
 - From C1 (its record):
-  - C2: `tui-mf2` is 1,967,192 B stripped since C1 (+1,760: the exact path its `usize` arguments
+  - ~~C2: `tui-mf2` is 1,967,192 B stripped since C1 (+1,760: the exact path its `usize` arguments
     may take on a 64-bit target), where C2's gate (19 §14) reads "≤ 1,965,320 B"; HEAD was already
-    1,965,432. C2's store (A4: a CLI 5,248 B smaller) is measured against it.
+    1,965,432. C2's store (A4: a CLI 5,248 B smaller) is measured against it.~~ **Met by C2** (its
+    record): 1,804,776 B, the 1.x zone's `Timestamp::now()` path gone.
   - F (the book): `mf2::IntoArg` for an application's own number or date type; a `Cow` that
     borrows for less than `'static` is refused by the borrow checker (pass `&*cow`); jiff's
     `civil::Time` is its text; `SystemTime` and jiff's `Timestamp` / `Zoned` as the plain way to pass
@@ -282,10 +313,11 @@ the owner's review, which approved them (question 17).
     `text`. When C8 takes them out of `mf2` (19 §8), the shim keeps its own copy until G1 deletes
     it, or goes then.
 - From the browser-only refusal (its record):
-  - C2: `native` beside `hydrate` or `csr` now compiles on the host, so the ambient forms must
+  - ~~C2: `native` beside `hydrate` or `csr` now compiles on the host, so the ambient forms must
     compile, and D17's one lookup (the request or the client, then the native thread, then the
     native global) must hold, with a client mode and `native` both on. `cargo xtask refusals`'
-    host cases check that `mf2` compiles so; they check no behaviour.
+    host cases check that `mf2` compiles so; they check no behaviour.~~ **Done by C2:**
+    `tests/lookup.rs`, beside `csr` in `ci` and beside `ssr` in `--workspace`.
   - ~~B3~~, D1: `ratatui`'s and `axum`'s cases go on both sides of `cargo xtask refusals`.
     **B3's are in** (its record); D1's remain.
 - From B1 (its record):
@@ -293,14 +325,14 @@ the owner's review, which approved them (question 17).
     nor what the `leptos-mf2` shim re-exports by glob; `release.rs`'s semver check now leaves
     `leptos` out of `mf2`'s features too (1.0.0's needs a line from `leptos-mf2`).~~ **Done by
     B5** (its record): both listed; `mf2` compared per mode, `native` and `ratatui` (B2, B3) too.
-  - C2: `missing_debug_implementations` warns in `mf2`; the runtime's and the catalog's types
-    remain C2's.
+  - ~~C2: `missing_debug_implementations` warns in `mf2`; the runtime's and the catalog's types
+    remain C2's.~~ **Done by C2:** the lint warns in both, and their 31 types have `Debug`.
   - Whoever next edits `CLAUDE.md`: its client-path list names `leptos-mf2`, whose code is now
     `mf2`'s and the helpers'.
 - From B2 (its record):
-  - C2: 19 §4's names for the native module, `Catalogs` and `Error`, are given with the API C2
+  - ~~C2: 19 §4's names for the native module, `Catalogs` and `Error`, are given with the API C2
     builds; B2 kept `NativeI18n` and `NativeError`, and the shim keeps 1.x's names whatever C2
-    does.
+    does.~~ **Done by C2:** `Catalogs` and `Error`; the shim keeps both 1.x names.
   - C2 / C8: a native size carries the build's source paths and the rlibs linked beside it:
     `tui-upstream`, which uses no MF2, moved +9,856 B with B2. Compare within one tree and one
     lock.
@@ -332,8 +364,9 @@ the owner's review, which approved them (question 17).
 - ~~C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).~~ **Measured by C1,
   not kept** (its record): an inline short string saves 10 of `tui-mf2`'s 1,816 allocations a
   frame, with no time measurably saved, and costs every web client about 500 B raw.
-- C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
-  times need a quiet machine (A1).
+- ~~C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
+  times need a quiet machine (A1).~~ **Done by C2** (its record): about 6–7 ns a format, under load;
+  B10's times are reported under load, its allocations gated (`--gate`).
 - C7/C8: Ratatui without its default features needs `layout-cache` (A1).
 - D5: the one-crate web starter writes `watch-additional-files = ["locales"]` (A6).
 - C3, from its text half, each with a test:
@@ -4027,6 +4060,202 @@ Where 19 refines a row below, 19 wins:
   * G2: `ArgValue::from(usize)` saturates (1.x's, kept), `IntoArg` does not.
   * Not scheduled: the refusal's note naming the hidden `KindNeither::__mf2_kind`; an underline of
     the whole argument needs `Span::join` (nightly).
+
+## C2 — the ambient store: what was built
+
+* **Where.** Commit `c5b602e` on `main`, made in the main tree; commands ran there, one build at a
+  time. The before figures were taken at `ac11c9d`, before any change: the six browser checks on
+  both Leptos lines (C1 had skipped them), `bash probes/p10-b2/measure.sh c2-base`, `cargo xtask
+  tui-gate --baseline target/p10-baseline --save-baseline target/p10-c2/tui-head`, and B10's 1.x
+  rows with the crates as HEAD has them (`bash probes/p10-c2/at-head.sh cargo run --release -p
+  runtime-bench -- b10 …`). Logs: the main tree's git-ignored `target/p10-c2/`,
+  `target/p10-b2/logs/c2-base/` and `…/c2c/` (the two earlier after-runs, `c2` and `c2b`, beside
+  them), and `target/p10-b1/e2e/c2-*`. Scripts: `probes/p10-c2/` (its `README.md`).
+* **The browser checks at HEAD** (`bash probes/p10-b1/e2e.sh . c2-head-leptos-0-9`; on 0.8
+  `python3 probes/p10-names/demos-0-8.py c2-head`, B2's copies' build directories moved in, then
+  `bash probes/p10-b1/e2e.sh target/a7-demo-0-8/c2-head c2-head-leptos-0-8`): green on both lines,
+  demo 210/210, lazy 74/74, islands 58/58, csr 98/98, zone 40/40, a11y 720/720. Nothing of C1's.
+* **What was built** (19 §5 and §6, with §5's "As built", which C2 added):
+  * **The store** (`crates/mf2/src/native/store.rs`), A4's shape: a `Catalogs` in a `OnceLock`,
+    each catalog living as long as the process; the app-wide language and where it came from in one
+    atomic; a thread's language in one thread-local cell, restored by a guard; the settings (bidi,
+    time zone) behind an `RwLock` with a generation counter, copied per thread. `install(&CORPUS)`
+    returns nothing and panics naming the catalog, or the second corpus; `install_from_directory`
+    returns `Result<(), mf2::native::Error>` and takes a partial set (the source language's file
+    required); `set_locale`, `locale()`, `locale_source()`, `with_locale(&CORPUS, locale, body)`
+    (before `install` too), `set_bidi` / `bidi`, `set_time_zone` / `time_zone`.
+  * **`Catalogs`** (`native/catalogs.rs`), the explicit form: `embedded`, `from_directory`
+    (partial), `format(locale, &message)`, `format_with_errors`, `formatter`, `locales`, its own
+    bidi and zone. **`Error`** is 1.x's `NativeError`, renamed, with `AnotherCorpus`. **1.x's
+    `NativeI18n`** (`native/handle.rs`) is built on `Catalogs` with 1.x's API and rules (every file
+    required), kept visible beside them, as B3 kept `line` / `text`. The `mf2-native` shim
+    re-exports both under 1.x's names; its listing is unchanged.
+  * **The ambient forms** (`display.rs`): with `native`, `to_string()`, `to_plain_string()`,
+    `to_cow()`, `From<_> for String` and `Display` (S3: `f.pad(&to_cow())`) on the four
+    descriptions, each through one function taking a trait object of the two methods the text needs.
+    **The one lookup:** beside a Leptos mode the request's context (`ssr`) or the page's catalog
+    (`hydrate`, `csr`) first, then the store, then the web's rule; a native-only build panics before
+    `install`, naming it. A build with a Leptos mode and no `native` compiles the web's text path as
+    before; `to_cow()` joins its forms (owned there).
+  * **The system zone** (`native/zone.rs`): jiff's, by its IANA name; else the POSIX rule it follows
+    — `TZ`'s, or the one its TZif file ends with — as `mf2_runtime::TimeZone::rules`, which
+    `mf2-host-std`'s `zone_offset` evaluates with jiff after its database; else UTC. `NativeI18n`
+    gets the same zone.
+  * **`Debug`** on the runtime's 13 public types that lacked it and the catalog's 18 (hand-written
+    where a field has none, or to show counters rather than a byte table), and
+    `missing_debug_implementations` warns in both crates.
+  * **Tests:** `crates/mf2/tests/ambient.rs` (16 pinned threads × 2,000 rounds while another thread
+    changes the app-wide language, bidi and zone; `set_locale` and the settings seen by another
+    thread's next format; `with_locale` nested and restored when its body unwinds; `to_cow`
+    borrowed from the embedded bytes; `Display` padded; another corpus refused; `Catalogs`, a
+    partial set), `uninstalled.rs`, `from_directory.rs`, `system_zone.rs` (a child process with
+    `TZ=EST5EDT,M3.2.0,M11.1.0`), `lookup.rs` (beside `ssr` and beside `csr`), and a corpus written
+    as `mf2-build` writes one (`tests/support/corpus.rs`). `ci` runs them with `native` alone,
+    beside `csr`, and (`--workspace`) beside `ssr`.
+  * **In the same commit:** 19 §5 ("As built") and §16; 03 §6 (`TimeZone::rules`); 05 §9; D17's
+    status; the changelog; `docs/native-apps.md`'s sentence on the zone; `mf2`'s crate docs and the
+    shim's README; `mf2`'s five mode listings and `mf2-runtime`'s; `mf2`'s `package.txt`; B10's
+    harness (`bench/runtime-bench`, rows below); `probes/p10-c2/`.
+* **Choices within the design** (none an owner question; each in 19 §5's "As built"):
+  `with_locale` takes the corpus, which is what lets it load before `install`; `set_locale` needs
+  `install`; the rule zone rides in the named zone's buffer, marked in its last byte (below: its
+  own variant cost the web); `NativeI18n` visible (hidden, the shim's listing lost it: rustdoc drops
+  a re-export of another crate's hidden item); `to_display_string()` stays with the Leptos modes;
+  `Catalogs::format` in a language it lacks is the source's; the parts seam is C5's.
+* **Native** (`cargo xtask tui-gate --baseline target/p10-baseline --save-baseline
+  target/p10-c2/tui-c2`, then `… --baseline target/p10-c2/tui-head`, each again with `--runs 61`;
+  four binaries alternating; `examples/tui` is still on 1.x's API through the shims, so this is
+  1.x's `NativeI18n::format` and `mf2::ratatui::line` over C2's `Catalogs`):
+
+  | Binary | Stripped (B): 1.x (A1) / HEAD → C2 | Allocations per frame (en / de / es / fr), all | Median µs per frame, C2 / baseline, **under load** |
+  |---|---:|---|---:|
+  | `tui-mf2` | 1,965,320 / 1,967,192 → **1,804,776** | 1816 / 1815 / 1816 / 1817 | against 1.x: 276.4 / 275.1 (31 runs, load 1.51), 296.0 / 290.7 (61, 1.00); against HEAD: 280.7 / 276.0 (31, 1.43), 272.4 / 268.5 (61, 1.30) |
+  | `tui-upstream`, which uses no MF2 | 1,390,784 / 1,400,864 → 1,401,856 | 1517 / 1519 / 1518 / 1526 | the same runs: 243.1 / 243.3, 252.8 / 253.3; 254.8 / 245.9, 245.1 / 252.6 |
+
+  The time: C2's median is 0.5–1.8 % above the baseline's in the four runs of the final code (two
+  runs before the runtime's last two changes, which the TUI's path does not reach: 0.0 % against
+  1.x, −2.8 % against HEAD), while `tui-upstream`,
+  whose code is the same in all its builds, moved −3.0 % to +3.6 % between two of them in the
+  same runs; its ranges overlap throughout. The one change in the TUI's path, `NativeI18n::format`
+  through `Catalogs`' trait-object text path, measured no faster monomorphized as 1.x's was (294.7
+  against 293.7 µs, 61 runs, `target/p10-c2/tui-generic-vs-dyn.log`), and 15 KB larger. This
+  machine does not resolve a difference from 1.x's time.
+
+  The −160,544 B, observed (`bash probes/p10-c2/tui-named.sh build head|c2`, symbols kept, then
+  `diff head c2`; `size -A`): `.text` −77,344, `.rodata` −48,680, `.eh_frame` −13,472, `.rela.dyn`
+  −10,632, `.data.rel.ro` −8,696; by symbol, jiff's −67,978 B (its error types' `Display` and
+  `Debug`, its temporal and POSIX printers), core's float formatting −5,222, and
+  `jiff::Timestamp::now` gone; `mf2`'s own +2,079 (`native::zone::read` 1,770 where 1.x's
+  `system_time_zone` was 608, `Catalogs::system_choice` 539). *Inference:* 1.x froze the
+  zone at `to_offset(Timestamp::now())`, and `now()`'s panic message formats a jiff error, which
+  linked jiff's error formatting; the rule-following zone never asks for the offset now. Every
+  native application gets it, the book's CLI too.
+* **B10 through the ambient path** (`cargo run --release -p runtime-bench -- b10 --gate --md
+  target/p10-c2/b10-final.md --json …`, C2's rows beside B10's own; `native-*` is 1.x's
+  `NativeI18n::format`, whose counts at HEAD's code are the same, `target/p10-c2/b10-head.md`):
+
+  | Row (`en`; pl, en-XA, ar-XB alike) | Allocations / op | Median ns, **under load** (1.3–1.4) |
+  |---|---:|---:|
+  | 1.x `NativeI18n::format`, simple / 1-argument | 1.000 / 2.271 (pl 2.235, en-XA 2.724, ar-XB 2.271) | 42.4 / 205.1 |
+  | ambient `to_cow`, simple (borrowed) | **0.000** | 33.2 |
+  | ambient `to_string`, simple | 1.000 | 46.0 |
+  | ambient `{}` into a reused `String`, simple | **0.000** | 47.5 |
+  | ambient `to_string`, 1-argument | **1.000** | 201.4 |
+  | ambient `{}` into a reused `String`, 1-argument | **1.000** | 223.2 |
+
+  The gate (≤ 1.x, and B10's 0 / ≤ 1) holds in all four locales, and the harness now checks it
+  (`--gate`). A 1-argument `to_string` through the store took 0.98 × 1.x's handle's time here and
+  1.07 × in an earlier run (`b10-c2.md`): no difference the load lets through. `--gate` exits 1 on
+  B10's older rule "P0.8 not lost" for two of the runtime's own `write` rows, as at HEAD
+  (`b10-head.md`) and as A1 found: time under load, not C2's.
+* **The lookup's first step** (A4 left it to C2; `bash probes/p10-c2/lookup.sh 21 51`: the store
+  installed, nothing in a request, built with `native` alone and with `ssr` unified beside it, the
+  two binaries alternating; median of 21 runs, **under load** 2.3–2.6; an earlier run, at load
+  1.8–2.1, gave +5.9, +7.1, +13.3 and +4.8):
+
+  | Row | `native` ns | `ssr` + `native` ns | Step 1 |
+  |---|---:|---:|---:|
+  | simple `to_cow` | 24.53 | 31.21 | +6.7 |
+  | simple `to_string` | 38.53 | 44.77 | +6.2 |
+  | 1-argument `to_string` | 186.54 | 200.26 | +13.7 |
+  | 1-argument `{}` | 201.57 | 207.43 | +5.9 |
+
+  About 6–7 ns a format (the reactive owner looked up, none found): 0.7 µs of A4's 120 µs frame.
+* **The web** (`bash probes/p10-b2/measure.sh c2-base` before, `… c2c` after, one tree, the
+  workloads' and the demos' locks kept, identical; `bash probes/p10-b2/demo-hashes.sh c2-base c2c`):
+
+  | Figure | Before `ac11c9d` | C2 | Gate |
+  |---|---:|---:|---|
+  | **B1**, fixed | 26,728 B gz | 26,733 | ±64 |
+  | **B5**, per site | 8.2 B gz | 8.2 | ±0.2 |
+  | whole app, 1,860 sites | 41,905 B gz | 41,908 | ambition 105,120 |
+  | `tr` opt raw, 1,860 / 3,720 | 2,419,615 / 4,455,948 | 2,419,614 / 4,455,947 | |
+  | `b5 --view`: fixed / per site | 24,682 / 10.5 | 24,678 / 10.5 | |
+  | `tr-view` opt raw, 1,860 / 3,720 | 1,890,752 / 3,375,126 | 1,890,751 / 3,375,125 | |
+  | `idlit`, `idlit-view`, `dummy` | | byte-identical | |
+  | **B7**: catalog-bench's report; demo-csr's catalogs | | identical but `unix_time`; byte-identical | byte-identical |
+  | demo-ssr's wasm, raw / gz / br | 753,393 / 315,623 / 250,993 | 753,393 / 315,613 / 250,983 | ±64 B gz |
+  | its lazy chunk | 23,688 / 11,519 / 9,970 | 23,688 / 11,520 / 9,971 | |
+  | demo-islands' wasm | 197,543 / 85,567 / 72,429 | 197,542 / 85,568 / 72,379 | ±64 B gz |
+  | demo-csr's wasm | 207,538 / 91,184 / 77,523 | 207,537 / 91,186 / 77,638 | |
+  | **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+  | B1′ / B13 | | +0 B / 13,573 B avoided | +0 (`cargo xtask b12-generated`) |
+
+  What moved, observed on `tr` at 1,860 sites built both ways in the kept workload (`bash
+  probes/p10-c2/at-head.sh cargo xtask size --out target/p10-b2/size --keep`, then the same with
+  C2's sources; `python3 probes/p10-b4/wasmcmp.py`): every section the same length but the data
+  section (−1 B after `wasm-opt`); two function bodies exchanged places, 7 others differ in 1–6
+  bytes (their call targets), and the element section's and the data's table indices with them.
+  The names-kept
+  builds (`bash probes/p10-c2/named.sh tr`, `… demo-ssr`) show no function whose size moved.
+  *Inference:* the runtime's new items change the order LLVM emits two functions in. Two earlier
+  forms moved code, both undone (`c2`, `c2b`): `Options`' `Debug` through its `iter()` took that
+  iterator out of line in every client (+172 B raw), and `impl Debug for Digits` placed beside
+  `Digits` made LLVM inline `OperandsBuilder::finish` (−5 B); the rule zone as a variant of its
+  own cost demo-ssr +154 B of code (a derived `PartialEq` over two buffers). The runtime's `Debug`
+  impls are now written apart from the client's helpers and placed after them.
+* **The gates** (C2's row and 19 §14's):
+
+  | Gate | Result | Command |
+  |---|---|---|
+  | time per frame ≤ 1.x | not resolved from 1.x's: C2 +0.5–1.8 % in four alternating runs where the unchanged `tui-upstream` moved −3.0 to +3.6 %; the one change in its path measured no faster undone (above) | `cargo xtask tui-gate --baseline target/p10-baseline`, `… target/p10-c2/tui-head` |
+  | stripped `tui-mf2` ≤ 1,965,320 B | **met**: 1,804,776 B (−160,544 against 1.x, −162,416 against HEAD); allocations per frame identical | same |
+  | B10 allocations ≤ 1.x | 0 / 1 / 1 where 1.x takes 1 / 2.24–2.72 (above), all four locales | `runtime-bench -- b10 --gate` |
+  | parallel `with_locale`; `set_locale` seen from another thread | pass | `tests/ambient.rs` |
+  | a `TZ=EST5EDT,M3.2.0,M11.1.0` test across DST | pass: 09:30 in January and July, 01:30 and 03:30 either side of 2026-03-08's change; a negative control (the offset frozen at −4 h) fails it at January's 10:30 | `tests/system_zone.rs` |
+  | the web | within every budget; the moves above | `measure.sh`, `demo-hashes.sh` |
+
+* **The checks** (main tree, `c5b602e`'s content):
+
+  | Check | Result | Command |
+  |---|---|---|
+  | `cargo xtask ci` | **pass**, with C2's steps (`native` alone: `ambient`, `uninstalled`, `from_directory`, `system_zone`; beside `csr`: clippy, `lookup`, `ambient`); `refusals` 11 refused and 6 host cases; `docs --no-build` (120 blocks); the ledger (612 tests, 612 entries, `current_phase = P9`; 164 statements, 0 gaps; `REPORT.md` and `COVERAGE.md` unchanged); `api --check` (25 listings; `mf2`'s five mode listings and `mf2-runtime`'s rewritten by `cargo xtask api`, the shims' unchanged); `package --check` (`mf2`'s list gains the four `native/` files and the five tests with their support file) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+  | `docs` | **pass**: every sample compiled, the native project with and without `tui` | `bash probes/p10-c2/checks.sh docs` |
+  | `docs-rs` | **pass**: 19 crates, no warnings | `… docs-rs` |
+  | `codegen-matrix` | **pass**: 18 combinations (8 server, 10 client); B6 clean | `… codegen-matrix` |
+  | `scenarios` | **pass**: S1–S2 identical, S3–S6 rebuilt what each changes, as before | `… scenarios` |
+  | `msrv` | **pass**: the 20 on Rust 1.88, five steps | `… msrv` |
+  | `leptos-0-8` | **pass**: both refusals; on 0.8, the five clippy steps, `render` 16, `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `layers` 3 and `l6` 4 | `… leptos-0-8` |
+  | `churn` | **84/84**; each row's live bytes and allocations as the last run's (the `signal` row 614.58 B, 19.03 allocations a row) | `… churn` |
+  | `l6-web` | **20/20** | `… l6-web` |
+  | `l7-web` | **34/34**; L7 444/444, L7c 444/444, L7d and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold | `… l7-web` |
+  | e2e on 0.9 | demo 210/210, lazy 74/74, islands 58/58, csr 98/98, zone 40/40, a11y 720/720 | `… e2e-0-9` (`bash probes/p10-b1/e2e.sh . c2-leptos-0-9`) |
+  | e2e on 0.8 | the same six, the same counts | `… e2e-0-8` (the copies as at HEAD, then `bash probes/p10-b1/e2e.sh target/a7-demo-0-8/c2 c2-leptos-0-8`) |
+  | B12, B1′ / B13 | above | `… b12`, `… b12-generated` |
+  | the shims | **pass**: `mf2-native`'s names (its `NativeError` is `mf2::native::Error`), `mf2-ratatui` 7 | `cargo test -p mf2-native -p mf2-ratatui` (in `ci`) |
+
+* **Found along the way (routed).**
+  * Every change to a client-path crate: adding items, even ones no client reaches (a `Debug`
+    impl), can move LLVM's inlining or function order in every client; read a names-kept build
+    (`probes/p10-c2/named.sh`, B1's `norm-diff.py`) before calling a web move noise.
+  * C3: the native matcher copies the candidate tag into a `String` (`replace('_', "-")`) on every
+    `set_locale` and `with_locale`: one allocation a call, outside any format.
+  * C5 / C8: `examples/tui` still measures 1.x's API over C2's `Catalogs`; the store's frame (A4's
+    0.86–0.88 × 1.x) is measured when C8 moves it, against C5's gate.
+  * C9: the trippy port's stripped size against upstream starts from a native build without jiff's
+    error formatting (the −160 KB above).
+  * F: `with_locale(&CORPUS, …)` before C4's typed form; `install` panics on a second corpus, and
+    `Catalogs` serves another; before `install`, a native-only build panics, a web one shows no text.
 
 ## C3 (data half) — CLDR's language-matching data: what was built
 
