@@ -63,12 +63,12 @@ Kept current so that any task can be picked up cold, from this file and the
 commits. The first session (2026-09-28) ran Part A, C3's data half and E1–E3 as
 parallel agents; three were stopped by the account's session limit and were
 finished by new agents. **Part A is done**: A9, which the owner added
-afterwards, is done, and **A8's design is written and awaits the owner's
-review** ([19](19-native-and-terminal.md)). A8's two opening questions, on the
+afterwards, is done, and **A8's design is written and approved by the owner**
+([19](19-native-and-terminal.md); question 17). A8's two opening questions, on the
 matcher, were answered (questions 15 and 16), and C3's text half read the
-matching rules from the specification before A8 stated them. The owner holds
-everything else: the next tasks start from fresh sessions, as listed under
-"Next".
+matching rules from the specification before A8 stated them. The next tasks
+start from fresh sessions or fresh agents, one at a time, as listed under
+"Next"; the owner is asked only when a task finds a question or needs a review.
 
 **Done** — records below, in this file:
 - **A1** (`8f6569e`, `3a296a9`, `cc2416c`): the release statements; the 1.x baselines; `examples/tui`
@@ -110,8 +110,8 @@ everything else: the next tasks start from fresh sessions, as listed under
   debug-profile client build. **Owner question 14, asked after A9:** a lean `Display`, allowed
   everywhere (S3: `Display` pads the text `to_string()` builds; `{}` then costs 25–70 B gz), and
   `Debug` through `write_str` (S2). A8 states both in the design.
-- **A8, written; awaiting the owner's review** (`7ba59ef`, the probe `probes/p10-args/`; then the
-  design, in the plans commit after it): [19](19-native-and-terminal.md), with the web side's
+- **A8, approved by the owner** (`7ba59ef`, the probe `probes/p10-args/`; `1f94646`, the design;
+  the review: question 17): [19](19-native-and-terminal.md), with the web side's
   design in [04](04-leptos-integration.md) §12 and [05](05-tooling.md) §4.1, §6.4, §9.1.
   - **The four samples' exact code** (19 §1): a one-file CLI, a trippy-shaped TUI, a two-crate
     workspace, and the Leptos `hello` in one crate.
@@ -123,33 +123,32 @@ everything else: the next tasks start from fresh sessions, as listed under
   - **One probe** (`probes/p10-args/`): a `tr!` argument takes `IntoArg` by value, else any
     `Display` as its text, else our own E0277 message at the argument. 13 of 13 accepted cases
     took the expected step; 3 refused cases gave our message.
-  - **17 choices no answer settled**, listed for the review (19 §15); no owner question is
-    waiting.
+  - **17 choices no answer settled** (19 §15). The owner confirmed the first two by name (any
+    `Display` type is an argument, as its text; `install()` returns nothing) and approved the rest.
 
 **In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
 (`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
 kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-display`'s worktree
 and left it clean; its `target/a9/` goes with that worktree.
 
-**Next, each from a fresh session** (the owner holds everything until then):
-- **The owner's review of A8** ([19](19-native-and-terminal.md); its §15 lists the choices to look
-  at first). **Part C's API work (C1–C9) and D4 wait for it**; so does every task that builds
-  what 19 or 04 §12 designs. Its answers are recorded here and in 19 before those tasks start.
-- **B1**, the merge (after A1 and A7, both done; **it may start now**, before A8's review). From A7's
-  record: reuse the branch's helper crates, line aliases and component wrappers; **the function
-  table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the switcher
-  on the client; the size workloads render no component, so B1 and `b5 --view` did not see it).
-  B1 therefore measures the demos too (`probes/p10-names/measure-demo.mjs`), tries the untested
-  static dispatch A7 describes (a trait of the table's entries, implemented by the Leptos layer
-  for a zero-sized type, the components generic over it), and keeps the cheaper one. If neither
-  holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its other
-  two options.
+**Next, each from a fresh session or agent, one at a time:**
+- **B1**, the merge (after A1 and A7, both done; A8 approved, so B1 builds 19 §3–§4 as written).
+  From A7's record: reuse the branch's helper crates, line aliases and component wrappers; **the
+  function table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the
+  switcher on the client; the size workloads render no component, so B1 and `b5 --view` did not
+  see it). B1 therefore measures the demos too (`probes/p10-names/measure-demo.mjs`), tries the
+  untested static dispatch A7 describes (a trait of the table's entries, implemented by the Leptos
+  layer for a zero-sized type, the components generic over it), and keeps the cheaper one. If
+  neither holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its
+  other two options.
+- **Then** B2–B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
+  designs; Part D after B4 (D1), as its heading orders. One task at a time: B1 and the tasks after
+  it touch the same crates and plans.
 
 **Owner questions found in the work:** none waiting. C3's data half found two; they were asked
 when A8 started, and answered as questions 15 and 16 below. C3's text half found none: the case
 it was to send back (a threshold above the default script distance) does not arise. A8 found
-none. It made 17 choices that no answer settled, each with its reason, for the owner's review
-(19 §15).
+none; its 17 choices (19 §15) went to the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -445,6 +444,30 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     > May the build fetch the Unicode specification's language-matching section, the way it
     > already fetches the MessageFormat specification? — Fetch it, cache only; or work from
     > what we know (ICU's behaviour as recalled, each assumption a test with its reason).
+17. **The 2.0 design, A8's review** (2026-09-28) — **approved as written.**
+    - **Any type with a `Display` is a `tr!` argument, as its text** (19 §7, choice 1):
+      confirmed. Typed values keep their own conversions; the text of the rest (an `io::Error`,
+      an address, trippy's `KeyBinding`) is not translated, as 1.x's `.to_string()` fix was not.
+      Rejected: keeping 1.x's refusal, with a message naming `.to_string()` (C1's fallback, kept
+      only for the gate).
+    - **`install()` returns nothing** (19 §5, choice 2): confirmed. Embedded catalogs cannot
+      fail to load in a sound build; a corrupt executable panics naming the catalog.
+      `install_from_directory` returns a `Result`. Rejected: `install()?` (this file's first
+      sketch, corrected).
+    - **The other fifteen choices** (19 §15, choices 3–17) stand as written. The review summary
+      named the switcher that lists every language, the Leptos line named on the dependency,
+      `Negotiator` as a `.layer(…)`, the matcher's stated demotion, `Debug` everywhere with the
+      demos' nightly check, and what "falls" means for a count of one command.
+
+    *As put*, after a summary of what an application writes in 2.0 and the setup-line targets:
+    > Should any type that can print itself (an OS error, an IP address, trippy's key bindings)
+    > be accepted as a message argument, using its printed text? — Accept it; or refuse it.
+    >
+    > Should `install()` return nothing, or a Result the app must handle? — Return nothing; or
+    > return a Result.
+    >
+    > Can API work start on the rest of the design as written? — Approve the rest; or hold
+    > while the owner reads it.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
@@ -478,9 +501,9 @@ fn main() { mf2_build::run() }                        // what to emit, from mf2'
 mf2::include_generated!();                             // tr!, Locale, markup::*, install(), prelude
 mod ui;
 
-fn main() -> Result<(), mf2::native::Error> {
+fn main() -> std::io::Result<()> {
     let args = Args::parse();                          // lang: Option<Locale>, parsed by FromStr
-    install()?;                                        // embedded catalogs + the system's language
+    install();                                         // embedded catalogs + the system's language
     mf2::ratatui::set_theme(Theme::default().style(markup::KEY, Style::new().bold().yellow()));
     if let Some(l) = args.lang { set_locale(l) }
     println!("{}", tr!("welcome"));
@@ -502,7 +525,8 @@ this sketch where the design settled a detail:*
 - `src/ui.rs` imports the crate's prelude (A3);
 - `Theme` comes from `mf2::ratatui`.
 
-**The shape** (A8 writes the exact code of every sample for the owner's review):
+**The shape** (A8 wrote the exact code of every sample, [19](19-native-and-terminal.md) §1, and the
+owner approved it: question 17; where this sketch and 19 differ, 19 is the design):
 
 - **Crates: 18 become 16.**
   - `leptos-mf2`, `mf2-native`, `mf2-ratatui` and `mf2-axum` fold into `mf2`.
@@ -3091,7 +3115,7 @@ Output: `target/p10-c3/evidence_v2.out`.
 ## Part D — the web (D1 after B4; D2–D4 after D1; D5 after D3 and C7; D6 last)
 
 The design is [04](04-leptos-integration.md) §12, with its shared parts in
-[19](19-native-and-terminal.md). D4's typed API waits for the owner's review of it:
+[19](19-native-and-terminal.md). The owner approved it with A8's review (question 17):
 - D2 and D3 → 04 §12.5: `Negotiator` as the tower layer;
 - D4 → 04 §12.2–§12.4: the switcher's options from `language.<tag>`;
 - D5 → 05 §6.4;

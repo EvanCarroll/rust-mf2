@@ -479,7 +479,7 @@ a cache hit never re-stringifies a large literal.
 
 ### 4.1 2.0: the build, and `tr!` in its own crate (Phase 10 A8)
 
-Designed on 2026-09-28 for the owner's review; C6 builds it and then rewrites
+Designed on 2026-09-28 and approved by the owner the same day ([18](18-phase-10-work-order.md) question 17); C6 builds it and then rewrites
 §4 as a whole. The design is [19](19-native-and-terminal.md):
 - **§11, the build**:
   - `mf2`'s build script and `links = "mf2-v2"`;
@@ -1124,7 +1124,7 @@ form it has:
 
 ### 6.4 2.0: `mf2 init` as a starter (Phase 10 A8; C7, D5)
 
-Designed on 2026-09-28 for the owner's review (question 12; review findings
+Designed on 2026-09-28 and approved by the owner the same day (question 12; review findings
 #16–#18).
 
 - **`mf2 init --cli | --tui | --ssr | --islands | --csr [DIR]`** makes a
@@ -1322,7 +1322,7 @@ through `__mf2` alone.
 
 ### 9.1 2.0: the one crate (Phase 10 A8)
 
-Designed on 2026-09-28 for the owner's review; B1–B4 and D1 build it, and
+Designed on 2026-09-28 and approved by the owner the same day; B1–B4 and D1 build it, and
 then rewrite §9. The design is [19](19-native-and-terminal.md):
 - **§3, the features and modules**: `native`, `ratatui`, `leptos` /
   `leptos-0-8`, the modes, `axum`, `clap`, and 1.x's function features;

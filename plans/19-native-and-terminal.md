@@ -2,9 +2,9 @@
 
 Part of the [master plan](00-master-plan.md) (D16–D22; §9, P10). RFC 2119 keywords
 apply. Written on 2026-09-28 by Phase 10's A8
-([18](18-phase-10-work-order.md)), **for the owner's review**. The review gates
-Part C's API work (C1–C9) and the web's typed API (D4); Part B may start before
-it.
+([18](18-phase-10-work-order.md)), and **approved by the owner the same day**
+(18, question 17): every choice in §15 stands. Part C's API work (C1–C9) and
+the web's typed API (D4) build it; Part B was free to start before the review.
 
 This is the design of what an application writes against 2.0: the four samples,
 exactly; what they cost by A1's counting rules; and the design under them — the
@@ -1622,7 +1622,9 @@ both scales, and a function-level diff, before any fallback (A5).
 
 ## 15. Choices this design made that no answer settled
 
-For the owner's review. The ones to look at first come first.
+**Reviewed by the owner (2026-09-28, 18 question 17): all seventeen stand.**
+The first two were put to the owner by name and confirmed; the rest were
+approved as written. The ones to look at first came first.
 
 1. **Any `Display` type is an argument, as its text** (§7). The owner's rule
    says to keep the ergonomic API when it can be made cheap, and this costs

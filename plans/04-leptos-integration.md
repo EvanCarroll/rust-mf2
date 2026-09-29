@@ -759,7 +759,7 @@ Sources are its own; the claims below were read in its tree.
    sinks, never a boolean matrix. Their cheap insurance is worth stealing: a
    test asserting every configuration option has a section in the docs.
 
-## 12. 2.0: the web side's design (Phase 10 A8, for the owner's review)
+## 12. 2.0: the web side's design (Phase 10 A8; approved by the owner, 2026-09-28)
 
 Designed on 2026-09-28 by Phase 10's A8 ([18](18-phase-10-work-order.md)),
 with the native side and the shared parts in
