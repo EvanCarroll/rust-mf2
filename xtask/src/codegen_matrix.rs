@@ -35,6 +35,19 @@ const SERVER: [&str; 8] = [
     "ssr,fn-datetime,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
 ];
 
+/// Native combinations (Phase 10 C4): the module a native application
+/// includes (`Emit::Native`), alone and with `clap`, `ratatui` and the date
+/// functions; beside the Leptos layer's server, from one table of embedded
+/// bytes that `CORPUS` and `CATALOGS` share; and a web module with `native`
+/// turned on beside `ssr`.
+const NATIVE: [&str; 5] = [
+    "native",
+    "native,fn-number,mf2/clap",
+    "native,fn-number,fn-datetime,datetime-icu,mf2/ratatui",
+    "native,ssr,fn-number,mf2/leptos,mf2/ssr",
+    "ssr,fn-datetime,mf2/leptos,mf2/ssr,mf2/native",
+];
+
 /// Client combinations: what its `hydrate` build forwards. `intl` is the
 /// client-only option of decision D4. The last three also turn on `mf2`'s
 /// Leptos layer, on each line and in both client modes (Phase 10 B1).
@@ -55,8 +68,9 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
     let cargo = cmd::cargo();
     let server: &[&str] = if quick { &SERVER[..2] } else { &SERVER };
     let client: &[&str] = if quick { &CLIENT[..2] } else { &CLIENT };
+    let native: &[&str] = if quick { &NATIVE[..2] } else { &NATIVE };
 
-    for features in server {
+    for features in server.iter().chain(native) {
         eprintln!("codegen-matrix: native --features {features}");
         check(&cargo, root, features, None)?;
     }
@@ -65,9 +79,10 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
         check(&cargo, root, features, Some(WASM))?;
     }
     eprintln!(
-        "codegen-matrix: {} combinations compiled ({} server, {} client)",
-        server.len() + client.len(),
+        "codegen-matrix: {} combinations compiled ({} server, {} native, {} client)",
+        server.len() + native.len() + client.len(),
         server.len(),
+        native.len(),
         client.len()
     );
     canaries(&cargo, root)?;
@@ -78,9 +93,9 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
 /// look in the artifact for everything that may never reach it — the canary
 /// text of every locale, every catalog's file name and every content hash.
 ///
-/// The catalogs are behind `#[cfg(feature = \"ssr\")]`, so a client build
-/// cannot embed them; this is the check that says so about the bytes rather
-/// than about the source.
+/// The catalogs are behind `__mf2::__if_host_std!`, which a client build of
+/// `mf2` defines to drop them; this is the check that says so about the
+/// bytes rather than about the source.
 fn canaries(cargo: &OsStr, root: &Path) -> Result<()> {
     eprintln!("codegen-matrix: B6 canaries in the client build");
     let args: Vec<&OsStr> = vec![

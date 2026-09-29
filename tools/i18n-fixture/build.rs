@@ -11,8 +11,11 @@
 fn main() {
     // With `split-catalogs`, this crate emits only the module: the catalogs
     // belong to a crate the server binary alone depends on (owner question 1).
+    // With `native`, the module a native application includes.
     let emit = if std::env::var_os("CARGO_FEATURE_SPLIT_CATALOGS").is_some() {
         mf2_build::Emit::Module
+    } else if std::env::var_os("CARGO_FEATURE_NATIVE").is_some() {
+        mf2_build::Emit::Native
     } else {
         mf2_build::Emit::Both
     };

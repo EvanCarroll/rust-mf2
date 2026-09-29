@@ -517,6 +517,28 @@ impl Build {
             .cut(&tags)
             .encode()?
             .rust("__mf2::LanguageMatching");
+        // What `markup::*` and `Locale::name()` are made of: the source's
+        // markup names, and whether every locale has an argument-free
+        // `language.<tag>` message. Both come from the manifest, which a
+        // translation edit leaves as it is.
+        let markup: Vec<String> = built
+            .manifest
+            .markup
+            .iter()
+            .flatten()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        let names = locales.iter().all(|locale| {
+            let id = format!("language.{}", locale.tag);
+            built
+                .manifest
+                .ids
+                .iter()
+                .position(|i| *i == id)
+                .is_some_and(|at| built.manifest.slots.get(at).is_some_and(Vec::is_empty))
+        });
         let module = codegen::Module {
             facade: &self.facade,
             manifest_path: &self.out_dir.join(MANIFEST_FILE),
@@ -535,7 +557,10 @@ impl Build {
             } else {
                 None
             },
+            markup: &markup,
+            names,
         };
+        codegen::check(&module)?;
         let generated = codegen::write(&module);
         let catalogs_module = if self.emit == Emit::Catalogs {
             codegen::write_catalogs(&module)

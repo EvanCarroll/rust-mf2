@@ -722,6 +722,21 @@ pub fn mf2::TrRich::to_html_with_buf(self, &mut alloc::string::String, &mut tach
 impl tachys::view::add_attr::AddAnyAttr for mf2::TrRich
 pub type mf2::TrRich::Output<SomeNewAttr: tachys::html::attribute::Attribute> = mf2::TrRich
 pub fn mf2::TrRich::add_any_attr<NewAttr: tachys::html::attribute::Attribute>(self, NewAttr) -> Self::Output
+pub struct mf2::UnknownLocale
+impl mf2::UnknownLocale
+pub fn mf2::UnknownLocale::supported(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
+impl core::clone::Clone for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::clone(&self) -> Self
+impl core::cmp::Eq for mf2::UnknownLocale
+impl core::cmp::PartialEq for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::eq(&self, &Self) -> bool
+impl core::error::Error for mf2::UnknownLocale
+impl core::fmt::Debug for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::UnknownLocale
+impl core::marker::StructuralPartialEq for mf2::UnknownLocale
 pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
 pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
 impl<S> mf2::ArgSource for mf2::SignalArg<S> where S: reactive_graph::traits::Get + reactive_graph::traits::GetUntracked<Value = <S as reactive_graph::traits::Get>::Value> + core::marker::Send + core::marker::Sync + 'static, <S as reactive_graph::traits::Get>::Value: core::convert::Into<mf2::ArgValue>

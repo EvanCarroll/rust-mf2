@@ -101,6 +101,30 @@ pub enum Error {
     #[error("{0}")]
     Layout(String),
 
+    /// Two locales' tags give the generated `Locale` one variant: `pt-BR`
+    /// and `pt_br` are both `Locale::PtBr`.
+    #[error(
+        "locales {first:?} and {second:?} both give the generated `Locale::{variant}`: rename one"
+    )]
+    LocaleVariant {
+        /// The first of the two tags.
+        first: String,
+        /// The second.
+        second: String,
+        /// The variant they share.
+        variant: String,
+    },
+
+    /// Two markup names have one hash, so a style could not tell them
+    /// apart.
+    #[error("markup names {first:?} and {second:?} have one hash: rename one")]
+    MarkupHash {
+        /// The first of the two.
+        first: String,
+        /// The second.
+        second: String,
+    },
+
     /// The build found errors in the corpus; they are in the report.
     #[error("{errors} error{} in {locales} locale{}", plural(*errors), plural(*locales))]
     Corpus {

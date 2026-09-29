@@ -1,35 +1,51 @@
-//! The generated Rust module (`plans/05-tooling.md` §4).
+//! The generated Rust module (`plans/05-tooling.md` §4,
+//! `plans/19-native-and-terminal.md` §10).
 //!
 //! `build.rs` writes it to `OUT_DIR`; the i18n crate includes it at its root
-//! with `mf2::include_generated!()`. It carries
+//! with `mf2::include_generated!()`. Its text is the same in every build of
+//! one corpus and emit mode: each compile-time choice goes through one of
+//! `mf2`'s cfg-forwarding macros (`__mf2::__if_ssr! { … }`, A2), which keep
+//! or drop what they are given by `mf2`'s own features, whichever crate
+//! turned them on. It carries
 //!
-//! * `MANIFEST_HASH` and `SOURCE_LOCALE` — what the wasm and every catalog
-//!   agree on (F6);
+//! * `MANIFEST_HASH` and `SOURCE_LOCALE` — what the client (or the
+//!   executable) and every catalog agree on (F6);
 //! * `LOCALES` — the tags and their base direction;
 //! * `LANGUAGE_MATCHING` — CLDR's language-matching data cut to those
 //!   locales' languages (`mf2_locale_data::matching`): what the one matcher
-//!   reads in a browser's client, which carries no more of CLDR's table
-//!   than that (plans/19-native-and-terminal.md §9);
-//! * `CATALOGS` — the catalogs themselves, **only under `ssr`**: the server
-//!   binary is self-contained, and keeping the names and hashes out of the
-//!   client is what makes its wasm byte-identical across translation edits
-//!   (P0.9);
+//!   reads, and all of CLDR's table a browser's client carries (19 §9);
+//! * `CATALOGS` — the catalogs themselves, **never in a browser's client**
+//!   (`__if_host_std!`): keeping the names and hashes out of the client is
+//!   what makes its wasm byte-identical across translation edits (P0.9). A
+//!   module that embeds catalogs embeds each once, in one table that
+//!   `CATALOGS` and `CORPUS` share (a server beside `native`);
 //! * `registry()` — the closed world (B13): the handlers this corpus uses
 //!   and no others, with `with_numbers` / `with_dates` only where a
 //!   placeholder can actually receive one (#90);
-//! * `host()` — the host the corpus needs, so that a feature that is on but
+//! * `host` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
-//! * `CORPUS` — under [`Emit::Native`] / [`Emit::NativeFiles`] only: the
-//!   above as one `mf2::Corpus` value for `mf2::native`, with each catalog's
-//!   file name and, under `Native`, its bytes. A native build has no client,
-//!   so nothing in it is behind `ssr`;
+//! * `CORPUS` — for `mf2::native`: under [`Emit::Native`] /
+//!   [`Emit::NativeFiles`] (each catalog's file name and, under `Native`,
+//!   its bytes; nothing behind a mode), and under [`Emit::Both`] with
+//!   `native`;
+//! * `Locale` — one variant per locale, with `ALL`, `SOURCE`, `tag()`,
+//!   `dir()`, `best_match()`, `FromStr` through the one matcher and
+//!   `Display`; `format()` with `native`; `name()` when every locale has a
+//!   `language.<tag>` message; a clap value parser with `clap`;
+//! * `install()`, `install_from_directory()`, `set_locale()`,
+//!   `preload_locale()`, `current_locale()` and `with_locale()`, each where
+//!   the build has what it needs (19 §10's table), one item per
+//!   combination of modes;
+//! * `markup::*` with `ratatui`, and a `prelude`;
 //! * `pub use ::mf2 as __mf2;` and the exported `tr!` wrapper, which bakes
 //!   the manifest's absolute path and hash into every expansion — or, with
 //!   [`crate::Build::manifest_inline`], the manifest's bytes, so that an
 //!   expansion survives a target directory that moved (D8).
 //!
-//! The file is regenerated whenever the corpus or the feature set changes,
-//! and written only when its bytes differ.
+//! A native module ([`Emit::Native`], [`Emit::NativeFiles`]) never mentions
+//! the browser's build in its documentation. The file is regenerated
+//! whenever the corpus or the feature set changes, and written only when
+//! its bytes differ.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -38,6 +54,7 @@ use std::path::Path;
 use mf2_catalog::Dir;
 
 use crate::build::{Emit, LocaleInfo};
+use crate::error::{Error, Result};
 use crate::features::Features;
 
 /// What the module is generated from.
@@ -75,27 +92,119 @@ pub struct Module<'a> {
     /// path ([`crate::Build::manifest_inline`]): every expansion is then
     /// independent of where the target directory lives.
     pub manifest_bytes: Option<&'a [u8]>,
+    /// The markup names the corpus uses, ascending: `markup::*`.
+    pub markup: &'a [String],
+    /// Every locale has a `language.<tag>` message with no argument:
+    /// `Locale::name()`.
+    pub names: bool,
+}
+
+/// Refuses what would make the generated module ambiguous: two tags that
+/// give `Locale` one variant, and two markup names with one hash (which a
+/// style could not tell apart, as `tr!` refuses within one message).
+pub(crate) fn check(m: &Module<'_>) -> Result<()> {
+    let mut variants: BTreeMap<String, &str> = BTreeMap::new();
+    for locale in m.locales {
+        let name = variant(&locale.tag);
+        if let Some(first) = variants.insert(name.clone(), &locale.tag) {
+            return Err(Error::LocaleVariant {
+                first: first.to_owned(),
+                second: locale.tag.clone(),
+                variant: name,
+            });
+        }
+    }
+    let mut keys: BTreeMap<u64, &str> = BTreeMap::new();
+    for name in m.markup {
+        if let Some(first) = keys.insert(mf2_catalog::markup_key(name), name) {
+            return Err(Error::MarkupHash {
+                first: first.to_owned(),
+                second: name.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
+/// A tag's variant of `Locale`: its subtags in upper camel case (`pt-BR` is
+/// `PtBr`, `es-419` is `Es419`).
+pub(crate) fn variant(tag: &str) -> String {
+    let mut out = String::with_capacity(tag.len());
+    for part in tag.split(['-', '_']) {
+        let mut chars = part.chars();
+        if let Some(first) = chars.next() {
+            out.extend(first.to_uppercase());
+            out.extend(chars.flat_map(char::to_lowercase));
+        }
+    }
+    out
+}
+
+/// A markup name's constant in `markup`: its ASCII letters and digits in
+/// upper case, and `_` for every other character (`key-name` and
+/// `ns:key.name` give `KEY_NAME` and `NS_KEY_NAME`).
+pub(crate) fn constant(name: &str) -> String {
+    name.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() {
+                c.to_ascii_uppercase()
+            } else {
+                '_'
+            }
+        })
+        .collect()
+}
+
+/// The markup names that get a constant, with it. Every markup name MF2
+/// allows is valid in a corpus, so none is refused: a name whose constant
+/// has no letter or digit (`+:_¡`), or shares its constant with another
+/// name (`a-b`, `a.b`), gets none.
+fn constants(names: &[String]) -> Vec<(&str, String)> {
+    let all: Vec<(&str, String)> = names.iter().map(|n| (n.as_str(), constant(n))).collect();
+    let mut count: BTreeMap<&str, usize> = BTreeMap::new();
+    for (_, c) in &all {
+        *count.entry(c.as_str()).or_default() += 1;
+    }
+    let keep: Vec<bool> = all
+        .iter()
+        .map(|(_, c)| {
+            count.get(c.as_str()) == Some(&1)
+                && c.bytes().any(|b| b.is_ascii_alphanumeric())
+                && !c.starts_with(|d: char| d.is_ascii_digit())
+        })
+        .collect();
+    all.into_iter()
+        .zip(keep)
+        .filter_map(|(pair, keep)| keep.then_some(pair))
+        .collect()
 }
 
 /// The module's source.
 pub fn write(module: &Module<'_>) -> String {
-    let mut s = String::with_capacity(2048);
+    let mut s = String::with_capacity(8192);
     header(&mut s, module);
     identity(&mut s, module);
     locales(&mut s, module);
-    // A native module embeds its catalogs in `CORPUS` alone, so that each
-    // is in the executable once.
-    if module.emit == Emit::Both {
-        catalogs(&mut s, module, true);
+    if embeds(module.emit) {
+        embedded(&mut s, module);
     }
     registry(&mut s, module);
     if is_native(module.emit) {
         native_host(&mut s);
-        corpus(&mut s, module);
     } else {
         host(&mut s, module);
     }
+    if has_corpus(module.emit) {
+        corpus(&mut s, module);
+    }
+    locale(&mut s, module);
+    functions(&mut s, module);
+    markup(&mut s, module);
     tr(&mut s, module);
+    if module.names {
+        names(&mut s, module);
+    }
+    prelude(&mut s, module);
     s
 }
 
@@ -104,11 +213,21 @@ pub(crate) const fn is_native(emit: Emit) -> bool {
     matches!(emit, Emit::Native | Emit::NativeFiles)
 }
 
+/// Whether the module embeds the catalogs' bytes.
+const fn embeds(emit: Emit) -> bool {
+    matches!(emit, Emit::Both | Emit::Native)
+}
+
+/// Whether the module has a `CORPUS` (under [`Emit::Both`], with `native`).
+const fn has_corpus(emit: Emit) -> bool {
+    matches!(emit, Emit::Both | Emit::Native | Emit::NativeFiles)
+}
+
 /// The catalog table on its own, for a crate only the server binary depends
 /// on ([`Emit::Catalogs`]).
 ///
 /// The whole file is server-side by construction, so nothing in it is behind
-/// `ssr`; the crate that includes it is the gate.
+/// a mode; the crate that includes it is the gate.
 pub fn write_catalogs(module: &Module<'_>) -> String {
     let mut s = String::with_capacity(512);
     header(&mut s, module);
@@ -121,7 +240,8 @@ pub use {facade} as __mf2;
 ",
         facade = module.facade
     );
-    catalogs(&mut s, module, false);
+    s.push('\n');
+    s.push_str(&catalogs(module, None));
     s
 }
 
@@ -147,6 +267,24 @@ fn plural(n: usize) -> &'static str {
     if n == 1 { "" } else { "s" }
 }
 
+/// `body`, each line indented, inside `__mf2::{name}! { … }`: kept or
+/// dropped by `mf2`'s features.
+fn gate(s: &mut String, name: &str, body: &str) {
+    let _ = writeln!(s, "__mf2::{name}! {{");
+    indent(s, body, "    ");
+    s.push_str("}\n");
+}
+
+fn indent(s: &mut String, body: &str, by: &str) {
+    for line in body.lines() {
+        if !line.is_empty() {
+            s.push_str(by);
+            s.push_str(line);
+        }
+        s.push('\n');
+    }
+}
+
 /// `0x43e0_dc12_eeb0_5ef1`: grouped, so that the generated file reads the way
 /// a hand-written one would and clippy's pedantic lints stay quiet in the
 /// crate that includes it.
@@ -163,6 +301,11 @@ fn hex_u64(value: u64) -> String {
 }
 
 fn identity(s: &mut String, m: &Module<'_>) {
+    let agree = if is_native(m.emit) {
+        "the ids, slots, markup\n/// names and functions the executable and every catalog agree on. A catalog\n/// whose header carries another one is refused."
+    } else {
+        "the ids, slots, markup\n/// names and functions the wasm and every catalog agree on. A catalog whose\n/// header carries another one is rejected and refetched (F6)."
+    };
     let _ = write!(
         s,
         "
@@ -170,9 +313,7 @@ fn identity(s: &mut String, m: &Module<'_>) {
 #[doc(hidden)]
 pub use {facade} as __mf2;
 
-/// `manifest_hash` (`plans/02-catalog-format.md` §3): the ids, slots, markup
-/// names and functions the wasm and every catalog agree on. A catalog whose
-/// header carries another one is rejected and refetched (F6).
+/// `manifest_hash` (`plans/02-catalog-format.md` §3): {agree}
 pub const MANIFEST_HASH: u64 = {hash};
 
 /// The locale the manifest was built from.
@@ -185,13 +326,19 @@ pub const SOURCE_LOCALE: &str = {source:?};
 }
 
 fn locales(s: &mut String, m: &Module<'_>) {
+    let native = is_native(m.emit);
     let _ = write!(
         s,
         "
-/// Every locale this corpus was built for, with its base direction. No
-/// catalog name and no hash: the client is told which URL to fetch.
+/// Every locale this corpus was built for, with its base direction, in tag
+/// order. {what}
 pub static LOCALES: &[(&str, __mf2::Dir)] = &[
-"
+",
+        what = if native {
+            "`Locale::ALL` is in the same order."
+        } else {
+            "No catalog name and no hash: the client is told which\n/// URL to fetch."
+        }
     );
     for locale in m.locales {
         let _ = writeln!(
@@ -204,6 +351,11 @@ pub static LOCALES: &[(&str, __mf2::Dir)] = &[
             }
         );
     }
+    let who = if native {
+        "It is what `CORPUS` matches\n/// the system's preferred languages with, and `Locale` a tag."
+    } else {
+        "It is all a browser's client carries of that\n/// table: a client-only application's boot matches the reader's languages\n/// with it (`install()` passes it), and a hydrated page never matches."
+    };
     let _ = write!(
         s,
         "];
@@ -216,55 +368,94 @@ pub fn has_locale(tag: &str) -> bool {{
 /// CLDR's language-matching data, cut to these locales' languages: the rules
 /// that can serve one of them, and the likely subtags of the languages whose
 /// readers those rules accept. For every reader it gives the answers CLDR's
-/// whole table gives, and it is all a browser's client carries of that
-/// table. A client-only application's boot matches the reader's languages
-/// with it once its setup carries it
-/// (`Setup::with_language_matching(&LANGUAGE_MATCHING)`).
+/// whole table gives. {who}
 pub static LANGUAGE_MATCHING: __mf2::LanguageMatching = {matching};
 ",
         matching = m.language_matching
     );
 }
 
-fn catalogs(s: &mut String, m: &Module<'_>, gated: bool) {
-    let gate = if gated {
-        "#[cfg(feature = \"ssr\")]\n"
-    } else {
-        ""
-    };
-    let _ = write!(
-        s,
-        "
-/// The catalogs, embedded for the **server** only: `(tag, file name,
-/// bytes)`. The client fetches its one locale instead, so its wasm holds no
-/// message text, no id and no catalog name (B6).
-{gate}pub static CATALOGS: &[(&str, &str, &[u8])] = &[
-"
+/// The catalogs' bytes, embedded once, and the tables that share them:
+/// `CATALOGS` for a server (never a browser's client) and, with `native`,
+/// `CORPUS` (written by [`corpus`]).
+fn embedded(s: &mut String, m: &Module<'_>) {
+    let native = is_native(m.emit);
+    let mut table = String::new();
+    let _ = writeln!(
+        table,
+        "/// The catalogs' bytes, embedded once: what {} share.\nstatic MF2_CATALOG_BYTES: [&[u8]; {}] = [",
+        if native {
+            "`CORPUS` and, beside `ssr`,\n/// `CATALOGS`"
+        } else {
+            "`CATALOGS` and, with `native`,\n/// `CORPUS`"
+        },
+        m.locales.len()
     );
     for locale in m.locales {
         let _ = writeln!(
+            table,
+            "    include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {:?})),",
+            locale.file_name
+        );
+    }
+    table.push_str("];\n");
+    let catalogs = catalogs(m, Some("MF2_CATALOG_BYTES"));
+    s.push('\n');
+    if native {
+        s.push_str(&table);
+        s.push('\n');
+        gate(s, "__if_ssr", &catalogs);
+    } else {
+        table.push('\n');
+        table.push_str(&catalogs);
+        gate(s, "__if_host_std", &table);
+    }
+}
+
+/// `CATALOGS`, `catalog()` and `catalog_name()`: each catalog's bytes from
+/// `table`, or included here ([`Emit::Catalogs`]).
+fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
+    let mut s = String::new();
+    let _ = writeln!(
+        s,
+        "/// {}\npub static CATALOGS: &[(&str, &str, &[u8])] = &[",
+        if is_native(m.emit) {
+            "The catalogs, for the Leptos layer's server beside `native`: `(tag,\n/// file name, bytes)`, the bytes `CORPUS` holds."
+        } else {
+            "The catalogs, embedded for the **server** only: `(tag, file name,\n/// bytes)`. The client fetches its one locale instead, so its wasm holds no\n/// message text, no id and no catalog name (B6)."
+        }
+    );
+    for (i, locale) in m.locales.iter().enumerate() {
+        let bytes = match table {
+            Some(table) => format!("{table}[{i}]"),
+            None => format!(
+                "include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {:?}))",
+                locale.file_name
+            ),
+        };
+        let _ = writeln!(
             s,
-            "    ({tag:?}, {file:?}, include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {file:?}))),",
+            "    ({tag:?}, {file:?}, {bytes}),",
             tag = locale.tag,
             file = locale.file_name
         );
     }
-    let _ = write!(
-        s,
+    s.push_str(
         "];
 
 /// The embedded catalog of `tag`, for a server that serves it from memory.
-{gate}pub fn catalog(tag: &str) -> Option<&'static [u8]> {{
+pub fn catalog(tag: &str) -> Option<&'static [u8]> {
     CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, _, b)| *b)
-}}
+}
 
 /// The file name `tag`'s catalog is published under, content-hashed and
 /// served immutable.
-{gate}pub fn catalog_name(tag: &str) -> Option<&'static str> {{
+pub fn catalog_name(tag: &str) -> Option<&'static str> {
     CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, n, _)| *n)
-}}
-"
+}
+",
     );
+    s
 }
 
 /// The Rust path of the handler for a built-in function under `features`.
@@ -340,12 +531,15 @@ pub fn registry() -> &'static __mf2::Registry {{
 }
 
 fn host(s: &mut String, m: &Module<'_>) {
-    // Which browser host depends on what the application turned on, which is
-    // a `cfg` of the crate this module is compiled into — not of the build.
-    // Each arm names one static, so the others are never linked (B1′).
-    // `datetime-icu` gives `mf2-host-web` its zone data, `datetime-intl` its
-    // `Intl.DateTimeFormat` as well (the facade's feature table).
-    let uses_dates = m.features.fn_datetime();
+    // Which host depends on how `mf2` was built, which is not the build's
+    // to know: `__use_host!` is defined once per combination of `mf2`'s
+    // features, and names one static, so the others are never linked
+    // (B1′). A corpus with no date names no date host at all.
+    let dates = if m.features.fn_datetime() {
+        "dates"
+    } else {
+        ""
+    };
     let _ = write!(
         s,
         "
@@ -353,36 +547,10 @@ fn host(s: &mut String, m: &Module<'_>) {
 /// of the browser's, the one this corpus actually needs, so that the glue of
 /// a feature that is on but unused is never linked (B1′).
 pub mod host {{
-    #[cfg(feature = \"ssr\")]
-    pub use super::__mf2::host_std::HOST;
+    super::__mf2::__use_host!({dates});
+}}
 "
     );
-    if uses_dates {
-        let _ = write!(
-            s,
-            "    #[cfg(all(not(feature = \"ssr\"), feature = \"datetime-intl\"))]
-    pub use super::__mf2::host_web::INTL_HOST as HOST;
-    #[cfg(all(not(feature = \"ssr\"), not(feature = \"datetime-intl\"), feature = \"datetime-icu\"))]
-    pub use super::__mf2::host_web::ZONES_HOST as HOST;
-    #[cfg(all(
-        not(feature = \"ssr\"),
-        not(feature = \"datetime-intl\"),
-        not(feature = \"datetime-icu\")
-    ))]
-    pub use super::__mf2::host_web::HOST;
-"
-        );
-    } else {
-        let _ = write!(
-            s,
-            "    // This corpus formats no dates, so the date and zone hosts are
-    // never named here.
-    #[cfg(not(feature = \"ssr\"))]
-    pub use super::__mf2::host_web::HOST;
-"
-        );
-    }
-    let _ = writeln!(s, "}}");
 }
 
 fn native_host(s: &mut String) {
@@ -398,10 +566,10 @@ pub mod host {{
 }
 
 fn corpus(s: &mut String, m: &Module<'_>) {
-    let _ = write!(
-        s,
-        "
-/// Everything `mf2::native` needs, as one value: the source locale, the
+    let mut c = String::new();
+    let _ = writeln!(
+        c,
+        "/// Everything `mf2::native` needs, as one value: the source locale, the
 /// manifest hash, the locales, the registry, each catalog's file name{embedded},
 /// and the part of CLDR's language-matching data they need.
 pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
@@ -409,31 +577,399 @@ pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
     MANIFEST_HASH,
     LOCALES,
     &REGISTRY,
-    &[
-",
-        embedded = if m.emit == Emit::Native {
-            " and bytes"
-        } else {
-            ""
-        }
+    &[",
+        embedded = if embeds(m.emit) { " and bytes" } else { "" }
     );
-    for locale in m.locales {
-        let bytes = if m.emit == Emit::Native {
-            format!(
-                "Some(include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {:?})))",
-                locale.file_name
-            )
+    for (i, locale) in m.locales.iter().enumerate() {
+        let bytes = if embeds(m.emit) {
+            format!("Some(MF2_CATALOG_BYTES[{i}])")
         } else {
             "None".to_owned()
         };
         let _ = writeln!(
-            s,
+            c,
             "        __mf2::CatalogFile::new({tag:?}, {file:?}, {bytes}),",
             tag = locale.tag,
             file = locale.file_name
         );
     }
-    let _ = writeln!(s, "    ],\n)\n.with_language_matching(&LANGUAGE_MATCHING);");
+    c.push_str("    ],\n)\n.with_language_matching(&LANGUAGE_MATCHING);\n");
+    s.push('\n');
+    if is_native(m.emit) {
+        s.push_str(&c);
+    } else {
+        gate(s, "__if_native", &c);
+    }
+}
+
+fn locale(s: &mut String, m: &Module<'_>) {
+    let variants: Vec<(String, &LocaleInfo)> =
+        m.locales.iter().map(|l| (variant(&l.tag), l)).collect();
+    let source = variant(m.source_locale);
+    let hydrated = if is_native(m.emit) {
+        ""
+    } else {
+        " In a hydrated page, which never matches (the\n///   server chose), `from_str` takes an exact tag."
+    };
+    let _ = write!(
+        s,
+        "
+/// The languages this application is translated into: one variant per
+/// locale, in tag order (`pt-BR` is `PtBr`).
+///
+/// * `ALL` lists them, and `SOURCE` is the one the messages are written in;
+/// * `tag()` and `dir()` give the tag and its base direction, and `Display`
+///   writes the tag;
+/// * `from_str` (`\"fr_CA.UTF-8\".parse()`) and `best_match` choose the
+///   language that best serves a reader, by CLDR's language-matching data;
+///   `from_str`'s error lists the languages there are.{hydrated}
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[allow(clippy::enum_variant_names)]
+pub enum Locale {{
+"
+    );
+    for (name, l) in &variants {
+        let _ = writeln!(s, "    /// `{}`\n    {name},", l.tag);
+    }
+    let _ = write!(
+        s,
+        "}}
+
+impl Locale {{
+    /// Every language, in tag order, as `LOCALES` lists them.
+    pub const ALL: [Locale; {n}] = [{all}];
+
+    /// The language the messages are written in.
+    pub const SOURCE: Locale = Locale::{source};
+
+    /// The BCP 47 tag.
+    #[must_use]
+    pub const fn tag(self) -> &'static str {{
+        match self {{
+",
+        n = variants.len(),
+        all = variants
+            .iter()
+            .map(|(name, _)| format!("Locale::{name}"))
+            .collect::<Vec<_>>()
+            .join(", "),
+    );
+    for (name, l) in &variants {
+        let _ = writeln!(s, "            Locale::{name} => {:?},", l.tag);
+    }
+    let rtl: Vec<&str> = variants
+        .iter()
+        .filter(|(_, l)| l.dir == Dir::Rtl)
+        .map(|(name, _)| name.as_str())
+        .collect();
+    let dir = if rtl.is_empty() {
+        "        let _ = self;\n        __mf2::Dir::Ltr\n".to_owned()
+    } else if rtl.len() == variants.len() {
+        "        let _ = self;\n        __mf2::Dir::Rtl\n".to_owned()
+    } else {
+        format!(
+            "        match self {{\n            {} => __mf2::Dir::Rtl,\n            _ => __mf2::Dir::Ltr,\n        }}\n",
+            rtl.iter()
+                .map(|name| format!("Locale::{name}"))
+                .collect::<Vec<_>>()
+                .join(" | ")
+        )
+    };
+    let _ = write!(
+        s,
+        "        }}
+    }}
+
+    /// The base direction of the language's text.
+    #[must_use]
+    pub const fn dir(self) -> __mf2::Dir {{
+{dir}    }}
+
+    /// The language that best serves a reader of `desired`, their languages
+    /// in order of preference, by CLDR's language-matching data; `None` when
+    /// none is close enough (the source language is then the usual answer).
+    pub fn best_match<'a>(desired: impl IntoIterator<Item = &'a str>) -> Option<Locale> {{
+        LANGUAGE_MATCHING
+            .best_match(desired, LOCALES)
+            .and_then(|index| Locale::ALL.get(index).copied())
+    }}
+}}
+
+/// The language that best serves `tag` (`fr_CA.UTF-8` is French); an
+/// error, which lists the languages there are, when none is close enough.
+impl ::core::str::FromStr for Locale {{
+    type Err = __mf2::UnknownLocale;
+
+    fn from_str(tag: &str) -> Result<Locale, __mf2::UnknownLocale> {{
+        __mf2::__best_locale!(LANGUAGE_MATCHING, LOCALES, tag)
+            .and_then(|index| Locale::ALL.get(index).copied())
+            .ok_or(__mf2::UnknownLocale::new(LOCALES))
+    }}
+}}
+
+/// The tag.
+impl ::core::fmt::Display for Locale {{
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {{
+        f.write_str(self.tag())
+    }}
+}}
+
+__mf2::__if_clap! {{
+    /// `--lang fr_CA.UTF-8` parses through `from_str`, and `--help` lists the
+    /// tags.
+    impl __mf2::__generated::clap::ValueParserFactory for Locale {{
+        type Parser = __mf2::__generated::clap::LocaleParser<Locale>;
+
+        fn value_parser() -> Self::Parser {{
+            __mf2::__generated::clap::LocaleParser::new(
+                LOCALES,
+                <Locale as ::core::str::FromStr>::from_str,
+            )
+        }}
+    }}
+}}
+"
+    );
+    if has_corpus(m.emit) {
+        s.push('\n');
+        gate(
+            s,
+            "__if_native",
+            "impl Locale {
+    /// `message`, formatted in this language. It needs no `install()`, and
+    /// chooses no app-wide language.
+    #[must_use]
+    pub fn format(self, message: &impl __mf2::Message) -> __mf2::__generated::String {
+        __mf2::__generated::format_in(&CORPUS, self.tag(), message)
+    }
+}
+",
+        );
+    }
+}
+
+/// The locale functions, each once, whatever the combination of modes:
+/// each body names every mode's work through the cfg-forwarding macros.
+fn functions(s: &mut String, m: &Module<'_>) {
+    let native = is_native(m.emit);
+    // What the Leptos layer is given: a client-only application's boot
+    // matches the reader's languages, so its setup alone carries the
+    // matching data (a hydrated page never matches).
+    s.push('\n');
+    gate(
+        s,
+        "__if_leptos",
+        "/// What `install()` gives the Leptos layer: what this build generated.
+#[allow(clippy::let_and_return)]
+fn mf2_setup() -> __mf2::leptos::Setup {
+    let setup = __mf2::leptos::Setup::new(
+        registry(),
+        &host::HOST,
+        MANIFEST_HASH,
+        SOURCE_LOCALE,
+        LOCALES,
+    );
+    __mf2::__if_csr! {
+        let setup = setup.with_language_matching(&LANGUAGE_MATCHING);
+    }
+    setup
+}
+",
+    );
+
+    // `install()`.
+    let mut body = String::new();
+    if embeds(m.emit) {
+        body.push_str(
+            "    __mf2::__if_native! {\n        __mf2::native::install(&CORPUS);\n    }\n",
+        );
+        body.push_str(
+            "    __mf2::__if_ssr! {\n        __mf2::__generated::install_server(mf2_setup(), CATALOGS);\n    }\n",
+        );
+    } else {
+        body.push_str(
+            "    __mf2::__if_ssr! {\n        __mf2::leptos::install(mf2_setup());\n    }\n",
+        );
+    }
+    body.push_str(
+        "    __mf2::__if_client! {\n        __mf2::leptos::install(mf2_setup());\n    }\n",
+    );
+    let doc = match m.emit {
+        Emit::Native => {
+            "/// Installs the catalogs the executable embeds as the process's, and makes
+/// the language that best serves the system's preferred languages the
+/// app-wide one, else the source language. Call it once, at start-up. It
+/// returns nothing: embedded catalogs from the same build cannot fail to
+/// load. Beside a Leptos mode it also gives the Leptos layer this build's
+/// setup, and on the server the same catalogs."
+        }
+        Emit::NativeFiles => {
+            "/// Gives the Leptos layer this build's setup (its catalogs are files:
+/// `install_from_directory` installs them)."
+        }
+        Emit::Module => {
+            "/// Gives the Leptos layer what this build generated: the registry, the
+/// host, the manifest hash and the locales, and a client-only application's
+/// language-matching data. Call it once on each side, before rendering or
+/// hydrating. This module names no catalog: the server installs them from
+/// the crate that embeds them."
+        }
+        _ => {
+            "/// Gives the Leptos layer what this build generated — the registry, the
+/// host, the manifest hash and the locales, and a client-only application's
+/// language-matching data — and, on the server, the embedded catalogs, each
+/// checked against the manifest hash. Call it once on each side, before
+/// rendering or hydrating. With `native`, it also installs the catalogs as
+/// the process's (`mf2::native`).
+///
+/// # Panics
+///
+/// On the server, if an embedded catalog does not load: a corrupt
+/// executable."
+        }
+    };
+    let install = format!("{doc}\npub fn install() {{\n{body}}}\n");
+    s.push('\n');
+    gate(
+        s,
+        if embeds(m.emit) {
+            "__if_mode"
+        } else {
+            "__if_leptos"
+        },
+        &install,
+    );
+
+    if has_corpus(m.emit) {
+        s.push('\n');
+        gate(
+            s,
+            "__if_native",
+            "/// Installs the catalog files this build wrote from `directory` as the
+/// process's, and chooses the app-wide language as `install()` does. Only
+/// the source language's file is required; each must hash to its name.
+pub fn install_from_directory(
+    directory: impl AsRef<__mf2::__generated::Path>,
+) -> Result<(), __mf2::native::Error> {
+    __mf2::native::install_from_directory(&CORPUS, directory)
+}
+",
+        );
+    }
+
+    // The locale functions exist with a Leptos mode, and with `native`
+    // wherever there is a `CORPUS` to install.
+    let mode = if has_corpus(m.emit) {
+        "__if_mode"
+    } else {
+        "__if_leptos"
+    };
+    let set = if native {
+        "/// Makes `locale` the app-wide language: every thread's next format uses
+/// it, but a thread inside `with_locale`. Beside a Leptos mode, a client
+/// switches its page (spawned), and the server does nothing.
+///
+/// # Panics
+///
+/// Before `install()`."
+    } else {
+        "/// Switches to `locale`: in the browser, fetch, check and swap the catalog,
+/// update every live text and remember the choice (spawned; a failure
+/// leaves the page as it is). On the server it does nothing: the request's
+/// language is the negotiation's. With `native`, it sets the app-wide
+/// language too."
+    };
+    let current = if native {
+        "/// The language this thread formats in: its own (`with_locale`), else the
+/// app-wide one. Beside a Leptos mode, the request's or the page's first.
+///
+/// # Panics
+///
+/// In a build whose only mode is `native`, before `install()` outside
+/// `with_locale`."
+    } else {
+        "/// The language of the request being rendered, or of the page — tracked:
+/// a view that reads it follows a switch. With `native`, then the native
+/// store's; the source language before any is chosen."
+    };
+    let _ = write!(
+        s,
+        "
+__mf2::{mode}! {{
+{set_doc}
+    pub fn set_locale(locale: Locale) {{
+        __mf2::__generated::set_locale(locale.tag());
+    }}
+
+{current_doc}
+    #[must_use]
+    pub fn current_locale() -> Locale {{
+        __mf2::__generated::current_locale(LOCALES)
+            .and_then(|index| Locale::ALL.get(index).copied())
+            .unwrap_or(Locale::SOURCE)
+    }}
+}}
+",
+        set_doc = indented(set),
+        current_doc = indented(current),
+    );
+
+    s.push('\n');
+    gate(
+        s,
+        "__if_leptos",
+        "/// Fetches and checks `locale`'s catalog without switching to it — what a
+/// language menu calls on hover (spawned). On the server it does nothing.
+pub fn preload_locale(locale: Locale) {
+    __mf2::__generated::preload_locale(locale.tag());
+}
+",
+    );
+
+    if has_corpus(m.emit) {
+        s.push('\n');
+        gate(
+            s,
+            "__if_native",
+            "/// Runs `body` with this thread formatting in `locale`, and returns what it
+/// returns; the thread's language is restored when `body` returns or
+/// unwinds, and other threads are not affected. It needs no `install()`.
+pub fn with_locale<R>(locale: Locale, body: impl FnOnce() -> R) -> R {
+    __mf2::__generated::with_locale_in(&CORPUS, locale.tag(), body)
+}
+",
+        );
+    }
+}
+
+/// `text`, each line indented by four spaces.
+fn indented(text: &str) -> String {
+    let mut out = String::new();
+    indent(&mut out, text, "    ");
+    out.pop();
+    out
+}
+
+/// `markup::*`, with `ratatui`: a constant per markup name, holding the
+/// name and its hash.
+fn markup(s: &mut String, m: &Module<'_>) {
+    let mut body = String::from(
+        "/// The markup names the messages use, one constant each, for a theme's
+/// styles: `markup::KEY` is `{#key}…{/key}`. A name whose ASCII letters and
+/// digits give no constant, or the same one as another name's, has none.
+pub mod markup {
+",
+    );
+    for (name, constant) in constants(m.markup) {
+        let _ = writeln!(
+            body,
+            "    /// `{{#{name}}}`\n    pub const {constant}: super::__mf2::ratatui::Markup =\n        super::__mf2::ratatui::Markup::new({key}, {name:?});",
+            key = hex_u64(mf2_catalog::markup_key(name)),
+        );
+    }
+    body.push_str("}\n");
+    s.push('\n');
+    gate(s, "__if_ratatui", &body);
 }
 
 fn tr(s: &mut String, m: &Module<'_>) {
@@ -480,6 +1016,64 @@ macro_rules! msg_id {{
     );
 }
 
+/// `Locale::name()`: after `tr!`, which it expands, as a macro is in scope
+/// only after its definition.
+fn names(s: &mut String, m: &Module<'_>) {
+    let _ = write!(
+        s,
+        "
+impl Locale {{
+    /// The language's name, for a language menu: its `language.<tag>`
+    /// message, which each translation writes.
+    #[must_use]
+    pub fn name(self) -> __mf2::Tr {{
+        match self {{
+"
+    );
+    for l in m.locales {
+        let id = format!("language.{}", l.tag);
+        let _ = writeln!(s, "            Locale::{} => tr!({id:?}),", variant(&l.tag));
+    }
+    s.push_str("        }\n    }\n}\n");
+}
+
+/// The prelude: `Locale`, the functions that choose and read the language
+/// where this build has them, and the description types for signatures.
+/// `install` and `markup` stay out: each is named once. `tr` and `msg_id`
+/// wait for the wrapper that can be re-exported in its own crate (C6):
+/// today's cannot (rust-lang/rust#52234).
+fn prelude(s: &mut String, m: &Module<'_>) {
+    let mode = if has_corpus(m.emit) {
+        "__if_mode"
+    } else {
+        "__if_leptos"
+    };
+    let _ = write!(
+        s,
+        "
+/// What an application names everywhere, for `use …::prelude::*;`: `Locale`,
+/// the functions that choose and read the language where this build has
+/// them, and the description types for signatures. `install` and `markup`
+/// stay out: each is named once.
+pub mod prelude {{
+    pub use super::Locale;
+    pub use super::__mf2::{{Tr, TrArgs, TrDyn, TrRich}};
+    super::__mf2::{mode}! {{
+        pub use super::{{current_locale, set_locale}};
+    }}
+    super::__mf2::__if_leptos! {{
+        pub use super::preload_locale;
+    }}
+"
+    );
+    if has_corpus(m.emit) {
+        s.push_str(
+            "    super::__mf2::__if_native! {\n        pub use super::with_locale;\n    }\n",
+        );
+    }
+    s.push_str("}\n");
+}
+
 /// `b"…"`: the bytes as a Rust byte-string literal, escaped so that the
 /// generated module stays valid UTF-8 and diff-able.
 fn byte_string(bytes: &[u8]) -> String {
@@ -501,8 +1095,9 @@ fn byte_string(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{Module, write};
+    use super::{Module, check, constant, variant, write};
     use crate::build::{Emit, LocaleInfo};
+    use crate::error::Error;
     use crate::features::Features;
     use mf2_catalog::Dir;
     use std::collections::BTreeMap;
@@ -546,7 +1141,19 @@ mod tests {
             emit: Emit::Both,
             manifest_bytes: None,
             language_matching: "__mf2::LanguageMatching::EMPTY",
+            markup: &[],
+            names: false,
         }
+    }
+
+    /// The text of the first `__mf2::{gate}! { … }` block at column 0.
+    fn block<'c>(code: &'c str, gate: &str) -> &'c str {
+        let open = format!("\n__mf2::{gate}! {{\n");
+        let Some(start) = code.find(&open) else {
+            return "";
+        };
+        let rest = &code[start + 1..];
+        &rest[..rest.find("\n}\n").map_or(rest.len(), |end| end + 3)]
     }
 
     #[test]
@@ -583,16 +1190,16 @@ mod tests {
         let features = Features::default();
         let custom = BTreeMap::new();
         let code = write(&module(&[], &features, &custom, &locales, false));
-        // Everything that names a catalog sits behind `ssr`.
-        for (i, line) in code.lines().enumerate() {
-            if line.contains(".mf2b") {
-                let before = code.lines().take(i).collect::<Vec<_>>().join("\n");
-                assert!(
-                    before.rfind("#[cfg(feature = \"ssr\")]").is_some(),
-                    "line {i} names a catalog outside an ssr block: {line}"
-                );
-            }
-        }
+        // Everything that names a catalog is dropped from a browser's
+        // client by `mf2`'s own features — the bytes, `CATALOGS` and, with
+        // `native`, `CORPUS`.
+        let server = block(&code, "__if_host_std");
+        let native = block(&code, "__if_native");
+        assert_eq!(server.matches(".mf2b").count(), 4, "{code}");
+        assert_eq!(native.matches(".mf2b").count(), 2, "{code}");
+        assert_eq!(code.matches(".mf2b").count(), 6, "{code}");
+        assert!(server.contains("pub static CATALOGS:"), "{code}");
+        assert!(native.contains("pub static CORPUS:"), "{code}");
         assert!(
             code.contains("pub const MANIFEST_HASH: u64 = 0x43e0_dc12_eeb0_5ef1;"),
             "{code}"
@@ -602,7 +1209,7 @@ mod tests {
     }
 
     #[test]
-    fn a_native_module_has_no_ssr_gate_and_one_corpus() {
+    fn a_native_module_embeds_each_catalog_once() {
         let locales = locales();
         let features = Features::default();
         let custom = BTreeMap::new();
@@ -610,14 +1217,22 @@ mod tests {
 
         m.emit = Emit::Native;
         let code = write(&m);
-        assert!(!code.contains("ssr"), "{code}");
         assert!(!code.contains("host_web"), "{code}");
         assert!(
             code.contains("pub use super::__mf2::host_std::HOST;"),
             "{code}"
         );
-        assert!(!code.contains("pub static CATALOGS:"), "{code}");
+        // One table of bytes: `CORPUS` always, and `CATALOGS` beside `ssr`.
         assert_eq!(code.matches("include_bytes!").count(), 2, "{code}");
+        assert!(
+            code.contains("\npub static CORPUS: __mf2::Corpus"),
+            "{code}"
+        );
+        assert!(
+            block(&code, "__if_ssr")
+                .contains("    (\"ar\", \"ar.fedcba9876543210.mf2b\", MF2_CATALOG_BYTES[1]),"),
+            "{code}"
+        );
         // The corpus carries the cut its locales are matched with.
         assert!(
             code.contains("\n.with_language_matching(&LANGUAGE_MATCHING);"),
@@ -625,33 +1240,96 @@ mod tests {
         );
         assert!(
             code.contains(
-                "__mf2::CatalogFile::new(\"ar\", \"ar.fedcba9876543210.mf2b\", Some(include_bytes!("
+                "__mf2::CatalogFile::new(\"ar\", \"ar.fedcba9876543210.mf2b\", Some(MF2_CATALOG_BYTES[1])),"
             ),
             "{code}"
         );
 
         m.emit = Emit::NativeFiles;
         let code = write(&m);
-        assert!(!code.contains("ssr"), "{code}");
         assert!(!code.contains("include_bytes!"), "{code}");
+        assert!(!code.contains("CATALOGS"), "{code}");
         assert!(
             code.contains("__mf2::CatalogFile::new(\"en\", \"en.0123456789abcdef.mf2b\", None),"),
             "{code}"
         );
+        assert!(code.contains("pub fn install_from_directory("), "{code}");
     }
 
     #[test]
-    fn a_web_module_has_no_corpus() {
+    fn a_native_module_never_says_wasm() {
         let locales = locales();
-        let features = Features::default();
+        let features = Features::parse("fn-number,fn-datetime");
         let custom = BTreeMap::new();
-        for emit in [Emit::Both, Emit::Module] {
+        let markup = ["key".to_owned()];
+        for emit in [Emit::Native, Emit::NativeFiles, Emit::Both] {
+            let mut m = module(&[], &features, &custom, &locales, true);
+            m.emit = emit;
+            m.markup = &markup;
+            m.names = true;
+            let code = write(&m).to_ascii_lowercase();
+            assert_eq!(
+                code.contains("wasm"),
+                emit == Emit::Both,
+                "{emit:?}:\n{code}"
+            );
+        }
+    }
+
+    #[test]
+    fn every_choice_is_mf2s_features_and_one_item_each() {
+        let locales = locales();
+        let features = Features::parse("fn-number,fn-datetime,datetime-intl");
+        let custom = BTreeMap::new();
+        for emit in [Emit::Both, Emit::Module, Emit::Native, Emit::NativeFiles] {
             let mut m = module(&[], &features, &custom, &locales, false);
             m.emit = emit;
             let code = write(&m);
-            assert!(!code.contains("CORPUS"), "{code}");
-            assert!(!code.contains("CatalogFile"), "{code}");
+            // No `cfg` of the crate that includes it: that crate's
+            // features say nothing about how `mf2` was built.
+            assert!(!code.contains("#[cfg("), "{emit:?}:\n{code}");
+            for item in [
+                "pub fn install()",
+                "pub fn set_locale(",
+                "pub fn current_locale(",
+                "pub fn preload_locale(",
+                "pub enum Locale",
+            ] {
+                assert_eq!(code.matches(item).count(), 1, "{emit:?} {item}:\n{code}");
+            }
+            let native = emit != Emit::Module;
+            for item in [
+                "pub fn with_locale<",
+                "pub fn format(",
+                "pub fn install_from_directory(",
+            ] {
+                assert_eq!(
+                    code.matches(item).count(),
+                    usize::from(native),
+                    "{emit:?} {item}"
+                );
+            }
         }
+    }
+
+    #[test]
+    fn a_web_module_has_a_corpus_only_with_native() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let mut m = module(&[], &features, &custom, &locales, false);
+        let code = write(&m);
+        assert!(
+            block(&code, "__if_native").contains("    pub static CORPUS:"),
+            "{code}"
+        );
+        assert_eq!(code.matches("pub static CORPUS:").count(), 1, "{code}");
+
+        m.emit = Emit::Module;
+        let code = write(&m);
+        assert!(!code.contains("CORPUS"), "{code}");
+        assert!(!code.contains("CatalogFile"), "{code}");
+        assert!(!code.contains(".mf2b"), "{code}");
     }
 
     #[test]
@@ -706,16 +1384,11 @@ mod tests {
         let custom = BTreeMap::new();
         let none = Features::default();
         let code = write(&module(&[], &none, &custom, &locales, false));
-        assert!(!code.contains("INTL_HOST"), "{code}");
-        assert!(!code.contains("ZONES_HOST"), "{code}");
-        assert!(
-            code.contains("pub use super::__mf2::host_web::HOST;"),
-            "{code}"
-        );
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
 
         let dates = Features::parse("fn-datetime,datetime-intl");
         let code = write(&module(&[], &dates, &custom, &locales, false));
-        assert!(code.contains("INTL_HOST"), "{code}");
+        assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
     }
 
     #[test]
@@ -750,6 +1423,150 @@ mod tests {
         );
         assert!(
             code.contains("$crate::__mf2::__msg_id_impl!(\"/out/manifest.mf2m\" 0x43e0dc12eeb05ef1u64 ; $crate ; $($t)*)"),
+            "{code}"
+        );
+    }
+
+    #[test]
+    fn locale_has_a_variant_per_tag() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let code = write(&module(&[], &features, &custom, &locales, false));
+        for expected in [
+            "pub enum Locale {\n    /// `en`\n    En,\n    /// `ar`\n    Ar,\n}",
+            "pub const ALL: [Locale; 2] = [Locale::En, Locale::Ar];",
+            "pub const SOURCE: Locale = Locale::En;",
+            "Locale::Ar => \"ar\",",
+            "Locale::Ar => __mf2::Dir::Rtl,\n            _ => __mf2::Dir::Ltr,",
+            "impl ::core::str::FromStr for Locale {\n    type Err = __mf2::UnknownLocale;",
+            "__mf2::__best_locale!(LANGUAGE_MATCHING, LOCALES, tag)",
+            "impl ::core::fmt::Display for Locale {",
+        ] {
+            assert!(code.contains(expected), "{expected}:\n{code}");
+        }
+        assert!(
+            block(&code, "__if_clap")
+                .contains("impl __mf2::__generated::clap::ValueParserFactory for Locale {"),
+            "{code}"
+        );
+        // A client-only application's setup alone carries the matching data.
+        assert!(
+            block(&code, "__if_leptos").contains(
+                "        __mf2::__if_csr! {\n            let setup = setup.with_language_matching(&LANGUAGE_MATCHING);"
+            ),
+            "{code}"
+        );
+    }
+
+    #[test]
+    fn variants_and_constants_are_named_by_rule() {
+        assert_eq!(variant("pt-BR"), "PtBr");
+        assert_eq!(variant("es-419"), "Es419");
+        assert_eq!(variant("zh-Hant-TW"), "ZhHantTw");
+        assert_eq!(variant("und"), "Und");
+        assert_eq!(constant("key"), "KEY");
+        assert_eq!(constant("ns:warn-now.x"), "NS_WARN_NOW_X");
+        assert_eq!(constant("caf\u{e9}"), "CAF_");
+    }
+
+    #[test]
+    fn a_shared_variant_is_refused_and_a_shared_constant_left_out() {
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let mut two = locales();
+        two[0].tag = "pt-BR".to_owned();
+        two[1].tag = "pt_br".to_owned();
+        let m = module(&[], &features, &custom, &two, false);
+        assert!(
+            matches!(check(&m), Err(Error::LocaleVariant { variant, .. }) if variant == "PtBr")
+        );
+
+        // Every markup name MF2 allows is valid: one that gives no
+        // constant, or the same one as another, is left out, not refused.
+        let locales = locales();
+        let mut m = module(&[], &features, &custom, &locales, false);
+        let names = [
+            "+:_\u{a1}".to_owned(),
+            "a-b".to_owned(),
+            "a.b".to_owned(),
+            "ok".to_owned(),
+        ];
+        m.markup = &names;
+        assert!(check(&m).is_ok());
+        let code = write(&m);
+        let ratatui = block(&code, "__if_ratatui");
+        assert_eq!(ratatui.matches("pub const ").count(), 1, "{ratatui}");
+        assert!(ratatui.contains("pub const OK:"), "{ratatui}");
+    }
+
+    #[test]
+    fn markup_names_are_constants_with_their_hash() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let markup = ["key".to_owned(), "ns:warn".to_owned()];
+        let mut m = module(&[], &features, &custom, &locales, false);
+        m.markup = &markup;
+        let code = write(&m);
+        let ratatui = block(&code, "__if_ratatui");
+        let key = super::hex_u64(mf2_catalog::markup_key("key"));
+        assert!(
+            ratatui.contains(&format!(
+                "    pub const KEY: super::__mf2::ratatui::Markup =\n            super::__mf2::ratatui::Markup::new({key}, \"key\");"
+            )),
+            "{code}"
+        );
+        assert!(ratatui.contains("pub const NS_WARN:"), "{code}");
+    }
+
+    #[test]
+    fn the_prelude_holds_what_the_build_has() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let mut m = module(&[], &features, &custom, &locales, false);
+        let code = write(&m);
+        let prelude = &code[code.find("pub mod prelude {").unwrap_or(0)..];
+        for expected in [
+            "pub use super::Locale;",
+            "pub use super::__mf2::{Tr, TrArgs, TrDyn, TrRich};",
+            "super::__mf2::__if_mode! {\n        pub use super::{current_locale, set_locale};",
+            "super::__mf2::__if_leptos! {\n        pub use super::preload_locale;",
+            "super::__mf2::__if_native! {\n        pub use super::with_locale;",
+        ] {
+            assert!(prelude.contains(expected), "{expected}:\n{prelude}");
+        }
+        assert!(!prelude.contains("install") && !prelude.contains("markup"));
+
+        m.emit = Emit::Module;
+        let code = write(&m);
+        let prelude = &code[code.find("pub mod prelude {").unwrap_or(0)..];
+        assert!(
+            prelude.contains(
+                "super::__mf2::__if_leptos! {\n        pub use super::{current_locale, set_locale};"
+            ),
+            "{prelude}"
+        );
+        assert!(!prelude.contains("with_locale"), "{prelude}");
+    }
+
+    #[test]
+    fn names_come_after_the_macro_they_expand() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let mut m = module(&[], &features, &custom, &locales, false);
+        assert!(!write(&m).contains("pub fn name("));
+        m.names = true;
+        let code = write(&m);
+        let name = code.find("pub fn name(self) -> __mf2::Tr").unwrap_or(0);
+        assert!(
+            name > code.find("macro_rules! tr {").unwrap_or(usize::MAX),
+            "{code}"
+        );
+        assert!(
+            code.contains("Locale::Ar => tr!(\"language.ar\"),"),
             "{code}"
         );
     }

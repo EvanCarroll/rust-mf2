@@ -246,6 +246,16 @@ impl Catalogs {
         self.index(locale).unwrap_or_else(|| self.source())
     }
 
+    /// The index of `tag`, one of the corpus's own, when its catalog is
+    /// there — no matching — else as [`Catalogs::format`] chooses: the
+    /// locale that best serves it, else the source.
+    pub(crate) fn typed_index(&self, tag: &str) -> usize {
+        match self.position(tag) {
+            Some(index) if self.catalog(index).is_some() => index,
+            _ => self.index_or_source(tag),
+        }
+    }
+
     /// The index of the source locale.
     pub(crate) fn source(&self) -> usize {
         self.position(self.corpus.source_locale()).unwrap_or(0)

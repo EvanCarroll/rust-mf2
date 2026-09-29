@@ -73,6 +73,10 @@ native = [
 # `csr` it is a compile error of its own when compiling for `wasm32`; on
 # the host the two compile together, as `native` does.
 ratatui = ["native", "dep:ratatui-core"]
+# `clap`: a generated `Locale` gets a value parser, so that `--lang` parses
+# through the one matcher (`fr_CA.UTF-8` is French) and `--help` lists the
+# tags. std; for a native application's command line.
+clap = ["dep:clap"]
 # The `intl` client option: on wasm32-unknown-unknown the numeric functions
 # format and select through the browser's Intl.NumberFormat and
 # Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
@@ -169,6 +173,9 @@ jiff = { workspace = true, optional = true }
 # The Ratatui module (`ratatui`): the text and style types, which `ratatui`
 # re-exports.
 ratatui-core = { workspace = true, optional = true }
+
+# `clap`: the generated `Locale`'s value parser.
+clap = { workspace = true, optional = true }
 
 # The Leptos layer: each line under names of its own, and its helper.
 leptos_0_9 = { workspace = true, optional = true }

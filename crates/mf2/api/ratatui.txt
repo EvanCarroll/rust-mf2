@@ -152,6 +152,21 @@ pub fn mf2::native::set_time_zone(mf2_runtime::datetime::TimeZone)
 pub fn mf2::native::time_zone() -> mf2_runtime::datetime::TimeZone
 pub fn mf2::native::with_locale<R>(&'static mf2::Corpus, &str, impl core::ops::function::FnOnce() -> R) -> core::result::Result<R, mf2::native::Error>
 pub mod mf2::ratatui
+pub struct mf2::ratatui::Markup
+impl mf2::ratatui::Markup
+pub const fn mf2::ratatui::Markup::key(self) -> u64
+pub const fn mf2::ratatui::Markup::name(self) -> &'static str
+impl core::clone::Clone for mf2::ratatui::Markup
+pub fn mf2::ratatui::Markup::clone(&self) -> Self
+impl core::cmp::Eq for mf2::ratatui::Markup
+impl core::cmp::PartialEq for mf2::ratatui::Markup
+pub fn mf2::ratatui::Markup::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2::ratatui::Markup
+pub fn mf2::ratatui::Markup::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2::ratatui::Markup
+pub fn mf2::ratatui::Markup::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2::ratatui::Markup
+impl core::marker::StructuralPartialEq for mf2::ratatui::Markup
 pub struct mf2::ratatui::MarkupStyles
 impl mf2::ratatui::MarkupStyles
 pub fn mf2::ratatui::MarkupStyles::get(&self, &str) -> core::option::Option<ratatui_core::style::Style>
@@ -431,6 +446,21 @@ pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Resu
 impl mf2::Message for mf2::TrRich
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub struct mf2::UnknownLocale
+impl mf2::UnknownLocale
+pub fn mf2::UnknownLocale::supported(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
+impl core::clone::Clone for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::clone(&self) -> Self
+impl core::cmp::Eq for mf2::UnknownLocale
+impl core::cmp::PartialEq for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::eq(&self, &Self) -> bool
+impl core::error::Error for mf2::UnknownLocale
+impl core::fmt::Debug for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::UnknownLocale
+impl core::marker::StructuralPartialEq for mf2::UnknownLocale
 pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
 pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
 pub trait mf2::IntoArg

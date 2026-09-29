@@ -26,7 +26,7 @@ use mf2_catalog::{Catalog, Entry, MsgId};
 use mf2_runtime::{BidiStrategy, FormatContext, Formatter, Sink, TimeZone};
 
 use super::{Catalogs, Error, LocaleSource};
-use crate::Corpus;
+use crate::{Corpus, Message};
 
 /// What the text forms need of a description, and only that (A4): a
 /// `&dyn` of it lists these two, so each form is compiled once whatever
@@ -110,7 +110,7 @@ fn store_of(
 pub fn install(corpus: &'static Corpus) {
     match store_of(corpus, || Catalogs::embedded(corpus)) {
         Ok(store) => choose(store),
-        Err(error) => refused(&error),
+        Err(error) => refused("install()", &error),
     }
 }
 
@@ -213,19 +213,65 @@ pub fn with_locale<R>(
     locale: &str,
     body: impl FnOnce() -> R,
 ) -> Result<R, Error> {
-    /// Puts the thread's language back, also when the body unwinds.
-    struct Restore(usize);
-    impl Drop for Restore {
-        fn drop(&mut self) {
-            OVERRIDE.with(|o| o.set(self.0));
-        }
-    }
     let store = store_of(corpus, || Catalogs::embedded(corpus))?;
     let index = store
         .index(locale)
         .ok_or_else(|| Error::UnknownLocale(locale.to_owned()))?;
     let _restore = Restore(OVERRIDE.with(|o| o.replace(index)));
     Ok(body())
+}
+
+/// Puts the thread's language back, also when the body unwinds.
+struct Restore(usize);
+
+impl Drop for Restore {
+    fn drop(&mut self) {
+        OVERRIDE.with(|o| o.set(self.0));
+    }
+}
+
+// ------------------------------------------------ for the generated module
+
+/// `corpus`'s catalogs, for the generated module's typed forms: loaded
+/// from its embedded catalogs if the store is empty.
+fn typed(corpus: &'static Corpus, call: &str) -> &'static Catalogs {
+    match store_of(corpus, || Catalogs::embedded(corpus)) {
+        Ok(store) => store,
+        Err(error) => refused(call, &error),
+    }
+}
+
+/// The generated `Locale::format`: `message` in `locale`, one of
+/// `corpus`'s own (else, its catalog not shipped, the closest there is,
+/// else the source). It needs no [`install`], and chooses no app-wide
+/// language.
+pub(crate) fn format_in(corpus: &'static Corpus, locale: &str, message: &impl Message) -> String {
+    let store = typed(corpus, "Locale::format");
+    store.format_at(store.typed_index(locale), message)
+}
+
+/// The generated `with_locale(Locale, body)`: [`with_locale`] with a
+/// language of the corpus's own, which cannot be refused — so it returns
+/// what `body` returns, and panics only as [`install`] does.
+pub(crate) fn with_locale_in<R>(
+    corpus: &'static Corpus,
+    locale: &str,
+    body: impl FnOnce() -> R,
+) -> R {
+    let store = typed(corpus, "with_locale");
+    let _restore = Restore(OVERRIDE.with(|o| o.replace(store.typed_index(locale))));
+    body()
+}
+
+/// The language this thread formats in, as [`locale`] reads it, or `None`
+/// where `locale` would panic: what the generated `current_locale()` reads
+/// beside a Leptos mode, where the lookup never panics.
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+pub(crate) fn try_locale() -> Option<&'static str> {
+    current().map(|(store, index)| store.tag(index))
 }
 
 /// The catalogs and the language this thread formats with now: its own,
@@ -264,8 +310,8 @@ pub(crate) fn not_installed() -> ! {
     clippy::panic,
     reason = "native only: install() returns nothing, and a catalog that does not load means a corrupt executable (plans/19 §5)"
 )]
-fn refused(error: &Error) -> ! {
-    panic!("mf2: install(): {error}")
+fn refused(call: &str, error: &Error) -> ! {
+    panic!("mf2: {call}: {error}")
 }
 
 // --------------------------------------------------------------- the settings

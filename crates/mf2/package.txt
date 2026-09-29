@@ -13,6 +13,7 @@ api/native.txt
 api/ratatui.txt
 api/ssr.txt
 src/__arg.rs
+src/__generated.rs
 src/arg.rs
 src/compile.rs
 src/corpus.rs

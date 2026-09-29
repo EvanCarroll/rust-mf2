@@ -161,3 +161,44 @@ pub enum NativeError {
         source: std::io::Error,
     },
 }
+
+/// Why a generated `Locale::from_str` refused a tag: none of the
+/// application's languages serves it (plans/19-native-and-terminal.md §9,
+/// §10). Its text lists the languages there are — "no language of this
+/// application matches; it has en, fr" — which is what clap shows for a
+/// refused `--lang`. It allocates nothing: it holds the build's own table.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, thiserror::Error)]
+#[error("no language of this application matches; it has {}", Tags(self.supported))]
+pub struct UnknownLocale {
+    supported: &'static [(&'static str, mf2_catalog::Dir)],
+}
+
+impl UnknownLocale {
+    /// What the generated module calls, with its `LOCALES`.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn new(supported: &'static [(&'static str, mf2_catalog::Dir)]) -> UnknownLocale {
+        UnknownLocale { supported }
+    }
+
+    /// The application's languages, in the build's order.
+    pub fn supported(&self) -> impl ExactSizeIterator<Item = &'static str> + use<> {
+        let supported = self.supported;
+        supported.iter().map(|(tag, _)| *tag)
+    }
+}
+
+/// The tags, comma-separated: [`UnknownLocale`]'s text.
+struct Tags(&'static [(&'static str, mf2_catalog::Dir)]);
+
+impl core::fmt::Display for Tags {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        for (i, (tag, _)) in self.0.iter().enumerate() {
+            if i > 0 {
+                f.write_str(", ")?;
+            }
+            f.write_str(tag)?;
+        }
+        Ok(())
+    }
+}

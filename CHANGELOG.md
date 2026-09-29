@@ -271,6 +271,26 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   the reader's own language (`fr-CA` still finds `fr`), the first in the
   build's order among several, and no other script or language. Its type
   is `mf2::LanguageMatching`.
+* **The generated module names the languages.** `mf2-build` generates
+  `enum Locale`, one variant per locale in tag order (`pt-BR` is `PtBr`;
+  the build refuses two tags that give one name), with `ALL`, `SOURCE`,
+  `tag()`, `dir()` and `best_match()`. `FromStr` goes through the one
+  matcher (`"fr_CA.UTF-8".parse()` is French; a hydrated page, which never
+  matches, takes an exact tag), and its error, `mf2::UnknownLocale`, lists
+  the languages there are; `Display` writes the tag; `name()` is the
+  `language.<tag>` message when every locale has one. With `mf2`'s new
+  `clap` feature, `--lang` parses through the matcher and `--help` lists
+  the tags. Beside it, where the build has what they need: `install()`,
+  `install_from_directory()`, `set_locale(Locale)`, `current_locale()`,
+  `with_locale(Locale, body)`, `preload_locale(Locale)` and
+  `Locale::format(&message)`; with `ratatui`, `markup::*`, a constant per
+  markup name holding the name and its hash (`mf2::ratatui::Markup`); and a
+  `prelude`. Each choice in the module follows how `mf2` was built,
+  whichever crate turned its features on: `CATALOGS` is in every build
+  whose `mf2` has `host-std` (1.x: the translation crate's `ssr`, which
+  every 1.x translation crate forwards to `mf2/host-std`), and the host
+  follows `mf2`'s date features. A module that embeds catalogs embeds each
+  once, shared by `CATALOGS` and `CORPUS`.
 
 ## 1.0.0
 

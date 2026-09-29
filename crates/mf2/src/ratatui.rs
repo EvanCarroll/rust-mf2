@@ -44,6 +44,38 @@ use ratatui_core::text::{Line, Span, Text};
 use crate::native::NativeI18n;
 use crate::{MarkupKind, Message, NoErrors, Part, PartSink};
 
+/// A markup name the corpus uses, as the generated module's `markup::*`
+/// names it: `markup::KEY` is `{#key}`. It holds the name and its hash, the
+/// key a catalog's markup carries, so a misspelt name is a compile error
+/// rather than a style that never applies.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct Markup {
+    key: u64,
+    name: &'static str,
+}
+
+impl Markup {
+    /// What the generated module writes: the name and its hash
+    /// (`mf2::markup_key`).
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn new(key: u64, name: &'static str) -> Markup {
+        Markup { key, name }
+    }
+
+    /// The markup name, as the messages write it.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        self.name
+    }
+
+    /// The name's hash: the key a catalog's markup carries.
+    #[must_use]
+    pub const fn key(self) -> u64 {
+        self.key
+    }
+}
+
 /// The style of each markup name.
 #[derive(Clone, Debug, Default)]
 pub struct MarkupStyles {

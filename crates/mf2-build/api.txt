@@ -63,7 +63,14 @@ pub mf2_build::Error::Locale
 pub mf2_build::Error::Locale::locale: alloc::string::String
 pub mf2_build::Error::Locale::source: mf2_locale_data::error::Error
 pub mf2_build::Error::LocaleData(mf2_locale_data::error::Error)
+pub mf2_build::Error::LocaleVariant
+pub mf2_build::Error::LocaleVariant::first: alloc::string::String
+pub mf2_build::Error::LocaleVariant::second: alloc::string::String
+pub mf2_build::Error::LocaleVariant::variant: alloc::string::String
 pub mf2_build::Error::Manifest(mf2_catalog::error::ManifestError)
+pub mf2_build::Error::MarkupHash
+pub mf2_build::Error::MarkupHash::first: alloc::string::String
+pub mf2_build::Error::MarkupHash::second: alloc::string::String
 pub mf2_build::Error::Write
 pub mf2_build::Error::Write::locale: alloc::string::String
 pub mf2_build::Error::Write::source: mf2_catalog::error::WriteError

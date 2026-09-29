@@ -30,6 +30,10 @@ fn-datetime = ["mf2/fn-datetime"]
 datetime-icu = ["mf2/datetime-icu", "mf2-build/icu-blob"]
 datetime-intl = ["mf2/datetime-intl"]
 intl = ["mf2/intl"]
+# A native application's module (`Emit::Native`): `CORPUS`, the typed
+# locale functions, and — beside `mf2/ssr` — the catalogs the Leptos
+# layer's server installs, from the same embedded bytes.
+native = ["mf2/native"]
 # The B1′ and B13 corpora (plans/13 A10, `cargo xtask b12-generated`): a
 # corpus with nothing a function crate could serve, and this crate's corpus
 # plus the three measure functions. Exactly one at a time.
@@ -45,6 +49,9 @@ mf2.workspace = true
 
 [dev-dependencies]
 trybuild.workspace = true
+# The generated `Locale`'s value parser, parsed through as clap would.
+clap.workspace = true
+mf2 = { workspace = true, features = ["clap"] }
 
 [build-dependencies]
 mf2-build.workspace = true

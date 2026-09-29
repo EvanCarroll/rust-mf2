@@ -116,10 +116,11 @@ extern crate alloc;
 // The Leptos layer needs `std`, which its dependencies need anyway; so does
 // the native module, which reads files and the system's settings. With the
 // native host (a server, a test, a native application) `std` is linked
-// already, and `tr!` takes paths and `SystemTime` as arguments.
+// already, and `tr!` takes paths and `SystemTime` as arguments. clap is std.
 #[cfg(any(
     feature = "host-std",
     feature = "native",
+    feature = "clap",
     all(
         any(feature = "ssr", feature = "hydrate", feature = "csr"),
         any(feature = "leptos", feature = "leptos-0-8")
@@ -276,6 +277,7 @@ pub mod ratatui;
 pub mod leptos;
 
 pub use corpus::{CatalogFile, Corpus};
+pub use error::UnknownLocale;
 pub use matching::LanguageMatching;
 pub use message::Message;
 
@@ -296,6 +298,11 @@ pub use dynamic::tr_dyn;
 // rustdoc resolve the module's links at the root.
 #[doc(hidden)]
 pub mod __arg;
+// What the generated module calls: the cfg-forwarding macros and the typed
+// forms' helpers; never written by hand. Its documentation is the module's
+// own.
+#[doc(hidden)]
+pub mod __generated;
 #[doc(hidden)]
 pub use markup::markup;
 #[doc(hidden)]

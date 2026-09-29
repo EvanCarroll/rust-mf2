@@ -417,6 +417,21 @@ pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Resu
 impl mf2::Message for mf2::TrRich
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub struct mf2::UnknownLocale
+impl mf2::UnknownLocale
+pub fn mf2::UnknownLocale::supported(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
+impl core::clone::Clone for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::clone(&self) -> Self
+impl core::cmp::Eq for mf2::UnknownLocale
+impl core::cmp::PartialEq for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::eq(&self, &Self) -> bool
+impl core::error::Error for mf2::UnknownLocale
+impl core::fmt::Debug for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::UnknownLocale
+pub fn mf2::UnknownLocale::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::UnknownLocale
+impl core::marker::StructuralPartialEq for mf2::UnknownLocale
 pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
 pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
 pub trait mf2::IntoArg
