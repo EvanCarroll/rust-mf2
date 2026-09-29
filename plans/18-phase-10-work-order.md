@@ -235,7 +235,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
-**Next, each from a fresh session or agent, one at a time:**
+**Next, each from a fresh session or agent, one at a time, in lean mode (question 27):**
+- **The check script** first: the full suite as one quiet script that logs to `target/` and prints
+  a table, and a comparison of two tables; its first run at HEAD is the baseline for C4.
 - **C4** (the generated module), as Part C's heading orders (C3 before C4),
   then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
@@ -243,7 +245,9 @@ worktrees, are removed (questions 21 and 25).
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
   `mf2`'s listed modes (B5's record).
 
-**Owner questions found in the work:** none waiting. C2 found none. C1 found none. B5 found none.
+**Owner questions found in the work:** none waiting. C3 found two, answered as questions 28 (the
+full matcher in an application with no server) and 29 (`mf2` is MIT AND Unicode-3.0); question 27
+(lean mode) was asked after C3. C2 found none. C1 found none. B5 found none.
 B4 found none. B3 found none. The browser-only refusal found none. B1's review fixes found one, answered as
 question 24: `native` beside a browser mode is refused only when compiling for the browser, and
 B3's `ratatui` and D1's `axum` follow it; the browser-only refusal built it, and B3 built
@@ -774,6 +778,37 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     >
     > If the answer needs a code change, when should it be made? — Now, before this session
     > closes; or next session, first.
+27. **How the remaining tasks run: the token cost** (2026-09-29) — **answered: lean mode, Opus
+    agents.** The seven task agents after question 26 (the browser-only refusal, B3–B5, C1–C3)
+    re-read 625M tokens: each ran 118–306 steps in one context that grew to 264–812k, and C1–C3
+    about 130–145M each, where the code changes were small. The method cost the tokens, not the
+    code: baselines of every figure before and after, byte-level investigations, the full suite run
+    step by step in every task, and long records that later agents read. From C4 on:
+    - one fresh Opus agent per task reads `CLAUDE.md`, its task's row, its design section and the
+      code it changes (no records, no other task's history), implements, runs `cargo xtask ci`,
+      commits by path and reports in ten lines; its Done entry is at most five lines;
+    - no per-task baselines or byte-level investigations. The full suite (the sizes, the demos,
+      the TUI gate, B12, the conformance report, `docs`, `docs-rs`, `codegen-matrix`, `scenarios`,
+      `msrv`, `churn`, `leptos-0-8`, `l6-web`, `l7-web`, the browser checks on both lines) runs as
+      one quiet script after each task, started by the coordinator, and its table is compared with
+      the previous one. Only a regression gets an agent, with a narrow brief;
+    - the records already in this file stay; new tasks add none.
+
+    The gates themselves are unchanged (19 §14; the budgets in [06](06-size-and-perf.md)).
+    *Rejected:* small agents per phase (an implementer, a Sonnet checker, the records moved out),
+    chosen first and replaced the same day; Sonnet agents; stopping to cut the scope first.
+28. **Language matching in an application with no server** (found by C3; 2026-09-29) —
+    **answered: the full matcher, as built.** A `csr` application matches the reader's languages
+    with the same CLDR-based matcher as a server: +2,870 B gz on demo-csr (91,186 → 94,056; about
+    1.5 KB of code and 1.4 KB of the application's part of CLDR's matching data). A hydrated page
+    never matches, and B1 is unchanged. The data is none of what the no-locale-data rule names
+    (text, ids, argument names, plural rules, symbols), and the canaries pass. *Rejected:* no data
+    in the browser (other regions of the same language only, so browser and server disagree);
+    fetching the data with the catalog index (another task); 1.x's matching in the browser
+    (against the one-matcher decision).
+29. **`mf2`'s licence** (found by C3; 2026-09-29) — **answered: "MIT AND Unicode-3.0".** `mf2` now
+    ships CLDR's matching data, so it declares Unicode-3.0 beside MIT, as `mf2-locale-data`
+    already does. *Rejected:* keeping `mf2` plain MIT by moving the data into `mf2-locale-data`.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is

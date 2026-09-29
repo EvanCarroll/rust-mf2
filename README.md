@@ -153,5 +153,6 @@ cargo xtask docs               # compile every sample in docs/
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). Vendored material under `third_party/` keeps its
-own license (Unicode License v3), stated in each directory.
+MIT — see [`LICENSE`](LICENSE). `mf2` and `mf2-locale-data` ship data from Unicode's
+CLDR, so they are MIT AND Unicode-3.0 (each has its `LICENSE-UNICODE`). Vendored material
+under `third_party/` keeps its own license (Unicode License v3), stated in each directory.
