@@ -3,7 +3,11 @@
 # worktree (one tree), each generated application and each demo keeping its
 # own Cargo.lock between the runs. B1's `probes/p10-b1/measure.sh`, with
 # every built wasm and catalog hashed, since B2 changes no web code and the
-# claim to check is "byte-identical", not "within the gate".
+# claim to check is "byte-identical", not "within the gate". The three
+# demos' shipped files are hashed too (logs/LABEL/demo-csr-dist.sha256,
+# demo-ssr-pkg.sha256, demo-islands-pkg.sha256; the last two since B1's
+# review fixes: `demo-hashes.sh` compares the kept outputs of runs made
+# before).
 #
 #   bash probes/p10-b2/measure.sh base   # at the commit before B2
 #   bash probes/p10-b2/measure.sh b2     # with B2's change applied, reusing base's locks
@@ -65,7 +69,8 @@ demo() {
   case $d in
     demo-csr) cp -a "examples/$d/dist" "$dest/dist"; node probes/p10-names/measure-demo.mjs "$dest/dist" "$d $label" >"$dest/measure.md"
               hashes "$dest/dist" '*' >"$logs/demo-csr-dist.sha256" ;;
-    *) cp -a "examples/$d/target/site/pkg" "$dest/pkg"; node probes/p10-names/measure-demo.mjs "$dest/pkg" "$d $label" >"$dest/measure.md" ;;
+    *) cp -a "examples/$d/target/site/pkg" "$dest/pkg"; node probes/p10-names/measure-demo.mjs "$dest/pkg" "$d $label" >"$dest/measure.md"
+       hashes "$dest/pkg" '*' >"$logs/$d-pkg.sha256" ;;
   esac
   cat "$dest/measure.md" >>"$logs/timeline.txt"
 }

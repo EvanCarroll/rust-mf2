@@ -3104,7 +3104,12 @@ code's own cost, over a base that already formats text, so the row holds.
 applied. It runs `cargo xtask size --out target/p10-b2/size [--keep]`,
 `cargo xtask b5 --view --out target/p10-b2/b5v [--keep]`, `cargo xtask
 catalog-size` and the three demos' clients as they ship, and hashes each
-built file (`target/p10-b2/logs/{base,b2}/*.sha256`):
+built file (`target/p10-b2/logs/{base,b2}/*.sha256`). B2's runs hashed
+demo-csr's `dist/` but not the other two demos' `pkg/`, which `measure.sh`
+hashes since B1's review fixes; `bash probes/p10-b2/demo-hashes.sh` in the
+measurement tree compares the kept outputs of both runs: 30 files a run
+(demo-csr 16, demo-ssr 9, demo-islands 5), all byte-identical but
+demo-ssr's `__wasm_split` loader (below):
 
 | Figure | Base `c41225c` | B2 | Gate |
 |---|---:|---:|---|
