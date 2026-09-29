@@ -144,10 +144,10 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   line is a compile error that says what to write. `mf2`'s `leptos`
   feature, which named the layer, now names the 0.9 line; a mode is what
   turns the layer on. The six components live in two new crates,
-  `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, one per Leptos line, which
-  `mf2::leptos` re-exports. **`leptos-mf2` is a shim** that re-exports
-  everything under 1.x's paths and forwards its features to `mf2`'s, so a
-  1.x application compiles unchanged.
+  `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, one per Leptos line;
+  `mf2::leptos` wraps each under its own name. **`leptos-mf2` is a
+  shim** that re-exports everything under 1.x's paths and forwards its
+  features to `mf2`'s, so a 1.x application compiles unchanged.
 * **Descriptions print.** Under a Leptos mode `Tr`, `TrArgs`, `TrRich` and
   `TrDyn` implement `Display`: the text the fmt-free `to_string()` builds,
   padded as the format asks, so `{}` costs a browser build a few dozen

@@ -2,8 +2,8 @@
 //! locale switcher and its options, the catalog preload and links, the
 //! `hreflang` block and the islands gate.
 //!
-//! Applications do not name this crate: `mf2::leptos` re-exports its
-//! components, with `mf2`'s [`Layer`] already chosen, when `mf2`'s
+//! Applications do not name this crate: `mf2::leptos` wraps each of its
+//! components, with `mf2`'s [`Layer`] chosen, when `mf2`'s
 //! `leptos-0-8` feature is on. It compiles `mf2-leptos-ui-0-9`'s source
 //! (`src/ui.rs` is a link to that crate's) against Leptos 0.8, which this
 //! crate names `leptos`, so `view!` and `#[component]` reach it.

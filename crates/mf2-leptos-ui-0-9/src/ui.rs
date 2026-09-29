@@ -3,7 +3,7 @@
 //! each against its own line under the name `leptos`, so `view!` and
 //! `#[component]` are used as in any Leptos application.
 //!
-//! These crates cannot depend on `mf2`, which re-exports them (Cargo forbids
+//! These crates cannot depend on `mf2`, which depends on them (Cargo forbids
 //! the cycle). So each component is generic over a [`Layer`]: what it needs
 //! from `mf2` — the languages, the page's own, the preload and the link
 //! URLs, the client's switch. `mf2` implements it for a type of its own and

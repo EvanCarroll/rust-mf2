@@ -802,8 +802,8 @@ and its UX target is 19 §2.
   (`hydrate = ["leptos/hydrate", "mf2/hydrate", …]`). A 0.8 application
   writes `leptos-0-8`, and turns off no default features.
 - **The module**:
-  - the six components, re-exported from the helper crate of the active line
-    (question 13), with their props;
+  - the six components, each the active line's helper's component wrapped
+    with `mf2`'s `Layer` chosen (question 13), with its props;
   - `html_lang`, `islands_gate!`, `Setup`, `LoadError`, `track_locale`;
   - the boots: `hydrate_body`, `hydrate_lazy` and `hydrate_islands` (`hydrate`),
     `mount_to_body` (`csr`);

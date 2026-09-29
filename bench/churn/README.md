@@ -23,4 +23,4 @@ figures go to `target/churn/report.json`.
 A workspace of its own, like the examples: it is a `csr` application, and
 the root workspace builds `leptos-mf2` with `ssr`. The native half of the same
 guard — no DOM, the three conversions and a plain-`track()` control — is
-`crates/leptos-mf2/tests/churn.rs`, in `cargo xtask ci`.
+`crates/mf2/tests/churn.rs`, in `cargo xtask ci`.

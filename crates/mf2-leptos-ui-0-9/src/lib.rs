@@ -2,8 +2,8 @@
 //! locale switcher and its options, the catalog preload and links, the
 //! `hreflang` block and the islands gate.
 //!
-//! Applications do not name this crate: `mf2::leptos` re-exports its
-//! components, with `mf2`'s [`Layer`] already chosen. It exists because
+//! Applications do not name this crate: `mf2::leptos` wraps each of its
+//! components, with `mf2`'s [`Layer`] chosen. It exists because
 //! Leptos' `view!` and `#[component]` write `::leptos` into the crate that
 //! uses them, and `mf2` reaches its two Leptos lines under names of its own,
 //! with the module `mf2::leptos` in the way; here the line is simply

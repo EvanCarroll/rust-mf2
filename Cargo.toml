@@ -99,8 +99,8 @@ mf2-host-std = { path = "crates/mf2-host-std", version = "=1.1.0" }
 mf2-native = { path = "crates/mf2-native", version = "=1.1.0" }
 mf2-ratatui = { path = "crates/mf2-ratatui", version = "=1.1.0" }
 mf2-host-web = { path = "crates/mf2-host-web", version = "=1.1.0" }
-# The six Leptos components, one helper crate per Leptos line, which `mf2`
-# re-exports (owner question 13 of Phase 10).
+# The six Leptos components, one helper crate per Leptos line, which
+# `mf2::leptos` wraps with its `Layer` chosen (owner question 13 of Phase 10).
 mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=1.1.0" }
 mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=1.1.0" }
 mf2-locale-data = { path = "crates/mf2-locale-data", version = "=1.1.0" }

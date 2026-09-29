@@ -1023,7 +1023,7 @@ concepts, +0 lines, 20 concepts against 28.
 `mf2-ratatui` and `mf2-axum` fold into it as the modules `mf2::leptos`,
 `mf2::native`, `mf2::ratatui` and `mf2::axum`, each behind its feature. The six
 Leptos components live in `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, which
-`mf2::leptos` re-exports (question 13). 18 published crates become 16.
+`mf2::leptos` wraps with its `Layer` chosen (question 13; B1). 18 published crates become 16.
 
 | Feature | Implies | Gives |
 |---|---|---|
