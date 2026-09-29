@@ -147,68 +147,41 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `leptos-0-8`, `l6-web`, `l7-web`, `churn`, `msrv` and the six browser checks on both Leptos
   lines green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame identical and
   +176 B stripped.
+- **B1's review fixes** (items 1–9: `418b189`, `09aed9a`, `f5e72fd`, `5eb881e`, `c7dd54d`,
+  `1552c1d`, `f51b30e`, `f1ce0d0`; record below): the patches and the script behind B1's figures,
+  re-measured (+38 / +56 B gz; the buffer's build byte-identical to B1's own); "wraps", not
+  "re-exports"; two modes with a line **confirmed** (the helper's sentence, alone) and fixed, `cargo
+  xtask refusals` in `ci`; the shim's layer paths **confirmed** lost when only `mf2` has the mode
+  (11 errors) and fixed, with a test in `ci`; `mf2::native::LocaleSource` again; B2's demo hashes
+  from a committed script; `mf2`'s implicit feature `jiff` **confirmed** and gone; `native` beside
+  `csr` across a workspace **confirmed**, an owner question (below). `ci`, `leptos-0-8`, `l7-web`,
+  `docs`, `docs-rs` green; every client wasm byte-identical (the size workloads, `b5 --view`, the
+  demos), B12 clean.
 
-**In flight: B1's review fixes** (items 1–9 under "Next"), started 2026-09-28 by an agent of the
-coordinating session, working in the main tree. The read-only review of B2's commits has reported;
-its three findings are items 7–9. Until the fixes' commits appear, do not start them again: if the agent is still
-running (its cargo builds show in `ps`), wait for its report; if it stopped without committing,
-resume from the tree's state. Part A's probe branches and worktrees are removed (question 21). B1's
+**In flight:** nothing. Part A's probe branches and worktrees are removed (question 21). B1's
 measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
-applied, uncommitted), holds the A/B's outputs; it stays until B1's review fixes (below) have
-taken what they need from it. B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`,
-B2's change applied, uncommitted), holds B2's A/B outputs and the base TUI binaries; it stays until
-item 7 has taken what it needs, and then its removal is the owner's call.
+applied, uncommitted), and B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`, B2's
+change applied, uncommitted), hold their records' outputs (and B2's the base TUI binaries). B1's
+review fixes have taken what they needed from both; removing them is the owner's call.
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B1's review fixes**, after B2 and before B3: what a read-only review of B1's commits found
-  (2026-09-28; its other two items were owner questions 18 and 19). Observed:
-  1. figures without a command: the two leaner `Debug` writers (+38 / +56 B gz in B1's record)
-     have no script or patch, and `probes/p10-b1/named.sh` needs a PATCH argument whose patch is
-     not committed. Take them from B1's measurement worktree, commit them under `probes/p10-b1/`,
-     and cite them;
-  2. "re-exports" where `mf2::leptos` wraps each helper component with `Mf2` chosen: master plan
-     §4 and D20, 04 §12.1, the root `Cargo.toml`'s comment, the helpers' docs and the changelog;
-  3. `bench/churn/README.md` still names `crates/leptos-mf2/tests/churn.rs`.
+- **B3** (`mf2::ratatui`), then B4 (B5 with or after B4), and Part C in its heading's order, each
+  building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a time: the
+  tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal
+  beside `hydrate` / `csr`, so the waiting owner question (below) applies to it too; `cargo
+  xtask refusals` takes its rows.
 
-  Inferred, to be confirmed by running first:
-  4. two modes at once with a Leptos line on: the helper's `compile_error!` may fire first, naming
-     `mf2-leptos-ui-0-9` (a crate the user never names) without `mf2`'s hint that cargo unifies
-     features across a workspace (`cargo check -p mf2 --features leptos,ssr,hydrate`). If so,
-     the refusal names `mf2`'s features, and an xtask step checks it;
-  5. the shim: `leptos-mf2`'s `leptos` feature is empty and its layer is re-exported only under
-     its own mode feature, so a crate with only `leptos-mf2/leptos` (the shape of
-     `conformance/l7-web/sets/*`) loses the `leptos_mf2::` layer paths when the application
-     names its mode on `mf2` alone. If so, the shim re-exports the layer whenever its line is on,
-     and a test holds the arrangement, so the changelog's "a 1.x application compiles unchanged"
-     holds.
+**Owner questions found in the work:** **one waiting**, from B1's review fixes (item 9): a
+workspace that holds a browser client (`csr` or `hydrate` on `mf2`) and a native application on
+`mf2-native` compiled in 1.x, and in 2.0 fails `cargo check --workspace` (and rust-analyzer's
+check) with 19 §3's refusal of `native` beside a browser mode, while each crate alone compiles
+(`bash probes/p10-b2/unify.sh`). The owner chooses between the refusal as it stands, with the
+changelog's "a 1.x application compiles unchanged" qualified, and a refusal narrowed to browser
+builds; B3's `ratatui` and D1's `axum` inherit the answer. Until then the rule stays.
 
-  From the owner's answer to question 23:
-  6. undo B2's rename: `mf2::native::LocaleOrigin` → `LocaleSource`. This covers the code, the
-     `mf2-native` shim (which then re-exports it plainly), the tests, `api.txt`, the changelog,
-     05, 19 §4, the crates' READMEs and B2's record.
-
-  From a read-only review of B2's commits (2026-09-29):
-  7. observed: B2's record says the demos are byte-identical apart from demo-ssr's
-     `__wasm_split` loader, but `probes/p10-b2/measure.sh` hashes only demo-csr's `dist/`. The
-     claim holds on the kept outputs, so make the committed script produce it (hash all three
-     demos) and cite it;
-  8. inferred: `mf2`'s `native` feature turns on `jiff/…` without `dep:jiff`, which would give
-     `mf2` an implicit public feature `jiff` (not in 19 §3; a semver break to remove after
-     2.0.0). If confirmed, `native` names `dep:jiff`, and the other optional dependencies are
-     checked the same way;
-  9. inferred, to confirm only: `mf2-native` turns on `mf2/native`, so a workspace with a crate
-     that names `mf2/csr` (as `examples/demo-csr` does) beside one that uses `mf2-native` would
-     hit 19 §3's refusal of `native` beside `csr` under `cargo check --workspace`, which 1.x did
-     not have. The rule stays as it is until the owner chooses between it and the changelog's
-     promise that a 1.x application compiles unchanged.
-- **Then** B3, B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
-  designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
-  touch the same crates and plans.
-
-**Owner questions found in the work:** none waiting. B2 found two, answered as questions 22 and
-23 below: the history with `46303b9` stays as it is; and the native enum keeps its name,
-`mf2::native::LocaleSource`, because items in different modules may share a name (B2's
-`LocaleOrigin` is undone in B1's review fixes). B1 found four, answered as questions 18–21
+B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
+and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
+modules may share a name (B2's `LocaleOrigin` is undone by B1's review fixes). B1 found four, answered as questions 18–21
 below: 19 §14's `{:?}` cap counts our code's own cost, so demo-islands holds (+929 B gz over its
 `format!` control); demo-ssr's −136 B gz holds; `CLAUDE.md`'s client-path list is updated; Part
 A's probe branches and worktrees are removed. Before them: C3's data half found two; they were asked when A8 started, and answered as
@@ -232,9 +205,10 @@ the owner's review, which approved them (question 17).
   - C2 / C8: a native size carries the build's source paths and the rlibs linked beside it:
     `tui-upstream`, which uses no MF2, moved +9,856 B with B2. Compare within one tree and one
     lock.
-  - B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines" is checked by an
-    xtask; `native` beside a browser mode was checked by hand (`probes/p10-b2/refusals.sh`). A step
-    that checks each would hold them; B3's `ratatui` inherits `native`'s, and D1 adds `axum`'s.
+  - ~~B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines" is checked by an
+    xtask; `native` beside a browser mode was checked by hand (`probes/p10-b2/refusals.sh`).~~
+    **Done by B1's review fixes:** `cargo xtask refusals`, a step of `ci`, checks each; B3 adds
+    `ratatui`'s rows (it inherits `native`'s), and D1 `axum`'s.
   - Every task: a commit made while another task has changes staged carries them (`46303b9`
     carried B2's renames). Stage and commit by path (`git commit -- <paths>`).
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -3184,6 +3158,115 @@ main tree's, where 19 §14's C2 figure (1,965,320 B, at 1.x) was taken.
 * Every task: a commit made while another task has changes staged carries
   them (`46303b9` carried B2's renames). Stage and commit by path
   (`git commit -- <paths>`).
+
+## B1's review fixes: what was done
+
+Items 1–6 came from a read-only review of B1's commits and the owner's answer to question 23;
+items 7–9 from a read-only review of B2's. Made in the main tree; one commit per item or pair
+(below). Commands ran there unless a measurement tree is named. Logs: the main tree's git-ignored
+`target/p10-b1-fixes/`.
+
+1. **B1's figures without a command** (`418b189`). `probes/p10-b1/b1-static.patch` is the change
+   B1's measurement tree holds, and `named.sh`'s PATCH: it reverse-applies there (`git apply -R
+   --check`), every path that tree changes is in it, and its code is `1023d57`'s but for
+   comments. The two leaner `Debug` writers were not kept. `debug-writestr.patch` and
+   `debug-buffer.patch` reconstruct them, the second from B1's build of it, which that tree still
+   held (its `mf2` object, disassembled: an index loop into a 20-byte buffer, then `from_utf8`
+   and one `write_str`). `bash probes/p10-b1/debug-variants.sh` in that tree (demo-islands, A9's
+   `debug-trargs`):
+
+   | Build | wasm raw / gz / br | Δ gz over S2 | sha256 (12) |
+   |---|---:|---:|---|
+   | S2, kept | 200,681 / 86,942 / 73,552 | | `65a813f6dec6`, as B1's own build |
+   | `write_str` for every character | 200,792 / 86,980 / 73,516 | +38 | `a02b2316fccd` |
+   | the digits through a buffer | 200,813 / 86,998 / 73,591 | +56 | `09ef9aef3834`, as B1's own build |
+
+   B1's record cites both commands.
+2. **"Wraps", not "re-exports"** (`09aed9a`): master plan §4.1 and D20, 04 §12.1, 19 §3, the root
+   `Cargo.toml`, the helpers' descriptions, crate docs, READMEs and `ui.rs`, and the changelog.
+3. **`bench/churn/README.md`** names `crates/mf2/tests/churn.rs` (`09aed9a`).
+4. **Two modes with a line on: confirmed, and fixed** (`f5e72fd`).
+   - *Observed.* `cargo check -p mf2 --features leptos,ssr,hydrate` exited 101, and its one error
+     read "mf2-leptos-ui-0-9: turn on exactly one of `ssr`, `hydrate` and `csr`." The helper
+     compiles before `mf2`, which never ran. The same came from `mf2-leptos-ui-0-8` with
+     `leptos-0-8,ssr,hydrate`, and from the 0.9 helper with `leptos,hydrate,csr`. With no line
+     (`ssr,hydrate`), `mf2`'s own three sentences show.
+   - *Fixed.* The helpers' two refusals are `mf2`'s sentences, word for word.
+     `cargo xtask refusals`, a step of `ci`, checks 19 §3's nine cases: two modes on each line;
+     the two client modes; both lines; each mode with no line; `native` beside `hydrate`, and
+     beside `csr`, for `wasm32-unknown-unknown`. Each must fail with `mf2`'s sentence as its only
+     error. With the 0.9 helper's old sentence put back, it fails at its first case (the negative
+     control, run once by hand).
+5. **The shim's layer paths: confirmed, and fixed** (`5eb881e`).
+   - *Observed.* With `crates/leptos-mf2/tests/layer.rs` written first,
+     `cargo test -p leptos-mf2 --features leptos,mf2/ssr --test layer` gave 11 errors (E0425,
+     E0433): `Setup`, `LoadError`, `RequestI18n`, `LocaleSwitcherProps`, `install`, `html_lang`,
+     `catalog`, `setup`, `links`, `components`. `leptos_mf2::islands_gate!` resolved to the shim's
+     own empty macro, so in a `hydrate` build it would have exported no gate.
+   - *Why.* 1.x's `mf2/ssr` turned on `leptos-mf2/ssr`; since B1, `mf2`'s mode does not reach
+     the shim.
+   - *Fixed.* `mf2::leptos_mf2` (hidden; 1.x's facade path) is present in every build. It
+     carries `mf2::leptos` whenever `mf2` compiles it, else `islands_gate!` alone, expanding to
+     nothing. The shim re-exports `mf2::leptos` under its own mode, as before, so its docs and
+     `api.txt` do not change. With no mode of its own, it re-exports `mf2::leptos_mf2`. The test
+     passes; `ci` runs it in that arrangement, and `--workspace` runs it too
+     (`required-features = ["mf2/ssr"]`).
+6. **`mf2::native::LocaleSource` again** (`c7dd54d`): the code, the shim (a plain re-export), the
+   tests, `mf2`'s `api.txt` (`cargo xtask api`: those 16 lines only), the changelog, 05, 19 §4,
+   `mf2-native`'s README and docs, and B2's record.
+7. **B2's demo hashes from a committed script** (`1552c1d`). `probes/p10-b2/measure.sh` hashes
+   demo-ssr's and demo-islands' `pkg/` too. B2's runs predate that, so `bash
+   probes/p10-b2/demo-hashes.sh` compares their kept outputs, in B2's measurement tree: 30 files
+   a run (demo-csr 16, demo-ssr 9, demo-islands 5), all byte-identical but demo-ssr's
+   `__wasm_split` loader (`591006faae48` → `27af43e4de73`). B2's record cites it.
+8. **`mf2`'s implicit feature `jiff`: confirmed, and gone** (`f51b30e`).
+   - *Observed.* `cargo metadata --no-deps --format-version 1 | jq -c '.packages[] |
+     select(.name=="mf2") | .features.jiff'` printed `["dep:jiff"]`. That is a public feature no
+     manifest declares: `native` named `jiff/std` and `jiff/tz-system`, but never `dep:jiff`.
+   - *Fixed.* `native` names `dep:jiff`, and the same command prints `null`.
+   - *Checked.* No other workspace package has a feature its manifest does not declare: each
+     package's `features` in that metadata, against its manifest's `[features]`.
+9. **`native` beside `csr` across a workspace: confirmed; the owner's to decide** (`f1ce0d0`).
+   - *Observed.* `bash probes/p10-b2/unify.sh` builds a workspace under `target/p10-b2/unify/`: a
+     web crate naming `csr` on `leptos-mf2` and `mf2` (as `examples/demo-csr` does), and a
+     command-line tool on `mf2-native`. `cargo check -p web` exited 0, and so did `-p cli`.
+     `cargo check --workspace` exited 101; its one error was 19 §3's refusal, "mf2: `native` is
+     on beside `hydrate` or `csr`: …".
+   - *Read, not built.* At `7a7994d` (1.x), `mf2` has no `native` feature and no
+     `compile_error!`, and `mf2-native` names `mf2` with `host-std` only.
+   - The rule stays until the owner chooses ("Owner questions found in the work", above).
+
+**Checks** (main tree, with every fix in):
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass**, with its two new steps: the nine refusals, and the shim's test | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `leptos-0-8` | **pass**: both refusals; the five clippy steps, `render` 15, `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `layers` 3 and `l6` 4 | `cargo xtask leptos-0-8` |
+| `l7-web` | **34/34**; L7 444/444, L7c 444/444, L7d and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold | `cargo xtask l7-web` |
+| `docs` | **pass**: 120 blocks on 10 pages, 9 applications | `cargo xtask docs` |
+| `docs-rs` | **pass**: 19 crates, no warnings | `cargo xtask docs-rs` |
+
+**Sizes** (19 §14, row 1; the fixes change no client code): `bash probes/p10-b2/measure.sh base`
+in the main tree, with the 21 files the fixes change under `crates/` and the root `Cargo.toml` at
+`8e1c6bd`'s content (`git show 8e1c6bd:<path>` into each; the new test set aside), then `… fixes`
+with the fixes back. One tree; the workloads' locks kept (`--keep`), the demos' restored, the
+workspace's unchanged. The main tree's figures, not comparable with B1's or B2's worktrees:
+
+| Figure | Base | Fixes | Gate |
+|---|---:|---:|---|
+| **B1**, fixed | 26,720 B gz | 26,720 | ±64 |
+| **B5**, per site | 8.167 B gz | 8.167 | ±0.2 |
+| whole app, 1,860 sites | 41,911 B gz | 41,911 | ambition 105,120 |
+| the size workloads' 12 wasm files | | byte-identical | |
+| `b5 --view`: fixed / per site, and its 12 wasm files | 24,634 / 10.5 | identical; byte-identical | |
+| **B7**: catalog-bench's report; demo-csr's `dist/` (16 files) | | identical but the report's `unix_time`; byte-identical | byte-identical |
+| the demos' shipped files, 30 a run (`bash probes/p10-b2/demo-hashes.sh base fixes`) | | byte-identical but demo-ssr's `__wasm_split` loader | ±64 B gz |
+| **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+
+The loader went `27af43e4de73` → `ed8d63b87a98`. Two rebuilds with nothing changed (`touch
+src/lib.rs; cargo leptos build --release --split --frontend-only` in `examples/demo-ssr`) gave
+`27af43e4de73` and `53b12bf3095a`, over one wasm (`82338f4b3f4c`, the same in both runs). As B2
+found, the loader's hash varies between identical builds; it is not the fixes'.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
