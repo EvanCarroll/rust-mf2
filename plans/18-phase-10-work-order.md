@@ -243,15 +243,20 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
-**Next, each from a fresh session or agent, one at a time, in lean mode (question 27):**
-- **C5** (Ratatui) first, checked with `probes/p10-checks/` (its README), as Part C's heading
+**Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
+agent `mf2-task` (question 32):**
+- **C4's `setup()`** first (question 31): generated as 19 §10 designs, and the changelog's
+  "compiles unchanged" promise withdrawn wherever it is stated (question 30).
+- **C5** (Ratatui) next, checked with `probes/p10-checks/` (its README), as Part C's heading
   orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
   `mf2`'s listed modes (B5's record).
 
-**Owner questions found in the work:** none waiting. C3 found two, answered as questions 28 (the
+**Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
+generated `setup()`), with questions 30 (backward compatibility is not a priority) and 32 (task
+agents at `high`). C3 found two, answered as questions 28 (the
 full matcher in an application with no server) and 29 (`mf2` is MIT AND Unicode-3.0); question 27
 (lean mode) was asked after C3. C2 found none. C1 found none. B5 found none.
 B4 found none. B3 found none. The browser-only refusal found none. B1's review fixes found one, answered as
@@ -815,6 +820,25 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
 29. **`mf2`'s licence** (found by C3; 2026-09-29) — **answered: "MIT AND Unicode-3.0".** `mf2` now
     ships CLDR's matching data, so it declares Unicode-3.0 beside MIT, as `mf2-locale-data`
     already does. *Rejected:* keeping `mf2` plain MIT by moving the data into `mf2-locale-data`.
+30. **Backward compatibility** (2026-09-29, the owner, when C4's `setup()` question was put to
+    him) — **answered: not a priority.** "2.x has no obligation to stay backwards compatible in
+    any way shape or form." The changelog's promise that a 1.x application compiles unchanged is
+    withdrawn. No task spends effort on 1.x compatibility from now on, and where the design and
+    1.x conflict, the design wins. What is built stays (the shims, C1's step for 1.x's
+    `From<T> for ArgValue`, the 1.0.0 baselines in `release.rs`); the shims go with G1 as planned,
+    and the examples and the book leave them with C8 and D6. *Rejected:* removing all of it now
+    (an extra task, and C8, D6 and G1 reordered).
+31. **The generated `setup()`** (found by C4; 2026-09-29) — **answered: generated, as 19 §10
+    designs.** It collides with the `setup()` every 1.x translation crate writes by hand. Under
+    question 30 that is an upgrade step: a 1.x application deletes its own, and the upgrade guide
+    says so. D3 builds on the generated one as planned. *Rejected:* not generating it (`install()`
+    alone; D3's design revisited); generating it under a new name; generating it only on request.
+32. **The task agents' reasoning level** (2026-09-29, with question 27) — **answered: try `high`
+    and measure.** In lean mode, C4's agent re-read 33.4M tokens (141 steps, 377k at the end), a
+    quarter of C1–C3's, and about 57 % of its context was its own reasoning, which stays in the
+    context for the whole run. From C4's remaining `setup()` on, task agents run as the project
+    agent `mf2-task` (`.claude/agents/mf2-task.md`, untracked: `model: opus`, `effort: high`, lean
+    mode's standing rules), and C5's figure is compared with C4's.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
