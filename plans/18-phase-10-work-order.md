@@ -231,14 +231,16 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `MIT AND Unicode-3.0`. B1 and the size workloads byte-identical, hydrated demos +11 / +14 B raw,
   `tui-mf2` +4,568 B; demo-csr +2,870 B gz, an owner question (waiting). `ci`, the checks and the
   browser checks on both lines green; not run: `probes/p10-b4/regen.sh` (no size template changed).
+- **The check script** (`56b4398`): `probes/p10-checks/run.sh LABEL [--against EARLIER]` runs the
+  whole suite, `ci` first, into one table; `compare.sh A B` flags what moved. `c4-base` (`85672a4`):
+  all 20 pass in 26 min; B1 26,733 B gz, B5 8.2, `tui-mf2` 1,809,344 B, 1,815–1,817 allocs a frame.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27):**
-- **The check script** first: the full suite as one quiet script that logs to `target/` and prints
-  a table, and a comparison of two tables; its first run at HEAD is the baseline for C4.
-- **C4** (the generated module), as Part C's heading orders (C3 before C4),
+- **C4** (the generated module) first, checked against `c4-base` with `probes/p10-checks/` (its
+  README), as Part C's heading orders (C3 before C4),
   then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
