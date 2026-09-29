@@ -16,7 +16,7 @@
 //! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
 //! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
-//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, in the system's language and time zone (std; implies `host-std`; never with `hydrate` or `csr`) |
+//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, in the system's language and time zone (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
 //! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
@@ -166,14 +166,23 @@ compile_error!(
 
 // A native application's module reads the system's settings and files
 // beside the executable: it has no place in a browser build, which is what
-// `hydrate` and `csr` make.
-#[cfg(all(feature = "native", any(feature = "hydrate", feature = "csr")))]
+// `hydrate` and `csr` make for `wasm32`. On the host the two compile
+// together: cargo unifies features across the packages it builds together,
+// so `cargo check --workspace` (and rust-analyzer's check) over a browser
+// client and a native application turns both on, as 1.x allowed
+// (plans/19-native-and-terminal.md §3).
+#[cfg(all(
+    feature = "native",
+    any(feature = "hydrate", feature = "csr"),
+    target_arch = "wasm32"
+))]
 compile_error!(
-    "mf2: `native` is on beside `hydrate` or `csr`: `native` is for an \
-     application that runs natively (a command-line tool, a terminal UI, a \
-     server), never for a browser build. cargo unifies features across a \
-     workspace, so a browser client and a native application belong in \
-     workspaces of their own."
+    "mf2: `native` is on beside `hydrate` or `csr` in a build for the \
+     browser (`wasm32`): `native` is for an application that runs natively \
+     (a command-line tool, a terminal UI, a server), never for a browser \
+     build. cargo unifies features across the packages it builds together: \
+     build the browser client on its own (`-p`), and keep `native` off in \
+     every crate it depends on."
 );
 
 // Each Leptos line is a dependency under a name of its own (`leptos_0_9`,

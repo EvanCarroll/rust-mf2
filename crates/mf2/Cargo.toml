@@ -51,8 +51,10 @@ host-web = ["dep:mf2-host-web"]
 # `static-bytes`) or shipped beside it (checked against the content hash in
 # their names, `content-hash`); the system's preferred languages
 # (`sys-locale`) and time zone (jiff's `tz-system`). std, and never in a
-# browser build: with `hydrate` or `csr` it is a compile error. Implies the
-# native host. `dep:jiff` too, so that cargo adds no public feature `jiff`.
+# browser build: with `hydrate` or `csr` it is a compile error when
+# compiling for `wasm32`; on the host the two compile together, as a
+# workspace's check unifies them. Implies the native host. `dep:jiff` too,
+# so that cargo adds no public feature `jiff`.
 native = [
     "host-std",
     "dep:sys-locale",

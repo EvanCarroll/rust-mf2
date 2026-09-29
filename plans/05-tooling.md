@@ -1318,7 +1318,10 @@ moved twice). Since B2 it carries the native module too.
   and `LocaleSource`, which keeps its 1.x name beside `mf2::axum`'s trait
   of that name: items in different modules keep their names
   ([18](18-phase-10-work-order.md) question 23). Never in a browser build:
-  with `hydrate` or `csr` it is a `compile_error!`. `mf2-native` is a shim
+  with `hydrate` or `csr` it is a `compile_error!` when compiling for
+  `wasm32`. On the host the combination compiles, so a workspace that
+  holds a browser client and a native application checks as one, as in
+  1.x ([18](18-phase-10-work-order.md) question 24). `mf2-native` is a shim
   that re-exports it under 1.x's names ([19](19-native-and-terminal.md)
   §3–§5).
 * **The runtime's API**, re-exported: the formatter, the sinks, the

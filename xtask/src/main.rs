@@ -223,7 +223,9 @@ enum Command {
     },
     /// The combinations of `mf2`'s features that plans/19 §3 refuses (Phase
     /// 10): each must fail with `mf2`'s one sentence and nothing else, even
-    /// where a helper crate compiled before `mf2` says it. Also run by `ci`.
+    /// where a helper crate compiled before `mf2` says it; and those it
+    /// refuses only for the browser (`wasm32`) must compile on the host.
+    /// Also run by `ci`.
     Refusals,
     /// The Leptos 0.8 opt-in (Phase 8, A0): `leptos-0-8` beside the default
     /// line refused with the fix named; then, on 0.8, `leptos-mf2` linted

@@ -273,7 +273,8 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         run_inherit(&cargo, &args, root).map_err(|_| Error::CiStepFailed(shown))?;
     }
     // What plans/19 §3 refuses: each misuse of `mf2`'s features is `mf2`'s
-    // one sentence, whichever crate cargo compiles first.
+    // one sentence, whichever crate cargo compiles first; and what it
+    // refuses only for the browser compiles on the host.
     eprintln!("==> cargo xtask refusals");
     crate::refusals::run(root)?;
     // The documentation's samples, assembled and the `mf2` commands they

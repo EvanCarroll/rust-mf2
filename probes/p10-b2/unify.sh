@@ -5,6 +5,9 @@
 # on `leptos-mf2` and `mf2`, as `examples/demo-csr` does, and a command-line
 # tool on the `mf2-native` shim. Each crate alone compiles; `cargo check
 # --workspace` (rust-analyzer's default check) unifies `mf2`'s features.
+# Before the browser-only refusal (plans/18 question 24), that check met
+# 19 §3's refusal and exited 101. Since then `mf2` refuses `native` beside
+# `csr` only when compiling for `wasm32`, and all three checks exit 0.
 #
 #   bash probes/p10-b2/unify.sh
 #

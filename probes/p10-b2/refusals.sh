@@ -3,7 +3,10 @@
 # §3's refusal — on `mf2` itself and through the `mf2-native` shim, for the
 # browser's target and natively; and the combination that must compile,
 # `native` beside `ssr`. Each misuse should show `mf2`'s one sentence, not a
-# dependency's errors first.
+# dependency's errors first. Since the browser-only refusal (plans/18
+# question 24) the refusal is for `wasm32` alone: natively, `native` beside
+# `hydrate` (`mf2-host-hydrate`) compiles too. `cargo xtask refusals`
+# checks both sides in `ci`.
 #
 #   bash probes/p10-b2/refusals.sh
 #

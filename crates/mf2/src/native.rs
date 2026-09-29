@@ -19,9 +19,12 @@
 //! ```
 //!
 //! Native only: the module is `std`, and reads the system's preferred
-//! languages and time zone and files beside the executable. With `hydrate`
-//! or `csr`, which build the browser's client, the `native` feature is a
-//! compile error.
+//! languages and time zone and files beside the executable. Beside
+//! `hydrate` or `csr`, which build the browser's client, the `native`
+//! feature is a compile error when compiling for the browser (`wasm32`). On
+//! the host the two compile together, so a workspace that holds a browser
+//! client and a native application checks as one (`cargo check
+//! --workspace`, and rust-analyzer's check).
 
 use alloc::borrow::ToOwned;
 use alloc::string::String;

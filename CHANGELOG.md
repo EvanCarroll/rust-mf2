@@ -158,8 +158,12 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   text is not escaped.
 * **Changed: the native support is `mf2`'s.** `NativeI18n` and
   `NativeError` are the module `mf2::native`, behind `mf2`'s new `native`
-  feature, which implies `host-std` and is a compile error beside `hydrate`
-  or `csr`: a native application's module has no place in a browser build.
+  feature, which implies `host-std`. Beside `hydrate` or `csr` it is a
+  compile error when compiling for the browser (`wasm32`): a native
+  application's module has no place in a browser build. On the host the
+  two compile together, so a workspace that holds a browser client and a
+  native application checks as one (`cargo check --workspace`, and
+  rust-analyzer's check), as in 1.x.
   `LocaleSource`, where the active locale came from, keeps its name.
   **`mf2-native` is a shim** that re-exports everything under 1.x's names
   and paths, so a 1.x application compiles unchanged.

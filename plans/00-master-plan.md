@@ -208,7 +208,7 @@ rust-mf2/
 | `mf2-axum` | `axum`, `mf2-catalog` | **never** |
 | `mf2-leptos-ui-0-9` / `-0-8` | its Leptos line, `mf2-model` | the active line's, with a mode |
 | `leptos-mf2` (a shim since Phase 10 B1) | `mf2` | re-exports only |
-| `mf2` ([05](05-tooling.md) §9) | `mf2-runtime`, `mf2-catalog`, `mf2-macros`; by feature the function crates, the hosts, the Leptos lines and their helper, and (`native`) `sys-locale` and `jiff[tz-system]` | **yes** — the call-site types; the Leptos layer with a mode; **never** the native module (`native` with `hydrate` or `csr` is a `compile_error!`) |
+| `mf2` ([05](05-tooling.md) §9) | `mf2-runtime`, `mf2-catalog`, `mf2-macros`; by feature the function crates, the hosts, the Leptos lines and their helper, and (`native`) `sys-locale` and `jiff[tz-system]` | **yes** — the call-site types; the Leptos layer with a mode; **never** the native module (`native` with `hydrate` or `csr` is a `compile_error!` when compiling for `wasm32`) |
 
 CI asserts the "never" column with `cargo tree -e normal --target
 wasm32-unknown-unknown` on the demo app.
@@ -232,7 +232,13 @@ The table above is the tree until Phase 10's tasks land. At P10's exit:
 - **What an application names:** `mf2`, plus `mf2-build` in its build script; `mf2-cli` is the
   tool.
 - **In the client wasm:** `mf2` (the core and `leptos`) and the active UI helper.
-- **Never in the client wasm:** `native`, `ratatui`, `axum`.
+- **Never in the client wasm:** `native`, `ratatui`, `axum`. `mf2` refuses each beside `hydrate` or
+  `csr` with a `compile_error!` **when compiling for `wasm32`** (`native`'s since B2, narrowed to
+  `wasm32` after question 24; `ratatui`'s with B3, `axum`'s with D1). On the host the combination
+  compiles: cargo unifies features across the packages it builds together, so a workspace that
+  holds a browser client and a native application checks as one (`cargo check --workspace`,
+  rust-analyzer's check), as in 1.x, and a 1.x application still compiles unchanged
+  ([18](18-phase-10-work-order.md) question 24; [19](19-native-and-terminal.md) §3).
 - **The dependency-table cells above:** `leptos-mf2`'s and `mf2`'s were rewritten when B1 landed,
   and `mf2-native`'s and `mf2`'s when B2 did; `mf2-ratatui`'s are when B3 lands, and `mf2-axum`'s
   when D1 does ([18](18-phase-10-work-order.md)).

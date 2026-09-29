@@ -7,7 +7,10 @@
 //! modes of the same name; `leptos-0-9` (the default) to `mf2`'s `leptos`,
 //! and `leptos-0-8` to `mf2`'s `leptos-0-8`; `static-locale`,
 //! `mark-fallback-lang` and `fn-datetime` to theirs. A 1.x application
-//! keeps compiling unchanged; a new one names `mf2` alone:
+//! keeps compiling unchanged, beside a native application on `mf2-native`
+//! in one workspace too: `mf2` refuses `native` beside `hydrate` or `csr`
+//! only when compiling for the browser (`wasm32`). A new one names `mf2`
+//! alone:
 //!
 //! ```toml
 //! mf2 = { version = "2", features = ["leptos"] }

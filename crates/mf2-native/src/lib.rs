@@ -3,8 +3,11 @@
 //! re-exported from [`mf2`](https://docs.rs/mf2), where the code now lives
 //! as `mf2::native`, behind `mf2`'s `native` feature.
 //!
-//! A 1.x application keeps compiling unchanged. A new one names `mf2`
-//! alone:
+//! A 1.x application keeps compiling unchanged, in a workspace beside a
+//! browser client too: `mf2` refuses `native` beside `hydrate` or `csr`
+//! only when compiling for the browser (`wasm32`), so `cargo check
+//! --workspace`, which unifies `native` with the client's mode, compiles
+//! as in 1.x. A new application names `mf2` alone:
 //!
 //! ```toml
 //! mf2 = { version = "2", features = ["native"] }
