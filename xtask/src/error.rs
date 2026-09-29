@@ -32,6 +32,10 @@ pub(crate) enum Error {
     /// `leptos-mf2` on the Leptos 0.9 pre-release, or its 0.8 refusal, failed.
     #[error("leptos-0-8: {0}")]
     Leptos08(String),
+    /// A combination of `mf2`'s features that must be refused compiled, or
+    /// was refused with something other than `mf2`'s one sentence.
+    #[error("refusals: {0}")]
+    Refusals(String),
     /// The 20 do not build on their `rust-version`, or the release before
     /// it builds them too.
     #[error("msrv: {0}")]

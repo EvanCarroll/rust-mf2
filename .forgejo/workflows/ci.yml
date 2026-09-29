@@ -5,6 +5,8 @@
 # wasm32-unknown-unknown with the `intl` client option, whose code compiles
 # only there — cargo test for the workspace and again for `mf2-resource`'s
 # optional `serde` feature, which nothing in the workspace turns on, the
+# combinations of mf2's features that plans/19 §3 refuses, each failing with
+# mf2's one sentence — `cargo xtask refusals` — the
 # documentation's samples assembled (job `docs` compiles them), the
 # conformance report, which runs layers L1-L5
 # over the suite, and the published crates' public API held against each

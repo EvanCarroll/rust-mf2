@@ -35,10 +35,18 @@
 // has no module named `leptos`, so the name is free for it here.
 extern crate leptos_0_8 as leptos;
 
+// `mf2`'s own sentences: `mf2` forwards its mode here, and cargo compiles
+// this crate before `mf2`, so with two modes this is the error the user
+// reads, and `mf2`'s is never reached. The features it names are `mf2`'s.
 #[cfg(all(feature = "ssr", any(feature = "hydrate", feature = "csr")))]
-compile_error!("mf2-leptos-ui-0-8: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+compile_error!(
+    "mf2: turn on exactly one of `ssr`, `hydrate` and `csr`. cargo unifies \
+     features across a workspace, so an application that is built both ways \
+     belongs in a workspace of its own — as `examples/demo-ssr` and \
+     `conformance/l6-web` are."
+);
 #[cfg(all(feature = "hydrate", feature = "csr"))]
-compile_error!("mf2-leptos-ui-0-8: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+compile_error!("mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
 
 // `src/ui.rs` is a symbolic link to `mf2-leptos-ui-0-9`'s, as every crate's
 // `LICENSE` is a link to the repository's: `cargo package` follows it, so

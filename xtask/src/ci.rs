@@ -259,6 +259,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         let args: Vec<&OsStr> = step.iter().map(OsStr::new).collect();
         run_inherit(&cargo, &args, root).map_err(|_| Error::CiStepFailed(shown))?;
     }
+    // What plans/19 §3 refuses: each misuse of `mf2`'s features is `mf2`'s
+    // one sentence, whichever crate cargo compiles first.
+    eprintln!("==> cargo xtask refusals");
+    crate::refusals::run(root)?;
     // The documentation's samples, assembled and the `mf2` commands they
     // run checked; compiling them is the `docs` job's (`cargo xtask docs`).
     eprintln!("==> cargo xtask docs --no-build");

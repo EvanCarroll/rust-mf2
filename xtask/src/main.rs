@@ -31,6 +31,7 @@ mod msrv;
 mod package;
 mod packages;
 mod pin;
+mod refusals;
 mod release;
 mod report;
 mod scenarios;
@@ -220,6 +221,10 @@ enum Command {
         #[arg(long)]
         no_build: bool,
     },
+    /// The combinations of `mf2`'s features that plans/19 §3 refuses (Phase
+    /// 10): each must fail with `mf2`'s one sentence and nothing else, even
+    /// where a helper crate compiled before `mf2` says it. Also run by `ci`.
+    Refusals,
     /// The Leptos 0.8 opt-in (Phase 8, A0): `leptos-0-8` beside the default
     /// line refused with the fix named; then, on 0.8, `leptos-mf2` linted
     /// for ssr, hydrate and csr, its render, churn and `fallback_lang`
@@ -453,6 +458,7 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
+        Command::Refusals => refusals::run(&root),
         Command::Api { check } => api::run(&root, check),
         Command::DocsRs => docs_rs::run(&root),
         Command::Msrv { below } => msrv::run(&root, below),

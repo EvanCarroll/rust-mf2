@@ -31,10 +31,18 @@
     reason = "`#[component]` hands the phantom `_layer` prop to the body, which never reads it"
 )]
 
+// `mf2`'s own sentences: `mf2` forwards its mode here, and cargo compiles
+// this crate before `mf2`, so with two modes this is the error the user
+// reads, and `mf2`'s is never reached. The features it names are `mf2`'s.
 #[cfg(all(feature = "ssr", any(feature = "hydrate", feature = "csr")))]
-compile_error!("mf2-leptos-ui-0-9: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+compile_error!(
+    "mf2: turn on exactly one of `ssr`, `hydrate` and `csr`. cargo unifies \
+     features across a workspace, so an application that is built both ways \
+     belongs in a workspace of its own — as `examples/demo-ssr` and \
+     `conformance/l6-web` are."
+);
 #[cfg(all(feature = "hydrate", feature = "csr"))]
-compile_error!("mf2-leptos-ui-0-9: turn on exactly one of `ssr`, `hydrate` and `csr`.");
+compile_error!("mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
 
 mod ui;
 
