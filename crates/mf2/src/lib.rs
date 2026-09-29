@@ -264,15 +264,26 @@ pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr
 pub use leptos::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
 
 /// 1.x's `mf2::leptos_mf2`, the Leptos layer as its own crate: every item it
-/// named, under the path it named it. What the `leptos-mf2` shim re-exports,
-/// and what the examples, the book and `mf2 init` still name until they
-/// move to [`leptos`].
-#[cfg(all(
-    any(feature = "ssr", feature = "hydrate", feature = "csr"),
-    any(feature = "leptos", feature = "leptos-0-8")
-))]
+/// named, under the path it named it. What the examples, the book and `mf2
+/// init` still name until they move to `mf2::leptos`, and what the
+/// `leptos-mf2` shim re-exports when it has no mode of its own.
+///
+/// Present in every build: the layer is here whenever this build compiles
+/// it, whichever crate turned the mode on. 1.x's `mf2/ssr` turned on
+/// `leptos-mf2/ssr`; now an application may name its mode on `mf2` alone,
+/// and a crate on the shim's `leptos` feature still reaches the layer. With
+/// no layer, `islands_gate!` expands to nothing, as in 1.x.
 #[doc(hidden)]
 pub mod leptos_mf2 {
+    #[cfg(not(all(
+        any(feature = "ssr", feature = "hydrate", feature = "csr"),
+        any(feature = "leptos", feature = "leptos-0-8")
+    )))]
+    pub use crate::__islands_gate as islands_gate;
+    #[cfg(all(
+        any(feature = "ssr", feature = "hydrate", feature = "csr"),
+        any(feature = "leptos", feature = "leptos-0-8")
+    ))]
     pub use crate::leptos::*;
     pub use crate::{
         ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler,

@@ -36,11 +36,11 @@ pub use mf2::{
 #[cfg(any(feature = "ssr", feature = "hydrate", feature = "csr"))]
 pub use mf2::leptos::*;
 
-/// `islands_gate!` in a build with no mode, where 1.x had it too: it
-/// expands to nothing.
+/// With no mode here, the layer all the same whenever `mf2` compiles it: in
+/// 1.x `mf2/ssr` turned on `leptos-mf2/ssr`, so an application may name its
+/// mode on `mf2` alone while a crate it depends on has only this crate's
+/// `leptos` (`tests/layer.rs`). With no layer at all, `islands_gate!`, which
+/// expands to nothing, as in 1.x.
 #[cfg(not(any(feature = "ssr", feature = "hydrate", feature = "csr")))]
 #[doc(hidden)]
-#[macro_export]
-macro_rules! islands_gate {
-    () => {};
-}
+pub use mf2::leptos_mf2::*;

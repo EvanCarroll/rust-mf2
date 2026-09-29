@@ -40,6 +40,11 @@ fn-datetime = ["mf2/fn-datetime"]
 [dependencies]
 mf2.workspace = true
 
+# The layer's 1.x paths when only `mf2` is in a mode (`cargo xtask ci`).
+[[test]]
+name = "layer"
+required-features = ["mf2/ssr"]
+
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
