@@ -424,13 +424,31 @@ pub(crate) fn text(m: &dyn TextOf, plain: bool) -> Option<Cow<'static, str>> {
     })))
 }
 
+/// A formatter over the catalog of this thread's language, else the
+/// app-wide one — steps 2 and 3 of the one lookup, as [`text`] — handed to
+/// `body` with that catalog, for a sink that borrows its text
+/// (`mf2::ratatui`). Never isolated: a terminal places every cell itself.
+/// `None` when neither language is set.
+#[cfg(feature = "ratatui")]
+pub(crate) fn with_formatter<R>(
+    body: impl FnOnce(&'static Catalog, &Formatter<'_>) -> R,
+) -> Option<R> {
+    let (store, index) = current()?;
+    let catalog: &'static Catalog = store.catalog(index)?;
+    let mut cx = FormatContext::new(store.context().host);
+    cx.bidi = BidiStrategy::None;
+    cx.time_zone = settings().1;
+    let f = Formatter::new(catalog, store.corpus().registry(), &cx);
+    Some(body(catalog, &f))
+}
+
 std::thread_local! {
     static SCRATCH: RefCell<String> = const { RefCell::new(String::new()) };
 }
 
 /// A reused buffer, taken while in use, so that a format nested in another
 /// (an argument's `Display` that formats a message) gets its own.
-fn with_scratch<R>(body: impl FnOnce(&mut String) -> R) -> R {
+pub(crate) fn with_scratch<R>(body: impl FnOnce(&mut String) -> R) -> R {
     let mut buf = SCRATCH.with(|s| {
         s.try_borrow_mut()
             .map(|mut held| core::mem::take(&mut *held))

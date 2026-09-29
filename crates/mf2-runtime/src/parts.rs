@@ -1,6 +1,7 @@
 //! Format to parts (`plans/03-runtime.md` §2.2): the shape the suite's
 //! `expParts` asserts, and what the Leptos layer builds elements from.
 
+use mf2_catalog::{Catalog, StrRef};
 use mf2_model::{Dir, MarkupKind};
 
 use crate::function::{FnContext, Function, OptionEntries};
@@ -13,6 +14,25 @@ use crate::value::Value;
 pub trait PartSink {
     /// One part.
     fn part(&mut self, part: Part<'_>);
+
+    /// The catalog string `r`, as a [`Part::Text`] — the seam for a sink
+    /// that keeps catalog text beyond the format (`mf2::ratatui`, over a
+    /// native application's `&'static` catalogs, borrows it instead of
+    /// copying it): the evaluator hands catalog text to a part sink only
+    /// through this method. Returns `false` (and hands over nothing) when
+    /// the string is not valid (F4).
+    #[doc(hidden)]
+    fn part_catalog_text(&mut self, catalog: &Catalog, r: StrRef) -> bool {
+        match catalog.text(r) {
+            Some(s) => {
+                if !s.is_empty() {
+                    self.part(Part::Text(s));
+                }
+                true
+            }
+            None => false,
+        }
+    }
 }
 
 /// A part of a formatted message. Concatenated, the parts are the string

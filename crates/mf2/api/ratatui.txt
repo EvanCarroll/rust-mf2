@@ -178,8 +178,25 @@ impl core::default::Default for mf2::ratatui::MarkupStyles
 pub fn mf2::ratatui::MarkupStyles::default() -> Self
 impl core::fmt::Debug for mf2::ratatui::MarkupStyles
 pub fn mf2::ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::ratatui::Theme
+impl mf2::ratatui::Theme
+pub const fn mf2::ratatui::Theme::empty() -> mf2::ratatui::Theme
+pub fn mf2::ratatui::Theme::style(self, mf2::ratatui::Markup, ratatui_core::style::Style) -> mf2::ratatui::Theme
+impl core::clone::Clone for mf2::ratatui::Theme
+pub fn mf2::ratatui::Theme::clone(&self) -> Self
+impl core::cmp::Eq for mf2::ratatui::Theme
+impl core::cmp::PartialEq for mf2::ratatui::Theme
+pub fn mf2::ratatui::Theme::eq(&self, &Self) -> bool
+impl core::default::Default for mf2::ratatui::Theme
+pub fn mf2::ratatui::Theme::default() -> mf2::ratatui::Theme
+impl core::fmt::Debug for mf2::ratatui::Theme
+pub fn mf2::ratatui::Theme::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for mf2::ratatui::Theme
 pub fn mf2::ratatui::line(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::ratatui::set_theme(mf2::ratatui::Theme)
 pub fn mf2::ratatui::text(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
+pub fn mf2::ratatui::theme() -> mf2::ratatui::Theme
+pub fn mf2::ratatui::with_theme<R>(&mf2::ratatui::Theme, impl core::ops::function::FnOnce() -> R) -> R
 pub macro mf2::include_generated!
 #[non_exhaustive] pub enum mf2::ArgValue
 pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)
@@ -360,10 +377,22 @@ pub fn mf2::Tr::clone(&self) -> Self
 impl core::cmp::Eq for mf2::Tr
 impl core::cmp::PartialEq for mf2::Tr
 pub fn mf2::Tr::eq(&self, &Self) -> bool
+impl core::convert::From<&mf2::Tr> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(&mf2::Tr) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<&mf2::Tr> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(&mf2::Tr) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<&mf2::Tr> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(&mf2::Tr) -> ratatui_core::text::text::Text<'static>
 impl core::convert::From<mf2::Tr> for alloc::string::String
 pub fn alloc::string::String::from(mf2::Tr) -> alloc::string::String
 impl core::convert::From<mf2::Tr> for mf2::TrArgs
 pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
+impl core::convert::From<mf2::Tr> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(mf2::Tr) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<mf2::Tr> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(mf2::Tr) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<mf2::Tr> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(mf2::Tr) -> ratatui_core::text::text::Text<'static>
 impl core::fmt::Debug for mf2::Tr
 pub fn mf2::Tr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2::Tr
@@ -375,6 +404,12 @@ impl core::marker::StructuralPartialEq for mf2::Tr
 impl mf2::Message for mf2::Tr
 pub fn mf2::Tr::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::Tr::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl ratatui_core::style::stylize::Styled for mf2::Tr
+pub type mf2::Tr::Item = ratatui_core::text::line::Line<'static>
+pub fn mf2::Tr::set_style<S: core::convert::Into<ratatui_core::style::Style>>(self, S) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::Tr::style(&self) -> ratatui_core::style::Style
+impl ratatui_core::widgets::widget::Widget for mf2::Tr
+pub fn mf2::Tr::render(self, ratatui_core::layout::rect::Rect, &mut ratatui_core::buffer::buffer::Buffer)
 pub struct mf2::TrArgs
 impl mf2::TrArgs
 pub fn mf2::TrArgs::args(&self) -> &[mf2::ArgValue]
@@ -388,10 +423,22 @@ pub fn mf2::TrArgs::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrArgs::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrArgs
 pub fn mf2::TrArgs::clone(&self) -> Self
+impl core::convert::From<&mf2::TrArgs> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(&mf2::TrArgs) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<&mf2::TrArgs> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(&mf2::TrArgs) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<&mf2::TrArgs> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(&mf2::TrArgs) -> ratatui_core::text::text::Text<'static>
 impl core::convert::From<mf2::Tr> for mf2::TrArgs
 pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
 impl core::convert::From<mf2::TrArgs> for alloc::string::String
 pub fn alloc::string::String::from(mf2::TrArgs) -> alloc::string::String
+impl core::convert::From<mf2::TrArgs> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(mf2::TrArgs) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<mf2::TrArgs> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(mf2::TrArgs) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<mf2::TrArgs> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(mf2::TrArgs) -> ratatui_core::text::text::Text<'static>
 impl core::fmt::Debug for mf2::TrArgs
 pub fn mf2::TrArgs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2::TrArgs
@@ -399,6 +446,12 @@ pub fn mf2::TrArgs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Resu
 impl mf2::Message for mf2::TrArgs
 pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl ratatui_core::style::stylize::Styled for mf2::TrArgs
+pub type mf2::TrArgs::Item = ratatui_core::text::line::Line<'static>
+pub fn mf2::TrArgs::set_style<S: core::convert::Into<ratatui_core::style::Style>>(self, S) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::TrArgs::style(&self) -> ratatui_core::style::Style
+impl ratatui_core::widgets::widget::Widget for mf2::TrArgs
+pub fn mf2::TrArgs::render(self, ratatui_core::layout::rect::Rect, &mut ratatui_core::buffer::buffer::Buffer)
 pub struct mf2::TrDyn
 impl mf2::TrDyn
 pub fn mf2::TrDyn::args(&self) -> &[(mf2::Text, mf2::ArgValue)]
@@ -413,8 +466,20 @@ pub fn mf2::TrDyn::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrDyn::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrDyn
 pub fn mf2::TrDyn::clone(&self) -> Self
+impl core::convert::From<&mf2::TrDyn> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(&mf2::TrDyn) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<&mf2::TrDyn> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(&mf2::TrDyn) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<&mf2::TrDyn> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(&mf2::TrDyn) -> ratatui_core::text::text::Text<'static>
 impl core::convert::From<mf2::TrDyn> for alloc::string::String
 pub fn alloc::string::String::from(mf2::TrDyn) -> alloc::string::String
+impl core::convert::From<mf2::TrDyn> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(mf2::TrDyn) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<mf2::TrDyn> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(mf2::TrDyn) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<mf2::TrDyn> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(mf2::TrDyn) -> ratatui_core::text::text::Text<'static>
 impl core::fmt::Debug for mf2::TrDyn
 pub fn mf2::TrDyn::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2::TrDyn
@@ -422,6 +487,12 @@ pub fn mf2::TrDyn::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Resul
 impl mf2::Message for mf2::TrDyn
 pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl ratatui_core::style::stylize::Styled for mf2::TrDyn
+pub type mf2::TrDyn::Item = ratatui_core::text::line::Line<'static>
+pub fn mf2::TrDyn::set_style<S: core::convert::Into<ratatui_core::style::Style>>(self, S) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::TrDyn::style(&self) -> ratatui_core::style::Style
+impl ratatui_core::widgets::widget::Widget for mf2::TrDyn
+pub fn mf2::TrDyn::render(self, ratatui_core::layout::rect::Rect, &mut ratatui_core::buffer::buffer::Buffer)
 pub struct mf2::TrRich
 impl mf2::TrRich
 pub const fn mf2::TrRich::args(&self) -> &mf2::TrArgs
@@ -437,8 +508,20 @@ pub fn mf2::TrRich::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrRich::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrRich
 pub fn mf2::TrRich::clone(&self) -> Self
+impl core::convert::From<&mf2::TrRich> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(&mf2::TrRich) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<&mf2::TrRich> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(&mf2::TrRich) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<&mf2::TrRich> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(&mf2::TrRich) -> ratatui_core::text::text::Text<'static>
 impl core::convert::From<mf2::TrRich> for alloc::string::String
 pub fn alloc::string::String::from(mf2::TrRich) -> alloc::string::String
+impl core::convert::From<mf2::TrRich> for ratatui_core::text::line::Line<'static>
+pub fn ratatui_core::text::line::Line<'static>::from(mf2::TrRich) -> ratatui_core::text::line::Line<'static>
+impl core::convert::From<mf2::TrRich> for ratatui_core::text::span::Span<'static>
+pub fn ratatui_core::text::span::Span<'static>::from(mf2::TrRich) -> ratatui_core::text::span::Span<'static>
+impl core::convert::From<mf2::TrRich> for ratatui_core::text::text::Text<'static>
+pub fn ratatui_core::text::text::Text<'static>::from(mf2::TrRich) -> ratatui_core::text::text::Text<'static>
 impl core::fmt::Debug for mf2::TrRich
 pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2::TrRich
@@ -446,6 +529,12 @@ pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Resu
 impl mf2::Message for mf2::TrRich
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl ratatui_core::style::stylize::Styled for mf2::TrRich
+pub type mf2::TrRich::Item = ratatui_core::text::line::Line<'static>
+pub fn mf2::TrRich::set_style<S: core::convert::Into<ratatui_core::style::Style>>(self, S) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::TrRich::style(&self) -> ratatui_core::style::Style
+impl ratatui_core::widgets::widget::Widget for mf2::TrRich
+pub fn mf2::TrRich::render(self, ratatui_core::layout::rect::Rect, &mut ratatui_core::buffer::buffer::Buffer)
 pub struct mf2::UnknownLocale
 impl mf2::UnknownLocale
 pub fn mf2::UnknownLocale::supported(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>

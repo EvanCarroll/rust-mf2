@@ -263,15 +263,7 @@ struct PartsOut<'s> {
 
 impl Out for PartsOut<'_> {
     fn text(&mut self, catalog: &Catalog, r: StrRef) -> bool {
-        match catalog.text(r) {
-            Some(s) => {
-                if !s.is_empty() {
-                    self.out.part(Part::Text(s));
-                }
-                true
-            }
-            None => false,
-        }
+        self.out.part_catalog_text(catalog, r)
     }
 
     fn expression(&mut self, part: ExpressionPart<'_>, iso: Option<Isolation>) {

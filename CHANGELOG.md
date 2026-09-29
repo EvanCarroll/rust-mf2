@@ -296,6 +296,16 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   installs it; upgrading a 1.x translation crate means deleting its
   hand-written `setup()`, which would otherwise clash with the generated
   one.
+* **Ratatui text from the descriptions.** With `ratatui`, a description —
+  or a reference to one — converts into a `Span`, `Line` or `Text` in the
+  language in force, so it goes straight into a `Paragraph`, a title, a
+  `Cell` or a `List`; it is `Styled` as a `Line` (`tr!("quit").bold()`)
+  and a `Widget`. Markup takes its style from `mf2::ratatui::Theme`
+  (`set_theme`, `with_theme`, `theme()`), whose default styles `b`,
+  `strong`, `i`, `em`, `u`, `s`, `del`, `code` and `kbd`. Catalog text is
+  borrowed, not copied: only placeholders allocate, beside Ratatui's own
+  `Vec`s. A `Text` starts a new line at a line break; a `Line` and a `Span`
+  join the lines with a space, and a `Span` keeps no markup style.
 
 ## 1.0.0
 
