@@ -239,16 +239,17 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   through `mf2`'s cfg macros, one byte table for `CATALOGS` and `CORPUS`. `ci`, `codegen-matrix` (+5
   native), `scenarios`, `conformance-report` green. Departures: no generated `setup()` (an owner
   question, waiting); `format` without `native` and `axum` with D1; `tr` out of the prelude until C6.
+- **C4's `setup()`** (`b46c1b5`, questions 30 and 31): generated under a Leptos mode, the matcher's data
+  only with `csr`; `install()` calls it. Every hand-written one went (examples, churn, L6/L7 web,
+  `mf2 init`, the book), the `tr-view` and `fluent-converted` templates install it, and the changelog
+  no longer promises "compiles unchanged". `ci`, `docs`, `codegen-matrix`, `scenarios` green.
 
-**In flight:** C4's `setup()` (question 31), started 2026-09-29 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
-measurement worktrees, are removed (questions 21 and 25).
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **C4's `setup()`** first (question 31): generated as 19 §10 designs, and the changelog's
-  "compiles unchanged" promise withdrawn wherever it is stated (question 30).
-- **C5** (Ratatui) next, checked with `probes/p10-checks/` (its README), as Part C's heading
+- **C5** (Ratatui) first, checked with `probes/p10-checks/` (its README), as Part C's heading
   orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
