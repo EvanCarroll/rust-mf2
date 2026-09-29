@@ -7,7 +7,9 @@
 //! `default-target`). Every crate must list its `targets`, so docs.rs
 //! builds only those instead of its default five. The same table gives
 //! `cargo xtask api` the feature set and target each public API is listed
-//! with, so the published documentation shows what `api.txt` promises.
+//! with, so the published documentation shows what `api.txt` promises — but
+//! for a crate listed per mode, whose `[package.metadata.api]` names each
+//! mode's features (`mf2`).
 //!
 //! For each crate and target, as docs.rs does: `cargo rustdoc --lib` on a
 //! nightly (the one `cargo xtask api` pins, rather than docs.rs's latest,

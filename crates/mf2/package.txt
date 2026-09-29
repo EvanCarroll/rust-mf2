@@ -5,7 +5,12 @@ Cargo.toml
 Cargo.toml.orig
 LICENSE
 README.md
-api.txt
+api/core.txt
+api/csr.txt
+api/hydrate.txt
+api/native.txt
+api/ratatui.txt
+api/ssr.txt
 src/arg.rs
 src/compile.rs
 src/corpus.rs

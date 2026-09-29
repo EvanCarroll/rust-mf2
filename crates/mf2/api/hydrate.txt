@@ -1,5 +1,5 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: compile,fn-number,datetime-icu,host-std,leptos,ssr,static-locale,mark-fallback-lang,native,ratatui
+# nightly-2026-09-24; mode: hydrate; features: compile,fn-number,datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy
@@ -66,6 +66,7 @@ pub use mf2::fn_datetime
 pub use mf2::fn_number
 pub use mf2::functions
 pub use mf2::host_std
+pub use mf2::host_web
 pub use mf2::is_zone_name
 pub mod mf2::leptos
 pub mod mf2::leptos::components
@@ -82,6 +83,7 @@ pub type mf2::leptos::components::CatalogPreloadProps = mf2_leptos_ui_0_9::ui::C
 pub type mf2::leptos::components::IslandsGateProps = mf2_leptos_ui_0_9::ui::IslandsGateProps<Mf2>
 pub type mf2::leptos::components::LocaleOptionProps = mf2_leptos_ui_0_9::ui::LocaleOptionProps<Mf2>
 pub type mf2::leptos::components::LocaleSwitcherProps = mf2_leptos_ui_0_9::ui::LocaleSwitcherProps<Mf2>
+pub macro mf2::leptos::islands_gate!
 #[non_exhaustive] pub enum mf2::leptos::LoadError
 pub mf2::leptos::LoadError::Fetch
 pub mf2::leptos::LoadError::Malformed(mf2_catalog::error::CatalogError)
@@ -135,17 +137,6 @@ impl core::fmt::Debug for mf2::NestingHandler
 pub fn mf2::NestingHandler::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl mf2::MarkupHandler for mf2::NestingHandler
 pub fn mf2::NestingHandler::as_any(&self) -> &dyn core::any::Any
-pub struct mf2::leptos::RequestI18n
-impl mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::new(alloc::sync::Arc<mf2_catalog::reader::Catalog>) -> mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::provide(self)
-pub fn mf2::leptos::RequestI18n::with_bidi(self, mf2_runtime::format::BidiStrategy) -> mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::with_registry(self, &'static mf2_runtime::function::Registry) -> mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::with_time_zone(self, mf2_runtime::datetime::TimeZone) -> mf2::leptos::RequestI18n
-impl core::clone::Clone for mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::clone(&self) -> Self
-impl core::fmt::Debug for mf2::leptos::RequestI18n
-pub fn mf2::leptos::RequestI18n::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub struct mf2::leptos::Setup
 pub mf2::leptos::Setup::host: &'static dyn mf2_runtime::host::Host
 pub mf2::leptos::Setup::locales: &'static [(&'static str, mf2_model::id::Dir)]
@@ -175,100 +166,36 @@ pub fn mf2::leptos::IslandsGate() -> impl leptos::into_view::IntoView
 pub fn mf2::leptos::LocaleOption(mf2::leptos::components::LocaleOptionProps) -> impl leptos::into_view::IntoView
 pub fn mf2::leptos::LocaleSwitcher(mf2::leptos::components::LocaleSwitcherProps) -> impl leptos::into_view::IntoView
 pub fn mf2::leptos::active() -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
-pub fn mf2::leptos::catalog(&str) -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
-pub fn mf2::leptos::default_catalog() -> core::option::Option<alloc::sync::Arc<mf2_catalog::reader::Catalog>>
+pub fn mf2::leptos::catalog_url(&str) -> core::option::Option<alloc::string::String>
+pub fn mf2::leptos::changed() -> reactive_graph::signal::arc_trigger::ArcTrigger
 pub fn mf2::leptos::dir_of(&str) -> core::option::Option<mf2_model::id::Dir>
+pub fn mf2::leptos::document_locale() -> core::option::Option<alloc::string::String>
 pub fn mf2::leptos::html_lang() -> (alloc::string::String, &'static str)
+pub fn mf2::leptos::hydrate_body<F, N>(F) where F: core::ops::function::FnOnce() -> N + 'static, N: leptos::into_view::IntoView
+pub fn mf2::leptos::hydrate_islands()
+pub fn mf2::leptos::hydrate_lazy<F, N>(F) where F: core::ops::function::FnOnce() -> N + 'static, N: leptos::into_view::IntoView
 pub fn mf2::leptos::install(mf2::leptos::Setup)
+pub async fn mf2::leptos::load_page_catalog() -> core::result::Result<(), mf2::leptos::LoadError>
 pub fn mf2::leptos::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
 pub fn mf2::leptos::lookup_locale(&str, &[(&'static str, mf2_model::id::Dir)]) -> core::option::Option<(&'static str, mf2_model::id::Dir)>
 pub fn mf2::leptos::manifest_hash() -> u64
-pub fn mf2::leptos::provide_locale(&str) -> &'static str
-pub fn mf2::leptos::provide_locale_in_zone(&str, core::option::Option<mf2_runtime::datetime::TimeZone>) -> &'static str
+pub async fn mf2::leptos::preload_locale(&str) -> core::result::Result<(), mf2::leptos::LoadError>
 pub fn mf2::leptos::read_catalog(alloc::vec::Vec<u8>) -> core::result::Result<alloc::sync::Arc<mf2_catalog::reader::Catalog>, mf2::leptos::LoadError>
 pub fn mf2::leptos::reader_time_zone(&str) -> core::option::Option<mf2_runtime::datetime::TimeZone>
-pub fn mf2::leptos::request_time_zone() -> core::option::Option<mf2_runtime::datetime::TimeZone>
+pub fn mf2::leptos::set_active(alloc::sync::Arc<mf2_catalog::reader::Catalog>)
+pub fn mf2::leptos::set_document_lang(&str, mf2_model::id::Dir)
+pub async fn mf2::leptos::set_locale(&str) -> core::result::Result<(), mf2::leptos::LoadError>
 pub fn mf2::leptos::setup() -> core::option::Option<mf2::leptos::Setup>
 pub fn mf2::leptos::signal_arg<S>(S) -> mf2::ArgValue where S: reactive_graph::traits::Get + reactive_graph::traits::GetUntracked<Value = <S as reactive_graph::traits::Get>::Value> + core::marker::Send + core::marker::Sync + 'static, <S as reactive_graph::traits::Get>::Value: core::convert::Into<mf2::ArgValue>
 pub fn mf2::leptos::source_locale() -> &'static str
+pub fn mf2::leptos::track_locale()
+pub async fn mf2::leptos::wait_for_catalog()
 pub type mf2::leptos::AlternateLinksProps = mf2_leptos_ui_0_9::ui::AlternateLinksProps<Mf2>
 pub type mf2::leptos::CatalogLinksProps = mf2_leptos_ui_0_9::ui::CatalogLinksProps<Mf2>
 pub type mf2::leptos::CatalogPreloadProps = mf2_leptos_ui_0_9::ui::CatalogPreloadProps<Mf2>
 pub type mf2::leptos::IslandsGateProps = mf2_leptos_ui_0_9::ui::IslandsGateProps<Mf2>
 pub type mf2::leptos::LocaleOptionProps = mf2_leptos_ui_0_9::ui::LocaleOptionProps<Mf2>
 pub type mf2::leptos::LocaleSwitcherProps = mf2_leptos_ui_0_9::ui::LocaleSwitcherProps<Mf2>
-pub mod mf2::native
-#[non_exhaustive] pub enum mf2::native::LocaleSource
-pub mf2::native::LocaleSource::Explicit
-pub mf2::native::LocaleSource::Source
-pub mf2::native::LocaleSource::System
-impl core::clone::Clone for mf2::native::LocaleSource
-pub fn mf2::native::LocaleSource::clone(&self) -> Self
-impl core::cmp::Eq for mf2::native::LocaleSource
-impl core::cmp::PartialEq for mf2::native::LocaleSource
-pub fn mf2::native::LocaleSource::eq(&self, &Self) -> bool
-impl core::fmt::Debug for mf2::native::LocaleSource
-pub fn mf2::native::LocaleSource::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::hash::Hash for mf2::native::LocaleSource
-pub fn mf2::native::LocaleSource::hash<__H: core::hash::Hasher>(&self, &mut __H)
-impl core::marker::Copy for mf2::native::LocaleSource
-impl core::marker::StructuralPartialEq for mf2::native::LocaleSource
-#[non_exhaustive] pub enum mf2::native::NativeError
-pub mf2::native::NativeError::Catalog
-pub mf2::native::NativeError::Catalog::locale: alloc::string::String
-pub mf2::native::NativeError::Catalog::source: mf2_catalog::error::CatalogError
-pub mf2::native::NativeError::ContentMismatch
-pub mf2::native::NativeError::ContentMismatch::actual: alloc::string::String
-pub mf2::native::NativeError::ContentMismatch::path: std::path::PathBuf
-pub mf2::native::NativeError::Io
-pub mf2::native::NativeError::Io::path: std::path::PathBuf
-pub mf2::native::NativeError::Io::source: core::io::error::Error
-pub mf2::native::NativeError::LocaleMismatch
-pub mf2::native::NativeError::LocaleMismatch::actual: alloc::string::String
-pub mf2::native::NativeError::LocaleMismatch::expected: alloc::string::String
-pub mf2::native::NativeError::MissingCatalog(alloc::string::String)
-pub mf2::native::NativeError::NotEmbedded(alloc::string::String)
-pub mf2::native::NativeError::UnknownLocale(alloc::string::String)
-impl core::error::Error for mf2::native::NativeError
-pub fn mf2::native::NativeError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
-impl core::fmt::Debug for mf2::native::NativeError
-pub fn mf2::native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::fmt::Display for mf2::native::NativeError
-pub fn mf2::native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub struct mf2::native::NativeI18n
-impl mf2::native::NativeI18n
-pub fn mf2::native::NativeI18n::available_locales(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
-pub const fn mf2::native::NativeI18n::bidi(&self) -> mf2_runtime::format::BidiStrategy
-pub fn mf2::native::NativeI18n::catalog_file_name(&self, &str) -> core::option::Option<&'static str>
-pub fn mf2::native::NativeI18n::dir(&self) -> mf2_model::id::Dir
-pub fn mf2::native::NativeI18n::embedded(&'static mf2::Corpus) -> core::result::Result<Self, mf2::native::NativeError>
-pub fn mf2::native::NativeI18n::format(&self, &impl mf2::Message) -> alloc::string::String
-pub fn mf2::native::NativeI18n::format_with_errors(&self, &impl mf2::Message) -> (alloc::string::String, alloc::vec::Vec<mf2_runtime::error::FormatError>)
-pub fn mf2::native::NativeI18n::formatter(&self) -> core::option::Option<mf2_runtime::format::Formatter<'_>>
-pub fn mf2::native::NativeI18n::from_directory(&'static mf2::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<Self, mf2::native::NativeError>
-pub fn mf2::native::NativeI18n::locale(&self) -> &'static str
-pub const fn mf2::native::NativeI18n::locale_source(&self) -> mf2::native::LocaleSource
-pub const fn mf2::native::NativeI18n::set_bidi(&mut self, mf2_runtime::format::BidiStrategy)
-pub fn mf2::native::NativeI18n::set_locale(&mut self, &str) -> core::result::Result<(), mf2::native::NativeError>
-pub const fn mf2::native::NativeI18n::set_time_zone(&mut self, mf2_runtime::datetime::TimeZone)
-pub const fn mf2::native::NativeI18n::source_locale(&self) -> &'static str
-pub const fn mf2::native::NativeI18n::time_zone(&self) -> mf2_runtime::datetime::TimeZone
-impl core::fmt::Debug for mf2::native::NativeI18n
-pub fn mf2::native::NativeI18n::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub mod mf2::ratatui
-pub struct mf2::ratatui::MarkupStyles
-impl mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::get(&self, &str) -> core::option::Option<ratatui_core::style::Style>
-pub const fn mf2::ratatui::MarkupStyles::new() -> Self
-pub fn mf2::ratatui::MarkupStyles::with(self, impl core::convert::Into<alloc::string::String>, ratatui_core::style::Style) -> Self
-impl core::clone::Clone for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::clone(&self) -> Self
-impl core::default::Default for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::default() -> Self
-impl core::fmt::Debug for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub fn mf2::ratatui::line(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
-pub fn mf2::ratatui::text(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
 pub macro mf2::include_generated!
 #[non_exhaustive] pub enum mf2::ArgValue
 pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)

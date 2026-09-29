@@ -1099,8 +1099,12 @@ library that only returns descriptions needs no mode. One that formats turns on
 | `mf2::axum` | `Negotiator` (a tower layer), `Negotiated`, the source and sink traits and their four built-in sources, `catalog_routes`, `path_prefix_redirect`, `negotiated` | `axum` |
 
 The generated module adds the application's own typed items: `Locale`,
-`install`, `set_locale`, `current_locale` and others (§10). B5 lists all of it
-per mode (`crates/mf2/api/{core,ssr,hydrate,csr,native,ratatui,axum}.txt`).
+`install`, `set_locale`, `current_locale` and others (§10). B5 lists `mf2`'s
+API per mode (`crates/mf2/api/{core,ssr,hydrate,csr,native,ratatui}.txt`;
+`axum.txt` with D1), from the table `[package.metadata.api]` in its manifest,
+and `cargo xtask release` compares each mode with the last release. The
+generated items are each application's own code, so no listing of `mf2`
+holds them; what 2.x promises of them, the version policy says (G1).
 
 ## 5. The native store, and the one lookup
 

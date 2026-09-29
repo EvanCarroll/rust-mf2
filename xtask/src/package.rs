@@ -122,8 +122,9 @@ pub(crate) fn run(root: &Path, check: bool, test: bool) -> Result<()> {
         let path = p.dir.join("package.txt");
         if check {
             let committed = fs::read_to_string(&path).unwrap_or_default();
-            if let Some(diff) = crate::api::diff(&p.name, &committed, &text) {
-                stale.push(diff.replacen("/api.txt:", "/package.txt:", 1));
+            let file = format!("crates/{}/package.txt", p.name);
+            if let Some(diff) = crate::api::diff(&file, &committed, &text) {
+                stale.push(diff);
             }
         } else {
             fsx::write(&path, text.as_bytes())?;

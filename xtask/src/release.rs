@@ -20,9 +20,10 @@
 //!    otherwise: a published version cannot be replaced;
 //! 4. the public API against each crate's latest published version
 //!    (`cargo-semver-checks`, pinned, installed into `target/tools`), with
-//!    the features its documentation presents — skipped for a crate with
-//!    nothing published; `--baseline-rev` compares with a git revision
-//!    instead;
+//!    the features its documentation presents, or, for a crate listed per
+//!    mode (`mf2`, `[package.metadata.api]`), mode by mode — skipped for a
+//!    crate with nothing published, and for a mode the published version
+//!    did not have; `--baseline-rev` compares with a git revision instead;
 //! 5. `cargo xtask ci` (the committed API listings of A2 among its steps);
 //! 6. the packages' own tests from their `.crate` files (A4, `--test`);
 //! 7. the documentation as docs.rs builds it (A5);
@@ -48,7 +49,7 @@
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::io::{BufRead as _, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -85,28 +86,12 @@ const PARTIAL_INITIAL_RELEASE: [&str; 5] = [
     "mf2-macros",
 ];
 
-/// Features left out of a crate's cargo-semver-checks run, by crate.
-/// cargo-semver-checks builds a placeholder crate that depends on the one it
-/// checks, so a dependency's feature cannot be passed, and 1.0.0's `mf2`
-/// does not compile its Leptos layer (`leptos`, or a mode) without a line
-/// from `leptos-mf2` (`leptos-mf2/leptos-0-9`, refused as "not allowed to
-/// contain slashes"). Since Phase 10's B1 the layer is `mf2`'s own, held by
-/// its `api.txt`; B5 checks it per mode, against baseline feature sets that
-/// spell 1.0.0's line. `native` and `ratatui` (Phase 10 B2, B3) are not
-/// features of 1.0.0's `mf2` at all: 1.x's native crates, `mf2-native` and
-/// `mf2-ratatui`, were never published. What they add is held by `api.txt`
-/// too, and B5 lists each as its own mode.
-const SEMVER_WITHOUT: [(&str, &[&str]); 1] = [(
-    "mf2",
-    &[
-        "leptos",
-        "ssr",
-        "static-locale",
-        "mark-fallback-lang",
-        "native",
-        "ratatui",
-    ],
-)];
+/// How cargo-semver-checks has rustdoc write the JSON it reads (its
+/// `EXTRA_RUSTDOCFLAGS`), and the `RUSTFLAGS` it builds with, for the modes
+/// built here ([`spelled_rustdoc`]).
+const TOOL_RUSTDOCFLAGS: &str = "-Z unstable-options --document-private-items \
+                                 --document-hidden-items --output-format=json --cap-lints=allow";
+const TOOL_RUSTFLAGS: &str = "--cap-lints=allow";
 
 /// What the command does after its checks.
 pub(crate) struct Options {
@@ -179,7 +164,13 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
         }
     );
 
-    semver(root, &names, &version, options.baseline_rev.as_deref())?;
+    semver(
+        root,
+        &metadata,
+        &names,
+        &version,
+        options.baseline_rev.as_deref(),
+    )?;
 
     eprintln!("==> cargo xtask ci");
     crate::ci::run(root)?;
@@ -667,11 +658,13 @@ fn days_from_civil(year: u64, month: u64, day: u64) -> Option<u64> {
 
 fn semver(
     root: &Path,
+    metadata: &Value,
     names: &[(&str, Registered)],
     version: &str,
     baseline_rev: Option<&str>,
 ) -> Result<()> {
     let presented = crate::docs_rs::presented(root)?;
+    let per_mode = crate::api::modes(metadata)?;
     // Each crate's baseline: the newest version published before this one
     // (a crate already out at this version is not its own baseline).
     let baseline = |name: &str| -> Option<String> {
@@ -716,16 +709,20 @@ fn semver(
             );
             continue;
         }
-        let dropped = SEMVER_WITHOUT
-            .iter()
-            .find(|(n, _)| *n == p.name)
-            .map_or(&[][..], |(_, f)| *f);
-        let features: Vec<&str> = p
-            .features
-            .iter()
-            .map(String::as_str)
-            .filter(|f| !dropped.contains(f))
-            .collect();
+        if let Some(modes) = per_mode.get(&p.name) {
+            let against = match baseline_rev {
+                Some(rev) => Against::Revision(rev),
+                None => match baseline(&p.name) {
+                    Some(v) => Against::Published(v),
+                    None => continue,
+                },
+            };
+            failed.extend(semver_modes(
+                root, metadata, &tool, &p.name, modes, version, &against,
+            )?);
+            continue;
+        }
+        let features: Vec<&str> = p.features.iter().map(String::as_str).collect();
         let mut args: Vec<String> = ["semver-checks", "--package", &p.name]
             .map(str::to_owned)
             .into();
@@ -785,6 +782,246 @@ fn semver(
     }
 }
 
+/// What a crate listed per mode is compared with.
+enum Against<'a> {
+    /// A version on crates.io.
+    Published(String),
+    /// A git revision of this repository (`--baseline-rev`).
+    Revision(&'a str),
+}
+
+/// A crate listed per mode (`[package.metadata.api]`, `cargo xtask api`),
+/// compared mode by mode: each mode's features against the same mode as the
+/// baseline spelled it. The failures, each as `name (mode)`.
+///
+/// A mode spelled as it is now is cargo-semver-checks' own run, with
+/// `--current-features` and `--baseline-features`. A mode the baseline
+/// spelled with a dependency's feature (1.0.0's Leptos line,
+/// `leptos-mf2/leptos-0-9`) cannot be: the tool passes the features to a
+/// crate it writes that depends on the one checked, and cargo refuses a
+/// dependency's feature there ("not allowed to contain slashes"). Both
+/// sides are then built here, as the tool builds them, in a crate of our own
+/// that depends on each package the spelling names, and the tool compares
+/// the two ([`spelled_rustdoc`]). A git revision is taken to spell the
+/// modes as this tree does.
+fn semver_modes(
+    root: &Path,
+    metadata: &Value,
+    tool: &Path,
+    name: &str,
+    modes: &crate::api::Modes,
+    version: &str,
+    against: &Against<'_>,
+) -> Result<Vec<String>> {
+    let mut failed = Vec::new();
+    for (mode, features) in &modes.modes {
+        let label = format!("{name} ({mode})");
+        let Some(spelled) = spelling(modes, mode, against) else {
+            if let Against::Published(v) = against {
+                eprintln!(
+                    "==> cargo-semver-checks: {label} skipped — {v} has no `{mode}` mode, so \
+                     nothing to compare it with"
+                );
+            }
+            continue;
+        };
+        let mut args: Vec<String> = ["semver-checks", "--package", name]
+            .map(str::to_owned)
+            .into();
+        match against {
+            Against::Published(v) if spelled.iter().any(|f| f.contains('/')) => {
+                let sides = Sides {
+                    mode,
+                    baseline: (v, spelled),
+                    current: (version, features),
+                };
+                let (baseline, current) = spelled_rustdoc(root, metadata, name, &sides)?;
+                args.extend([
+                    "--baseline-rustdoc".to_owned(),
+                    baseline.to_string_lossy().into_owned(),
+                    "--current-rustdoc".to_owned(),
+                    current.to_string_lossy().into_owned(),
+                ]);
+            }
+            _ => {
+                args.extend([
+                    "--default-features".to_owned(),
+                    "--current-features".to_owned(),
+                    features.join(","),
+                    "--baseline-features".to_owned(),
+                    spelled.join(","),
+                ]);
+                args.extend(match against {
+                    Against::Published(v) => ["--baseline-version".to_owned(), v.clone()],
+                    Against::Revision(rev) => ["--baseline-rev".to_owned(), (*rev).to_owned()],
+                });
+            }
+        }
+        eprintln!("==> cargo-semver-checks {} ({mode})", args.join(" "));
+        if run_inherit(tool.as_os_str(), &args.map_os(), root).is_err() {
+            failed.push(label);
+        }
+    }
+    Ok(failed)
+}
+
+/// How the baseline spelled `mode`: as the table's entry for that version
+/// says, when it has one (`None`: that version did not have the mode), and
+/// otherwise as the mode is spelled now.
+fn spelling<'a>(
+    modes: &'a crate::api::Modes,
+    mode: &str,
+    against: &Against<'_>,
+) -> Option<&'a Vec<String>> {
+    let now = modes.modes.get(mode)?;
+    match against {
+        Against::Published(v) => match modes.baselines.get(v) {
+            Some(then) => then.get(mode),
+            None => Some(now),
+        },
+        Against::Revision(_) => Some(now),
+    }
+}
+
+/// Where a crate comes from in a crate of our own that depends on it.
+enum Source<'a> {
+    /// crates.io, at exactly this version.
+    Registry(&'a str),
+    /// This workspace.
+    Workspace,
+}
+
+/// A mode's two sides, each a version and its features as that version
+/// spells the mode.
+struct Sides<'a> {
+    mode: &'a str,
+    /// The baseline, on crates.io.
+    baseline: (&'a str, &'a [String]),
+    /// This tree.
+    current: (&'a str, &'a [String]),
+}
+
+/// The rustdoc JSON of both sides of a mode the baseline spelled with a
+/// dependency's feature: each built as cargo-semver-checks builds its own —
+/// a crate that depends on the one checked, `cargo doc --no-deps` of it with
+/// the tool's flags, afresh (no lock file) — in
+/// `target/semver-checks/<name>-modes/`, one build directory for all of
+/// them.
+fn spelled_rustdoc(
+    root: &Path,
+    metadata: &Value,
+    name: &str,
+    sides: &Sides<'_>,
+) -> Result<(PathBuf, PathBuf)> {
+    let mode = sides.mode;
+    let dir = root
+        .join("target")
+        .join("semver-checks")
+        .join(format!("{name}-modes"));
+    let target = dir.join("target");
+    let path_of = |package: &str| -> Result<String> {
+        let manifest = crate::api::manifest_path(metadata, package)?;
+        Ok(manifest
+            .parent()
+            .unwrap_or(&manifest)
+            .to_string_lossy()
+            .into_owned())
+    };
+    let mut built = Vec::new();
+    for (side, source, (version, features)) in [
+        (
+            "baseline",
+            Source::Registry(sides.baseline.0),
+            sides.baseline,
+        ),
+        ("current", Source::Workspace, sides.current),
+    ] {
+        let at = dir.join(format!("{mode}-{side}"));
+        let manifest = placeholder_manifest(name, &source, features, &path_of)?;
+        crate::fsx::write(&at.join("Cargo.toml"), manifest.as_bytes())?;
+        crate::fsx::write(&at.join("lib.rs"), b"")?;
+        // Resolved afresh each time, as the tool resolves its own.
+        crate::fsx::remove(&at.join("Cargo.lock"))?;
+        let manifest = at.join("Cargo.toml").to_string_lossy().into_owned();
+        let target_arg = target.to_string_lossy().into_owned();
+        let spec = format!("{name}@{version}");
+        let args = [
+            "doc",
+            "--manifest-path",
+            &manifest,
+            "--target-dir",
+            &target_arg,
+            "--package",
+            &spec,
+            "--lib",
+            "--no-deps",
+        ];
+        eprintln!("==> cargo {} ({mode}, {side})", args.join(" "));
+        let envs: [(&str, &OsStr); 3] = [
+            ("RUSTC_BOOTSTRAP", OsStr::new("1")),
+            ("RUSTDOCFLAGS", OsStr::new(TOOL_RUSTDOCFLAGS)),
+            ("RUSTFLAGS", OsStr::new(TOOL_RUSTFLAGS)),
+        ];
+        crate::cmd::run_inherit_env(&cargo(), &args.map_os(), root, &envs)?;
+        let json = target
+            .join("doc")
+            .join(format!("{}.json", name.replace('-', "_")));
+        let kept = at.join("rustdoc.json");
+        std::fs::copy(&json, &kept).map_err(|source| Error::IoAt { path: json, source })?;
+        built.push(kept);
+    }
+    match <[PathBuf; 2]>::try_from(built) {
+        Ok([baseline, current]) => Ok((baseline, current)),
+        Err(_) => Err(fail("the two sides of a mode were not both built")),
+    }
+}
+
+/// The manifest of a crate of our own that depends on `name` from `source`
+/// with `features`: its own (its defaults on too, as the tool's
+/// `--default-features` has them), and each dependency's (`dep/feature`) on
+/// that dependency, from the same source, with only what is named.
+/// `path_of` gives a workspace package's directory.
+fn placeholder_manifest(
+    name: &str,
+    source: &Source<'_>,
+    features: &[String],
+    path_of: &dyn Fn(&str) -> Result<String>,
+) -> Result<String> {
+    let mut own = Vec::new();
+    let mut deps: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for f in features {
+        match f.split_once('/') {
+            Some((dep, feature)) => deps
+                .entry(dep.trim_end_matches('?'))
+                .or_default()
+                .push(feature),
+            None => own.push(f.as_str()),
+        }
+    }
+    let line = |package: &str, defaults: bool, features: &[&str]| -> Result<String> {
+        let from = match source {
+            Source::Registry(v) => format!("version = \"={v}\""),
+            Source::Workspace => format!("path = {}", toml::Value::from(path_of(package)?)),
+        };
+        let features: Vec<String> = features.iter().map(|f| format!("\"{f}\"")).collect();
+        Ok(format!(
+            "{package} = {{ {from}, default-features = {defaults}, features = [{}] }}\n",
+            features.join(", ")
+        ))
+    };
+    let mut out = String::from(
+        "# Written by `cargo xtask release`: what cargo-semver-checks reads, built as it \
+         builds its own.\n[package]\nname = \"placeholder\"\nversion = \"0.0.0\"\nedition = \
+         \"2024\"\npublish = false\n\n[workspace]\n\n[lib]\npath = \"lib.rs\"\n\n\
+         [dependencies]\n",
+    );
+    out.push_str(&line(name, true, &own)?);
+    for (dep, features) in deps {
+        out.push_str(&line(dep, false, &features)?);
+    }
+    Ok(out)
+}
+
 /// The files of a crate's `src/` that gate code on the target, each with
 /// the condition found.
 fn target_gated(dir: &Path) -> Result<Vec<String>> {
@@ -833,7 +1070,11 @@ fn install_semver_checks(root: &Path) -> Result<std::path::PathBuf> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{Registered, name_problems, publish_args, released, retry_after, target_gated};
+    use super::{
+        Against, Registered, Source, name_problems, placeholder_manifest, publish_args, released,
+        retry_after, spelling, target_gated,
+    };
+    use crate::api::Modes;
     use crate::fsx::repo_root;
 
     /// This tree's packages, as far as these tests need: `mf2-model`'s.
@@ -989,5 +1230,87 @@ mod tests {
         // `date -u -d '2026-09-26 03:15:30' +%s`
         assert_eq!(retry_after(said), Some(1_790_392_530));
         assert_eq!(retry_after("try again later"), None);
+    }
+
+    fn list(l: &[&str]) -> Vec<String> {
+        l.iter().map(|s| (*s).to_owned()).collect()
+    }
+
+    /// `mf2`'s shape: a mode spelled otherwise by 1.0.0, one it had the same,
+    /// and one it did not have.
+    fn modes() -> Modes {
+        Modes {
+            modes: [
+                ("core", list(&["a"])),
+                ("ssr", list(&["a", "leptos", "ssr"])),
+                ("native", list(&["a", "native"])),
+            ]
+            .into_iter()
+            .map(|(m, f)| (m.to_owned(), f))
+            .collect(),
+            baselines: [(
+                "1.0.0".to_owned(),
+                [
+                    ("core", list(&["a"])),
+                    ("ssr", list(&["a", "ssr", "leptos-mf2/leptos-0-9"])),
+                ]
+                .into_iter()
+                .map(|(m, f)| (m.to_owned(), f))
+                .collect(),
+            )]
+            .into(),
+        }
+    }
+
+    #[test]
+    fn each_mode_is_spelled_as_its_baseline_needs() {
+        let modes = modes();
+        let then = Against::Published("1.0.0".to_owned());
+        assert_eq!(spelling(&modes, "core", &then), Some(&list(&["a"])));
+        assert_eq!(
+            spelling(&modes, "ssr", &then),
+            Some(&list(&["a", "ssr", "leptos-mf2/leptos-0-9"]))
+        );
+        // 1.0.0 had no `native`: nothing to compare it with.
+        assert_eq!(spelling(&modes, "native", &then), None);
+        // A release the table does not name, or a revision of this tree,
+        // spells each mode as it is now.
+        for later in [
+            Against::Published("2.0.0".to_owned()),
+            Against::Revision("HEAD"),
+        ] {
+            assert_eq!(
+                spelling(&modes, "native", &later),
+                Some(&list(&["a", "native"]))
+            );
+            assert_eq!(
+                spelling(&modes, "ssr", &later),
+                Some(&list(&["a", "leptos", "ssr"]))
+            );
+        }
+    }
+
+    #[test]
+    fn a_dependencys_feature_is_asked_of_that_dependency() {
+        let features = list(&["a", "ssr", "leptos-mf2/leptos-0-9"]);
+        let path_of = |p: &str| Ok(format!("/w/crates/{p}"));
+        let registry =
+            placeholder_manifest("mf2", &Source::Registry("1.0.0"), &features, &path_of).unwrap();
+        assert!(
+            registry.contains(
+                "mf2 = { version = \"=1.0.0\", default-features = true, features = [\"a\", \"ssr\"] }\n"
+            ) && registry.contains(
+                "leptos-mf2 = { version = \"=1.0.0\", default-features = false, features = [\"leptos-0-9\"] }\n"
+            ),
+            "{registry}"
+        );
+        let here =
+            placeholder_manifest("mf2", &Source::Workspace, &list(&["a"]), &path_of).unwrap();
+        assert!(
+            here.contains(
+                "mf2 = { path = \"/w/crates/mf2\", default-features = true, features = [\"a\"] }\n"
+            ) && !here.contains("leptos-mf2"),
+            "{here}"
+        );
     }
 }

@@ -232,8 +232,8 @@ required-features = ["native", "compile"]
 name = "ratatui"
 required-features = ["ratatui", "compile"]
 
-# docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
-# target `cargo xtask api` lists the public API with (api.txt).
+# docs.rs, as `cargo xtask docs-rs` builds it. `cargo xtask api` lists this
+# crate's public API per mode instead ([package.metadata.api], below).
 [package.metadata.docs.rs]
 # The server on Leptos 0.9, and the native and Ratatui modules, which compile
 # beside it: the modes exclude each other, and `mf2::leptos` names what the
@@ -251,6 +251,84 @@ features = [
     "ratatui",
 ]
 targets = ["x86_64-unknown-linux-gnu"]
+
+# The public API per mode: `cargo xtask api` lists each as `api/<mode>.txt`,
+# and `cargo xtask release` compares each with the last release
+# (cargo-semver-checks). No one feature set shows it all: the Leptos modes
+# exclude each other. `core` is a build with no mode; each other mode adds
+# its own features to `core`'s, which are the options docs.rs shows.
+[package.metadata.api.modes]
+core = ["compile", "fn-number", "datetime-icu", "host-std"]
+ssr = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "leptos",
+    "ssr",
+    "static-locale",
+    "mark-fallback-lang",
+]
+hydrate = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "leptos",
+    "hydrate",
+    "static-locale",
+    "mark-fallback-lang",
+]
+csr = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "leptos",
+    "csr",
+    "static-locale",
+    "mark-fallback-lang",
+]
+native = ["compile", "fn-number", "datetime-icu", "host-std", "native"]
+ratatui = ["compile", "fn-number", "datetime-icu", "host-std", "ratatui"]
+
+# How 1.0.0 spelled the modes it had, for `cargo xtask release`'s comparison
+# with it: its `leptos` was the layer, which a mode implied, and the Leptos
+# line came from `leptos-mf2` (`leptos-mf2/leptos-0-9`). It had no `native`
+# and no `ratatui` (1.x's native crates were never published), so those two
+# are not compared with it.
+[package.metadata.api.baseline."1.0.0"]
+core = ["compile", "fn-number", "datetime-icu", "host-std"]
+ssr = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "ssr",
+    "static-locale",
+    "mark-fallback-lang",
+    "leptos-mf2/leptos-0-9",
+]
+hydrate = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "hydrate",
+    "static-locale",
+    "mark-fallback-lang",
+    "leptos-mf2/leptos-0-9",
+]
+csr = [
+    "compile",
+    "fn-number",
+    "datetime-icu",
+    "host-std",
+    "csr",
+    "static-locale",
+    "mark-fallback-lang",
+    "leptos-mf2/leptos-0-9",
+]
 
 [lints]
 workspace = true

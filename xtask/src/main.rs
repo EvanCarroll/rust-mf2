@@ -240,8 +240,10 @@ enum Command {
         negative_control: bool,
     },
     /// The public API of the 20 published crates (Phase 9, A2): written as
-    /// `crates/<name>/api.txt`, from a pinned nightly's rustdoc JSON (the
-    /// libraries) and clap's command tree (`mf2-cli`).
+    /// `crates/<name>/api.txt`, or per mode as `crates/<name>/api/<mode>.txt`
+    /// for a crate whose `[package.metadata.api]` names its modes (`mf2`,
+    /// Phase 10 B5), from a pinned nightly's rustdoc JSON (the libraries)
+    /// and clap's command tree (`mf2-cli`).
     Api {
         /// Compare with the committed listings instead of writing them; any
         /// difference fails, naming its lines.
@@ -279,9 +281,10 @@ enum Command {
     },
     /// Everything a release needs, checked (Phase 9, A7): the tree clean,
     /// the changelog, the metadata, the names on crates.io, the public API
-    /// against the published version, `cargo xtask ci`, the packages and
-    /// their own tests, the docs.rs build, the MSRV, and `cargo publish
-    /// --workspace --dry-run`. CI runs it on every change.
+    /// against the published version (`mf2` mode by mode), `cargo xtask
+    /// ci`, the packages and their own tests, the docs.rs build, the MSRV,
+    /// and `cargo publish --workspace --dry-run`. CI runs it on every
+    /// change.
     Release {
         /// Then publish the 20 with cargo's own stored login. The owner's
         /// only: refused when `CI` is set. Prints the tag to create; never

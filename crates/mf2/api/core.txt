@@ -1,0 +1,312 @@
+# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; mode: core; features: compile,fn-number,datetime-icu,host-std
+pub mod mf2
+pub use mf2::Arg
+pub use mf2::BidiStrategy
+pub use mf2::Catalog
+pub use mf2::CatalogError
+pub use mf2::Category
+pub use mf2::CurrencyDisplay
+pub use mf2::CustomValue
+pub use mf2::Date
+pub use mf2::DateFields
+pub use mf2::DateLength
+pub use mf2::DateStyle
+pub use mf2::DateTime
+pub use mf2::DateTimeOptions
+pub use mf2::DateTimeRequest
+pub use mf2::DigitOptions
+pub use mf2::Digits
+pub use mf2::Dir
+pub use mf2::ErrorKind
+pub use mf2::ErrorSink
+pub use mf2::ExpressionPart
+pub use mf2::FallbackSource
+pub use mf2::FnContext
+pub use mf2::FormatContext
+pub use mf2::FormatError
+pub use mf2::Formatter
+pub use mf2::Function
+pub use mf2::Grouping
+pub use mf2::Host
+pub use mf2::Isolation
+pub use mf2::MarkupKind
+pub use mf2::MarkupOptions
+pub use mf2::MarkupPart
+pub use mf2::Measure
+pub use mf2::MeasureUnit
+pub use mf2::MsgId
+pub use mf2::NoErrors
+pub use mf2::Number
+pub use mf2::NumberFormatter
+pub use mf2::NumberOut
+pub use mf2::NumberRequest
+pub use mf2::NumberSpec
+pub use mf2::NumberStyle
+pub use mf2::Operands
+pub use mf2::OptionValue
+pub use mf2::Options
+pub use mf2::Part
+pub use mf2::PartSink
+pub use mf2::Registry
+pub use mf2::RoundingMode
+pub use mf2::RoundingPriority
+pub use mf2::Sign
+pub use mf2::SignDisplay
+pub use mf2::Sink
+pub use mf2::SubPartSink
+pub use mf2::Time
+pub use mf2::TimePrecision
+pub use mf2::TimeZone
+pub use mf2::UnitDisplay
+pub use mf2::Value
+pub use mf2::ZoneOption
+pub use mf2::ZoneStyle
+pub use mf2::fn_datetime
+pub use mf2::fn_number
+pub use mf2::functions
+pub use mf2::host_std
+pub use mf2::is_zone_name
+pub macro mf2::include_generated!
+#[non_exhaustive] pub enum mf2::ArgValue
+pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)
+pub mf2::ArgValue::DateTime(alloc::sync::Arc<mf2::DateTimeValue>)
+pub mf2::ArgValue::Decimal(mf2::Text)
+pub mf2::ArgValue::Float(f64)
+pub mf2::ArgValue::Int(i64)
+pub mf2::ArgValue::Source(alloc::sync::Arc<dyn mf2::ArgSource>)
+pub mf2::ArgValue::Str(mf2::Text)
+pub mf2::ArgValue::Unset
+impl mf2::ArgValue
+pub fn mf2::ArgValue::custom<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static>(C) -> mf2::ArgValue
+pub fn mf2::ArgValue::decimal(impl core::convert::Into<mf2::Text>) -> mf2::ArgValue
+pub fn mf2::ArgValue::source<S: mf2::ArgSource + 'static>(S) -> mf2::ArgValue
+impl core::clone::Clone for mf2::ArgValue
+pub fn mf2::ArgValue::clone(&self) -> Self
+impl core::convert::From<&alloc::string::String> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&alloc::string::String) -> mf2::ArgValue
+impl core::convert::From<&str> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&str) -> mf2::ArgValue
+impl core::convert::From<alloc::string::String> for mf2::ArgValue
+pub fn mf2::ArgValue::from(alloc::string::String) -> mf2::ArgValue
+impl core::convert::From<alloc::sync::Arc<str>> for mf2::ArgValue
+pub fn mf2::ArgValue::from(alloc::sync::Arc<str>) -> mf2::ArgValue
+impl core::convert::From<char> for mf2::ArgValue
+pub fn mf2::ArgValue::from(char) -> mf2::ArgValue
+impl core::convert::From<f32> for mf2::ArgValue
+pub fn mf2::ArgValue::from(f32) -> mf2::ArgValue
+impl core::convert::From<f64> for mf2::ArgValue
+pub fn mf2::ArgValue::from(f64) -> mf2::ArgValue
+impl core::convert::From<i16> for mf2::ArgValue
+pub fn mf2::ArgValue::from(i16) -> mf2::ArgValue
+impl core::convert::From<i32> for mf2::ArgValue
+pub fn mf2::ArgValue::from(i32) -> mf2::ArgValue
+impl core::convert::From<i64> for mf2::ArgValue
+pub fn mf2::ArgValue::from(i64) -> mf2::ArgValue
+impl core::convert::From<i8> for mf2::ArgValue
+pub fn mf2::ArgValue::from(i8) -> mf2::ArgValue
+impl core::convert::From<mf2::DateTimeValue> for mf2::ArgValue
+pub fn mf2::ArgValue::from(mf2::DateTimeValue) -> mf2::ArgValue
+impl core::convert::From<mf2::Text> for mf2::ArgValue
+pub fn mf2::ArgValue::from(mf2::Text) -> mf2::ArgValue
+impl core::convert::From<mf2_runtime::datetime::DateTime<'_>> for mf2::ArgValue
+pub fn mf2::ArgValue::from(mf2_runtime::datetime::DateTime<'_>) -> mf2::ArgValue
+impl core::convert::From<u16> for mf2::ArgValue
+pub fn mf2::ArgValue::from(u16) -> mf2::ArgValue
+impl core::convert::From<u32> for mf2::ArgValue
+pub fn mf2::ArgValue::from(u32) -> mf2::ArgValue
+impl core::convert::From<u8> for mf2::ArgValue
+pub fn mf2::ArgValue::from(u8) -> mf2::ArgValue
+impl core::convert::From<usize> for mf2::ArgValue
+pub fn mf2::ArgValue::from(usize) -> mf2::ArgValue
+impl core::fmt::Debug for mf2::ArgValue
+pub fn mf2::ArgValue::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static> core::convert::From<alloc::sync::Arc<C>> for mf2::ArgValue
+pub fn mf2::ArgValue::from(alloc::sync::Arc<C>) -> mf2::ArgValue
+#[non_exhaustive] pub enum mf2::CompileError
+pub mf2::CompileError::Invalid(alloc::vec::Vec<mf2_model::diagnostic::Diagnostic>)
+pub mf2::CompileError::Load(mf2_catalog::error::CatalogError)
+pub mf2::CompileError::LocaleData(mf2_locale_data::error::Error)
+pub mf2::CompileError::Write(mf2_catalog::error::WriteError)
+impl mf2::CompileError
+pub fn mf2::CompileError::kinds(&self) -> alloc::vec::Vec<mf2_model::diagnostic::ErrorKind>
+impl core::convert::From<mf2_catalog::error::CatalogError> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_catalog::error::CatalogError) -> Self
+impl core::convert::From<mf2_catalog::error::WriteError> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_catalog::error::WriteError) -> Self
+impl core::convert::From<mf2_locale_data::error::Error> for mf2::CompileError
+pub fn mf2::CompileError::from(mf2_locale_data::error::Error) -> Self
+impl core::error::Error for mf2::CompileError
+pub fn mf2::CompileError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for mf2::CompileError
+pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::CompileError
+pub fn mf2::CompileError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum mf2::Text
+pub mf2::Text::Shared(alloc::sync::Arc<str>)
+pub mf2::Text::Static(&'static str)
+impl mf2::Text
+pub fn mf2::Text::as_str(&self) -> &str
+impl core::clone::Clone for mf2::Text
+pub fn mf2::Text::clone(&self) -> Self
+impl core::convert::From<&'static str> for mf2::Text
+pub fn mf2::Text::from(&'static str) -> mf2::Text
+impl core::convert::From<alloc::string::String> for mf2::Text
+pub fn mf2::Text::from(alloc::string::String) -> mf2::Text
+impl core::convert::From<alloc::sync::Arc<str>> for mf2::Text
+pub fn mf2::Text::from(alloc::sync::Arc<str>) -> mf2::Text
+impl core::convert::From<mf2::Text> for mf2::ArgValue
+pub fn mf2::ArgValue::from(mf2::Text) -> mf2::ArgValue
+impl core::fmt::Debug for mf2::Text
+pub fn mf2::Text::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::ArgList(_)
+impl mf2::ArgList
+pub fn mf2::ArgList::as_slice(&self) -> &[mf2::ArgValue]
+impl core::clone::Clone for mf2::ArgList
+pub fn mf2::ArgList::clone(&self) -> Self
+impl core::fmt::Debug for mf2::ArgList
+pub fn mf2::ArgList::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::CatalogFile
+impl mf2::CatalogFile
+pub const fn mf2::CatalogFile::bytes(&self) -> core::option::Option<&'static [u8]>
+pub const fn mf2::CatalogFile::file_name(&self) -> &'static str
+pub const fn mf2::CatalogFile::tag(&self) -> &'static str
+impl core::clone::Clone for mf2::CatalogFile
+pub fn mf2::CatalogFile::clone(&self) -> Self
+impl core::fmt::Debug for mf2::CatalogFile
+pub fn mf2::CatalogFile::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::CatalogFile
+#[non_exhaustive] pub struct mf2::Compiled
+pub mf2::Compiled::catalog: mf2_catalog::reader::Catalog
+impl mf2::Compiled
+pub const mf2::Compiled::ID: mf2_model::id::MsgId
+impl core::fmt::Debug for mf2::Compiled
+pub fn mf2::Compiled::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::Corpus
+impl mf2::Corpus
+pub const fn mf2::Corpus::catalogs(&self) -> &'static [mf2::CatalogFile]
+pub const fn mf2::Corpus::locales(&self) -> &'static [(&'static str, mf2_model::id::Dir)]
+pub const fn mf2::Corpus::manifest_hash(&self) -> u64
+pub const fn mf2::Corpus::registry(&self) -> &'static mf2_runtime::function::Registry
+pub const fn mf2::Corpus::source_locale(&self) -> &'static str
+impl core::clone::Clone for mf2::Corpus
+pub fn mf2::Corpus::clone(&self) -> Self
+impl core::fmt::Debug for mf2::Corpus
+pub fn mf2::Corpus::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2::Corpus
+pub struct mf2::DateTimeValue
+impl mf2::DateTimeValue
+pub fn mf2::DateTimeValue::floating(mf2_runtime::datetime::Date, mf2_runtime::datetime::Time) -> mf2::DateTimeValue
+pub fn mf2::DateTimeValue::instant(i64) -> core::option::Option<mf2::DateTimeValue>
+pub fn mf2::DateTimeValue::wall_time(mf2_runtime::datetime::Date, mf2_runtime::datetime::Time, impl core::convert::Into<mf2::Text>) -> mf2::DateTimeValue
+pub fn mf2::DateTimeValue::with_calendar(self, impl core::convert::Into<mf2::Text>) -> mf2::DateTimeValue
+pub fn mf2::DateTimeValue::with_zone(self, impl core::convert::Into<mf2::Text>) -> mf2::DateTimeValue
+impl core::clone::Clone for mf2::DateTimeValue
+pub fn mf2::DateTimeValue::clone(&self) -> Self
+impl core::convert::From<mf2::DateTimeValue> for mf2::ArgValue
+pub fn mf2::ArgValue::from(mf2::DateTimeValue) -> mf2::ArgValue
+impl core::convert::From<mf2_runtime::datetime::DateTime<'_>> for mf2::DateTimeValue
+pub fn mf2::DateTimeValue::from(mf2_runtime::datetime::DateTime<'_>) -> mf2::DateTimeValue
+impl core::fmt::Debug for mf2::DateTimeValue
+pub fn mf2::DateTimeValue::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::Handler<H>(pub H)
+impl<H: mf2::MarkupHandler + 'static> mf2::IntoMarkupHandler for mf2::Handler<H>
+pub fn mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
+impl<H> core::fmt::Debug for mf2::Handler<H>
+pub fn mf2::Handler<H>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[repr(transparent)] pub struct mf2::Tr
+impl mf2::Tr
+pub fn mf2::Tr::format(self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn mf2::Tr::id(self) -> mf2_model::id::MsgId
+pub fn mf2::Tr::parts(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::Tr::write(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl core::clone::Clone for mf2::Tr
+pub fn mf2::Tr::clone(&self) -> Self
+impl core::cmp::Eq for mf2::Tr
+impl core::cmp::PartialEq for mf2::Tr
+pub fn mf2::Tr::eq(&self, &Self) -> bool
+impl core::convert::From<mf2::Tr> for mf2::TrArgs
+pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
+impl core::fmt::Debug for mf2::Tr
+pub fn mf2::Tr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2::Tr
+pub fn mf2::Tr::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2::Tr
+impl core::marker::StructuralPartialEq for mf2::Tr
+impl mf2::Message for mf2::Tr
+pub fn mf2::Tr::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::Tr::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub struct mf2::TrArgs
+impl mf2::TrArgs
+pub fn mf2::TrArgs::args(&self) -> &[mf2::ArgValue]
+pub fn mf2::TrArgs::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn mf2::TrArgs::id(&self) -> mf2_model::id::MsgId
+pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl core::clone::Clone for mf2::TrArgs
+pub fn mf2::TrArgs::clone(&self) -> Self
+impl core::convert::From<mf2::Tr> for mf2::TrArgs
+pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
+impl core::fmt::Debug for mf2::TrArgs
+pub fn mf2::TrArgs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::Message for mf2::TrArgs
+pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub struct mf2::TrDyn
+impl mf2::TrDyn
+pub fn mf2::TrDyn::args(&self) -> &[(mf2::Text, mf2::ArgValue)]
+pub fn mf2::TrDyn::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub const fn mf2::TrDyn::id(&self) -> mf2_model::id::MsgId
+pub fn mf2::TrDyn::new<N: core::convert::Into<mf2::Text>, V: core::convert::Into<mf2::ArgValue>>(mf2_model::id::MsgId, impl core::iter::traits::collect::IntoIterator<Item = (N, V)>) -> mf2::TrDyn
+pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl core::clone::Clone for mf2::TrDyn
+pub fn mf2::TrDyn::clone(&self) -> Self
+impl core::fmt::Debug for mf2::TrDyn
+pub fn mf2::TrDyn::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::Message for mf2::TrDyn
+pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub struct mf2::TrRich
+impl mf2::TrRich
+pub const fn mf2::TrRich::args(&self) -> &mf2::TrArgs
+pub fn mf2::TrRich::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc::string::String
+pub fn mf2::TrRich::handler(&self, &str) -> core::option::Option<&dyn mf2::MarkupHandler>
+pub fn mf2::TrRich::handlers(&self) -> &[(u64, alloc::sync::Arc<dyn mf2::MarkupHandler>)]
+pub const fn mf2::TrRich::id(&self) -> mf2_model::id::MsgId
+pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl core::clone::Clone for mf2::TrRich
+pub fn mf2::TrRich::clone(&self) -> Self
+impl core::fmt::Debug for mf2::TrRich
+pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::Message for mf2::TrRich
+pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
+pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
+pub trait mf2::IntoMarkupHandler
+pub fn mf2::IntoMarkupHandler::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
+impl mf2::IntoMarkupHandler for alloc::sync::Arc<dyn mf2::MarkupHandler>
+pub fn alloc::sync::Arc<dyn mf2::MarkupHandler>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
+impl<H: mf2::MarkupHandler + 'static> mf2::IntoMarkupHandler for mf2::Handler<H>
+pub fn mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
+pub trait mf2::MarkupHandler: core::marker::Send + core::marker::Sync
+pub fn mf2::MarkupHandler::as_any(&self) -> &dyn core::any::Any
+pub trait mf2::Message
+pub fn mf2::Message::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::Message::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for mf2::Tr
+pub fn mf2::Tr::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::Tr::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for mf2::TrArgs
+pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for mf2::TrDyn
+pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Message for mf2::TrRich
+pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+pub fn mf2::compile_str(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>
+pub fn mf2::compile_str_stripped(&str, &str) -> core::result::Result<mf2::Compiled, mf2::CompileError>
