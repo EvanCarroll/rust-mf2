@@ -174,22 +174,33 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `__wasm_split` loader), B12 clean; `ci`, `docs`, `docs-rs`, `codegen-matrix`, `scenarios`,
   `msrv`, `churn` green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame
   identical and −240 B stripped.
+- **B4** (`6f3a87b`; record below): the repository's own users name `mf2`, its features and
+  `mf2::leptos`: conformance (`conformance/`, `l6-web`, `l7-web` and its sets), `bench/churn`,
+  `bench/fluent-ab/mf2` with `cargo xtask fluent-ab`'s shell edit, and the templates `tr-view` and
+  `fluent-converted` (`tr` named `mf2` alone already). The examples, the book and `mf2 init` stay
+  on the shims (C8, D5, D6). B1 26,720 B gz, B5 8.167 B a site, the whole app and the size
+  workloads' wasm unchanged; `b5 --view` 24,634 → 24,636 B gz fixed and 10.524 → 10.520 B a site
+  (`tr-view`'s wasm the same length, only its data section's bytes moved); B7 byte-identical, the
+  demos byte-identical but demo-ssr's `__wasm_split` loader, B12 clean; `conformance-report`,
+  `l6-web` 20/20, `l7-web` 34/34, `ci`, `leptos-0-8`, `churn`, `fluent-migrate`, `fluent-ab` and
+  the six browser checks on both Leptos lines green; the ledger unchanged.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B4** (internal users name `mf2`) first, B5 with or after it, then Part C in its heading's
-  order, each building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a
-  time: the tasks after B1 touch the same crates and plans. D1's `axum` follows `native`'s and
-  `ratatui`'s rule, refused for `wasm32` only (question 24), with its cases on both sides of `cargo
-  xtask refusals`.
+- **B5** (the API listed per mode) first, then Part C in its heading's order, each building what
+  19 designs; D1 (`mf2::axum`) is unblocked by B4, as Part D's heading orders (D1 after B4). One
+  task at a time: the tasks after B1 touch the same crates and plans. D1's `axum` follows
+  `native`'s and `ratatui`'s rule, refused for `wasm32` only (question 24), with its cases on both
+  sides of `cargo xtask refusals`.
 
-**Owner questions found in the work:** none waiting. B3 found none. The browser-only refusal found
-none. B1's review fixes found one, answered as question 24: `native` beside a browser mode is
-refused only when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it; the
-browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26 were asked with it:
-both measurement worktrees are removed, and question 24's change came first in the next session.
+**Owner questions found in the work:** none waiting. B4 found none. B3 found none. The browser-only
+refusal found none. B1's review fixes found one, answered as question 24: `native` beside a browser
+mode is refused only when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it;
+the browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26 were asked with
+it: both measurement worktrees are removed, and question 24's change came first in the next
+session.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -202,6 +213,15 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From B4 (its record):
+  - D6 (with D1 and D5): `docs/migrating-from-leptos-fluent.md`, which D6's row does not name,
+    finishes a migration on the shims, and so do `mf2 convert --from leptos-fluent`'s
+    `leptos-fluent-initializer` finding and 05 §6.2; since B4, `bench/fluent-ab/mf2` and
+    `fluent-converted` name `mf2`. They move together; `mf2 init`'s printed steps too (D5).
+  - D1: `ci.rs`'s comments say `--workspace` gets `ssr` into `mf2` through `mf2-axum`'s
+    `leptos-mf2`; since B4 the conformance crate turns it on itself.
+  - Every size A/B that changes a template: `--keep` reuses the generated applications as they
+    stand; `probes/p10-b4/regen.sh` generates them again in place, each keeping its lock.
 - From B3 (its record):
   - C8 (with G1): the `mf2-ratatui` shim re-exports `mf2::ratatui`'s `MarkupStyles`, `line` and
     `text`. When C8 takes them out of `mf2` (19 §8), the shim keeps its own copy until G1 deletes
@@ -3521,6 +3541,144 @@ and in comments; the demos' shipped wasm is byte-identical (above).
   `text`. When C8 takes them out of `mf2` (19 §8), the shim either keeps its own copy of the three
   until G1 deletes it, or goes then; `examples/tui` and the book's native page, which name the
   shim, move to 2.0 in C8 anyway.
+
+## B4 — internal users name `mf2`: what was built
+
+* **Where.** Commit `6f3a87b` on `main`, made in the main tree; commands ran there, one build at a
+  time. The before figures were taken at `7cf9790`, before any change, in the same tree. Logs: the
+  main tree's git-ignored `target/p10-b4/` (`before/` and `after/`: each check's log, the hashes of
+  what it built, the lock files; `wasm/`: the clients compared below),
+  `target/p10-b2/logs/b4-base/`, `…/b4-head/` and `…/b4-regen/` (the size runs), and
+  `target/p10-b1/e2e/b4-{before,after}-leptos-0-{9,8}/` (the browser checks).
+* **What moved.** Each user the row names writes the Leptos line on its `mf2` dependency
+  (`features = ["leptos"]`, or `["leptos-0-8"]` for the two on 0.8) and its mode where it names
+  Leptos's (`mf2/ssr`, `mf2/hydrate`, `mf2/csr`), and takes the layer from `mf2::leptos` and the
+  call-site core from `mf2`, where it named `leptos-mf2` (and, for a `Setup`, 1.x's hidden
+  `mf2::leptos_mf2`):
+  * conformance: `conformance/` (layer L6 in `cargo test`: its features `leptos-0-9` and
+    `leptos-0-8` name `mf2/leptos` and `mf2/leptos-0-8`, and its `mf2` gains `ssr`), `l6-web`,
+    and `l7-web` with its four sets (`set-build/src/set.rs`);
+  * `bench/churn`, the harness and its i18n crate;
+  * `bench/fluent-ab/mf2` on 0.8 (the manifest, the entry point, the timing hooks), and the shell
+    edit `cargo xtask fluent-ab` makes (`use mf2::leptos::{CatalogLinks, CatalogPreload,
+    html_lang}`). Its server keeps `mf2-axum`, which D1 folds in;
+  * the templates `tr-view` and `fluent-converted`: the dependency line, the modes and
+    `support.rs`. `tr` named `mf2` alone already (it has no Leptos layer), so it is unchanged.
+* **The xtask lists.** Besides `fluent_ab.rs`'s edit, the help and doc text that named
+  `leptos-mf2` for `mf2`'s layer: `churn` (moved here), and `leptos-0-8` and its error variant
+  (stale since B1). What still names a shim in `xtask/` stays, each for a reason: the published
+  crates' lists (`packages.rs`, `msrv.rs`, `release.rs`; `api`, `docs-rs` and `package` through
+  them) until G1 deletes the shims; the shims' own checks while they exist (`ci`'s `layer` test of
+  `leptos-mf2`, `leptos-0-8`'s refusal through it, `refusals`' two 1.x workspaces); the book's
+  crates (`docs.rs`'s `OUR_CRATES`) until C8 and D6. The row's exceptions stay on the shims too:
+  the three demos, `examples/tui`, the book, and what `mf2 init` writes.
+* **Locks.** Each moved only by losing `leptos-mf2`: its entry where nothing else names it, and the
+  lines that listed it (`diff` against the copies in `target/p10-b4/before/`). The workspace's
+  (`mf2-conformance`'s list), `l6-web`'s, `l7-web`'s, `bench/churn`'s, fluent-ab's `app-mf2`
+  (where `mf2-axum` still names it), and each `tr-view` application's (`python3
+  probes/p10-b4/lockback.py target/p10-b2/b5v/wl-view-1860 app-tr-view
+  target/p10-b2/logs/b4-regen/wl-view-1860.before.sha256`, and the same at 3,720: the kept lock is
+  the new one with those lines put back). No version moved.
+* **Text.** 01 §3's layer table (L6 and L7 test `mf2`'s Leptos layer); the READMEs of
+  `bench/churn`, `bench/fluent-ab` (its `mf2/` names `mf2` ahead of the migration guide: routed
+  below) and `bench/workload-gen` (the template field `leptos`); `tools/e2e`'s README and two
+  checks' comments; the nightly workflow's comments and one step's name; the comments in
+  `leptos-mf2`'s `tests/layer.rs` and in `ci` that named the sets as the shim's example.
+  `probes/p10-b4/` (below).
+
+### The gates (the row, and 19 §14's first row)
+
+**Sizes.** B4 changes templates, not library code. `--keep` reuses a kept workload as it stands,
+so `probes/p10-b2/measure.sh` alone measures the applications generated before the change: an
+after run that way (label `b4`) rebuilt them byte for byte, with nothing of B4 in them.
+`probes/p10-b4/regen.sh` generates the kept workloads again in place, each application keeping its
+`Cargo.lock` and build directory:
+1. `bash probes/p10-b2/measure.sh b4-base` at `7cf9790`;
+2. with `7cf9790`'s `tr-view` put back (`git show 7cf9790:FILE` over its two files), `bash
+   probes/p10-b4/regen.sh b4-head`: every file of the four workloads as it was, so `b4-base`
+   measured `7cf9790`'s templates;
+3. with B4's, `bash probes/p10-b4/regen.sh b4-regen`: `app-tr-view`'s `Cargo.toml` and
+   `src/support.rs` changed at both scales, nothing else; then `bash probes/p10-b2/measure.sh
+   b4-regen`. The demos' locks restored from `locks/base` each time.
+
+| Figure | Before `7cf9790` | B4 | Gate |
+|---|---:|---:|---|
+| **B1**, fixed | 26,720 B gz | 26,720 | ±64 |
+| **B5**, per site | 8.167 B gz | 8.167 | ±0.2 |
+| whole app, 1,860 sites | 41,911 B gz | 41,911 | ambition 105,120 |
+| the size workloads' 12 wasm files (`tr`, `idlit`, `dummy`, both scales, before and after `wasm-opt`) and their 6 locks | | byte-identical | |
+| `b5 --view`: fixed / per site | 24,634 / 10.524 | 24,636 / 10.520 | |
+| `tr-view` after `wasm-opt`, raw / gz: 1,860 sites; 3,720 | 1,890,752 / 572,434; 3,375,126 / 956,530 | 1,890,752 / 572,429; 3,375,126 / 956,518 | |
+| `idlit-view` and `dummy`'s 8 wasm files | | byte-identical | |
+| **B7**: catalog-bench's report; demo-csr's `dist/` (16 files) | | identical but the report's `unix_time`; byte-identical | byte-identical |
+| the demos' shipped files, 30 (`bash probes/p10-b2/demo-hashes.sh b4-base b4-regen`): demo-ssr's wasm and lazy chunk, demo-islands', demo-csr's | 753,393 / 315,627; 23,688 / 11,519; 197,543 / 85,566; 207,538 / 91,184 raw / gz | byte-identical but demo-ssr's `__wasm_split` loader | ±64 B gz |
+| **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+| B1′ / B13 | | +0 B / 13,573 B avoided | +0 (`cargo xtask b12-generated`) |
+
+The loader went `ed8d63b87a98` → `591006faae48` (`27af43e4de73` in the `b4` run), over one wasm:
+as B2 found, its hash varies between identical builds.
+
+**`tr-view`'s move, read** (`python3 probes/p10-b4/wasmcmp.py BEFORE AFTER`, both builds kept in
+`target/p10-b4/wasm/`): the same length at both scales; every section byte-identical, the
+code included, but the data section, which differs in 3,218 bytes at 1,860 sites and 6,411 at
+3,720, its length the same. *Inference, brief:* tachys 0.3's `AnyView` records each view's
+`TypeId`, a hash that takes in the crate defining the type; the view types are the application's,
+and cargo derives its crate's identity from its dependency list, which lost `leptos-mf2`. gzip
+reads the new values as −5 and −12 B.
+
+**fluent-ab's mf2 client** (not a gate; `cargo xtask fluent-ab`'s application): 2,104,072 B raw
+before and after; gz 614,291 → 614,293, brotli 422,143 → 422,186; its JS byte-identical; the
+served `--split` main module 872,005 B raw both times. Rebuilt in the after tree with `7cf9790`'s
+manifest, entry point and shell line (the same lock, `leptos-mf2` listed again), it gave the
+before run's three hashes. Against the after build (`wasmcmp.py`; both kept in
+`target/p10-b4/wasm/`): the three lazy routes' `wasm_split` import and export names carry another
+32-digit hash, one function differs in three data addresses, and the data section in 4,517
+bytes; the rest byte-identical. The same reading as `tr-view`'s.
+
+**The ledger and the browser layers.**
+
+| Check | Before and after | Command |
+|---|---|---|
+| the ledger | green both times: 612 tests, 612 entries, `current_phase = P9`; 164 statements, 0 gaps; `ledger.toml`, `REPORT.md` and `COVERAGE.md` unchanged | `cargo xtask conformance-report` (its default is the check) |
+| `l6-web` | 20/20 both times; the page (which names each catalog by its content hash) and `page.json` byte-identical | `cargo xtask l6-web` |
+| `l7-web` | 34/34 both times; L7 444/444, L7c 444/444, L7d and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold; the pages, catalogs and case lists byte-identical | `cargo xtask l7-web` |
+
+The clients of `l6-web`, `l7-web` and `bench/churn` are not byte-identical; none is a size
+workload, and they were not read further.
+
+### The checks (main tree, `6f3a87b`'s content)
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass**: `refusals` 11 refused and 6 host cases, `docs --no-build` (120 blocks), the ledger, `api --check` and `package --check` (the 20 listings and file lists unchanged) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `leptos-0-8` | **pass** before and after: both refusals; on 0.8, the five clippy steps, `render` 15, `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `l6` 3 and `layers` 4 (the earlier records swap the last two) | `cargo xtask leptos-0-8` |
+| `churn` | **84/84** before and after | `cargo xtask churn` |
+| `fluent-migrate` | **pass** before and after: the report is the guide's hand-finishing; 64 files `fluent-converted`'s, byte for byte; the application finished from `fluent-converted`'s manifest and `support.rs` builds for the client and the server | `cargo xtask fluent-migrate` |
+| `fluent-ab` | **pass** before and after: both applications built; the same text in Chromium and Firefox (every route in `en` and `pl`, 53,622 characters); sizes above. One run a side, so no timing is reported | `cargo xtask fluent-ab --browser chromium,firefox --runs 1` |
+| e2e on 0.9 | before and after: demo 210/210, lazy 74/74, islands 58/58, csr 98/98, zone 40/40, a11y 720/720 | `bash probes/p10-b1/e2e.sh . b4-{before,after}-leptos-0-9` |
+| e2e on 0.8 | the same six, the same counts, before and after; `cargo tree` shows leptos 0.8.21, tachys 0.2.19, reactive_graph 0.2.15 and `mf2-leptos-ui-0-8` only, in each server and client build of the copies | `python3 probes/p10-names/demos-0-8.py b4`, then `bash probes/p10-b1/e2e.sh target/a7-demo-0-8/b4 b4-{before,after}-leptos-0-8` |
+| `examples/tui` | fresh (nothing to compile); its three binaries byte-identical (`tui-mf2` 1,965,432 B) | `CARGO_PROFILE_RELEASE_STRIP=symbols cargo build --release --bins --manifest-path examples/tui/Cargo.toml --target-dir target/tui-gate/target` |
+
+Not run: the full `docs`, `docs-rs`, `codegen-matrix`, `scenarios` and `msrv`. B4 changes no
+published crate's code, manifest or documentation (one test of `leptos-mf2` changes in a comment
+only), no book page and no example; `ci` runs `docs --no-build`, `api --check` and `package
+--check`.
+
+### Found along the way (routed)
+
+* D6 (with D1 and D5): `docs/migrating-from-leptos-fluent.md`, which D6's row does not name,
+  finishes the migration on the shims (`leptos-mf2`, `leptos_mf2::install`, `use
+  leptos_mf2::{…}`), and so do `mf2 convert --from leptos-fluent`'s `leptos-fluent-initializer`
+  finding and 05 §6.2's table. Since B4 the same hand-finishing as `cargo xtask fluent-ab` and
+  `fluent-migrate` apply it (`bench/fluent-ab/mf2`, `fluent-converted`) names `mf2` and
+  `mf2::leptos`. The page, the finding and 05 §6.2 move together (D6; D1 for
+  `mf2_axum::install`); `mf2 init`'s printed next steps name `leptos_mf2::install` too (D5, with
+  its template's `mf2::leptos_mf2::Setup`).
+* D1: `ci.rs`'s comments say `--workspace` turns `ssr` on in `mf2` through `mf2-axum`'s
+  dependency on the `leptos-mf2` shim. Since B4 the conformance crate turns it on itself, so that
+  holds whatever D1 makes of `mf2-axum`; the comments name it.
+* Every size A/B that changes a template: `--keep` reuses the generated applications as they
+  stand; `probes/p10-b4/regen.sh` generates them again in place, each keeping its lock.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
