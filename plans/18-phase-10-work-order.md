@@ -135,20 +135,26 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `leptos-0-8`, `l6-web`, `l7-web`, `churn`, `msrv` and the six browser checks on both Leptos lines
   green; the ledger unchanged. `Display` (S3) and `Debug` (S2) on the moved types: 19 §14's third
   row holds but in demo-islands, an owner question (below).
+- **B2** (`90c8b2a`, whose three renames went in one commit early, with `46303b9`; the scripts in
+  `probes/p10-b2/`, their outputs in the measurement worktree's `target/p10-b2/`): `mf2-native`'s
+  code is `mf2::native`, behind `native` (which implies `host-std`, and beside `hydrate` or `csr`
+  is a `compile_error!`); `LocaleSource` is **`LocaleOrigin`**, a name for the owner to confirm;
+  `NativeI18n` and `NativeError` keep 1.x's names for C2; `mf2-native` a shim with 1.x's names;
+  the tests in `crates/mf2/tests/native.rs`. **Every web artifact byte-identical** (B1 26,344 B gz,
+  B5 8.334 B a site, B7's catalogs, the three demos' wasm, `b5 --view`), B12 clean; `ci` (with
+  two new steps for `native` alone), `docs`, `docs-rs`, `codegen-matrix`, `scenarios`,
+  `leptos-0-8`, `l6-web`, `l7-web`, `churn`, `msrv` and the six browser checks on both Leptos
+  lines green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame identical and
+  +176 B stripped.
 
-**In flight: B2**, started 2026-09-28 by an agent of the coordinating session, working in the
-main tree. Until B2's record appears under "Done", do not start B2 again: if the agent is still
-running (its cargo builds show in `ps`; it commits as "Phase 10 B2: …"), wait for its report; if
-it stopped without committing, resume B2 from the tree's state. Part A's probe branches and
-worktrees are removed (question 21). B1's measurement worktree,
-`.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change applied, uncommitted),
-holds the A/B's outputs; it stays until B1's review fixes (below) have taken what they need from
-it.
+**In flight:** nothing. Part A's probe branches and worktrees are removed (question 21). B1's
+measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
+applied, uncommitted), holds the A/B's outputs; it stays until B1's review fixes (below) have
+taken what they need from it. B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`,
+B2's change applied, uncommitted), holds B2's A/B outputs and the base TUI binaries; it may go
+once B2's record has been reviewed (the owner's call).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B2**, `mf2::native` (after B1, done): the `native` feature, `mf2-native` a shim, its tests
-  moved; as B1, with no web change. It also renames the native `LocaleSource` (19 §16), which
-  shares `mf2` with `mf2::axum`'s trait of the same name once D1 lands.
 - **B1's review fixes**, after B2 and before B3: what a read-only review of B1's commits found
   (2026-09-28; its other two items were owner questions 18 and 19). Observed:
   1. figures without a command: the two leaner `Debug` writers (+38 / +56 B gz in B1's record)
@@ -174,7 +180,9 @@ it.
   designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
   touch the same crates and plans.
 
-**Owner questions found in the work:** none waiting. B1 found four, answered as questions 18–21
+**Owner questions found in the work:** one waiting, from B2: the native enum's new name. 19 §16
+had B2 rename `mf2::native::LocaleSource` without naming it; B2 chose **`LocaleOrigin`** (its
+record, "Names"), which nothing else waits on. B1 found four, answered as questions 18–21
 below: 19 §14's `{:?}` cap counts our code's own cost, so demo-islands holds (+929 B gz over its
 `format!` control); demo-ssr's −136 B gz holds; `CLAUDE.md`'s client-path list is updated; Part
 A's probe branches and worktrees are removed. Before them: C3's data half found two; they were asked when A8 started, and answered as
@@ -191,6 +199,18 @@ the owner's review, which approved them (question 17).
     remain C2's.
   - Whoever next edits `CLAUDE.md`: its client-path list names `leptos-mf2`, whose code is now
     `mf2`'s and the helpers'.
+- From B2 (its record):
+  - C2: 19 §4's names for the native module, `Catalogs` and `Error`, are given with the API C2
+    builds; B2 kept `NativeI18n` and `NativeError`, and the shim keeps 1.x's names whatever C2
+    does.
+  - C2 / C8: a native size carries the build's source paths and the rlibs linked beside it:
+    `tui-upstream`, which uses no MF2, moved +9,856 B with B2. Compare within one tree and one
+    lock.
+  - B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines" is checked by an
+    xtask; `native` beside a browser mode was checked by hand (`probes/p10-b2/refusals.sh`). A step
+    that checks each would hold them; B3's `ratatui` inherits `native`'s, and D1 adds `axum`'s.
+  - Every task: a commit made while another task has changes staged carries them (`46303b9`
+    carried B2's renames). Stage and commit by path (`git commit -- <paths>`).
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
@@ -223,8 +243,9 @@ the owner's review, which approved them (question 17).
 - F (or whoever next edits `README.md`): its "Current work order" still names
   `plans/17-phase-9-work-order.md` (C3's text half).
 - From A8 (19 §16):
-  - B2 / D1: `mf2::native::LocaleSource` (an enum) and `mf2::axum::LocaleSource` (a trait) now
-    share one crate. B2 renames the native one.
+  - ~~B2 / D1: `mf2::native::LocaleSource` (an enum) and `mf2::axum::LocaleSource` (a trait) now
+    share one crate. B2 renames the native one.~~ **Done by B2:** `mf2::native::LocaleOrigin`, for
+    the owner to confirm.
   - C4: the generated names (`install`, `Locale`, `markup`, …) can collide with an application's
     own root items (E0428). A way to rename them waits until an application needs one.
   - C5: collecting descriptions into a `Line` flattens their markup (Ratatui's blanket goes
@@ -2926,6 +2947,170 @@ code's own cost, over a base that already formats text, so the row holds.
   `leptos-mf2`; that code is now `mf2`'s and the helpers'.
 * Not scheduled: nightly cargo warns that the workspace dependency
   `mf2-ratatui` is unused (as before B1); B3 changes it.
+
+## B2 — `mf2::native`: what was built
+
+* **Where.** Commit `90c8b2a` on `main`. Its three renames
+  (`crates/mf2-native/src/{native,locale}.rs`, `tests/native.rs`) and the
+  removal of `crates/mf2-native/src/error.rs` went in one commit early: B2
+  had staged them (`git mv`, `git rm`), and the coordinating session's
+  `46303b9`, a plans commit, committed the index with them. That commit
+  alone does not build (1.x's `mf2-native/src/lib.rs` names the modules it
+  lost); `90c8b2a` completes the move. The measurements ran in a worktree of
+  their own, `.claude/worktrees/p10-b2-measure`, detached at `c41225c` (the
+  commit before both), with the main tree's lock files copied in: the base
+  first, then the same tree with B2 applied (`git diff --binary c41225c --
+  crates xtask CHANGELOG.md plans/00-master-plan.md plans/05-tooling.md
+  plans/19-native-and-terminal.md plans/README.md`, and the two new files
+  copied; its code is the commit's). So every A/B is in one tree, with one
+  lock per application. The scripts are in `probes/p10-b2/` (its
+  `README.md` lists them). Their outputs are in that worktree's
+  `target/p10-b2/`, and the checks' logs are in the main tree's
+  `target/p10-b2/`. Tools as B1's.
+* **What moved where.**
+  * `crates/mf2-native/src/native.rs` → `crates/mf2/src/native.rs`, the
+    module `mf2::native`; its documentation is 1.x's crate documentation.
+    `locale.rs` (the matcher and the enum) → `crates/mf2/src/native/locale.rs`.
+    `NativeError` → `crates/mf2/src/error.rs`, beside `CompileError` and
+    `LoadError`. `tests/native.rs` → `crates/mf2/tests/native.rs`
+    (`required-features = ["native", "compile"]`). The code is 1.x's, on
+    `mf2`'s own paths (`crate::Corpus`, `mf2_catalog`, `mf2_runtime`,
+    `mf2_host_std`), with `alloc` imports for the `no_std` crate.
+  * **Names.** `NativeI18n` and `NativeError` keep 1.x's names. 19 §4's
+    `Catalogs` is `NativeI18n` reshaped (`format(locale, &message)`, no
+    active locale), and its `Error` is what C2's `install_from_directory`
+    returns, so C2 names both as it builds that API. **`LocaleSource` is
+    `LocaleOrigin`** (19 §16), with its three variants; `locale_source()`
+    keeps its name, as 19 §4 and §5 write it. 19 names none, so the name
+    is the owner's to confirm. Chosen because the enum says where the
+    active locale came from, as its documentation always read. The other
+    candidates: `LocaleChoice`, or `LocaleSourceKind`, which keeps the
+    function's word.
+  * **`Debug`** (19 §6): `NativeI18n` has one, written by hand: the active
+    locale, where it came from, the catalogs (each `Catalog`'s own: locale,
+    messages, bytes) and the formatting context. A derived one would print
+    the corpus's embedded bytes. `NativeError` and `LocaleOrigin` derive
+    it, as in 1.x.
+* **The `native` feature.** It implies `host-std`, and turns on
+  `sys-locale`, jiff's `std` and `tz-system`, and `mf2-catalog`'s
+  `static-bytes` and `content-hash`, as 1.x's crate did; `extern crate std`
+  is compiled under it too. **Beside `hydrate` or `csr` it is refused**
+  (19 §3): "mf2: `native` is on beside `hydrate` or `csr`: `native` is for
+  an application that runs natively (a command-line tool, a terminal UI, a
+  server), never for a browser build. cargo unifies features across a
+  workspace, so a browser client and a native application belong in
+  workspaces of their own." `bash probes/p10-b2/refusals.sh`: on `mf2` for
+  `wasm32-unknown-unknown` with `hydrate` and with `csr`, through the shim
+  (`-p mf2-native --features mf2/leptos,mf2/hydrate`, wasm32), and natively
+  with `hydrate`, that sentence is the only error the user reads
+  (`sys-locale` and `jiff` compile for wasm32 first, without error).
+  `native` beside `ssr` compiles. docs.rs and `api.txt` show `mf2` with
+  `native` beside `ssr`.
+* **What the shim keeps working.** `mf2-native` depends on `mf2` with
+  `native` and re-exports, under 1.x's names and paths, `NativeI18n`,
+  `NativeError`, `LocaleSource` (= `mf2::native::LocaleOrigin`), and
+  `BidiStrategy`, `Corpus`, `Dir`, `Message`, `TimeZone`. It has no
+  features, as 1.x's had none, so its paths do not depend on how an
+  application names features: the gap the review of B1 found in
+  `leptos-mf2` does not arise here. Its test,
+  `crates/mf2-native/tests/names.rs`, holds each name to `mf2`'s item.
+  Unchanged over it, and green: `mf2-ratatui` (7 tests; its `api.txt` now
+  names `mf2::native::NativeI18n`), the book's native project with and
+  without `tui` (`cargo xtask docs`), and `examples/tui` (`tui-gate`).
+* **xtask.** `ci` gains two steps for `native` alone:
+  `clippy -p mf2 --features native,compile --all-targets`, and
+  `test -p mf2 --features native,compile --lib --test native`. The reason:
+  `--workspace` always unifies `ssr` into `mf2`, so nothing else compiles
+  `native` without the Leptos layer. `msrv`'s server features name
+  `mf2/native`. `release` leaves `native` out of `mf2`'s semver run: 1.0.0's
+  `mf2` has no such feature (1.x's `mf2-native` was never published).
+* **In the same commit:** 05 §9; the master plan's §4 and §4.1; 19 §4 and
+  §16; `plans/README.md`; the changelog; `mf2`'s and the shim's READMEs;
+  the comments in `mf2-build` and `mf2-catalog` that named `mf2-native`.
+  Also `api.txt` (`mf2`, `mf2-native`, `mf2-ratatui`) and `package.txt`
+  (`mf2`, `mf2-native`).
+
+### The gates (19 §14, row 1): the web byte-identical
+
+`bash probes/p10-b2/measure.sh base` at `c41225c`, then `… b2` with B2
+applied. It runs `cargo xtask size --out target/p10-b2/size [--keep]`,
+`cargo xtask b5 --view --out target/p10-b2/b5v [--keep]`, `cargo xtask
+catalog-size` and the three demos' clients as they ship, and hashes each
+built file (`target/p10-b2/logs/{base,b2}/*.sha256`):
+
+| Figure | Base `c41225c` | B2 | Gate |
+|---|---:|---:|---|
+| **B1**, fixed | 26,344 B gz | 26,344 | ±64 |
+| **B5**, per site | 8.334 B gz | 8.334 | ±0.2 |
+| whole app, 1,860 sites | 41,845 B gz | 41,845 | ambition 105,120 |
+| the size workloads' 12 wasm files (`tr`, `idlit`, `dummy`, both scales, before and after `wasm-opt`) | | byte-identical | |
+| `b5 --view`: fixed / per site, and its 12 wasm files | 24,755 / 10.480 | identical; byte-identical | |
+| **B7**: catalog-bench's report; demo-csr's `dist/` (16 files: its 3 catalogs, their `.br` / `.gz`, `index.json`, the wasm and JS) | | identical but the report's `unix_time`; byte-identical | byte-identical |
+| the demos' shipped wasm, raw / gz: demo-ssr, its lazy chunk, demo-islands, demo-csr | 753,780 / 315,718; 23,688 / 11,516; 197,670 / 85,590; 207,638 / 91,224 | byte-identical | ±64 B gz |
+| **B12** | | clean | clean (`bash bench/b12/check.sh`, main tree) |
+| B1′ / B13 | | +0 B / 13,573 B avoided | +0 (`cargo xtask b12-generated`) |
+| locks | | the demos' and the workloads' identical; the workspace's has the same package versions as B1's tree (only `mf2`'s and `mf2-native`'s dependency lists moved) | one lock per application |
+
+One file differs: demo-ssr's `__wasm_split` loader, 2,187 B raw either
+way. Its imports come in another order. Three rebuilds of the B2 tree with
+nothing changed gave three hashes of it (`ed794eaf907b`, `53b12bf3095a`,
+`1055d334c703`) over one wasm (`ff1f2e4059af`): `touch src/lib.rs; cargo
+leptos build --release --split --frontend-only`, thrice, in
+`examples/demo-ssr`. B1's base and B1 runs show two of the same three
+hashes. Not B2's.
+
+**Native, reported** (C2's gate, not B2's). `cargo xtask tui-gate
+--save-baseline target/p10-b2/tui-base` at base, then `cargo xtask tui-gate
+--baseline target/p10-b2/tui-base` with B2: the four binaries alternating,
+31 runs, timings under a load of 2.81.
+
+| Binary | Stripped (B), base → B2 | Allocations per frame (en / de / es / fr), both | Median µs per frame, base / B2 |
+|---|---:|---|---:|
+| `tui-mf2` | 1,965,496 → 1,965,672 (+176: `.text` −128, unwind tables +296) | 1816 / 1815 / 1816 / 1817 | 378.5 / 383.3 (ranges 360–474, 358–509) |
+| `tui-upstream`, which uses no MF2 | 1,390,784 → 1,400,640 (+9,856: `.gcc_except_table` +9,780, `.text` the same) | 1517 / 1519 / 1518 / 1526 | 336.3 / 337.1 |
+
+The sections are `size -A` over the kept and the new binaries. Rebuilt
+(`touch` on two sources, then the gate's own `cargo build --release --bins`
+with `CARGO_PROFILE_RELEASE_STRIP=symbols`), the B2 binaries are
+byte-identical. Inference, brief: the linker keeps exception tables of
+functions it discards, so a binary's size moves with what its rlibs hold.
+Both sizes are this worktree's. Its longer path makes them larger than the
+main tree's, where 19 §14's C2 figure (1,965,320 B, at 1.x) was taken.
+
+### The checks (main tree, `90c8b2a`'s content)
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass**, with the two new `native` steps (the matcher's 5 tests, the moved 7) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `cargo xtask docs` | **pass**: 120 blocks, 9 applications; the native project with and without `tui`, over the shims | `bash probes/p10-b2/checks.sh docs` |
+| `cargo xtask docs-rs` | **pass**: 19 crates, no warnings | `… checks.sh docs-rs` |
+| `codegen-matrix` | **pass**: 18 combinations; B6 clean | `… codegen-matrix` |
+| `scenarios` | **pass**: S1–S4 wasm identical, S5 and S6 rebuilt | `… scenarios` |
+| `leptos-0-8` | **pass**: both refusals; on 0.8, the five clippy steps, `render` 15, `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `layers` 3 and `l6` 4 | `… leptos-0-8` |
+| `l6-web` | **20/20** | `… l6-web` |
+| `l7-web` | **34/34**; L7 444/444, L7c 444/444, L7d 325/444 and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold | `… l7-web` |
+| `churn` | **84/84** | `… churn` |
+| `msrv` | **pass**: the 20 on Rust 1.88, five steps | `… msrv` |
+| e2e on 0.9 | demo 210/210, lazy 74/74, islands 58/58, csr 98/98, zone 40/40, a11y 720/720 | `… e2e-0-9` (`bash probes/p10-b1/e2e.sh . b2-leptos-0-9`) |
+| e2e on 0.8 | the same six, the same counts; `cargo tree` shows leptos 0.8.21, tachys 0.2.19, reactive_graph 0.2.15 and `mf2-leptos-ui-0-8` only, in each server and client build | `… e2e-0-8` (`python3 probes/p10-names/demos-0-8.py b2`, then `bash probes/p10-b1/e2e.sh target/a7-demo-0-8/b2 b2-leptos-0-8`) |
+| the ledger | **unchanged**: `conformance-report`'s check in `ci`; `conformance/ledger.toml` untouched | `cargo xtask ci` |
+| the shim and `mf2-ratatui` | **pass**: `names` 2 tests; `mf2-ratatui` 7 | `cargo test -p mf2-native -p mf2-ratatui` |
+| the refusals | as above | `bash probes/p10-b2/refusals.sh` |
+
+### Found along the way (routed)
+
+* C2: 19 §4's `Catalogs` and `Error` are the names of the API C2 builds on
+  `NativeI18n` and `NativeError`; the shim's 1.x names stay.
+* C2 / C8: native sizes carry the build's source paths and move with the
+  rlibs linked beside the code: `tui-upstream`, the baseline, grew +9,856 B
+  with no change of its own. Compare within one tree and one lock.
+* B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines"
+  is checked by an xtask (`leptos-0-8`). The others were checked by hand
+  (B1's; `native`'s by `probes/p10-b2/refusals.sh`). B3's `ratatui`
+  inherits `native`'s, and D1 adds `axum`'s.
+* Every task: a commit made while another task has changes staged carries
+  them (`46303b9` carried B2's renames). Stage and commit by path
+  (`git commit -- <paths>`).
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
