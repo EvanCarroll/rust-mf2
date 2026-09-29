@@ -136,7 +136,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   green; the ledger unchanged. `Display` (S3) and `Debug` (S2) on the moved types: 19 §14's third
   row holds but in demo-islands, an owner question (below).
 
-**In flight:** nothing (2026-09-28). Part A's probe branches (`p10-a4-ambient`, `p10-a5-display`,
+**In flight: B2**, started 2026-09-28 by an agent of the coordinating session, working in the
+main tree, beside a read-only review of B1's commits (no builds). Until B2's record appears under
+"Done", do not start B2 again: if the agent is still running (its cargo builds show in `ps`; it
+commits as "Phase 10 B2: …"), wait for its report; if it stopped without committing, resume B2
+from the tree's state. Part A's probe branches (`p10-a4-ambient`, `p10-a5-display`,
 `p10-a7-names`, `p10-e-silent-failures`) and their worktrees were kept until B1 had taken what it
 reuses from `p10-a7-names`; it has, so they may go (the owner's call). A9 ran in
 `p10-a5-display`'s worktree and left it clean; its `target/a9/` goes with that worktree. B1's
