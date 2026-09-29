@@ -137,17 +137,39 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   row holds but in demo-islands, an owner question (below).
 
 **In flight: B2**, started 2026-09-28 by an agent of the coordinating session, working in the
-main tree, beside a read-only review of B1's commits (no builds). Until B2's record appears under
-"Done", do not start B2 again: if the agent is still running (its cargo builds show in `ps`; it
-commits as "Phase 10 B2: …"), wait for its report; if it stopped without committing, resume B2
-from the tree's state. Part A's probe branches and worktrees are removed (question 21). B1's
-measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
-applied, uncommitted), holds the A/B's outputs; it goes when the review of B1 reports.
+main tree. Until B2's record appears under "Done", do not start B2 again: if the agent is still
+running (its cargo builds show in `ps`; it commits as "Phase 10 B2: …"), wait for its report; if
+it stopped without committing, resume B2 from the tree's state. Part A's probe branches and
+worktrees are removed (question 21). B1's measurement worktree,
+`.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change applied, uncommitted),
+holds the A/B's outputs; it stays until B1's review fixes (below) have taken what they need from
+it.
 
 **Next, each from a fresh session or agent, one at a time:**
 - **B2**, `mf2::native` (after B1, done): the `native` feature, `mf2-native` a shim, its tests
   moved; as B1, with no web change. It also renames the native `LocaleSource` (19 §16), which
   shares `mf2` with `mf2::axum`'s trait of the same name once D1 lands.
+- **B1's review fixes**, after B2 and before B3: what a read-only review of B1's commits found
+  (2026-09-28; its other two items were owner questions 18 and 19). Observed:
+  1. figures without a command: the two leaner `Debug` writers (+38 / +56 B gz in B1's record)
+     have no script or patch, and `probes/p10-b1/named.sh` needs a PATCH argument whose patch is
+     not committed. Take them from B1's measurement worktree, commit them under `probes/p10-b1/`,
+     and cite them;
+  2. "re-exports" where `mf2::leptos` wraps each helper component with `Mf2` chosen: master plan
+     §4 and D20, 04 §12.1, the root `Cargo.toml`'s comment, the helpers' docs and the changelog;
+  3. `bench/churn/README.md` still names `crates/leptos-mf2/tests/churn.rs`.
+
+  Inferred, to be confirmed by running first:
+  4. two modes at once with a Leptos line on: the helper's `compile_error!` may fire first, naming
+     `mf2-leptos-ui-0-9` (a crate the user never names) without `mf2`'s hint that cargo unifies
+     features across a workspace (`cargo check -p mf2 --features leptos,ssr,hydrate`). If so,
+     the refusal names `mf2`'s features, and an xtask step checks it;
+  5. the shim: `leptos-mf2`'s `leptos` feature is empty and its layer is re-exported only under
+     its own mode feature, so a crate with only `leptos-mf2/leptos` (the shape of
+     `conformance/l7-web/sets/*`) loses the `leptos_mf2::` layer paths when the application
+     names its mode on `mf2` alone. If so, the shim re-exports the layer whenever its line is on,
+     and a test holds the arrangement, so the changelog's "a 1.x application compiles unchanged"
+     holds.
 - **Then** B3, B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
   designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
   touch the same crates and plans.
@@ -507,7 +529,7 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     `p10-a7-names` (`6014948`) and `p10-e-silent-failures` (`59cd8ac`, whose E1–E3 are on
     `main`), with their worktrees; A9's `target/a9/` went with `p10-a5-display`'s. The records
     are in this file, and the code worth keeping is in `probes/` as patches. B1's measurement
-    worktree goes when the review of B1 reports.
+    worktree stays until B1's review fixes have taken the patches its figures need.
 
     *As put* (18–21 together, after B1's report):
     > Debug printing ({:?}, which unwrap() and assert_eq! also reach) was supposed to cost a
