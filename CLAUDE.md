@@ -75,7 +75,8 @@ This section is the canonical statement of the rule; other documents point here.
 * **Budgets are requirements** (`plans/06-size-and-perf.md`). A size or speed
   claim comes with a measurement and the command that produced it.
 * **Client-path crates** (`mf2-catalog` reader, `mf2-runtime`, `mf2-fn-*`,
-  `mf2-host-web`, `leptos-mf2`) are `no_std` where stated, `forbid(unsafe_code)`,
+  `mf2-host-web`, `mf2`'s call-site types and `mf2::leptos`, `mf2-leptos-ui-0-8` /
+  `-0-9`) are `no_std` where stated, `forbid(unsafe_code)`,
   and fmt-free / panic-free: no `format!`, `Debug`/`Display` use, `unwrap`, or
   panicking indexing on the client path.
 * **Don't build worse than what exists.** Replacing an existing crate with our
