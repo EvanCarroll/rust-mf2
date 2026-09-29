@@ -1,30 +1,29 @@
-//! Native application support for MF2: load one generated corpus's
-//! catalogs, select a supported locale, and format the call-site
-//! descriptions `tr!` builds — in a CLI or a terminal UI, without Leptos.
+//! `mf2-native` — 1.x's native application support of Rust MF2, kept as a
+//! shim: every item it named, under the name and path it named it,
+//! re-exported from [`mf2`](https://docs.rs/mf2), where the code now lives
+//! as `mf2::native`, behind `mf2`'s `native` feature.
 //!
-//! See the user guide's [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html).
+//! 1.x's `LocaleSource` is `mf2::native::LocaleOrigin` there, and is
+//! re-exported here under its 1.x name, so a 1.x application keeps
+//! compiling unchanged. A new one names `mf2` alone:
 //!
-//! The i18n crate's build script runs `mf2_build` with `Emit::Native`,
-//! which generates one `CORPUS` value; the locale then belongs to
-//! [`NativeI18n`], not to a process or thread global.
-//!
-//! ```ignore
-//! let mut i18n = NativeI18n::embedded(&my_i18n::CORPUS)?; // the system's locale
-//! if let Some(lang) = args.lang.as_deref() {
-//!     i18n.set_locale(lang)?; // an unsupported --lang is an error
-//! }
-//! println!("{}", i18n.format(&my_i18n::tr!("welcome")));
+//! ```toml
+//! mf2 = { version = "2", features = ["native"] }
 //! ```
+//!
+//! # The user guide
+//!
+//! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
+//! guide; its [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html)
+//! covers CLI and terminal applications. An application starts at
+//! [`mf2`](https://docs.rs/mf2).
 
-#![warn(missing_docs)]
+#![no_std]
 #![forbid(unsafe_code)]
 
-mod error;
-mod locale;
-mod native;
+/// The native application support: the catalogs of one generated corpus,
+/// the active locale, and where it came from.
+pub use mf2::native::{LocaleOrigin as LocaleSource, NativeError, NativeI18n};
 
-pub use error::NativeError;
-pub use locale::LocaleSource;
-pub use native::NativeI18n;
-
+/// What 1.x re-exported from `mf2` beside them.
 pub use mf2::{BidiStrategy, Corpus, Dir, Message, TimeZone};

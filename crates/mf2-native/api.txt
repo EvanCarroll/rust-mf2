@@ -4,60 +4,8 @@ pub mod mf2_native
 pub use mf2_native::BidiStrategy
 pub use mf2_native::Corpus
 pub use mf2_native::Dir
+pub use mf2_native::LocaleSource
 pub use mf2_native::Message
+pub use mf2_native::NativeError
+pub use mf2_native::NativeI18n
 pub use mf2_native::TimeZone
-#[non_exhaustive] pub enum mf2_native::LocaleSource
-pub mf2_native::LocaleSource::Explicit
-pub mf2_native::LocaleSource::Source
-pub mf2_native::LocaleSource::System
-impl core::clone::Clone for mf2_native::LocaleSource
-pub fn mf2_native::LocaleSource::clone(&self) -> Self
-impl core::cmp::Eq for mf2_native::LocaleSource
-impl core::cmp::PartialEq for mf2_native::LocaleSource
-pub fn mf2_native::LocaleSource::eq(&self, &Self) -> bool
-impl core::fmt::Debug for mf2_native::LocaleSource
-pub fn mf2_native::LocaleSource::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::hash::Hash for mf2_native::LocaleSource
-pub fn mf2_native::LocaleSource::hash<__H: core::hash::Hasher>(&self, &mut __H)
-impl core::marker::Copy for mf2_native::LocaleSource
-impl core::marker::StructuralPartialEq for mf2_native::LocaleSource
-#[non_exhaustive] pub enum mf2_native::NativeError
-pub mf2_native::NativeError::Catalog
-pub mf2_native::NativeError::Catalog::locale: alloc::string::String
-pub mf2_native::NativeError::Catalog::source: mf2_catalog::error::CatalogError
-pub mf2_native::NativeError::ContentMismatch
-pub mf2_native::NativeError::ContentMismatch::actual: alloc::string::String
-pub mf2_native::NativeError::ContentMismatch::path: std::path::PathBuf
-pub mf2_native::NativeError::Io
-pub mf2_native::NativeError::Io::path: std::path::PathBuf
-pub mf2_native::NativeError::Io::source: core::io::error::Error
-pub mf2_native::NativeError::LocaleMismatch
-pub mf2_native::NativeError::LocaleMismatch::actual: alloc::string::String
-pub mf2_native::NativeError::LocaleMismatch::expected: alloc::string::String
-pub mf2_native::NativeError::MissingCatalog(alloc::string::String)
-pub mf2_native::NativeError::NotEmbedded(alloc::string::String)
-pub mf2_native::NativeError::UnknownLocale(alloc::string::String)
-impl core::error::Error for mf2_native::NativeError
-pub fn mf2_native::NativeError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
-impl core::fmt::Debug for mf2_native::NativeError
-pub fn mf2_native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::fmt::Display for mf2_native::NativeError
-pub fn mf2_native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub struct mf2_native::NativeI18n
-impl mf2_native::NativeI18n
-pub fn mf2_native::NativeI18n::available_locales(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
-pub const fn mf2_native::NativeI18n::bidi(&self) -> mf2_runtime::format::BidiStrategy
-pub fn mf2_native::NativeI18n::catalog_file_name(&self, &str) -> core::option::Option<&'static str>
-pub fn mf2_native::NativeI18n::dir(&self) -> mf2_model::id::Dir
-pub fn mf2_native::NativeI18n::embedded(&'static mf2::corpus::Corpus) -> core::result::Result<Self, mf2_native::NativeError>
-pub fn mf2_native::NativeI18n::format(&self, &impl mf2::message::Message) -> alloc::string::String
-pub fn mf2_native::NativeI18n::format_with_errors(&self, &impl mf2::message::Message) -> (alloc::string::String, alloc::vec::Vec<mf2_runtime::error::FormatError>)
-pub fn mf2_native::NativeI18n::formatter(&self) -> core::option::Option<mf2_runtime::format::Formatter<'_>>
-pub fn mf2_native::NativeI18n::from_directory(&'static mf2::corpus::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<Self, mf2_native::NativeError>
-pub fn mf2_native::NativeI18n::locale(&self) -> &'static str
-pub const fn mf2_native::NativeI18n::locale_source(&self) -> mf2_native::LocaleSource
-pub const fn mf2_native::NativeI18n::set_bidi(&mut self, mf2_runtime::format::BidiStrategy)
-pub fn mf2_native::NativeI18n::set_locale(&mut self, &str) -> core::result::Result<(), mf2_native::NativeError>
-pub const fn mf2_native::NativeI18n::set_time_zone(&mut self, mf2_runtime::datetime::TimeZone)
-pub const fn mf2_native::NativeI18n::source_locale(&self) -> &'static str
-pub const fn mf2_native::NativeI18n::time_zone(&self) -> mf2_runtime::datetime::TimeZone

@@ -16,7 +16,7 @@
 //! * `host()` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
 //! * `CORPUS` — under [`Emit::Native`] / [`Emit::NativeFiles`] only: the
-//!   above as one `mf2::Corpus` value for `mf2-native`, with each catalog's
+//!   above as one `mf2::Corpus` value for `mf2::native`, with each catalog's
 //!   file name and, under `Native`, its bytes. A native build has no client,
 //!   so nothing in it is behind `ssr`;
 //! * `pub use ::mf2 as __mf2;` and the exported `tr!` wrapper, which bakes
@@ -383,7 +383,7 @@ fn corpus(s: &mut String, m: &Module<'_>) {
     let _ = write!(
         s,
         "
-/// Everything `mf2-native` needs, as one value: the source locale, the
+/// Everything `mf2::native` needs, as one value: the source locale, the
 /// manifest hash, the locales, the registry and each catalog's file name{embedded}.
 pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
     SOURCE_LOCALE,

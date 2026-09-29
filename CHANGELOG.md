@@ -156,6 +156,17 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   and string-escape code (about 1 KB in a browser build rather than
   12–16 KB), so a float shows at most six fraction digits and a quote in a
   text is not escaped.
+* **Changed: the native support is `mf2`'s.** `NativeI18n` and
+  `NativeError` are the module `mf2::native`, behind `mf2`'s new `native`
+  feature, which implies `host-std` and is a compile error beside `hydrate`
+  or `csr`: a native application's module has no place in a browser build.
+  The enum that says where the active locale came from is renamed
+  `LocaleOrigin`, since the Axum integration's `LocaleSource` — where a
+  request's locale can come from — joins `mf2` too. **`mf2-native` is a
+  shim** that re-exports everything under 1.x's names and paths,
+  `LocaleSource` included, so a 1.x application compiles unchanged.
+  `NativeI18n` implements `Debug`: the active locale, where it came from,
+  the catalogs and the settings.
 
 ## 1.0.0
 

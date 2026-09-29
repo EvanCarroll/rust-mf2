@@ -1,8 +1,12 @@
+//! A native application's catalogs — embedded, or read from files checked
+//! against their names — and its locale (`mf2::native`; 1.x's `mf2-native`,
+//! whose tests these were).
+
+use mf2::native::{LocaleOrigin, NativeError, NativeI18n};
 use mf2::{
-    BidiStrategy, CatalogFile, Compiled, Corpus, Dir, ErrorSink, Formatter, PartSink, Registry,
-    Sink,
+    BidiStrategy, CatalogFile, Compiled, Corpus, Dir, ErrorSink, Formatter, Message, PartSink,
+    Registry, Sink,
 };
-use mf2_native::{LocaleSource, Message, NativeError, NativeI18n};
 
 static REGISTRY: Registry = Registry::EMPTY;
 
@@ -57,7 +61,7 @@ fn embedded_catalogs_format_and_switch_locale() {
 
     i18n.set_locale("FR_ca").expect("fr-CA falls back to fr");
     assert_eq!(i18n.locale(), "fr");
-    assert_eq!(i18n.locale_source(), LocaleSource::Explicit);
+    assert_eq!(i18n.locale_source(), LocaleOrigin::Explicit);
     assert_eq!(i18n.format(&Only), "Bienvenue");
 
     let en = format!("en.{}.mf2b", mf2_catalog::content_hash(&raw[0].1));

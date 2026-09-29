@@ -217,6 +217,31 @@ const STEPS: &[&[&str]] = &[
         "--test",
         "fallback_lang",
     ],
+    // The native module (Phase 10 B2) as a native application builds it,
+    // with no Leptos layer beside it: `--workspace` always unifies `ssr`
+    // into `mf2` (mf2-axum turns it on), so nothing above compiles `native`
+    // alone. Its tests and the matcher's run here too.
+    &[
+        "clippy",
+        "-p",
+        "mf2",
+        "--features",
+        "native,compile",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "test",
+        "-p",
+        "mf2",
+        "--features",
+        "native,compile",
+        "--lib",
+        "--test",
+        "native",
+    ],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
     // or runs `tests/json.rs`.

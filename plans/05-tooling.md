@@ -1289,7 +1289,7 @@ root `CLAUDE.md` ("Boundary").
 The one crate an application names (D16). Since Phase 10's B1 it **defines**
 the call-site types and carries the Leptos layer; before, it re-exported
 them from `leptos-mf2` ([04](04-leptos-integration.md) §2.1 has why they
-moved twice).
+moved twice). Since B2 it carries the native module too.
 
 * **The call-site core** every `tr!` expansion goes through — `Tr`, `TrArgs`,
   `TrRich`, `TrDyn`, their constructors `tr` / `tr_args0`…`tr_args4` /
@@ -1310,6 +1310,15 @@ moved twice).
   descriptions also have the ambient forms — `to_string()`,
   `to_plain_string()`, `From<_> for String`, and `Display`, which pads the
   text `to_string()` builds (19 §6).
+* **The native module**, `mf2::native`, with `native` (std; it implies
+  `host-std`): 1.x's `mf2-native`, moved by Phase 10's B2 — `NativeI18n`
+  over the generated `Corpus` (catalogs embedded and read in place, or
+  files beside the executable checked against the content hash in their
+  names), the system's preferred languages and time zone, `NativeError`,
+  and `LocaleOrigin` (1.x's `LocaleSource`, renamed because `mf2::axum`'s
+  trait of that name joins the crate). Never in a browser build: with
+  `hydrate` or `csr` it is a `compile_error!`. `mf2-native` is a shim that
+  re-exports it under 1.x's names ([19](19-native-and-terminal.md) §3–§5).
 * **The runtime's API**, re-exported: the formatter, the sinks, the
   function traits and the default functions; `fn_number` and `fn_datetime`
   with their features, and the hosts (`host-std`, `host-web`).
@@ -1323,12 +1332,12 @@ moved twice).
   re-exports `mf2-macros`' proc-macro so that the generated `tr!` wrapper
   reaches it through `__mf2` alone.
 
-B2–B4 and D1 add `native`, `ratatui` and `axum` (§9.1).
+B3 adds `ratatui`, and D1 `axum` (§9.1).
 
 ### 9.1 2.0: the one crate (Phase 10 A8)
 
 Designed on 2026-09-28 and approved by the owner the same day; B1–B4 and D1 build it (B1,
-the types and the Leptos layer, rewrote §9 above). The design is
+the types and the Leptos layer, rewrote §9 above; B2 added the native module to it). The design is
 [19](19-native-and-terminal.md):
 - **§3, the features and modules**: `native`, `ratatui`, `leptos` /
   `leptos-0-8`, the modes, `axum`, `clap`, and 1.x's function features;

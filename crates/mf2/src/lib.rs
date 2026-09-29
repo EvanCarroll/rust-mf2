@@ -16,6 +16,7 @@
 //! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
 //! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
+//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, in the system's language and time zone (std; implies `host-std`; never with `hydrate` or `csr`) |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
 //! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
@@ -28,14 +29,15 @@
 //! application writes the line on its `mf2` dependency (`features =
 //! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
 //! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
-//! 0.9; [`leptos`] lists what the client modes add. `host-web` and `intl`
-//! are for `wasm32-unknown-unknown`, so
-//! [`host_web`](https://docs.rs/mf2-host-web) is not shown here. A native
-//! application turns on no Leptos mode, and `host-std`.
+//! 0.9, and `native`, which compiles beside it; [`leptos`] lists what the
+//! client modes add. `host-web` and `intl` are for `wasm32-unknown-unknown`,
+//! so [`host_web`](https://docs.rs/mf2-host-web) is not shown here. A native
+//! application turns on `native`, and no Leptos mode.
 //!
 //! A build with no mode compiles no Leptos code, so a server, a test and a
 //! native application use the descriptions as they are: formatted against a
-//! catalog the caller supplies.
+//! catalog the caller supplies — for a native application, the catalogs
+//! [`native`] loads.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -107,10 +109,14 @@
 )]
 
 extern crate alloc;
-// The Leptos layer needs `std`, which its dependencies need anyway.
-#[cfg(all(
-    any(feature = "ssr", feature = "hydrate", feature = "csr"),
-    any(feature = "leptos", feature = "leptos-0-8")
+// The Leptos layer needs `std`, which its dependencies need anyway; so does
+// the native module, which reads files and the system's settings.
+#[cfg(any(
+    feature = "native",
+    all(
+        any(feature = "ssr", feature = "hydrate", feature = "csr"),
+        any(feature = "leptos", feature = "leptos-0-8")
+    )
 ))]
 extern crate std;
 
@@ -158,6 +164,18 @@ compile_error!(
      `leptos-0-8` beside it."
 );
 
+// A native application's module reads the system's settings and files
+// beside the executable: it has no place in a browser build, which is what
+// `hydrate` and `csr` make.
+#[cfg(all(feature = "native", any(feature = "hydrate", feature = "csr")))]
+compile_error!(
+    "mf2: `native` is on beside `hydrate` or `csr`: `native` is for an \
+     application that runs natively (a command-line tool, a terminal UI, a \
+     server), never for a browser build. cargo unifies features across a \
+     workspace, so a browser client and a native application belong in \
+     workspaces of their own."
+);
+
 // Each Leptos line is a dependency under a name of its own (`leptos_0_9`,
 // `leptos_0_8`, …), reached through these internal aliases. There is no
 // rename at the crate root: the module `leptos` has that name, and a crate
@@ -195,6 +213,12 @@ mod error;
 mod markup;
 mod message;
 mod tr;
+
+// A native application's catalogs and locale (its documentation is the
+// module's own).
+#[cfg(feature = "native")]
+#[cfg_attr(docsrs, doc(cfg(feature = "native")))]
+pub mod native;
 
 // The Leptos layer (its documentation is the module's own: an outer doc
 // comment here would make rustdoc resolve the module's links at the root).

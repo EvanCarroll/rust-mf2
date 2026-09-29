@@ -12,5 +12,5 @@ impl core::default::Default for mf2_ratatui::MarkupStyles
 pub fn mf2_ratatui::MarkupStyles::default() -> Self
 impl core::fmt::Debug for mf2_ratatui::MarkupStyles
 pub fn mf2_ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub fn mf2_ratatui::line(&mf2_native::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
-pub fn mf2_ratatui::text(&mf2_native::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
+pub fn mf2_ratatui::line(&mf2::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
+pub fn mf2_ratatui::text(&mf2::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>

@@ -32,9 +32,12 @@ src/leptos/zone.rs
 src/lib.rs
 src/markup.rs
 src/message.rs
+src/native.rs
+src/native/locale.rs
 src/tr.rs
 tests/call_site.rs
 tests/churn.rs
 tests/fallback_lang.rs
+tests/native.rs
 tests/render.rs
 tests/time_zone.rs

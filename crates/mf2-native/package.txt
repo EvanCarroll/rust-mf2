@@ -6,8 +6,5 @@ Cargo.toml.orig
 LICENSE
 README.md
 api.txt
-src/error.rs
 src/lib.rs
-src/locale.rs
-src/native.rs
-tests/native.rs
+tests/names.rs

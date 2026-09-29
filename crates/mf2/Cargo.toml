@@ -3,7 +3,7 @@ name = "mf2"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — the call-site types, the Leptos layer behind a feature, the formatter, and compile_str for ad-hoc messages."
+description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — the call-site types, the Leptos layer and the native application support behind features, the formatter, and compile_str for ad-hoc messages."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -46,6 +46,21 @@ datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
+# A native application, a command-line tool or a terminal UI (`mf2::native`):
+# one generated corpus's catalogs, embedded in the executable (read in place,
+# `static-bytes`) or shipped beside it (checked against the content hash in
+# their names, `content-hash`); the system's preferred languages
+# (`sys-locale`) and time zone (jiff's `tz-system`). std, and never in a
+# browser build: with `hydrate` or `csr` it is a compile error. Implies the
+# native host.
+native = [
+    "host-std",
+    "dep:sys-locale",
+    "jiff/std",
+    "jiff/tz-system",
+    "mf2-catalog/static-bytes",
+    "mf2-catalog/content-hash",
+]
 # The `intl` client option: on wasm32-unknown-unknown the numeric functions
 # format and select through the browser's Intl.NumberFormat and
 # Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
@@ -134,6 +149,11 @@ mf2-runtime.workspace = true
 mf2-syntax = { workspace = true, optional = true }
 thiserror.workspace = true
 
+# The native module (`native`): the system's preferred languages, and its
+# time zone (formatting uses mf2-host-std's bundled database).
+sys-locale = { workspace = true, optional = true }
+jiff = { workspace = true, optional = true }
+
 # The Leptos layer: each line under names of its own, and its helper.
 leptos_0_9 = { workspace = true, optional = true }
 tachys_0_3 = { workspace = true, optional = true }
@@ -186,11 +206,18 @@ required-features = ["csr", "compile", "host-std"]
 name = "fallback_lang"
 required-features = ["ssr", "mark-fallback-lang"]
 
+# A native application's catalogs, embedded or read from files, and its
+# locale: `compile_str` writes the catalogs.
+[[test]]
+name = "native"
+required-features = ["native", "compile"]
+
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-# The server on Leptos 0.9: the modes exclude each other, and `mf2::leptos`
-# names what the client modes add.
+# The server on Leptos 0.9, and the native module, which compiles beside it:
+# the modes exclude each other, and `mf2::leptos` names what the client
+# modes add.
 features = [
     "compile",
     "fn-number",
@@ -200,6 +227,7 @@ features = [
     "ssr",
     "static-locale",
     "mark-fallback-lang",
+    "native",
 ]
 targets = ["x86_64-unknown-linux-gnu"]
 

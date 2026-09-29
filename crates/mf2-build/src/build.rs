@@ -66,7 +66,7 @@ pub enum Emit {
     Module,
     /// The catalogs and the table that embeds them, for a server-only crate.
     Catalogs,
-    /// For a native application (`mf2-native`): the manifest, the catalogs,
+    /// For a native application (`mf2::native`): the manifest, the catalogs,
     /// and a module that formats through the native host, with nothing
     /// behind `ssr` and one `CORPUS` value that embeds the catalogs.
     Native,

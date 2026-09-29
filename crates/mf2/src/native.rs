@@ -1,11 +1,45 @@
+//! A native application's messages — a command-line tool or a terminal UI,
+//! with no Leptos: one generated corpus's catalogs, the reader's language
+//! chosen from the system's, and the descriptions `tr!` builds formatted in
+//! it.
+//!
+//! See the user guide's [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html).
+//!
+//! The build script runs `mf2_build` with `Emit::Native` (the catalogs
+//! embedded in the executable) or `Emit::NativeFiles` (the catalogs shipped
+//! beside it), which generates one [`Corpus`] value, `CORPUS`. The locale
+//! then belongs to a [`NativeI18n`], not to a process or thread global.
+//!
+//! ```ignore
+//! let mut i18n = mf2::native::NativeI18n::embedded(&my_i18n::CORPUS)?; // the system's locale
+//! if let Some(lang) = args.lang.as_deref() {
+//!     i18n.set_locale(lang)?; // an unsupported --lang is an error
+//! }
+//! println!("{}", i18n.format(&my_i18n::tr!("welcome")));
+//! ```
+//!
+//! Native only: the module is `std`, and reads the system's preferred
+//! languages and time zone and files beside the executable. With `hydrate`
+//! or `csr`, which build the browser's client, the `native` feature is a
+//! compile error.
+
+use alloc::borrow::ToOwned;
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::fmt;
 use std::path::Path;
 
-use mf2::{
-    BidiStrategy, Catalog, Corpus, Dir, FormatContext, FormatError, Formatter, Message, TimeZone,
-};
+use mf2_catalog::{Catalog, Dir};
+use mf2_runtime::{BidiStrategy, FormatContext, FormatError, Formatter, TimeZone};
 
-use crate::error::NativeError;
-use crate::locale::{LocaleSource, match_locale, negotiate};
+use crate::{CatalogFile, Corpus, Message};
+
+mod locale;
+
+pub use crate::error::NativeError;
+pub use locale::LocaleOrigin;
+
+use locale::{match_locale, negotiate};
 
 /// An app-owned native translation context.
 ///
@@ -18,7 +52,20 @@ pub struct NativeI18n {
     catalogs: Vec<Catalog>,
     cx: FormatContext,
     active: usize,
-    source: LocaleSource,
+    source: LocaleOrigin,
+}
+
+/// The active locale, where it came from, the catalogs and the formatting
+/// settings. The corpus's embedded bytes are left out.
+impl fmt::Debug for NativeI18n {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("NativeI18n")
+            .field("locale", &self.locale())
+            .field("locale_source", &self.source)
+            .field("catalogs", &self.catalogs)
+            .field("context", &self.cx)
+            .finish_non_exhaustive()
+    }
 }
 
 impl NativeI18n {
@@ -74,7 +121,7 @@ impl NativeI18n {
 
     fn load(
         corpus: &'static Corpus,
-        mut read: impl FnMut(&str, &mf2::CatalogFile) -> Result<Catalog, NativeError>,
+        mut read: impl FnMut(&str, &CatalogFile) -> Result<Catalog, NativeError>,
     ) -> Result<Self, NativeError> {
         let mut catalogs = Vec::with_capacity(corpus.locales().len());
         for &(tag, _) in corpus.locales() {
@@ -94,15 +141,15 @@ impl NativeI18n {
         }
         let system = sys_locale::get_locales().collect::<Vec<_>>();
         let (tag, source) = match negotiate(system.iter().map(String::as_str), corpus.locales()) {
-            Some(tag) => (tag, LocaleSource::System),
-            None => (corpus.source_locale(), LocaleSource::Source),
+            Some(tag) => (tag, LocaleOrigin::System),
+            None => (corpus.source_locale(), LocaleOrigin::Source),
         };
         let active = corpus
             .locales()
             .iter()
             .position(|(t, _)| *t == tag)
             .ok_or_else(|| NativeError::UnknownLocale(tag.to_owned()))?;
-        let mut cx = FormatContext::new(&mf2::host_std::HOST);
+        let mut cx = FormatContext::new(&mf2_host_std::HOST);
         cx.bidi = BidiStrategy::None;
         cx.time_zone = system_time_zone();
         Ok(NativeI18n {
@@ -126,7 +173,7 @@ impl NativeI18n {
     /// Where the active locale came from — to tell a user that their system
     /// language is not supported, say.
     #[must_use]
-    pub const fn locale_source(&self) -> LocaleSource {
+    pub const fn locale_source(&self) -> LocaleOrigin {
         self.source
     }
 
@@ -160,7 +207,7 @@ impl NativeI18n {
             .and_then(|tag| self.corpus.locales().iter().position(|(t, _)| *t == tag))
             .ok_or_else(|| NativeError::UnknownLocale(locale.to_owned()))?;
         self.active = active;
-        self.source = LocaleSource::Explicit;
+        self.source = LocaleOrigin::Explicit;
         Ok(())
     }
 
@@ -223,7 +270,7 @@ impl NativeI18n {
             .catalogs()
             .iter()
             .find(|f| f.tag() == tag)
-            .map(mf2::CatalogFile::file_name)
+            .map(CatalogFile::file_name)
     }
 }
 

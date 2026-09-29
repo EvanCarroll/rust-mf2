@@ -1,10 +1,19 @@
-use mf2::Dir;
+//! Which of the corpus's locales a tag asks for, and where the active one
+//! came from.
 
-/// Where the active locale came from.
+use mf2_catalog::Dir;
+
+/// Where the active locale came from, as
+/// [`NativeI18n::locale_source`](super::NativeI18n::locale_source) says.
+///
+/// 1.x's `mf2_native::LocaleSource`, which the `mf2-native` crate still
+/// names so. Here it has a name of its own: in the Axum integration, a
+/// `LocaleSource` is where a request's locale can come from.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[non_exhaustive]
-pub enum LocaleSource {
-    /// The application chose it with [`crate::NativeI18n::set_locale`].
+pub enum LocaleOrigin {
+    /// The application chose it with
+    /// [`NativeI18n::set_locale`](super::NativeI18n::set_locale).
     Explicit,
     /// One of the system's preferred locales matched.
     System,
@@ -90,7 +99,7 @@ fn has_script(tag: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{match_locale, negotiate};
-    use mf2::Dir;
+    use mf2_catalog::Dir;
 
     static LOCALES: &[(&str, Dir)] = &[
         ("en", Dir::Ltr),

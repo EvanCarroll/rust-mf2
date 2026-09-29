@@ -3,7 +3,7 @@ name = "mf2-native"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Native CLI and terminal applications for Rust MF2: one generated corpus, an app-owned locale, the system's language and time zone."
+description = "1.x's native application support of Rust MF2, kept as a shim: it re-exports `mf2::native`, where the code now lives, under 1.x's names, and turns on mf2's `native` feature."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,17 +16,7 @@ categories = ["internationalization", "localization"]
 exclude = ["package.txt"]
 
 [dependencies]
-mf2 = { workspace = true, features = ["host-std"] }
-# `Catalog::from_static`: embedded catalogs are read in place.
-# `content_hash`: a catalog file is checked against the hash in its name.
-mf2-catalog = { workspace = true, features = ["static-bytes", "content-hash"] }
-thiserror.workspace = true
-sys-locale.workspace = true
-# The system time zone (`tz-system`); formatting uses mf2-host-std's bundled database.
-jiff = { workspace = true, features = ["std", "tz-system"] }
-
-[dev-dependencies]
-mf2 = { workspace = true, features = ["compile"] }
+mf2 = { workspace = true, features = ["native"] }
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

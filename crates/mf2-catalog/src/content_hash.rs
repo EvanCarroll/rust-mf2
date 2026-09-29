@@ -1,7 +1,7 @@
 //! The content hash in a catalog's file name (`<locale>.<hash>.mf2b`).
 //!
 //! Build side and native side only (`content-hash`): `mf2-build` names each
-//! catalog with it, and `mf2-native` checks a catalog file it reads against
+//! catalog with it, and `mf2::native` checks a catalog file it reads against
 //! the name it was loaded under. The web client never computes it: its
 //! catalogs come from its own server or build.
 

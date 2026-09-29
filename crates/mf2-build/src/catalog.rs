@@ -256,7 +256,7 @@ pub fn write(
 }
 
 /// The first 16 hex digits of SHA-256 over the catalog's bytes: shared with
-/// `mf2-native`, which checks a catalog file against the name it was loaded
+/// `mf2::native`, which checks a catalog file against the name it was loaded
 /// under.
 pub use mf2_catalog::content_hash;
 
