@@ -138,8 +138,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **B2** (`90c8b2a`, whose three renames went in one commit early, with `46303b9`; the scripts in
   `probes/p10-b2/`, their outputs in the measurement worktree's `target/p10-b2/`): `mf2-native`'s
   code is `mf2::native`, behind `native` (which implies `host-std`, and beside `hydrate` or `csr`
-  is a `compile_error!`); `LocaleSource` keeps 1.x's name (B2's `LocaleOrigin` undone by B1's
-  review fixes, question 23);
+  is a `compile_error!`, for `wasm32` only since question 24); `LocaleSource` keeps 1.x's name
+  (B2's `LocaleOrigin` undone by B1's review fixes, question 23);
   `NativeI18n` and `NativeError` keep 1.x's names for C2; `mf2-native` a shim with 1.x's names;
   the tests in `crates/mf2/tests/native.rs`. **Every web artifact byte-identical** (B1 26,344 B gz,
   B5 8.334 B a site, B7's catalogs, the three demos' wasm, `b5 --view`), B12 clean; `ci` (with
@@ -157,26 +157,29 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `csr` across a workspace **confirmed**, an owner question (below). `ci`, `leptos-0-8`, `l7-web`,
   `docs`, `docs-rs` green; every client wasm byte-identical (the size workloads, `b5 --view`, the
   demos), B12 clean.
+- **The browser-only refusal** (question 24; `1dd5058`; record below): `mf2` refuses `native`
+  beside `hydrate` or `csr` only when compiling for `wasm32`, in a sentence that says what a
+  browser build needs; on the host the two compile together, so `unify.sh`'s `--workspace` case
+  exits 0 (101 before). `cargo xtask refusals` checks both sides: the nine refusals, and three
+  host combinations compiling, 1.x's workspace among them (with a negative control). `ci` and
+  `docs-rs` green; every client wasm byte-identical (the size workloads, `b5 --view`, the demos),
+  B12 clean.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **The browser-only refusal** (question 24), first, before B3. `mf2` refuses `native` beside
-  `hydrate` or `csr` only when compiling for `wasm32`. On the host the combination compiles, so
-  `bash probes/p10-b2/unify.sh`'s `--workspace` case turns green, and `cargo xtask refusals`
-  checks both sides: the refusals on `wasm32`, and the host combination compiling. 19 §3 is
-  amended already; master plan §4.1, the changelog and the shims' docs follow. The changelog's
-  promise that a 1.x application compiles unchanged stands.
-- **B3** (`mf2::ratatui`), then B4 (B5 with or after B4), and Part C in its heading's order, each
-  building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a time: the
-  tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal,
-  narrowed to browser builds (question 24); `cargo xtask refusals` takes its rows.
+- **B3** (`mf2::ratatui`) first, then B4 (B5 with or after B4), and Part C in its heading's order,
+  each building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a time:
+  the tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal,
+  for `wasm32` only (question 24); `cargo xtask refusals` takes its cases on both sides: refused
+  for `wasm32`, compiling on the host.
 
-**Owner questions found in the work:** none waiting. B1's review fixes found one, answered as
-question 24: `native` beside a browser mode is refused only when compiling for the browser, and
-B3's `ratatui` and D1's `axum` follow it. Questions 25 and 26 were asked with it: both
-measurement worktrees are removed, and question 24's change is the next session's first task.
+**Owner questions found in the work:** none waiting. The browser-only refusal found none. B1's
+review fixes found one, answered as question 24: `native` beside a browser mode is refused only
+when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it; the browser-only
+refusal built it. Questions 25 and 26 were asked with it: both measurement worktrees are removed,
+and question 24's change came first in the next session.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -189,6 +192,12 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From the browser-only refusal (its record):
+  - C2: `native` beside `hydrate` or `csr` now compiles on the host, so the ambient forms must
+    compile, and D17's one lookup (the request or the client, then the native thread, then the
+    native global) must hold, with a client mode and `native` both on. `cargo xtask refusals`'
+    host cases check that `mf2` compiles so; they check no behaviour.
+  - B3, D1: `ratatui`'s and `axum`'s cases go on both sides of `cargo xtask refusals`.
 - From B1 (its record):
   - B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (a hidden macro, re-exported)
     nor what the `leptos-mf2` shim re-exports by glob; `release.rs`'s semver check now leaves
@@ -207,7 +216,8 @@ the owner's review, which approved them (question 17).
   - ~~B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines" is checked by an
     xtask; `native` beside a browser mode was checked by hand (`probes/p10-b2/refusals.sh`).~~
     **Done by B1's review fixes:** `cargo xtask refusals`, a step of `ci`, checks each; B3 adds
-    `ratatui`'s rows (it inherits `native`'s), and D1 `axum`'s.
+    `ratatui`'s rows (it inherits `native`'s), and D1 `axum`'s. Since the browser-only refusal
+    it checks both sides: the refusals for `wasm32`, and the host combinations compiling.
   - Every task: a commit made while another task has changes staged carries them (`46303b9`
     carried B2's renames). Stage and commit by path (`git commit -- <paths>`).
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -3265,6 +3275,8 @@ items 7–9 from a read-only review of B2's. Made in the main tree; one commit p
    - *Read, not built.* At `7a7994d` (1.x), `mf2` has no `native` feature and no
      `compile_error!`, and `mf2-native` names `mf2` with `host-std` only.
    - The rule stays until the owner chooses ("Owner questions found in the work", above).
+     *Since:* the owner chose to refuse only for the browser (question 24), and the browser-only
+     refusal built it (its record, below).
 
 **Checks** (main tree, with every fix in):
 
@@ -3297,6 +3309,77 @@ The loader went `27af43e4de73` → `ed8d63b87a98`. Two rebuilds with nothing cha
 src/lib.rs; cargo leptos build --release --split --frontend-only` in `examples/demo-ssr`) gave
 `27af43e4de73` and `53b12bf3095a`, over one wasm (`82338f4b3f4c`, the same in both runs). As B2
 found, the loader's hash varies between identical builds; it is not the fixes'.
+
+## The browser-only refusal (question 24): what was built
+
+Made in the main tree, on `main`: `1dd5058`. Commands ran there, one build at a time. Logs: the
+main tree's git-ignored `target/p10-q24/` (`before/` with `bdbbd4f`'s code, `after/` with the
+change) and `target/p10-b2/logs/q24-base/` and `…/q24/` (the size runs).
+
+1. **The rule** (`crates/mf2/src/lib.rs`). The `compile_error!` for `native` beside `hydrate` or
+   `csr` now also needs `target_arch = "wasm32"`: every `wasm32` target, as question 24 words it,
+   so `wasm32-wasip1` too, where neither browser mode has a use. Its old advice (a browser client
+   and a native application in workspaces of their own) no longer holds, so the sentence now says
+   what a browser build needs: "mf2: `native` is on beside `hydrate` or `csr` in a build for the
+   browser (`wasm32`): `native` is for an application that runs natively (a command-line tool, a
+   terminal UI, a server), never for a browser build. cargo unifies features across the packages
+   it builds together: build the browser client on its own (`-p`), and keep `native` off in every
+   crate it depends on." On the host the two compile together, lint-clean: `cargo clippy -p mf2
+   --features native,leptos,hydrate -- -D warnings` exits 0, and so does the same with `csr`.
+2. **`cargo xtask refusals`, both sides.** The nine refused cases as before, the two `native` ones
+   for `wasm32-unknown-unknown` with the new sentence. Then three host cases, each a `cargo check`
+   that must pass: `native` beside `hydrate`; beside `csr`; and 1.x's workspace, a client on
+   `leptos-mf2` beside a tool on `mf2-native` (`-p leptos-mf2 -p mf2-native --features
+   leptos-mf2/csr`). *Negative control* (run once by hand): with the old `cfg` put back, it
+   passes the nine and fails at the first host case, whose one error is the refusal (exit 1).
+3. **Before and after:**
+
+   | Command | Before (`bdbbd4f`'s code) | After |
+   |---|---|---|
+   | `bash probes/p10-b2/unify.sh`: `-p web`, `-p cli`, `--workspace` | 0, 0, **101**: 19 §3's refusal, the one error | 0, 0, **0** |
+   | its workspace, `cargo check --workspace --all-targets` (rust-analyzer's default check) | | 0 |
+   | `bash probes/p10-b2/refusals.sh`: `mf2` for `wasm32` with `hydrate`, and with `csr`; the shim with `mf2/hydrate` | 101 each, the old sentence alone | 101 each, the new sentence alone |
+   | … `native,leptos,hydrate`, natively | **101**, the refusal | **0** |
+   | … `native,leptos,ssr` | 0 | 0 |
+4. **Text.** Master plan §4 (`mf2`'s row) and §4.1; 05 §9; the changelog, whose promise stands,
+   a mixed workspace included; `mf2`'s crate docs, its manifest's comment on `native`, and
+   `mf2::native`'s docs; both shims' docs and READMEs, which make the same promise and now name
+   the workspace case; the xtask's help and `ci`'s comment; `probes/p10-b2/`'s comments and
+   README. 19 §3 was amended with the answer.
+
+**Checks** (main tree, with the change):
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass**, `refusals` with its 9 + 3 | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `docs-rs` | **pass** | `CARGO_BUILD_JOBS=3 cargo xtask docs-rs` |
+
+Not run: `leptos-0-8`, `l7-web` and the full `docs`. The change compiles no client differently
+(below), leaves the 0.8 refusals and the book alone, and `ci` runs `docs --no-build`.
+
+**Sizes** (19 §14, row 1): `bash probes/p10-b2/measure.sh q24-base` with `bdbbd4f`'s code, then
+`… q24` with the change. One tree; the size workloads' locks kept (`--keep`), the demos' restored
+from `locks/base` both times, the workspace's unchanged.
+
+| Figure | Before | After | Gate |
+|---|---:|---:|---|
+| **B1**, fixed | 26,720 B gz | 26,720 | ±64 |
+| **B5**, per site | 8.167 B gz | 8.167 | ±0.2 |
+| whole app, 1,860 sites | 41,911 B gz | 41,911 | ambition 105,120 |
+| the size workloads' 12 wasm files | | byte-identical | |
+| `b5 --view`: fixed / per site, and its 12 wasm files | 24,634 / 10.5 | identical; byte-identical | |
+| **B7**: catalog-bench's report; demo-csr's `dist/` (16 files) | | identical but the report's `unix_time`; byte-identical | byte-identical |
+| the demos' shipped files, 30 (`bash probes/p10-b2/demo-hashes.sh q24-base q24`) | | byte-identical but demo-ssr's `__wasm_split` loader | ±64 B gz |
+| **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+
+The loader went `ed794eaf907b` → `27af43e4de73`. The before run's demo builds took 2–3 s each
+(nothing to recompile), and its files match B1's review fixes' last run (`fixes`) in all but that
+loader too (`ed8d63b87a98` → `ed794eaf907b`): as B2 found, its hash varies between identical
+builds.
+
+**Found along the way** (routed, above): C2's ambient forms must compile, and its one lookup hold,
+with a client mode and `native` both on, which the host now allows; B3's and D1's cases go on both
+sides of `cargo xtask refusals`.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
