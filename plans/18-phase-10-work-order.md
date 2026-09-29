@@ -240,11 +240,12 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   native), `scenarios`, `conformance-report` green. Departures: no generated `setup()` (an owner
   question, waiting); `format` without `native` and `axum` with D1; `tr` out of the prelude until C6.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
-worktrees, are removed (questions 21 and 25).
+**In flight:** C4's `setup()` (question 31), started 2026-09-29 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
-agent `mf2-task` (question 32):**
+agent `mf2-task` once a session has loaded it (question 32):**
 - **C4's `setup()`** first (question 31): generated as 19 §10 designs, and the changelog's
   "compiles unchanged" promise withdrawn wherever it is stated (question 30).
 - **C5** (Ratatui) next, checked with `probes/p10-checks/` (its README), as Part C's heading
@@ -836,9 +837,11 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
 32. **The task agents' reasoning level** (2026-09-29, with question 27) — **answered: try `high`
     and measure.** In lean mode, C4's agent re-read 33.4M tokens (141 steps, 377k at the end), a
     quarter of C1–C3's, and about 57 % of its context was its own reasoning, which stays in the
-    context for the whole run. From C4's remaining `setup()` on, task agents run as the project
-    agent `mf2-task` (`.claude/agents/mf2-task.md`, untracked: `model: opus`, `effort: high`, lean
-    mode's standing rules), and C5's figure is compared with C4's.
+    context for the whole run. Task agents run as the project agent `mf2-task`
+    (`.claude/agents/mf2-task.md`, untracked: `model: opus`, `effort: high`, lean mode's standing
+    rules). A definition loads only when a session starts, so the first task agent of the next
+    session is the first at `high`; until then task agents run as `general-purpose` with those
+    rules in their brief. The first figure at `high` is compared with C4's.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
