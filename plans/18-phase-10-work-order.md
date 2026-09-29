@@ -193,23 +193,39 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   1.0.0, `ssr`, `hydrate`, `csr` pass, `native` and `ratatui` are skipped (1.0.0 had neither), and
   `core`, `leptos-mf2` and `mf2-build` are refused for changes made before B5, which 2.0.0's major
   allows (routed to G2). No crate source changed, so sizes were not measured; `ci` green.
+- **C1** (`232f0ac`; record below, after Part C's table): `tr!`'s arguments through
+  `mf2::IntoArg`, implemented per type as 19 §7 lists (integers exact to 128 bits, `usize` without
+  saturation; `bool`; `Cow<'static, str>`; paths and `SystemTime`; jiff's instants and civil
+  dates; signals of any `IntoArg`; `&T` for `Copy` ones), with a message of ours at the argument
+  for a type that is none of them. The dispatch has **four steps** where 19 had three: after
+  `IntoArg`, 1.x's `From<T> for ArgValue` (an application's own impl, and generic code bounded on
+  it), then `Display`'s text. It picks the step from the type on a zero-sized probe, in a closure,
+  and passes the value straight in as 1.x's `ArgValue::from(e)` did: two earlier forms changed the
+  code around every argument (+1.0 B gz a site in `b5 --view`, then stack-layout noise), this one
+  compiles the size workloads to HEAD's code (the same lengths; only function numbering differs).
+  B1 26,720 → 26,728 B gz, B5 8.167 → 8.160 B a site, `b5 --view` 24,636 / 10.520 → 24,682 /
+  10.502, B7 byte-identical, the demos the same lengths (demo-csr byte-identical), B12 clean.
+  Natively, `tui-mf2`'s allocations per frame identical and +1,760 B stripped (the exact path of
+  its `usize` arguments; routed to C2). The inline short string for a `&str` was measured and not
+  kept. The checks are in the record.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **Part C** in its heading's order, each building what 19 designs; D1 (`mf2::axum`) is unblocked
-  by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1 touch the
-  same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused for
-  `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
+- **C2** (the ambient store), as Part C's heading orders (C1 and C2 after B1–B3; C3 before C4),
+  then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
+  unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
+  touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
+  for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
   `mf2`'s listed modes (B5's record).
 
-**Owner questions found in the work:** none waiting. B5 found none. B4 found none. B3 found none.
-The browser-only refusal found none. B1's review fixes found one, answered as question 24: `native`
-beside a browser mode is refused only when compiling for the browser, and B3's `ratatui` and D1's
-`axum` follow it; the browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26
-were asked with it: both measurement worktrees are removed, and question 24's change came first in
-the next session.
+**Owner questions found in the work:** none waiting. C1 found none. B5 found none. B4 found none.
+B3 found none. The browser-only refusal found none. B1's review fixes found one, answered as
+question 24: `native` beside a browser mode is refused only when compiling for the browser, and
+B3's `ratatui` and D1's `axum` follow it; the browser-only refusal built it, and B3 built
+`ratatui`'s. Questions 25 and 26 were asked with it: both measurement worktrees are removed, and
+question 24's change came first in the next session.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -222,6 +238,19 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From C1 (its record):
+  - C2: `tui-mf2` is 1,967,192 B stripped since C1 (+1,760: the exact path its `usize` arguments
+    may take on a 64-bit target), where C2's gate (19 §14) reads "≤ 1,965,320 B"; HEAD was already
+    1,965,432. C2's store (A4: a CLI 5,248 B smaller) is measured against it.
+  - F (the book): `mf2::IntoArg` for an application's own number or date type; a `Cow` that
+    borrows for less than `'static` is refused by the borrow checker (pass `&*cow`); jiff's
+    `civil::Time` is its text; `SystemTime` and jiff's `Timestamp` / `Zoned` as the plain way to pass
+    an instant, where `DateTimeValue::instant` returns an `Option` (the UX review's finding 9 keeps
+    1.x's signature). C1 updated `docs/call-sites.md`'s table of argument types; the teaching is F's.
+  - G2: `ArgValue::from(usize)` still saturates past `i64::MAX` (1.x's `From`, kept), where
+    `IntoArg` is exact; the major could make `From` exact too.
+  - Not scheduled: the refusal carries a note naming the hidden `KindNeither::__mf2_kind`; an error
+    underlining the whole argument needs `Span::join`, which is nightly-only.
 - From B5 (its record):
   - G2: against 1.0.0, `cargo xtask release`'s semver step refuses three crates at 1.1.0, a minor,
     each for a change made before B5 and allowed by 2.0.0's major: `leptos-mf2` (its items are
@@ -300,7 +329,9 @@ the owner's review, which approved them (question 17).
   (19 §6).
 - Every size investigation that keeps names: `wasm-opt --strip-dwarf` before `-Oz`, or the
   names-kept build is not the shipped one (A9).
-- C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).
+- ~~C1: a `&str` argument from a variable is copied into an `Arc<str>` (A4).~~ **Measured by C1,
+  not kept** (its record): an inline short string saves 10 of `tui-mf2`'s 1,816 allocations a
+  frame, with no time measurably saved, and costs every web client about 500 B raw.
 - C2: time the ambient lookup's first step when `ssr` and `native` are unified (A4); the B10
   times need a quiet machine (A1).
 - C7/C8: Ratatui without its default features needs `layout-cache` (A1).
@@ -342,7 +373,7 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
 | 6 | A page rendered without the request's language falls back to the source language silently; with no catalogs installed, every text renders empty | E4 |
 | 7 | `Negotiator::default()` ignores `?lang=`, which the switcher submits without the wasm, and the switcher hard-codes `lang` | D2 |
 | 8 | Path-prefix sites and the switcher | done (Phase 9 B4) |
-| 9 | Missing argument types; `DateTimeValue::instant` returns `Option`; errors name `ArgValue` | C1 |
+| 9 | Missing argument types; `DateTimeValue::instant` returns `Option`; errors name `ArgValue` | C1 (done: its record; `instant` keeps 1.x's signature, and a `SystemTime` or a jiff instant needs no `Option`) |
 | 10 | Markup closures need `\|c: AnyView\|` | D4 |
 | 11 | The message types can't be printed (`Display`) or derive `Debug` | A5, C2 |
 | 12 | `#[cfg(feature = …)]` pairs in app code to switch language, and to read it reactively | D4 |
@@ -3849,6 +3880,153 @@ Where 19 refines a row below, 19 wins:
 | **C7** `mf2 init` as a starter (native) | `mf2 init --cli` / `--tui` either creates a complete, runnable application, or adds translations to the current crate (`build.rs`, `locales/`, `cargo add mf2 -F native[,ratatui]`, `cargo add --build mf2-build`). It prints the `[profile.dev.build-override] opt-level = 2` tip, or writes it into a new application. `mf2 --help`'s summary names every command | the book runs `init` in `run=` blocks, so `cargo xtask docs` compiles what it makes; `mf2-cli` tests |
 | **C8** The samples, the native book and the gates | `examples/tui` on 2.0. `tui-gate` becomes a gate: allocations in CI (deterministic); time nightly, alternating with the kept 1.x binary; sizes. `docs/native-apps.md` rewritten as three compiled projects (the one-file CLI, the TUI whose `main` reaches it, the two-crate workspace), added to `xtask/src/docs.rs`'s projects | `cargo xtask docs` (full); `tui-gate`; the native UX rows all fall |
 | **C9** The trippy port as acceptance (the port stays untracked) | `vendor/trippy` ported to 2.0: <br>• the `thread_local` / `t!` wrapper deleted, `tr!` called directly; <br>• the messages made real MF2 (a `.match` plural instead of the `plural_flows` word; key hints as markup instead of the slicing hack; no `format!` word order); <br>• the language from `--tui-locale` through `Locale: FromStr`; <br>• upstream's 22 locale tests restored. <br>Recorded in 19 §"Prior art: trippy": call sites and keys, lines added and removed against upstream, stripped size and build time against upstream, each upstream bug class with the compile error that now catches it, and what did not fit | `cargo build` and `cargo test -p trippy-tui` in the checkout; a smoke run in a pseudo-terminal, as far as the machine allows; the record written |
+
+## C1 — arguments: what was built
+
+* **Where.** Commit `232f0ac` on `main`, made in the main tree; commands ran there, one build at a
+  time. The before figures were taken at `ca373c9`, before any change: `bash
+  probes/p10-b2/measure.sh c1-base` and `cargo xtask tui-gate --save-baseline
+  target/p10-c1/tui-base`. Logs: the main tree's git-ignored `target/p10-c1/` and
+  `target/p10-b2/logs/c1-base/`, `…/c1/` (the earlier forms' runs beside them: `c1-option`,
+  `c1-probe-of`, `c1-closure-dyn`, `c1-pre-wide`), and `target/p10-b2/checks/`. Scripts:
+  `probes/p10-c1/` (its `README.md`).
+* **What was built** (19 §7, with its "As built", which C1 added):
+  * **`mf2::IntoArg`** (`crates/mf2/src/into_arg.rs`), with `#[diagnostic::on_unimplemented]`
+    naming what an argument may be, implemented per type: `i8`…`i128`, `u8`…`u128`, `isize`,
+    `usize` and their `NonZero` forms (past `i64`, the exact decimal written digit by digit, no
+    `core::fmt`; `usize` without saturation); `f32`, `f64`, `char` and 1.x's text types as 1.x's
+    `From` made them; `bool` (the static string `true` or `false`); `Cow<'static, str>` (borrowed
+    stays static); `&Path`, `PathBuf`, `&OsStr`, `OsString` (lossy) and `SystemTime` (an
+    instant) wherever `mf2` links `std`; with `native`, jiff's `Timestamp`, `Zoned`,
+    `civil::Date` and `civil::DateTime`; `DateTimeValue`, the runtime's `DateTime`, `ArgValue`
+    itself and `Arc<C: CustomValue>`; `&T` for `T: IntoArg + Copy`. `From<&PathBuf>`,
+    `From<&OsString>` and, with `native`, `From<&Zoned>` join 1.x's `From<&String>` for the
+    references that cannot also be an `IntoArg` (E0119 beside the `&T` rule).
+  * **Signals** (`mf2::leptos`): `IntoArg` for the eight signal types over any `T: IntoArg`,
+    through a private twin of `SignalArg`; `SignalArg`, `signal_arg` and the `From` impls keep 1.x's
+    `Into<ArgValue>`.
+  * **The dispatch**, `mf2::__arg` (hidden, and listed with `tr!`'s other hidden items in
+    `docs/versioning.md`): four steps, `IntoArg`, then 1.x's `From<T> for ArgValue`, then
+    `Display`'s text (made when the description is built), then `IntoArg`'s message. `tr!`
+    (`crates/mf2-macros/src/expand.rs`) emits `convert(e, |p| (&&&p).__mf2_kind())` for every
+    argument but a string literal, with the kind traits imported in a block around the
+    description; its tokens are `mixed_site`, located at the argument, and the method a refused
+    type fails at carries the argument's own span.
+  * `extern crate std` also under `host-std`, which links it through `mf2-host-std` anyway.
+  * **In the same commit:** 19 §7 ("As built") and §16; 04 §2 and §2.1; 05 §9; the changelog;
+    `docs/call-sites.md`'s table of argument types; `docs/versioning.md`'s hidden items; `mf2`'s
+    six API listings (98–114 lines each) and `package.txt`; the tests (below); `probes/p10-c1/`.
+* **Choices within the design** (none an owner question; each in 19 §7's "As built"): the second
+  step, 1.x's `From`, which keeps an application's own `impl From<X> for ArgValue` and generic
+  code bounded `where ArgValue: From<T>` compiling (19 §14's gate "every 1.x argument type still
+  accepted"; three steps would have refused them, or turned them into their `Display` text);
+  references to non-`Copy` types through `From`; a `Cow` shorter than `'static` refused by the
+  borrow checker, as 1.x refused every `Cow`; `civil::Time` its text, since a date/time value
+  always has a date; instants floored to the millisecond, `Unset` past a `Date`'s years; the span,
+  one token on stable.
+* **The dispatch, as measured.** 19's three steps need the value by value at step 1 and a fourth
+  receiver type for step 2, which needs it too. Three forms were built and measured with `bash
+  probes/p10-b2/measure.sh`, `bash probes/p10-c1/named.sh` (names kept, before wasm-bindgen and
+  wasm-opt) and `bash probes/p10-c1/ab.sh` (the shipped modules at both scales, kept):
+
+  | Form | `tr-view` opt raw, 1,860 / 3,720 sites | What changed (observed) |
+  |---|---:|---|
+  | the value in an `Option` behind a `Deref`, so that step 2 can move it out of `&mut` | +7,501 / +15,644 (`b5 --view` 11.52 B gz a site, +1.0) | 40 of 60 components +60…+338 B: a check of the `Option<String>`'s niche at each `String` argument (a load of the capacity and a compare, in `__component_c_039`). Inference: LLVM cannot prove a returned `String`'s capacity is not the niche |
+  | the kind picked on a probe of `&value`, the value bound by a `match` | +196 / +220 (gzip +530 / −91, brotli −125 / +216; `tr` +86 / +92) | 14 components ±5 B before wasm-opt: stack-slot offsets, the same instructions; after it, 4 functions |
+  | **kept:** the kind picked in a closure given the probe, the value passed straight into `convert` | **±0 / ±0** | names kept: no function's size moves. Shipped: every section the same length; 173 and 309 bodies differ by a few bytes (call targets, table indices, and pairs of bodies that traded places), and the element section |
+
+  demo-islands moved +79 B raw under the first two forms, for two other reasons, both removed
+  (observed with `named.sh demo-islands`): the signal read shared through a generic helper that
+  was not inlined (`read::<RwSignal<i32>>`, 153 B), now written out in each `ArgSource` as 1.x's
+  was; and `String::push`, 49 B with HEAD and 100 B with a non-generic `display(&dyn Display)`.
+  Inference: that function's `to_string` gave `mf2`'s own copy of `push` a caller with any `char`.
+  `display` is generic now, so nothing of it is compiled where no argument takes the step.
+* **The web** (`bash probes/p10-b2/measure.sh c1-base` before, `… c1` after, in one tree, the size
+  workloads' and the demos' locks kept; figures as the commands print them):
+
+  | Figure | Before `ca373c9` | C1 | Gate |
+  |---|---:|---:|---|
+  | **B1**, fixed | 26,720 B gz | 26,728 | ±64 |
+  | **B5**, per site | 8.167 B gz | 8.160 | ±0.2 |
+  | whole app, 1,860 sites | 41,911 B gz | 41,905 | ambition 105,120 |
+  | `tr` opt raw, 1,860 / 3,720 | 2,419,615 / 4,455,948 | the same; 37 and 88 bodies differ as `tr-view`'s do | |
+  | **`b5 --view`**: fixed / per site | 24,636 / 10.520 | 24,682 / 10.502 | unchanged (19 §14) |
+  | `tr-view` opt raw, 1,860 / 3,720 | 1,890,752 / 3,375,126 | the same (above) | |
+  | `idlit`, `idlit-view`, `dummy` | | byte-identical | |
+  | **B7**: catalog-bench's report; demo-csr's catalogs | | identical but `unix_time`; byte-identical | byte-identical |
+  | demo-ssr's wasm, raw / gz / br | 753,393 / 315,627 / 250,981 | 753,393 / 315,623 / 250,993; 12 bodies and the element section differ in 1–2 bytes | ±64 B gz |
+  | its lazy chunk | 23,688 / 11,519 / 9,960 | 23,688 / 11,519 / 9,970; 2 bodies, 1–2 bytes | |
+  | demo-islands' wasm | 197,543 / 85,566 / 72,415 | 197,543 / 85,567 / 72,429; 2 data bytes | ±64 B gz |
+  | demo-csr's wasm and JS | 207,538 / 91,184 / 77,523 | byte-identical (trunk names both files with another hash, so `index.html` differs) | |
+  | **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+  | B1′ / B13 | | +0 B / 13,573 B avoided | +0 (`cargo xtask b12-generated`) |
+
+  Inference, brief: the renumbering comes from the closures' instances; demo-islands' two data
+  bytes are a type's identity, `SignalIntoArg` in place of `SignalArg`, as B4 read tachys'
+  `TypeId`s.
+* **The `&str` copy (19 §7):** an inline short string, a hidden `Text::Inline` of up to 22 bytes
+  (10 on `wasm32`) that `IntoArg for &str` and `char` fill (`probes/p10-c1/inline-str.patch`, `bash
+  probes/p10-c1/inline.sh`, against C1): `tui-mf2` 10 fewer allocations a frame (1,806 of 1,816),
+  288 fewer bytes, 1,168 B smaller stripped, and 367.5 against 366.3 µs a frame (load 5.28); on
+  the web every client +500 B raw fixed (`tr` +534, `tr-view` +502 at both scales; B1 26,983 B gz,
+  B5 8.176, `b5 --view` 24,866 / 10.537). **Not kept:** it saves 0.55 % of a frame's allocations
+  and no time the machine can measure, costs every web client, and a new variant of `Text`, whose
+  variants 1.x code may match exhaustively, would break the promise that a 1.x application
+  compiles unchanged.
+* **Native** (`cargo xtask tui-gate --baseline target/p10-c1/tui-base --save-baseline
+  target/p10-c1/tui-c1`; four binaries alternating, 31 runs, load 3.14):
+
+  | Binary | Stripped (B), before → C1 | Allocations per frame (en / de / es / fr), both | Median µs, before / C1 |
+  |---|---:|---|---:|
+  | `tui-mf2` | 1,965,432 → 1,967,192 (+1,760: `.text` +1,184, `.gcc_except_table` +364, `.eh_frame` +168) | 1816 / 1815 / 1816 / 1817 | 295.6 / 309.6 (ranges 261–372, 264–338) |
+  | `tui-upstream`, which uses no MF2 | 1,400,640 → 1,400,864 (+224) | 1517 / 1519 / 1518 / 1526 | 269.4 / 262.1 |
+
+  Bytes per frame identical too; the medians move both ways within the ranges, as `tui-upstream`'s
+  do. The +1,760 B, observed (`bash probes/p10-c1/tui-named.sh`, symbols kept): `exact`, the
+  decimal writer, 458 B; `draw` +680, its `usize` arguments now a call; `<usize as
+  IntoArg>::into_arg` and `<u64 …>` 42 B each. The exact path is 19's (`usize` without
+  saturation), and on a 64-bit target a `usize` may take it. Of three placements measured, the
+  conversions out of line cost least: inline, +1,618 B of symbols (`draw` +1,064); a cold shared
+  call, +1,741; out of line, sharing `exact`, +1,239 (kept). On `wasm32` every `usize` fits `i64`,
+  and nothing of it is linked.
+* **The gates** (C1's row and 19 §14's):
+
+  | Gate | Result | Command |
+  |---|---|---|
+  | `b5 --view` unchanged | the shipped modules the same lengths at both scales, the code HEAD's (above); the printed fixed / per-site figures move +46 B gz and −0.018 B | `bash probes/p10-b2/measure.sh c1`; `bash probes/p10-c1/ab.sh` |
+  | every 1.x argument type still accepted | 1.x's types by `IntoArg` (their `From`, inlined); an application's own `From` and generic code bounded on it by step 2 (`tests/arguments.rs`); the L5 suite's `ArgValue`s, the fixture, the book's projects, `examples/tui`, the demos and every workload compile unchanged | `cargo xtask ci`, `docs`, `tui-gate`, the size runs |
+  | the message at the argument | `tools/i18n-fixture/tests/ui/not_an_argument.stderr`: "`Opaque` is not a message argument" under `Opaque`, and under `Some` of `Some(3)`, with the list of what an argument may be; no "originates in the macro" note | `cargo test -p mf2-i18n-fixture --test ui` |
+  | each `IntoArg` type exact, through `compile_str` | `tests/arguments.rs` 10 tests (integers at each type's limits, past `i64` formatted and selected exactly; `bool` selected by `.match`; text kept, shared or copied; paths, lossy; `SystemTime` floored, and `Unset` past the years; dates and application values; each dispatch step, generic code included; a `Display` text made once); `tests/native.rs` (jiff); `tests/render.rs` (signals of `u64` and `bool`, read when formatted); the fixture's `a_call_site_converts_each_argument_by_its_type`, through the real macro | `cargo xtask ci` |
+
+* **The checks** (main tree, `232f0ac`'s content):
+
+  | Check | Result | Command |
+  |---|---|---|
+  | `cargo xtask ci` | **pass**: `refusals` 11 refused and 6 host cases; `docs --no-build` (120 blocks); the ledger (612 tests, 612 entries, `current_phase = P9`; 164 statements, 0 gaps; `REPORT.md` and `COVERAGE.md` unchanged); `api --check` (25 listings, `mf2`'s six written by `cargo xtask api`: 98–114 lines each, `IntoArg` and its impls); `package --check` (`mf2`'s list gains `src/__arg.rs`, `src/into_arg.rs`, `tests/arguments.rs`) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+  | `docs` | **pass**: every sample compiled | `bash probes/p10-b2/checks.sh docs` |
+  | `docs-rs` | **pass**: 19 crates, no warnings | `… docs-rs` |
+  | `codegen-matrix` | **pass**: 18 combinations (8 server, 10 client); B6 clean | `… codegen-matrix` |
+  | `scenarios` | **pass**: S1–S4 wasm identical, S5 and S6 rebuilt | `… scenarios` |
+  | `msrv` | **pass**: the 20 on Rust 1.88, five steps | `… msrv` |
+  | `leptos-0-8` | **pass**: both refusals; on 0.8, the five clippy steps, `render` 16 (the signal test is C1's), `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `l6` 3 and `layers` 4 | `… leptos-0-8` |
+  | `churn` | **84/84**; every row's live bytes and allocations as the last run's (the `signal` row 614.58 B, 19.03 allocations a row) | `… churn` |
+  | `l6-web` | **20/20** | `… l6-web` |
+  | `l7-web` | **34/34**; L7 444/444, L7c 444/444, L7d and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold | `… l7-web` |
+  | B12, B1′ / B13 | above | `… b12`, `… b12-generated` |
+
+  Not run: the six browser checks on either Leptos line (not on this task's list): the demos'
+  shipped modules differ from HEAD's only in function numbering and two data bytes, and demo-csr's
+  not at all; `l6-web` and `l7-web` render the layer's arguments in browsers.
+* **Found along the way (routed).**
+  * C2: `tui-mf2` 1,967,192 B stripped (+1,760, above), against C2's gate "≤ 1,965,320 B" (19 §14;
+    HEAD was 1,965,432).
+  * F: `IntoArg` for an application's own types; a `Cow` shorter than `'static`; `civil::Time` as
+    text; `SystemTime` and jiff's instants in place of `DateTimeValue::instant`'s `Option` (the UX
+    review's finding 9, whose `instant` keeps 1.x's signature). `docs/call-sites.md`'s table of
+    argument types is C1's; the teaching is F's.
+  * G2: `ArgValue::from(usize)` saturates (1.x's, kept), `IntoArg` does not.
+  * Not scheduled: the refusal's note naming the hidden `KindNeither::__mf2_kind`; an underline of
+    the whole argument needs `Span::join` (nightly).
 
 ## C3 (data half) — CLDR's language-matching data: what was built
 
