@@ -234,14 +234,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **The check script** (`56b4398`): `probes/p10-checks/run.sh LABEL [--against EARLIER]` runs the
   whole suite, `ci` first, into one table; `compare.sh A B` flags what moved. `c4-base` (`85672a4`):
   all 20 pass in 26 min; B1 26,733 B gz, B5 8.2, `tui-mf2` 1,809,344 B, 1,815–1,817 allocs a frame.
+- **C4** (`f33a3ea`): the generated module (19 §10, its "As built"): `Locale` with the matcher's `FromStr`,
+  clap's parser, `format`, `name`; `install`, the locale functions, `markup::*`, a prelude; each choice
+  through `mf2`'s cfg macros, one byte table for `CATALOGS` and `CORPUS`. `ci`, `codegen-matrix` (+5
+  native), `scenarios`, `conformance-report` green. Departures: no generated `setup()` (an owner
+  question, waiting); `format` without `native` and `axum` with D1; `tr` out of the prelude until C6.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27):**
-- **C4** (the generated module) first, checked against `c4-base` with `probes/p10-checks/` (its
-  README), as Part C's heading orders (C3 before C4),
-  then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
+- **C5** (Ratatui) first, checked with `probes/p10-checks/` (its README), as Part C's heading
+  orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins

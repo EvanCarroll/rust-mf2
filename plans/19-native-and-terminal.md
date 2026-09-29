@@ -1655,6 +1655,21 @@ generated one.
 `install`, `Locale` or `markup` gets E0428 at the include. A way to rename them
 (`mf2.toml`) is left for later, when an application needs one (§16).
 
+**As built (C4;** [18](18-phase-10-work-order.md), C4's entry**).** Where the
+design above did not settle a detail, or could not be built yet:
+- **the macros** are `mf2::__generated`'s; `CATALOGS` follows `mf2`'s
+  `host-std`, not `ssr`, since a 1.x crate's `ssr` may forward only
+  `mf2/host-std` (L5's do). A `Both` module gains `CORPUS` with `native`;
+- **`Locale::best_match`** returns `Option<Locale>`; `from_str` in a hydrated
+  page takes an exact tag (ASCII case aside) and links none of the matcher;
+- **`markup::*`** holds a constant for each name whose ASCII letters and digits
+  give one no other name gives; the rest (MF2 allows `+:_¡`, which L5 uses)
+  get none rather than a refusal;
+- **not built:** the generated `setup()`, which every 1.x translation crate
+  already defines (an owner question); `Locale::format` without `native`, and
+  the `axum` column, with D1; `tr` and `msg_id` in the prelude, which need C6's
+  wrapper (rust-lang/rust#52234).
+
 ## 11. The build
 
 D19, as A2 adopted it:
