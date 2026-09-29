@@ -1050,8 +1050,11 @@ Refused with a `compile_error!` that says what to write:
 - both lines;
 - a mode with no line: "mf2: `ssr` needs a Leptos line: turn on `leptos`
   (Leptos 0.9) or `leptos-0-8` beside it";
-- `native`, `ratatui` or `axum` together with `hydrate` or `csr`, which would
-  put them in a browser build (master plan §4.1).
+- `native`, `ratatui` or `axum` together with `hydrate` or `csr` **when
+  compiling for the browser** (`wasm32`), which would put them in a browser
+  build (master plan §4.1). On the host the combination compiles, so
+  `cargo check --workspace` over a browser client and a native application
+  works, as in 1.x (owner, [18](18-phase-10-work-order.md) question 24).
 
 Every other combination compiles, `ssr` with `native` included: cargo unifies
 features across a workspace. The matrix that proves it is B1's and C4's

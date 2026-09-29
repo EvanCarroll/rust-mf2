@@ -158,26 +158,25 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `docs`, `docs-rs` green; every client wasm byte-identical (the size workloads, `b5 --view`, the
   demos), B12 clean.
 
-**In flight:** nothing. Part A's probe branches and worktrees are removed (question 21). B1's
-measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
-applied, uncommitted), and B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`, B2's
-change applied, uncommitted), hold their records' outputs (and B2's the base TUI binaries). B1's
-review fixes have taken what they needed from both; removing them is the owner's call.
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
+- **The browser-only refusal** (question 24), first, before B3. `mf2` refuses `native` beside
+  `hydrate` or `csr` only when compiling for `wasm32`. On the host the combination compiles, so
+  `bash probes/p10-b2/unify.sh`'s `--workspace` case turns green, and `cargo xtask refusals`
+  checks both sides: the refusals on `wasm32`, and the host combination compiling. 19 §3 is
+  amended already; master plan §4.1, the changelog and the shims' docs follow. The changelog's
+  promise that a 1.x application compiles unchanged stands.
 - **B3** (`mf2::ratatui`), then B4 (B5 with or after B4), and Part C in its heading's order, each
   building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a time: the
-  tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal
-  beside `hydrate` / `csr`, so the waiting owner question (below) applies to it too; `cargo
-  xtask refusals` takes its rows.
+  tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal,
+  narrowed to browser builds (question 24); `cargo xtask refusals` takes its rows.
 
-**Owner questions found in the work:** **one waiting**, from B1's review fixes (item 9): a
-workspace that holds a browser client (`csr` or `hydrate` on `mf2`) and a native application on
-`mf2-native` compiled in 1.x, and in 2.0 fails `cargo check --workspace` (and rust-analyzer's
-check) with 19 §3's refusal of `native` beside a browser mode, while each crate alone compiles
-(`bash probes/p10-b2/unify.sh`). The owner chooses between the refusal as it stands, with the
-changelog's "a 1.x application compiles unchanged" qualified, and a refusal narrowed to browser
-builds; B3's `ratatui` and D1's `axum` inherit the answer. Until then the rule stays.
+**Owner questions found in the work:** none waiting. B1's review fixes found one, answered as
+question 24: `native` beside a browser mode is refused only when compiling for the browser, and
+B3's `ratatui` and D1's `axum` follow it. Questions 25 and 26 were asked with it: both
+measurement worktrees are removed, and question 24's change is the next session's first task.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -602,6 +601,37 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     modules of one crate? After the explanation above:
     > Should the native enum go back to its 1.x name, mf2::native::LocaleSource, beside
     > mf2::axum::LocaleSource? — Keep LocaleSource; or keep LocaleOrigin.
+
+24. **`native` beside a browser mode across one workspace** (found by B1's review fixes, item 9;
+    2026-09-29) — **answered: refuse only when compiling for the browser.**
+    - **The finding:** cargo unifies features across the packages it builds together. A workspace
+      with a browser client (`csr` or `hydrate` on `mf2`) and a native application on
+      `mf2-native` failed `cargo check --workspace` and rust-analyzer's check with 19 §3's
+      refusal, though each crate compiles alone (`bash probes/p10-b2/unify.sh`). 1.x compiled it.
+    - **The rule now:** the refusal applies only to a `wasm32` build, where native-only code
+      would reach a browser bundle. On the host the combination compiles, and the changelog's
+      "a 1.x application compiles unchanged" stands.
+    - B3's `ratatui` and D1's `axum` follow the same rule.
+    - **Rejected:** keeping the refusal everywhere and qualifying the promise (mixed workspaces
+      would check one package at a time, or split); dropping it (native code could reach a
+      browser bundle unnoticed).
+25. **B1's and B2's measurement worktrees** (2026-09-29) — **answered: removed.** Their figures
+    stay in the records with the scripts and patches that reproduce them; only the raw outputs
+    went.
+26. **When question 24's change is built** (2026-09-29) — **answered: first in the next session,
+    before B3.** The coordinating session closed after recording it.
+
+    *As put* (24–26 together, after B1's review fixes):
+    > In 2.0, mf2 refuses to compile if the native-app feature and a browser mode are both on …
+    > a workspace holding a browser app and a command-line tool now fails `cargo check
+    > --workspace` … What should 2.0 do? — Refuse only for browser; keep the refusal and reword
+    > the promise; or drop the refusal.
+    >
+    > The measurement copies of the tree used by the Leptos merge and the native merge still
+    > hold their raw outputs … Remove both copies? — Remove both; or keep them.
+    >
+    > If the answer needs a code change, when should it be made? — Now, before this session
+    > closes; or next session, first.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
