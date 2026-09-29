@@ -65,7 +65,7 @@
 //! [`with_locale`](crate::native::with_locale)), naming `install()`.
 //!
 //! The types are `ratatui-core`'s, which `ratatui` re-exports. 1.x's
-//! [`line`], [`text`] and [`MarkupStyles`], which take a [`NativeI18n`] and
+//! [`line`](fn@line), [`text`](fn@text) and [`MarkupStyles`], which take a [`NativeI18n`] and
 //! a map of styles on each call, are kept under their 1.x names.
 //!
 //! See the user guide's [native applications page](https://evancarroll.github.io/rust-mf2/native-apps.html).
@@ -631,7 +631,7 @@ impl PartSink for Flat<'_> {
 
 // ------------------------------------------------------------- 1.x's names
 
-/// The style of each markup name, by name: 1.x's map, which [`line`] and
+/// The style of each markup name, by name: 1.x's map, which [`line`](fn@line) and
 /// [`text`] take on each call. [`Theme`] is 2.0's.
 #[derive(Clone, Debug, Default)]
 pub struct MarkupStyles {
