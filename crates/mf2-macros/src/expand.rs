@@ -5,12 +5,15 @@
 //! exactly the message's variables, and — for a call site that supplies
 //! markup handlers at all — every markup name of the message has one.
 //! Emitted: a positional construction, spanned at the id literal, with no id
-//! string, no argument name and no markup name in it.
+//! string, no argument name and no markup name in it. Each argument is
+//! converted by `mf2::__arg`'s dispatch (`plans/19-native-and-terminal.md`
+//! §7), spanned at the argument, so a type that is not an argument is
+//! reported there.
 
 use std::sync::Arc;
 
 use mf2_catalog::{Manifest, markup_key};
-use proc_macro2::{Literal, TokenStream};
+use proc_macro2::{Ident, Literal, Span, TokenStream};
 use quote::quote_spanned;
 use syn::Expr;
 
@@ -192,9 +195,11 @@ fn check<'c>(message: &Message<'_>, call: &'c Call) -> syn::Result<Sorted<'c>> {
     }
 }
 
-/// The positional construction, spanned at the user's id literal so that a
-/// type error in an argument points at the call site rather than into the
-/// generated wrapper in someone's `OUT_DIR`.
+/// The positional construction, spanned at the user's id literal so that an
+/// error points at the call site rather than into the generated wrapper in
+/// someone's `OUT_DIR`; each argument's conversion is spanned at the
+/// argument itself, which is where a type that is not an argument is
+/// reported.
 fn emit(
     krate: &TokenStream,
     call: &Call,
@@ -208,15 +213,36 @@ fn emit(
     let id = quote_spanned! {span=> #krate::__mf2::MsgId::from_raw(#raw) };
     let rich = handlers.iter().any(Option::is_some);
     let args: Vec<&Expr> = values.iter().copied().flatten().collect();
-    // A string literal keeps its `&'static str`: `ArgValue::from(&str)` has
-    // to copy, because a call site's `&str` is rarely `'static` and the
-    // description outlives the call (04 §2.1).
+    // A string literal keeps its `&'static str`: `IntoArg for &str` has to
+    // copy, because a call site's `&str` is rarely `'static` and the
+    // description outlives the call (04 §2.1). Any other argument goes
+    // through `mf2::__arg`'s dispatch (19 §7): `IntoArg`, else a `From<T>
+    // for ArgValue` (1.x's conversion), else its `Display` text, else
+    // `IntoArg`'s own message. The value goes straight into `convert`, as it
+    // went into `ArgValue::from(e)`: never bound or borrowed here, and its
+    // temporaries live as long. The closure picks the step from the type.
+    // Our tokens are located at the argument, so that the error points
+    // there (on stable a span is one token: the argument's first), with
+    // `mixed_site` hygiene, so that the closure's parameter cannot meet the
+    // application's names and lints treat them as the macro's.
+    let converted = args.iter().any(|e| !is_str_literal(e));
     let value = |e: &&Expr| match e {
         Expr::Lit(syn::ExprLit {
             lit: syn::Lit::Str(s),
             ..
         }) => quote_spanned! {span=> #krate::__mf2::ArgValue::str_static(#s) },
-        e => quote_spanned! {span=> #krate::__mf2::ArgValue::from(#e) },
+        e => {
+            let user = syn::spanned::Spanned::span(*e);
+            let at = Span::mixed_site().located_at(user);
+            let probe = Ident::new("__mf2_probe", at);
+            // The method a type with none of the forms fails at, with the
+            // argument's own span: the error is then the application's line
+            // alone, not "originates in the macro".
+            let kind = Ident::new("__mf2_kind", user);
+            quote_spanned! {at=>
+                #krate::__mf2::__arg::convert(#e, |#probe| (&&&#probe).#kind())
+            }
+        }
     };
 
     // `tr` for a plain message, an arity-specific constructor for up to four
@@ -246,6 +272,21 @@ fn emit(
             quote_spanned! {span=> #krate::__mf2::tr_args_n(#id, [#(#values),*].into()) }
         }
     };
+    // The dispatch's steps are trait methods, so the traits are in scope for
+    // the whole description, and nowhere else.
+    let description = if converted {
+        quote_spanned! {span=>
+            {
+                #[allow(unused_imports)]
+                use #krate::__mf2::__arg::{
+                    KindDisplay as _, KindFrom as _, KindIntoArg as _, KindNeither as _,
+                };
+                #description
+            }
+        }
+    } else {
+        description
+    };
     if !rich {
         return description;
     }
@@ -260,6 +301,17 @@ fn emit(
             Some(quote_spanned! {span=> (#key, #krate::__mf2::markup(#handler)) })
         });
     quote_spanned! {span=> #krate::__mf2::tr_rich(#description, [#(#entries),*].into()) }
+}
+
+/// A string literal, which becomes `ArgValue::str_static` with no dispatch.
+fn is_str_literal(e: &Expr) -> bool {
+    matches!(
+        e,
+        Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Str(_),
+            ..
+        })
+    )
 }
 
 /// The message for a name the message does not have. A name can be either

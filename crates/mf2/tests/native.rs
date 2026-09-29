@@ -196,3 +196,55 @@ fn a_catalog_for_another_locale_is_rejected() {
         Err(NativeError::LocaleMismatch { expected, actual }) if expected == "de" && actual == "en"
     ));
 }
+
+/// jiff's instants and civil dates as `tr!` arguments (`IntoArg`, with
+/// `native`): each is the date/time value it names, to the millisecond, as
+/// the value's `Debug` shows exactly (`tests/arguments.rs` has the rest).
+#[test]
+fn jiffs_instants_and_civil_dates_are_date_arguments() {
+    use jiff::civil::date;
+    use jiff::tz::{Offset, TimeZone};
+    use mf2::{ArgValue, IntoArg};
+
+    let shown = |value: ArgValue| format!("{value:?}");
+    // A timestamp is the instant, in UTC, floored to the millisecond — also
+    // before the epoch.
+    let ts = jiff::Timestamp::new(1, 500_900_000).expect("a timestamp");
+    let one_and_a_half = "DateTime(DateTimeValue(1970-01-01T00:00:01.500 offset 0))";
+    assert_eq!(shown(ts.into_arg()), one_and_a_half);
+    assert_eq!(shown((&ts).into_arg()), one_and_a_half);
+    let before = jiff::Timestamp::new(0, -1_500_000).expect("a timestamp");
+    assert_eq!(
+        shown(before.into_arg()),
+        "DateTime(DateTimeValue(1969-12-31T23:59:59.998 offset 0))"
+    );
+
+    // A civil date and time is floating: the formatting zone applies.
+    let dt = date(2026, 9, 29).at(12, 30, 5, 123_456_789);
+    assert_eq!(
+        shown(dt.into_arg()),
+        "DateTime(DateTimeValue(2026-09-29T12:30:05.123))"
+    );
+    assert_eq!(
+        shown(date(2026, 9, 29).into_arg()),
+        "DateTime(DateTimeValue(2026-09-29T00:00:00.000))"
+    );
+
+    // A zoned value keeps its offset, and its zone when that has an IANA
+    // name, so that `timeZone=input` shows it there.
+    let paris = dt
+        .in_tz("Europe/Paris")
+        .expect("the bundled database has Paris");
+    let in_paris = "DateTime(DateTimeValue(2026-09-29T12:30:05.123 offset 7200 Europe/Paris))";
+    assert_eq!(shown(paris.clone().into_arg()), in_paris);
+    // `Zoned` is not `Copy`: its reference is `From<&Zoned>`'s, which `tr!`
+    // takes before the value's text.
+    assert_eq!(shown(ArgValue::from(&paris)), in_paris);
+    let fixed = dt
+        .to_zoned(TimeZone::fixed(Offset::constant(-5)))
+        .expect("a fixed offset");
+    assert_eq!(
+        shown(fixed.into_arg()),
+        "DateTime(DateTimeValue(2026-09-29T12:30:05.123 offset -18000))"
+    );
+}

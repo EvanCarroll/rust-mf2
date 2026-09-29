@@ -11,6 +11,7 @@ api/hydrate.txt
 api/native.txt
 api/ratatui.txt
 api/ssr.txt
+src/__arg.rs
 src/arg.rs
 src/compile.rs
 src/corpus.rs
@@ -18,6 +19,7 @@ src/debug.rs
 src/display.rs
 src/dynamic.rs
 src/error.rs
+src/into_arg.rs
 src/leptos.rs
 src/leptos/boot.rs
 src/leptos/catalog.rs
@@ -41,6 +43,7 @@ src/native.rs
 src/native/locale.rs
 src/ratatui.rs
 src/tr.rs
+tests/arguments.rs
 tests/call_site.rs
 tests/churn.rs
 tests/fallback_lang.rs

@@ -1,15 +1,17 @@
 //! A reactive argument.
 //!
-//! `tr!("users-online", count = count)` with `count: Signal<i32>` expands to
-//! `ArgValue::from(count)` like any other argument. The signal is **not**
-//! read at the call site: it is wrapped in a [`SignalArg`], and the core
-//! reads it through [`ArgSource::arg_value`] once per format — inside
-//! whatever reactive context is formatting, which is exactly where it has to
-//! be read for the node to subscribe.
+//! `tr!("users-online", count = count)` with `count: Signal<i32>` converts it
+//! through [`IntoArg`] like any other argument, for a signal of any argument
+//! type. The signal is **not** read at the call site: it is wrapped (in a
+//! [`SignalArg`] through `ArgValue::from` and [`signal_arg`], in its private
+//! twin through `IntoArg`), and the core reads it through
+//! [`ArgSource::arg_value`] once per format — inside whatever reactive
+//! context is formatting, which is exactly where it has to be read for the
+//! node to subscribe.
 //!
 //! The wrapper is generic over the signal, not over the call site: one
-//! [`SignalArg`] instance per signal *type*, so 200 call sites reading
-//! `Signal<i32>` share one. That is the difference P0.1 measured against the
+//! instance per signal *type*, so 200 call sites reading `Signal<i32>`
+//! share one. That is the difference P0.1 measured against the
 //! `move || tr!(…, count = count.get())` form, which costs a closure type
 //! per site.
 //!
@@ -25,6 +27,7 @@ use reactive_graph::traits::{Get, GetUntracked};
 use reactive_graph::wrappers::read::{ArcSignal, Signal};
 
 use crate::arg::{ArgSource, ArgValue};
+use crate::into_arg::IntoArg;
 
 /// A signal as an argument: read at format time, never before.
 pub struct SignalArg<S>(S);
@@ -65,6 +68,33 @@ where
     }
 }
 
+/// A signal as a `tr!` argument through [`IntoArg`]: [`SignalArg`] with its
+/// value converted as `tr!` converts one, so that a signal of any argument
+/// type (`u64`, `bool`, a date) is one. `SignalArg` keeps 1.x's bound,
+/// `Into<ArgValue>`, which [`signal_arg`] and the `From` impls below take.
+struct SignalIntoArg<S>(S);
+
+impl<S> ArgSource for SignalIntoArg<S>
+where
+    S: Get + GetUntracked<Value = <S as Get>::Value> + Send + Sync + 'static,
+    <S as Get>::Value: IntoArg,
+{
+    fn arg_value(&self) -> ArgValue {
+        // As `SignalArg`'s, written out rather than shared: a shared generic
+        // helper is not inlined at `opt-level = "z"`, and cost demo-islands
+        // 67 bytes (C1's record).
+        let value = if Observer::get().is_some() {
+            self.0.try_get()
+        } else {
+            self.0.try_get_untracked()
+        };
+        match value {
+            Some(value) => value.into_arg(),
+            None => ArgValue::Unset,
+        }
+    }
+}
+
 /// Any signal whose value is an argument, as an [`ArgValue`] — the escape
 /// hatch for a signal type the `From` impls below do not name.
 #[must_use]
@@ -92,6 +122,32 @@ macro_rules! signal_arg_from {
 }
 
 signal_arg_from!(
+    Signal,
+    ReadSignal,
+    RwSignal,
+    Memo,
+    ArcSignal,
+    ArcReadSignal,
+    ArcRwSignal,
+    ArcMemo,
+);
+
+/// [`IntoArg`] for each of the same signals, over any `T: IntoArg`: what
+/// `tr!` takes first. One instantiation per value type, as above.
+macro_rules! signal_into_arg {
+    ($($ty:ident),* $(,)?) => {$(
+        impl<T> IntoArg for $ty<T>
+        where
+            T: IntoArg + Clone + Send + Sync + 'static,
+        {
+            fn into_arg(self) -> ArgValue {
+                ArgValue::source(SignalIntoArg(self))
+            }
+        }
+    )*};
+}
+
+signal_into_arg!(
     Signal,
     ReadSignal,
     RwSignal,

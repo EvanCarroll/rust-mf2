@@ -1295,8 +1295,9 @@ Ratatui module.
 * **The call-site core** every `tr!` expansion goes through — `Tr`, `TrArgs`,
   `TrRich`, `TrDyn`, their constructors `tr` / `tr_args0`…`tr_args4` /
   `tr_args_n` / `tr_rich` / `tr_dyn`, `ArgValue` with a `From` for every
-  `Arg` variant and the two extension traits `ArgSource` and
-  `MarkupHandler`, and the lowering that borrows an `&[ArgValue]` into the
+  `Arg` variant, `IntoArg` and the hidden dispatch `tr!` converts an
+  argument through ([19](19-native-and-terminal.md) §7), the two extension
+  traits `ArgSource` and `MarkupHandler`, and the lowering that borrows an `&[ArgValue]` into the
   runtime's `&[Arg<'a>]`. With no mode it is Leptos-free, so a server, a
   test, `mf2-cli` and a native application use it with no Leptos in the
   tree, and it is **client-path code** (`no_std`, `forbid(unsafe_code)`, no

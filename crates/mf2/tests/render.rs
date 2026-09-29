@@ -347,3 +347,28 @@ fn the_switcher_is_a_get_form_applied_by_a_button() {
     assert!(!html.contains(" id="), "no fixed id: {html}");
     assert!(!html.contains(" for="), "{html}");
 }
+
+/// A signal of any argument type is one (`IntoArg`): `u64` past `i64` and
+/// `bool`, which 1.x's `ArgValue::from` did not take, read when the message
+/// is formatted and not before.
+#[test]
+fn a_signal_of_any_argument_type_is_read_at_format_time() {
+    use mf2::IntoArg;
+
+    // The slots are in bytewise order: `$flag` before `$n`.
+    let catalog = catalog_of(
+        ".input {$flag :string} .match $flag true {{{$n :integer} on}} * {{{$n :integer} off}}",
+        "en",
+    );
+    let (first, second) = in_request(&catalog, || {
+        let n = RwSignal::new(u64::MAX);
+        let flag = RwSignal::new(true);
+        let d = mf2::tr_args2(ID, flag.into_arg(), n.into_arg());
+        let first = d.to_plain_string();
+        n.set(3);
+        flag.set(false);
+        (first, d.to_plain_string())
+    });
+    assert_eq!(first, "18446744073709551615 on");
+    assert_eq!(second, "3 off");
+}

@@ -201,6 +201,12 @@ mf2-syntax.workspace = true
 name = "call_site"
 required-features = ["compile", "host-std", "fn-datetime"]
 
+# What a `tr!` argument may be: each `IntoArg` conversion through a catalog
+# `compile_str` writes, and the dispatch the macro expands an argument to.
+[[test]]
+name = "arguments"
+required-features = ["compile", "host-std", "fn-datetime"]
+
 # Rendering a description through the view types, on the server. Each of
 # these also needs a Leptos line, which a mode requires anyway.
 [[test]]

@@ -77,15 +77,17 @@ with plain data, formatted when shown.
 Compile-time checks (proc-macro, against the manifest — see
 [05-tooling](05-tooling.md) §4): the id exists (did-you-mean otherwise); the
 argument names equal the message's variables exactly; markup handlers, if the
-call site gives any, cover every markup name of the message (§2.1); argument
-types convert to `Arg`.
+call site gives any, cover every markup name of the message (§2.1); each
+argument's type is one `tr!` takes ([19](19-native-and-terminal.md) §7:
+`IntoArg`, else 1.x's `From<T> for ArgValue`, else its `Display` text), or
+`IntoArg`'s own error at the argument.
 
 Expansion, by shape:
 
 | Message | Expands to | Type |
 |---|---|---|
 | no variables, no markup | `$crate::__mf2::tr($crate::__mf2::MsgId::from_raw(123u32))` — a `const fn` | `Tr` — `Copy`, 4 bytes, identical on every target |
-| variables | `$crate::__mf2::tr_args2(id, ArgValue::from(a), ArgValue::from(b))` | `TrArgs` — **one** concrete type: `MsgId` + an `ArgList` holding up to 4 values inline (the reference workload's maximum) and spilling to a boxed slice beyond that (`tr_args_n(id, [_; N].into())`). (P0.1's `tr_args` constructor was generic over the array length — 3 instances in the workload; the arity-specific `tr_args1`…`tr_args4` avoid even that, and only a call site with five or more arguments instantiates a generic.) |
+| variables | `$crate::__mf2::tr_args2(id, a′, b′)`: a string literal is `ArgValue::str_static("…")`, any other argument `__mf2::__arg::convert(a, \|p\| (&&&p).__mf2_kind())`, with the dispatch's traits imported in a block around the description (19 §7; 1.x wrote `ArgValue::from(a)`) | `TrArgs` — **one** concrete type: `MsgId` + an `ArgList` holding up to 4 values inline (the reference workload's maximum) and spilling to a boxed slice beyond that (`tr_args_n(id, [_; N].into())`). (P0.1's `tr_args` constructor was generic over the array length — 3 instances in the workload; the arity-specific `tr_args1`…`tr_args4` avoid even that, and only a call site with five or more arguments instantiates a generic.) |
 | markup handlers | `$crate::__mf2::tr_rich(tr_args…, [(0x…u64, $crate::__mf2::markup(h))].into())` | `TrRich` — `TrArgs` plus type-erased handlers, each keyed by the **hash** of its markup name, not the name (§2.1) |
 
 `$crate::__mf2` is a re-export in the application's generated i18n module, so the
@@ -111,8 +113,8 @@ application use them as they are ([19](19-native-and-terminal.md) §4).
 **Where their Leptos impls live.** The orphan rule decides it: `impl Render
 for Tr` needs the trait or the type to belong to the implementing crate,
 `Render` is tachys', so the impl is in the crate that defines `Tr`. The same
-holds for `AttributeValue`, `IntoProperty`, `From<Tr> for TextProp` and
-`From<Signal<T>> for ArgValue`. They are the Leptos layer, the module
+holds for `AttributeValue`, `IntoProperty`, `From<Tr> for TextProp`,
+`From<Signal<T>> for ArgValue` and `IntoArg for Signal<T>`. They are the Leptos layer, the module
 `mf2::leptos` (`crates/mf2/src/leptos/`), compiled with a mode (`ssr`,
 `hydrate`, `csr`) and a line (`leptos` for 0.9, `leptos-0-8`); §12.1 has the
 features. Inside `mf2` each line is a dependency under a name of its own

@@ -1257,13 +1257,19 @@ is a trait of ours, implemented per type, with a
 
 **Any other type with a `Display` is an argument too, as its text.** That
 covers trippy's `KeyBinding`, an `io::Error`, an `Ipv4Addr`, or a type with an
-English `Display` of its own. `tr!` emits, for each argument, a three-step
-method dispatch on a wrapper, spanned at the argument:
-1. `Wrap<T>` by value, where `T: IntoArg` — the typed conversion;
-2. `&Wrap<T>`, where `T: Display` — the value's text, formatted when the
+English `Display` of its own. `tr!` emits, for each argument, a method
+dispatch spanned at the argument. The design had three steps on a wrapper
+holding the value; C1 built four, the second keeping 1.x's conversion, and
+chooses the step from the type alone, on a zero-sized `Probe<T>`, in a
+closure, while the value goes straight into a function as it went into 1.x's
+`ArgValue::from(e)` (below, "As built"): `convert(e, |p| (&&&p).__mf2_kind())`.
+1. `&&&Probe<T>`, where `T: IntoArg` — the typed conversion;
+2. `&&Probe<T>`, where `T: Into<ArgValue>` — 1.x's conversion, for an
+   application's own `From<T> for ArgValue` and generic code bounded on it;
+3. `&Probe<T>`, where `T: Display` — the value's text, formatted when the
    description is built;
-3. `&mut Wrap<T>`, which always applies, and whose method requires
-   `T: IntoArg` — so a type with neither gets `IntoArg`'s own message.
+4. `Probe<T>`, which always applies, and whose method requires
+   `T: IntoArg` — so a type with none of these gets `IntoArg`'s own message.
 
 **Observed** (`probes/p10-args/`, `./run.sh`, rustc 1.98.1, 2026-09-28):
 - 13 of 13 accepted cases take the step expected:
@@ -1303,6 +1309,64 @@ its fix was `.to_string()`. The book shows the MF2 way, a string selector:
 **The `&str` copy.** A `&str` from a variable is copied into an `Arc<str>`, one
 allocation per argument (A4). C1 measures an inline short string against B5 and
 keeps it only if it pays.
+
+**As built (C1;** [18](18-phase-10-work-order.md), C1's record**).** Where the
+design above did not settle a detail, or could not be built as written:
+- **A second step, 1.x's `From`.** 1.x's `tr!` wrote `ArgValue::from(e)`, so
+  an application's own `impl From<Meters> for ArgValue`, and generic code
+  bounded `where ArgValue: From<T>`, were arguments. With three steps they
+  would stop compiling, or turn silently into the type's `Display` text: the
+  promise that a 1.x application compiles unchanged, and §14's gate "every
+  1.x argument type still accepted", need them. The step comes after `IntoArg`,
+  so a built-in type converts by `IntoArg` (a `usize` exactly, where
+  `ArgValue::from` saturates), and before `Display`, so a type with both
+  keeps 1.x's conversion.
+- **The step from the type, the value untouched.** Four steps need four
+  receiver types, and the probe's wrapper has three (by value, `&`, `&mut`).
+  A first build put the value in an `Option` behind a `Deref`, for step 2 to
+  move it out of `&mut`: each `String` argument kept the `Option`'s check
+  (`b5 --view` +1.0 B gz a site). A second chose the kind on a zero-sized
+  probe of `&value`, the value bound by a `match`: the code around the
+  arguments moved by a few bytes in 14 of 60 components (`tr-view` +196 B
+  raw at 1,860 sites, which gzip read as +530 B and brotli as −125). The
+  kind is now chosen in a closure given the probe, which rustc checks after
+  `e`, and the value goes straight into `mf2::__arg::convert`, as into
+  `ArgValue::from`: the size workloads compile to the code HEAD's did (C1's
+  record).
+- **References to types that are not `Copy`.** `&T` for `T: IntoArg + Copy`
+  and an `IntoArg` for `&String` cannot both exist: rustc refuses the pair
+  (E0119), since `String` could become `Copy` upstream. `&String` keeps 1.x's
+  `From<&String>`, and `From<&PathBuf>`, `From<&OsString>` and (with
+  `native`) `From<&Zoned>` are added, all taken by step 2. `&Zoned` would
+  otherwise have been its `Display` text, not a date.
+- **`Cow<'static, str>`.** Trait selection ignores lifetimes, so a `Cow` that
+  borrows for less than `'static` takes step 1 and is refused by the borrow
+  checker ("argument requires that `name` is borrowed for `'static`"), as
+  1.x refused every `Cow`. The rustdoc says to pass `&*cow`.
+- **jiff's civil types:** `civil::Date` (a floating date at 00:00, as a date
+  literal is) and `civil::DateTime` (floating). `civil::Time` is not an
+  `IntoArg`: the runtime's date/time value always has a date, and the
+  date/time literal grammar has no time-only form, so a date would have to be
+  invented. It takes step 3, its ISO text.
+- **Instants** (`SystemTime`, `Timestamp`, `Zoned`) are floored to the
+  millisecond, the runtime's resolution, also before the epoch. A
+  `SystemTime` past the years a `Date` holds (±999,999) is
+  `ArgValue::Unset`, an Unresolved Variable. A `Zoned` keeps its offset, and
+  its zone when jiff has its IANA name.
+- **"Under std"** is wherever `mf2` links `std`: `host-std`, `native` or a
+  Leptos mode (`extern crate std` now also under `host-std`, which links it
+  through `mf2-host-std` anyway).
+- **The span.** On stable a span is one token, so the error points at the
+  argument's first token (`Some` of `Some(3)`); the trybuild case shows it.
+- **Integers past `i64`** are written by one shared function, and the five
+  wide conversions (`u64`, `i128`, `u128`, `usize`, `isize`) are out of line:
+  on a 64-bit target a `usize` argument may take that path, so a terminal UI
+  pays for it (+1,760 B stripped `tui-mf2`, its `usize` arguments; C1's
+  record). On `wasm32` every `usize` fits `i64`, and nothing of it is linked.
+- **The `&str` copy stays.** The inline short string was measured and not
+  kept: 10 of a frame's 1,816 allocations, no time measurably saved, about
+  500 B more in every web client, and a `Text` variant that 1.x code matching
+  `Text` exhaustively would not compile against (C1's record).
 
 ## 8. Ratatui
 
@@ -1705,7 +1769,9 @@ approved as written. The ones to look at first came first.
   neither needs. B2's rename to `LocaleOrigin` is undone. **The rule for every
   merge:** rename only for a clash in one scope, such as A7's root module named
   like a dependency crate (N1–N5).
-- **C1:** §7 as designed, the probe as its starting point.
+- **C1:** §7 as designed, the probe as its starting point. *Done*
+  ([18](18-phase-10-work-order.md), C1's record): §7, with four steps where
+  it had three, and what §7's "As built" lists.
 - **C2:** §5, §6. It times the lookup's first step with `ssr` and `native`
   unified (A4); it chooses how a rule-following time zone is carried; it adds
   `Debug` to the runtime's and the catalog's public types.

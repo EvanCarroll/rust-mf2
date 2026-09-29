@@ -1,0 +1,80 @@
+--- a/crates/mf2/src/arg.rs
++++ b/crates/mf2/src/arg.rs
+@@ -19,8 +19,17 @@
+     Static(&'static str),
+     /// Counted text, shared by every clone.
+     Shared(Arc<str>),
++    /// Short text held in place: its length, and its bytes (the variant
++    /// Phase 10's C1 measured, `probes/p10-c1/`).
++    #[doc(hidden)]
++    Inline(u8, [u8; INLINE_TEXT]),
+ }
+ 
++/// The longest text held in place: what fits beside the tag and the length
++/// in the room the two pointer variants take (22 bytes on 64-bit targets, 10
++/// on 32-bit ones, `wasm32` among them).
++const INLINE_TEXT: usize = 3 * core::mem::size_of::<usize>() - 2;
++
+ /// The text itself, quoted: whether it is shared is not what a reader of
+ /// `{:?}` wants to know.
+ impl core::fmt::Debug for Text {
+@@ -36,6 +45,24 @@
+         match self {
+             Text::Static(s) => s,
+             Text::Shared(s) => s,
++            Text::Inline(len, bytes) => bytes
++                .get(..usize::from(*len))
++                .and_then(|b| core::str::from_utf8(b).ok())
++                .unwrap_or(""),
++        }
++    }
++
++    /// A copy of `s`: in place when it is short, else shared.
++    pub(crate) fn copied(s: &str) -> Text {
++        let mut bytes = [0u8; INLINE_TEXT];
++        match u8::try_from(s.len()) {
++            Ok(len) if s.len() <= INLINE_TEXT => {
++                for (to, from) in bytes.iter_mut().zip(s.as_bytes()) {
++                    *to = *from;
++                }
++                Text::Inline(len, bytes)
++            }
++            _ => Text::Shared(Arc::from(s)),
+         }
+     }
+ }
+--- a/crates/mf2/src/into_arg.rs
++++ b/crates/mf2/src/into_arg.rs
+@@ -125,8 +125,6 @@
+     u32,
+     f32,
+     f64,
+-    char,
+-    &str,
+     String,
+     Arc<str>,
+     Text,
+@@ -147,6 +145,23 @@
+     }
+ }
+ 
++/// A copy of the text: in place when it is short (C1's inline variant).
++impl IntoArg for &str {
++    #[inline]
++    fn into_arg(self) -> ArgValue {
++        ArgValue::Str(Text::copied(self))
++    }
++}
++
++/// As `&str`.
++impl IntoArg for char {
++    #[inline]
++    fn into_arg(self) -> ArgValue {
++        let mut buf = [0u8; 4];
++        ArgValue::Str(Text::copied(self.encode_utf8(&mut buf)))
++    }
++}
++
+ /// An integer that may not fit `i64`: exact either way. These five are out
+ /// of line, and share one decimal writer: inline, the branch and the call
+ /// went into every `usize` argument of a terminal UI (C1's record).

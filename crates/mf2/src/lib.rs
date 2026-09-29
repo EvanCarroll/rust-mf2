@@ -6,8 +6,9 @@
 //! What a `tr!` call site builds is a small **description** of a message —
 //! [`Tr`], [`TrArgs`], [`TrRich`], [`TrDyn`] — and nothing is formatted
 //! until something renders or stringifies it. The descriptions and their
-//! arguments ([`ArgValue`]) are defined here, once, with every integration
-//! added behind a feature:
+//! arguments ([`ArgValue`], converted from the call site's values through
+//! [`IntoArg`]) are defined here, once, with every integration added behind
+//! a feature:
 //!
 //! | Feature | Adds |
 //! |---|---|
@@ -112,8 +113,11 @@
 
 extern crate alloc;
 // The Leptos layer needs `std`, which its dependencies need anyway; so does
-// the native module, which reads files and the system's settings.
+// the native module, which reads files and the system's settings. With the
+// native host (a server, a test, a native application) `std` is linked
+// already, and `tr!` takes paths and `SystemTime` as arguments.
 #[cfg(any(
+    feature = "host-std",
     feature = "native",
     all(
         any(feature = "ssr", feature = "hydrate", feature = "csr"),
@@ -237,6 +241,7 @@ mod debug;
 mod display;
 mod dynamic;
 mod error;
+mod into_arg;
 mod markup;
 mod message;
 mod tr;
@@ -272,12 +277,19 @@ pub use message::Message;
 /// catalog the caller supplies.
 pub use arg::{ArgList, ArgSource, ArgValue, DateTimeValue, Text};
 pub use dynamic::TrDyn;
+pub use into_arg::IntoArg;
 pub use markup::{Handler, IntoMarkupHandler};
 pub use tr::{MarkupHandler, Tr, TrArgs, TrRich};
 
 /// What `tr!` and the generated module expand to; never written by hand.
 #[doc(hidden)]
 pub use dynamic::tr_dyn;
+// How `tr!` converts an argument (`IntoArg`, else 1.x's `From`, else
+// `Display`, else `IntoArg`'s message); never written by hand. Its
+// documentation is the module's own: an outer doc comment here would make
+// rustdoc resolve the module's links at the root.
+#[doc(hidden)]
+pub mod __arg;
 #[doc(hidden)]
 pub use markup::markup;
 #[doc(hidden)]

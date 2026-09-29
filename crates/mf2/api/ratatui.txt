@@ -157,6 +157,12 @@ impl core::clone::Clone for mf2::ArgValue
 pub fn mf2::ArgValue::clone(&self) -> Self
 impl core::convert::From<&alloc::string::String> for mf2::ArgValue
 pub fn mf2::ArgValue::from(&alloc::string::String) -> mf2::ArgValue
+impl core::convert::From<&jiff::zoned::Zoned> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&jiff::zoned::Zoned) -> mf2::ArgValue
+impl core::convert::From<&std::ffi::os_str::OsString> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&std::ffi::os_str::OsString) -> mf2::ArgValue
+impl core::convert::From<&std::path::PathBuf> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&std::path::PathBuf) -> mf2::ArgValue
 impl core::convert::From<&str> for mf2::ArgValue
 pub fn mf2::ArgValue::from(&str) -> mf2::ArgValue
 impl core::convert::From<alloc::string::String> for mf2::ArgValue
@@ -193,6 +199,8 @@ impl core::convert::From<usize> for mf2::ArgValue
 pub fn mf2::ArgValue::from(usize) -> mf2::ArgValue
 impl core::fmt::Debug for mf2::ArgValue
 pub fn mf2::ArgValue::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::IntoArg for mf2::ArgValue
+pub fn mf2::ArgValue::into_arg(self) -> mf2::ArgValue
 impl<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static> core::convert::From<alloc::sync::Arc<C>> for mf2::ArgValue
 pub fn mf2::ArgValue::from(alloc::sync::Arc<C>) -> mf2::ArgValue
 #[non_exhaustive] pub enum mf2::CompileError
@@ -231,6 +239,8 @@ impl core::convert::From<mf2::Text> for mf2::ArgValue
 pub fn mf2::ArgValue::from(mf2::Text) -> mf2::ArgValue
 impl core::fmt::Debug for mf2::Text
 pub fn mf2::Text::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::IntoArg for mf2::Text
+pub fn mf2::Text::into_arg(self) -> mf2::ArgValue
 pub struct mf2::ArgList(_)
 impl mf2::ArgList
 pub fn mf2::ArgList::as_slice(&self) -> &[mf2::ArgValue]
@@ -281,6 +291,8 @@ impl core::convert::From<mf2_runtime::datetime::DateTime<'_>> for mf2::DateTimeV
 pub fn mf2::DateTimeValue::from(mf2_runtime::datetime::DateTime<'_>) -> mf2::DateTimeValue
 impl core::fmt::Debug for mf2::DateTimeValue
 pub fn mf2::DateTimeValue::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl mf2::IntoArg for mf2::DateTimeValue
+pub fn mf2::DateTimeValue::into_arg(self) -> mf2::ArgValue
 pub struct mf2::Handler<H>(pub H)
 impl<H: mf2::MarkupHandler + 'static> mf2::IntoMarkupHandler for mf2::Handler<H>
 pub fn mf2::Handler<H>::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
@@ -357,6 +369,102 @@ pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn m
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
 pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
+pub trait mf2::IntoArg
+pub fn mf2::IntoArg::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for &std::ffi::os_str::OsStr
+pub fn &std::ffi::os_str::OsStr::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for &std::path::Path
+pub fn &std::path::Path::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for &str
+pub fn &str::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for alloc::borrow::Cow<'static, str>
+pub fn alloc::borrow::Cow<'static, str>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for alloc::string::String
+pub fn alloc::string::String::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for alloc::sync::Arc<str>
+pub fn alloc::sync::Arc<str>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for bool
+pub fn bool::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for char
+pub fn char::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<i128>
+pub fn core::num::nonzero::NonZero<i128>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<i16>
+pub fn core::num::nonzero::NonZero<i16>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<i32>
+pub fn core::num::nonzero::NonZero<i32>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<i64>
+pub fn core::num::nonzero::NonZero<i64>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<i8>
+pub fn core::num::nonzero::NonZero<i8>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<isize>
+pub fn core::num::nonzero::NonZero<isize>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<u128>
+pub fn core::num::nonzero::NonZero<u128>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<u16>
+pub fn core::num::nonzero::NonZero<u16>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<u32>
+pub fn core::num::nonzero::NonZero<u32>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<u64>
+pub fn core::num::nonzero::NonZero<u64>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<u8>
+pub fn core::num::nonzero::NonZero<u8>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for core::num::nonzero::NonZero<usize>
+pub fn core::num::nonzero::NonZero<usize>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for f32
+pub fn f32::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for f64
+pub fn f64::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for i128
+pub fn i128::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for i16
+pub fn i16::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for i32
+pub fn i32::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for i64
+pub fn i64::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for i8
+pub fn i8::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for isize
+pub fn isize::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::civil::date::Date
+pub fn jiff::civil::date::Date::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::civil::datetime::DateTime
+pub fn jiff::civil::datetime::DateTime::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::timestamp::Timestamp
+pub fn jiff::timestamp::Timestamp::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::zoned::Zoned
+pub fn jiff::zoned::Zoned::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for mf2::ArgValue
+pub fn mf2::ArgValue::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for mf2::DateTimeValue
+pub fn mf2::DateTimeValue::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for mf2::Text
+pub fn mf2::Text::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for mf2_runtime::datetime::DateTime<'_>
+pub fn mf2_runtime::datetime::DateTime<'_>::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for std::ffi::os_str::OsString
+pub fn std::ffi::os_str::OsString::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for std::path::PathBuf
+pub fn std::path::PathBuf::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for std::time::SystemTime
+pub fn std::time::SystemTime::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for u128
+pub fn u128::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for u16
+pub fn u16::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for u32
+pub fn u32::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for u64
+pub fn u64::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for u8
+pub fn u8::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for usize
+pub fn usize::into_arg(self) -> mf2::ArgValue
+impl<C: mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync + 'static> mf2::IntoArg for alloc::sync::Arc<C>
+pub fn alloc::sync::Arc<C>::into_arg(self) -> mf2::ArgValue
+impl<T: mf2::IntoArg + core::marker::Copy> mf2::IntoArg for &T
+pub fn &T::into_arg(self) -> mf2::ArgValue
 pub trait mf2::IntoMarkupHandler
 pub fn mf2::IntoMarkupHandler::into_markup_handler(self) -> alloc::sync::Arc<dyn mf2::MarkupHandler>
 impl mf2::IntoMarkupHandler for alloc::sync::Arc<dyn mf2::MarkupHandler>

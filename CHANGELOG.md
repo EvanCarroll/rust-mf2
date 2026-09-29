@@ -178,6 +178,24 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   client and a terminal UI checks as one. **`mf2-ratatui` is a shim** that
   re-exports the three under 1.x's names and paths, so a 1.x application
   compiles unchanged.
+* **`tr!` takes any number, text, date or path, and any type with
+  `Display`.** An argument converts through the new `mf2::IntoArg`, which an
+  application may implement for its own types: every integer type exactly
+  (`u64`, `i128` and `u128` past `i64` as their exact decimal, and `usize`
+  without saturating; `ArgValue::from(usize)` still saturates, as in 1.x),
+  the `NonZero` integers, `bool` as the string `true` or `false`, which
+  `.match` selects on, `Cow<'static, str>` (borrowed text stays borrowed),
+  `&Path`, `PathBuf`, `&OsStr` and `OsString` (their text, lossy where it
+  is not UTF-8), `SystemTime` (an instant), with `native` jiff's
+  `Timestamp`, `Zoned`, `civil::Date` and `civil::DateTime`, a signal of
+  any of these, and `&T` for any of them that is `Copy`. Any other type with
+  a `Display` is an argument as its text, made when the description is
+  built: an `io::Error`, an address, a key binding. That text is not
+  translated; a word that needs a translation is a string the message
+  selects on. A type that is none of these is a compile error at the
+  argument, in `IntoArg`'s words, where 1.x's named `ArgValue`. Every type
+  1.x's `tr!` took still converts as it did, an application's own
+  `From<T> for ArgValue` included.
 
 ## 1.0.0
 

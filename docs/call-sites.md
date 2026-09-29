@@ -193,12 +193,20 @@ pub fn Order(customer: String, items: u32, total: f64) -> impl IntoView {
 
 | From | Is |
 |---|---|
-| `&str`, `String`, `&String`, `Arc<str>`, `char` | a string. A literal is kept as it is, an `Arc<str>` is shared as it is, and other text is copied once into a shared string |
-| `i8`…`i64`, `u8`…`u32`, `usize` | an integer |
+| `&str`, `String`, `&String`, `Arc<str>`, `char`, `Cow<'static, str>` | a string. A literal and a borrowed `Cow` are kept as they are, an `Arc<str>` is shared as it is, and other text is copied once into a shared string |
+| `i8`…`i128`, `u8`…`u128`, `isize`, `usize`, and their `NonZero` forms | an integer, exactly: past `i64`, its exact decimal |
 | `f32`, `f64` | a floating-point number |
+| `bool` | the string `true` or `false`, which `.match` selects on |
 | `ArgValue::decimal("19.99")` | an exact decimal, as its text |
-| `DateTimeValue` | a date and time (below) |
+| `DateTimeValue`, `SystemTime` | a date and time (below) |
+| `&Path`, `PathBuf`, `&OsStr`, `OsString` | its text |
 | a signal: `Signal`, `ReadSignal`, `RwSignal`, `Memo` (and their `Arc` forms) | its value, read when the message is formatted (below) |
+| `&T`, for any of these that is `Copy` | the value |
+| any other type with `Display` (an error, an address) | its text, which is not translated |
+
+Anything else is a compile error at the argument that says what an argument
+may be. A type of your own implements `Display` to pass its text, or
+`mf2::IntoArg` to pass it as a number or a date.
 
 ### Dates
 

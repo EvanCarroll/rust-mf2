@@ -1,0 +1,59 @@
+error[E0277]: `Opaque` is not a message argument
+ --> tests/ui/not_an_argument.rs:7:54
+  |
+7 |     let _ = mf2_i18n_fixture::tr!("greeting", name = Opaque);
+  |                                                      ^^^^^^ neither a number, a string, a date, a path nor a type with `Display`
+  |
+help: the trait `IntoArg` is not implemented for `Opaque`
+ --> tests/ui/not_an_argument.rs:4:1
+  |
+4 | struct Opaque;
+  | ^^^^^^^^^^^^^
+  = note: a `tr!` argument is an integer, a float, a `bool`, a `char`, text (`&str`, `String`, `Cow<'static, str>`, `Arc<str>`), a date (`DateTimeValue`, `SystemTime`, jiff's types with `native`), a path, a signal of one of these, or any type with `Display`, as its text
+  = note: for a type of your own, implement `Display` to pass its text, or `mf2::IntoArg` to pass it as a number, a date or a value a custom function reads
+  = help: the following other types implement trait `IntoArg`:
+            &OsStr
+            &Path
+            &str
+            Arc<C>
+            Arc<str>
+            ArgValue
+            Cow<'static, str>
+            DateTimeValue
+          and $N others
+note: required by a bound in `__mf2::__arg::KindNeither::__mf2_kind`
+ --> $WORKSPACE/crates/mf2/src/__arg.rs
+  |
+  |     fn __mf2_kind(self) -> ViaNeither
+  |        ---------- required by a bound in this associated function
+  |     where
+  |         T: IntoArg;
+  |            ^^^^^^^ required by this bound in `KindNeither::__mf2_kind`
+
+error[E0277]: `Option<{integer}>` is not a message argument
+ --> tests/ui/not_an_argument.rs:9:55
+  |
+9 |     let _ = mf2_i18n_fixture::tr!("received", count = Some(3));
+  |                                                       ^^^^ neither a number, a string, a date, a path nor a type with `Display`
+  |
+  = help: the trait `IntoArg` is not implemented for `Option<{integer}>`
+  = note: a `tr!` argument is an integer, a float, a `bool`, a `char`, text (`&str`, `String`, `Cow<'static, str>`, `Arc<str>`), a date (`DateTimeValue`, `SystemTime`, jiff's types with `native`), a path, a signal of one of these, or any type with `Display`, as its text
+  = note: for a type of your own, implement `Display` to pass its text, or `mf2::IntoArg` to pass it as a number, a date or a value a custom function reads
+  = help: the following other types implement trait `IntoArg`:
+            &OsStr
+            &Path
+            &str
+            Arc<C>
+            Arc<str>
+            ArgValue
+            Cow<'static, str>
+            DateTimeValue
+          and $N others
+note: required by a bound in `__mf2::__arg::KindNeither::__mf2_kind`
+ --> $WORKSPACE/crates/mf2/src/__arg.rs
+  |
+  |     fn __mf2_kind(self) -> ViaNeither
+  |        ---------- required by a bound in this associated function
+  |     where
+  |         T: IntoArg;
+  |            ^^^^^^^ required by this bound in `KindNeither::__mf2_kind`

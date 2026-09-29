@@ -70,6 +70,46 @@ mod tests {
         assert_eq!(tr!("help").format(&f), "Press Esc to close");
     }
 
+    /// Each argument through the step of the macro's dispatch its type allows
+    /// (`plans/19-native-and-terminal.md` §7): `IntoArg` (a `u64` past
+    /// `i64`, a `bool`, a path, a variable's `&str`), 1.x's `From` (`&String`),
+    /// and any other type's `Display` text.
+    #[cfg(all(feature = "ssr", not(feature = "split-catalogs")))]
+    #[test]
+    fn a_call_site_converts_each_argument_by_its_type() {
+        static CX: mf2::FormatContext = mf2::FormatContext::new(&mf2::host_std::HOST);
+        let bytes = super::catalog("en").expect("en is embedded");
+        let catalog = mf2::Catalog::new(bytes.to_vec(), super::MANIFEST_HASH)
+            .expect("the embedded catalog loads");
+        let f = mf2::Formatter::new(&catalog, super::registry(), &CX);
+        let hello = |name: &str| format!("Hello, \u{2068}{name}\u{2069}!");
+
+        assert_eq!(
+            tr!("received", count = u64::MAX).format(&f),
+            "You have 18446744073709551615 of them"
+        );
+        assert_eq!(tr!("items", count = 1_u64).format(&f), "1 item");
+        assert_eq!(tr!("items", count = &2_u8).format(&f), "2 items");
+        let who = String::from("Ada");
+        assert_eq!(
+            tr!("greeting", name = who.as_str()).format(&f),
+            hello("Ada")
+        );
+        assert_eq!(tr!("greeting", name = &who).format(&f), hello("Ada"));
+        assert_eq!(tr!("greeting", name = true).format(&f), hello("true"));
+        let dir = std::path::Path::new("locales");
+        assert_eq!(tr!("greeting", name = dir).format(&f), hello("locales"));
+        let error = std::io::Error::other("no such file");
+        assert_eq!(
+            tr!("greeting", name = error).format(&f),
+            hello("no such file")
+        );
+        assert_eq!(
+            tr!("greeting", name = std::net::Ipv4Addr::LOCALHOST).format(&f),
+            hello("127.0.0.1")
+        );
+    }
+
     /// The rich expansion: handlers for every markup name of the message,
     /// found again by the name the catalog gives at render time — which is
     /// what a renderer does, without the name ever being in the wasm.

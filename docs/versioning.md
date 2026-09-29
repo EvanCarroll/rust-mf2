@@ -46,7 +46,8 @@ neither breaks a program that 1.0 built. Anything that would is 2.0.
   them yourself. They are:
   * what `tr!` and the generated module expand to (`tr`, `tr_args0` …
     `tr_args_n`, `tr_rich`, `tr_dyn`, `markup`, `ArgValue::str_static`,
-    the proc-macros of `mf2-macros`), and the bits of a `MsgId`;
+    the argument dispatch `mf2::__arg`, the proc-macros of `mf2-macros`),
+    and the bits of a `MsgId`;
   * `mf2-build`'s pipeline — every module (`config`, `loader`, `corpus`,
     `manifest`, `check`, `slice`, `catalog`, `codegen`, `pseudo`, …) — and
     what the build hands the command line (`Outcome::catalogs`,
