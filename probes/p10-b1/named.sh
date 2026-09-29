@@ -4,7 +4,12 @@
 # function-level reading of the move (A7's method: cargo's own build, before
 # wasm-bindgen and wasm-opt; twiggy; probes/p10-names/twiggy-norm-diff.py).
 #
-#   bash probes/p10-b1/named.sh PATCH
+#   bash probes/p10-b1/named.sh probes/p10-b1/b1-static.patch
+#
+# From the root of B1's measurement tree, where that patch is applied:
+# `b1-static.patch` is B1's change as that tree holds it (the code is
+# 1023d57's; only comments differ), reversed for the base build and applied
+# again for B1's.
 set -eu
 patch=${1:?the B1 patch}
 cd "$(dirname "$0")/../.."

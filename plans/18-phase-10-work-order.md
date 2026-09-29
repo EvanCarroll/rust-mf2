@@ -2904,7 +2904,9 @@ change applied; `bash probes/p10-b1/measure-demos.sh table` with
 this tree (A7: +459 / +130 / −8).
 
 **demo-ssr's −136 B gz is outside ±64, downward.** Read as 19 §14 asks
-(`bash probes/p10-b1/named.sh`: the client with names kept, cargo's output
+(`bash probes/p10-b1/named.sh probes/p10-b1/b1-static.patch`, the patch
+being B1's change as the measurement tree holds it: the client with names
+kept, cargo's output
 before wasm-bindgen and wasm-opt, joined on normalized names): net −409 B of
 code and −72 B of data, every changed item the same function under a name
 carrying `<Mf2>`, except that the switch's submit handler is 51 B smaller
@@ -2976,6 +2978,13 @@ demo-islands formats nothing otherwise, so its first `format!` brings
 (`format!("{}", …)` +410). Over that control, the `Debug` of a `TrArgs` is
 +929 B gz. Two leaner forms of the writers were tried there and were larger
 (`write_str` for every character: +38 B gz; digits through a buffer: +56).
+Their code was not kept; `probes/p10-b1/debug-writestr.patch` and
+`debug-buffer.patch` reconstruct it, and `bash
+probes/p10-b1/debug-variants.sh` (in the measurement tree) builds S2 and
+both, one after the other: 200,681 / 86,942 B raw / gz for S2 (B1's own
+build of it, byte for byte), then 200,792 / 86,980 (+38) and 200,813 /
+86,998 (+56). The buffer's build is byte-identical to the one B1 left in
+that tree (B1's review fixes).
 A9 measured S2 in the fixture, `tr-view`, demo-csr and demo-ssr, not in
 demo-islands. **The owner's reading (question 18):** the cap counts our
 code's own cost, over a base that already formats text, so the row holds.

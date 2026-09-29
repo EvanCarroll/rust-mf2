@@ -1,0 +1,50 @@
+--- a/crates/mf2/src/debug.rs
++++ b/crates/mf2/src/debug.rs
+@@ -20,10 +20,7 @@
+ 
+ /// `n` in decimal.
+ pub(crate) fn uint(f: &mut Formatter<'_>, n: u64) -> Result {
+-    if n >= 10 {
+-        uint(f, n / 10)?;
+-    }
+-    f.write_char(digit(n % 10))
++    fixed(f, n, 1)
+ }
+ 
+ /// `n` in decimal, with its sign.
+@@ -34,12 +31,19 @@
+     uint(f, n.unsigned_abs())
+ }
+ 
+-/// `n` in decimal on exactly `width` digits, zero-padded.
+-pub(crate) fn fixed(f: &mut Formatter<'_>, n: u64, width: u32) -> Result {
+-    if width > 1 {
+-        fixed(f, n / 10, width - 1)?;
++/// `n` in decimal on at least `width` digits, zero-padded: the digits into a
++/// buffer, then the buffer through one `write_str`.
++pub(crate) fn fixed(f: &mut Formatter<'_>, mut n: u64, width: u32) -> Result {
++    let mut buf = [b'0'; 20];
++    let mut i = buf.len();
++    while i > 0 && (n > 0 || buf.len() - i < width as usize) {
++        i -= 1;
++        if let Some(slot) = buf.get_mut(i) {
++            *slot = b'0' + (n % 10) as u8;
++        }
++        n /= 10;
+     }
+-    f.write_char(digit(n % 10))
++    f.write_str(core::str::from_utf8(buf.get(i..).unwrap_or_default()).unwrap_or_default())
+ }
+ 
+ /// `x`, to six fraction digits at most (trailing zeros dropped).
+@@ -93,10 +97,6 @@
+     f.write_char(')')
+ }
+ 
+-fn digit(d: u64) -> char {
+-    char::from_digit(u32::try_from(d).unwrap_or(0), 10).unwrap_or('0')
+-}
+-
+ #[cfg(test)]
+ mod tests {
+     use alloc::string::String;
