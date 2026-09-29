@@ -184,23 +184,32 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   demos byte-identical but demo-ssr's `__wasm_split` loader, B12 clean; `conformance-report`,
   `l6-web` 20/20, `l7-web` 34/34, `ci`, `leptos-0-8`, `churn`, `fluent-migrate`, `fluent-ab` and
   the six browser checks on both Leptos lines green; the ledger unchanged.
+- **B5** (`97b0cd4`; record below): `mf2`'s public API listed per mode,
+  `crates/mf2/api/{core,ssr,hydrate,csr,native,ratatui}.txt`, from `[package.metadata.api]` in its
+  manifest, and compared with 1.0.0 per mode by `cargo xtask release` (1.0.0's Leptos line spelled
+  `leptos-mf2/leptos-0-9` there). The listings now name `mf2::leptos::islands_gate!` and, in the
+  `leptos-mf2` shim's, each name its glob re-export brings. **Part B is done.** The negative control
+  fails `api --check` on `api/hydrate.txt` alone; before B5 the same item passed it. Against
+  1.0.0, `ssr`, `hydrate`, `csr` pass, `native` and `ratatui` are skipped (1.0.0 had neither), and
+  `core`, `leptos-mf2` and `mf2-build` are refused for changes made before B5, which 2.0.0's major
+  allows (routed to G2). No crate source changed, so sizes were not measured; `ci` green.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B5** (the API listed per mode) first, then Part C in its heading's order, each building what
-  19 designs; D1 (`mf2::axum`) is unblocked by B4, as Part D's heading orders (D1 after B4). One
-  task at a time: the tasks after B1 touch the same crates and plans. D1's `axum` follows
-  `native`'s and `ratatui`'s rule, refused for `wasm32` only (question 24), with its cases on both
-  sides of `cargo xtask refusals`.
+- **Part C** in its heading's order, each building what 19 designs; D1 (`mf2::axum`) is unblocked
+  by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1 touch the
+  same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused for
+  `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
+  `mf2`'s listed modes (B5's record).
 
-**Owner questions found in the work:** none waiting. B4 found none. B3 found none. The browser-only
-refusal found none. B1's review fixes found one, answered as question 24: `native` beside a browser
-mode is refused only when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it;
-the browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26 were asked with
-it: both measurement worktrees are removed, and question 24's change came first in the next
-session.
+**Owner questions found in the work:** none waiting. B5 found none. B4 found none. B3 found none.
+The browser-only refusal found none. B1's review fixes found one, answered as question 24: `native`
+beside a browser mode is refused only when compiling for the browser, and B3's `ratatui` and D1's
+`axum` follow it; the browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26
+were asked with it: both measurement worktrees are removed, and question 24's change came first in
+the next session.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -213,6 +222,23 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From B5 (its record):
+  - G2: against 1.0.0, `cargo xtask release`'s semver step refuses three crates at 1.1.0, a minor,
+    each for a change made before B5 and allowed by 2.0.0's major: `leptos-mf2` (its items are
+    `mf2`'s now, and cargo-semver-checks does not follow a re-export into another crate; the shim's
+    names are held by its test and its listing), `mf2`'s `core` (`ssr`, `hydrate`, `csr` no longer
+    turn on `leptos`: 19 §3's rule) and `mf2-build` (E1's `Lint::DroppedMarkup` moved the later
+    variants' discriminants). HEAD's release makes the same three comparisons.
+  - G1: `docs/versioning.md` says each crate commits `api.txt`, and every listing's first line says
+    "1.x promises"; `mf2`'s listings are per mode in `api/` since B5.
+  - D1: `axum` joins `[package.metadata.api.modes]` (`api/axum.txt`), and not
+    `baseline."1.0.0"`, since 1.0.0's `mf2` had no `axum`. A glob re-export of `mf2::axum` in the
+    `mf2-axum` shim is listed name by name, as `leptos-mf2`'s is.
+  - D6: docs.rs shows `islands_gate!` neither in `mf2::leptos` (rustdoc drops a re-export of a
+    hidden macro; the module's link to it renders as plain text) nor on the `leptos-mf2` shim's
+    page, as 1.x's did; that page, through its glob, shows `mf2::leptos`'s hidden items
+    (`installed`, `live_nodes`, `CatalogEntry`, the view states) instead. D6 moves the book's and
+    the islands demo's `leptos_mf2::islands_gate!()` to `mf2::leptos`; G1 deletes the shim.
 - From B4 (its record):
   - D6 (with D1 and D5): `docs/migrating-from-leptos-fluent.md`, which D6's row does not name,
     finishes a migration on the shims, and so do `mf2 convert --from leptos-fluent`'s
@@ -234,9 +260,10 @@ the owner's review, which approved them (question 17).
   - ~~B3~~, D1: `ratatui`'s and `axum`'s cases go on both sides of `cargo xtask refusals`.
     **B3's are in** (its record); D1's remain.
 - From B1 (its record):
-  - B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (a hidden macro, re-exported)
+  - ~~B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (a hidden macro, re-exported)
     nor what the `leptos-mf2` shim re-exports by glob; `release.rs`'s semver check now leaves
-    `leptos` out of `mf2`'s features too (1.0.0's needs a line from `leptos-mf2`).
+    `leptos` out of `mf2`'s features too (1.0.0's needs a line from `leptos-mf2`).~~ **Done by
+    B5** (its record): both listed; `mf2` compared per mode, `native` and `ratatui` (B2, B3) too.
   - C2: `missing_debug_implementations` warns in `mf2`; the runtime's and the catalog's types
     remain C2's.
   - Whoever next edits `CLAUDE.md`: its client-path list names `leptos-mf2`, whose code is now
@@ -3679,6 +3706,123 @@ only), no book page and no example; `ci` runs `docs --no-build`, `api --check` a
   holds whatever D1 makes of `mf2-axum`; the comments name it.
 * Every size A/B that changes a template: `--keep` reuses the generated applications as they
   stand; `probes/p10-b4/regen.sh` generates them again in place, each keeping its lock.
+
+## B5 — the API listed per mode: what was built
+
+* **Where.** Commit `97b0cd4` on `main`, made in the main tree; commands ran there, one build at a
+  time. Logs: the main tree's git-ignored `target/p10-b5/logs/`. No crate's source changed
+  (`git diff --stat ccbdc9f 97b0cd4 -- 'crates/*/src'` is empty): the change is the xtask, `mf2`'s
+  manifest metadata, the listings and `package.txt`, so no size was measured, and no book page or
+  crate documentation changed.
+* **The table**, `[package.metadata.api]` in `crates/mf2/Cargo.toml`:
+  * `modes`: `core` is `compile`, `fn-number`, `datetime-icu`, `host-std` (the options docs.rs
+    shows); `ssr`, `hydrate` and `csr` add `leptos`, the mode, `static-locale` and
+    `mark-fallback-lang`; `native` and `ratatui` add their own.
+  * `baseline."1.0.0"`: the four modes 1.0.0 had, as it needed them. `core` is the same; each
+    Leptos mode names its line as `leptos-mf2/leptos-0-9` (1.0.0's own `leptos` was the layer,
+    which a mode implied). It names no `native` and no `ratatui`.
+  * `cargo xtask api` and `release` read it through `cargo metadata` and refuse what they would
+    not follow (unit tests): another key, no mode, a mode that cannot name a file, a dependency's
+    feature in a mode, a baseline naming a mode `modes` does not. The docs.rs table stays what
+    docs.rs shows.
+* **`cargo xtask api`** writes `crates/mf2/api/{core,csr,hydrate,native,ratatui,ssr}.txt` (312,
+  738, 739, 370, 384, 741 lines) in place of `api.txt` (812 lines: `ssr` with `native` and
+  `ratatui`); the other crates are listed as before. Each header names the mode. A file it would
+  not write (an `api.txt` beside `api/`, a mode the table drops) is removed on writing and named
+  by `--check` (shown once with both). Every listing is built twice on the pinned nightly, the
+  second time documenting hidden items, and rustdoc's lints are capped (the first per-mode run
+  printed 79 warnings, links to other modes' items). Two things the JSON leaves out are put back
+  before public-api reads it:
+  * **A public re-export of a hidden item:** rustdoc drops it with the item. Adding
+    `#[doc(inline)]` to `islands_gate`'s re-export, tried in place and undone, gave byte-identical
+    JSON. The listing puts back each such re-export the second build finds (the re-export not
+    hidden, in a module not hidden, of a hidden item of the crate): `pub macro
+    mf2::leptos::islands_gate!` in `ssr`, `hydrate` and `csr`. Only a macro is put back; another
+    kind is refused with a sentence. No other crate has one: of the 19 other listings, only the
+    shim's changed, by its glob.
+  * **The shim's glob,** `pub use mf2::leptos::*`, listed before as `pub use
+    leptos_mf2::<<mf2::leptos::*>>`: now one `pub use leptos_mf2::<name>` per name it brings (39).
+    They come from `mf2`'s JSON built with the features the shim turns on in it (`cargo tree -p
+    leptos-mf2 -e normal -i mf2 --depth 0 --format {f}`, with the listing's features:
+    `default,fn-datetime,host-std,leptos,mark-fallback-lang,ssr,static-locale`), its hidden
+    re-exports put back. A name of the shim's own shadows the glob's. The shim's listing now names
+    all 45 names 1.x's listing (`2fb7f54`) had, and the six `*Props` aliases.
+  * **What the listings hold** (as sets of lines, headers aside): `ssr` ∪ `native` ∪ `ratatui` is
+    the old `api.txt` and `islands_gate!`. Over `core`, `ssr` adds 350 lines, `native` 57 and
+    `ratatui` 71, and none drops one. Against `ssr`, `hydrate` has 14 lines more and 16 fewer, and
+    `csr` 13 and 16: the client's boot and switch and `host_web`, against `RequestI18n` and the
+    request's items, as `mf2::leptos`'s own table of the modes says.
+  * `api --check` took 14 s at HEAD and takes 31 s (warm), for 25 listings where it had 20.
+* **`cargo xtask release`** compares `mf2` mode by mode, and `SEMVER_WITHOUT` is gone.
+  * A mode its baseline spelled as the tree does is cargo-semver-checks' own run, with
+    `--current-features` and `--baseline-features`.
+  * A mode 1.0.0 spelled with a dependency's feature cannot be: the tool writes a crate that
+    depends on the one checked and passes it the features, and cargo refuses a dependency's feature
+    there ("not allowed to contain slashes"). Both sides are then built as the tool builds its
+    own: a crate that depends on `mf2` (and on `leptos-mf2` for the line), `cargo doc --no-deps`
+    with the tool's flags, resolved afresh, in `target/semver-checks/mf2-modes/`. The tool then
+    compares the two JSON files.
+  * A mode the baseline did not have is skipped with a line.
+  * `--baseline-rev` spells each mode as the tree does.
+
+### The gate (the row)
+
+| Step | Result | Command |
+|---|---|---|
+| At HEAD (`ccbdc9f`), `#[cfg(feature = "hydrate")] pub fn b5_negative_control() {}` added to `mf2::leptos` | exit 0, "20 listings unchanged": the item unseen | `cargo xtask api --check` |
+| With B5, the same item and no listing | **exit 1**: `crates/mf2/api/hydrate.txt: + pub fn mf2::leptos::b5_negative_control()`, the one difference | `cargo xtask api --check` |
+| The listing written | `api/hydrate.txt` +1 line; then exit 0, "25 listings unchanged" | `cargo xtask api`, then `--check` |
+| The item removed | the listings as before (`diff -r`); exit 0 | `cargo xtask api`, then `--check` |
+
+### Against 1.0.0 (`CARGO_BUILD_JOBS=3 cargo xtask release --allow-dirty`)
+
+Run twice, the second time on the commit's code (after a last tidy of `release.rs`), with the same
+results; warm, the second took 1 min 18 s. The names step passed ("1.1.0; after 1.0.0: every name
+free or ours"); the semver step:
+
+| Crate, mode | Result |
+|---|---|
+| `mf2`: `ssr`, `hydrate`, `csr` (built here) | no semver update required (196 checks) |
+| `mf2`: `native`, `ratatui` | skipped: 1.0.0 has no such mode |
+| `mf2`: `core` | **refused**: `feature_no_longer_enables_feature`, as `ssr`, `hydrate` and `csr` no longer turn on `leptos` (19 §3: a mode needs a line). Reported by `core`'s comparison, which the tool builds from the two manifests; the JSON comparisons are given none |
+| `leptos-mf2` | **refused**: 6 lints (`declarative_macro_missing` for `islands_gate`, `enum_missing`, `function_missing`, `module_missing` for `components`, `struct_missing`, `trait_missing`). Every item is `mf2`'s now, re-exported, and the tool does not follow a re-export into another crate |
+| `mf2-build` | **refused**: `enum_no_repr_variant_discriminant_changed`, as E1's `Lint::DroppedMarkup` at index 3 moved the later variants' values (and a `partial_ord_enum_variants_reordered` warning) |
+| the 11 others | no semver update required; `mf2-macros` skipped (a proc-macro crate); the four never published not compared |
+
+So the run stops there (exit 1). Each refusal is a change a minor may not make, and the tree is at
+1.1.0; each was made before B5, and 2.0.0's major allows it (G1, G2). HEAD's release makes the
+same three comparisons, with the same commands (for `mf2`, `core`'s features). *Control:* each of the three JSON
+comparisons reversed, 1.1.0 as the baseline (`cargo-semver-checks semver-checks --package mf2
+--baseline-rustdoc …/<mode>-current/rustdoc.json --current-rustdoc …/<mode>-baseline/rustdoc.json
+--release-type minor`), is refused (exit 100) and names the mode's own items: `hydrate`'s
+`hydrate_body`, `hydrate_lazy`, `hydrate_islands`, `wait_for_catalog`, `set_locale`; `ssr`'s
+`RequestI18n`, `provide_locale`, `default_catalog`.
+
+### The checks (main tree, `97b0cd4`'s content)
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass** (3 min 12 s, warm): `refusals` 11 refused and 6 host cases, `docs --no-build` (120 blocks), the ledger (612 tests, 612 entries), `api --check` 25 listings, `package --check` (`mf2`'s list: `api.txt` → the six) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| the xtask's tests | 18 pass: `api` 4 (the table, its refusals, finding a hidden item's re-export, the difference), `release` 12 (the spellings, the crate written for a spelled mode), `docs_rs` 2 | `cargo test -p xtask -- api:: release:: docs_rs::` |
+
+Not run: `docs`, `docs-rs`, the sizes and the browser checks, as no crate source, book page or
+crate documentation changed. `target/semver-checks/` (the release's builds) is removed.
+
+### Found along the way (routed)
+
+* G2: against 1.0.0, the semver step refuses `leptos-mf2`, `mf2`'s `core` and `mf2-build` at 1.1.0
+  (above), each for a change made before B5 that 2.0.0's major allows. The shim's names are held
+  by its test (`tests/layer.rs`) and its listing, not by the tool.
+* G1: `docs/versioning.md` says each crate commits `api.txt`, and every listing's first line says
+  "1.x promises" (`api.rs`'s `HEADER`); since B5 `mf2`'s listings are per mode, in `api/`.
+* D1: `axum` joins `[package.metadata.api.modes]` (`api/axum.txt`), and not `baseline."1.0.0"`,
+  since 1.0.0's `mf2` had no `axum`. A glob re-export of `mf2::axum` in the `mf2-axum` shim is
+  listed name by name, as `leptos-mf2`'s is.
+* D6: docs.rs shows `islands_gate!` neither in `mf2::leptos` (the module's link to it renders as
+  plain text) nor on the `leptos-mf2` shim's page, as 1.x's did (`target/docs-rs`, B3's build of
+  them). Through its glob, that page shows `mf2::leptos`'s hidden items instead (`installed`,
+  `live_nodes`, `CatalogEntry`, the view states). D6 moves the book's and the islands demo's
+  `leptos_mf2::islands_gate!()` to `mf2::leptos`; G1 deletes the shim.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
