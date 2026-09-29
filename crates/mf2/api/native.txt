@@ -68,6 +68,29 @@ pub use mf2::functions
 pub use mf2::host_std
 pub use mf2::is_zone_name
 pub mod mf2::native
+#[non_exhaustive] pub enum mf2::native::Error
+pub mf2::native::Error::AnotherCorpus
+pub mf2::native::Error::Catalog
+pub mf2::native::Error::Catalog::locale: alloc::string::String
+pub mf2::native::Error::Catalog::source: mf2_catalog::error::CatalogError
+pub mf2::native::Error::ContentMismatch
+pub mf2::native::Error::ContentMismatch::actual: alloc::string::String
+pub mf2::native::Error::ContentMismatch::path: std::path::PathBuf
+pub mf2::native::Error::Io
+pub mf2::native::Error::Io::path: std::path::PathBuf
+pub mf2::native::Error::Io::source: core::io::error::Error
+pub mf2::native::Error::LocaleMismatch
+pub mf2::native::Error::LocaleMismatch::actual: alloc::string::String
+pub mf2::native::Error::LocaleMismatch::expected: alloc::string::String
+pub mf2::native::Error::MissingCatalog(alloc::string::String)
+pub mf2::native::Error::NotEmbedded(alloc::string::String)
+pub mf2::native::Error::UnknownLocale(alloc::string::String)
+impl core::error::Error for mf2::native::Error
+pub fn mf2::native::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for mf2::native::Error
+pub fn mf2::native::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::native::Error
+pub fn mf2::native::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub enum mf2::native::LocaleSource
 pub mf2::native::LocaleSource::Explicit
 pub mf2::native::LocaleSource::Source
@@ -83,48 +106,51 @@ impl core::hash::Hash for mf2::native::LocaleSource
 pub fn mf2::native::LocaleSource::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::Copy for mf2::native::LocaleSource
 impl core::marker::StructuralPartialEq for mf2::native::LocaleSource
-#[non_exhaustive] pub enum mf2::native::NativeError
-pub mf2::native::NativeError::Catalog
-pub mf2::native::NativeError::Catalog::locale: alloc::string::String
-pub mf2::native::NativeError::Catalog::source: mf2_catalog::error::CatalogError
-pub mf2::native::NativeError::ContentMismatch
-pub mf2::native::NativeError::ContentMismatch::actual: alloc::string::String
-pub mf2::native::NativeError::ContentMismatch::path: std::path::PathBuf
-pub mf2::native::NativeError::Io
-pub mf2::native::NativeError::Io::path: std::path::PathBuf
-pub mf2::native::NativeError::Io::source: core::io::error::Error
-pub mf2::native::NativeError::LocaleMismatch
-pub mf2::native::NativeError::LocaleMismatch::actual: alloc::string::String
-pub mf2::native::NativeError::LocaleMismatch::expected: alloc::string::String
-pub mf2::native::NativeError::MissingCatalog(alloc::string::String)
-pub mf2::native::NativeError::NotEmbedded(alloc::string::String)
-pub mf2::native::NativeError::UnknownLocale(alloc::string::String)
-impl core::error::Error for mf2::native::NativeError
-pub fn mf2::native::NativeError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
-impl core::fmt::Debug for mf2::native::NativeError
-pub fn mf2::native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::fmt::Display for mf2::native::NativeError
-pub fn mf2::native::NativeError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2::native::Catalogs
+impl mf2::native::Catalogs
+pub const fn mf2::native::Catalogs::bidi(&self) -> mf2_runtime::format::BidiStrategy
+pub const fn mf2::native::Catalogs::corpus(&self) -> &'static mf2::Corpus
+pub fn mf2::native::Catalogs::embedded(&'static mf2::Corpus) -> core::result::Result<mf2::native::Catalogs, mf2::native::Error>
+pub fn mf2::native::Catalogs::format(&self, &str, &impl mf2::Message) -> alloc::string::String
+pub fn mf2::native::Catalogs::format_with_errors(&self, &str, &impl mf2::Message) -> (alloc::string::String, alloc::vec::Vec<mf2_runtime::error::FormatError>)
+pub fn mf2::native::Catalogs::formatter(&self, &str) -> core::option::Option<mf2_runtime::format::Formatter<'_>>
+pub fn mf2::native::Catalogs::from_directory(&'static mf2::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<mf2::native::Catalogs, mf2::native::Error>
+pub fn mf2::native::Catalogs::locales(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + '_
+pub const fn mf2::native::Catalogs::set_bidi(&mut self, mf2_runtime::format::BidiStrategy)
+pub const fn mf2::native::Catalogs::set_time_zone(&mut self, mf2_runtime::datetime::TimeZone)
+pub const fn mf2::native::Catalogs::time_zone(&self) -> mf2_runtime::datetime::TimeZone
+impl core::fmt::Debug for mf2::native::Catalogs
+pub fn mf2::native::Catalogs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2::native::NativeI18n
 impl mf2::native::NativeI18n
 pub fn mf2::native::NativeI18n::available_locales(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &'static str> + use<>
 pub const fn mf2::native::NativeI18n::bidi(&self) -> mf2_runtime::format::BidiStrategy
 pub fn mf2::native::NativeI18n::catalog_file_name(&self, &str) -> core::option::Option<&'static str>
 pub fn mf2::native::NativeI18n::dir(&self) -> mf2_model::id::Dir
-pub fn mf2::native::NativeI18n::embedded(&'static mf2::Corpus) -> core::result::Result<Self, mf2::native::NativeError>
+pub fn mf2::native::NativeI18n::embedded(&'static mf2::Corpus) -> core::result::Result<Self, mf2::native::Error>
 pub fn mf2::native::NativeI18n::format(&self, &impl mf2::Message) -> alloc::string::String
 pub fn mf2::native::NativeI18n::format_with_errors(&self, &impl mf2::Message) -> (alloc::string::String, alloc::vec::Vec<mf2_runtime::error::FormatError>)
 pub fn mf2::native::NativeI18n::formatter(&self) -> core::option::Option<mf2_runtime::format::Formatter<'_>>
-pub fn mf2::native::NativeI18n::from_directory(&'static mf2::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<Self, mf2::native::NativeError>
+pub fn mf2::native::NativeI18n::from_directory(&'static mf2::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<Self, mf2::native::Error>
 pub fn mf2::native::NativeI18n::locale(&self) -> &'static str
 pub const fn mf2::native::NativeI18n::locale_source(&self) -> mf2::native::LocaleSource
 pub const fn mf2::native::NativeI18n::set_bidi(&mut self, mf2_runtime::format::BidiStrategy)
-pub fn mf2::native::NativeI18n::set_locale(&mut self, &str) -> core::result::Result<(), mf2::native::NativeError>
+pub fn mf2::native::NativeI18n::set_locale(&mut self, &str) -> core::result::Result<(), mf2::native::Error>
 pub const fn mf2::native::NativeI18n::set_time_zone(&mut self, mf2_runtime::datetime::TimeZone)
 pub const fn mf2::native::NativeI18n::source_locale(&self) -> &'static str
 pub const fn mf2::native::NativeI18n::time_zone(&self) -> mf2_runtime::datetime::TimeZone
 impl core::fmt::Debug for mf2::native::NativeI18n
 pub fn mf2::native::NativeI18n::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub fn mf2::native::bidi() -> mf2_runtime::format::BidiStrategy
+pub fn mf2::native::install(&'static mf2::Corpus)
+pub fn mf2::native::install_from_directory(&'static mf2::Corpus, impl core::convert::AsRef<std::path::Path>) -> core::result::Result<(), mf2::native::Error>
+pub fn mf2::native::locale() -> &'static str
+pub fn mf2::native::locale_source() -> mf2::native::LocaleSource
+pub fn mf2::native::set_bidi(mf2_runtime::format::BidiStrategy)
+pub fn mf2::native::set_locale(&str) -> core::result::Result<(), mf2::native::Error>
+pub fn mf2::native::set_time_zone(mf2_runtime::datetime::TimeZone)
+pub fn mf2::native::time_zone() -> mf2_runtime::datetime::TimeZone
+pub fn mf2::native::with_locale<R>(&'static mf2::Corpus, &str, impl core::ops::function::FnOnce() -> R) -> core::result::Result<R, mf2::native::Error>
 pub macro mf2::include_generated!
 #[non_exhaustive] pub enum mf2::ArgValue
 pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)
@@ -290,14 +316,22 @@ pub fn mf2::Tr::format(self, &mf2_runtime::format::Formatter<'_>) -> alloc::stri
 pub const fn mf2::Tr::id(self) -> mf2_model::id::MsgId
 pub fn mf2::Tr::parts(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::Tr::write(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::Tr
+pub fn mf2::Tr::to_cow(&self) -> alloc::borrow::Cow<'static, str>
+pub fn mf2::Tr::to_plain_string(&self) -> alloc::string::String
+pub fn mf2::Tr::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::Tr
 pub fn mf2::Tr::clone(&self) -> Self
 impl core::cmp::Eq for mf2::Tr
 impl core::cmp::PartialEq for mf2::Tr
 pub fn mf2::Tr::eq(&self, &Self) -> bool
+impl core::convert::From<mf2::Tr> for alloc::string::String
+pub fn alloc::string::String::from(mf2::Tr) -> alloc::string::String
 impl core::convert::From<mf2::Tr> for mf2::TrArgs
 pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
 impl core::fmt::Debug for mf2::Tr
+pub fn mf2::Tr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::Tr
 pub fn mf2::Tr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::hash::Hash for mf2::Tr
 pub fn mf2::Tr::hash<__H: core::hash::Hasher>(&self, &mut __H)
@@ -313,11 +347,19 @@ pub fn mf2::TrArgs::format(&self, &mf2_runtime::format::Formatter<'_>) -> alloc:
 pub const fn mf2::TrArgs::id(&self) -> mf2_model::id::MsgId
 pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::TrArgs
+pub fn mf2::TrArgs::to_cow(&self) -> alloc::borrow::Cow<'static, str>
+pub fn mf2::TrArgs::to_plain_string(&self) -> alloc::string::String
+pub fn mf2::TrArgs::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrArgs
 pub fn mf2::TrArgs::clone(&self) -> Self
 impl core::convert::From<mf2::Tr> for mf2::TrArgs
 pub fn mf2::TrArgs::from(mf2::Tr) -> mf2::TrArgs
+impl core::convert::From<mf2::TrArgs> for alloc::string::String
+pub fn alloc::string::String::from(mf2::TrArgs) -> alloc::string::String
 impl core::fmt::Debug for mf2::TrArgs
+pub fn mf2::TrArgs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::TrArgs
 pub fn mf2::TrArgs::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl mf2::Message for mf2::TrArgs
 pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
@@ -330,9 +372,17 @@ pub const fn mf2::TrDyn::id(&self) -> mf2_model::id::MsgId
 pub fn mf2::TrDyn::new<N: core::convert::Into<mf2::Text>, V: core::convert::Into<mf2::ArgValue>>(mf2_model::id::MsgId, impl core::iter::traits::collect::IntoIterator<Item = (N, V)>) -> mf2::TrDyn
 pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::TrDyn
+pub fn mf2::TrDyn::to_cow(&self) -> alloc::borrow::Cow<'static, str>
+pub fn mf2::TrDyn::to_plain_string(&self) -> alloc::string::String
+pub fn mf2::TrDyn::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrDyn
 pub fn mf2::TrDyn::clone(&self) -> Self
+impl core::convert::From<mf2::TrDyn> for alloc::string::String
+pub fn alloc::string::String::from(mf2::TrDyn) -> alloc::string::String
 impl core::fmt::Debug for mf2::TrDyn
+pub fn mf2::TrDyn::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::TrDyn
 pub fn mf2::TrDyn::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl mf2::Message for mf2::TrDyn
 pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
@@ -346,9 +396,17 @@ pub fn mf2::TrRich::handlers(&self) -> &[(u64, alloc::sync::Arc<dyn mf2::MarkupH
 pub const fn mf2::TrRich::id(&self) -> mf2_model::id::MsgId
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
+impl mf2::TrRich
+pub fn mf2::TrRich::to_cow(&self) -> alloc::borrow::Cow<'static, str>
+pub fn mf2::TrRich::to_plain_string(&self) -> alloc::string::String
+pub fn mf2::TrRich::to_string(&self) -> alloc::string::String
 impl core::clone::Clone for mf2::TrRich
 pub fn mf2::TrRich::clone(&self) -> Self
+impl core::convert::From<mf2::TrRich> for alloc::string::String
+pub fn alloc::string::String::from(mf2::TrRich) -> alloc::string::String
 impl core::fmt::Debug for mf2::TrRich
+pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for mf2::TrRich
 pub fn mf2::TrRich::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl mf2::Message for mf2::TrRich
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)

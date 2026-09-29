@@ -24,8 +24,11 @@
 #![forbid(unsafe_code)]
 
 /// The native application support: the catalogs of one generated corpus,
-/// the active locale, and where it came from.
-pub use mf2::native::{LocaleSource, NativeError, NativeI18n};
+/// the active locale, and where it came from. `NativeError` is
+/// `mf2::native::Error`, under 1.x's name; `NativeI18n` is 1.x's handle,
+/// which `mf2::native` keeps for this shim (2.0's forms are its store and
+/// `Catalogs`).
+pub use mf2::native::{Error as NativeError, LocaleSource, NativeI18n};
 
 /// What 1.x re-exported from `mf2` beside them.
 pub use mf2::{BidiStrategy, Corpus, Dir, Message, TimeZone};

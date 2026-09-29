@@ -14,6 +14,18 @@
 //! | `select` | `write` of a `.match` message, integer arguments `0, 1, 2, 3, 5, 11, 21, 100` by message, reused `String` |
 //! | `resolve-fn` | per-call function resolution: `Catalog::function(i)` + `Registry::get`, every FUNCS entry |
 //! | `resolve-fn-table` | the alternative, a load-time table: one indexed read |
+//! | `native-simple` | 1.x's native handle: `NativeI18n::format` of a simple message, a new `String` |
+//! | `native-pattern-1` | the same of a 1-argument pattern (`TrArgs`, the argument a static string) |
+//! | `ambient-simple-cow` | the ambient path (`mf2::native::install`, the thread pinned to the locale by `with_locale`): `Tr::to_cow`, borrowed |
+//! | `ambient-simple-string` | the same, `Tr::to_string` |
+//! | `ambient-simple-display` | the same, `write!` of `{}` into a reused `String` |
+//! | `ambient-pattern-1-string` | the ambient path of a 1-argument pattern, `TrArgs::to_string` |
+//! | `ambient-pattern-1-display` | the same, `write!` of `{}` into a reused `String` |
+//!
+//! The `native-*` and `ambient-*` rows format through `mf2::native` in the
+//! native application's settings (bidi isolation off), the four catalogs
+//! embedded as a generated `CORPUS` embeds them. The `native-*` rows are
+//! the "1.x" that the ambient path's allocations are held to (Phase 10 C2).
 //!
 //! Every sweep covers every message of its class in id order. Allocation
 //! counts are exact (one counted sweep).
@@ -26,6 +38,8 @@ use catalog_bench::alloc::{self, Counts};
 use catalog_bench::corpus::{self, Built};
 use catalog_bench::report::{Build, cpu_mhz, load_average};
 use catalog_bench::stats::Spread;
+use mf2::native::{self, NativeI18n};
+use mf2::{ArgValue, CatalogFile, Corpus, Tr, TrArgs};
 use mf2_catalog::{Catalog, Entry, MsgId};
 use mf2_runtime::{Arg, FormatContext, Formatter, Function, NoErrors, Registry, functions};
 use serde::Serialize;
@@ -90,10 +104,17 @@ pub(crate) enum Op {
     Select,
     ResolveFn,
     ResolveFnTable,
+    NativeSimple,
+    NativePattern1,
+    AmbientSimpleCow,
+    AmbientSimpleString,
+    AmbientSimpleDisplay,
+    AmbientPattern1String,
+    AmbientPattern1Display,
 }
 
 impl Op {
-    const ALL: [Op; 7] = [
+    const ALL: [Op; 14] = [
         Op::SimpleRef,
         Op::Simple,
         Op::Pattern1,
@@ -101,6 +122,13 @@ impl Op {
         Op::Select,
         Op::ResolveFn,
         Op::ResolveFnTable,
+        Op::NativeSimple,
+        Op::NativePattern1,
+        Op::AmbientSimpleCow,
+        Op::AmbientSimpleString,
+        Op::AmbientSimpleDisplay,
+        Op::AmbientPattern1String,
+        Op::AmbientPattern1Display,
     ];
 
     const fn label(self) -> &'static str {
@@ -112,6 +140,13 @@ impl Op {
             Op::Select => "select: `write`, reused `String`",
             Op::ResolveFn => "function resolution per call (`function(i)` + `Registry::get`)",
             Op::ResolveFnTable => "function resolution from a load-time table",
+            Op::NativeSimple => "simple: 1.x `NativeI18n::format`, new `String`",
+            Op::NativePattern1 => "1-argument pattern: 1.x `NativeI18n::format`, new `String`",
+            Op::AmbientSimpleCow => "simple: ambient `to_cow` (borrowed)",
+            Op::AmbientSimpleString => "simple: ambient `to_string`",
+            Op::AmbientSimpleDisplay => "simple: ambient `{}` into a reused `String`",
+            Op::AmbientPattern1String => "1-argument pattern: ambient `to_string`",
+            Op::AmbientPattern1Display => "1-argument pattern: ambient `{}` into a reused `String`",
         }
     }
 }
@@ -127,10 +162,18 @@ struct Fixture {
     select_args: Vec<Vec<Arg<'static>>>,
     /// The registry entry of every FUNCS index (the load-time table).
     table: Vec<Option<&'static dyn Function>>,
+    /// The descriptions `tr!` builds for the simple and the 1-argument
+    /// messages (the argument a static string, as a literal is).
+    tr_simple: Vec<Tr>,
+    tr_pattern1: Vec<TrArgs>,
+    /// 1.x's native handle, in this locale.
+    native: NativeI18n,
+    /// The corpus the store is installed with.
+    corpus: &'static Corpus,
 }
 
 impl Fixture {
-    fn new(b: &Built) -> Result<Self> {
+    fn new(b: &Built, corpus: &'static Corpus) -> Result<Self> {
         let catalog = Catalog::new(b.stripped.clone(), corpus::MANIFEST_HASH).map_err(|e| {
             Error::Bench(format!(
                 "{}: the stripped catalog does not load: {e:?}",
@@ -156,6 +199,16 @@ impl Fixture {
         let table = (0..catalog.function_count())
             .map(|i| catalog.function(i).and_then(|n| REGISTRY.get(n)))
             .collect();
+        let tr_simple = simple.iter().map(|&id| mf2::tr(id)).collect();
+        let tr_pattern1 = pattern1
+            .iter()
+            .map(|&id| mf2::tr_args1(id, ArgValue::str_static(NAME)))
+            .collect();
+        let mut native = NativeI18n::embedded(corpus)
+            .map_err(|e| Error::Bench(format!("{}: the native handle: {e}", b.tag)))?;
+        native
+            .set_locale(&b.tag)
+            .map_err(|e| Error::Bench(format!("{}: {e}", b.tag)))?;
         Ok(Fixture {
             tag: b.tag.clone(),
             catalog,
@@ -164,6 +217,10 @@ impl Fixture {
             select,
             select_args,
             table,
+            tr_simple,
+            tr_pattern1,
+            native,
+            corpus,
         })
     }
 
@@ -173,6 +230,13 @@ impl Fixture {
             Op::Pattern1 | Op::Pattern1Owned => self.pattern1.len(),
             Op::Select => self.select.len(),
             Op::ResolveFn | Op::ResolveFnTable => self.table.len(),
+            Op::NativeSimple
+            | Op::AmbientSimpleCow
+            | Op::AmbientSimpleString
+            | Op::AmbientSimpleDisplay => self.tr_simple.len(),
+            Op::NativePattern1 | Op::AmbientPattern1String | Op::AmbientPattern1Display => {
+                self.tr_pattern1.len()
+            }
         }
     }
 }
@@ -231,8 +295,103 @@ fn sweep(fx: &Fixture, f: &Formatter<'_>, op: Op, out: &mut String) -> u64 {
                 acc = acc.wrapping_add(u64::from(black_box(h).is_some()));
             }
         }
+        Op::NativeSimple => {
+            for d in black_box(&fx.tr_simple) {
+                acc = acc.wrapping_add(black_box(fx.native.format(d)).len() as u64);
+            }
+        }
+        Op::NativePattern1 => {
+            for d in black_box(&fx.tr_pattern1) {
+                acc = acc.wrapping_add(black_box(fx.native.format(d)).len() as u64);
+            }
+        }
+        Op::AmbientSimpleCow
+        | Op::AmbientSimpleString
+        | Op::AmbientSimpleDisplay
+        | Op::AmbientPattern1String
+        | Op::AmbientPattern1Display => acc = ambient(fx, op, out),
     }
     acc
+}
+
+/// Runs `body` as `op` needs: an ambient row on this thread pinned to the
+/// fixture's locale (`with_locale`, whose own work is outside `body`, so
+/// neither timed nor counted), any other as it is.
+fn pinned<R>(fx: &Fixture, op: Op, body: impl FnOnce() -> R) -> Result<R> {
+    match op {
+        Op::AmbientSimpleCow
+        | Op::AmbientSimpleString
+        | Op::AmbientSimpleDisplay
+        | Op::AmbientPattern1String
+        | Op::AmbientPattern1Display => native::with_locale(fx.corpus, &fx.tag, body)
+            .map_err(|e| Error::Bench(format!("{}: {e}", fx.tag))),
+        _ => Ok(body()),
+    }
+}
+
+/// One sweep of an ambient row; the thread is pinned to the fixture's
+/// locale ([`pinned`]).
+fn ambient(fx: &Fixture, op: Op, out: &mut String) -> u64 {
+    let mut acc = 0u64;
+    let mut add = |n: usize| acc = acc.wrapping_add(n as u64);
+    match op {
+        Op::AmbientSimpleCow => {
+            for d in black_box(&fx.tr_simple) {
+                add(black_box(d.to_cow()).len());
+            }
+        }
+        Op::AmbientSimpleString => {
+            for d in black_box(&fx.tr_simple) {
+                add(black_box(d.to_string()).len());
+            }
+        }
+        Op::AmbientSimpleDisplay => {
+            for d in black_box(&fx.tr_simple) {
+                out.clear();
+                let _ = write!(out, "{d}");
+                add(out.len());
+            }
+        }
+        Op::AmbientPattern1String => {
+            for d in black_box(&fx.tr_pattern1) {
+                add(black_box(d.to_string()).len());
+            }
+        }
+        Op::AmbientPattern1Display => {
+            for d in black_box(&fx.tr_pattern1) {
+                out.clear();
+                let _ = write!(out, "{d}");
+                add(out.len());
+            }
+        }
+        _ => {}
+    }
+    acc
+}
+
+/// The four catalogs as a generated `CORPUS` holds them, embedded.
+fn corpus_of(built: &[Built]) -> &'static Corpus {
+    let leak = |s: &str| -> &'static str { Box::leak(s.to_owned().into_boxed_str()) };
+    let mut locales = Vec::new();
+    let mut files = Vec::new();
+    for b in built {
+        let tag = leak(&b.tag);
+        let bytes: &'static [u8] = Box::leak(b.stripped.clone().into_boxed_slice());
+        locales.push((tag, b.dir));
+        files.push(CatalogFile::new(
+            tag,
+            leak(&format!("{tag}.mf2b")),
+            Some(bytes),
+        ));
+    }
+    let source = locales.first().map_or("en", |(tag, _)| *tag);
+    Box::leak(Box::new(Corpus::new(
+        source,
+        corpus::MANIFEST_HASH,
+        Box::leak(locales.into_boxed_slice()),
+        &REGISTRY,
+        Box::leak(files.into_boxed_slice()),
+    )))
 }
 
 /// One row's result.
@@ -285,7 +444,12 @@ pub(crate) fn run(settings: Settings) -> Result<Report> {
         .map_err(|e| Error::Bench(format!("corpus: {e}")))?;
     let (manifest, built) =
         corpus::build(&locales, false).map_err(|e| Error::Bench(format!("build: {e}")))?;
-    let fixtures: Vec<Fixture> = built.iter().map(Fixture::new).collect::<Result<_>>()?;
+    let corpus = corpus_of(&built);
+    native::install(corpus);
+    let fixtures: Vec<Fixture> = built
+        .iter()
+        .map(|b| Fixture::new(b, corpus))
+        .collect::<Result<_>>()?;
     let formatters: Vec<Formatter<'_>> = fixtures
         .iter()
         .map(|fx| Formatter::new(&fx.catalog, &REGISTRY, &CX))
@@ -301,14 +465,17 @@ pub(crate) fn run(settings: Settings) -> Result<Report> {
     let mut checksums = Vec::with_capacity(cells.len());
     for &(l, op) in &cells {
         let (fx, f) = (&fixtures[l], &formatters[l]);
-        let start = Instant::now();
-        let mut n = 0u64;
-        let mut check = 0;
-        while start.elapsed() < settings.warmup || n == 0 {
-            check = sweep(fx, f, op, &mut out);
-            n += 1;
-        }
-        let per = start.elapsed().as_secs_f64() / n as f64;
+        let (check, n, elapsed) = pinned(fx, op, || {
+            let start = Instant::now();
+            let mut n = 0u64;
+            let mut check = 0;
+            while start.elapsed() < settings.warmup || n == 0 {
+                check = sweep(fx, f, op, &mut out);
+                n += 1;
+            }
+            (check, n, start.elapsed())
+        })?;
+        let per = elapsed.as_secs_f64() / n as f64;
         let want = settings.min_sample.as_secs_f64() / per.max(1e-9);
         // `want` is small and positive.
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -319,18 +486,21 @@ pub(crate) fn run(settings: Settings) -> Result<Report> {
     for _ in 0..settings.runs {
         for (c, &(l, op)) in cells.iter().enumerate() {
             let (fx, f) = (&fixtures[l], &formatters[l]);
-            let start = Instant::now();
-            for _ in 0..passes[c] {
-                black_box(sweep(fx, f, op, &mut out));
-            }
-            let t = start.elapsed();
+            let t = pinned(fx, op, || {
+                let start = Instant::now();
+                for _ in 0..passes[c] {
+                    black_box(sweep(fx, f, op, &mut out));
+                }
+                start.elapsed()
+            })?;
             samples[c].push(per_op(t, passes[c] * fx.per_pass(op) as u64));
         }
     }
     let mut rows = Vec::with_capacity(cells.len());
     for (c, &(l, op)) in cells.iter().enumerate() {
         let (fx, f) = (&fixtures[l], &formatters[l]);
-        let (check, counts): (u64, Counts) = alloc::count(|| sweep(fx, f, op, &mut out));
+        let (check, counts): (u64, Counts) =
+            pinned(fx, op, || alloc::count(|| sweep(fx, f, op, &mut out)))?;
         if check != checksums[c] {
             return Err(Error::Bench(format!(
                 "{} {op:?}: the output changed between sweeps",
@@ -408,6 +578,36 @@ fn gate(rows: &[Row]) -> Vec<Check> {
             pass: r.ns.median <= PATTERN_NS && r.allocs_per_op <= 1.05,
             gated: true,
         });
+    }
+    // B10 through the ambient path (Phase 10 C2): allocations ≤ 1.x's
+    // native handle, and B10's own limits, in every locale.
+    let on = |locale: &str, op: Op| rows.iter().find(|r| r.locale == locale && r.op == op);
+    for locale in rows
+        .iter()
+        .map(|r| r.locale.as_str())
+        .collect::<std::collections::BTreeSet<_>>()
+    {
+        for (ambient, base, limit) in [
+            (Op::AmbientSimpleCow, Op::NativeSimple, 0.0),
+            (Op::AmbientSimpleDisplay, Op::NativeSimple, 0.0),
+            (Op::AmbientSimpleString, Op::NativeSimple, 1.0),
+            (Op::AmbientPattern1String, Op::NativePattern1, 1.0),
+            (Op::AmbientPattern1Display, Op::NativePattern1, 1.0),
+        ] {
+            if let (Some(a), Some(b)) = (on(locale, ambient), on(locale, base)) {
+                checks.push(Check {
+                    rule: format!(
+                        "B10 through the ambient path (`{locale}`, {}): {:.3} allocations ≤ {limit} and ≤ 1.x's {:.3} ({})",
+                        a.op.label(),
+                        a.allocs_per_op,
+                        b.allocs_per_op,
+                        b.op.label()
+                    ),
+                    pass: a.allocs_per_op <= limit && a.allocs_per_op <= b.allocs_per_op,
+                    gated: true,
+                });
+            }
+        }
     }
     for r in rows.iter().filter(|r| r.locale == "en") {
         if let Some(p) = r.p08_ns {

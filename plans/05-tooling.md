@@ -1310,16 +1310,20 @@ Ratatui module.
   each implying its host) and a line (`leptos` for 0.9, `leptos-0-8`):
   [04](04-leptos-integration.md) §2.1 and §12.1. With a mode the
   descriptions also have the ambient forms — `to_string()`,
-  `to_plain_string()`, `From<_> for String`, and `Display`, which pads the
-  text `to_string()` builds (19 §6).
+  `to_plain_string()`, `to_cow()`, `From<_> for String`, and `Display`,
+  which pads the text `to_string()` builds (19 §6).
 * **The native module**, `mf2::native`, with `native` (std; it implies
-  `host-std`): 1.x's `mf2-native`, moved by Phase 10's B2 — `NativeI18n`
-  over the generated `Corpus` (catalogs embedded and read in place, or
-  files beside the executable checked against the content hash in their
-  names), the system's preferred languages and time zone, `NativeError`,
-  and `LocaleSource`, which keeps its 1.x name beside `mf2::axum`'s trait
-  of that name: items in different modules keep their names
-  ([18](18-phase-10-work-order.md) question 23). Never in a browser build:
+  `host-std`): the app-wide store Phase 10's C2 built (19 §5) — `install`
+  over the generated `Corpus` (catalogs embedded and read in place) or
+  `install_from_directory` (files beside the executable checked against
+  the content hash in their names, a partial set accepted), the system's
+  preferred languages and time zone, `set_locale`, `with_locale`, the
+  settings, and the descriptions' ambient forms read through it; `Catalogs`,
+  the explicit form; `Error`; and `LocaleSource`, which keeps its 1.x name
+  beside `mf2::axum`'s trait of that name: items in different modules keep
+  their names ([18](18-phase-10-work-order.md) question 23). 1.x's
+  `NativeI18n`, which B2 moved here, is kept hidden for the shim, built on
+  `Catalogs`. Never in a browser build:
   with `hydrate` or `csr` it is a `compile_error!` when compiling for
   `wasm32`. On the host the combination compiles, so a workspace that
   holds a browser client and a native application checks as one, as in

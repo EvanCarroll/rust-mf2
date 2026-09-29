@@ -232,6 +232,10 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
+    // Phase 10 C2: the store, before `install` (a binary that never
+    // installs), `install_from_directory` (one that does), and the system's
+    // zone as a POSIX rule (a child process whose `TZ` is one), each here
+    // with `native` alone, where the ambient forms panic before `install`.
     &[
         "test",
         "-p",
@@ -241,6 +245,46 @@ const STEPS: &[&[&str]] = &[
         "--lib",
         "--test",
         "native",
+        "--test",
+        "ambient",
+        "--test",
+        "uninstalled",
+        "--test",
+        "from_directory",
+    ],
+    &[
+        "test",
+        "-p",
+        "mf2",
+        "--features",
+        "native,compile,fn-datetime",
+        "--test",
+        "system_zone",
+    ],
+    // The one lookup with a client mode beside `native`, on the host, where
+    // the two compile together (question 24): the page's catalog first, then
+    // the store's. `--workspace` covers `ssr` beside `native`.
+    &[
+        "clippy",
+        "-p",
+        "mf2",
+        "--features",
+        "leptos,csr,native,compile",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "test",
+        "-p",
+        "mf2",
+        "--features",
+        "leptos,csr,native,compile",
+        "--test",
+        "lookup",
+        "--test",
+        "ambient",
     ],
     // The Ratatui module (Phase 10 B3) as a terminal UI builds it, with no
     // Leptos layer beside it, for the same reason; its tests run here too.

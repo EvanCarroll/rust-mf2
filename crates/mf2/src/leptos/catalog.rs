@@ -266,6 +266,21 @@ pub(crate) fn current() -> Option<Resolved> {
     active().map(|catalog| Resolved { catalog })
 }
 
+/// The request's own catalog, with no fallback to the source locale's: the
+/// first step of the one lookup when `native` is on beside `ssr`
+/// (plans/19-native-and-terminal.md §5), whose next steps are the native
+/// store's.
+#[cfg(all(feature = "ssr", feature = "native"))]
+pub(crate) fn requested() -> Option<RequestI18n> {
+    reactive_graph::owner::use_context::<RequestI18n>()
+}
+
+/// On the client, the page's catalog, which has no fallback anyway.
+#[cfg(all(not(feature = "ssr"), feature = "native"))]
+pub(crate) fn requested() -> Option<Resolved> {
+    current()
+}
+
 /// The client's resolved state.
 #[cfg(not(feature = "ssr"))]
 pub(crate) struct Resolved {

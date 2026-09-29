@@ -54,11 +54,16 @@ impl Host for StdHost {
 
     /// The offset of `zone` (an IANA name, looked up case-insensitively, or
     /// one of jiff's special zones such as `UTC`) at `epoch_ms`, from the
-    /// bundled database; `None` for an unknown zone or an instant outside
-    /// jiff's range (years −9999 to 9999).
+    /// bundled database; else, when `zone` is a POSIX TZ rule
+    /// (`TimeZone::rules`: a native application's system zone without an
+    /// IANA name), from that rule. `None` for anything else, or an instant
+    /// outside jiff's range (years −9999 to 9999).
     fn zone_offset(&self, zone: &str, epoch_ms: i64) -> Option<i32> {
-        let tz = jiff::tz::TimeZoneDatabase::bundled().get(zone).ok()?;
         let t = jiff::Timestamp::from_millisecond(epoch_ms).ok()?;
+        let tz = match jiff::tz::TimeZoneDatabase::bundled().get(zone) {
+            Ok(tz) => tz,
+            Err(_) => jiff::tz::TimeZone::posix(zone).ok()?,
+        };
         Some(tz.to_offset(t).seconds())
     }
 }
@@ -136,7 +141,35 @@ mod tests {
         }
         assert_eq!(HOST.zone_offset("Mars/Olympus_Mons", 0), None);
         assert_eq!(HOST.zone_offset("", 0), None);
+        assert_eq!(HOST.zone_offset("EST 5", 0), None);
         // Outside jiff's range.
         assert_eq!(HOST.zone_offset("Europe/Paris", i64::MAX), None);
+    }
+
+    /// A POSIX TZ rule, which is not a name the database has, follows its
+    /// own changes of offset: the zone a native application's system has
+    /// when it has no IANA name (`TZ=EST5EDT,M3.2.0,M11.1.0`).
+    #[test]
+    fn posix_rules() {
+        const H: i32 = 3600;
+        let us = "EST5EDT,M3.2.0,M11.1.0";
+        let eu = "CET-1CEST,M3.5.0,M10.5.0/3";
+        for (zone, t, want) in [
+            // The second Sunday of March 2026, 02:00 local: 07:00Z.
+            (us, at(2026, 3, 8, 6, 59, 59), -5 * H),
+            (us, at(2026, 3, 8, 7, 0, 0), -4 * H),
+            // The first Sunday of November 2026, 02:00 local daylight: 06:00Z.
+            (us, at(2026, 11, 1, 5, 59, 59), -4 * H),
+            (us, at(2026, 11, 1, 6, 0, 0), -5 * H),
+            (us, at(2026, 1, 15, 17, 0, 0), -5 * H),
+            (us, at(2026, 7, 15, 16, 0, 0), -4 * H),
+            // The last Sunday of March 2026, 02:00 local: 01:00Z.
+            (eu, at(2026, 3, 29, 0, 59, 59), H),
+            (eu, at(2026, 3, 29, 1, 0, 0), 2 * H),
+            // No daylight saving time at all.
+            ("JST-9", at(2026, 7, 15, 0, 0, 0), 9 * H),
+        ] {
+            assert_eq!(HOST.zone_offset(zone, t), Some(want), "{zone} at {t}");
+        }
     }
 }

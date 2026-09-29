@@ -196,6 +196,37 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   argument, in `IntoArg`'s words, where 1.x's named `ArgValue`. Every type
   1.x's `tr!` took still converts as it did, an application's own
   `From<T> for ArgValue` included.
+* **A native application formats without a handle.**
+  `mf2::native::install(&CORPUS)` installs a generated corpus's catalogs
+  once, for the whole process, and chooses the first of the system's
+  languages the corpus has, else its source language. A description then
+  shows its text wherever text is wanted: `println!("{}", tr!("welcome"))`,
+  `.to_string()`, `.to_plain_string()` (never isolated), and `.to_cow()`,
+  which borrows a simple message's text from the executable instead of
+  copying it. `set_locale` changes the language of every thread's next
+  format; `with_locale` gives one thread another for a scope, restored when
+  the scope ends or unwinds, and needs no `install`, so tests pinned to
+  different languages run in parallel; `locale()` and `locale_source()` say
+  which is in force; `set_bidi` and `set_time_zone` apply to every thread.
+  `install_from_directory` loads catalogs shipped beside the executable and
+  accepts a partial set: only the source language's file is required.
+  `mf2::native::Catalogs` is the explicit form, with no globals:
+  `catalogs.format("fr", &message)`. Before `install`, a build whose only
+  mode is `native` panics, naming `install()`; beside a Leptos mode, the
+  request's or the page's catalog comes first, and there is never a panic.
+  `NativeError` is named `mf2::native::Error`; the `mf2-native` shim keeps
+  1.x's names, `NativeError` and `NativeI18n`.
+* **Changed: dates follow the system's daylight-saving rules.** A native
+  application whose system zone has no IANA name (`TZ` holding a POSIX
+  rule, or a copied `/etc/localtime`) formatted dates at the offset in
+  force when it started, so a date on the other side of a change of offset
+  was an hour off. The zone is now one that follows the system's rules:
+  `TimeZone::rules`, a POSIX TZ rule, which `mf2-host-std` evaluates.
+  `NativeI18n` gets the same zone.
+* **`Debug` on every public type of `mf2-runtime` and `mf2-catalog`**,
+  derived, or written by hand where a field has none (a handler, a host, an
+  application's value, a byte table: each shows what identifies it). A
+  browser build links none of it unless it formats one with `{:?}`.
 
 ## 1.0.0
 

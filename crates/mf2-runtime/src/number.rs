@@ -74,6 +74,18 @@ struct Resolved {
     shown: backend::Shown,
 }
 
+/// The sign, whether the value is an integer, and whether a numeric handler
+/// resolved it; not the digits, whose writer a client's formatting calls,
+/// so that a client's build compiles that as before.
+impl core::fmt::Debug for Number {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Number")
+            .field("negative", &self.value.negative())
+            .field("resolved", &self.resolved.is_some())
+            .finish_non_exhaustive()
+    }
+}
+
 /// The sign a formatted number shows, after `signDisplay`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Sign {
@@ -690,6 +702,17 @@ pub(crate) fn matches(n: &Number, cx: &FnContext<'_>, key: &str, errs: &mut dyn 
 /// (numeric) key beats a keyword.
 pub(crate) fn better_than(key1: &str, key2: &str) -> bool {
     is_number_literal(key1) && !is_number_literal(key2)
+}
+
+/// The sign and how many integer and fraction digits are shown; not the
+/// digits, whose writer a client's formatting calls.
+impl core::fmt::Debug for Digits<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Digits")
+            .field("sign", &self.sign)
+            .field("magnitudes", &(self.lo..=self.hi))
+            .finish_non_exhaustive()
+    }
 }
 
 #[cfg(test)]

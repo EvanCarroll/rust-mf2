@@ -198,7 +198,8 @@ Two settings differ from the web:
   `set_bidi(BidiStrategy::Default)`; `dir()` gives the active locale's
   direction.
 * **Dates use the system's time zone** — its IANA name when it has one,
-  else its current offset, else UTC. `set_time_zone` changes it.
+  else a zone that follows the system's daylight-saving rules, else UTC.
+  `set_time_zone` changes it.
 
 ### Catalogs outside the executable
 

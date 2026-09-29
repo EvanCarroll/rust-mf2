@@ -95,21 +95,33 @@ impl LoadError {
     }
 }
 
-/// Failure while loading or selecting a native application's catalog.
+/// Failure while loading or selecting a native application's catalog:
+/// `mf2::native::Error` (the `mf2-native` shim keeps 1.x's name for it,
+/// `NativeError`).
 #[cfg(feature = "native")]
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum NativeError {
-    /// A requested locale is not one the corpus was built for.
+    /// A requested locale is not one the corpus was built for (or, from a
+    /// directory, one whose catalog was not shipped).
     #[error("locale {0:?} is not supported")]
     UnknownLocale(String),
     /// The corpus has no catalog entry for one of its locales.
     #[error("no catalog was built for locale {0:?}")]
     MissingCatalog(String),
     /// The corpus was built with `Emit::NativeFiles`, which does not embed
-    /// catalogs: load them with `from_directory`.
-    #[error("the catalog for locale {0:?} is not embedded; load it with from_directory")]
+    /// catalogs: load them from the directory they ship in
+    /// (`install_from_directory`, `Catalogs::from_directory`).
+    #[error(
+        "the catalog for locale {0:?} is not embedded: the build wrote it beside the executable, to load from a directory"
+    )]
     NotEmbedded(String),
+    /// The app-wide store already holds another corpus: it holds one per
+    /// process. `Catalogs` formats any other, explicitly.
+    #[error(
+        "another corpus is already installed: the store holds one message set per process (format another with mf2::native::Catalogs)"
+    )]
+    AnotherCorpus,
     /// A catalog file holds a catalog for a different locale.
     #[error("catalog for locale {expected:?} contains locale {actual:?}")]
     LocaleMismatch {

@@ -5,7 +5,7 @@
 use super::Number;
 
 /// A number with a currency or a unit, and the options its function added.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub struct Measure<'a> {
     /// The number, with its resolved numeric options.

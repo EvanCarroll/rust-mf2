@@ -17,7 +17,7 @@
 //! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
 //! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
-//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, in the system's language and time zone (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
+//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, installed once for the process, in the system's language and time zone; the descriptions' `Display`, `to_string()` and `to_cow()` read them (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `ratatui` | [`ratatui`]: a terminal UI's text — a message as Ratatui `Text` or `Line`, its markup as styles (implies `native`; `ratatui-core` alone; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
@@ -37,10 +37,11 @@
 //! is not shown here. A native application turns on `native` (a terminal
 //! UI, `ratatui`), and no Leptos mode.
 //!
-//! A build with no mode compiles no Leptos code, so a server, a test and a
-//! native application use the descriptions as they are: formatted against a
-//! catalog the caller supplies — for a native application, the catalogs
-//! [`native`] loads.
+//! A build with no mode compiles no Leptos code, so a server and a test use
+//! the descriptions as they are: formatted against a catalog the caller
+//! supplies. A native application installs its catalogs with [`native`],
+//! and its descriptions then show their text wherever text is wanted
+//! (`println!("{}", tr!("welcome"))`).
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std"))] {
@@ -234,9 +235,12 @@ mod arg;
 mod compile;
 mod corpus;
 mod debug;
-#[cfg(all(
-    any(feature = "ssr", feature = "hydrate", feature = "csr"),
-    any(feature = "leptos", feature = "leptos-0-8")
+#[cfg(any(
+    feature = "native",
+    all(
+        any(feature = "ssr", feature = "hydrate", feature = "csr"),
+        any(feature = "leptos", feature = "leptos-0-8")
+    )
 ))]
 mod display;
 mod dynamic;

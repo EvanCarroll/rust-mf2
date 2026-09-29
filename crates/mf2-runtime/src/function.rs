@@ -126,8 +126,19 @@ impl<'x> FnContext<'x> {
     }
 }
 
+/// The catalog, `u:dir` and the time zone; the host is left out.
+impl core::fmt::Debug for FnContext<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("FnContext")
+            .field("catalog", self.catalog)
+            .field("dir", &self.dir)
+            .field("time_zone", self.time_zone)
+            .finish_non_exhaustive()
+    }
+}
+
 /// A resolved option value.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub struct OptionValue<'o, 'a> {
     /// The value.
@@ -196,6 +207,16 @@ impl<'o, 'a> Options<'o, 'a> {
     /// Whether there are none.
     pub fn is_empty(&self) -> bool {
         self.entries.len() == 0
+    }
+}
+
+/// How many options there are. Written apart from the iterator a handler
+/// uses (`iter`), so that a client's build inlines that as before.
+impl core::fmt::Debug for Options<'_, '_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Options")
+            .field("len", &self.entries.len())
+            .finish_non_exhaustive()
     }
 }
 

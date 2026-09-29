@@ -415,12 +415,13 @@ has a string form: `:string` of one is *Bad Operand*.
 **The time zone of the formatting context** (§6; the default of `timeZone`):
 
 ```rust
-pub struct TimeZone { /* private: UTC, an offset, or an IANA name held inline (≤ 64 bytes) */ }
+pub struct TimeZone { /* private: UTC, an offset, an IANA name or a POSIX TZ rule held inline (≤ 64 bytes) */ }
 impl TimeZone {
     pub const UTC: TimeZone;
     pub const fn offset(seconds: i32) -> Option<TimeZone>;   // |seconds| < 86,400
     pub fn named(name: &str) -> Option<TimeZone>;            // a well-formed RFC 9557 `time-zone-name`
-    pub fn as_option(&self) -> ZoneOption<'_>;               // Utc | Offset | Named
+    pub fn rules(rule: &str) -> Option<TimeZone>;            // a POSIX TZ rule (Phase 10 C2): printable ASCII
+    pub fn as_option(&self) -> ZoneOption<'_>;               // Utc | Offset | Named (a rule as Named)
 }
 pub fn is_zone_name(s: &str) -> bool;                        // RFC 9557 `time-zone-name`
 pub struct FormatContext { …, pub time_zone: TimeZone }      // `new`: UTC
@@ -429,6 +430,13 @@ impl FnContext<'_> { pub fn time_zone(&self) -> &TimeZone; }
 
 Owned, not borrowed — `FormatContext` has no lifetime to add, and a
 per-request zone (the visitor's cookie, §6) is not `'static`.
+
+A POSIX TZ rule (`TimeZone::rules("EST5EDT,M3.2.0,M11.1.0")`, Phase 10 C2) is
+a native application's system zone when it has no IANA name
+(`plans/19-native-and-terminal.md` §5): the date functions see it where they
+see a named zone, and the host evaluates it through `zone_offset` —
+`mf2-host-std` with jiff after its database; the browser's host, which is
+never given one, does not.
 
 **`Host` methods for dates**, both with defaults (so `mf2-host-std` and any
 existing host compile unchanged):

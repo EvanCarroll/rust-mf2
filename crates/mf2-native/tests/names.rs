@@ -14,7 +14,7 @@ fn same<A: ?Sized + 'static, B: ?Sized + 'static>() -> bool {
 #[test]
 fn each_1x_name_is_the_item_mf2_defines() {
     assert!(same::<NativeI18n, mf2::native::NativeI18n>());
-    assert!(same::<NativeError, mf2::native::NativeError>());
+    assert!(same::<NativeError, mf2::native::Error>());
     assert!(same::<LocaleSource, mf2::native::LocaleSource>());
     assert!(same::<BidiStrategy, mf2::BidiStrategy>());
     assert!(same::<Corpus, mf2::Corpus>());

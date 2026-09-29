@@ -459,11 +459,15 @@ pub enum ZoneOption<'a> {
     Utc,
     /// A UTC offset, in seconds east.
     Offset(i32),
-    /// An IANA zone: a well-formed RFC 9557 `time-zone-name`.
+    /// An IANA zone: a well-formed RFC 9557 `time-zone-name`. As the
+    /// formatting context's zone only, also a POSIX TZ rule
+    /// ([`TimeZone::rules`]), which the host evaluates as it does a name
+    /// ([`Host::zone_offset`](crate::Host::zone_offset)).
     Named(&'a str),
 }
 
-/// The longest zone name a [`TimeZone`] holds (IANA's longest is 32).
+/// The longest zone name a [`TimeZone`] holds (IANA's longest is 32), and
+/// the longest POSIX TZ rule.
 const MAX_ZONE_NAME: usize = 64;
 
 /// The formatting context's time zone: the default of `timeZone`
@@ -478,8 +482,19 @@ pub struct TimeZone {
 enum Repr {
     Utc,
     Offset(i32),
-    Named { len: u8, name: [u8; MAX_ZONE_NAME] },
+    /// An IANA name; or a POSIX TZ rule ([`TimeZone::rules`]), marked by
+    /// [`RULE`] in the buffer's last byte, which no name has (a name is
+    /// ASCII, and a rule at most 63 bytes). Held as a name is, so that a
+    /// build that never makes a rule compiles every use of a zone as it did
+    /// before rules existed.
+    Named {
+        len: u8,
+        name: [u8; MAX_ZONE_NAME],
+    },
 }
+
+/// The last byte of a rule's buffer ([`Repr::Named`]).
+const RULE: u8 = 0xFF;
 
 impl TimeZone {
     /// UTC.
@@ -514,7 +529,40 @@ impl TimeZone {
         })
     }
 
-    /// The zone as an option value: `Utc`, `Offset` or `Named`.
+    /// A zone that follows the POSIX TZ rule `rule`: an offset for standard
+    /// time and, where the rule has one, another for daylight saving time
+    /// between two dates each year (`EST5EDT,M3.2.0,M11.1.0`). What a
+    /// native application's system zone is when it has no IANA name, so
+    /// that its dates follow the system's changes of offset rather than the
+    /// offset in force when it started.
+    ///
+    /// The host evaluates it, as it does an IANA name: `mf2-host-std` does;
+    /// a host that does not (the browser's) leaves a date in it a *Bad
+    /// Option* with a fallback, as for a zone it does not know. `None`
+    /// unless `rule` is 1 to 63 printable ASCII characters; whether it is a
+    /// rule the host can read, only the host knows.
+    pub fn rules(rule: &str) -> Option<TimeZone> {
+        if rule.is_empty()
+            || rule.len() >= MAX_ZONE_NAME
+            || !rule.bytes().all(|b| b.is_ascii_graphic())
+        {
+            return None;
+        }
+        let mut name = [0u8; MAX_ZONE_NAME];
+        name.get_mut(..rule.len())?.copy_from_slice(rule.as_bytes());
+        if let Some(last) = name.last_mut() {
+            *last = RULE;
+        }
+        Some(TimeZone {
+            repr: Repr::Named {
+                len: u8::try_from(rule.len()).ok()?,
+                name,
+            },
+        })
+    }
+
+    /// The zone as an option value: `Utc`, `Offset` or `Named` — a POSIX TZ
+    /// rule ([`TimeZone::rules`]) as `Named`, which the host evaluates.
     pub fn as_option(&self) -> ZoneOption<'_> {
         match &self.repr {
             Repr::Utc => ZoneOption::Utc,
@@ -526,10 +574,28 @@ impl TimeZone {
             ),
         }
     }
+
+    /// The POSIX TZ rule, for a zone made by [`TimeZone::rules`].
+    fn rule(&self) -> Option<&str> {
+        match &self.repr {
+            Repr::Named { len, name } if name.last() == Some(&RULE) => name
+                .get(..usize::from(*len))
+                .and_then(|b| core::str::from_utf8(b).ok()),
+            _ => None,
+        }
+    }
 }
 
+/// `TimeZone("Europe/Paris")`, `TimeZone(Offset(3600))`, `TimeZone(Utc)`, or
+/// `TimeZone(Rules("EST5EDT,M3.2.0,M11.1.0"))`.
 impl core::fmt::Debug for TimeZone {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if let Some(rule) = self.rule() {
+            return f
+                .write_str("TimeZone(Rules(")
+                .and_then(|()| core::fmt::Debug::fmt(rule, f))
+                .and_then(|()| f.write_str("))"));
+        }
         match self.as_option() {
             ZoneOption::Named(n) => f.debug_tuple("TimeZone").field(&n).finish(),
             other => f.debug_tuple("TimeZone").field(&other).finish(),
@@ -694,5 +760,45 @@ mod tests {
             ZoneOption::Offset(3600)
         );
         assert!(TimeZone::offset(-86_400).is_none());
+    }
+
+    /// A POSIX TZ rule is carried as it is written, and the host sees it
+    /// where it sees a zone's name; it is not a name.
+    #[test]
+    fn rules() {
+        let rule = "EST5EDT,M3.2.0,M11.1.0";
+        assert!(!is_zone_name(rule));
+        let z = TimeZone::rules(rule).unwrap();
+        assert_eq!(z.as_option(), ZoneOption::Named(rule));
+        assert_ne!(Some(z), TimeZone::named("EST5EDT"));
+        let mut shown = String::new();
+        core::fmt::write(&mut shown, format_args!("{z:?}")).unwrap();
+        assert_eq!(shown, "TimeZone(Rules(\"EST5EDT,M3.2.0,M11.1.0\"))");
+        let longest = "<+0330>-3:30<+0430>,J79/24,J263/24-and-then-some-to-sixty-three";
+        assert_eq!(longest.len(), 63);
+        assert_eq!(
+            TimeZone::rules(longest).unwrap().as_option(),
+            ZoneOption::Named(longest)
+        );
+        for bad in [
+            "",
+            "EST 5",
+            "CET-1CEST,M3.5.0,M10.5.0/3\n",
+            "é",
+            &"x".repeat(64),
+        ] {
+            assert!(TimeZone::rules(bad).is_none(), "{bad}");
+        }
+        // A name of the longest length is a name, not a rule.
+        let name = "a".repeat(64);
+        let mut shown = String::new();
+        core::fmt::write(
+            &mut shown,
+            format_args!("{:?}", TimeZone::named(&name).unwrap()),
+        )
+        .unwrap();
+        let mut expected = String::new();
+        core::fmt::write(&mut expected, format_args!("TimeZone({name:?})")).unwrap();
+        assert_eq!(shown, expected);
     }
 }

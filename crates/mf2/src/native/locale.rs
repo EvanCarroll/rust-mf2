@@ -3,13 +3,12 @@
 
 use mf2_catalog::Dir;
 
-/// Where the active locale came from, as
-/// [`NativeI18n::locale_source`](super::NativeI18n::locale_source) says.
+/// Where the app-wide language came from, as
+/// [`locale_source`](super::locale_source) says.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[non_exhaustive]
 pub enum LocaleSource {
-    /// The application chose it with
-    /// [`NativeI18n::set_locale`](super::NativeI18n::set_locale).
+    /// The application chose it with [`set_locale`](super::set_locale).
     Explicit,
     /// One of the system's preferred locales matched.
     System,
@@ -27,7 +26,7 @@ const MULTI_SCRIPT: [&str; 14] = [
 /// The first candidate, in order, that one of `locales` matches.
 pub(crate) fn negotiate<'a>(
     candidates: impl IntoIterator<Item = &'a str>,
-    locales: &'static [(&'static str, Dir)],
+    locales: &[(&'static str, Dir)],
 ) -> Option<&'static str> {
     candidates
         .into_iter()
@@ -41,7 +40,7 @@ pub(crate) fn negotiate<'a>(
 /// script or either tag names a script.
 pub(crate) fn match_locale(
     candidate: &str,
-    locales: &'static [(&'static str, Dir)],
+    locales: &[(&'static str, Dir)],
 ) -> Option<&'static str> {
     let bare = candidate
         .split(['.', '@'])

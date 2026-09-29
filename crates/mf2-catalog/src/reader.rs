@@ -58,7 +58,7 @@ impl CldrVersion {
 }
 
 /// One INDEX lookup.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Entry<'a> {
     /// A single text run: resolve with [`Catalog::text`]. The evaluator is
     /// not entered.

@@ -70,6 +70,16 @@ pub struct Names<'a> {
     locals: u32,
 }
 
+/// The number of external and local names; the name table is left out.
+impl core::fmt::Debug for Names<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Names")
+            .field("externals", &self.externals)
+            .field("locals", &self.locals)
+            .finish_non_exhaustive()
+    }
+}
+
 impl<'a> Names<'a> {
     /// No names (simple and absent messages).
     pub const EMPTY: Names<'static> = Names {
@@ -154,6 +164,16 @@ pub struct MsgView<'a> {
     select: bool,
 }
 
+/// Where the message is and whether it selects; the catalog is left out.
+impl core::fmt::Debug for MsgView<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("MsgView")
+            .field("at", &self.at)
+            .field("select", &self.select)
+            .finish_non_exhaustive()
+    }
+}
+
 impl<'a> MsgView<'a> {
     pub(crate) fn new(cat: &'a Catalog, at: usize, select: bool) -> Self {
         MsgView { cat, at, select }
@@ -230,7 +250,7 @@ impl<'a> MsgView<'a> {
 }
 
 /// A message body.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Body<'a> {
     /// A pattern message's pattern.
     Pattern(PatternView<'a>),
@@ -239,7 +259,7 @@ pub enum Body<'a> {
 }
 
 /// A declaration.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum DeclView<'a> {
     /// `.input {$x …}`: the expression's operand is the variable.
     Input(ExprView<'a>),
@@ -261,6 +281,17 @@ pub struct Declarations<'a> {
     locals: u32,
     failed: bool,
     select: bool,
+}
+
+/// How many declarations are left; the cursor is left out.
+impl core::fmt::Debug for Declarations<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Declarations")
+            .field("left", &self.left)
+            .field("locals", &self.locals)
+            .field("select", &self.select)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> Declarations<'a> {
@@ -388,7 +419,7 @@ fn pattern<'a>(c: &mut Cur<'a>) -> Result<PatternView<'a>, Malformed> {
 }
 
 /// An expression: an operand, a function, or both.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct ExprView<'a> {
     operand: Option<Operand>,
     function: Option<FunctionView<'a>>,
@@ -408,7 +439,7 @@ impl<'a> ExprView<'a> {
 
 /// A function reference: an index into FUNCS ([`Catalog::function`]) and
 /// its options.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct FunctionView<'a> {
     index: u32,
     options: OptionsView<'a>,
@@ -431,6 +462,15 @@ impl<'a> FunctionView<'a> {
 pub struct OptionsView<'a> {
     c: Cur<'a>,
     left: u32,
+}
+
+/// How many options are left; the cursor is left out.
+impl core::fmt::Debug for OptionsView<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("OptionsView")
+            .field("left", &self.left)
+            .finish_non_exhaustive()
+    }
 }
 
 impl OptionsView<'_> {
@@ -477,7 +517,7 @@ impl Iterator for OptionsView<'_> {
 }
 
 /// Markup: open, standalone or close, with its name (NFC) and options.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct MarkupView<'a> {
     kind: MarkupKind,
     name: StrRef,
@@ -502,7 +542,7 @@ impl<'a> MarkupView<'a> {
 }
 
 /// A pattern part.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum PartView<'a> {
     /// Literal text.
     Text(StrRef),
@@ -518,6 +558,16 @@ pub struct PatternView<'a> {
     b: &'a [u8],
     at: usize,
     n: u32,
+}
+
+/// Where the pattern is and how many parts it has; the bytes are left out.
+impl core::fmt::Debug for PatternView<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("PatternView")
+            .field("at", &self.at)
+            .field("parts", &self.n)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> PatternView<'a> {
@@ -545,6 +595,15 @@ impl<'a> PatternView<'a> {
 pub struct Parts<'a> {
     c: Cur<'a>,
     left: u32,
+}
+
+/// How many parts are left; the cursor is left out.
+impl core::fmt::Debug for Parts<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Parts")
+            .field("left", &self.left)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> Parts<'a> {
@@ -606,6 +665,16 @@ pub struct SelectView<'a> {
     nvar: u32,
 }
 
+/// How many selectors and variants it has; the bytes are left out.
+impl core::fmt::Debug for SelectView<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SelectView")
+            .field("selectors", &self.nsel)
+            .field("variants", &self.nvar)
+            .finish_non_exhaustive()
+    }
+}
+
 impl<'a> SelectView<'a> {
     /// The selectors, in order.
     pub fn selectors(&self) -> Selectors<'a> {
@@ -629,6 +698,15 @@ impl<'a> SelectView<'a> {
 pub struct Selectors<'a> {
     c: Cur<'a>,
     left: u32,
+}
+
+/// How many selectors are left; the cursor is left out.
+impl core::fmt::Debug for Selectors<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Selectors")
+            .field("left", &self.left)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Selectors<'_> {
@@ -660,7 +738,7 @@ impl Iterator for Selectors<'_> {
 }
 
 /// A variant: its keys and its pattern.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct VariantView<'a> {
     keys: Keys<'a>,
     pattern: PatternView<'a>,
@@ -683,6 +761,15 @@ impl<'a> VariantView<'a> {
 pub struct Variants<'a> {
     c: Cur<'a>,
     left: u32,
+}
+
+/// How many variants are left; the cursor is left out.
+impl core::fmt::Debug for Variants<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Variants")
+            .field("left", &self.left)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> Variants<'a> {
@@ -736,6 +823,15 @@ impl<'a> Iterator for Variants<'a> {
 pub struct Keys<'a> {
     c: Cur<'a>,
     left: u32,
+}
+
+/// How many keys are left; the cursor is left out.
+impl core::fmt::Debug for Keys<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Keys")
+            .field("left", &self.left)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Keys<'_> {

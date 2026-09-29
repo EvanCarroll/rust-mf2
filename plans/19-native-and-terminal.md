@@ -1173,6 +1173,47 @@ corpus's catalogs, and `format(locale, &message)` formats with them. The store
 is built on it. It serves a server, a tool, and later several message sets in
 one process (§13).
 
+**As built (C2;** [18](18-phase-10-work-order.md), C2's record**).** Where the
+design above did not settle a detail:
+- **`with_locale(&CORPUS, locale, body)` takes the corpus**, so that it works
+  before `install()`: it loads that corpus's embedded catalogs into the store
+  if the store is empty. C4's typed `with_locale(Locale, body)` passes its own
+  `CORPUS`; a corpus other than the store's is `Error::AnotherCorpus`.
+- **`set_locale` needs `install()`**, as `locale()` (outside `with_locale`) and
+  `locale_source()` do: `install` chooses the app-wide language once, and a
+  later `install` keeps an explicit one.
+- **The store is a `Catalogs` in a `OnceLock`**, loaded by the first of
+  `install`, `install_from_directory` and `with_locale`; with the store
+  loaded, `install_from_directory` reads nothing. The app-wide language and
+  where it came from are one atomic, read together. The time zone setting
+  starts as "the system's", read at its first use, so an application that
+  sets its own first never reads the system's.
+- **The rule-following zone** is `mf2_runtime::TimeZone::rules("EST5EDT,…")`,
+  a POSIX TZ rule the zone carries as it carries a name. The date functions
+  see it where they see a named zone (`ZoneOption::Named`) and ask the host
+  for its offsets; `mf2-host-std` evaluates it with jiff after its database.
+  The system's rule is `TZ`'s when `TZ` holds one, else the one a TZif file
+  (version 2 and later) ends with. The browser's host evaluates no rule (a
+  *Bad Option*, as for a zone it does not know); the web never makes one.
+- **Names:** `Catalogs`, and `Error` (1.x's `NativeError`, renamed). 1.x's
+  `NativeI18n` stays in `mf2::native`, hidden and built on `Catalogs`, for the
+  `mf2-native` shim and `mf2::ratatui`'s 1.x `line` / `text` (C8). Its
+  `from_directory` keeps 1.x's rule, every file required; the 2.0 forms take
+  a partial set.
+- **`Catalogs::format` in a locale it has no catalog for** formats in the
+  source language, as the web's `provide_locale` does.
+- **The one lookup beside a Leptos mode:** step 1 is the request's context
+  alone (not the server's fallback to the source locale's catalog), then the
+  store, then the web's rule. A build with a Leptos mode and no `native`
+  compiles the web's text path as before.
+- **The ambient forms natively** (§6) are `to_string()`, `to_plain_string()`,
+  `to_cow()`, `Display` and `From<_> for String`; 1.x's web synonym
+  `to_display_string()` stays with the Leptos modes. Each goes through one
+  function taking a trait object of the two methods the text needs, as A4
+  found cheapest.
+- **The parts seam** (`PartSink::part_catalog_text`, A4's S) is C5's: the
+  Ratatui conversions are its only user.
+
 ## 6. `Display`, `to_string`, and `Debug`
 
 As the owner decided in question 14:
@@ -1774,7 +1815,10 @@ approved as written. The ones to look at first came first.
   it had three, and what §7's "As built" lists.
 - **C2:** §5, §6. It times the lookup's first step with `ssr` and `native`
   unified (A4); it chooses how a rule-following time zone is carried; it adds
-  `Debug` to the runtime's and the catalog's public types.
+  `Debug` to the runtime's and the catalog's public types. *Done*
+  ([18](18-phase-10-work-order.md), C2's record): §5's "As built"; the first
+  step costs a native format about 6–7 ns (under load); a POSIX TZ rule in
+  the runtime's `TimeZone`, evaluated by the host; `Debug` on the 31 types.
 - **C3:** §9. `$!X` for a straddling macroregion, and a test for the stated
   demotion.
 - **C4:** §10. The generated names' collisions, and a way to rename them if an

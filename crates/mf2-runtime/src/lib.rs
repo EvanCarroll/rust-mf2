@@ -26,7 +26,7 @@
 //! [`mf2`](https://docs.rs/mf2), which re-exports it; a custom function is
 //! written against [`Function`].
 
-#![warn(missing_docs)]
+#![warn(missing_docs, missing_debug_implementations)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]

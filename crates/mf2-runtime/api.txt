@@ -70,6 +70,8 @@ impl core::convert::From<u32> for mf2_runtime::Arg<'_>
 pub fn mf2_runtime::Arg<'_>::from(u32) -> Self
 impl core::convert::From<u8> for mf2_runtime::Arg<'_>
 pub fn mf2_runtime::Arg<'_>::from(u8) -> Self
+impl core::fmt::Debug for mf2_runtime::Arg<'_>
+pub fn mf2_runtime::Arg<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'a> core::clone::Clone for mf2_runtime::Arg<'a>
 pub fn mf2_runtime::Arg<'a>::clone(&self) -> Self
 impl<'a> core::convert::From<&'a alloc::string::String> for mf2_runtime::Arg<'a>
@@ -266,6 +268,8 @@ impl<'a> core::marker::StructuralPartialEq for mf2_runtime::MeasureUnit<'a>
 pub enum mf2_runtime::NumberOut<'o>
 pub mf2_runtime::NumberOut::Parts(&'o mut dyn mf2_runtime::SubPartSink)
 pub mf2_runtime::NumberOut::Text(&'o mut dyn mf2_runtime::Sink)
+impl core::fmt::Debug for mf2_runtime::NumberOut<'_>
+pub fn mf2_runtime::NumberOut<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub enum mf2_runtime::NumberStyle<'a>
 pub mf2_runtime::NumberStyle::Currency
 pub mf2_runtime::NumberStyle::Currency::accounting: bool
@@ -294,6 +298,8 @@ pub mf2_runtime::Part::Expression(mf2_runtime::ExpressionPart<'p>)
 pub mf2_runtime::Part::Fallback(mf2_runtime::FallbackSource<'p>)
 pub mf2_runtime::Part::Markup(mf2_runtime::MarkupPart<'p>)
 pub mf2_runtime::Part::Text(&'p str)
+impl<'p> core::fmt::Debug for mf2_runtime::Part<'p>
+pub fn mf2_runtime::Part<'p>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub enum mf2_runtime::RoundingMode
 pub mf2_runtime::RoundingMode::Ceil
 pub mf2_runtime::RoundingMode::Expand
@@ -409,6 +415,8 @@ pub fn mf2_runtime::Value<'a>::digit_size(&self) -> core::option::Option<u8>
 pub fn mf2_runtime::Value<'a>::downcast_ref<T: core::any::Any>(&self) -> core::option::Option<&T>
 pub fn mf2_runtime::Value<'a>::from_arg(mf2_runtime::Arg<'a>) -> core::option::Option<mf2_runtime::Value<'a>>
 pub fn mf2_runtime::Value<'a>::to_number(&self, &dyn mf2_runtime::Host) -> core::option::Option<mf2_runtime::Number>
+impl core::fmt::Debug for mf2_runtime::Value<'_>
+pub fn mf2_runtime::Value<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub enum mf2_runtime::ZoneOption<'a>
 pub mf2_runtime::ZoneOption::Input
 pub mf2_runtime::ZoneOption::Named(&'a str)
@@ -566,6 +574,8 @@ pub fn mf2_runtime::Digits<'_>::neutral_parts(&self, &mut dyn mf2_runtime::SubPa
 pub fn mf2_runtime::Digits<'_>::operands(&self) -> mf2_runtime::Operands
 pub fn mf2_runtime::Digits<'_>::sign(&self) -> mf2_runtime::Sign
 pub fn mf2_runtime::Digits<'_>::write_neutral(&self, &mut dyn mf2_runtime::Sink)
+impl core::fmt::Debug for mf2_runtime::Digits<'_>
+pub fn mf2_runtime::Digits<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'n> core::clone::Clone for mf2_runtime::Digits<'n>
 pub fn mf2_runtime::Digits<'n>::clone(&self) -> Self
 impl<'n> core::marker::Copy for mf2_runtime::Digits<'n>
@@ -578,12 +588,16 @@ pub fn mf2_runtime::ExpressionPart<'p>::locale(&self) -> &'p str
 pub fn mf2_runtime::ExpressionPart<'p>::sub_parts(&self, &mut dyn mf2_runtime::SubPartSink)
 pub fn mf2_runtime::ExpressionPart<'p>::value(&self) -> &'p mf2_runtime::Value<'p>
 pub fn mf2_runtime::ExpressionPart<'p>::write(&self, &mut dyn mf2_runtime::Sink)
+impl core::fmt::Debug for mf2_runtime::ExpressionPart<'_>
+pub fn mf2_runtime::ExpressionPart<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2_runtime::FnContext<'x>
 impl<'x> mf2_runtime::FnContext<'x>
 pub fn mf2_runtime::FnContext<'x>::dir(&self) -> core::option::Option<mf2_model::id::Dir>
 pub fn mf2_runtime::FnContext<'x>::host(&self) -> &'static dyn mf2_runtime::Host
 pub fn mf2_runtime::FnContext<'x>::locale(&self) -> &'x str
 pub fn mf2_runtime::FnContext<'x>::time_zone(&self) -> &'x mf2_runtime::TimeZone
+impl core::fmt::Debug for mf2_runtime::FnContext<'_>
+pub fn mf2_runtime::FnContext<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'x> core::clone::Clone for mf2_runtime::FnContext<'x>
 pub fn mf2_runtime::FnContext<'x>::clone(&self) -> Self
 impl<'x> core::marker::Copy for mf2_runtime::FnContext<'x>
@@ -610,6 +624,8 @@ impl<'c> core::clone::Clone for mf2_runtime::Formatter<'c>
 pub fn mf2_runtime::Formatter<'c>::clone(&self) -> Self
 impl<'c> core::marker::Copy for mf2_runtime::Formatter<'c>
 pub struct mf2_runtime::MarkupOptions<'p>
+impl core::fmt::Debug for mf2_runtime::MarkupOptions<'_>
+pub fn mf2_runtime::MarkupOptions<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'p> core::iter::traits::iterator::Iterator for mf2_runtime::MarkupOptions<'p>
 pub type mf2_runtime::MarkupOptions<'p>::Item = (&'p str, &'p mf2_runtime::Value<'p>)
 pub fn mf2_runtime::MarkupOptions<'p>::next(&mut self) -> core::option::Option<Self::Item>
@@ -619,6 +635,8 @@ pub fn mf2_runtime::MarkupPart<'p>::id(&self) -> core::option::Option<&'p str>
 pub fn mf2_runtime::MarkupPart<'p>::kind(&self) -> mf2_model::expression::MarkupKind
 pub fn mf2_runtime::MarkupPart<'p>::name(&self) -> &'p str
 pub fn mf2_runtime::MarkupPart<'p>::options(&self) -> mf2_runtime::MarkupOptions<'p>
+impl core::fmt::Debug for mf2_runtime::MarkupPart<'_>
+pub fn mf2_runtime::MarkupPart<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub struct mf2_runtime::Measure<'a>
 pub mf2_runtime::Measure::flags: u32
 pub mf2_runtime::Measure::number: mf2_runtime::Number
@@ -627,6 +645,8 @@ impl<'a> mf2_runtime::Measure<'a>
 pub fn mf2_runtime::Measure<'a>::new(mf2_runtime::Number, mf2_runtime::MeasureUnit<'a>, u32) -> Self
 impl<'a> core::clone::Clone for mf2_runtime::Measure<'a>
 pub fn mf2_runtime::Measure<'a>::clone(&self) -> Self
+impl<'a> core::fmt::Debug for mf2_runtime::Measure<'a>
+pub fn mf2_runtime::Measure<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2_runtime::NoErrors
 impl core::clone::Clone for mf2_runtime::NoErrors
 pub fn mf2_runtime::NoErrors::clone(&self) -> Self
@@ -655,6 +675,8 @@ pub fn mf2_runtime::Number::to_i64(&self) -> core::option::Option<i64>
 pub fn mf2_runtime::Number::write_plain(&self, &mut dyn mf2_runtime::Sink)
 impl core::clone::Clone for mf2_runtime::Number
 pub fn mf2_runtime::Number::clone(&self) -> Self
+impl core::fmt::Debug for mf2_runtime::Number
+pub fn mf2_runtime::Number::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub struct mf2_runtime::NumberRequest<'r>
 pub mf2_runtime::NumberRequest::digits: mf2_runtime::DigitOptions
 pub mf2_runtime::NumberRequest::grouping: mf2_runtime::Grouping
@@ -712,6 +734,8 @@ pub mf2_runtime::OptionValue::literal: bool
 pub mf2_runtime::OptionValue::value: &'o mf2_runtime::Value<'a>
 impl<'o, 'a> core::clone::Clone for mf2_runtime::OptionValue<'o, 'a>
 pub fn mf2_runtime::OptionValue<'o, 'a>::clone(&self) -> Self
+impl<'o, 'a> core::fmt::Debug for mf2_runtime::OptionValue<'o, 'a>
+pub fn mf2_runtime::OptionValue<'o, 'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'o, 'a> core::marker::Copy for mf2_runtime::OptionValue<'o, 'a>
 pub struct mf2_runtime::Options<'o, 'a>
 impl<'o, 'a> mf2_runtime::Options<'o, 'a>
@@ -719,6 +743,8 @@ pub fn mf2_runtime::Options<'o, 'a>::get(&self, &str) -> core::option::Option<mf
 pub fn mf2_runtime::Options<'o, 'a>::is_empty(&self) -> bool
 pub fn mf2_runtime::Options<'o, 'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = (&'a str, mf2_runtime::OptionValue<'o, 'a>)> + 'o
 pub fn mf2_runtime::Options<'o, 'a>::len(&self) -> usize
+impl core::fmt::Debug for mf2_runtime::Options<'_, '_>
+pub fn mf2_runtime::Options<'_, '_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'o, 'a> core::clone::Clone for mf2_runtime::Options<'o, 'a>
 pub fn mf2_runtime::Options<'o, 'a>::clone(&self) -> Self
 impl<'o, 'a> core::marker::Copy for mf2_runtime::Options<'o, 'a>
@@ -765,6 +791,7 @@ pub const mf2_runtime::TimeZone::UTC: mf2_runtime::TimeZone
 pub fn mf2_runtime::TimeZone::as_option(&self) -> mf2_runtime::ZoneOption<'_>
 pub fn mf2_runtime::TimeZone::named(&str) -> core::option::Option<mf2_runtime::TimeZone>
 pub const fn mf2_runtime::TimeZone::offset(i32) -> core::option::Option<mf2_runtime::TimeZone>
+pub fn mf2_runtime::TimeZone::rules(&str) -> core::option::Option<mf2_runtime::TimeZone>
 impl core::clone::Clone for mf2_runtime::TimeZone
 pub fn mf2_runtime::TimeZone::clone(&self) -> Self
 impl core::cmp::Eq for mf2_runtime::TimeZone

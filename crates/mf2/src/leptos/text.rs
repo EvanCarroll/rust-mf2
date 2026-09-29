@@ -322,6 +322,51 @@ pub(crate) fn with_active_marked_text<D: Description, R>(
     }
 }
 
+/// Step 1 of the one lookup (plans/19-native-and-terminal.md §5) in a build
+/// with `native` beside the mode: the text of `m` in the request's catalog
+/// (`ssr`) or the page's (`hydrate`, `csr`), if there is one. On the client
+/// it subscribes to the locale change, as [`to_string`] does.
+#[cfg(feature = "native")]
+pub(crate) fn requested(m: &dyn crate::native::store::TextOf, use_: TextUse) -> Option<String> {
+    #[cfg(not(feature = "ssr"))]
+    catalog::track_locale();
+    let cx = catalog::requested()?;
+    Some(cx.in_zone(|| format_dyn(m, cx.catalog(), use_, cx.registry(), cx.bidi())))
+}
+
+/// After the native store's steps, in a build with `native` beside the
+/// mode: the web's rule — on a server the source locale's catalog, else no
+/// text, and never a panic (04 §5).
+#[cfg(feature = "native")]
+pub(crate) fn unrequested(m: &dyn crate::native::store::TextOf, use_: TextUse) -> String {
+    match catalog::current() {
+        Some(cx) => cx.in_zone(|| format_dyn(m, cx.catalog(), use_, cx.registry(), cx.bidi())),
+        None => String::new(),
+    }
+}
+
+/// [`format_with`] for the ambient forms' trait object, owned.
+#[cfg(feature = "native")]
+fn format_dyn(
+    m: &dyn crate::native::store::TextOf,
+    catalog: &Catalog,
+    use_: TextUse,
+    registry: Option<&'static mf2_runtime::Registry>,
+    bidi: Option<mf2_runtime::BidiStrategy>,
+) -> String {
+    let (Some(cx), Some(installed)) = (state::context_for(use_, bidi), state::registry()) else {
+        return String::new();
+    };
+    let f = Formatter::new(catalog, registry.unwrap_or(installed), &cx);
+    match f.simple(m.msg_id()) {
+        Some(text) => String::from(text),
+        None => with_scratch(|buf| {
+            m.write_text(&f, buf);
+            String::from(buf.as_str())
+        }),
+    }
+}
+
 /// The text of `description`, owned — the **ambient string** form, which is
 /// what `to_string()`, `String::from` and the `Oco` conversion go through.
 ///

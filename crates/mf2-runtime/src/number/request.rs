@@ -139,6 +139,16 @@ pub enum NumberOut<'o> {
     Parts(&'o mut dyn SubPartSink),
 }
 
+/// `Text(..)` or `Parts(..)`: a sink has nothing to show.
+impl core::fmt::Debug for NumberOut<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            NumberOut::Text(_) => "Text(..)",
+            NumberOut::Parts(_) => "Parts(..)",
+        })
+    }
+}
+
 /// Text on the stack — a number's plain digits, almost always short — that
 /// spills to the heap past 64 bytes (through the guarded `Sink for String`).
 pub(crate) struct Text {

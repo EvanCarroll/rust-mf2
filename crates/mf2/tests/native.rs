@@ -2,7 +2,7 @@
 //! against their names — and its locale (`mf2::native`; 1.x's `mf2-native`,
 //! whose tests these were).
 
-use mf2::native::{LocaleSource, NativeError, NativeI18n};
+use mf2::native::{Error as NativeError, LocaleSource, NativeI18n};
 use mf2::{
     BidiStrategy, CatalogFile, Compiled, Corpus, Dir, ErrorSink, Formatter, Message, PartSink,
     Registry, Sink,

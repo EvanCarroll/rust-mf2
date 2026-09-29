@@ -17,6 +17,7 @@ pub trait PartSink {
 
 /// A part of a formatted message. Concatenated, the parts are the string
 /// output.
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum Part<'p> {
     /// Literal text.
@@ -113,6 +114,18 @@ impl<'p> ExpressionPart<'p> {
     }
 }
 
+/// The value, its direction and `u:id`; the handler and the context are
+/// left out.
+impl core::fmt::Debug for ExpressionPart<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("ExpressionPart")
+            .field("value", self.value)
+            .field("dir", &self.dir)
+            .field("id", &self.id)
+            .finish_non_exhaustive()
+    }
+}
+
 /// A markup placeholder.
 pub struct MarkupPart<'p> {
     pub(crate) kind: MarkupKind,
@@ -146,10 +159,31 @@ impl<'p> MarkupPart<'p> {
     }
 }
 
+/// The kind, the name, `u:id` and how many options it has.
+impl core::fmt::Debug for MarkupPart<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("MarkupPart")
+            .field("kind", &self.kind)
+            .field("name", &self.name)
+            .field("id", &self.id)
+            .field("options", &self.options.len())
+            .finish()
+    }
+}
+
 /// The options of a [`MarkupPart`]: `(name, value)` in source order.
 pub struct MarkupOptions<'p> {
     entries: OptionEntries<'p, 'p>,
     at: usize,
+}
+
+/// How many options are left to iterate.
+impl core::fmt::Debug for MarkupOptions<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("MarkupOptions")
+            .field("left", &self.entries.len().saturating_sub(self.at))
+            .finish()
+    }
 }
 
 impl<'p> Iterator for MarkupOptions<'p> {

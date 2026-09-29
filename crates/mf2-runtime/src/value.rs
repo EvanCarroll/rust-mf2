@@ -31,6 +31,22 @@ pub enum Arg<'a> {
     DateTime(&'a DateTime<'a>),
 }
 
+/// As a derived `Debug` would show it, but an application value, which has
+/// no `Debug` of its own, is `Custom(..)`.
+impl core::fmt::Debug for Arg<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Arg::Str(s) => f.debug_tuple("Str").field(s).finish(),
+            Arg::Int(n) => f.debug_tuple("Int").field(n).finish(),
+            Arg::Float(x) => f.debug_tuple("Float").field(x).finish(),
+            Arg::Decimal(s) => f.debug_tuple("Decimal").field(s).finish(),
+            Arg::Custom(_) => f.write_str("Custom(..)"),
+            Arg::Unset => f.write_str("Unset"),
+            Arg::DateTime(d) => f.debug_tuple("DateTime").field(d).finish(),
+        }
+    }
+}
+
 impl<'a> From<&'a DateTime<'a>> for Arg<'a> {
     #[inline]
     fn from(d: &'a DateTime<'a>) -> Self {
@@ -140,6 +156,26 @@ pub enum Value<'a> {
     /// A number with a currency or a unit: what `:currency` and `:unit`
     /// resolved.
     Measure(Measure<'a>),
+}
+
+/// As a derived `Debug` would show it, but an application value and a
+/// handler's own data, which have no `Debug` of their own, are `Custom(..)`
+/// and `Boxed(..)`.
+impl core::fmt::Debug for Value<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Value::Str(s) => f.debug_tuple("Str").field(s).finish(),
+            Value::Int(n) => f.debug_tuple("Int").field(n).finish(),
+            Value::Float(x) => f.debug_tuple("Float").field(x).finish(),
+            Value::Decimal(s) => f.debug_tuple("Decimal").field(s).finish(),
+            Value::Number(n) => f.debug_tuple("Number").field(n).finish(),
+            Value::Custom(_) => f.write_str("Custom(..)"),
+            Value::Boxed(_) => f.write_str("Boxed(..)"),
+            Value::Fallback(s) => f.debug_tuple("Fallback").field(s).finish(),
+            Value::DateTime(d) => f.debug_tuple("DateTime").field(d).finish(),
+            Value::Measure(m) => f.debug_tuple("Measure").field(m).finish(),
+        }
+    }
 }
 
 impl<'a> Value<'a> {

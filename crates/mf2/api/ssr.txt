@@ -404,6 +404,7 @@ pub const fn mf2::Tr::id(self) -> mf2_model::id::MsgId
 pub fn mf2::Tr::parts(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::Tr::write(self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 impl mf2::Tr
+pub fn mf2::Tr::to_cow(&self) -> alloc::borrow::Cow<'static, str>
 pub fn mf2::Tr::to_display_string(&self) -> alloc::string::String
 pub fn mf2::Tr::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::Tr::to_string(&self) -> alloc::string::String
@@ -489,6 +490,7 @@ pub const fn mf2::TrArgs::id(&self) -> mf2_model::id::MsgId
 pub fn mf2::TrArgs::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrArgs::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 impl mf2::TrArgs
+pub fn mf2::TrArgs::to_cow(&self) -> alloc::borrow::Cow<'static, str>
 pub fn mf2::TrArgs::to_display_string(&self) -> alloc::string::String
 pub fn mf2::TrArgs::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrArgs::to_string(&self) -> alloc::string::String
@@ -568,6 +570,7 @@ pub fn mf2::TrDyn::new<N: core::convert::Into<mf2::Text>, V: core::convert::Into
 pub fn mf2::TrDyn::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrDyn::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 impl mf2::TrDyn
+pub fn mf2::TrDyn::to_cow(&self) -> alloc::borrow::Cow<'static, str>
 pub fn mf2::TrDyn::to_display_string(&self) -> alloc::string::String
 pub fn mf2::TrDyn::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrDyn::to_string(&self) -> alloc::string::String
@@ -646,6 +649,7 @@ pub const fn mf2::TrRich::id(&self) -> mf2_model::id::MsgId
 pub fn mf2::TrRich::parts(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::parts::PartSink, &mut dyn mf2_runtime::sink::ErrorSink)
 pub fn mf2::TrRich::write(&self, &mf2_runtime::format::Formatter<'_>, &mut dyn mf2_runtime::sink::Sink, &mut dyn mf2_runtime::sink::ErrorSink)
 impl mf2::TrRich
+pub fn mf2::TrRich::to_cow(&self) -> alloc::borrow::Cow<'static, str>
 pub fn mf2::TrRich::to_display_string(&self) -> alloc::string::String
 pub fn mf2::TrRich::to_plain_string(&self) -> alloc::string::String
 pub fn mf2::TrRich::to_string(&self) -> alloc::string::String
