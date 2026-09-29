@@ -11,13 +11,7 @@
 pub fn boot() {
     #[cfg(feature = "hydrate")]
     {
-        mf2::leptos::install(mf2::leptos::Setup::new(
-            workload_i18n::registry(),
-            &workload_i18n::host::HOST,
-            workload_i18n::MANIFEST_HASH,
-            workload_i18n::SOURCE_LOCALE,
-            workload_i18n::LOCALES,
-        ));
+        mf2::leptos::install(workload_i18n::setup());
         let data = leptos::prelude::document()
             .document_element()
             .and_then(|e| e.get_attribute("data-catalog"));

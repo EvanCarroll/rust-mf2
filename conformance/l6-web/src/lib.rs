@@ -35,18 +35,6 @@ pub const PAGE_LOCALE: &str = "en-US";
 /// The twin: the same messages, a different tag and a different catalog.
 pub const TWIN_LOCALE: &str = "en-GB";
 
-/// Everything `mf2::leptos::install` needs, from the generated module.
-#[must_use]
-pub fn setup() -> mf2::leptos::Setup {
-    mf2::leptos::Setup::new(
-        registry(),
-        &host::HOST,
-        MANIFEST_HASH,
-        SOURCE_LOCALE,
-        LOCALES,
-    )
-}
-
 /// One `<div>` per call site, in the order `CASES` lists them, each carrying
 /// its message id so that a failure names a test rather than a position.
 #[component]

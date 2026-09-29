@@ -147,7 +147,8 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, one per Leptos line;
   `mf2::leptos` wraps each under its own name. **`leptos-mf2` is a
   shim** that re-exports everything under 1.x's paths and forwards its
-  features to `mf2`'s, so a 1.x application compiles unchanged.
+  features to `mf2`'s. Upgrading a 1.x translation crate means deleting its
+  hand-written `setup()`: the generated module defines it now.
 * **Descriptions print.** Under a Leptos mode `Tr`, `TrArgs`, `TrRich` and
   `TrDyn` implement `Display`: the text the fmt-free `to_string()` builds,
   padded as the format asks, so `{}` costs a browser build a few dozen
@@ -166,7 +167,7 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   rust-analyzer's check), as in 1.x.
   `LocaleSource`, where the active locale came from, keeps its name.
   **`mf2-native` is a shim** that re-exports everything under 1.x's names
-  and paths, so a 1.x application compiles unchanged.
+  and paths.
   `NativeI18n` implements `Debug`: the active locale, where it came from,
   the catalogs and the settings.
 * **Changed: the Ratatui support is `mf2`'s.** `MarkupStyles`, `line` and
@@ -176,8 +177,7 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   for the browser (`wasm32`), in a sentence that names `ratatui`; on the
   host the two compile together, so a workspace that holds a browser
   client and a terminal UI checks as one. **`mf2-ratatui` is a shim** that
-  re-exports the three under 1.x's names and paths, so a 1.x application
-  compiles unchanged.
+  re-exports the three under 1.x's names and paths.
 * **`tr!` takes any number, text, date or path, and any type with
   `Display`.** An argument converts through the new `mf2::IntoArg`, which an
   application may implement for its own types: every integer type exactly
@@ -265,9 +265,9 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   with CLDR's whole table. **`mf2-build` generates `LANGUAGE_MATCHING`**,
   the part of the table the corpus's languages need, which gives them the
   same answers; a native application's `CORPUS` carries it (`mf2::native`
-  matches with it), and a client-only application hands it to its setup,
-  `Setup::new(…).with_language_matching(&LANGUAGE_MATCHING)`. A client
-  whose setup does not carry it matches with no data: it finds a locale of
+  matches with it), and a client-only application's generated `setup()`
+  carries it. A client whose `Setup` does not (one built by hand with
+  `Setup::new`) matches with no data: it finds a locale of
   the reader's own language (`fr-CA` still finds `fr`), the first in the
   build's order among several, and no other script or language. Its type
   is `mf2::LanguageMatching`.
@@ -280,17 +280,22 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   the languages there are; `Display` writes the tag; `name()` is the
   `language.<tag>` message when every locale has one. With `mf2`'s new
   `clap` feature, `--lang` parses through the matcher and `--help` lists
-  the tags. Beside it, where the build has what they need: `install()`,
-  `install_from_directory()`, `set_locale(Locale)`, `current_locale()`,
-  `with_locale(Locale, body)`, `preload_locale(Locale)` and
-  `Locale::format(&message)`; with `ratatui`, `markup::*`, a constant per
+  the tags. Beside it, where the build has what they need: `setup()`,
+  `install()`, `install_from_directory()`, `set_locale(Locale)`,
+  `current_locale()`, `with_locale(Locale, body)`, `preload_locale(Locale)`
+  and `Locale::format(&message)`; with `ratatui`, `markup::*`, a constant per
   markup name holding the name and its hash (`mf2::ratatui::Markup`); and a
   `prelude`. Each choice in the module follows how `mf2` was built,
   whichever crate turned its features on: `CATALOGS` is in every build
   whose `mf2` has `host-std` (1.x: the translation crate's `ssr`, which
   every 1.x translation crate forwards to `mf2/host-std`), and the host
   follows `mf2`'s date features. A module that embeds catalogs embeds each
-  once, shared by `CATALOGS` and `CORPUS`.
+  once, shared by `CATALOGS` and `CORPUS`. Under a Leptos mode, `setup()`
+  is the `Setup` value a 1.x translation crate wrote by hand, with a
+  client-only application's language-matching data, and `install()`
+  installs it; upgrading a 1.x translation crate means deleting its
+  hand-written `setup()`, which would otherwise clash with the generated
+  one.
 
 ## 1.0.0
 

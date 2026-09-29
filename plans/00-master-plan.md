@@ -237,8 +237,8 @@ The table above is the tree until Phase 10's tasks land. At P10's exit:
   `wasm32` after question 24; `ratatui`'s since B3, `axum`'s with D1). On the host the combination
   compiles: cargo unifies features across the packages it builds together, so a workspace that
   holds a browser client and a native application checks as one (`cargo check --workspace`,
-  rust-analyzer's check), as in 1.x, and a 1.x application still compiles unchanged
-  ([18](18-phase-10-work-order.md) question 24; [19](19-native-and-terminal.md) §3).
+  rust-analyzer's check), as in 1.x ([18](18-phase-10-work-order.md) question 24;
+  [19](19-native-and-terminal.md) §3).
 - **The dependency-table cells above:** `leptos-mf2`'s and `mf2`'s were rewritten when B1 landed,
   `mf2-native`'s and `mf2`'s when B2 did, and `mf2-ratatui`'s and `mf2`'s when B3 did; `mf2-axum`'s
   are when D1 lands ([18](18-phase-10-work-order.md)).

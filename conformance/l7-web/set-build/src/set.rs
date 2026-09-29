@@ -1,18 +1,6 @@
 // What a conformance L7 page needs from one set, beyond its generated module
-// and its call sites (`plans/15-phase-7-work-order.md` A4). Included by each
-// of the four set crates; see `mf2-l7-set-build`.
-
-/// Everything `mf2::leptos::install` needs, from the generated module.
-#[must_use]
-pub fn setup() -> ::mf2::leptos::Setup {
-    ::mf2::leptos::Setup::new(
-        registry(),
-        &host::HOST,
-        MANIFEST_HASH,
-        SOURCE_LOCALE,
-        LOCALES,
-    )
-}
+// (`setup()` among it) and its call sites (`plans/15-phase-7-work-order.md`
+// A4). Included by each of the four set crates; see `mf2-l7-set-build`.
 
 /// How many call sites the page holds.
 #[must_use]

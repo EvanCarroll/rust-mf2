@@ -156,18 +156,4 @@ const LIB_RS: &str = "\
 //! (rust-lang/rust#52234).
 
 mf2::include_generated!();
-
-/// What the application installs once on each side: the registry, the host,
-/// the manifest hash and the locale table the build generated.
-#[cfg(any(feature = \"ssr\", feature = \"hydrate\", feature = \"csr\"))]
-#[must_use]
-pub fn setup() -> mf2::leptos_mf2::Setup {
-    mf2::leptos_mf2::Setup::new(
-        registry(),
-        &host::HOST,
-        MANIFEST_HASH,
-        SOURCE_LOCALE,
-        LOCALES,
-    )
-}
 ";

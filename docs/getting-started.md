@@ -137,8 +137,8 @@ dates:
 | `fn-datetime` + `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
 | `intl` | numbers and plural rules through the browser's `Intl` too |
 
-Its `src/lib.rs` includes what the build generates. The `setup()` function
-at the end is what the application installs, once on each side:
+Its `src/lib.rs` includes what the build generates. That holds `setup()`,
+what the application installs once on each side:
 
 ```rust file=hello/i18n/src/lib.rs generated
 //! The application's messages. Everything in here is generated: edit
@@ -151,20 +151,6 @@ at the end is what the application installs, once on each side:
 //! (rust-lang/rust#52234).
 
 mf2::include_generated!();
-
-/// What the application installs once on each side: the registry, the host,
-/// the manifest hash and the locale table the build generated.
-#[cfg(any(feature = "ssr", feature = "hydrate", feature = "csr"))]
-#[must_use]
-pub fn setup() -> mf2::leptos_mf2::Setup {
-    mf2::leptos_mf2::Setup::new(
-        registry(),
-        &host::HOST,
-        MANIFEST_HASH,
-        SOURCE_LOCALE,
-        LOCALES,
-    )
-}
 ```
 
 `mf2.toml` configures the build. `source_locale` is the language the

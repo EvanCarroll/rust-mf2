@@ -1652,7 +1652,7 @@ generated one.
 **Doc comments fit the mode**: a native module never says "wasm".
 
 **The generated names are fixed.** An application whose root already defines
-`install`, `Locale` or `markup` gets E0428 at the include. A way to rename them
+`install`, `setup`, `Locale` or `markup` gets E0428 at the include. A way to rename them
 (`mf2.toml`) is left for later, when an application needs one (§16).
 
 **As built (C4;** [18](18-phase-10-work-order.md), C4's entry**).** Where the
@@ -1665,10 +1665,12 @@ design above did not settle a detail, or could not be built yet:
 - **`markup::*`** holds a constant for each name whose ASCII letters and digits
   give one no other name gives; the rest (MF2 allows `+:_¡`, which L5 uses)
   get none rather than a refusal;
-- **not built:** the generated `setup()`, which every 1.x translation crate
-  already defines (an owner question); `Locale::format` without `native`, and
-  the `axum` column, with D1; `tr` and `msg_id` in the prelude, which need C6's
-  wrapper (rust-lang/rust#52234).
+- **`setup()`** came after C4 ([18](18-phase-10-work-order.md) questions 30
+  and 31): `install()` installs it, and every hand-written one in the tree
+  went in the same change, since it would clash with the generated one;
+- **not built:** `Locale::format` without `native`, and the `axum` column,
+  with D1; `tr` and `msg_id` in the prelude, which need C6's wrapper
+  (rust-lang/rust#52234).
 
 ## 11. The build
 

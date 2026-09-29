@@ -301,10 +301,10 @@ and any static file host can serve the site. Three things are different:
   from `Accept-Language`, else the source language. A switch is live, and
   is remembered. To choose as a server does, by CLDR's language-matching
   data, the page needs the part of that data its languages need, which the
-  build generates: a client-only translation crate's `setup()` adds
-  `.with_language_matching(&LANGUAGE_MATCHING)` after `Setup::new(…)`.
-  Without it the page finds only a locale of the reader's own language
-  (`fr-CA` still finds `fr`).
+  build generates, and a client-only build's generated `setup()` carries.
+  A `Setup` built by hand without it
+  (`.with_language_matching(&LANGUAGE_MATCHING)`) finds only a locale of
+  the reader's own language (`fr-CA` still finds `fr`).
 * **The catalogs are published beside the wasm**, by `mf2 compile --site`.
   There is no server to embed them in. The translation crate generates only
   the module (`Emit::Module`), so the wasm names no catalog file.

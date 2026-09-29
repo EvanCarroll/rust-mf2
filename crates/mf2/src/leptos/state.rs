@@ -82,7 +82,7 @@ pub(crate) fn attribute_use(key: &str) -> TextUse {
 }
 
 /// The application's own half of a formatter, installed once
-/// ([`install`]).
+/// ([`install`]): what the translation crate's generated `setup()` returns.
 #[derive(Clone, Copy)]
 #[non_exhaustive]
 pub struct Setup {
