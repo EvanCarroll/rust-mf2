@@ -1370,7 +1370,10 @@ whose hashes collide, as the macro already does within one message.
 
 **What goes.** The old `line` / `text` / `MarkupStyles` go with C8's page.
 `MarkupStyles` was a `Vec<(String, Style)>` built per draw, and `line` / `text`
-took the handle and the map on every call.
+took the handle and the map on every call. Until then they are
+`mf2::ratatui`'s, under 1.x's names (B3), and the `mf2-ratatui` shim
+re-exports them; what the shim keeps when they go is C8's to settle
+([18](18-phase-10-work-order.md), B3's record).
 
 **The gate** (C5, against A1's figures on `examples/tui`, per frame in
 en/de/es/fr):

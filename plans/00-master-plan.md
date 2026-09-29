@@ -157,7 +157,7 @@ rust-mf2/
 │   ├── mf2-host-web/           browser Host: normalize(), optional Intl glue
 │   ├── mf2-host-std/           native Host: NFC, ICU4X pieces
 │   ├── mf2-native/             1.x's native crate, now a shim: re-exports mf2::native under 1.x's names
-│   ├── mf2-ratatui/            optional Ratatui text, MF2 markup as styles
+│   ├── mf2-ratatui/            1.x's Ratatui crate, now a shim: re-exports mf2::ratatui under 1.x's names
 │   ├── mf2-locale-data/        CLDR JSON → LOCALE section (build side)
 │   ├── mf2-build/              loaders, manifest, lints, catalogs, codegen
 │   ├── mf2-macros/             tr! proc-macro
@@ -166,7 +166,7 @@ rust-mf2/
 │   ├── mf2-leptos-ui-0-9/      the six Leptos components (switcher, links, gate), Leptos 0.9
 │   ├── mf2-leptos-ui-0-8/      the same source (src/ui.rs a link), Leptos 0.8
 │   ├── leptos-mf2/             1.x's Leptos layer, now a shim: re-exports mf2's, forwards features
-│   └── mf2/                    the crate apps name: Tr types, the Leptos layer (mf2::leptos), the native module (mf2::native), re-exports, features
+│   └── mf2/                    the crate apps name: Tr types, the Leptos layer (mf2::leptos), the native module (mf2::native), its Ratatui text (mf2::ratatui), re-exports, features
 ├── conformance/                crate mf2-conformance: L1–L7 harnesses, ledger.toml,
 │                               extra/ (WG schema), goldens/, REPORT.md, COVERAGE.md;
 │                               l4-runner/ (L4's client side, also wasm32-wasip1),
@@ -200,7 +200,7 @@ rust-mf2/
 | `mf2-host-web` | `mf2-runtime`, `js-sys`, `web-sys` | yes (small) |
 | `mf2-host-std` | `mf2-runtime`, an NFC crate | **never** (server, tests) |
 | `mf2-native` (a shim since Phase 10 B2) | `mf2[native]` | **never** (re-exports only) |
-| `mf2-ratatui` | `mf2-native`, `ratatui-core` | **never** (optional TUI adapter) |
+| `mf2-ratatui` (a shim since Phase 10 B3) | `mf2[ratatui]` | **never** (re-exports only) |
 | `mf2-locale-data` | `mf2-model`, `mf2-catalog[writer]`; ships compact CLDR tables | **never** |
 | `mf2-build` | `mf2-syntax`, `mf2-resource`, `mf2-catalog[writer,manifest]`, `mf2-locale-data`, compression crates | **never** |
 | `mf2-macros` | `syn`, `quote`, `mf2-catalog[manifest]` | expansion only |
@@ -208,7 +208,7 @@ rust-mf2/
 | `mf2-axum` | `axum`, `mf2-catalog` | **never** |
 | `mf2-leptos-ui-0-9` / `-0-8` | its Leptos line, `mf2-model` | the active line's, with a mode |
 | `leptos-mf2` (a shim since Phase 10 B1) | `mf2` | re-exports only |
-| `mf2` ([05](05-tooling.md) §9) | `mf2-runtime`, `mf2-catalog`, `mf2-macros`; by feature the function crates, the hosts, the Leptos lines and their helper, and (`native`) `sys-locale` and `jiff[tz-system]` | **yes** — the call-site types; the Leptos layer with a mode; **never** the native module (`native` with `hydrate` or `csr` is a `compile_error!` when compiling for `wasm32`) |
+| `mf2` ([05](05-tooling.md) §9) | `mf2-runtime`, `mf2-catalog`, `mf2-macros`; by feature the function crates, the hosts, the Leptos lines and their helper, (`native`) `sys-locale` and `jiff[tz-system]`, and (`ratatui`) `ratatui-core` | **yes** — the call-site types; the Leptos layer with a mode; **never** the native and Ratatui modules (`native` or `ratatui` with `hydrate` or `csr` is a `compile_error!` when compiling for `wasm32`) |
 
 CI asserts the "never" column with `cargo tree -e normal --target
 wasm32-unknown-unknown` on the demo app.
@@ -234,14 +234,14 @@ The table above is the tree until Phase 10's tasks land. At P10's exit:
 - **In the client wasm:** `mf2` (the core and `leptos`) and the active UI helper.
 - **Never in the client wasm:** `native`, `ratatui`, `axum`. `mf2` refuses each beside `hydrate` or
   `csr` with a `compile_error!` **when compiling for `wasm32`** (`native`'s since B2, narrowed to
-  `wasm32` after question 24; `ratatui`'s with B3, `axum`'s with D1). On the host the combination
+  `wasm32` after question 24; `ratatui`'s since B3, `axum`'s with D1). On the host the combination
   compiles: cargo unifies features across the packages it builds together, so a workspace that
   holds a browser client and a native application checks as one (`cargo check --workspace`,
   rust-analyzer's check), as in 1.x, and a 1.x application still compiles unchanged
   ([18](18-phase-10-work-order.md) question 24; [19](19-native-and-terminal.md) §3).
 - **The dependency-table cells above:** `leptos-mf2`'s and `mf2`'s were rewritten when B1 landed,
-  and `mf2-native`'s and `mf2`'s when B2 did; `mf2-ratatui`'s are when B3 lands, and `mf2-axum`'s
-  when D1 does ([18](18-phase-10-work-order.md)).
+  `mf2-native`'s and `mf2`'s when B2 did, and `mf2-ratatui`'s and `mf2`'s when B3 did; `mf2-axum`'s
+  are when D1 lands ([18](18-phase-10-work-order.md)).
 
 ## 5. Client feature flags (through the `mf2` facade)
 

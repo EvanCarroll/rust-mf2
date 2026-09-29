@@ -7,8 +7,9 @@ the reader's time zone — now lives in [`mf2`](https://docs.rs/mf2): the
 Leptos layer as `mf2::leptos`, the call-site types at `mf2`'s root. This
 crate re-exports all of it under the paths 1.x used, and forwards its
 features to `mf2`'s, so a 1.x application keeps compiling, beside a native
-application on `mf2-native` in one workspace too: `mf2` refuses `native`
-beside `hydrate` or `csr` only when compiling for the browser (`wasm32`).
+application on `mf2-native` or `mf2-ratatui` in one workspace too: `mf2`
+refuses `native` and `ratatui` beside `hydrate` or `csr` only when
+compiling for the browser (`wasm32`).
 
 A new application names `mf2` alone, with its Leptos line:
 

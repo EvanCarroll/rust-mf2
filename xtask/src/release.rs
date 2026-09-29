@@ -92,9 +92,10 @@ const PARTIAL_INITIAL_RELEASE: [&str; 5] = [
 /// from `leptos-mf2` (`leptos-mf2/leptos-0-9`, refused as "not allowed to
 /// contain slashes"). Since Phase 10's B1 the layer is `mf2`'s own, held by
 /// its `api.txt`; B5 checks it per mode, against baseline feature sets that
-/// spell 1.0.0's line. `native` (Phase 10 B2) is not a feature of 1.0.0's
-/// `mf2` at all: 1.x's native crate, `mf2-native`, was never published. What
-/// it adds is held by `api.txt` too, and B5 lists it as its own mode.
+/// spell 1.0.0's line. `native` and `ratatui` (Phase 10 B2, B3) are not
+/// features of 1.0.0's `mf2` at all: 1.x's native crates, `mf2-native` and
+/// `mf2-ratatui`, were never published. What they add is held by `api.txt`
+/// too, and B5 lists each as its own mode.
 const SEMVER_WITHOUT: [(&str, &[&str]); 1] = [(
     "mf2",
     &[
@@ -103,6 +104,7 @@ const SEMVER_WITHOUT: [(&str, &[&str]); 1] = [(
         "static-locale",
         "mark-fallback-lang",
         "native",
+        "ratatui",
     ],
 )];
 

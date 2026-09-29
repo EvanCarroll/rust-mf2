@@ -3,7 +3,7 @@ name = "mf2"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — the call-site types, the Leptos layer and the native application support behind features, the formatter, and compile_str for ad-hoc messages."
+description = "Unicode MessageFormat 2 for Rust, for Leptos web applications and native CLI and terminal applications: the one crate an application names — the call-site types, the Leptos layer, the native application support and its Ratatui text behind features, the formatter, and compile_str for ad-hoc messages."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -64,6 +64,13 @@ native = [
     "mf2-catalog/static-bytes",
     "mf2-catalog/content-hash",
 ]
+# A terminal UI's text (`mf2::ratatui`): a message as owned Ratatui `Text`
+# or `Line`, its markup (`{#name}…{/name}`) as the styles the application
+# maps by name. Implies `native`, and adds `ratatui-core` alone, whose
+# types `ratatui` re-exports. Never in a browser build: with `hydrate` or
+# `csr` it is a compile error of its own when compiling for `wasm32`; on
+# the host the two compile together, as `native` does.
+ratatui = ["native", "dep:ratatui-core"]
 # The `intl` client option: on wasm32-unknown-unknown the numeric functions
 # format and select through the browser's Intl.NumberFormat and
 # Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
@@ -157,6 +164,10 @@ thiserror.workspace = true
 sys-locale = { workspace = true, optional = true }
 jiff = { workspace = true, optional = true }
 
+# The Ratatui module (`ratatui`): the text and style types, which `ratatui`
+# re-exports.
+ratatui-core = { workspace = true, optional = true }
+
 # The Leptos layer: each line under names of its own, and its helper.
 leptos_0_9 = { workspace = true, optional = true }
 tachys_0_3 = { workspace = true, optional = true }
@@ -215,12 +226,18 @@ required-features = ["ssr", "mark-fallback-lang"]
 name = "native"
 required-features = ["native", "compile"]
 
+# A message as Ratatui text, its markup as styles, formatted through a
+# native application's catalogs.
+[[test]]
+name = "ratatui"
+required-features = ["ratatui", "compile"]
+
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-# The server on Leptos 0.9, and the native module, which compiles beside it:
-# the modes exclude each other, and `mf2::leptos` names what the client
-# modes add.
+# The server on Leptos 0.9, and the native and Ratatui modules, which compile
+# beside it: the modes exclude each other, and `mf2::leptos` names what the
+# client modes add.
 features = [
     "compile",
     "fn-number",
@@ -231,6 +248,7 @@ features = [
     "static-locale",
     "mark-fallback-lang",
     "native",
+    "ratatui",
 ]
 targets = ["x86_64-unknown-linux-gnu"]
 

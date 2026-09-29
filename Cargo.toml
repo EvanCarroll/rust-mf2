@@ -96,8 +96,8 @@ mf2-l5-und = { path = "conformance/l5/und" }
 mf2-l5-fr = { path = "conformance/l5/fr" }
 mf2-l5-ar = { path = "conformance/l5/ar" }
 mf2-host-std = { path = "crates/mf2-host-std", version = "=1.1.0" }
-mf2-native = { path = "crates/mf2-native", version = "=1.1.0" }
-mf2-ratatui = { path = "crates/mf2-ratatui", version = "=1.1.0" }
+# No member names the `mf2-native` or `mf2-ratatui` shims (Phase 10 B2, B3):
+# each depends on `mf2` alone, so neither has an entry here.
 mf2-host-web = { path = "crates/mf2-host-web", version = "=1.1.0" }
 # The six Leptos components, one helper crate per Leptos line, which
 # `mf2::leptos` wraps with its `Layer` chosen (owner question 13 of Phase 10).
@@ -131,7 +131,8 @@ fluent-bundle = "0.16.0"
 # The language identifier `fluent-bundle` takes, at the version it uses.
 unic-langid = "0.9.6"
 sys-locale = "0.3.2"
-# mf2-ratatui: the text and style types, which `ratatui` re-exports.
+# `mf2::ratatui` (`mf2`'s `ratatui` feature): the text and style types, which
+# `ratatui` re-exports.
 ratatui-core = { version = "0.1.2", default-features = false }
 # `mf2 convert --from leptos-fluent` (plans/05-tooling.md §6.2): the diff it
 # shows before `--write`.

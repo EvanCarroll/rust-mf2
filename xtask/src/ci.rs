@@ -242,6 +242,28 @@ const STEPS: &[&[&str]] = &[
         "--test",
         "native",
     ],
+    // The Ratatui module (Phase 10 B3) as a terminal UI builds it, with no
+    // Leptos layer beside it, for the same reason; its tests run here too.
+    &[
+        "clippy",
+        "-p",
+        "mf2",
+        "--features",
+        "ratatui,compile",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "test",
+        "-p",
+        "mf2",
+        "--features",
+        "ratatui,compile",
+        "--test",
+        "ratatui",
+    ],
     // The `leptos-mf2` shim with no mode of its own while `mf2` has one: an
     // application that names its mode on `mf2` alone, beside a crate on the
     // shim's `leptos` (as `conformance/l7-web/sets/*` are). In 1.x `mf2/ssr`

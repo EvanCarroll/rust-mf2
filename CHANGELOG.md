@@ -169,6 +169,15 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   and paths, so a 1.x application compiles unchanged.
   `NativeI18n` implements `Debug`: the active locale, where it came from,
   the catalogs and the settings.
+* **Changed: the Ratatui support is `mf2`'s.** `MarkupStyles`, `line` and
+  `text` are the module `mf2::ratatui`, behind `mf2`'s new `ratatui`
+  feature, which implies `native` and adds `ratatui-core` alone. Like
+  `native`, beside `hydrate` or `csr` it is a compile error when compiling
+  for the browser (`wasm32`), in a sentence that names `ratatui`; on the
+  host the two compile together, so a workspace that holds a browser
+  client and a terminal UI checks as one. **`mf2-ratatui` is a shim** that
+  re-exports the three under 1.x's names and paths, so a 1.x application
+  compiles unchanged.
 
 ## 1.0.0
 

@@ -4,11 +4,12 @@ Unicode MessageFormat 2 for Rust applications — web applications with
 [Leptos](https://leptos.dev), and native command-line and terminal
 applications. `mf2` is the one crate an application's code names. It
 defines what a `tr!` call site builds (`Tr`, `TrArgs`, `TrRich`,
-`ArgValue`), carries the Leptos layer as `mf2::leptos` and a native
-application's catalogs and locale as `mf2::native`, re-exports the
-formatter of the Rust MF2 crates, and carries the feature flags that choose
-what a build includes: the Leptos line (`leptos` for 0.9, `leptos-0-8`) and
-mode (`ssr`, `hydrate` or `csr`), a native application (`native`), localized
+`ArgValue`), carries the Leptos layer as `mf2::leptos`, a native
+application's catalogs and locale as `mf2::native` and a terminal UI's text
+as `mf2::ratatui`, re-exports the formatter of the Rust MF2 crates, and
+carries the feature flags that choose what a build includes: the Leptos
+line (`leptos` for 0.9, `leptos-0-8`) and mode (`ssr`, `hydrate` or `csr`),
+a native application (`native`) and its Ratatui text (`ratatui`), localized
 numbers (`fn-number`), dates (`fn-datetime` and a backend), the host
 (`host-std` natively, `host-web` in the browser), and `compile_str` for an
 ad-hoc message.
@@ -21,12 +22,12 @@ contains none of the text.
 An application's translation crate depends on `mf2` and, as a build
 dependency, [`mf2-build`](https://docs.rs/mf2-build). A web application's
 server adds [`mf2-axum`](https://docs.rs/mf2-axum); a native one turns on
-`native` and, for a terminal UI, adds
-[`mf2-ratatui`](https://docs.rs/mf2-ratatui). `leptos-mf2` and
-`mf2-native`, where 1.x kept the Leptos layer and the native support, are
-now shims over `mf2::leptos` and `mf2::native`. For native applications
-`mf2` also provides `Corpus`, the one value a native build generates, and
-`Message`, which formats any `tr!` call site outside Leptos.
+`native`, and for a terminal UI `ratatui`. `leptos-mf2`, `mf2-native` and
+`mf2-ratatui`, where 1.x kept the Leptos layer, the native support and the
+Ratatui text, are now shims over `mf2::leptos`, `mf2::native` and
+`mf2::ratatui`. For native applications `mf2` also provides `Corpus`, the
+one value a native build generates, and `Message`, which formats any `tr!`
+call site outside Leptos.
 
 API documentation: <https://docs.rs/mf2>.
 

@@ -1,9 +1,12 @@
+//! A message as Ratatui text, its markup as styles (`mf2::ratatui`; 1.x's
+//! `mf2-ratatui`, whose tests these were).
+
+use mf2::native::NativeI18n;
+use mf2::ratatui::{MarkupStyles, line, text};
 use mf2::{
-    BidiStrategy, CatalogFile, Compiled, Corpus, Dir, ErrorSink, Formatter, PartSink, Registry,
-    Sink,
+    BidiStrategy, CatalogFile, Compiled, Corpus, Dir, ErrorSink, Formatter, Message, PartSink,
+    Registry, Sink,
 };
-use mf2_native::{Message, NativeI18n};
-use mf2_ratatui::{MarkupStyles, line, text};
 use ratatui_core::style::{Color, Modifier, Style};
 use ratatui_core::text::{Line, Span};
 

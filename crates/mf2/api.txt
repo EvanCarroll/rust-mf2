@@ -1,5 +1,5 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: compile,fn-number,datetime-icu,host-std,leptos,ssr,static-locale,mark-fallback-lang,native
+# nightly-2026-09-24; features: compile,fn-number,datetime-icu,host-std,leptos,ssr,static-locale,mark-fallback-lang,native,ratatui
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy
@@ -255,6 +255,20 @@ pub const fn mf2::native::NativeI18n::source_locale(&self) -> &'static str
 pub const fn mf2::native::NativeI18n::time_zone(&self) -> mf2_runtime::datetime::TimeZone
 impl core::fmt::Debug for mf2::native::NativeI18n
 pub fn mf2::native::NativeI18n::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub mod mf2::ratatui
+pub struct mf2::ratatui::MarkupStyles
+impl mf2::ratatui::MarkupStyles
+pub fn mf2::ratatui::MarkupStyles::get(&self, &str) -> core::option::Option<ratatui_core::style::Style>
+pub const fn mf2::ratatui::MarkupStyles::new() -> Self
+pub fn mf2::ratatui::MarkupStyles::with(self, impl core::convert::Into<alloc::string::String>, ratatui_core::style::Style) -> Self
+impl core::clone::Clone for mf2::ratatui::MarkupStyles
+pub fn mf2::ratatui::MarkupStyles::clone(&self) -> Self
+impl core::default::Default for mf2::ratatui::MarkupStyles
+pub fn mf2::ratatui::MarkupStyles::default() -> Self
+impl core::fmt::Debug for mf2::ratatui::MarkupStyles
+pub fn mf2::ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub fn mf2::ratatui::line(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
+pub fn mf2::ratatui::text(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
 pub macro mf2::include_generated!
 #[non_exhaustive] pub enum mf2::ArgValue
 pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)

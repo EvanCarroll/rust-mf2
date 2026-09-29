@@ -18,8 +18,9 @@
 //! host case runs `cargo check` natively and must pass.
 //!
 //! `cargo xtask ci` runs it. A feature that joins the refusals adds a case
-//! on each side: `ratatui` inherits `native`'s (Phase 10 B3), and `axum`
-//! adds its own (D1).
+//! on each side: `ratatui`, which implies `native`, has a sentence of its
+//! own (Phase 10 B3), so that the one error names what an application
+//! turned on, and `axum` adds its own (D1).
 
 use std::path::Path;
 use std::process::{Command, Output};
@@ -39,6 +40,10 @@ const BOTH_LINES: &str = "mf2: both Leptos lines are on, `leptos` (Leptos 0.9) a
 
 /// `native` in a browser build.
 const NATIVE: &str = "mf2: `native` is on beside `hydrate` or `csr` in a build for the browser";
+
+/// `ratatui` in a browser build: its own sentence, not `native`'s, though
+/// it implies `native`.
+const RATATUI: &str = "mf2: `ratatui` is on beside `hydrate` or `csr` in a build for the browser";
 
 const WASM: &str = "wasm32-unknown-unknown";
 
@@ -110,6 +115,30 @@ const CASES: &[Case] = &[
         ],
         says: NATIVE,
     },
+    Case {
+        what: "`ratatui` beside `hydrate`, for the browser",
+        args: &[
+            "-p",
+            "mf2",
+            "--features",
+            "ratatui,leptos,hydrate",
+            "--target",
+            WASM,
+        ],
+        says: RATATUI,
+    },
+    Case {
+        what: "`ratatui` beside `csr`, for the browser",
+        args: &[
+            "-p",
+            "mf2",
+            "--features",
+            "ratatui,leptos,csr",
+            "--target",
+            WASM,
+        ],
+        says: RATATUI,
+    },
 ];
 
 /// A combination §3 refuses only for the browser: what it is, and its
@@ -128,6 +157,14 @@ const HOST: &[Host] = &[
         what: "`native` beside `csr`, on the host",
         args: &["-p", "mf2", "--features", "native,leptos,csr"],
     },
+    Host {
+        what: "`ratatui` beside `hydrate`, on the host",
+        args: &["-p", "mf2", "--features", "ratatui,leptos,hydrate"],
+    },
+    Host {
+        what: "`ratatui` beside `csr`, on the host",
+        args: &["-p", "mf2", "--features", "ratatui,leptos,csr"],
+    },
     // 1.x's workspace: a browser client on `leptos-mf2` and a native
     // application on `mf2-native`, checked together as `--workspace` does.
     Host {
@@ -137,6 +174,18 @@ const HOST: &[Host] = &[
             "leptos-mf2",
             "-p",
             "mf2-native",
+            "--features",
+            "leptos-mf2/csr",
+        ],
+    },
+    // …and with a terminal UI on `mf2-ratatui` beside the client.
+    Host {
+        what: "`leptos-mf2` in `csr` beside `mf2-ratatui`, on the host",
+        args: &[
+            "-p",
+            "leptos-mf2",
+            "-p",
+            "mf2-ratatui",
             "--features",
             "leptos-mf2/csr",
         ],

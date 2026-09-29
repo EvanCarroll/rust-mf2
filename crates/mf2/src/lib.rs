@@ -17,6 +17,7 @@
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
 //! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
 //! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, in the system's language and time zone (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
+//! | `ratatui` | [`ratatui`]: a terminal UI's text — a message as Ratatui `Text` or `Line`, its markup as styles (implies `native`; `ratatui-core` alone; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
 //! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
@@ -29,10 +30,11 @@
 //! application writes the line on its `mf2` dependency (`features =
 //! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
 //! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
-//! 0.9, and `native`, which compiles beside it; [`leptos`] lists what the
-//! client modes add. `host-web` and `intl` are for `wasm32-unknown-unknown`,
-//! so [`host_web`](https://docs.rs/mf2-host-web) is not shown here. A native
-//! application turns on `native`, and no Leptos mode.
+//! 0.9, and `native` and `ratatui`, which compile beside it; [`leptos`]
+//! lists what the client modes add. `host-web` and `intl` are for
+//! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
+//! is not shown here. A native application turns on `native` (a terminal
+//! UI, `ratatui`), and no Leptos mode.
 //!
 //! A build with no mode compiles no Leptos code, so a server, a test and a
 //! native application use the descriptions as they are: formatted against a
@@ -170,9 +172,12 @@ compile_error!(
 // together: cargo unifies features across the packages it builds together,
 // so `cargo check --workspace` (and rust-analyzer's check) over a browser
 // client and a native application turns both on, as 1.x allowed
-// (plans/19-native-and-terminal.md §3).
+// (plans/19-native-and-terminal.md §3). `ratatui` implies `native` and has
+// a sentence of its own, below, so that the one error names the feature an
+// application turned on.
 #[cfg(all(
     feature = "native",
+    not(feature = "ratatui"),
     any(feature = "hydrate", feature = "csr"),
     target_arch = "wasm32"
 ))]
@@ -183,6 +188,19 @@ compile_error!(
      build. cargo unifies features across the packages it builds together: \
      build the browser client on its own (`-p`), and keep `native` off in \
      every crate it depends on."
+);
+#[cfg(all(
+    feature = "ratatui",
+    any(feature = "hydrate", feature = "csr"),
+    target_arch = "wasm32"
+))]
+compile_error!(
+    "mf2: `ratatui` is on beside `hydrate` or `csr` in a build for the \
+     browser (`wasm32`): `ratatui` is for a terminal UI, which runs \
+     natively, and implies `native`; neither belongs in a browser build. \
+     cargo unifies features across the packages it builds together: build \
+     the browser client on its own (`-p`), and keep `ratatui` and `native` \
+     off in every crate it depends on."
 );
 
 // Each Leptos line is a dependency under a name of its own (`leptos_0_9`,
@@ -228,6 +246,12 @@ mod tr;
 #[cfg(feature = "native")]
 #[cfg_attr(docsrs, doc(cfg(feature = "native")))]
 pub mod native;
+
+// A terminal UI's text, through the native module's catalogs (its
+// documentation is the module's own).
+#[cfg(feature = "ratatui")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ratatui")))]
+pub mod ratatui;
 
 // The Leptos layer (its documentation is the module's own: an outer doc
 // comment here would make rustdoc resolve the module's links at the root).

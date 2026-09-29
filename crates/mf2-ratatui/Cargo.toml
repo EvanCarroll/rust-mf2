@@ -3,7 +3,7 @@ name = "mf2-ratatui"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Ratatui text from Rust MF2 messages, with MF2 markup as styles."
+description = "1.x's Ratatui support of Rust MF2, kept as a shim: it re-exports `mf2::ratatui`, where the code now lives, under 1.x's names, and turns on mf2's `ratatui` feature."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,13 +16,7 @@ categories = ["internationalization", "localization", "command-line-utilities"]
 exclude = ["package.txt"]
 
 [dependencies]
-mf2.workspace = true
-mf2-native.workspace = true
-# The text and style types only; `ratatui` re-exports these same types.
-ratatui-core.workspace = true
-
-[dev-dependencies]
-mf2 = { workspace = true, features = ["compile"] }
+mf2 = { workspace = true, features = ["ratatui"] }
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

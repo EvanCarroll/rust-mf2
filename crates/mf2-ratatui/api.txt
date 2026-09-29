@@ -1,16 +1,6 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
 # nightly-2026-09-24; features: (default)
 pub mod mf2_ratatui
-pub struct mf2_ratatui::MarkupStyles
-impl mf2_ratatui::MarkupStyles
-pub fn mf2_ratatui::MarkupStyles::get(&self, &str) -> core::option::Option<ratatui_core::style::Style>
-pub const fn mf2_ratatui::MarkupStyles::new() -> Self
-pub fn mf2_ratatui::MarkupStyles::with(self, impl core::convert::Into<alloc::string::String>, ratatui_core::style::Style) -> Self
-impl core::clone::Clone for mf2_ratatui::MarkupStyles
-pub fn mf2_ratatui::MarkupStyles::clone(&self) -> Self
-impl core::default::Default for mf2_ratatui::MarkupStyles
-pub fn mf2_ratatui::MarkupStyles::default() -> Self
-impl core::fmt::Debug for mf2_ratatui::MarkupStyles
-pub fn mf2_ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-pub fn mf2_ratatui::line(&mf2::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
-pub fn mf2_ratatui::text(&mf2::native::NativeI18n, &impl mf2::message::Message, &mf2_ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
+pub use mf2_ratatui::MarkupStyles
+pub use mf2_ratatui::line
+pub use mf2_ratatui::text

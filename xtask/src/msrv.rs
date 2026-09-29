@@ -14,9 +14,9 @@
 //! tree's lock file:
 //!
 //! 1. natively on Leptos 0.9, all 20 with every feature an application can
-//!    turn on at once for its server (`ssr`, the native module, both
-//!    function crates with the ICU4X date backend, the compiler, the CLI's
-//!    `icu-blob`, `serde`, …);
+//!    turn on at once for its server (`ssr`, the native and Ratatui
+//!    modules, both function crates with the ICU4X date backend, the
+//!    compiler, the CLI's `icu-blob`, `serde`, …);
 //! 2. natively on the Leptos 0.8 opt-in, `mf2`, its 0.8 helper, the
 //!    `leptos-mf2` shim and `mf2-axum`;
 //! 3. `wasm32-unknown-unknown`, `hydrate` with the ICU4X date backend;
@@ -40,7 +40,7 @@ const WASM: &str = "wasm32-unknown-unknown";
 /// the 20 (step 1; also what `cargo xtask package --test` tests the unpacked
 /// packages with).
 pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,\
-     mf2/leptos,mf2/ssr,mf2/static-locale,mf2/mark-fallback-lang,mf2/native,mf2-catalog/decode,mf2-catalog/static-bytes,\
+     mf2/leptos,mf2/ssr,mf2/static-locale,mf2/mark-fallback-lang,mf2/native,mf2/ratatui,mf2-catalog/decode,mf2-catalog/static-bytes,\
      mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
      mf2-runtime/fixed-decimal";
 

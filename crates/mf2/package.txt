@@ -34,10 +34,12 @@ src/markup.rs
 src/message.rs
 src/native.rs
 src/native/locale.rs
+src/ratatui.rs
 src/tr.rs
 tests/call_site.rs
 tests/churn.rs
 tests/fallback_lang.rs
 tests/native.rs
+tests/ratatui.rs
 tests/render.rs
 tests/time_zone.rs
