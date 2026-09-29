@@ -140,12 +140,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 main tree, beside a read-only review of B1's commits (no builds). Until B2's record appears under
 "Done", do not start B2 again: if the agent is still running (its cargo builds show in `ps`; it
 commits as "Phase 10 B2: …"), wait for its report; if it stopped without committing, resume B2
-from the tree's state. Part A's probe branches (`p10-a4-ambient`, `p10-a5-display`,
-`p10-a7-names`, `p10-e-silent-failures`) and their worktrees were kept until B1 had taken what it
-reuses from `p10-a7-names`; it has, so they may go (the owner's call). A9 ran in
-`p10-a5-display`'s worktree and left it clean; its `target/a9/` goes with that worktree. B1's
+from the tree's state. Part A's probe branches and worktrees are removed (question 21). B1's
 measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
-applied, uncommitted), holds the A/B's outputs; it may go once B1's record has been reviewed.
+applied, uncommitted), holds the A/B's outputs; it goes when the review of B1 reports.
 
 **Next, each from a fresh session or agent, one at a time:**
 - **B2**, `mf2::native` (after B1, done): the `native` feature, `mf2-native` a shim, its tests
@@ -155,12 +152,10 @@ applied, uncommitted), holds the A/B's outputs; it may go once B1's record has b
   designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
   touch the same crates and plans.
 
-**Owner questions found in the work:** one waiting, from B1 (its record, "`Display` and
-`Debug`"). 19 §14's third row caps `{:?}` on a `TrArgs` at 1.3 KB gz in every client A9 measured:
-it holds in demo-ssr (+860 B gz), `tr-view` (+866), demo-csr (+1,141) and the fixture (+1,220),
-and reads +1,353 in demo-islands, whose client formats nothing else, so the first `format!` brings
-`format!`'s own machinery (+424 B gz by control; the `Debug` itself is +929). Nothing waits on the
-answer. Before it: C3's data half found two; they were asked when A8 started, and answered as
+**Owner questions found in the work:** none waiting. B1 found four, answered as questions 18–21
+below: 19 §14's `{:?}` cap counts our code's own cost, so demo-islands holds (+929 B gz over its
+`format!` control); demo-ssr's −136 B gz holds; `CLAUDE.md`'s client-path list is updated; Part
+A's probe branches and worktrees are removed. Before them: C3's data half found two; they were asked when A8 started, and answered as
 questions 15 and 16 below. C3's text half found none: the case it was to send back (a threshold
 above the default script distance) does not arise. A8 found none; its 17 choices (19 §15) went to
 the owner's review, which approved them (question 17).
@@ -491,6 +486,45 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     >
     > Can API work start on the rest of the design as written? — Approve the rest; or hold
     > while the owner reads it.
+
+18. **`{:?}` on a `TrArgs` in a client that formats nothing else** (found by B1; 2026-09-28) —
+    **answered: 19 §14's cap counts our code's own cost.** The 1.3 KB gz cap is measured over a
+    base that already formats text: in a client that formats nothing else, over a `format!`
+    control (B1's `islands-control.sh`). demo-islands then reads +929 B gz (+1,353 over its base,
+    +424 of it `format!`'s own machinery), and the row holds; the other four clients already
+    format text, and their figures stand. An application that formats nothing else pays about
+    0.4 KB more on its first `{:?}`, as on its first `format!`. Rejected: cruder `Debug` output
+    (dates and decimals written less faithfully) to save about 50 B gz in such a client.
+19. **demo-ssr's −136 B gz under static dispatch** (found by B1; 2026-09-28) — **answered: the
+    gate holds.** After wasm-opt the module is 123 B smaller; gzip reads −136 B and brotli +154,
+    the two compressors reading reordered code in opposite directions. Static dispatch stays, and
+    question 13's fallback is not needed.
+20. **`CLAUDE.md`'s client-path list** (found by B1; 2026-09-28) — **answered: updated.** It names
+    `mf2`'s call-site types and `mf2::leptos`, and `mf2-leptos-ui-0-8` / `-0-9`, in place of
+    `leptos-mf2`, a re-export since B1.
+21. **Part A's probe branches and worktrees** (found by B1; 2026-09-28) — **answered: removed.**
+    The branches `p10-a4-ambient` (`389b4be`), `p10-a5-display` and `p10-a5-dev` (`70e0b27`),
+    `p10-a7-names` (`6014948`) and `p10-e-silent-failures` (`59cd8ac`, whose E1–E3 are on
+    `main`), with their worktrees; A9's `target/a9/` went with `p10-a5-display`'s. The records
+    are in this file, and the code worth keeping is in `probes/` as patches. B1's measurement
+    worktree goes when the review of B1 reports.
+
+    *As put* (18–21 together, after B1's report):
+    > Debug printing ({:?}, which unwrap() and assert_eq! also reach) was supposed to cost a
+    > browser app at most 1.3 KB compressed. It measures 0.86–1.22 KB in four apps, but 1.35 KB
+    > in the islands demo. That app formats no other text, so its first debug print also pulls
+    > in Rust's own formatting code (0.42 KB, which any format! would pull in). How should the
+    > limit read? — Count only our code; or make the output cruder.
+    >
+    > In the server-rendered demo the code itself got 123 bytes smaller, but gzip reads 136 bytes
+    > smaller and brotli 154 bytes larger. Does that count as holding the limit? — Yes, it holds;
+    > or no, check brotli first.
+    >
+    > The project's CLAUDE.md still lists the old Leptos crate among the browser-side crates that
+    > must stay lean. Update the list? — Update it; or leave it.
+    >
+    > The merge has taken what it needed from the 2.0 design's experiments. Remove their
+    > branches and working copies? — Remove them; or keep them.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
@@ -2779,7 +2813,7 @@ B), a method of the switcher's props builder (229 B) is inlined,
 wasm-opt the module is 123 B smaller; brotli reads +154. The shipped module
 carries one more source path, `…/crates/mf2-leptos-ui-0-9/src/ui.rs`, beside
 `…/crates/mf2/src/leptos/components.rs`. A decrease, not a cost: **judged as
-holding**, as A5's −83 B was. The lazy chunk is the same 23,688 B raw (+13 gz).
+holding**, as A5's −83 B was; the owner agreed (question 19). The lazy chunk is the same 23,688 B raw (+13 gz).
 **Static dispatch is kept:** the cheaper in every demo, and the only one within
 the gate. Question 13's fallback is not needed.
 
@@ -2841,8 +2875,8 @@ demo-islands formats nothing otherwise, so its first `format!` brings
 +929 B gz. Two leaner forms of the writers were tried there and were larger
 (`write_str` for every character: +38 B gz; digits through a buffer: +56).
 A9 measured S2 in the fixture, `tr-view`, demo-csr and demo-ssr, not in
-demo-islands. **This row is the owner's** (question 14's fallback); nothing
-else waits on it.
+demo-islands. **The owner's reading (question 18):** the cap counts our
+code's own cost, over a base that already formats text, so the row holds.
 
 ### What A7 left to B1
 
