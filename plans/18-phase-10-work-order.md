@@ -126,7 +126,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   - **17 choices no answer settled** (19 §15). The owner confirmed the first two by name (any
     `Display` type is an argument, as its text; `install()` returns nothing) and approved the rest.
 
-**In flight:** nothing (2026-09-28). Part A's probes are all recorded; their branches
+**In flight: B1**, started 2026-09-28 by an agent of the coordinating session, working in the
+main tree; its moves stay uncommitted until its gates pass. Until B1's record appears under
+"Done", do not start B1 again: if the agent is still running (its cargo builds show in `ps`; it
+commits as "Phase 10 B1: …"), wait for its report; if it stopped without committing, resume B1
+from the tree's state. Part A's probes are all recorded; their branches
 (`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
 kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-display`'s worktree
 and left it clean; its `target/a9/` goes with that worktree.
