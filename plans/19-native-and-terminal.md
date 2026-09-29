@@ -1686,12 +1686,15 @@ approved as written. The ones to look at first came first.
   ([18](18-phase-10-work-order.md), B1's record): `Debug` as S2 and `Display`
   as S3 on the moved types; the `*Props` listed, as aliases in `mf2`'s
   listing.
-- **B2 / D1:** one name clash to settle. `mf2::native::LocaleSource` (an enum:
-  system, source, explicit) and `mf2::axum::LocaleSource` (a trait) were in two
-  crates, and now share one. B2 renames the native one. *Done*
-  ([18](18-phase-10-work-order.md), B2's record): **`mf2::native::LocaleOrigin`**,
-  the name for the owner to confirm; `locale_source()` keeps its name, and the
-  `mf2-native` shim keeps `LocaleSource`.
+- **B2 / D1: no clash** (owner, [18](18-phase-10-work-order.md) question 23).
+  `mf2::native::LocaleSource` (an enum: system, source, explicit) and
+  `mf2::axum::LocaleSource` (a trait) were in two crates and now share one, but
+  items in different modules of one crate keep their names: they never share a
+  scope. They meet only where one scope glob-imports both modules and writes the
+  bare name (rustc asks for the path), or in a prelude that carries both, which
+  neither needs. B2's rename to `LocaleOrigin` is undone. **The rule for every
+  merge:** rename only for a clash in one scope, such as A7's root module named
+  like a dependency crate (N1–N5).
 - **C1:** §7 as designed, the probe as its starting point.
 - **C2:** §5, §6. It times the lookup's first step with `ssr` and `native`
   unified (A4); it chooses how a rule-following time zone is carried; it adds

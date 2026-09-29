@@ -147,7 +147,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   lines green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame identical and
   +176 B stripped.
 
-**In flight:** nothing. Part A's probe branches and worktrees are removed (question 21). B1's
+**In flight: B1's review fixes** (items 1–6 under "Next"), started 2026-09-28 by an agent of the
+coordinating session, working in the main tree. A read-only review of B2's commits runs beside it,
+with no builds. Until the fixes' commits appear, do not start them again: if the agent is still
+running (its cargo builds show in `ps`), wait for its report; if it stopped without committing,
+resume from the tree's state. Part A's probe branches and worktrees are removed (question 21). B1's
 measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
 applied, uncommitted), holds the A/B's outputs; it stays until B1's review fixes (below) have
 taken what they need from it. B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`,
@@ -176,13 +180,19 @@ once B2's record has been reviewed (the owner's call).
      names its mode on `mf2` alone. If so, the shim re-exports the layer whenever its line is on,
      and a test holds the arrangement, so the changelog's "a 1.x application compiles unchanged"
      holds.
+
+  From the owner's answer to question 23:
+  6. undo B2's rename: `mf2::native::LocaleOrigin` → `LocaleSource`. This covers the code, the
+     `mf2-native` shim (which then re-exports it plainly), the tests, `api.txt`, the changelog,
+     05, 19 §4, the crates' READMEs and B2's record.
 - **Then** B3, B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
   designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
   touch the same crates and plans.
 
-**Owner questions found in the work:** one waiting, from B2: the native enum's new name. 19 §16
-had B2 rename `mf2::native::LocaleSource` without naming it; B2 chose **`LocaleOrigin`** (its
-record, "Names"), which nothing else waits on. B1 found four, answered as questions 18–21
+**Owner questions found in the work:** none waiting. B2 found two, answered as questions 22 and
+23 below: the history with `46303b9` stays as it is; and the native enum keeps its name,
+`mf2::native::LocaleSource`, because items in different modules may share a name (B2's
+`LocaleOrigin` is undone in B1's review fixes). B1 found four, answered as questions 18–21
 below: 19 §14's `{:?}` cap counts our code's own cost, so demo-islands holds (+929 B gz over its
 `format!` control); demo-ssr's −136 B gz holds; `CLAUDE.md`'s client-path list is updated; Part
 A's probe branches and worktrees are removed. Before them: C3's data half found two; they were asked when A8 started, and answered as
@@ -568,6 +578,40 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     >
     > The merge has taken what it needed from the 2.0 design's experiments. Remove their
     > branches and working copies? — Remove them; or keep them.
+
+22. **The commit that carried B2's renames** (found by B2; 2026-09-28) — **answered: the history
+    stays as it is.** `46303b9`, a plans commit, committed the index with B2's three staged renames
+    and the removal of `mf2-native`'s `error.rs`. It does not build on its own; `90c8b2a` completes
+    it. Nothing was pushed. Rejected: rewriting the three local commits so that each builds. Since
+    then the coordinating session commits by path (`git commit -- <paths>`).
+23. **The native enum beside `mf2::axum::LocaleSource`** (found by B2; 2026-09-28) — **answered:
+    no rename; `mf2::native::LocaleSource` keeps 1.x's name.** Items with one name in two modules
+    of one crate compile side by side. `mf2::native::LocaleSource` (the enum: explicit, system,
+    source) and `mf2::axum::LocaleSource` (the trait) never share a scope. 19 §16 called them "one
+    name clash to settle" only because they now share a crate, and that is not a clash.
+    - **A7's clash was a different one** (N1–N5): a *module* named `leptos` or `axum` at `mf2`'s
+      root, against the *crates* of those names, in `mf2`'s own root scope.
+    - **Where the two names do meet:** only in a scope that glob-imports both modules and writes the
+      bare name (rustc then asks for the path), or in one prelude that carries both. Neither needs
+      to be in the prelude.
+    - **What it spares users:** native users change only `mf2_native::` → `mf2::native::`.
+    - **B2's `LocaleOrigin` is undone** in B1's review fixes (item 6).
+    - **The rule, for every later merge (B3, D1):** items in different modules keep their names;
+      rename only for a clash in one scope.
+
+    *As put* (22 and 23, after B2's report):
+    > One of the local commits doesn't build on its own, because my plan commit swept in file
+    > moves from the next commit. Should I fix the history so every commit builds? — Rewrite the 3
+    > commits; or leave history as is.
+    >
+    > The native side has an enum saying where the current language came from … In 2.0 it shares
+    > one crate with the web server's LocaleSource … so the native one needs a new name. Which
+    > name? — LocaleOrigin; LocaleChoice; or LocaleSourceKind.
+
+    The owner answered the second with a question: why a new name, when one name can sit in two
+    modules of one crate? After the explanation above:
+    > Should the native enum go back to its 1.x name, mf2::native::LocaleSource, beside
+    > mf2::axum::LocaleSource? — Keep LocaleSource; or keep LocaleOrigin.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
