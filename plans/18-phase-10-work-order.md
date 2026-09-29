@@ -244,7 +244,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `mf2 init`, the book), the `tr-view` and `fluent-converted` templates install it, and the changelog
   no longer promises "compiles unchanged". `ci`, `docs`, `codegen-matrix`, `scenarios` green.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+**In flight:** C5 (Ratatui), started 2026-09-29 by an agent working in the main tree; uncommitted
+changes there are its. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
