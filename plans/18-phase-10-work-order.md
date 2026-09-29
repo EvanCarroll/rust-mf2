@@ -125,36 +125,51 @@ start from fresh sessions or fresh agents, one at a time, as listed under
     took the expected step; 3 refused cases gave our message.
   - **17 choices no answer settled** (19 §15). The owner confirmed the first two by name (any
     `Display` type is an argument, as its text; `install()` returns nothing) and approved the rest.
+- **B1** (`1023d57`; the scripts in `probes/p10-b1/`, their outputs in the measurement worktree's
+  `target/p10-b1/`): the call-site types and the Leptos layer are `mf2`'s (`mf2::leptos`, each
+  line through `crate::line`); the six components in `mf2-leptos-ui-0-9` / `-0-8` by **static
+  dispatch** (a `Layer` trait `mf2` implements), which held the demos where A7's function table did
+  not — demo-ssr −136, demo-csr +11, demo-islands +1 B gz, against +339 / +183 / +7 in the same
+  tree; `leptos-mf2` a shim; the tests in `crates/mf2/tests/`. B1 26,332 → 26,329 B gz, B5 −0.004 B
+  a site, B7 byte-identical, B12 clean; `ci`, `docs`, `docs-rs`, `codegen-matrix`, `scenarios`,
+  `leptos-0-8`, `l6-web`, `l7-web`, `churn`, `msrv` and the six browser checks on both Leptos lines
+  green; the ledger unchanged. `Display` (S3) and `Debug` (S2) on the moved types: 19 §14's third
+  row holds but in demo-islands, an owner question (below).
 
-**In flight: B1**, started 2026-09-28 by an agent of the coordinating session, working in the
-main tree; its moves stay uncommitted until its gates pass. Until B1's record appears under
-"Done", do not start B1 again: if the agent is still running (its cargo builds show in `ps`; it
-commits as "Phase 10 B1: …"), wait for its report; if it stopped without committing, resume B1
-from the tree's state. Part A's probes are all recorded; their branches
-(`p10-a4-ambient`, `p10-a5-display`, `p10-a7-names`, `p10-e-silent-failures`) and worktrees are
-kept until B1 has taken what it reuses from `p10-a7-names`. A9 ran in `p10-a5-display`'s worktree
-and left it clean; its `target/a9/` goes with that worktree.
+**In flight:** nothing (2026-09-28). Part A's probe branches (`p10-a4-ambient`, `p10-a5-display`,
+`p10-a7-names`, `p10-e-silent-failures`) and their worktrees were kept until B1 had taken what it
+reuses from `p10-a7-names`; it has, so they may go (the owner's call). A9 ran in
+`p10-a5-display`'s worktree and left it clean; its `target/a9/` goes with that worktree. B1's
+measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
+applied, uncommitted), holds the A/B's outputs; it may go once B1's record has been reviewed.
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B1**, the merge (after A1 and A7, both done; A8 approved, so B1 builds 19 §3–§4 as written).
-  From A7's record: reuse the branch's helper crates, line aliases and component wrappers; **the
-  function table costs +459 B gz in demo-ssr and +130 B gz in demo-csr** (apps that render the
-  switcher on the client; the size workloads render no component, so B1 and `b5 --view` did not
-  see it). B1 therefore measures the demos too (`probes/p10-names/measure-demo.mjs`), tries the
-  untested static dispatch A7 describes (a trait of the table's entries, implemented by the Leptos
-  layer for a zero-sized type, the components generic over it), and keeps the cheaper one. If
-  neither holds ±64 B gz in the demos, question 13's fallback applies: back to the owner with its
-  other two options.
-- **Then** B2–B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
-  designs; Part D after B4 (D1), as its heading orders. One task at a time: B1 and the tasks after
-  it touch the same crates and plans.
+- **B2**, `mf2::native` (after B1, done): the `native` feature, `mf2-native` a shim, its tests
+  moved; as B1, with no web change. It also renames the native `LocaleSource` (19 §16), which
+  shares `mf2` with `mf2::axum`'s trait of the same name once D1 lands.
+- **Then** B3, B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
+  designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
+  touch the same crates and plans.
 
-**Owner questions found in the work:** none waiting. C3's data half found two; they were asked
-when A8 started, and answered as questions 15 and 16 below. C3's text half found none: the case
-it was to send back (a threshold above the default script distance) does not arise. A8 found
-none; its 17 choices (19 §15) went to the owner's review, which approved them (question 17).
+**Owner questions found in the work:** one waiting, from B1 (its record, "`Display` and
+`Debug`"). 19 §14's third row caps `{:?}` on a `TrArgs` at 1.3 KB gz in every client A9 measured:
+it holds in demo-ssr (+860 B gz), `tr-view` (+866), demo-csr (+1,141) and the fixture (+1,220),
+and reads +1,353 in demo-islands, whose client formats nothing else, so the first `format!` brings
+`format!`'s own machinery (+424 B gz by control; the `Debug` itself is +929). Nothing waits on the
+answer. Before it: C3's data half found two; they were asked when A8 started, and answered as
+questions 15 and 16 below. C3's text half found none: the case it was to send back (a threshold
+above the default script distance) does not arise. A8 found none; its 17 choices (19 §15) went to
+the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From B1 (its record):
+  - B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (a hidden macro, re-exported)
+    nor what the `leptos-mf2` shim re-exports by glob; `release.rs`'s semver check now leaves
+    `leptos` out of `mf2`'s features too (1.0.0's needs a line from `leptos-mf2`).
+  - C2: `missing_debug_implementations` warns in `mf2`; the runtime's and the catalog's types
+    remain C2's.
+  - Whoever next edits `CLAUDE.md`: its client-path list names `leptos-mf2`, whose code is now
+    `mf2`'s and the helpers'.
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
   failed `cargo metadata` into false `gated-function` errors (A1); `mf2 check` must see the
   function features the builds use (A6); `neutral-numbers` fires on a corpus whose only
@@ -2643,6 +2658,214 @@ over one, and on the helpers only `Display` and `Debug` reach
 | **B3** `mf2::ratatui` | The `ratatui` feature (implies `native`; `ratatui-core` 0.1). `mf2-ratatui` becomes a shim; its tests move | as B2 |
 | **B4** Internal users name `mf2` | Conformance (`conformance/`, `l6-web`, `l7-web`), `bench/churn`, `bench/fluent-ab/mf2`, the `workload-gen` templates the size gate measures (`tr`, `tr-view`, `fluent-converted`), and the xtask crate lists. The examples and the book stay on the shims until C8 and D6 | `conformance-report --check`, `l6-web`, `l7-web`, `size`; the ledger unchanged |
 | **B5** The API listed per mode | `cargo xtask api` writes `crates/mf2/api/{core,ssr,hydrate,csr,native,ratatui}.txt` (`axum` joins with D1) from a table in the manifest. `release.rs` runs cargo-semver-checks per mode, with baseline feature sets for 1.0.0's `leptos-mf2/…` spellings | a hydrate-only public item added without its listing fails `api --check` (the negative control) |
+
+## B1 — the types and the Leptos layer into `mf2`: what was built
+
+* **Where.** Commit `1023d57` on `main`. The measurements ran in a worktree of
+  their own, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`;
+  `c8a087d`, which came between on `main`, changed only this file): the base
+  first, then the same tree with the change applied as a patch (its code
+  is the commit's; only comments differ), so every A/B is in one tree with one
+  lock per application. The scripts are in `probes/p10-b1/` (its `README.md`
+  lists them); their outputs stay in that worktree's git-ignored
+  `target/p10-b1/`. Tools: rustc 1.98.1, cargo-leptos 0.3.9, trunk 0.21.13,
+  wasm-bindgen 0.2.128, wasm-opt 120, twiggy 0.8.0, Node 23.11 with Playwright's
+  Chromium and Firefox. The demos' locks: leptos 0.9.0-beta, tachys 0.3.0-beta2,
+  reactive_graph 0.3.0-beta2, wasm-bindgen 0.2.128; their 0.8 copies leptos
+  0.8.21, tachys 0.2.19, reactive_graph 0.2.15.
+* **What moved where.**
+  * `crates/leptos-mf2/src/{tr,arg,dynamic,markup}.rs` → `crates/mf2/src/`.
+    The markup closures' impls (`NestingHandler`, `Flat`, `FlatHandler`) went
+    with the layer, to `crates/mf2/src/leptos/markup.rs`.
+  * The Leptos layer (`boot`, `catalog`, `convert`, `glue`, `glue/view`,
+    `lang`, `links`, `registry`, `rich`, `signal`, `state`, `text`, `zone`)
+    → `crates/mf2/src/leptos/`, the module `mf2::leptos`. Each file imports
+    the line it names from `crate::line`, a private alias module
+    (`leptos_0_9`, `tachys_0_3`, `reactive_graph_0_3`, `mf2_leptos_ui_0_9`,
+    or the 0.8 set); the glue's two `to_html_with_buf` forms switch on
+    `all(leptos-0-8, not(leptos))`. `LoadError` → `crates/mf2/src/error.rs`,
+    beside `CompileError`.
+  * The string conversions (`to_string`, `to_plain_string`,
+    `to_display_string`, `From<_> for String`) → `crates/mf2/src/display.rs`,
+    with `Display` (S3, question 14); the `Debug` writers →
+    `crates/mf2/src/debug.rs` (S2).
+  * The six components → `crates/mf2-leptos-ui-0-9/src/ui.rs`, still
+    `view!` and `#[component]`; `crates/mf2-leptos-ui-0-8/src/ui.rs` is a link
+    to it, and that crate binds `extern crate leptos_0_8 as leptos`.
+    `crates/mf2/src/leptos/components.rs` keeps `html_lang` and wraps each
+    component (below).
+  * `crates/leptos-mf2/tests/{render,time_zone,churn,fallback_lang}.rs` →
+    `crates/mf2/tests/`, each binding the line it is compiled for
+    (`extern crate leptos_0_9 as leptos`, or `leptos_0_8`). The
+    dev-dependency cycle is gone: `mf2`'s tests use `mf2`.
+* **Features of `mf2`.** `leptos` (Leptos 0.9, the default line: `leptos_0_9`,
+  `tachys_0_3`, `reactive_graph_0_3`, the 0.9 helper) and `leptos-0-8`; the
+  modes `ssr` (implies `host-std`), `hydrate` and `csr` (imply `host-web`),
+  each also turning on the layer's own dependencies and forwarding itself to
+  the active line and its helper; `static-locale`, `mark-fallback-lang`.
+  `fn-datetime` also compiles the reader's time zone, as 1.x's
+  `leptos-mf2/fn-datetime` did. The layer, `display.rs` and `line` compile only
+  with a mode *and* a line, so each misuse shows one `compile_error!`, naming
+  `mf2`'s features: two modes; both lines ("mf2: both Leptos lines are on,
+  `leptos` (Leptos 0.9) and `leptos-0-8`: turn on one. Through leptos-mf2 or
+  mf2-axum, whose default is Leptos 0.9, Leptos 0.8 needs `default-features =
+  false` beside `features = ["leptos-0-8"]` …"); and a mode with no line
+  ("mf2: `ssr` needs a Leptos line: turn on `leptos` (Leptos 0.9) or
+  `leptos-0-8` beside it."). docs.rs shows `compile, fn-number, datetime-icu,
+  host-std, leptos, ssr, static-locale, mark-fallback-lang`.
+* **What the shims keep working.**
+  * `leptos-mf2` depends on `mf2` alone and re-exports everything 1.x named
+    under its path: the core types and the hidden constructors from `mf2`,
+    and `mf2::leptos::*` (every layer item, the modules `components`,
+    `glue`, `links`, `__private`, and `islands_gate!`) with a mode. Its
+    features forward: `leptos-0-9` (still the default) → `mf2/leptos`,
+    `leptos-0-8` → `mf2/leptos-0-8`, the modes, `static-locale`,
+    `mark-fallback-lang`, `fn-datetime`; `leptos` is kept, empty.
+  * `mf2::leptos_mf2` (hidden) is 1.x's facade path, every item under it:
+    the demos' i18n crates, `bench/churn`, the book and `mf2 init`'s template
+    name `mf2::leptos_mf2::Setup`. `mf2::{Flat, FlatHandler, NestingHandler,
+    SignalArg, signal_arg}` stay at the root, where 1.x had them.
+  * Unchanged, over the shims, and green: `mf2-axum`, the conformance crates,
+    `bench/churn`, `bench/fluent-ab/mf2`, the workload templates, the three
+    demos, the book's projects (B4, C8 and D6 move them).
+* **`islands_gate!`** is `mf2::leptos::islands_gate!`: a hidden
+  `#[macro_export]` macro re-exported there. Its body is a second hidden
+  macro, `__islands_gate_export!`, because the `#[rustfmt::skip]` that body
+  needs (rustfmt re-indents its `$crate` attribute on every run) makes rustc
+  treat the macro as macro-expanded, and such a macro cannot be re-exported by
+  path from its own crate.
+
+### The dispatch: static, not the table
+
+The six are generic over the helper's `Layer` trait — `LOCALE_QUERY`,
+`ISLANDS_GATE`, `CATALOG_LINK_REL`, `locales()`, `source_locale()`,
+`html_lang()`, `preload()`, `catalog_links()`, `switch(tag)`, the calls 1.x's
+components made — through a `#[prop(optional)] _layer: PhantomData<L>` prop,
+Leptos's own idiom for a generic component. `mf2` implements it for a hidden
+`mf2::leptos::components::Mf2`, and each `mf2::leptos` component is a plain
+function taking the helper's props with `Mf2` chosen (`pub type
+LocaleSwitcherProps = ui::LocaleSwitcherProps<Mf2>`), so `view!` builds it as
+it builds any component. Nothing is installed; no function pointer.
+
+Measured against A7's v3 table (`probes/p10-b1/table/`, the same wrappers and
+table over the merged layout), each demo's shipped files with
+`probes/p10-names/measure-demo.mjs` (gzip −9 and brotli q11 through Node's
+zlib), the base's locks restored for every build:
+
+| Demo | base: wasm raw / gz / br | static dispatch (kept): Δ wasm | table: Δ wasm | Δ every shipped file, gz: static / table |
+|---|---:|---:|---:|---:|
+| demo-ssr (`--split`) | 753,740 / 315,728 / 250,974 | −123 / **−136** / +154 | +1,384 / +339 / +179 | −124 / +340 |
+| demo-csr | 207,562 / 91,212 / 77,732 | +78 / **+11** / −152 | +330 / +183 / −69 | +10 / +183 |
+| demo-islands | 197,676 / 85,588 / 72,363 | −3 / **+1** / +47 | −6 / +7 / +6 | +1 / +7 |
+
+Commands: `bash probes/p10-b1/measure.sh base` at `7a7994d`, `… b1` with the
+change applied; `bash probes/p10-b1/measure-demos.sh table` with
+`probes/p10-b1/table/` copied over it. The table reproduces A7's reading in
+this tree (A7: +459 / +130 / −8).
+
+**demo-ssr's −136 B gz is outside ±64, downward.** Read as 19 §14 asks
+(`bash probes/p10-b1/named.sh`: the client with names kept, cargo's output
+before wasm-bindgen and wasm-opt, joined on normalized names): net −409 B of
+code and −72 B of data, every changed item the same function under a name
+carrying `<Mf2>`, except that the switch's submit handler is 51 B smaller
+(its spawn now in `<Mf2 as Layer>::switch`, whose async body is 1.x's 1,137
+B), a method of the switcher's props builder (229 B) is inlined,
+`selected_href` (148 B) no longer is, and the wrappers add two
+`FnOnce::call_once` shims (124 B). After
+wasm-opt the module is 123 B smaller; brotli reads +154. The shipped module
+carries one more source path, `…/crates/mf2-leptos-ui-0-9/src/ui.rs`, beside
+`…/crates/mf2/src/leptos/components.rs`. A decrease, not a cost: **judged as
+holding**, as A5's −83 B was. The lazy chunk is the same 23,688 B raw (+13 gz).
+**Static dispatch is kept:** the cheaper in every demo, and the only one within
+the gate. Question 13's fallback is not needed.
+
+### The gates (19 §14, rows 1 and 2)
+
+| Figure | Base `7a7994d` | B1 | Δ | Gate | Command |
+|---|---:|---:|---:|---|---|
+| **B1**, fixed | 26,332 B gz | 26,329 | **−3** | ±64 | `CARGO_BUILD_JOBS=3 cargo xtask size --out target/p10-b1/size [--keep]` |
+| **B5**, per site | 8.340 B gz | 8.335 | **−0.004** | ±0.2 | same |
+| whole app, 1,860 sites | 41,844 B gz | 41,833 | −11 | ambition 105,120 | same |
+| `tr` opt raw, 1,860 / 3,720 | 2,419,646 / 4,455,987 | +1 / +1 | | a fixed change | same |
+| `idlit`, `dummy` | | | identical | | same |
+| `b5 --view`: fixed / per site | 24,811 / 10.459 | 24,817 / 10.458 | +6 / −0.001 | | `cargo xtask b5 --view --out target/p10-b1/b5v [--keep]` |
+| `tr-view` opt raw, both scales | 1,890,848 / 3,375,222 | identical | 0 | | same |
+| **B7** | | | catalog-bench's report identical but its timestamp; demo-csr's 3 catalogs (and `.br`, `.gz`, `index.json`) byte-identical | byte-identical | `cargo xtask catalog-size`; `cmp` over the demos' `dist/i18n/` |
+| **B12** | | clean | | clean | `bash bench/b12/check.sh` (main tree) |
+| B1′ / B13 | | +0 B / 13,573 B avoided | | +0 | `cargo xtask b12-generated` |
+| demos | see above | −136 / +11 / +1 B gz | | ±64 | `probes/p10-b1/measure.sh` |
+| e2e on 0.9 | | demo 210/210, lazy 74/74, islands 58/58, csr 98/98, zone 40/40, a11y 720/720 | | green | `bash probes/p10-b1/e2e.sh . leptos-0-9` |
+| e2e on 0.8 | | the same six, the same counts | | green | `python3 probes/p10-names/demos-0-8.py b1`, then `bash probes/p10-b1/e2e.sh target/a7-demo-0-8/b1 leptos-0-8`; `cargo tree` shows leptos 0.8.21, tachys 0.2.19, reactive_graph 0.2.15 and `mf2-leptos-ui-0-8` only, in each server and client build |
+
+B1's −3 is `tr` one byte larger raw at both scales, read by gzip as −11 and
+−19; B5 and `b5 --view` move by thousandths.
+
+### The checks (main tree, `1023d57`'s content)
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass** (twice; the second after the last edits) | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `cargo xtask docs` | **pass**: 120 blocks, 9 applications, `hello-0-8` included | `cargo xtask docs` |
+| `cargo xtask docs-rs` | **pass**: 19 crates, no warnings (an outer doc comment on `pub mod leptos` made rustdoc resolve the module's links at the root: removed) | `cargo xtask docs-rs` |
+| `codegen-matrix` | **pass**: 18 combinations (8 server, 10 client; five new with the layer on, both lines, `csr` and `static-locale` among them); B6 clean | `cargo xtask codegen-matrix` |
+| `scenarios` | **pass**: S1–S4 wasm identical, S5 and S6 rebuilt | `cargo xtask scenarios` |
+| `leptos-0-8` | **pass**: both refusals (on `mf2`, and through the shim); on 0.8, the five clippy steps, `render` 15, `time_zone` 8, `churn` 1, `fallback_lang` 8, `mf2-axum` 13 + 4, conformance `layers` 3 and `l6` 4 | `cargo xtask leptos-0-8` |
+| its negative control | **fails as designed** (E0425 `RenderFlags`, E0050): its pattern for the glue's cfgs had not matched since `a0f5938` | `cargo xtask leptos-0-8 --negative-control` |
+| `l6-web` | **20/20** | `cargo xtask l6-web` |
+| `l7-web` | **34/34**; L7 444/444, L7c 444/444, L7d 325/444 and L7cd 325/444 (+119 documented degradations each); the ledger's L7 columns hold | `cargo xtask l7-web` |
+| `churn` | **84/84** | `cargo xtask churn` |
+| `msrv` | **pass**: the 20 build on Rust 1.88, the five steps | `cargo xtask msrv` |
+| the ledger | **unchanged**: `conformance/ledger.toml` untouched, `REPORT.md` regenerated identical; `coverage.toml` names `crates/mf2/tests/render.rs`, and `COVERAGE.md` with it | `cargo xtask conformance-report` |
+| clippy on each helper alone | **pass**: `ssr` natively, `hydrate` and `csr` on wasm32, both lines; `mf2` and the shim with no mode | `cargo clippy -p mf2-leptos-ui-0-{9,8} --features <mode> …` |
+
+### `Display` and `Debug` (19 §14, row 3)
+
+Against the B1 build of each client, in the same tree
+(`bash probes/p10-b1/display-debug.sh`, `fixture-trview.sh`,
+`islands-control.sh`; A9's cases):
+
+| Figure | Measured | Gate |
+|---|---:|---|
+| a client that formats nothing: our `Display` / `Debug` linked | none (a debug-profile demo-ssr client, `fmt-check.sh`); the controls fail: `{}` 1 item, `{:?}` on a `TrArgs` 11 | none |
+| `{}` on a `Tr` over `.to_string()`, demo-ssr | +81 B raw, **0 B gz** (both +36 over base) | ≤ 70 B gz |
+| `{:?}` on a `TrArgs` over base: demo-ssr / tr-view / demo-csr / fixture | **+860 / +866 / +1,141 / +1,220 B gz** (the demos through Node's gzip −9, the other two `gzip -9 -n`, as A9) | ≤ 1.3 KB gz |
+| the same, demo-islands | **+1,353 B gz** | ≤ 1.3 KB gz |
+
+demo-islands formats nothing otherwise, so its first `format!` brings
+`format!`'s own machinery: `format!("{:?}", a String)` costs +424 B gz there
+(`format!("{}", …)` +410). Over that control, the `Debug` of a `TrArgs` is
++929 B gz. Two leaner forms of the writers were tried there and were larger
+(`write_str` for every character: +38 B gz; digits through a buffer: +56).
+A9 measured S2 in the fixture, `tr-view`, demo-csr and demo-ssr, not in
+demo-islands. **This row is the owner's** (question 14's fallback); nothing
+else waits on it.
+
+### What A7 left to B1
+
+* **The `*Props` types in the listings:** listed. `mf2`'s `api.txt` has
+  `mf2::leptos::LocaleSwitcherProps` and the rest as type aliases of the
+  helper's props at `Mf2`; each helper's `api.txt` has its generic props and
+  the `Layer` trait. B5's per-mode listings take them as they are.
+* **A checkout without symbolic links:** the link stays, as every crate's
+  `LICENSE` is already one. `cargo package` follows it; `cargo xtask package`
+  now checks where it points (its link table gains
+  `mf2-leptos-ui-0-8/src/ui.rs` → `crates/mf2-leptos-ui-0-9/src/ui.rs`); a
+  checkout with `core.symlinks=false` does not compile the 0.8 helper, which
+  its `lib.rs` says.
+
+### Found along the way (routed)
+
+* B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (the
+  re-export of a hidden macro) nor what the shim re-exports by glob (its
+  listing is `pub use leptos_mf2::<<mf2::leptos::*>>`).
+* B5 / G: `release.rs`'s semver check leaves `leptos` out of `mf2`'s feature
+  set too, since 1.0.0's `leptos` needs a line from `leptos-mf2`.
+* C2: `missing_debug_implementations` warns in `mf2` since B1; the runtime's
+  and the catalog's 31 types remain C2's.
+* Whoever next edits `CLAUDE.md`: its list of client-path crates names
+  `leptos-mf2`; that code is now `mf2`'s and the helpers'.
+* Not scheduled: nightly cargo warns that the workspace dependency
+  `mf2-ratatui` is unused (as before B1); B3 changes it.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 

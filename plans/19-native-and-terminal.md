@@ -1682,7 +1682,10 @@ approved as written. The ones to look at first came first.
 ## 16. Routed to later tasks
 
 - **B1:** `Debug` on the moved types, written as S2 (§6); the per-mode
-  listings' shape for the helpers' `*Props` (A7).
+  listings' shape for the helpers' `*Props` (A7). *Done*
+  ([18](18-phase-10-work-order.md), B1's record): `Debug` as S2 and `Display`
+  as S3 on the moved types; the `*Props` listed, as aliases in `mf2`'s
+  listing.
 - **B2 / D1:** one name clash to settle. `mf2::native::LocaleSource` (an enum:
   system, source, explicit) and `mf2::axum::LocaleSource` (a trait) were in two
   crates, and now share one. B2 renames the native one.
