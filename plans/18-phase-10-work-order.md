@@ -147,16 +147,16 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   lines green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame identical and
   +176 B stripped.
 
-**In flight: B1's review fixes** (items 1–6 under "Next"), started 2026-09-28 by an agent of the
-coordinating session, working in the main tree. A read-only review of B2's commits runs beside it,
-with no builds. Until the fixes' commits appear, do not start them again: if the agent is still
+**In flight: B1's review fixes** (items 1–9 under "Next"), started 2026-09-28 by an agent of the
+coordinating session, working in the main tree. The read-only review of B2's commits has reported;
+its three findings are items 7–9. Until the fixes' commits appear, do not start them again: if the agent is still
 running (its cargo builds show in `ps`), wait for its report; if it stopped without committing,
 resume from the tree's state. Part A's probe branches and worktrees are removed (question 21). B1's
 measurement worktree, `.claude/worktrees/p10-b1-measure` (detached at `7a7994d`, B1's change
 applied, uncommitted), holds the A/B's outputs; it stays until B1's review fixes (below) have
 taken what they need from it. B2's, `.claude/worktrees/p10-b2-measure` (detached at `c41225c`,
-B2's change applied, uncommitted), holds B2's A/B outputs and the base TUI binaries; it may go
-once B2's record has been reviewed (the owner's call).
+B2's change applied, uncommitted), holds B2's A/B outputs and the base TUI binaries; it stays until
+item 7 has taken what it needs, and then its removal is the owner's call.
 
 **Next, each from a fresh session or agent, one at a time:**
 - **B1's review fixes**, after B2 and before B3: what a read-only review of B1's commits found
@@ -185,6 +185,21 @@ once B2's record has been reviewed (the owner's call).
   6. undo B2's rename: `mf2::native::LocaleOrigin` → `LocaleSource`. This covers the code, the
      `mf2-native` shim (which then re-exports it plainly), the tests, `api.txt`, the changelog,
      05, 19 §4, the crates' READMEs and B2's record.
+
+  From a read-only review of B2's commits (2026-09-29):
+  7. observed: B2's record says the demos are byte-identical apart from demo-ssr's
+     `__wasm_split` loader, but `probes/p10-b2/measure.sh` hashes only demo-csr's `dist/`. The
+     claim holds on the kept outputs, so make the committed script produce it (hash all three
+     demos) and cite it;
+  8. inferred: `mf2`'s `native` feature turns on `jiff/…` without `dep:jiff`, which would give
+     `mf2` an implicit public feature `jiff` (not in 19 §3; a semver break to remove after
+     2.0.0). If confirmed, `native` names `dep:jiff`, and the other optional dependencies are
+     checked the same way;
+  9. inferred, to confirm only: `mf2-native` turns on `mf2/native`, so a workspace with a crate
+     that names `mf2/csr` (as `examples/demo-csr` does) beside one that uses `mf2-native` would
+     hit 19 §3's refusal of `native` beside `csr` under `cargo check --workspace`, which 1.x did
+     not have. The rule stays as it is until the owner chooses between it and the changelog's
+     promise that a 1.x application compiles unchanged.
 - **Then** B3, B4 (B5 with or after B4), and Part C in its heading's order, each building what 19
   designs; Part D after B4 (D1), as its heading orders. One task at a time: the tasks after B1
   touch the same crates and plans.
