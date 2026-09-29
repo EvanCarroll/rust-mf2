@@ -164,22 +164,32 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   host combinations compiling, 1.x's workspace among them (with a negative control). `ci` and
   `docs-rs` green; every client wasm byte-identical (the size workloads, `b5 --view`, the demos),
   B12 clean.
+- **B3** (`afd3811`; record below): `mf2-ratatui`'s code is `mf2::ratatui`, behind `ratatui`
+  (which implies `native`; `ratatui-core` 0.1.2, the latest release); `MarkupStyles`, `line` and
+  `text` keep 1.x's names for C5 and C8; `mf2-ratatui` a shim with 1.x's names, held to `mf2`'s
+  items by a test; the tests in `crates/mf2/tests/ratatui.rs`. Beside `hydrate` or `csr` it is
+  refused for `wasm32` only, in a sentence of its own that names `ratatui`, and compiles on the
+  host; `cargo xtask refusals` checks both sides (11 refused, 6 host). **Every web artifact
+  byte-identical** (the size workloads, `b5 --view`, B7's catalogs, the demos but demo-ssr's
+  `__wasm_split` loader), B12 clean; `ci`, `docs`, `docs-rs`, `codegen-matrix`, `scenarios`,
+  `msrv`, `churn` green; the ledger unchanged. Natively, `tui-mf2`'s allocations per frame
+  identical and −240 B stripped.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time:**
-- **B3** (`mf2::ratatui`) first, then B4 (B5 with or after B4), and Part C in its heading's order,
-  each building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a time:
-  the tasks after B1 touch the same crates and plans. B3's `ratatui` inherits `native`'s refusal,
-  for `wasm32` only (question 24); `cargo xtask refusals` takes its cases on both sides: refused
-  for `wasm32`, compiling on the host.
+- **B4** (internal users name `mf2`) first, B5 with or after it, then Part C in its heading's
+  order, each building what 19 designs; Part D after B4 (D1), as its heading orders. One task at a
+  time: the tasks after B1 touch the same crates and plans. D1's `axum` follows `native`'s and
+  `ratatui`'s rule, refused for `wasm32` only (question 24), with its cases on both sides of `cargo
+  xtask refusals`.
 
-**Owner questions found in the work:** none waiting. The browser-only refusal found none. B1's
-review fixes found one, answered as question 24: `native` beside a browser mode is refused only
-when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it; the browser-only
-refusal built it. Questions 25 and 26 were asked with it: both measurement worktrees are removed,
-and question 24's change came first in the next session.
+**Owner questions found in the work:** none waiting. B3 found none. The browser-only refusal found
+none. B1's review fixes found one, answered as question 24: `native` beside a browser mode is
+refused only when compiling for the browser, and B3's `ratatui` and D1's `axum` follow it; the
+browser-only refusal built it, and B3 built `ratatui`'s. Questions 25 and 26 were asked with it:
+both measurement worktrees are removed, and question 24's change came first in the next session.
 
 B2 found two, answered as questions 22 and 23 below: the history with `46303b9` stays as it is;
 and the native enum keeps its name, `mf2::native::LocaleSource`, because items in different
@@ -192,12 +202,17 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From B3 (its record):
+  - C8 (with G1): the `mf2-ratatui` shim re-exports `mf2::ratatui`'s `MarkupStyles`, `line` and
+    `text`. When C8 takes them out of `mf2` (19 §8), the shim keeps its own copy until G1 deletes
+    it, or goes then.
 - From the browser-only refusal (its record):
   - C2: `native` beside `hydrate` or `csr` now compiles on the host, so the ambient forms must
     compile, and D17's one lookup (the request or the client, then the native thread, then the
     native global) must hold, with a client mode and `native` both on. `cargo xtask refusals`'
     host cases check that `mf2` compiles so; they check no behaviour.
-  - B3, D1: `ratatui`'s and `axum`'s cases go on both sides of `cargo xtask refusals`.
+  - ~~B3~~, D1: `ratatui`'s and `axum`'s cases go on both sides of `cargo xtask refusals`.
+    **B3's are in** (its record); D1's remain.
 - From B1 (its record):
   - B5: `cargo xtask api` lists neither `mf2::leptos::islands_gate!` (a hidden macro, re-exported)
     nor what the `leptos-mf2` shim re-exports by glob; `release.rs`'s semver check now leaves
@@ -215,9 +230,9 @@ the owner's review, which approved them (question 17).
     lock.
   - ~~B1's review fixes (item 4) / D1: of 19 §3's refusals, only "both lines" is checked by an
     xtask; `native` beside a browser mode was checked by hand (`probes/p10-b2/refusals.sh`).~~
-    **Done by B1's review fixes:** `cargo xtask refusals`, a step of `ci`, checks each; B3 adds
-    `ratatui`'s rows (it inherits `native`'s), and D1 `axum`'s. Since the browser-only refusal
-    it checks both sides: the refusals for `wasm32`, and the host combinations compiling.
+    **Done by B1's review fixes:** `cargo xtask refusals`, a step of `ci`, checks each; B3 added
+    `ratatui`'s rows (a sentence of its own), and D1 adds `axum`'s. Since the browser-only
+    refusal it checks both sides: the refusals for `wasm32`, and the host combinations compiling.
   - Every task: a commit made while another task has changes staged carries them (`46303b9`
     carried B2's renames). Stage and commit by path (`git commit -- <paths>`).
 - C6: a missing `mf2.toml` reruns the build script on every build (A3); `mf2 check` turns a
@@ -3380,6 +3395,132 @@ builds.
 **Found along the way** (routed, above): C2's ambient forms must compile, and its one lookup hold,
 with a client mode and `native` both on, which the host now allows; B3's and D1's cases go on both
 sides of `cargo xtask refusals`.
+
+## B3 — `mf2::ratatui`: what was built
+
+* **Where.** Commit `afd3811` on `main`, made in the main tree; commands ran there, one build at a
+  time. The before figures were taken at `140a18a`, before any change, in the same tree (below).
+  Logs: the main tree's git-ignored `target/p10-b3/` (`ci-2.log`, the refusals, `checks/`, the
+  `tui-gate` runs), and `target/p10-b2/logs/b3-base/` and `…/b3/` (the size runs).
+* **What moved where.**
+  * `crates/mf2-ratatui/src/lib.rs` → `crates/mf2/src/ratatui.rs`, the module `mf2::ratatui`; its
+    documentation is 1.x's crate documentation on `mf2`'s paths, and says where the feature is
+    refused. The code is 1.x's: `MarkupStyles`, `line`, `text` and the private sink, over
+    `crate::native::NativeI18n` and `mf2`'s own re-exports, with `alloc` imports for the `no_std`
+    crate and `core::mem::take` for `std::mem::take`. `tests/styled.rs` →
+    `crates/mf2/tests/ratatui.rs` (`required-features = ["ratatui", "compile"]`), its 7 tests
+    unchanged but for their imports.
+  * **Names.** 1.x's three keep their names; 19 §8's conversions, `Styled`, `Widget` and the theme
+    are C5's, and the three go with C8's page (19 §8 now says where they live until then).
+    `MarkupStyles` derives `Debug`, as in 1.x (19 §6).
+* **The `ratatui` feature.** `ratatui = ["native", "dep:ratatui-core"]`: it implies `native` and adds
+  `ratatui-core` 0.1.2 alone, the latest release on crates.io (its sparse index, 2026-09-29; the
+  workspace already named it), with no default features (it has none). **Beside `hydrate` or
+  `csr`, when compiling for `wasm32`** (question 24), it is refused in a sentence of its own:
+  "mf2: `ratatui` is on beside `hydrate` or `csr` in a build for the browser (`wasm32`): `ratatui`
+  is for a terminal UI, which runs natively, and implies `native`; neither belongs in a browser
+  build. cargo unifies features across the packages it builds together: build the browser client
+  on its own (`-p`), and keep `ratatui` and `native` off in every crate it depends on." `native`'s
+  `cfg` gains `not(feature = "ratatui")`, so the one error names the feature the application
+  turned on; `native`'s sentence alone would tell a `ratatui` user to turn off a feature their
+  manifests never name (19 §3: a refusal "says what to write"). A small choice within 19 §3, not a
+  question. On the host the combination compiles. docs.rs and `api.txt` show `ratatui` beside
+  `ssr` and `native`.
+* **What the shim keeps working.** `mf2-ratatui` depends on `mf2` with `ratatui` and re-exports
+  `MarkupStyles`, `line` and `text` under 1.x's names and paths; it has no features, as 1.x's had
+  none. Its test, `crates/mf2-ratatui/tests/names.rs`, holds each name to `mf2`'s item: the type
+  by its `TypeId`, each function by the `TypeId` of its function item, which is one type only when
+  two paths name one function. *Negative control* (once, by hand): with the shim's `line` and
+  `text` swapped, it fails. Unchanged over the shim, and green: `examples/tui` (`tui-gate`) and the
+  book's native project with `tui` (`cargo xtask docs`). Through the shim, for `wasm32` with
+  `mf2/leptos,mf2/hydrate`, the `ratatui` sentence is the one error (`cargo check -p mf2-ratatui
+  --features mf2/leptos,mf2/hydrate --target wasm32-unknown-unknown`, exit 101).
+* **xtask.**
+  * `ci` gains two steps for `ratatui` alone, as B2's for `native`: `clippy -p mf2 --features
+    ratatui,compile --all-targets` and `test -p mf2 --features ratatui,compile --test ratatui`
+    (`--workspace` always unifies `ssr` into `mf2`).
+  * `refusals` takes `ratatui`'s cases on both sides: refused beside `hydrate` and beside `csr`
+    for `wasm32-unknown-unknown` (11 refusals), and compiling on the host beside each, and in 1.x's
+    workspace with a terminal UI, `-p leptos-mf2 -p mf2-ratatui --features leptos-mf2/csr` (6 host
+    cases). *Negative control* (once, by hand): with `native`'s old `cfg` put back, it fails at the
+    first `ratatui` case, whose errors are both sentences.
+  * `msrv`'s server features name `mf2/ratatui`; `release` leaves `ratatui` out of `mf2`'s semver
+    run, since 1.0.0's `mf2` has no such feature and `mf2-ratatui` was never published.
+* **The root manifest.** `[workspace.dependencies]` loses the two shims' entries: no member names
+  either through the workspace any more (the `mf2-ratatui` shim named `mf2-native`; nothing named
+  `mf2-ratatui`), and the pinned nightly's cargo warned "unused workspace dependency" for each, 19
+  times a run of `cargo xtask api` and of `docs-rs` (for `mf2-ratatui` since before B3: the
+  browser-only refusal's `docs-rs` log has it). After: none (`cargo xtask docs-rs`, 0 such lines).
+* **In the same commit:** 05 §9 and §9.1; the master plan's §4 (the tree, the `mf2-ratatui` and
+  `mf2` rows) and §4.1; 19 §8; `plans/README.md`; the changelog; `mf2`'s crate docs, README and
+  manifest; the shim's docs, README and manifest; `leptos-mf2`'s docs and README (1.x's workspace
+  with a terminal UI compiles too); the root manifest's comment on `ratatui-core`; `api.txt`
+  (`mf2`: the module's 14 lines and the feature list; `mf2-ratatui`: three re-exports) and
+  `package.txt` (`mf2`, `mf2-ratatui`).
+
+### The gates (19 §14, row 1): the web byte-identical
+
+`bash probes/p10-b2/measure.sh b3-base` at `140a18a` before any change, then `… b3` with the
+change, in the main tree: the size workloads' locks kept (`--keep`), the demos' restored from
+`locks/base` both times. The workspace's lock moved only in dependency lists (`mf2` gains
+`ratatui-core`; `mf2-ratatui` loses `mf2-native` and `ratatui-core`), no package version.
+
+| Figure | Before | B3 | Gate |
+|---|---:|---:|---|
+| **B1**, fixed | 26,720 B gz | 26,720 | ±64 |
+| **B5**, per site | 8.167 B gz | 8.167 | ±0.2 |
+| whole app, 1,860 sites | 41,911 B gz | 41,911 | ambition 105,120 |
+| the size workloads' 12 wasm files, and their 6 locks | | byte-identical | |
+| `b5 --view`: fixed / per site, and its 12 wasm files | 24,634 / 10.5 | identical; byte-identical | |
+| **B7**: catalog-bench's report; demo-csr's `dist/` (16 files) | | identical but the report's `unix_time`; byte-identical | byte-identical |
+| the demos' shipped files, 30 (`bash probes/p10-b2/demo-hashes.sh b3-base b3`): demo-ssr's wasm and lazy chunk, demo-islands', demo-csr's | 753,393 / 315,627; 23,688 / 11,519; 197,543 / 85,566; 207,538 / 91,184 raw / gz | byte-identical but demo-ssr's `__wasm_split` loader | ±64 B gz |
+| **B12** | | clean | clean (`bash bench/b12/check.sh`) |
+| B1′ / B13 | | +0 B / 13,573 B avoided | +0 (`cargo xtask b12-generated`) |
+
+The loader went `591006faae48` → `ed8d63b87a98`, over one wasm (`82338f4b3f4c`) both times. Two
+rebuilds after the run with nothing changed (`touch src/lib.rs; cargo leptos build --release
+--split --frontend-only` in `examples/demo-ssr`, twice) gave `27af43e4de73` and `ed794eaf907b`,
+over the same wasm: as B2 found, the loader's hash varies between identical builds.
+
+**Native, reported** (C5's gate, not B3's). `cargo xtask tui-gate --save-baseline
+target/p10-b3/tui-base` at `140a18a`, then `cargo xtask tui-gate --baseline target/p10-b3/tui-base`
+with the change: the four binaries alternating, 31 runs, timings under a load of 1.73. The
+example's lock moved in dependency lists only, as the workspace's.
+
+| Binary | Stripped (B), base → B3 | Allocations per frame (en / de / es / fr), both | Median µs per frame, base / B3 |
+|---|---:|---|---:|
+| `tui-mf2` | 1,965,672 → 1,965,432 (−240: `.text` −176, unwind tables −120, `.gcc_except_table` +96) | 1816 / 1815 / 1816 / 1817 | 284.5 / 282.9 (ranges 252–330, 254–313) |
+| `tui-upstream`, which uses no MF2 | 1,400,544 → 1,400,640 (+96: `.gcc_except_table`) | 1517 / 1519 / 1518 / 1526 | 250.0 / 237.0 |
+
+The bytes per frame are identical too. `tui-upstream` moves with what the rlibs linked beside it
+hold, as B2 found.
+
+### The checks (main tree, `afd3811`'s content)
+
+| Check | Result | Command |
+|---|---|---|
+| `cargo xtask ci` | **pass**, with the two new `ratatui` steps (the moved 7 tests) and `refusals` at 11 + 6 | `CARGO_BUILD_JOBS=3 cargo xtask ci` |
+| `cargo xtask docs` | **pass**: 120 blocks on 10 pages, 9 applications; the native project without and with `tui`, over the shims | `CARGO_BUILD_JOBS=3 cargo xtask docs` |
+| `docs-rs` | **pass**: 19 crates, no warnings | `CARGO_BUILD_JOBS=3 cargo xtask docs-rs` |
+| `codegen-matrix` | **pass**: 18 combinations (8 server, 10 client); B6 clean | `… cargo xtask codegen-matrix` |
+| `scenarios` | **pass**: S1–S4 wasm identical, S5 and S6 rebuilt | `… cargo xtask scenarios` |
+| `msrv` | **pass**: the 20 on Rust 1.88, five steps; step 1 now with `mf2/ratatui` | `… cargo xtask msrv` |
+| `churn` | **84/84** | `… cargo xtask churn` |
+| the ledger | **unchanged**: `conformance-report`'s check in `ci` (612 tests, 612 entries); `conformance/ledger.toml` untouched | `cargo xtask ci` |
+| the shim | **pass**: `names`, 2 tests; the negative control fails it | `cargo test -p mf2-ratatui` |
+| the refusals | 11 refused, each with one sentence; 6 host combinations compile; the negative control fails at the first `ratatui` case | `cargo xtask refusals` |
+
+Not run, as B3 cannot reach them: `leptos-0-8`, `l6-web`, `l7-web` and the six browser checks on
+either Leptos line. Each builds `mf2` with a Leptos mode and never with `ratatui` (no package they
+build depends on `mf2-ratatui`), so what they compile changed only in `cfg`s that are off there
+and in comments; the demos' shipped wasm is byte-identical (above).
+
+### Found along the way (routed)
+
+* C8 (with G1): the `mf2-ratatui` shim re-exports `mf2::ratatui`'s `MarkupStyles`, `line` and
+  `text`. When C8 takes them out of `mf2` (19 §8), the shim either keeps its own copy of the three
+  until G1 deletes it, or goes then; `examples/tui` and the book's native page, which name the
+  shim, move to 2.0 in C8 anyway.
 
 ## Part C — native and Ratatui (API work after A8's review; C1 and C2 after B1–B3; C3 before C4; C5 after C2 and C4; C6 after A2, A3 and C4; C7 after C6; C8 after C5 and C7; C9 after C8)
 
