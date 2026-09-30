@@ -305,14 +305,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   blocks are one CLI, `guide` (en, fr), that `cargo xtask docs` compiles; `mf2 check` is clean and its run
   prints what the page says. Took the notes on `Display` vs a `:string` key and one message per styled line;
   the rest are F2–F5's. ci; f1-gate docs pass.
+- **F2** (`77f9e8f`): `docs/configuration.md`, `lints.md` (each with trigger, example, fix, levels),
+  `features.md` (with the `{}` / `{:?}` cost note), an option table in `command-line.md`; zh-Hant note under
+  `[fallback]`. `mf2-build/tests/reference.rs` fails on a key, lint or feature without a section (negative
+  control shown). Found: `dynamic-currency`/`-unit`'s message says listing codes helps; a variable keeps
+  every code anyway (`DataSet::with_used`), and the page says so. ci; f2-gate docs pass.
 
-**In flight:** F2 (reference pages), started 2026-09-30 by an agent working in the main tree;
-uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part F (F2 first)**;
+- **Part F (F3 first)**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
