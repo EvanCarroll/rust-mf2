@@ -253,15 +253,19 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   the real crates with Leptos, 19/19 (`probes/p10-links/real/`); the edit loop, under load: 644 ms
   median without the opt-level tip, 637 with. `ci`, `scenarios`, `codegen-matrix`, `docs`, `package
   --check` green. `neutral-numbers` on a string-only corpus: reworded (question 33, `0d6ce75`); init's note goes to C7.
+- **C7**: `mf2 init --cli` / `--tui [DIR]` (05 §6.4 "As built"): 19 §1.1's and §1.2's applications with
+  the build-override in a new directory, or `build.rs`, `locales/` and `cargo add mf2@2 -F native[,ratatui]`,
+  `--build mf2-build@2` plus the printed tip in a crate. `--help`'s summary names every command (tested);
+  init's note and Getting started's `src/lib.rs` name the prelude. `docs/command-line.md` runs both;
+  `docs` compiles `count` and `hops`. `ci` green. §1.2/§1.3's unused `Stylize` import dropped.
 
-**In flight:** C7 (`mf2 init` as a starter), started 2026-09-29 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **C7** (`mf2 init` as a starter) first, checked with `probes/p10-checks/` (its README), as Part C's
-  heading orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
+- **C8** (the samples and `examples/tui` on 2.0) first, checked with `probes/p10-checks/` (its README),
+  as Part C's heading orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
