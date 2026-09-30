@@ -731,15 +731,18 @@ fn first_ids(ids: &[&str]) -> String {
 }
 
 /// An id no `tr!` in the application's sources names
-/// (`plans/05-tooling.md` §5).
+/// (`plans/05-tooling.md` §5), reported where `defined` says the source
+/// locale defines it, else at `where_looked`.
 ///
 /// A plain text scan, deliberately: a call site may build its id in a macro
 /// of its own, so this errs towards saying nothing — an id that appears
-/// anywhere in the sources counts as used.
+/// anywhere in the sources counts as used. The ids the generated module
+/// names itself (the languages' names) are the caller's to leave out.
 pub fn unused_ids(
     ids: &[String],
     sources: &str,
     locale: &str,
+    defined: &BTreeMap<String, (std::path::PathBuf, mf2_resource::Position)>,
     where_looked: &std::path::Path,
     config: &Config,
     report: &mut Report,
@@ -754,22 +757,21 @@ pub fn unused_ids(
         .map(String::as_str)
         .collect();
     unused.sort_unstable();
-    if unused.is_empty() {
-        return;
-    }
     let mut sink = Sink::new(report, locale);
-    sink.add(
-        level,
-        Some(Lint::UnusedId),
-        where_looked,
-        mf2_resource::Position { line: 1, column: 1 },
-        None,
-        format!(
-            "{} id(s) no source file names: {}",
-            unused.len(),
-            first_ids(&unused)
-        ),
-    );
+    for id in unused {
+        let (file, at) = defined.get(id).map_or(
+            (where_looked, mf2_resource::Position { line: 1, column: 1 }),
+            |(file, at)| (file.as_path(), *at),
+        );
+        sink.add(
+            level,
+            Some(Lint::UnusedId),
+            file,
+            at,
+            Some(id),
+            "no source file names this id".to_owned(),
+        );
+    }
 }
 
 fn patterns<'m>(message: &'m Message<'_>) -> Vec<&'m Pattern<'m>> {

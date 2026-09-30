@@ -307,7 +307,12 @@ does not look.
 en   old-banner = Welcome to the beta!
 ```
 
-Fix: delete it from every language, once nothing will use it again.
+The ids the generated code uses itself count as used: the languages' names,
+`language.<tag>`, which the locale switcher and `Locale::name()` show. The
+warning points at the line that defines the id.
+
+Fix: for an id nothing uses, delete it from every language, once nothing
+will use it again.
 
 ### `suspicious-bidi`
 

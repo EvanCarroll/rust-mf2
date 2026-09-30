@@ -392,17 +392,20 @@ fn unused_id_fires_on_the_ids_no_source_names() {
         &outcome.manifest.ids,
         "let label = tr!(\"plain\");",
         "en",
+        &outcome.defined,
         Path::new("src"),
         &Config::default(),
         &mut report,
     );
     let text = report.to_text();
     assert!(text.contains("[unused-id]"), "{text}");
-    assert!(text.contains("greeting"), "{text}");
+    assert!(text.contains("(in greeting, locale en)"), "{text}");
     assert!(
-        !text.contains(" plain,"),
+        !text.contains("(in plain,"),
         "an id a source names is used: {text}"
     );
+    // Each at the file that defines it, not at the sources' directory.
+    assert!(!text.contains("src:1:1"), "{text}");
 
     // And nothing when every id is named.
     let all = outcome.manifest.ids.join(" ");
@@ -411,6 +414,7 @@ fn unused_id_fires_on_the_ids_no_source_names() {
         &outcome.manifest.ids,
         &all,
         "en",
+        &outcome.defined,
         Path::new("src"),
         &Config::default(),
         &mut report,

@@ -1072,6 +1072,38 @@ pub use __mf2_msg_id as msg_id;
     );
 }
 
+/// The id of the message that names the language `tag`: what the switcher
+/// and `Locale::name()` show.
+pub(crate) fn name_id(tag: &str) -> String {
+    format!("language.{tag}")
+}
+
+/// For each of `tags`, whether `manifest` has its [`name_id`] with no
+/// argument: [`Module::names`].
+pub(crate) fn named(tags: &[&str], manifest: &mf2_catalog::Manifest) -> Vec<bool> {
+    tags.iter()
+        .map(|tag| {
+            let id = name_id(tag);
+            manifest
+                .ids
+                .iter()
+                .position(|i| *i == id)
+                .is_some_and(|at| manifest.slots.get(at).is_some_and(Vec::is_empty))
+        })
+        .collect()
+}
+
+/// The ids the generated module names itself, and no `tr!` of the
+/// application's does: each named language's, for the switcher and
+/// `Locale::name()`.
+pub(crate) fn uses(tags: &[&str], manifest: &mf2_catalog::Manifest) -> Vec<String> {
+    tags.iter()
+        .zip(named(tags, manifest))
+        .filter(|(_, named)| *named)
+        .map(|(tag, _)| name_id(tag))
+        .collect()
+}
+
 /// `Locale::name()`: after `tr!`, which it expands, as a macro is in scope
 /// only after its definition.
 fn names(s: &mut String, m: &Module<'_>) {
@@ -1088,7 +1120,7 @@ impl Locale {{
 "
         );
         for l in m.locales {
-            let id = format!("language.{}", l.tag);
+            let id = name_id(&l.tag);
             let _ = writeln!(s, "            Locale::{} => tr!({id:?}),", variant(&l.tag));
         }
         s.push_str("        }\n    }\n}\n");
@@ -1105,7 +1137,7 @@ __mf2::__if_leptos! {
     );
     for (index, (l, named)) in m.locales.iter().zip(m.names).enumerate() {
         if *named {
-            let id = format!("language.{}", l.tag);
+            let id = name_id(&l.tag);
             let _ = writeln!(s, "            {index} => Some(tr!({id:?})),");
         }
     }

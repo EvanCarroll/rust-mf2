@@ -119,6 +119,13 @@ pub struct Outcome {
     /// pseudo-locales' `language.<tag>` names.
     #[doc(hidden)]
     pub added: Vec<String>,
+    /// The ids the generated module names itself (the languages' names),
+    /// which `unused-id` counts as used.
+    #[doc(hidden)]
+    pub used: Vec<String>,
+    /// Where the source locale defines each of its ids, for `unused-id`.
+    #[doc(hidden)]
+    pub defined: BTreeMap<String, (PathBuf, mf2_resource::Position)>,
     /// Its hash — what the wasm and every catalog agree on.
     pub manifest_hash: u64,
     /// Everything the build has to say.
@@ -429,6 +436,8 @@ impl Build {
             config,
             &mut report,
         );
+        let tag_refs: Vec<&str> = tags.iter().map(String::as_str).collect();
+        let defined = definitions(&sources[source_index], &indexes[source_index]);
         let checked = crate::check::Corpus {
             sources: &sources,
             models: &models,
@@ -446,10 +455,13 @@ impl Build {
         // variable with no slot, say) and the reader would see the writer's
         // words instead of the lint's.
         if !report.is_clean() {
+            let used = codegen::uses(&tag_refs, &built.manifest);
             return Ok(Outcome {
                 manifest_hash: built.manifest.hash(),
                 manifest: built.manifest,
                 added: Vec::new(),
+                used,
+                defined,
                 report,
                 coverage,
                 catalogs: Vec::new(),
@@ -565,18 +577,8 @@ impl Build {
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect();
-        let names: Vec<bool> = locales
-            .iter()
-            .map(|locale| {
-                let id = format!("language.{}", locale.tag);
-                built
-                    .manifest
-                    .ids
-                    .iter()
-                    .position(|i| *i == id)
-                    .is_some_and(|at| built.manifest.slots.get(at).is_some_and(Vec::is_empty))
-            })
-            .collect();
+        let names = codegen::named(&tags, &built.manifest);
+        let used = codegen::uses(&tags, &built.manifest);
         // Some languages named and not all: the switcher shows the others'
         // tags, and `Locale::name()` is not generated.
         if names.contains(&true) && names.contains(&false) {
@@ -638,6 +640,8 @@ impl Build {
             manifest_hash: built.manifest.hash(),
             manifest: built.manifest,
             added: added.into_iter().map(|(id, _)| id).collect(),
+            used,
+            defined,
             report,
             coverage,
             catalogs,
@@ -696,6 +700,24 @@ fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
     let mut name = path.as_os_str().to_os_string();
     name.push(suffix);
     PathBuf::from(name)
+}
+
+/// Where `source` defines each of its ids: the file and the id's position.
+fn definitions(
+    source: &LocaleSource,
+    index: &BTreeMap<&str, usize>,
+) -> BTreeMap<String, (PathBuf, mf2_resource::Position)> {
+    index
+        .iter()
+        .filter_map(|(id, &record)| {
+            let record = source.loaded.records.get(record)?;
+            let file = source.loaded.files.get(record.file)?;
+            Some((
+                (*id).to_owned(),
+                (file.path.clone(), file.position(record.id_span.start)),
+            ))
+        })
+        .collect()
 }
 
 /// An id a translation has and the source locale does not would be dropped

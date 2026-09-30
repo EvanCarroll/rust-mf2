@@ -434,6 +434,50 @@ fn check_names_the_first_missing_translations() {
     );
 }
 
+/// A fresh starter's case (Phase 10 G3): the languages' names are used by
+/// the generated module (the switcher, `Locale::name()`), never by a `tr!`,
+/// and `unused-id` leaves them be; a truly unused id still warns, at the
+/// line that defines it.
+#[test]
+fn check_src_counts_the_language_names_as_used() {
+    let dir = small_corpus(
+        "cli-check-unused",
+        &[
+            (
+                "en",
+                "language.en = English
+language.fr = French
+hello = Hello
+",
+            ),
+            (
+                "fr",
+                "language.en = Anglais
+language.fr = Fran\u{e7}ais
+hello = Bonjour
+",
+            ),
+        ],
+    );
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    // `--src` is the caller's path, not `-C`'s.
+    let src = dir.join("src");
+    let src = src.to_str().expect("a UTF-8 path");
+    std::fs::write(dir.join("src/main.rs"), "fn main() { tr!(\"hello\"); }\n").expect("write");
+    let text = ok(&run(&dir, &["check", "--src", src, "--deny-warnings"]));
+    assert!(!text.contains("unused-id"), "{text}");
+
+    std::fs::write(dir.join("src/main.rs"), "fn main() {}\n").expect("write");
+    let text = stdout(&run(&dir, &["check", "--src", src]));
+    assert!(
+        text.contains(
+            "main.mf2:6:1: warn: no source file names this id (in hello, locale en) [unused-id]"
+        ),
+        "{text}"
+    );
+    assert!(!text.contains("language."), "{text}");
+}
+
 /// The UX review's case (Phase 10 E1): the French terms sentence lost its
 /// link. `check` refuses it and names the markup; with the link kept, the
 /// same corpus passes.
