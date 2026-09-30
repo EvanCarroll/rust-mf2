@@ -318,10 +318,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   checks and a Forgejo workflow; all `run=` blocks (projects `translate`, `translate-pseudo`). Fixed:
   `mf2 pseudo` accented `@do-not-translate` messages (check failed). Found: pseudo-locales lack names,
   so `Locale::name()` is not generated while they exist; `stats` takes no features from cargo. ci; docs pass.
+- **F3's fixes, half** (2026-09-30): `mf2 stats` reads `mf2`'s features from cargo as `check` does
+  (test; docs' workaround gone). Held: pseudo-locales keeping `Locale::name()`, which returns a `Tr`
+  and so needs a `language.<pseudo-tag>` message to show the tag; a question to the coordinator.
 
-**In flight:** a fix: pseudo-locales keep `Locale::name()`, and `mf2 stats` reads the build's
-features (found by F3), started 2026-09-30 by an agent working in the main tree; uncommitted changes
-there are its. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
 removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
