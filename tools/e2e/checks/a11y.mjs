@@ -298,12 +298,14 @@ async function ssrStructure(ctx, ssr) {
   await sleep(100);
   const lazy = await page.title();
   assert('demo-ssr: a client navigation sets the route title', lazy !== home && lazy.length > 0, { home, lazy });
-  const served = await context.newPage();
-  await served.goto(`${ssr}/lazy?lang=en`, { waitUntil: 'load' });
-  assert('demo-ssr: /lazy is served with its own title', (await served.title()) === lazy, {
-    served: await served.title(),
-    navigated: lazy,
-  });
+  // The server's own HTML, read once: a page's title() can change while
+  // hydration runs, so reading it from a loaded page raced (it failed with the
+  // right title in its detail, read a moment later).
+  const servedHtml = await (await context.request.get(`${ssr}/lazy?lang=en`)).text();
+  const served = ((servedHtml.match(/<title[^>]*>([^<]*)<\/title>/) || [])[1] ?? '')
+    .replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'").replaceAll('&#x27;', "'").replaceAll('&amp;', '&');
+  assert('demo-ssr: /lazy is served with its own title', served === lazy, { served, navigated: lazy });
   await page.click('nav a[href="/"]');
   await page.waitForSelector('#people');
   await sleep(100);
