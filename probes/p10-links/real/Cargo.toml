@@ -1,5 +1,0 @@
-# Phase 10 C6: A2's scenarios on the real `mf2` and `mf2-build` (`real.sh`).
-[workspace]
-resolver = "3"
-members = ["single", "two/app", "two/i18n", "host"]
-exclude = ["nomf2"]

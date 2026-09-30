@@ -1,4 +1,0 @@
-   Compiling v1-today v0.0.0 (<repo>/probes/p10-tr-in-crate/v1-today)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.57s
-warning: the following packages contain code that will be rejected by a future version of Rust: v1-today v0.0.0 (<repo>/probes/p10-tr-in-crate/v1-today)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 4`

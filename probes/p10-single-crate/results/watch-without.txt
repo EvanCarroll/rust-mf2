@@ -1,6 +1,0 @@
-(no watch-additional-files)
-before: fr /visits mentions 'Revenir' x1
-no restart within 240 s after the edit
-control: a src/app.rs edit restarted it 27 s later
-      2      Compiling hello v0.1.0 (<repo>/probes/p10-single-crate/hello)
-exit 1

@@ -1,6 +1,0 @@
-# Scenario 2: an application and a separate translation crate (the 1.x
-# layout, which 2.0 keeps for workspaces): the translation crate names `mf2`
-# with no features at all, and learns what the application turned on.
-[workspace]
-resolver = "3"
-members = ["app", "i18n", "widgets"]

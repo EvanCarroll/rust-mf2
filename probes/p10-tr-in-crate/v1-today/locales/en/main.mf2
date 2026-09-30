@@ -1,5 +1,0 @@
-@locale en
----
-
-hello = Hello
-greet = Hello, {$name}!

@@ -1,6 +1,0 @@
-[workspace]
-[package]
-name = "p10-links-ra-control"
-version = "0.0.0"
-edition = "2024"
-publish = false

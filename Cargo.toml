@@ -33,7 +33,7 @@ members = [
     "bench/runtime-bench",
     "tools/i18n-fixture",
 ]
-# Standalone workspaces: the Phase 0 experiments, the cargo-fuzz targets
+# Standalone workspaces: the cargo-fuzz targets
 # (nightly only), the B12 wasm harnesses (no_std cdylibs with their own
 # panic handler and allocator; bench/b12/check.sh), the `intl` probe, L4
 # in the browser for the `intl` build (`cargo xtask l4-web`), whose `intl`
@@ -42,7 +42,6 @@ members = [
 # browser (`cargo xtask l6-web`, whose `ssr` and `hydrate` builds are
 # exclusive), and the Phase 6 example, for the same reason.
 exclude = [
-    "probes",
     "fuzz",
     "bench/b12",
     "bench/intl-probe",

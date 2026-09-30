@@ -1,7 +1,0 @@
-72:watch-additional-files = ["locales"]
-before: fr /visits mentions 'Revenir' x1
-restarted 18 s after the edit
-PASS edit served
-PASS revert served
-      6      Compiling hello v0.1.0 (<repo>/probes/p10-single-crate/hello)
-exit 0
