@@ -122,8 +122,9 @@ lints! {
 
     /// An id the source locale has and a translation does not: it falls back.
     MissingTranslation = ("missing-translation", Warn, Allow);
-    /// The corpus formats numbers but `fn-number` is off, so digits render
-    /// without the locale's symbols.
+    /// A placeholder can receive a number and `fn-number` is off, so a number
+    /// renders without the locale's symbols. The build cannot see what an
+    /// application passes, so a placeholder that only receives text raises it too.
     NeutralNumbers = ("neutral-numbers", Warn, Allow);
     /// Markup opened and not closed, or closed and not opened.
     UnpairedMarkup = ("unpaired-markup", Warn, Allow);

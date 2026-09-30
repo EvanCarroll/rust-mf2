@@ -707,8 +707,10 @@ fn report_slicing(
             &file,
             at,
             None,
-            "this locale formats numbers but `fn-number` is off, so digits \
-             render without the locale's symbols, grouping or numbering system",
+            "a placeholder in this locale's messages can receive a number, and \
+             `fn-number` is off: a number it receives renders without the locale's \
+             symbols, grouping or numbering system (if such placeholders only ever \
+             receive text, set `neutral-numbers = \"allow\"` in mf2.toml)",
         );
     }
     if slice.dynamic_currency {
