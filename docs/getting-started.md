@@ -79,7 +79,8 @@ byte-for-byte the same, and every reader's cached copy stays valid.
 Messages are Unicode [MessageFormat 2](https://www.unicode.org/reports/tr35/tr35-messageFormat.html)
 (MF2), in files under `locales/<language>/`. Each file starts by naming its
 language. Then comes one message per `id = pattern`, and a `[section]`
-prefixes the ids that follow it (`language.label` below):
+prefixes the ids that follow it (`language.label` below).
+[MF2 for developers](mf2-for-developers.md) teaches the language itself:
 
 ```mf2 file=hello/locales/en/main.mf2
 @locale en
@@ -475,6 +476,8 @@ For a release build, run `cargo leptos build --release`.
 
 ## Next
 
+* [MF2 for developers](mf2-for-developers.md): the message language, from
+  placeholders to plurals, gender and markup.
 * [Call sites](call-sites.md): `tr!` in every position, arguments, markup
   as elements, and when a `String` needs to be plain.
 * [Delivery modes](delivery-modes.md): lazy routes, islands (the smallest

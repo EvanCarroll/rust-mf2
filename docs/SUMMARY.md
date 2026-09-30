@@ -3,6 +3,7 @@
 - [Rust MF2](README.md)
 - [How the crates fit together](ecosystem.md)
 - [Getting started](getting-started.md)
+- [MF2 for developers](mf2-for-developers.md)
 - [Call sites](call-sites.md)
 - [Delivery modes](delivery-modes.md)
 - [Switching language](switching.md)

@@ -13,6 +13,7 @@ beside the executable, and follows the system's language.
 |---|---|
 | [How the crates fit together](ecosystem.md) | which crate does what, and which ones an application names |
 | [Getting started](getting-started.md) | installing, the manifest and build script, the messages, a server-rendered application that hydrates and switches language live |
+| [MF2 for developers](mf2-for-developers.md) | the `.mf2` file, placeholders, functions, plurals and ordinals, gender, markup, notes for translators; MF2 beside Fluent, ICU MessageFormat 1 and i18next; why messages have ids |
 | [Call sites](call-sites.md) | `tr!` in text, attributes, props and strings; arguments, signals, dates; markup as elements; plain and isolated text |
 | [Delivery modes](delivery-modes.md) | SSR + hydrate, lazy routes, islands, client-only |
 | [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |

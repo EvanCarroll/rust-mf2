@@ -59,6 +59,7 @@ use crate::fsx;
 /// accumulate. The root README's sample is one too.
 const PAGES: &[&str] = &[
     "docs/getting-started.md",
+    "docs/mf2-for-developers.md",
     "docs/call-sites.md",
     "docs/delivery-modes.md",
     "docs/switching.md",
@@ -248,6 +249,18 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: Some("."),
+    },
+    // mf2-for-developers.md: a command-line tool that prints each message
+    // the page teaches, in English and French.
+    Project {
+        name: "guide",
+        base: None,
+        remove: &[],
+        checks: &[Check {
+            target: None,
+            args: &[],
+        }],
+        site: None,
     },
     // native-apps.md's workspace: a library that owns the messages and a
     // terminal UI that draws them (plans/19 §1.3).
