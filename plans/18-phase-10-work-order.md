@@ -365,7 +365,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `.gitignore`; 3, `unused-id` on the generated `language.<tag>` ids (and `-C` read paths in the
   wrong directory); 4 was clean but for one wording slip, fixed. Each run 1.7–3.7M tokens.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+**In flight:** G4 (exit), started 2026-09-30 by an agent working in the main tree; uncommitted
+changes there are its. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
