@@ -352,8 +352,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   (`--filter-platform`, from the crate's directory), so a Windows-only dependency no longer forces the
   fallback, whose note is one line; every new `mf2 init` application gets a `.gitignore`. ci (cold) and docs.
 
-**In flight:** a fix from G3's third cold start: `unused-id` and the generated `language.<tag>` ids,
-started 2026-09-30 by an agent working in the main tree; uncommitted changes there are its. Part A's
+- **G3 run 3's fix** (`cdef4ce`): `unused-id` counts the ids the generated module names (`language.<tag>`,
+  codegen's rule) as used and reports each unused id at its definition, not `src:1:1`; lints.md says
+  so. CLI test on a named two-language corpus. ci and docs.
+
+**In flight:** nothing. Part A's
 probe branches and worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and
 25).
 
