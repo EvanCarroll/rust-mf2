@@ -352,9 +352,10 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   (`--filter-platform`, from the crate's directory), so a Windows-only dependency no longer forces the
   fallback, whose note is one line; every new `mf2 init` application gets a `.gitignore`. ci (cold) and docs.
 
-**In flight:** G3 (cold start; the third run, target/p10-g3/), started 2026-09-30 by an agent
-working in the main tree; uncommitted changes there are its. Part A's probe branches and worktrees,
-and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
+**In flight:** a fix from G3's third cold start: `unused-id` and the generated `language.<tag>` ids,
+started 2026-09-30 by an agent working in the main tree; uncommitted changes there are its. Part A's
+probe branches and worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and
+25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
