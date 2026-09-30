@@ -400,6 +400,11 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- After Phase 10's exit (2026-09-30), for the release tool (`xtask/src/release.rs`): cargo never
+  re-extracts a registry version it has seen, so `cargo publish --workspace --dry-run` verified
+  `mf2-cli` against `mf2-build` 2.0.0 as extracted by G2's dry run hours earlier
+  (`~/.cargo/registry/src/-<hash>/`), and failed. That folder was cleared by hand; the tool should
+  clear the local registry's extracts itself before verifying.
 - From D4: `path_prefix_redirect` reads the query name from the negotiator's answer, so it must
   sit under the negotiator (`.layer(from_fn(..)).layer(negotiator)`); placed outside it, it
   falls back to `lang` without a word. **E4**: a server warning when the redirect runs with no
