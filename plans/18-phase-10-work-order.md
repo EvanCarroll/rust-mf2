@@ -349,8 +349,10 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   needs axum's `OriginalUri` (the router puts it on every request). Unit test: starter-shaped route list
   and a negotiated request quiet, a router without the negotiator warns once. troubleshooting.md says so.
 
-**In flight:** nothing. Part A's probe
-branches and worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
+**In flight:** fixes from G3's second cold start: `mf2 check` offline, and the starters'
+`.gitignore`, started 2026-09-30 by an agent working in the main tree; uncommitted changes there are
+its. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are removed
+(questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
