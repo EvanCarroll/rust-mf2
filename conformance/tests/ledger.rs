@@ -305,7 +305,7 @@ fn an_overdue_open_note_is_red() {
     let suite = suite();
     let mut ledger = committed_ledger();
     // The rule needs a phase after the current one. The committed ledger is
-    // at the last phase (P9, the release), so the rule runs at the one
+    // at the last phase (P10, 2.0), so the rule runs at a phase
     // before it.
     ledger.current_phase = Phase::P8;
     let i = ledger

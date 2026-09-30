@@ -20,11 +20,12 @@ pub enum Phase {
     P7,
     P8,
     P9,
+    P10,
 }
 
 impl Phase {
-    /// Every phase, in order: P0 < P1 < P2 < P3 < P4 < P5a < P5b < P6 < P7 < P8 < P9.
-    pub const ALL: [Self; 11] = [
+    /// Every phase, in order: P0 < P1 < P2 < P3 < P4 < P5a < P5b < P6 < P7 < P8 < P9 < P10.
+    pub const ALL: [Self; 12] = [
         Self::P0,
         Self::P1,
         Self::P2,
@@ -36,6 +37,7 @@ impl Phase {
         Self::P7,
         Self::P8,
         Self::P9,
+        Self::P10,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -51,6 +53,7 @@ impl Phase {
             Self::P7 => "P7",
             Self::P8 => "P8",
             Self::P9 => "P9",
+            Self::P10 => "P10",
         }
     }
 
