@@ -313,14 +313,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **F2's `[locale_data]` fix** (`f12b681`): an explicit list wins over a variable's every-code
   (`DataSet::with_used`) and silences `dynamic-currency`/`-unit`; unit and `slicing.rs` tests; the two
   pages say so. An unlisted code falls back as a missing one. ci; docs, sizes pass, sizes unmoved.
+- **F3** (`5f51541`, `8adf81e`): `docs/translating.md`, a walk-through on Getting started's app: German
+  via XLIFF, a French JSON review whose import errs and writes nothing, pseudo-locales, `stats`, CI
+  checks and a Forgejo workflow; all `run=` blocks (projects `translate`, `translate-pseudo`). Fixed:
+  `mf2 pseudo` accented `@do-not-translate` messages (check failed). Found: pseudo-locales lack names,
+  so `Locale::name()` is not generated while they exist; `stats` takes no features from cargo. ci; docs pass.
 
-**In flight:** F3 (the translator workflow), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part F (F3 first)**;
+- **Part F (F4 first)**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
