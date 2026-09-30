@@ -329,14 +329,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   whose tests `cargo xtask docs` now runs (`Project::test`); `docs/troubleshooting.md` (`tr!` not found,
   stale manifest, empty text, default-language pages, zh-Hant), messages from the code or a run. Linked
   from SUMMARY, the index, Getting started. ci; f4-gate docs pass.
+- **F5** (2026-09-30): `docs/README.md` a short one-crate landing page; Getting started before the crate
+  map (one crate, features), its mechanism in callouts; playground `runnable = false`; `docs/upgrading.md`
+  (crates, build script, paths, `setup()`/`install()`, the layer, `IntoArg`, native, Ratatui, matcher,
+  `[locale_data]`, checks), 1.x as `excerpt` blocks (new builder marker), 2.0 `main` compiled as project
+  `upgrade`; the routed F notes placed; README → plans/18. ci; f5-gate docs; `mdbook build` clean.
 
-**In flight:** F5 (first pages and upgrading), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part F (F5 first)**;
+- **Part F is done; G1 first**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
