@@ -863,6 +863,9 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     rules). A definition loads only when a session starts, so the first task agent of the next
     session is the first at `high`; until then task agents run as `general-purpose` with those
     rules in their brief. The first figure at `high` is compared with C4's.
+    *First figure:* C7, the first `mf2-task` run: 51 steps, 4.6M re-read, its reasoning 35 % of its
+    context, where C4 and C6 (general-purpose) had 55–57 %; a smaller task, so not a controlled
+    comparison, but the setting appears to take effect.
 33. **The `neutral-numbers` warning's false alarm** (found by A3, left open by C6; 2026-09-29) —
     **answered: reword it.** MF2 writes a number passed into a plain placeholder the reader's way
     (the suite's `syntax.json` #90: `1.3` → `1,3` in French); with `fn-number` off it is written
