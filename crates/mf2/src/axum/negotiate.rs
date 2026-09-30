@@ -11,10 +11,14 @@
 //! negotiated tag is then written to every sink, and serialized into the
 //! page, so the client never negotiates again (§11 item 3).
 
-use std::borrow::Cow;
+use alloc::borrow::{Cow, ToOwned};
+use alloc::boxed::Box;
+use alloc::format;
+use alloc::string::String;
+use alloc::vec::Vec;
 
-use http::header::{ACCEPT_LANGUAGE, COOKIE, HeaderName, HeaderValue, SET_COOKIE};
-use http::request::Parts;
+use ::http::header::{ACCEPT_LANGUAGE, COOKIE, HeaderName, HeaderValue, SET_COOKIE};
+use ::http::request::Parts;
 use mf2_catalog::Dir;
 
 /// What negotiation decided, for one request.
@@ -91,7 +95,7 @@ impl Default for CookieLocale {
     fn default() -> CookieLocale {
         CookieLocale {
             // The name a `static-locale` client writes on a switch.
-            name: leptos_mf2::links::LOCALE_COOKIE,
+            name: crate::links::LOCALE_COOKIE,
             max_age: 31_536_000,
             path: "/",
             same_site: "Lax",
@@ -238,7 +242,7 @@ pub struct QueryParam(pub &'static str);
 impl Default for QueryParam {
     fn default() -> QueryParam {
         // The name a `static-locale` client removes on a switch.
-        QueryParam(leptos_mf2::links::LOCALE_QUERY)
+        QueryParam(crate::links::LOCALE_QUERY)
     }
 }
 
@@ -277,11 +281,11 @@ impl Negotiator {
     /// An empty negotiator over the build's own locales: every request gets
     /// the source locale until a source is added.
     ///
-    /// The locales come from [`install`](crate::install), so call this after
+    /// The locales come from the generated `install()`, so call this after
     /// it.
     #[must_use]
     pub fn empty() -> Negotiator {
-        Negotiator::over(leptos_mf2::locales(), leptos_mf2::source_locale())
+        Negotiator::over(super::locales(), super::source_locale())
     }
 
     /// An empty negotiator over an explicit locale table — what a test uses,
@@ -340,7 +344,7 @@ impl Negotiator {
             // one matcher weighs them together (a later entry demoted), as
             // UTS #35 Part 1 matches a list.
             if let Some((tag, dir)) =
-                leptos_mf2::best_locale(candidates.iter().map(AsRef::as_ref), self.locales)
+                super::best_locale(candidates.iter().map(AsRef::as_ref), self.locales)
             {
                 return Negotiated {
                     tag,
@@ -407,8 +411,16 @@ impl Default for Negotiator {
     /// added; the client writes the cookie on a switch. A path prefix is
     /// deliberately not here — it changes URLs, so a site opts into it.
     fn default() -> Negotiator {
-        Negotiator::empty()
-            .source(CookieLocale::default())
+        Negotiator::empty().defaults()
+    }
+}
+
+impl Negotiator {
+    /// [`Negotiator::default`]'s sources and sink, over this negotiator's
+    /// locales: what the generated `Locale` extractor negotiates with when
+    /// no layer negotiated first.
+    pub(crate) fn defaults(self) -> Negotiator {
+        self.source(CookieLocale::default())
             .source(AcceptLanguage)
             .sink(CookieLocale::default())
     }
@@ -420,17 +432,20 @@ pub(crate) fn lookup(
     candidate: &str,
     locales: &[(&'static str, Dir)],
 ) -> Option<(&'static str, Dir)> {
-    leptos_mf2::lookup_locale(candidate, locales)
+    super::best_locale([candidate], locales)
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::indexing_slicing, reason = "a test")]
 mod tests {
     use super::{
         AcceptLanguage, CookieLocale, Dir, LocaleSink, LocaleSource, Negotiated, Negotiator,
         lookup, quality_milli,
     };
-    use http::Request;
-    use std::borrow::Cow;
+    use ::http::Request;
+    use alloc::borrow::{Cow, ToOwned};
+    use alloc::string::String;
+    use alloc::vec::Vec;
 
     static LOCALES: &[(&str, Dir)] = &[("en", Dir::Ltr), ("fr-CA", Dir::Ltr), ("ar", Dir::Rtl)];
 

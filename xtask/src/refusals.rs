@@ -45,6 +45,9 @@ const NATIVE: &str = "mf2: `native` is on beside `hydrate` or `csr` in a build f
 /// it implies `native`.
 const RATATUI: &str = "mf2: `ratatui` is on beside `hydrate` or `csr` in a build for the browser";
 
+/// `axum` in a browser build.
+const AXUM: &str = "mf2: `axum` is on beside `hydrate` or `csr` in a build for the browser";
+
 const WASM: &str = "wasm32-unknown-unknown";
 
 /// A refused combination: what it is, its `cargo check` arguments, and what
@@ -139,6 +142,30 @@ const CASES: &[Case] = &[
         ],
         says: RATATUI,
     },
+    Case {
+        what: "`axum` beside `hydrate`, for the browser",
+        args: &[
+            "-p",
+            "mf2",
+            "--features",
+            "axum,leptos,hydrate",
+            "--target",
+            WASM,
+        ],
+        says: AXUM,
+    },
+    Case {
+        what: "`axum` beside `csr`, for the browser",
+        args: &[
+            "-p",
+            "mf2",
+            "--features",
+            "axum,leptos,csr",
+            "--target",
+            WASM,
+        ],
+        says: AXUM,
+    },
 ];
 
 /// A combination §3 refuses only for the browser: what it is, and its
@@ -164,6 +191,14 @@ const HOST: &[Host] = &[
     Host {
         what: "`ratatui` beside `csr`, on the host",
         args: &["-p", "mf2", "--features", "ratatui,leptos,csr"],
+    },
+    Host {
+        what: "`axum` beside `hydrate`, on the host",
+        args: &["-p", "mf2", "--features", "axum,leptos,hydrate"],
+    },
+    Host {
+        what: "`axum` beside `csr`, on the host",
+        args: &["-p", "mf2", "--features", "axum,leptos,csr"],
     },
     // 1.x's workspace: a browser client on `leptos-mf2` and a native
     // application on `mf2-native`, checked together as `--workspace` does.

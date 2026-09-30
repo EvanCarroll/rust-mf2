@@ -58,6 +58,11 @@ forward!($ __if_csr, all(feature = "csr", any(feature = "leptos", feature = "lep
 forward!($ __if_leptos, all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8")));
 forward!($ __if_mode, any(feature = "native", all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8"))));
 forward!($ __if_clap, feature = "clap");
+forward!($ __if_axum, feature = "axum");
+// `Locale::format`: a native application, a Leptos server, an Axum server.
+forward!($ __if_format, any(feature = "native", feature = "axum", all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))));
+// `install()`: every mode, and an Axum server.
+forward!($ __if_install, any(feature = "native", feature = "axum", all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8"))));
 forward!($ __if_ratatui, feature = "ratatui");
 
 /// The host: the native one wherever there is one (a server, a native
@@ -298,6 +303,138 @@ pub fn format_in(
     crate::native::store::format_in(corpus, locale, message)
 }
 
+/// The generated `Locale::format` on a server with no `native`: `message`
+/// in `locale`'s language, from the catalogs `corpus` embeds, loaded once.
+///
+/// # Panics
+///
+/// If an embedded catalog does not load: a corrupt executable.
+#[cfg(all(
+    not(feature = "native"),
+    any(
+        feature = "axum",
+        all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))
+    )
+))]
+#[must_use]
+pub fn format_in(
+    corpus: &'static crate::Corpus,
+    locale: &str,
+    message: &impl crate::Message,
+) -> alloc::string::String {
+    server::format_in(corpus, locale, message)
+}
+
+#[cfg(all(
+    not(feature = "native"),
+    any(
+        feature = "axum",
+        all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))
+    )
+))]
+mod server {
+    use alloc::string::String;
+    use alloc::vec::Vec;
+    use std::sync::OnceLock;
+
+    use mf2_catalog::{Catalog, CatalogError};
+    use mf2_runtime::{FormatContext, Formatter, NoErrors};
+
+    use crate::{Corpus, Message};
+
+    /// The one corpus a server formats from, its catalogs loaded.
+    struct Loaded {
+        corpus: &'static Corpus,
+        catalogs: Vec<Option<Catalog>>,
+    }
+
+    static LOADED: OnceLock<Loaded> = OnceLock::new();
+
+    fn load(corpus: &'static Corpus) -> Vec<Option<Catalog>> {
+        corpus
+            .catalogs()
+            .iter()
+            .map(|file| {
+                let bytes = file.bytes()?;
+                match Catalog::new(Vec::from(bytes), corpus.manifest_hash()) {
+                    Ok(catalog) => Some(catalog),
+                    Err(error) => refused(error),
+                }
+            })
+            .collect()
+    }
+
+    pub(super) fn format_in(
+        corpus: &'static Corpus,
+        locale: &str,
+        message: &impl Message,
+    ) -> String {
+        let loaded = LOADED.get_or_init(|| Loaded {
+            corpus,
+            catalogs: load(corpus),
+        });
+        // Another corpus than the first (two generated modules in one
+        // server): loaded for this call alone.
+        let other;
+        let catalogs = if core::ptr::eq(loaded.corpus, corpus) {
+            &loaded.catalogs
+        } else {
+            other = load(corpus);
+            &other
+        };
+        let at = |tag: &str| {
+            let index = corpus
+                .catalogs()
+                .iter()
+                .position(|file| file.tag() == tag)?;
+            catalogs.get(index)?.as_ref()
+        };
+        let mut out = String::new();
+        if let Some(catalog) = at(locale).or_else(|| at(corpus.source_locale())) {
+            let cx = FormatContext::new(&mf2_host_std::HOST);
+            let f = Formatter::new(catalog, corpus.registry(), &cx);
+            message.write(&f, &mut out, &mut NoErrors);
+        }
+        out
+    }
+
+    #[cold]
+    #[inline(never)]
+    #[allow(
+        clippy::panic,
+        reason = "server only: Locale::format returns text, and an embedded catalog that does not load means a corrupt executable"
+    )]
+    fn refused(error: CatalogError) -> ! {
+        panic!("mf2: Locale::format(): {error}")
+    }
+}
+
+/// The generated `install()` under `axum`: the corpus whose locales
+/// `mf2::axum` negotiates among and whose catalogs it serves.
+#[cfg(feature = "axum")]
+pub fn install_axum(corpus: &'static crate::Corpus) {
+    crate::axum::install(corpus);
+}
+
+/// What the generated `Locale` extractor names.
+#[cfg(feature = "axum")]
+pub mod axum {
+    pub use ::axum::extract::FromRequestParts;
+    pub use ::http::request::Parts;
+    use mf2_catalog::Dir;
+
+    /// The index, among `locales`, of this request's language: what a layer
+    /// negotiated, else what `Negotiator::default()`'s sources negotiate.
+    #[must_use]
+    pub fn locale_index(
+        parts: &Parts,
+        locales: &'static [(&'static str, Dir)],
+        source: &'static str,
+    ) -> Option<usize> {
+        crate::axum::locale_index(parts, locales, source)
+    }
+}
+
 /// The generated `with_locale(Locale, body)`: `body`, with this thread
 /// formatting in `locale`'s language; loads `corpus`'s catalogs if nothing
 /// is installed.
@@ -315,7 +452,11 @@ pub fn with_locale_in<R>(
 }
 
 /// The string type of the generated `Locale::format`.
-#[cfg(feature = "native")]
+#[cfg(any(
+    feature = "native",
+    feature = "axum",
+    all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))
+))]
 pub use alloc::string::String;
 
 /// The path type of the generated `install_from_directory`.

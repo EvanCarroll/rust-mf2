@@ -3,7 +3,7 @@ name = "mf2-axum"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Locale negotiation and catalog serving for an Axum + Leptos application: an ordered list of typed sources and sinks, Content-Language and Vary, and /i18n/* served immutable from the catalogs embedded in the server binary."
+description = "1.x's Axum crate of Rust MF2, kept as a shim over mf2::axum (locale negotiation and catalog serving), with the Leptos server's request glue."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -24,16 +24,13 @@ leptos-0-9 = ["dep:leptos", "dep:leptos_axum", "leptos-mf2/leptos-0-9"]
 leptos-0-8 = ["dep:leptos_0_8", "dep:leptos_axum_0_8", "leptos-mf2/leptos-0-8"]
 
 [dependencies]
-axum.workspace = true
-brotli.workspace = true
-flate2.workspace = true
 http.workspace = true
 leptos = { workspace = true, optional = true }
 leptos-mf2 = { workspace = true, features = ["ssr"] }
 leptos_axum = { workspace = true, optional = true }
 leptos_0_8 = { workspace = true, optional = true }
 leptos_axum_0_8 = { workspace = true, optional = true }
-mf2-catalog.workspace = true
+mf2 = { workspace = true, features = ["axum"] }
 
 # `tests/time_zone.rs` compiles a date message and formats it through the
 # native host, as a server does.

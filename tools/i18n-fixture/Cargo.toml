@@ -34,6 +34,9 @@ intl = ["mf2/intl"]
 # locale functions, and — beside `mf2/ssr` — the catalogs the Leptos
 # layer's server installs, from the same embedded bytes.
 native = ["mf2/native"]
+# A plain Axum server's module, with no Leptos: `Locale` as an extractor,
+# `Locale::format`, and `install()` giving `mf2::axum` the catalogs.
+axum = ["mf2/axum"]
 # The B1′ and B13 corpora (plans/13 A10, `cargo xtask b12-generated`): a
 # corpus with nothing a function crate could serve, and this crate's corpus
 # plus the three measure functions. Exactly one at a time.
@@ -52,6 +55,14 @@ trybuild.workspace = true
 # The generated `Locale`'s value parser, parsed through as clap would.
 clap.workspace = true
 mf2 = { workspace = true, features = ["clap"] }
+# `tests/axum.rs`: a plain Axum application, its requests sent through the
+# router.
+axum.workspace = true
+tower.workspace = true
+
+[[test]]
+name = "axum"
+required-features = ["axum"]
 
 [build-dependencies]
 mf2-build.workspace = true

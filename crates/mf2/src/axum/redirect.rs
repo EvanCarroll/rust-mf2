@@ -2,16 +2,18 @@
 //! switcher's form submits `?lang=`, which a path prefix outranks, so the
 //! server sends the reader to that language's URL instead (Phase 9 B4).
 
-use axum::extract::Request;
-use axum::middleware::Next;
-use axum::response::{IntoResponse, Redirect, Response};
-use http::{Method, Uri};
+use ::axum::extract::Request;
+use ::axum::middleware::Next;
+use ::axum::response::{IntoResponse, Redirect, Response};
+use ::http::{Method, Uri};
 use mf2_catalog::Dir;
 
-use crate::negotiate::lookup;
+use super::negotiate::lookup;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 /// Middleware for a site whose first path segment is the locale
-/// ([`PathPrefix`](crate::PathPrefix)): a `GET` whose `?lang=` names another
+/// ([`PathPrefix`](super::PathPrefix)): a `GET` whose `?lang=` names another
 /// locale than its path is redirected to the same path under that locale,
 /// `?lang=` removed and every other parameter kept — `/en/about?lang=fr` to
 /// `/fr/about`. That is what `<LocaleSwitcher>`'s form submits before the
@@ -20,18 +22,15 @@ use crate::negotiate::lookup;
 /// ```ignore
 /// let app = Router::new()
 ///     // …routes…
-///     .layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect));
+///     .layer(axum::middleware::from_fn(mf2::axum::path_prefix_redirect));
 /// ```
 ///
-/// The query parameter is [`QueryParam::default`](crate::QueryParam)'s and
-/// the locales are the build's, from [`install`](crate::install).
+/// The query parameter is [`QueryParam::default`](super::QueryParam)'s and
+/// the locales are the build's, from the generated `install()`.
 pub async fn path_prefix_redirect(request: Request, next: Next) -> Response {
     if matches!(*request.method(), Method::GET | Method::HEAD)
-        && let Some(to) = path_for_query(
-            request.uri(),
-            leptos_mf2::links::LOCALE_QUERY,
-            leptos_mf2::locales(),
-        )
+        && let Some(to) =
+            path_for_query(request.uri(), crate::links::LOCALE_QUERY, super::locales())
     {
         return Redirect::to(&to).into_response();
     }
@@ -84,9 +83,11 @@ pub(crate) fn path_for_query(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::indexing_slicing, reason = "a test")]
 mod tests {
     use super::path_for_query;
-    use http::Uri;
+    use ::http::Uri;
+    use alloc::string::String;
     use mf2_catalog::Dir;
 
     static LOCALES: &[(&str, Dir)] = &[("en", Dir::Ltr), ("fr", Dir::Ltr), ("ar", Dir::Rtl)];

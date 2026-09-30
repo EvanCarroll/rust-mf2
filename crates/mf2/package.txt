@@ -6,6 +6,7 @@ Cargo.toml.orig
 LICENSE
 LICENSE-UNICODE
 README.md
+api/axum.txt
 api/core.txt
 api/csr.txt
 api/hydrate.txt
@@ -16,6 +17,10 @@ build.rs
 src/__arg.rs
 src/__generated.rs
 src/arg.rs
+src/axum.rs
+src/axum/negotiate.rs
+src/axum/redirect.rs
+src/axum/serve.rs
 src/compile.rs
 src/corpus.rs
 src/debug.rs
@@ -40,6 +45,7 @@ src/leptos/state.rs
 src/leptos/text.rs
 src/leptos/zone.rs
 src/lib.rs
+src/links.rs
 src/markup.rs
 src/matching.rs
 src/matching/cldr.rs

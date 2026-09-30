@@ -24,10 +24,7 @@ pub const CATALOG_LINK_LOCALE_ATTR: &str = "data-mf2-locale";
 /// browser check fails on that warning.
 pub const ISLANDS_GATE: &str = "mf2_islands_gate";
 
-/// The cookie a switch writes under `static-locale`, and that `mf2-axum`'s
-/// `CookieLocale` reads by default: a switch there is this cookie and a
-/// reload (D7 strategy C).
-pub const LOCALE_COOKIE: &str = "mf2_locale";
+pub use crate::links::LOCALE_COOKIE;
 
 /// The cookie that carries the reader's time zone, an IANA name
 /// The client writes it when a page was
@@ -41,10 +38,7 @@ pub const TIME_ZONE_COOKIE: &str = "mf2_tz";
 /// page was rendered in `Setup`'s zone.
 pub const ZONE_ATTR: &str = "data-mf2-zone";
 
-/// The query parameter `mf2-axum`'s `QueryParam` reads by default. It ranks
-/// above the cookie, so a `static-locale` switch removes it from the address
-/// before reloading — otherwise the reload would negotiate the old locale.
-pub const LOCALE_QUERY: &str = "lang";
+pub use crate::links::LOCALE_QUERY;
 
 /// The `data-` attribute that marks a client-only page's preload of its
 /// catalog index: `index.html` writes
@@ -63,9 +57,7 @@ pub const CSR_INDEX_URL: &str = "i18n/index.json";
 /// `navigator.languages`.
 pub const LOCALE_STORAGE_KEY: &str = "mf2_locale";
 
-/// Where the catalogs are served from, and what `/i18n/<tag>` redirects
-/// within. `mf2-axum` mounts its routes here.
-pub const CATALOG_ROUTE: &str = "/i18n/";
+pub use crate::links::CATALOG_ROUTE;
 
 /// The URL a catalog published as `file` is served at.
 #[must_use]

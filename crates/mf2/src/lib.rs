@@ -195,6 +195,20 @@ compile_error!(
      build the browser client on its own (`-p`), and keep `native` off in \
      every crate it depends on."
 );
+// `axum` serves HTTP: a server's, never a browser build's. As `native`,
+// it is refused beside a client mode only when compiling for the browser.
+#[cfg(all(
+    feature = "axum",
+    any(feature = "hydrate", feature = "csr"),
+    target_arch = "wasm32"
+))]
+compile_error!(
+    "mf2: `axum` is on beside `hydrate` or `csr` in a build for the \
+     browser (`wasm32`): `axum` is for the server, never for a browser \
+     build. cargo unifies features across the packages it builds together: \
+     build the browser client on its own (`-p`), and keep `axum` off in \
+     every crate it depends on."
+);
 #[cfg(all(
     feature = "ratatui",
     any(feature = "hydrate", feature = "csr"),
@@ -247,6 +261,15 @@ mod display;
 mod dynamic;
 mod error;
 mod into_arg;
+// The names the server and the browser's client share.
+#[cfg(any(
+    feature = "axum",
+    all(
+        any(feature = "ssr", feature = "hydrate", feature = "csr"),
+        any(feature = "leptos", feature = "leptos-0-8")
+    )
+))]
+mod links;
 mod markup;
 mod matching;
 mod message;
@@ -263,6 +286,12 @@ pub mod native;
 #[cfg(feature = "ratatui")]
 #[cfg_attr(docsrs, doc(cfg(feature = "ratatui")))]
 pub mod ratatui;
+
+// An Axum server's negotiation, catalog routes and extractor, with or
+// without Leptos (its documentation is the module's own).
+#[cfg(feature = "axum")]
+#[cfg_attr(docsrs, doc(cfg(feature = "axum")))]
+pub mod axum;
 
 // The Leptos layer (its documentation is the module's own: an outer doc
 // comment here would make rustdoc resolve the module's links at the root).

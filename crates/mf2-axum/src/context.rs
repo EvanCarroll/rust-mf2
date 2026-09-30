@@ -32,7 +32,8 @@ use http::request::Parts;
 use leptos::prelude::{provide_context, use_context};
 use leptos_axum::ResponseOptions;
 
-use crate::negotiate::{Negotiated, Negotiator, cookie};
+use http::header::COOKIE;
+use mf2::axum::{Negotiated, Negotiator};
 
 /// Negotiates this request's locale, provides its catalog, and sets
 /// `Content-Language`, `Vary` and every sink's header on the response.
@@ -96,4 +97,13 @@ pub fn negotiated() -> Option<Negotiated> {
 /// Empty request parts: what route-list generation effectively has.
 fn mock_parts() -> Parts {
     http::Request::new(()).into_parts().0
+}
+
+/// The value of the cookie `name` on the request, if it carries one.
+fn cookie<'r>(parts: &'r Parts, name: &str) -> Option<&'r str> {
+    let header = parts.headers.get(COOKIE).and_then(|v| v.to_str().ok())?;
+    header.split(';').find_map(|pair| {
+        let (n, value) = pair.trim_start().split_once('=')?;
+        (n.trim() == name).then(|| value.trim())
+    })
 }

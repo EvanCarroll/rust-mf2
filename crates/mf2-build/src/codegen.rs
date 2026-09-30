@@ -598,7 +598,8 @@ pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
     if is_native(m.emit) {
         s.push_str(&c);
     } else {
-        gate(s, "__if_native", &c);
+        // What `Locale::format` reads: with `native`, and on a server.
+        gate(s, "__if_format", &c);
     }
 }
 
@@ -734,7 +735,11 @@ __mf2::__if_clap! {{
         s.push('\n');
         gate(
             s,
-            "__if_native",
+            if is_native(m.emit) {
+                "__if_native"
+            } else {
+                "__if_format"
+            },
             "impl Locale {
     /// `message`, formatted in this language. It needs no `install()`, and
     /// chooses no app-wide language.
@@ -746,6 +751,31 @@ __mf2::__if_clap! {{
 ",
         );
     }
+    s.push('\n');
+    gate(
+        s,
+        "__if_axum",
+        "/// An Axum extractor: the language the `Negotiator` layer chose for this
+/// request, else the one `mf2::axum::Negotiator::default()`'s sources
+/// negotiate. It never rejects a request.
+impl<S: ::core::marker::Send + ::core::marker::Sync> __mf2::__generated::axum::FromRequestParts<S>
+    for Locale
+{
+    type Rejection = ::core::convert::Infallible;
+
+    fn from_request_parts(
+        parts: &mut __mf2::__generated::axum::Parts,
+        _state: &S,
+    ) -> impl ::core::future::Future<Output = ::core::result::Result<Self, Self::Rejection>>
+           + ::core::marker::Send {
+        let locale = __mf2::__generated::axum::locale_index(parts, LOCALES, SOURCE_LOCALE)
+            .and_then(|index| Locale::ALL.get(index).copied())
+            .unwrap_or(Locale::SOURCE);
+        ::core::future::ready(::core::result::Result::Ok(locale))
+    }
+}
+",
+    );
 }
 
 /// The locale functions, each once, whatever the combination of modes:
@@ -791,6 +821,9 @@ pub fn setup() -> __mf2::leptos::Setup {
         body.push_str(
             "    __mf2::__if_ssr! {\n        __mf2::__generated::install_server(setup(), CATALOGS);\n    }\n",
         );
+        body.push_str(
+            "    __mf2::__if_axum! {\n        __mf2::__generated::install_axum(&CORPUS);\n    }\n",
+        );
     } else {
         body.push_str("    __mf2::__if_ssr! {\n        __mf2::leptos::install(setup());\n    }\n");
     }
@@ -817,7 +850,8 @@ pub fn setup() -> __mf2::leptos::Setup {
             "/// Gives the Leptos layer what this build generated, `setup()`, and, on
 /// the server, the embedded catalogs, each checked against the manifest
 /// hash. Call it once on each side, before rendering or hydrating. With
-/// `native`, it also installs the catalogs as the process's (`mf2::native`).
+/// `native`, it also installs the catalogs as the process's (`mf2::native`);
+/// with `axum`, as the ones `mf2::axum` negotiates among and serves.
 ///
 /// # Panics
 ///
@@ -830,7 +864,7 @@ pub fn setup() -> __mf2::leptos::Setup {
     gate(
         s,
         if embeds(m.emit) {
-            "__if_mode"
+            "__if_install"
         } else {
             "__if_leptos"
         },
@@ -1198,14 +1232,14 @@ mod tests {
         let code = write(&module(&[], &features, &custom, &locales, false));
         // Everything that names a catalog is dropped from a browser's
         // client by `mf2`'s own features — the bytes, `CATALOGS` and, with
-        // `native`, `CORPUS`.
+        // `native` or on a server, `CORPUS`.
         let server = block(&code, "__if_host_std");
-        let native = block(&code, "__if_native");
+        let format = block(&code, "__if_format");
         assert_eq!(server.matches(".mf2b").count(), 4, "{code}");
-        assert_eq!(native.matches(".mf2b").count(), 2, "{code}");
+        assert_eq!(format.matches(".mf2b").count(), 2, "{code}");
         assert_eq!(code.matches(".mf2b").count(), 6, "{code}");
         assert!(server.contains("pub static CATALOGS:"), "{code}");
-        assert!(native.contains("pub static CORPUS:"), "{code}");
+        assert!(format.contains("pub static CORPUS:"), "{code}");
         assert!(
             code.contains("pub const MANIFEST_HASH: u64 = 0x43e0_dc12_eeb0_5ef1;"),
             "{code}"
@@ -1301,6 +1335,7 @@ mod tests {
                 "pub fn current_locale(",
                 "pub fn preload_locale(",
                 "pub enum Locale",
+                "FromRequestParts<S>",
             ] {
                 assert_eq!(code.matches(item).count(), 1, "{emit:?} {item}:\n{code}");
             }
@@ -1320,16 +1355,24 @@ mod tests {
     }
 
     #[test]
-    fn a_web_module_has_a_corpus_only_with_native() {
+    fn a_web_module_has_a_corpus_only_where_it_formats() {
         let locales = locales();
         let features = Features::default();
         let custom = BTreeMap::new();
         let mut m = module(&[], &features, &custom, &locales, false);
         let code = write(&m);
+        // With `native`, and on a server (`ssr`, `axum`): `Locale::format`.
         assert!(
-            block(&code, "__if_native").contains("    pub static CORPUS:"),
+            block(&code, "__if_format").contains("    pub static CORPUS:"),
             "{code}"
         );
+        // Under `axum`, `Locale` is an extractor, and `install()` gives
+        // `mf2::axum` the corpus.
+        assert!(
+            block(&code, "__if_axum").contains("FromRequestParts<S>"),
+            "{code}"
+        );
+        assert!(code.contains("install_axum(&CORPUS)"), "{code}");
         assert_eq!(code.matches("pub static CORPUS:").count(), 1, "{code}");
 
         m.emit = Emit::Module;

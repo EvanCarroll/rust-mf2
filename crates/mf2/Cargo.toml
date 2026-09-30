@@ -78,6 +78,12 @@ native = [
 # `csr` it is a compile error of its own when compiling for `wasm32`; on
 # the host the two compile together, as `native` does.
 ratatui = ["native", "dep:ratatui-core"]
+# An Axum server (`mf2::axum`), with or without Leptos: locale negotiation,
+# the catalogs served from the server binary (`/i18n/*`, precompressed), and
+# the generated `Locale` as an extractor, with `Locale::format`. Never in a
+# browser build: with `hydrate` or `csr` it is a compile error when compiling
+# for `wasm32`; on the host the two compile together, as `native` does.
+axum = ["host-std", "dep:axum", "dep:http", "dep:brotli", "dep:flate2"]
 # `clap`: a generated `Locale` gets a value parser, so that `--lang` parses
 # through the one matcher (`fr_CA.UTF-8` is French) and `--help` lists the
 # tags. std; for a native application's command line.
@@ -178,6 +184,13 @@ jiff = { workspace = true, optional = true }
 # The Ratatui module (`ratatui`): the text and style types, which `ratatui`
 # re-exports.
 ratatui-core = { workspace = true, optional = true }
+
+# The Axum module (`axum`): the router, the request's parts, and the
+# catalogs' precompressed variants.
+axum = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+brotli = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
 
 # `clap`: the generated `Locale`'s value parser.
 clap = { workspace = true, optional = true }
@@ -299,8 +312,8 @@ required-features = ["host-std"]
 # docs.rs, as `cargo xtask docs-rs` builds it. `cargo xtask api` lists this
 # crate's public API per mode instead ([package.metadata.api], below).
 [package.metadata.docs.rs]
-# The server on Leptos 0.9, and the native and Ratatui modules, which compile
-# beside it: the modes exclude each other, and `mf2::leptos` names what the
+# The server on Leptos 0.9, and the native, Ratatui and Axum modules, which
+# compile beside it: the modes exclude each other, and `mf2::leptos` names what the
 # client modes add.
 features = [
     "compile",
@@ -313,6 +326,7 @@ features = [
     "mark-fallback-lang",
     "native",
     "ratatui",
+    "axum",
 ]
 targets = ["x86_64-unknown-linux-gnu"]
 
@@ -355,12 +369,13 @@ csr = [
 ]
 native = ["compile", "fn-number", "datetime-icu", "host-std", "native"]
 ratatui = ["compile", "fn-number", "datetime-icu", "host-std", "ratatui"]
+axum = ["compile", "fn-number", "datetime-icu", "host-std", "axum"]
 
 # How 1.0.0 spelled the modes it had, for `cargo xtask release`'s comparison
 # with it: its `leptos` was the layer, which a mode implied, and the Leptos
-# line came from `leptos-mf2` (`leptos-mf2/leptos-0-9`). It had no `native`
-# and no `ratatui` (1.x's native crates were never published), so those two
-# are not compared with it.
+# line came from `leptos-mf2` (`leptos-mf2/leptos-0-9`). It had no `native`,
+# no `ratatui` (1.x's native crates were never published) and no `axum`
+# (1.x's was the crate `mf2-axum`), so those three are not compared with it.
 [package.metadata.api.baseline."1.0.0"]
 core = ["compile", "fn-number", "datetime-icu", "host-std"]
 ssr = [

@@ -1,44 +1,20 @@
-//! `mf2-axum` — locale negotiation and catalog serving for an Axum + Leptos
-//! application.
+//! `mf2-axum` — 1.x's Axum crate of Rust MF2, kept as a shim: everything
+//! [`mf2::axum`](https://docs.rs/mf2) names, re-exported, and the Leptos
+//! server's request glue, [`provide_locale`] and [`install`].
 //!
-//! Three things, and nothing else:
+//! The negotiation ([`Negotiator`], its sources and sinks), the catalog
+//! routes ([`catalog_routes`]) and [`path_prefix_redirect`] are `mf2`'s
+//! module `mf2::axum`, which also serves a plain Axum application with no
+//! Leptos. A new application names `mf2` alone, with `axum` beside its mode:
 //!
-//! 1. **Negotiation** ([`Negotiator`]) — an ordered list of typed
-//!    [`LocaleSource`]s and [`LocaleSink`]s: a cookie, `Accept-Language`, a
-//!    path prefix, a query parameter. The first source that offers a locale
-//!    this build has wins. Never a boolean matrix of
-//!    `from_<source>_to_<target>` options.
-//! 2. **The catalogs** ([`catalog_routes`]) — `/i18n/*` from the bytes
-//!    embedded in the server binary, with the precompressed variant and
-//!    `Cache-Control: immutable`.
-//! 3. **The per-request context** ([`provide_locale`]) — the catalog for
-//!    every `Tr` the request renders, plus `Content-Language`, `Vary` and the
-//!    cookie on the way out.
-//!
-//! The negotiated locale is **serialized into the page** — `<html lang dir>`
-//! and the preload link — and the client reads it rather than negotiating
-//! again: negotiating again at hydration is behind a long tail of bugs in
-//! other i18n libraries, and this library's browser checks assert that it
-//! does not.
-//!
-//! ```ignore
-//! use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator};
-//!
-//! let negotiator = Arc::new(
-//!     Negotiator::empty()
-//!         .source(CookieLocale::default())
-//!         .source(AcceptLanguage)
-//!         .sink(CookieLocale::default()),
-//! );
+//! ```toml
+//! mf2 = { version = "2", features = ["leptos", "axum"] }
 //! ```
 //!
 //! # The user guide
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
-//! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
-//! An application starts at
-//! [`mf2`](https://docs.rs/mf2).
+//! guide. An application starts at [`mf2`](https://docs.rs/mf2).
 
 #![warn(missing_docs)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
@@ -64,17 +40,10 @@ compile_error!(
 );
 
 mod context;
-mod negotiate;
-mod redirect;
-mod serve;
 
 pub use context::{negotiated, provide_locale};
-pub use negotiate::{
-    AcceptLanguage, CookieLocale, LocaleSink, LocaleSource, Negotiated, Negotiator, PathPrefix,
-    QueryParam,
-};
-pub use redirect::path_prefix_redirect;
-pub use serve::{CATALOG_PREFIX, catalog_routes};
+/// Negotiation, the catalog routes and the path-prefix redirect: `mf2::axum`.
+pub use mf2::axum::*;
 
 /// Installs the application's generated i18n module on the server: the
 /// registry, the host, the manifest hash, the locale table, and the

@@ -20,24 +20,28 @@
 //! measured B7 against; gzip is level 9. Doing it at startup instead would
 //! make a cold start pay for locales nobody asked for.
 
+use alloc::format;
+use alloc::string::{String, ToString};
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 use std::collections::HashMap;
 use std::io::Write as _;
-use std::sync::{Arc, OnceLock, RwLock};
+use std::sync::{OnceLock, RwLock};
 
-use axum::Router;
-use axum::body::Body;
-use axum::extract::Path;
-use axum::response::{IntoResponse, Response};
-use axum::routing::get;
-use http::header::{
+use ::axum::Router;
+use ::axum::body::Body;
+use ::axum::extract::Path;
+use ::axum::response::{IntoResponse, Response};
+use ::axum::routing::get;
+use ::http::header::{
     ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_ENCODING, CONTENT_LENGTH, CONTENT_TYPE, HeaderMap,
     LOCATION, VARY,
 };
-use http::{HeaderValue, StatusCode};
+use ::http::{HeaderValue, StatusCode};
 
 /// Where the catalog routes are mounted. The client's `catalog_url` builds
 /// the same path, so the two are one constant apart.
-pub const CATALOG_PREFIX: &str = leptos_mf2::links::CATALOG_ROUTE;
+pub const CATALOG_PREFIX: &str = crate::links::CATALOG_ROUTE;
 
 /// A catalog is opaque bytes to everything but us; `octet-stream` is what
 /// every proxy and browser handles without opinions.
@@ -178,7 +182,7 @@ async fn serve(Path(name): Path<String>, headers: HeaderMap) -> Response {
     }
     // A bare tag: redirect to the immutable URL. `307` rather than `301`
     // because the target changes with every deploy.
-    if let Some(file) = leptos_mf2::catalog_name(&name) {
+    if let Some(file) = super::catalog_name(&name) {
         let target = format!("{CATALOG_PREFIX}{file}");
         let mut response = Response::new(Body::empty());
         *response.status_mut() = StatusCode::TEMPORARY_REDIRECT;
@@ -195,16 +199,13 @@ async fn serve(Path(name): Path<String>, headers: HeaderMap) -> Response {
 /// The catalog published under `name`, if any — with the name itself as a
 /// `&'static str`, which is the key the compressed variants are cached by.
 fn catalog_file(name: &str) -> Option<(&'static str, &'static [u8])> {
-    leptos_mf2::catalog_entries()
-        .iter()
-        .find(|entry| entry.file == name)
-        .map(|entry| (entry.file, entry.bytes))
+    super::catalog_file(name)
 }
 
 /// The routes that serve the catalogs. Mount them at the application's root:
 ///
 /// ```ignore
-/// let app = Router::new().merge(mf2_axum::catalog_routes()); // and the application's routes
+/// let app = Router::new().merge(mf2::axum::catalog_routes()); // and the application's routes
 /// ```
 pub fn catalog_routes<S>() -> Router<S>
 where
@@ -214,10 +215,11 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::indexing_slicing, reason = "a test")]
 mod tests {
     use super::{Encoding, best_encoding};
-    use http::HeaderMap;
-    use http::header::ACCEPT_ENCODING;
+    use ::http::HeaderMap;
+    use ::http::header::ACCEPT_ENCODING;
 
     fn accepting(value: &str) -> HeaderMap {
         let mut headers = HeaderMap::new();

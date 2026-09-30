@@ -46,8 +46,8 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
-    // `--workspace` builds `mf2`'s Leptos layer with `ssr` (mf2-axum turns
-    // it on through the `leptos-mf2` shim, and cargo unifies), so nothing
+    // `--workspace` builds `mf2`'s Leptos layer with `ssr` (the conformance
+    // crate turns it on, and cargo unifies), so nothing
     // above ever compiles the **client** half: the hydration cursor, the
     // boot, the fetch. Lint it where it runs.
     &[
@@ -224,7 +224,7 @@ const STEPS: &[&[&str]] = &[
     ],
     // The native module (Phase 10 B2) as a native application builds it,
     // with no Leptos layer beside it: `--workspace` always unifies `ssr`
-    // into `mf2` (mf2-axum turns it on), so nothing above compiles `native`
+    // into `mf2` (the conformance crate turns it on), so nothing above compiles `native`
     // alone. Its tests and the matcher's run here too.
     &[
         "clippy",
@@ -316,6 +316,42 @@ const STEPS: &[&[&str]] = &[
         "ratatui,compile",
         "--test",
         "ratatui",
+    ],
+    // The Axum module (Phase 10 D1) as a plain Axum server builds it, with
+    // no Leptos layer beside it, for the same reason; its unit tests, and a
+    // plain Axum application answering per `Accept-Language` through the
+    // generated `Locale` extractor and `Locale::format`.
+    &[
+        "clippy",
+        "-p",
+        "mf2",
+        "--features",
+        "axum,compile",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &["test", "-p", "mf2", "--features", "axum,compile", "--lib"],
+    &[
+        "clippy",
+        "-p",
+        "mf2-i18n-fixture",
+        "--features",
+        "axum",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings",
+    ],
+    &[
+        "test",
+        "-p",
+        "mf2-i18n-fixture",
+        "--features",
+        "axum",
+        "--test",
+        "axum",
     ],
     // The `leptos-mf2` shim with no mode of its own while `mf2` has one: an
     // application that names its mode on `mf2` alone, beside a crate on the
