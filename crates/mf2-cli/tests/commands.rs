@@ -329,8 +329,8 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     ok(&out);
     assert!(!stdout(&out).contains("gated-function"), "{}", stdout(&out));
     assert!(
-        stderr(&out).contains("checks as if every function were on")
-            && stderr(&out).contains("no Cargo.toml"),
+        stderr(&out).contains("every function is assumed on; name them with --features")
+            && stderr(&out).lines().count() == 1,
         "{}",
         stderr(&out)
     );
@@ -356,6 +356,61 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     assert!(!out.status.success(), "{}", stdout(&out));
     assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
     ok(&run(&dir, &["check", "--features", "fn-number"]));
+}
+
+/// A crate whose build has fetched only its own platform's packages — a
+/// starter with a dependency for Windows, built on Linux — still has its
+/// features resolved: offline, `check` asks cargo for the host's resolve.
+#[cfg(not(windows))]
+#[test]
+fn check_resolves_a_crate_with_a_dependency_for_another_platform() {
+    let dir = small_corpus(
+        "cli-check-other-platform",
+        &[("en", "share = {$n :percent}\n")],
+    );
+    // The crate, with a dependency only Windows builds use.
+    let with_windows_dependency = |features: &str| {
+        i18n_crate(&dir, features);
+        let manifest = std::fs::read_to_string(dir.join("Cargo.toml")).expect("manifest");
+        std::fs::write(
+            dir.join("Cargo.toml"),
+            manifest.replace(
+                "# Not a member",
+                "[target.'cfg(windows)'.dependencies]\nwinonly = \"0.1\"\n\n# Not a member",
+            ),
+        )
+        .expect("write");
+    };
+    with_windows_dependency("\"fn-number\"");
+    // A registry that lists `winonly` and holds no copy of it: resolving
+    // works offline, downloading it cannot.
+    std::fs::create_dir_all(dir.join("registry/index/wi/no")).expect("mkdir");
+    std::fs::write(
+        dir.join("registry/index/wi/no/winonly"),
+        format!(
+            "{{\"name\":\"winonly\",\"vers\":\"0.1.0\",\"deps\":[],\"cksum\":\"{}\",\
+             \"features\":{{}},\"yanked\":false}}\n",
+            "0".repeat(64)
+        ),
+    )
+    .expect("write");
+    std::fs::create_dir_all(dir.join(".cargo")).expect("mkdir");
+    std::fs::write(
+        dir.join(".cargo/config.toml"),
+        "[source.crates-io]\nreplace-with = \"stub\"\n\n\
+         [source.stub]\nlocal-registry = \"registry\"\n",
+    )
+    .expect("write");
+
+    let out = run(&dir, &["check"]);
+    let text = ok(&out);
+    assert!(text.contains("nothing to report"), "{text}");
+    assert!(stderr(&out).is_empty(), "{}", stderr(&out));
+    // Without `fn-number`, the resolve says so: the answer is cargo's.
+    with_windows_dependency("");
+    let out = run(&dir, &["check"]);
+    assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
+    assert!(stderr(&out).is_empty(), "{}", stderr(&out));
 }
 
 #[test]
@@ -797,6 +852,15 @@ fn init_web_modes_make_a_new_application() {
     let index = std::fs::read_to_string(root.join("client/index.html")).expect("index");
     assert!(index.contains("data-bin=\"client\""), "{index}");
     assert!(root.join("client/Trunk.toml").is_file());
+    // Each ignores what its build writes into it, as `cargo new` does.
+    for (app, ignored) in [
+        ("my-app", "/target\n"),
+        ("isles", "/target\n"),
+        ("client", "/target\n/dist\n"),
+    ] {
+        let text = std::fs::read_to_string(root.join(app).join(".gitignore")).expect("ignore");
+        assert_eq!(text, ignored, "{app}");
+    }
     for app in ["my-app", "isles", "client"] {
         let locales = root.join(app).join("locales");
         ok(&run(
@@ -831,6 +895,7 @@ fn init_cli_and_tui_make_a_new_application() {
     );
     for file in [
         "build.rs",
+        ".gitignore",
         "src/main.rs",
         "locales/en/main.mf2",
         "locales/fr/main.mf2",
@@ -918,6 +983,8 @@ fn init_tui_adds_translations_to_an_existing_crate() {
     );
     assert!(dir.join("locales/en/main.mf2").is_file());
     assert!(dir.join("locales/fr/main.mf2").is_file());
+    // Its `.gitignore`, if any, is its own.
+    assert!(!dir.join(".gitignore").exists());
     assert!(
         !dir.join("mf2.toml").exists(),
         "en is the default source locale"

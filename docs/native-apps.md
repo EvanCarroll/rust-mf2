@@ -68,6 +68,12 @@ fn main() {
 }
 ```
 
+Like `cargo new`, it keeps what the build writes out of version control:
+
+```text file=count/.gitignore generated
+/target
+```
+
 One file per language. A plural's variants follow each language's own
 rules: French has a `many` form that English has not.
 
@@ -213,12 +219,16 @@ mf2-build = "2"
 opt-level = 2
 ```
 
-Its build script is the command-line tool's:
+Its build script and `.gitignore` are the command-line tool's:
 
 ```rust file=hops/build.rs generated
 fn main() {
     mf2_build::run();
 }
+```
+
+```text file=hops/.gitignore generated
+/target
 ```
 
 The messages mark up what a stretch of text is — a key, a host, a warning —

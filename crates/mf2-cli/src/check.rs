@@ -62,7 +62,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// resolves for the crate's `mf2` — the build reads the same through
 /// `links`, so a check with others warns where the build does not and fails
 /// where it succeeds. Without an answer from cargo, every function's, so
-/// that no function is reported as gated when it may not be, and a note
+/// that no function is reported as gated when it may not be, and one line
 /// says so (on stderr, so that `--format json` stays one document). `mf2
 /// import` checks what it would write with the same, and `mf2 stats`
 /// counts what the build ships.
@@ -70,17 +70,15 @@ pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     if let Some(given) = args.given() {
         return given;
     }
-    match resolved_features(dir, true) {
-        Ok((_, resolved)) => resolved,
-        Err(e) => {
-            eprintln!(
-                "note: cargo could not say which features mf2 has here ({e}), so this \
-                 checks as if every function were on and reports none as gated; \
-                 --features names them"
-            );
-            mf2_build::Features::from_names(["fn-number", "fn-datetime"])
-        }
+    if let Ok((_, resolved)) = resolved_features(dir, true) {
+        return resolved;
     }
+    eprintln!(
+        "note: cargo could not say which of mf2's features this crate has, so every \
+         function is assumed on; name them with --features (for example \
+         --features fn-number)"
+    );
+    mf2_build::Features::from_names(["fn-number", "fn-datetime"])
 }
 
 /// The `unused-id` lint needs what the application's sources say, which only

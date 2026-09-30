@@ -73,6 +73,10 @@ makes a [client-only](delivery-modes.md#client-only) application, built
 with Trunk: `trunk serve` builds it, and its `Trunk.toml` runs `mf2 compile
 --site` after each build, to publish the catalogs beside the wasm.
 
+Every new application `init` makes has a `.gitignore`, as `cargo new`'s
+do, that keeps what the build writes out of version control: `/target`,
+and for the client-only one Trunk's `/dist` too.
+
 In a directory that holds a crate already, each mode adds translations to
 it instead: a build script, `locales/en/main.mf2`, and `mf2` (with the
 mode's features) and `mf2-build` through `cargo add`. It prints what is
@@ -100,8 +104,11 @@ mf2 check: 9 messages in 2 locales, nothing to report
 language's, and runs the lints `mf2.toml` configures, exactly as the build
 script does. Which functions a message may use depends on `mf2`'s features
 in the crate, so `check` uses the features cargo resolves for the
-application's build. `--features` names them instead (as above); where
-cargo cannot answer, `check` says so and checks with none.
+application's build, from what cargo has already fetched for this
+machine (it never downloads). `--features` names them instead (as above).
+Where cargo cannot answer — no `Cargo.toml`, or dependencies not fetched
+yet — `check` says so in one line and checks as if every function were on,
+so that it reports none as missing that the build may have.
 
 * `--deny-warnings` makes a warning fail the command, as it fails a build
   whose lints are raised to errors.

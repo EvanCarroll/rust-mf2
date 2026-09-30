@@ -15,7 +15,11 @@ use crate::error::{Error, Result};
 /// The crate in `dir`: its package name, and the features cargo resolves for
 /// the `mf2` it names as a normal dependency, unified across its workspace as
 /// `cargo metadata` reports them. `offline` keeps cargo off the network: it
-/// answers from what it has already fetched, or fails.
+/// answers from what it has already fetched, or fails. Offline, the resolve
+/// is the host's (`--filter-platform`): a build fetches only its own
+/// platform's packages, and without the filter cargo would want every
+/// platform's, so a crate that has just built would still fail on a
+/// dependency for Windows it never downloaded.
 pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Features)> {
     let fail = |message: String| Error::Cargo {
         dir: dir.to_owned(),
@@ -33,11 +37,16 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
     // Under `cargo run` (a trunk hook) `CARGO` is the cargo that ran us.
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let mut command = Command::new(cargo);
+    // In the crate, so that cargo reads its configuration as its build does.
     command
+        .current_dir(dir)
         .args(["metadata", "--format-version", "1", "--manifest-path"])
         .arg(&manifest);
     if offline {
         command.arg("--offline");
+        if let Some(host) = host() {
+            command.args(["--filter-platform", &host]);
+        }
     }
     let output = command.output().map_err(|e| fail(e.to_string()))?;
     if !output.status.success() {
@@ -99,4 +108,15 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
         .flatten()
         .filter_map(Value::as_str);
     Ok((name, Features::from_names(features)))
+}
+
+/// The host's target triple, as `rustc -vV` names it — the platform a native
+/// application or a server is built for.
+fn host() -> Option<String> {
+    let rustc = std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into());
+    let output = Command::new(rustc).arg("-vV").output().ok()?;
+    let text = String::from_utf8(output.stdout).ok()?;
+    text.lines()
+        .find_map(|line| line.strip_prefix("host: "))
+        .map(str::to_owned)
 }

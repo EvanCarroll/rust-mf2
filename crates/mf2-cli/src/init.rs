@@ -233,6 +233,16 @@ fn starter_files(target: &Path, name: &str, mode: Mode) -> Vec<(PathBuf, String)
     let mut files = vec![
         (target.join("Cargo.toml"), application_toml(name, mode)),
         (target.join("build.rs"), BUILD_RS.to_owned()),
+        // What the build writes into the crate, as `cargo new` ignores it:
+        // cargo-leptos's site is under `target/`, Trunk's in `dist/`.
+        (
+            target.join(".gitignore"),
+            match mode {
+                Mode::Csr => "/target\n/dist\n",
+                _ => "/target\n",
+            }
+            .to_owned(),
+        ),
         (target.join("locales/en/main.mf2"), en.to_owned()),
         (target.join("locales/fr/main.mf2"), fr.to_owned()),
     ];

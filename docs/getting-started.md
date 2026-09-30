@@ -146,7 +146,7 @@ rather than text in the wasm.
 `mf2 check` runs every check that the build runs, with the features cargo
 resolves for the build (or the ones `--features` names). It also works
 without cargo, so you can use it in a translator's editor: it then checks
-with no features, and says so.
+as if every function were on, and says so in one line.
 
 ## The manifest
 
