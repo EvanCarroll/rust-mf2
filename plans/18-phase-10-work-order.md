@@ -296,14 +296,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   example or bench uses `mf2-axum`'s glue (`install`, `provide_locale`): G1 can delete the shims. hello: 22
   lines, 2 + 0 crates, 18 concepts, 3 commands, 1 file (all at target; the row falls). Nightly `fmt-check` added.
   ci; docs; docs-rs; churn 84/84; e2e 0.9 and 0.8 1212/1212; sizes; islands-zero; fluent-migrate.
+- **E4** (`65838be`): server warnings on stderr, once per process (per kind, per language where named):
+  render without the request's language (inside a request only), no catalogs installed, unknown
+  `provide_locale` tag, reader's languages unmatched (named; question 15), `path_prefix_redirect` outside the
+  negotiator. Debug browser builds warn once in the console with no catalog active; release unchanged.
+  ci; e4-gate: B1 26724 (unchanged), b12, b12-generated, e2e 0.9 1212/1212.
 
-**In flight:** E4 (server and client warnings), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part D is done; E4 first, then Part F** (F1 can start: its heading allows it after C8);
+- **Part F (F1 first)**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
