@@ -957,6 +957,16 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     `drift.rs`'s cross-check changes); `fn-number` on by default (unmeasured size in every client);
     no change.
 
+34. **`leptos-mf2` and `mf2-axum` at 2.0.0** (asked with G2, 2026-09-30) — **answered: pointer
+    releases.** Both are on crates.io at 1.0.0 and their code is `mf2`'s since B1 and D1 (G1 deleted
+    them). A final 2.0.0 of each: a README saying where the code went, and a `compile_error!` naming
+    `mf2` and the feature to turn on. Applications on `"1"` are untouched; crates.io shows the new
+    home. G2 prepares them outside the workspace and dry-runs them; the publish is the owner's.
+    *Rejected:* leaving them at 1.0.0.
+35. **The never-published `mf2-native` and `mf2-ratatui` names** (asked with G2, 2026-09-30) —
+    **answered: not reserved.** No one depended on them; the upgrade guide says they were never
+    published. *Rejected:* placeholder crates.
+
 **Decided without asking, and the owner may overturn any of them:**
 - **Pseudo-locales need no name** (found by F3; 2026-09-30): with `en-XA` / `ar-XB` in an application
   whose languages have `language.<tag>` names, the build dropped the generated `Locale::name()`
@@ -968,7 +978,7 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
 - **A native-only build that formats with nothing installed panics**, and the message names
   `install()`. A build with a web mode keeps the web's rule: empty text, never a panic
   ([04](04-leptos-integration.md) §5), plus E4's warnings.
-- **Two questions wait for release time (G2):** final 2.0.0 stub releases of `leptos-mf2` and
+- **~~Two questions wait for release time (G2):~~** answered as questions 34 and 35. final 2.0.0 stub releases of `leptos-mf2` and
   `mf2-axum` whose `compile_error!` points to `mf2`; and whether to reserve the never-published
   `mf2-native` / `mf2-ratatui` names.
 - **`vendor/` and `comparison.md` stay untracked;** every commit stages files by name.
