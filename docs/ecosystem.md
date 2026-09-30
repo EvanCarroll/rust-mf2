@@ -2,12 +2,13 @@
 
 Rust MF2 is a family of crates for using Unicode MessageFormat 2 (MF2) from
 Rust, in Leptos web applications and in native command-line and terminal
-applications. Every application starts with the `mf2` facade, then adds the
-integration for its kind: its `leptos` and `axum` features on the web,
-`mf2-native` (and `mf2-ratatui`) natively. Translation resources are checked and
-compiled by `mf2-build`, which writes the generated module the call sites
-use and one binary catalog (`.mf2b`) per language; at run time the runtime
-formats each call site against the catalog of the active locale.
+applications. An application names one of them, `mf2`, and turns on the
+integration for its kind as `mf2`'s features: `leptos` and `axum` on the
+web, `native` (and `ratatui`) natively. Its build script calls `mf2-build`,
+which checks the translation resources and writes the generated module the
+call sites use and one binary catalog (`.mf2b`) per language; at run time
+the runtime formats each call site against the catalog of the active
+locale.
 
 ```text
 build time:  .mf2 resources ──> mf2-build ──> generated module (tr!, ids)
@@ -23,19 +24,17 @@ reference for its exact API and feature flags.
 
 | Crate | Role |
 |---|---|
-| [`mf2`](https://docs.rs/mf2) | Application facade: re-exports the MF2 runtime and call-site API, carries feature flags for the host and formatting functions, and provides `Corpus` and `Message` for native applications. With `leptos` (or `leptos-0-8`), `mf2::leptos`: Leptos rendering, reactive arguments, markup rendering, and locale switching. With `axum`, `mf2::axum`: locale negotiation and the catalogs' routes. |
-| [`mf2-cli`](https://crates.io/crates/mf2-cli) | The `mf2` command for making starters, checking resources, compiling catalogs, and converting or exchanging translations. |
+| [`mf2`](https://docs.rs/mf2) | Application facade: the call-site API and the MF2 runtime, with features for the host and the formatting functions. With a Leptos line and mode, `mf2::leptos`: rendering, reactive arguments, markup, and switching language live. With `axum`, `mf2::axum`: each request's language and the catalogs' routes. With `native`, `mf2::native`: the catalogs embedded or shipped, and the system's language. With `ratatui`, `mf2::ratatui`: messages as Ratatui text, markup as styles. |
 | [`mf2-build`](https://docs.rs/mf2-build) | Build-time validation and generation of manifests, catalogs, and the Rust module used by call sites. |
-| [`mf2-native`](https://docs.rs/mf2-native) | Native CLI and terminal apps: loads one generated corpus (embedded or from files), picks the system's language, keeps the locale in app-owned state. |
-| [`mf2-ratatui`](https://docs.rs/mf2-ratatui) | Optional: messages as Ratatui `Text` and `Line`, with MF2 markup as styles. |
+| [`mf2-cli`](https://crates.io/crates/mf2-cli) | The `mf2` command for making starters, checking resources, compiling catalogs, and converting or exchanging translations. |
 
 `mf2` is the facade applications use to write and format messages; it is not
 just an index of package links. It defines the call-site types (`Tr`,
-`TrArgs`, `TrRich`, `TrDyn`, `ArgValue`, `DateTimeValue`, …). The native
-crates build on those types and on the runtime; `mf2::leptos` adds
-rendering and a live locale switch for server-rendered and browser
-applications. Without its `leptos` feature, `mf2` compiles no Leptos code:
-no Leptos, no tachys, no `reactive_graph`.
+`TrArgs`, `TrRich`, `TrDyn`, `ArgValue`, `DateTimeValue`, …), and each
+integration is a module of it built on those types and the runtime. Without
+a Leptos mode, `mf2` compiles no Leptos code: no Leptos, no tachys, no
+`reactive_graph`. 1.x's `leptos-mf2`, `mf2-axum`, `mf2-native` and
+`mf2-ratatui` are these features now ([Upgrading from 1.x](upgrading.md)).
 
 ## Supporting crates
 
@@ -61,9 +60,8 @@ crates. Most application code does not need to depend on them directly.
 - For a Leptos application, start with [Getting started](getting-started.md),
   then see [delivery modes](delivery-modes.md) and
   [switching language](switching.md).
-- For a CLI or Ratatui application, use [`mf2-native`](https://docs.rs/mf2-native)
-  for catalog and locale state, then add [`mf2-ratatui`](https://docs.rs/mf2-ratatui)
-  only if the application uses Ratatui. See
+- For a CLI or Ratatui application, turn on `mf2`'s `native` (or
+  `ratatui`, which includes it). See
   [Native CLI and Ratatui apps](native-apps.md).
 - To understand the public Rust APIs, follow the docs.rs links in the crate
   map above. The book focuses on concepts and end-to-end use.

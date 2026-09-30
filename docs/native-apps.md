@@ -152,7 +152,9 @@ fn main() -> ExitCode {
 
 * **`install()`** loads the catalogs the executable embeds, once, and
   chooses the first of the system's languages the application has. It
-  cannot fail: catalogs from the same build always load.
+  cannot fail: catalogs from the same build always load. A process holds
+  one message set: installing a second corpus panics, and
+  `mf2::native::Catalogs` formats another (`catalogs.format("fr", &message)`).
 * **`set_locale`** overrides that choice, for every thread.
 * **`println!("{}", tr!(…))`** formats the message in the language in
   force. `tr!(…).to_string()` gives the text as a `String`.

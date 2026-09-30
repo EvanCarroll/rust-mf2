@@ -1,40 +1,47 @@
 # Rust MF2
 
-Unicode MessageFormat 2 (MF2) for Rust applications: web applications
-with [Leptos](https://leptos.dev), and native command-line and terminal
-applications, including Ratatui. Translations are written in MF2 and
-checked when the application compiles, and each language becomes one
-small binary catalog. On the web, the browser downloads a language's
-catalog when it needs it, a language switch is live, and the wasm contains
-none of the text. A native application embeds its catalogs or ships them
-beside the executable, and follows the system's language.
+Unicode MessageFormat 2 (MF2) for Rust applications: web applications with
+[Leptos](https://leptos.dev), and native command-line and terminal
+applications, including Ratatui. You write translations in MF2, the build
+checks them, and `tr!("id", name = value)` shows a message in the reader's
+language.
 
-| Page | What it covers |
+## One crate
+
+An application depends on **`mf2`**, and on `mf2-build` for its build
+script. `mf2`'s features choose the rest:
+
+| Feature | For |
 |---|---|
-| [How the crates fit together](ecosystem.md) | which crate does what, and which ones an application names |
-| [Getting started](getting-started.md) | installing, the manifest and build script, the messages, a server-rendered application that hydrates and switches language live |
-| [MF2 for developers](mf2-for-developers.md) | the `.mf2` file, placeholders, functions, plurals and ordinals, gender, markup, notes for translators; MF2 beside Fluent, ICU MessageFormat 1 and i18next; why messages have ids |
-| [Call sites](call-sites.md) | `tr!` in text, attributes, props and strings; arguments, signals, dates; markup as elements; plain and isolated text |
-| [Delivery modes](delivery-modes.md) | SSR + hydrate, lazy routes, islands, client-only |
-| [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |
-| [Native CLI and Ratatui apps](native-apps.md) | `mf2-native` for a command-line or terminal application: embedded or shipped catalogs, the system's language, Ratatui text with markup as styles |
-| [The command line](command-line.md) | every `mf2` command: `check`, `fmt`, `compile`, `stats`, `dump`, `export` and `import` (JSON, XLIFF 2), `pseudo`, `watch`, `convert --from fluent` and its report codes |
-| [Translating](translating.md) | a round of translation: XLIFF 2 for a translation tool, JSON for a review, an import that carries a mistake, pseudo-locales, `mf2 stats`, and the checks for CI |
-| [Testing](testing.md) | `with_locale` in tests, the text in each language, Ratatui frames on `TestBackend`, pseudo-locales for the layout |
-| [Troubleshooting](troubleshooting.md) | `tr!` not found, a stale manifest, empty text, pages stuck in the default language: what you see, why, the fix |
-| [`mf2.toml`](configuration.md) | every key: the source language, fallback chains, what a catalog carries, lint levels, the application's own functions |
-| [Lints](lints.md) | every check the build and `mf2 check` make: what raises it, an example, the fix, its default level |
-| [Features of `mf2`](features.md) | every feature: the Leptos line and modes, a server, native applications, functions and their backends, hosts; what text costs in a browser build |
-| [Accessibility](accessibility.md) | what the library does for WCAG 2.2 AA, and what the application does |
-| [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md) | `mf2 convert --from leptos-fluent`: the messages and the call sites converted in one command, and what is left to finish by hand |
-| [Versioning](versioning.md) | what 1.x promises and what it does not, the Leptos lines, the minimum Rust version (1.88) |
+| `leptos` (or `leptos-0-8`) with `ssr`, `hydrate` or `csr` | a Leptos application, server-rendered, hydrated or client-only |
+| `axum` | the server: each request's language, and the catalogs' routes |
+| `native` | a command-line tool, in the system's language |
+| `ratatui` | a Ratatui terminal UI, with markup as styles |
+| `fn-number`, `fn-datetime` and a date backend | numbers and dates in each language's own way |
 
-Every `rust`, `toml` and `mf2` block on these pages is part of a small
-application, and `cargo xtask docs` compiles each of them, for the targets
-it runs on, in CI. A block's info string names its file
-(`file=hello/src/lib.rs`). The migration page's `before` blocks are
-`leptos-fluent` code: they are not compiled, but the page's commands are run
-on them and must produce the files it shows. The reference pages
-(`mf2.toml`, Lints, Features) show fragments, not an application: a test
-parses their `mf2.toml` samples, and fails when a key, a lint or a feature
-has no section. The Testing page's tests are run as well.
+The `mf2` command (`cargo install mf2-cli`) makes starters, checks
+translations and exchanges them with translators.
+
+> **What happens underneath.** The build turns each language into one small
+> binary catalog. A browser downloads a language's catalog when it needs it,
+> switches language without a reload, and its wasm carries none of the
+> text. A native application embeds its catalogs or ships them beside the
+> executable. [How the crates fit together](ecosystem.md) has the rest.
+
+## Where to start
+
+* **A Leptos application:** [Getting started](getting-started.md), then
+  [Call sites](call-sites.md).
+* **A command-line tool or a terminal UI:**
+  [Native CLI and Ratatui apps](native-apps.md).
+* **The message language:** [MF2 for developers](mf2-for-developers.md).
+* **Coming from `leptos-fluent`:**
+  [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md).
+* **Coming from `mf2` 1.x:** [Upgrading from 1.x](upgrading.md).
+
+> **Every sample is compiled.** Each `rust`, `toml` and `mf2` block in this
+> book names the file of a small application it belongs to, and
+> `cargo xtask docs` builds those applications in CI, for the targets they
+> run on. The exceptions are marked: the migration page's `leptos-fluent`
+> code, which its commands convert; the upgrade page's 1.x excerpts; and the
+> reference pages' fragments, which a test parses instead.

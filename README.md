@@ -106,14 +106,15 @@ Version 2 of `mf2` and `mf2-build` is not on crates.io yet (it ships in
 
 The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) explains the
 ecosystem, crate roles, application workflows and integrations. Its source
-and chapter links are in [`docs/`](docs/README.md). Start with the
-[ecosystem overview](docs/ecosystem.md), then choose a path:
-[getting started](docs/getting-started.md),
+and chapter links are in [`docs/`](docs/README.md). Start with
+[getting started](docs/getting-started.md), then choose a path:
+[how the crates fit together](docs/ecosystem.md),
 [call sites](docs/call-sites.md), [delivery modes](docs/delivery-modes.md),
 [switching language](docs/switching.md),
 [accessibility](docs/accessibility.md),
 [native CLI and TUI apps](docs/native-apps.md),
-[migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md) and
+[migrating from `leptos-fluent`](docs/migrating-from-leptos-fluent.md),
+[upgrading from 1.x](docs/upgrading.md) and
 [versions](docs/versioning.md); what changed, [`CHANGELOG.md`](CHANGELOG.md).
 `mdbook build` renders the book; `cargo xtask docs` compiles its application
 examples for native and browser targets. Each crate's API reference remains
@@ -131,7 +132,7 @@ a Ratatui mode — is the application
 
 * Plans and decisions: [`plans/`](plans/README.md). Start with
   [`plans/00-master-plan.md`](plans/00-master-plan.md).
-* Current work order: [`plans/17-phase-9-work-order.md`](plans/17-phase-9-work-order.md).
+* Current work order: [`plans/18-phase-10-work-order.md`](plans/18-phase-10-work-order.md).
 * Vendored, pinned inputs (read-only): [`third_party/`](third_party/). The MF2
   specification text is not among them: its license does not allow public
   redistribution, so `cargo xtask spec-sync` fetches it, at the pinned commit

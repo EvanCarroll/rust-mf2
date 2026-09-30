@@ -1,8 +1,8 @@
 # Summary
 
 - [Rust MF2](README.md)
-- [How the crates fit together](ecosystem.md)
 - [Getting started](getting-started.md)
+- [How the crates fit together](ecosystem.md)
 - [MF2 for developers](mf2-for-developers.md)
 - [Call sites](call-sites.md)
 - [Delivery modes](delivery-modes.md)
@@ -17,4 +17,5 @@
 - [Features of `mf2`](features.md)
 - [Accessibility](accessibility.md)
 - [Migrating from `leptos-fluent`](migrating-from-leptos-fluent.md)
+- [Upgrading from 1.x](upgrading.md)
 - [Versioning](versioning.md)

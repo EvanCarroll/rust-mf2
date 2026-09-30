@@ -8,9 +8,11 @@ and most Leptos applications are built this way. The other delivery modes
 (islands, client-only, lazy routes) are on [their own page](delivery-modes.md).
 Each of them starts from what you build here.
 
-Every file below is complete. `cargo xtask docs` puts these same blocks
-together into this application and compiles it for the server and for the
-browser, so what you copy here is what CI builds.
+Every file below is complete.
+
+> **Checked by CI.** `cargo xtask docs` puts these same blocks together
+> into this application and compiles it for the server and for the
+> browser, so what you copy here is what CI builds.
 
 ## What you need
 
@@ -65,14 +67,16 @@ hello/
     └── main.rs       the server
 ```
 
-One crate holds the application and its messages. Its build script reads
-`locales/`, checks every message, and writes three things: one binary
-catalog per language, a manifest describing all the messages, and a small
-Rust module, which the crate includes, holding the `tr!` macro and the
-`Locale` type. The browser downloads the catalog for one language when it
-needs it. **No message text, message id, argument name or plural rule is
-compiled into the wasm.** So changing a translation leaves the wasm
-byte-for-byte the same, and every reader's cached copy stays valid.
+One crate holds the application and its messages.
+
+> **How it works.** The build script reads `locales/`, checks every
+> message, and writes three things: one binary catalog per language, a
+> manifest describing all the messages, and a small Rust module, which the
+> crate includes, holding the `tr!` macro and the `Locale` type. The
+> browser downloads the catalog for one language when it needs it. **No
+> message text, message id, argument name or plural rule is compiled into
+> the wasm.** So changing a translation leaves the wasm byte-for-byte the
+> same, and every reader's cached copy stays valid.
 
 ## The messages
 
@@ -319,13 +323,15 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
   negotiated. This is how a screen reader picks its voice (WCAG 3.1.1), and
   how a right-to-left language lays out right-to-left.
 * `<CatalogPreload/>` writes a `<link rel="preload">` for this page's
-  catalog. This link **is** the client's boot data: the client reads the
-  catalog URL from it and the language from `<html lang>`. There is no
-  inline script and no JSON, and the catalog downloads while the wasm does.
+  catalog, so it downloads while the wasm does.
 * `<CatalogLinks/>` lists every language's catalog URL (this page's
-  included), so switching language fetches the catalog directly. Leave it out to keep pages a few
-  bytes smaller. A switch then asks the server for the URL first, which
-  costs one round trip.
+  included), so switching language fetches the catalog directly. Leave it
+  out to keep pages a few bytes smaller. A switch then asks the server for
+  the URL first, which costs one round trip.
+
+> **How the client boots.** The preload link **is** the client's boot
+> data: the client reads the catalog URL from it and the language from
+> `<html lang>`. There is no inline script and no JSON.
 
 The page itself uses `tr!` wherever it needs text:
 
@@ -363,11 +369,14 @@ fn Home() -> impl IntoView {
 
 `tr!("id", name = value)` is checked **at compile time** against the
 messages. A misspelt id gets a suggestion, and a missing, unknown or
-duplicated argument is an error. It returns a small description of the
-message (its number and its arguments), not text. The text is made where
-the description is rendered, in whichever language is current, which is
-why one macro works in a text node, an attribute, a component prop and a
-`String`. [Call sites](call-sites.md) covers every position.
+duplicated argument is an error. One macro works in a text node, an
+attribute, a component prop and a `String`; [Call sites](call-sites.md)
+covers every position.
+
+> **What `tr!` returns.** A small description of the message (its number
+> and its arguments), not text. The text is made where the description is
+> rendered, in whichever language is current, which is why one macro works
+> in every position.
 
 The switcher is a form: a labelled `<select>` and a button. Choosing a
 language does nothing until the button is pressed. Once the page has
@@ -394,12 +403,12 @@ pub fn hydrate() {
 }
 ```
 
-`hydrate_body` fetches the catalog named by the preload link (reusing that
-download), checks that it came from the same build as the wasm, installs
-it, and only then hydrates. If the catalog cannot be loaded, the page stays
-as the server rendered it: readable, not interactive, with one `mf2:` line
-in the console. A catalog from a different deploy makes the page reload,
-rather than be read wrongly.
+> **What `hydrate_body` does.** It fetches the catalog named by the
+> preload link (reusing that download), checks that it came from the same
+> build as the wasm, installs it, and only then hydrates. If the catalog
+> cannot be loaded, the page stays as the server rendered it: readable, not
+> interactive, with one `mf2:` line in the console. A catalog from a
+> different deploy makes the page reload, rather than be read wrongly.
 
 ## The server
 
@@ -452,12 +461,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn main() {}
 ```
 
-The negotiator is a tower layer. Every page the routes and the fallback
-render finds the request's language through the request itself, so the
-routes and the error handler are Leptos's plain forms, with nothing to
-pass to each. The language is chosen **once, on the server**: the client
-reads it from the page and never negotiates again, so hydration cannot
-disagree with the server.
+The routes and the error handler are Leptos's plain forms, with nothing
+to pass to each.
+
+> **How the language reaches the page.** The negotiator is a tower layer:
+> every page the routes and the fallback render finds the request's
+> language through the request itself. The language is chosen **once, on
+> the server**: the client reads it from the page and never negotiates
+> again, so hydration cannot disagree with the server.
 
 ## Run it
 

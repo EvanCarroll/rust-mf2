@@ -206,6 +206,11 @@ pub fn Order(customer: String, items: u32, total: f64) -> impl IntoView {
 | `&T`, for any of these that is `Copy` | the value |
 | any other type with `Display` (an error, an address) | its text, which is not translated |
 
+With `native`, jiff's `Timestamp`, `Zoned`, `civil::Date` and
+`civil::DateTime` are dates too; a `civil::Time` is passed as its text. A
+`Cow` that borrows for less than `'static` is refused by the borrow
+checker: pass `&*cow`.
+
 Anything else is a compile error at the argument that says what an argument
 may be. A type of your own implements `Display` to pass its text, or
 `mf2::IntoArg` to pass it as a number or a date.

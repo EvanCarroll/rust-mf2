@@ -29,7 +29,12 @@
 //! file is written before the project's `run=` commands, a `before` block is
 //! only accepted in a project that has them, and those commands (`mf2
 //! convert --from leptos-fluent`, `mf2 import`) turn it into what the page's
-//! `generated` blocks show. A
+//! `generated` blocks show.
+//!
+//! A block marked `excerpt` is a few lines of a file, shown for comparison
+//! and not compiled: the 1.x code an upgrade replaces, and the 2.0 lines
+//! whose whole file another page compiles. Only the pages in
+//! [`EXCERPT_PAGES`] may hold one, and it names no file. A
 //! `run=` block marked `status=N` holds commands that must exit with N — a
 //! conversion that leaves work for a person exits 1, which is what the page
 //! explains next. A `run=` block marked `output=<path>` writes what its
@@ -73,8 +78,13 @@ const PAGES: &[&str] = &[
     "docs/testing.md",
     "docs/troubleshooting.md",
     "docs/ecosystem.md",
+    "docs/upgrading.md",
     "README.md",
 ];
+
+/// The pages that may show `excerpt` blocks: code set beside code, 1.x
+/// before 2.0, where the whole of each 2.0 file is compiled elsewhere.
+const EXCERPT_PAGES: &[&str] = &["docs/upgrading.md"];
 
 /// Pages under `docs/` with no application samples of their own: the
 /// indexes, and the reference pages, whose fragments `mf2-build`'s
@@ -272,6 +282,19 @@ const PROJECTS: &[Project] = &[
         site: None,
         test: false,
     },
+    // upgrading.md: `count`'s messages and manifest, with a `main` written
+    // as a 1.x tool is rewritten for 2.0.
+    Project {
+        name: "upgrade",
+        base: Some("count"),
+        remove: &["src/main.rs"],
+        checks: &[Check {
+            target: None,
+            args: &[],
+        }],
+        site: None,
+        test: false,
+    },
     // command-line.md: the web applications `mf2 init --ssr`, `--islands`
     // and `--csr` make, as they make them (plans/05 §6.4).
     Project {
@@ -341,6 +364,10 @@ const PROJECTS: &[Project] = &[
 ];
 
 /// A fenced block from a page.
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "each flag is one word of the info string, set independently"
+)]
 struct Block {
     page: &'static str,
     /// 1-based line of the opening fence.
@@ -355,6 +382,7 @@ struct Block {
     generated: bool,
     merge: bool,
     before: bool,
+    excerpt: bool,
     text: String,
 }
 
@@ -550,6 +578,7 @@ fn parse(page: &'static str, text: &str) -> Result<Vec<Block>> {
             generated: false,
             merge: false,
             before: false,
+            excerpt: false,
             text: String::new(),
         };
         for word in words {
@@ -568,9 +597,10 @@ fn parse(page: &'static str, text: &str) -> Result<Vec<Block>> {
                 None if word == "generated" => block.generated = true,
                 None if word == "merge" => block.merge = true,
                 None if word == "before" => block.before = true,
+                None if word == "excerpt" => block.excerpt = true,
                 _ => {
                     return Err(fail(format!(
-                        "{}: unknown attribute `{word}` (file=, run=, status=, output=, generated, merge, before)",
+                        "{}: unknown attribute `{word}` (file=, run=, status=, output=, generated, merge, before, excerpt)",
                         block.at()
                     )));
                 }
@@ -605,7 +635,19 @@ fn project_of(path: &str) -> Option<(&str, &str)> {
 fn validate(blocks: &[Block]) -> Result<()> {
     for block in blocks {
         let code = matches!(block.lang.as_str(), "rust" | "toml" | "mf2");
-        if code && block.file.is_none() {
+        if block.excerpt
+            && (!EXCERPT_PAGES.contains(&block.page)
+                || block.file.is_some()
+                || block.run.is_some()
+                || block.lang == "mf2")
+        {
+            return Err(fail(format!(
+                "{}: `excerpt` is for a `rust` or `toml` block with no file=, on {}",
+                block.at(),
+                EXCERPT_PAGES.join(", ")
+            )));
+        }
+        if code && block.file.is_none() && !block.excerpt {
             return Err(fail(format!(
                 "{}: a `{}` block must name the file it belongs to (file=<project>/<path>), so that it is compiled",
                 block.at(),
