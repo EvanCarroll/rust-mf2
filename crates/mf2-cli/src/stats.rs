@@ -34,7 +34,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         .config(config)
         .features(crate::check::features(dir, &args.features))
         .check()?;
-    let total = outcome.manifest.ids.len();
+    // The pseudo-locales' names are the build's, not the corpus's.
+    let total = outcome.manifest.ids.len() - outcome.added.len();
     // Coverage counts only the messages that need translating: one marked
     // `@do-not-translate` is neither missing where it is absent nor
     // translated where it is copied.

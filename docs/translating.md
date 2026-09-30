@@ -330,8 +330,8 @@ ship them. They are generated, so keep them out of the repository:
 /locales/ar-XB/
 ```
 
-While they are there, `mf2 check` reports two warnings about them (the
-third is German's gap):
+While they are there, `mf2 check` reports a warning about `ar-XB` (the
+other is German's gap):
 
 ```sh run=translate-pseudo output=check.txt
 mf2 check --features fn-number
@@ -340,15 +340,12 @@ mf2 check --features fn-number
 ```text file=translate-pseudo/check.txt generated
 ./locales/ar-XB/main.mf2:9:3: warn: ar-XB has the plural categories zero, two, few, many, which no variant names; they all fall to the catch-all (in visits, locale ar-XB) [missing-plural-category]
 ./locales/de/main.mf2:1:1: warn: 1 of 7 messages are missing here and fall back to en: not-found (locale de) [missing-translation]
-./locales/en/main.mf2:1:1: warn: some languages have a name message and some do not (`language.ar-XB`, `language.en-XA` missing, each with no argument): the locale switcher shows those languages' tags, and `Locale::name()` is not generated (locale en)
-mf2 check: 0 error(s), 3 warning(s)
+mf2 check: 0 error(s), 2 warning(s)
 ```
 
 `ar-XB` has the variants of the English source, which is enough to test
-the layout. The pseudo-locales have no name messages, so the switcher shows
-their tags; and while one language has no name, the generated
-`Locale::name()` is left out, so an application that calls it builds only
-without them.
+the layout. The pseudo-locales need no name messages: the build names each
+by its tag, so the switcher and `Locale::name()` show `en-XA` and `ar-XB`.
 
 ## What is missing: `mf2 stats`
 

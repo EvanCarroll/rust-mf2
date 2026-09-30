@@ -20,6 +20,7 @@
 
 use std::borrow::Cow;
 
+use mf2_catalog::Manifest;
 use mf2_model::{Message, Pattern, PatternMessage, PatternPart, SelectMessage};
 
 /// RIGHT-TO-LEFT OVERRIDE, opening an `ar-XB` text run.
@@ -73,6 +74,34 @@ impl Kind {
 
     /// Both, in the order `mf2 pseudo` writes them.
     pub const ALL: [Kind; 2] = [Kind::Accented, Kind::RightToLeft];
+}
+
+/// The names the build adds for the pseudo-locales among `tags`
+/// (`plans/19-native-and-terminal.md` §10): when a real language has an
+/// argument-free `language.<tag>` message, each pseudo-locale without one
+/// gets its id and a message whose text is its tag, in every catalog. So
+/// `Locale::name()` is still generated, and shows `en-XA` for `en-XA`. No
+/// file holds them, so no lint, `export` or coverage count sees them.
+pub fn names(tags: &[String], manifest: &Manifest) -> Vec<(String, Message<'static>)> {
+    let has = |id: &str, argument_free: bool| {
+        manifest
+            .ids
+            .binary_search_by(|i| i.as_str().cmp(id))
+            .is_ok_and(|at| !argument_free || manifest.slots.get(at).is_some_and(Vec::is_empty))
+    };
+    let named = tags
+        .iter()
+        .any(|tag| Kind::from_tag(tag).is_none() && has(&["language.", tag].concat(), true));
+    if !named {
+        return Vec::new();
+    }
+    Kind::ALL
+        .iter()
+        .filter(|kind| tags.iter().any(|tag| tag == kind.tag()))
+        .map(|kind| (["language.", kind.tag()].concat(), kind.tag()))
+        .filter(|(id, _)| !has(id, false))
+        .filter_map(|(id, tag)| Some((id, mf2_syntax::parse_model(tag).message?)))
+        .collect()
 }
 
 /// `message`, pseudo-localized.

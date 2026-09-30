@@ -94,8 +94,16 @@ fn unused_ids(
     for dir in src {
         collect_rust(dir, &mut sources)?;
     }
+    // The pseudo-locales' names are the build's: `Locale::name()` uses them.
+    let ids: Vec<String> = outcome
+        .manifest
+        .ids
+        .iter()
+        .filter(|id| !outcome.added.contains(id))
+        .cloned()
+        .collect();
     mf2_build::check::unused_ids(
-        &outcome.manifest.ids,
+        &ids,
         &sources,
         &outcome.source_locale.clone(),
         &src[0],

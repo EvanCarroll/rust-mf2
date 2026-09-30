@@ -431,7 +431,8 @@ What it shows:
   underlined, the keys in the hint bar bold and yellow, "no reply" red. The
   French title puts the host where French wants it, with no code change.
 - **`Locale::ALL` and `lang.name()`** make the language menu: `name()` is the
-  `language.<tag>` message, generated when every language has one (§10).
+  `language.<tag>` message, generated when every language has one (§10). The build names
+  the pseudo-locales `en-XA` / `ar-XB` by their tags when real languages are named (F3's fix).
 - **`set_locale(Locale::Fr)`** is the live switch: the next frame is French, on
   every thread.
 - **`mod ui` is declared before the include**; it imports `tr!` with the crate's

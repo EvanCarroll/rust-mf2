@@ -115,6 +115,10 @@ pub struct Outcome {
     /// The manifest, from the source locale.
     #[doc(hidden)]
     pub manifest: Manifest,
+    /// The ids of `manifest` that the build added and no file holds: the
+    /// pseudo-locales' `language.<tag>` names.
+    #[doc(hidden)]
+    pub added: Vec<String>,
     /// Its hash — what the wasm and every catalog agree on.
     pub manifest_hash: u64,
     /// Everything the build has to say.
@@ -411,7 +415,7 @@ impl Build {
         for locale_models in &models {
             manifest::functions_of(locale_models, &mut functions);
         }
-        let built = manifest::build(
+        let mut built = manifest::build(
             &sources[source_index],
             &models[source_index],
             &indexes[source_index],
@@ -445,6 +449,7 @@ impl Build {
             return Ok(Outcome {
                 manifest_hash: built.manifest.hash(),
                 manifest: built.manifest,
+                added: Vec::new(),
                 report,
                 coverage,
                 catalogs: Vec::new(),
@@ -456,6 +461,19 @@ impl Build {
                 catalogs_module: String::new(),
                 out_dir: self.out_dir.clone(),
             });
+        }
+
+        // The pseudo-locales' names, once the lints have run: they are the
+        // build's, not a translator's.
+        let added = crate::pseudo::names(&tags, &built.manifest);
+        for (id, _) in &added {
+            if let Err(at) = built.manifest.ids.binary_search(id) {
+                built.manifest.ids.insert(at, id.clone());
+                built.manifest.slots.insert(at, Vec::new());
+                built.manifest.markup.insert(at, Vec::new());
+                // No source record holds it.
+                built.source_records.insert(at, usize::MAX);
+            }
         }
 
         // Per locale, the models in `MsgId` order, then the fallback chain.
@@ -470,6 +488,7 @@ impl Build {
                             .get(id.as_str())
                             .and_then(|&record| models[locale].get(record))
                             .and_then(Option::as_ref)
+                            .or_else(|| added.iter().find(|(a, _)| a == id).map(|(_, m)| m))
                     })
                     .collect()
             })
@@ -618,6 +637,7 @@ impl Build {
         let mut outcome = Outcome {
             manifest_hash: built.manifest.hash(),
             manifest: built.manifest,
+            added: added.into_iter().map(|(id, _)| id).collect(),
             report,
             coverage,
             catalogs,

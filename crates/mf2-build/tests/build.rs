@@ -535,3 +535,71 @@ fn a_non_nfc_name_survives_only_while_cold_does() {
         }
     }
 }
+
+#[test]
+fn pseudo_locales_are_named_by_their_tags() {
+    let names = "language.en = English\nlanguage.fr = Francais\ngreeting = Hello\n";
+    let locales = [
+        ("en", ["@locale en\n---\n", names].concat()),
+        ("fr", ["@locale fr\n---\n", names].concat()),
+        (
+            "en-XA",
+            "@locale en-XA\n---\ngreeting = [Ĥéļļö]\n".to_owned(),
+        ),
+        ("ar-XB", "@locale ar-XB\n---\ngreeting = Hello\n".to_owned()),
+    ];
+    let build = |name: &str, tags: usize| {
+        let files: Vec<(&str, &str)> = locales[..tags]
+            .iter()
+            .map(|(t, s)| (*t, s.as_str()))
+            .collect();
+        let root = corpus(name, "source_locale = \"en\"\n", &files);
+        Build::at(&root, out_dir(name))
+            .features(Features::default())
+            .run()
+            .expect("builds")
+    };
+
+    // Named languages and pseudo-locales: `Locale::name()` is generated, and
+    // each pseudo-locale's name is its tag, in every catalog.
+    let outcome = build("pseudo-names", 4);
+    assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
+    assert!(
+        !outcome.report.to_text().contains("name message"),
+        "{}",
+        outcome.report.to_text()
+    );
+    assert_eq!(outcome.added, ["language.en-XA", "language.ar-XB"]);
+    assert!(
+        outcome.generated.contains("pub fn name(self)")
+            && outcome
+                .generated
+                .contains("Locale::EnXa => tr!(\"language.en-XA\"),"),
+        "{}",
+        outcome.generated
+    );
+    for catalog in &outcome.catalogs {
+        let read = Catalog::new(catalog.bytes.clone(), outcome.manifest_hash).expect("loads");
+        for id in ["language.en-XA", "language.ar-XB"] {
+            let index = outcome
+                .manifest
+                .ids
+                .iter()
+                .position(|i| i == id)
+                .expect("the id");
+            let msg = mf2_catalog::MsgId::from_raw(u32::try_from(index).expect("an index"));
+            let decoded = mf2_catalog::decode(&read, msg).expect("it decodes");
+            assert_eq!(
+                mf2_syntax::serialize(&decoded).expect("serializes"),
+                id.trim_start_matches("language."),
+                "{}/{id}",
+                catalog.tag
+            );
+        }
+    }
+
+    // Without pseudo-locales, the build adds nothing.
+    let outcome = build("pseudo-names-none", 2);
+    assert!(outcome.added.is_empty());
+    assert_eq!(outcome.manifest.ids.len(), 3);
+}
