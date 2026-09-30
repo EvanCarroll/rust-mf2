@@ -10,6 +10,8 @@
 - [Native CLI and Ratatui apps](native-apps.md)
 - [The command line](command-line.md)
 - [Translating](translating.md)
+- [Testing](testing.md)
+- [Troubleshooting](troubleshooting.md)
 - [`mf2.toml`](configuration.md)
 - [Lints](lints.md)
 - [Features of `mf2`](features.md)

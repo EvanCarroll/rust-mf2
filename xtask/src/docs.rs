@@ -45,7 +45,7 @@
 //! dependencies on this repository's crates pointed at the working tree (the
 //! pages write them as the first release will publish them), and each is
 //! checked for the targets it runs on, warnings denied, sharing one target
-//! directory. A client-only example also publishes its
+//! directory; a project whose page shows tests has them run. A client-only example also publishes its
 //! catalogs with `mf2 compile --site`, as its page says to.
 
 use std::collections::BTreeMap;
@@ -70,6 +70,8 @@ const PAGES: &[&str] = &[
     "docs/migrating-from-leptos-fluent.md",
     "docs/command-line.md",
     "docs/translating.md",
+    "docs/testing.md",
+    "docs/troubleshooting.md",
     "docs/ecosystem.md",
     "README.md",
 ];
@@ -137,6 +139,9 @@ struct Project {
     /// Publish the catalogs with `mf2 -C <dir> compile --site`, as a static
     /// host would: the crate that holds the messages.
     site: Option<&'static str>,
+    /// Run the project's tests (`cargo test --workspace`), which a page
+    /// shows as tests a reader runs.
+    test: bool,
 }
 
 /// Bases before the projects built on them.
@@ -148,6 +153,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     // getting-started.md: the same application kept on Leptos 0.8, the
     // opt-in line (`plans/16-phase-8-work-order.md` A0).
@@ -157,6 +163,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     // call-sites.md, switching.md and accessibility.md: `tr!` in every
     // position, as components of a library set up as hello is.
@@ -166,6 +173,7 @@ const PROJECTS: &[Project] = &[
         remove: &["src", "locales"],
         checks: LIB_SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     // delivery-modes.md: a lazy route, islands, and client-only.
     Project {
@@ -174,6 +182,7 @@ const PROJECTS: &[Project] = &[
         remove: &["src/lib.rs"],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     Project {
         name: "islands",
@@ -181,6 +190,7 @@ const PROJECTS: &[Project] = &[
         remove: &["src/lib.rs"],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     // migrating-from-leptos-fluent.md: Getting started's application as it
     // would be on leptos-fluent, converted, then finished by hand. Its server,
@@ -192,6 +202,7 @@ const PROJECTS: &[Project] = &[
         remove: &["src/lib.rs", "locales"],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     Project {
         name: "csr",
@@ -202,6 +213,7 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: Some("."),
+        test: false,
     },
     // command-line.md: the `mf2` commands, run on Getting started's
     // application; the page shows what they print and write, and
@@ -212,6 +224,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: &[],
         site: None,
+        test: false,
     },
     // translating.md: Getting started's application gets German through
     // XLIFF and a French review through JSON, then `stats` and the checks CI
@@ -222,6 +235,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: &[],
         site: None,
+        test: false,
     },
     // translating.md: the pseudo-locales, written into a copy of `translate`
     // so that its `stats` and CI checks show the application without them.
@@ -231,6 +245,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: &[],
         site: None,
+        test: false,
     },
     // command-line.md: the applications `mf2 init --cli` and `--tui` make,
     // as they make them; native-apps.md shows their files, held to what
@@ -244,6 +259,7 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: None,
+        test: false,
     },
     Project {
         name: "hops",
@@ -254,6 +270,7 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: None,
+        test: false,
     },
     // command-line.md: the web applications `mf2 init --ssr`, `--islands`
     // and `--csr` make, as they make them (plans/05 §6.4).
@@ -263,6 +280,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     Project {
         name: "hello-islands",
@@ -270,6 +288,7 @@ const PROJECTS: &[Project] = &[
         remove: &[],
         checks: SSR_AND_HYDRATE,
         site: None,
+        test: false,
     },
     Project {
         name: "hello-csr",
@@ -280,6 +299,7 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: Some("."),
+        test: false,
     },
     // mf2-for-developers.md: a command-line tool that prints each message
     // the page teaches, in English and French.
@@ -292,6 +312,7 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: None,
+        test: false,
     },
     // native-apps.md's workspace: a library that owns the messages and a
     // terminal UI that draws them (plans/19 §1.3).
@@ -304,6 +325,18 @@ const PROJECTS: &[Project] = &[
             args: &[],
         }],
         site: None,
+        test: false,
+    },
+    // testing.md: `trace` with tests — the library's messages in each
+    // language, the terminal UI's frame on Ratatui's `TestBackend`, and the
+    // pseudo-locales for the layout. `cargo test` compiles and runs them.
+    Project {
+        name: "testing",
+        base: Some("trace"),
+        remove: &[],
+        checks: &[],
+        site: None,
+        test: true,
     },
 ];
 
@@ -424,6 +457,24 @@ pub(crate) fn run(root: &Path, build: bool) -> Result<()> {
                 &[
                     ("CARGO_TARGET_DIR", target_dir.as_os_str()),
                     // A sample that warns teaches the warning.
+                    ("RUSTFLAGS", OsStr::new("-D warnings")),
+                ],
+            )?;
+        }
+        if project.test {
+            eprintln!("==> {}: cargo test --workspace", project.name);
+            run_inherit_env(
+                &cargo(),
+                &[
+                    OsStr::new("test"),
+                    OsStr::new("-q"),
+                    OsStr::new("--manifest-path"),
+                    manifest.as_os_str(),
+                    OsStr::new("--workspace"),
+                ],
+                &dir,
+                &[
+                    ("CARGO_TARGET_DIR", target_dir.as_os_str()),
                     ("RUSTFLAGS", OsStr::new("-D warnings")),
                 ],
             )?;

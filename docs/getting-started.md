@@ -489,3 +489,6 @@ For a release build, run `cargo leptos build --release`.
   the checks for CI.
 * [Accessibility](accessibility.md): what the library does for WCAG 2.2 AA,
   and what the application still has to do.
+* [Testing](testing.md): the text in each language, pinned per test.
+* [Troubleshooting](troubleshooting.md): when `tr!` is not found, the text
+  is empty, or the page stays in one language.
