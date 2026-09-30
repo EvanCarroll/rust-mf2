@@ -324,14 +324,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **Pseudo-locales keep `Locale::name()`** (2026-09-30, option A): with named languages, the build adds
   `language.en-XA` / `ar-XB` (text: the tag) to every catalog, unseen by lints, `export`, `stats`,
   `unused-id`; test; guide's note gone. ci, docs, codegen-matrix, scenarios pass; sizes unmoved.
+- **F4** (2026-09-30): `docs/testing.md` (`with_locale` tests, `TestBackend` snapshots in en/fr, a
+  theme test, pseudo-locales for a width test over `Locale::ALL`) on project `testing` (base `trace`),
+  whose tests `cargo xtask docs` now runs (`Project::test`); `docs/troubleshooting.md` (`tr!` not found,
+  stale manifest, empty text, default-language pages, zh-Hant), messages from the code or a run. Linked
+  from SUMMARY, the index, Getting started. ci; f4-gate docs pass.
 
-**In flight:** F4 (testing and troubleshooting), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part F (F4 first)**;
+- **Part F (F5 first)**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
