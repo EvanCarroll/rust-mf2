@@ -248,14 +248,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `set_theme`, `with_theme`, `theme()`. Tested on a `Buffer`; a constant's `Span` / `Line` / `Text`
   allocate 0 / 1 / 2, a placeholder one `String`. A7's set compiles on `mf2` (`leptos`, `ssr` or
   `hydrate`, `ratatui`); `ci` green. The frame gate waits for C8's `examples/tui`.
+- **C6** (`0e9f441`): the build (19 §11, §12, their "As built"): `links = "mf2-v2"`, `mf2_build::run()`,
+  3c's `tr!` / `msg_id!` in the prelude, `check` / `compile --site` on `mf2`'s node. A2's scenarios on
+  the real crates with Leptos, 19/19 (`probes/p10-links/real/`); the edit loop, under load: 644 ms
+  median without the opt-level tip, 637 with. `ci`, `scenarios`, `codegen-matrix`, `docs`, `package
+  --check` green. Open: `neutral-numbers` on a string-only corpus (an owner question); init's note (C7).
 
-**In flight:** C6 (the build script), started 2026-09-29 by an agent working in the main tree;
-uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
-measurement worktrees, are removed (questions 21 and 25).
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **C6** (the build script) first, checked with `probes/p10-checks/` (its README), as Part C's
+- **C7** (`mf2 init` as a starter) first, checked with `probes/p10-checks/` (its README), as Part C's
   heading orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
