@@ -283,8 +283,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   (`mf2_build::run()`). `path_prefix_redirect` takes the name (`from_fn_with_state`). `mf2-axum` glue kept for
   the book/`mf2 init` (D5/D6). ci; e2e 0.9 and 0.8 (1212/1212 each), scenarios, l6-web pass.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
-worktrees, are removed (questions 21 and 25).
+**In flight:** D4 (typed languages and the switch on the web), started 2026-09-30 by an agent
+working in the main tree; uncommitted changes there are its. Part A's probe branches and worktrees,
+and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
