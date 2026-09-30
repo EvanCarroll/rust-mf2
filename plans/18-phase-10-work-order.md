@@ -322,7 +322,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   (test; docs' workaround gone). Held: pseudo-locales keeping `Locale::name()`, which returns a `Tr`
   and so needs a `language.<pseudo-tag>` message to show the tag; a question to the coordinator.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
+**In flight:** a fix: pseudo-locales keep `Locale::name()` through generated `language.<tag>`
+messages (found by F3), started 2026-09-30 by an agent working in the main tree; uncommitted changes
+there are its. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
 removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
