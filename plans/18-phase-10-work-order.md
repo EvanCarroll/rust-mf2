@@ -310,10 +310,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `[fallback]`. `mf2-build/tests/reference.rs` fails on a key, lint or feature without a section (negative
   control shown). Found: `dynamic-currency`/`-unit`'s message says listing codes helps; a variable keeps
   every code anyway (`DataSet::with_used`), and the page says so. ci; f2-gate docs pass.
+- **F2's `[locale_data]` fix** (`f12b681`): an explicit list wins over a variable's every-code
+  (`DataSet::with_used`) and silences `dynamic-currency`/`-unit`; unit and `slicing.rs` tests; the two
+  pages say so. An unlisted code falls back as a missing one. ci; docs, sizes pass, sizes unmoved.
 
-**In flight:** a fix: an explicit `[locale_data]` list wins over a variable's every-code (found by
-F2), started 2026-09-30 by an agent working in the main tree; uncommitted changes there are its.
-Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are removed
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are removed
 (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
