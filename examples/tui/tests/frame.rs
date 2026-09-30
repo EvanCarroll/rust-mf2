@@ -1,16 +1,19 @@
 //! Both renderers draw the whole frame in every language.
 
 use demo_tui::model::{LOCALES, SAMPLE};
+use demo_tui::prelude::*;
 use demo_tui::{AREA, to_text, ui, upstream};
-use mf2_native::NativeI18n;
 use ratatui::buffer::Buffer;
 
+/// The frame in `tag`, drawn on this thread in that language.
 fn mf2_frame(tag: &str) -> String {
-    let mut i18n = NativeI18n::embedded(&demo_tui_i18n::CORPUS).unwrap();
-    i18n.set_locale(tag).unwrap();
-    let mut buf = Buffer::empty(AREA);
-    ui::draw(&i18n, &SAMPLE, AREA, &mut buf);
-    to_text(&buf)
+    demo_tui::install();
+    mf2::ratatui::set_theme(ui::theme());
+    with_locale(tag.parse().unwrap(), || {
+        let mut buf = Buffer::empty(AREA);
+        ui::draw(&SAMPLE, AREA, &mut buf);
+        to_text(&buf)
+    })
 }
 
 fn upstream_frame(tag: &str) -> String {

@@ -19,9 +19,19 @@
 //! `--save-baseline DIR` keeps this build's binaries, and `--baseline DIR`
 //! puts a kept build's back into the rotation: a later build is compared
 //! with an earlier one by alternating the two, never one run after the
-//! other. `--book` adds the sizes of the user guide's native project, as
-//! `cargo xtask docs` assembles it: its command-line build and its `tui`
-//! build, stripped.
+//! other. `--baseline-rev REV` builds the rotation's baseline from a git
+//! revision instead, in a worktree under `target/tui-gate` (nightly CI
+//! builds A1's 1.x binaries so). `--book` adds the sizes of the user guide's
+//! native projects, as `cargo xtask docs` assembles them, stripped.
+//!
+//! **The gate** (`--gate`; `plans/19-native-and-terminal.md` §8 and §14):
+//! - `tui-mf2`'s allocations per frame, in each language, are at most
+//!   1.x's ([`ALLOCS_1X`]) and `tui-upstream`'s in the same build. The counts
+//!   are deterministic, so CI holds them on every push;
+//! - stripped `tui-mf2` is at most [`SIZE_LIMIT`] bytes, the 1.x binary's;
+//! - with a baseline in the rotation, `tui-mf2`'s median time per frame is
+//!   at most the baseline `tui-mf2`'s: nightly, alternating with the 1.x
+//!   binary, since a time is only comparable within one session.
 //!
 //! The report goes to standard output and to `target/tui-gate/report.md`,
 //! the figures to `target/tui-gate/report.json`.
@@ -40,6 +50,12 @@ use crate::fsx;
 /// The example's benchmark binaries, in the order they are reported.
 const BINARIES: &[&str] = &["tui-mf2", "tui-upstream"];
 
+/// 1.x's allocations per frame (A1, the binaries of `3a296a9`), by locale.
+const ALLOCS_1X: &[(&str, u64)] = &[("en", 1816), ("de", 1815), ("es", 1816), ("fr", 1817)];
+
+/// The stripped 1.x `tui-mf2`, in bytes (A1): 2.0's may not be larger.
+const SIZE_LIMIT: u64 = 1_965_320;
+
 /// What `cargo xtask tui-gate` was asked to do.
 pub(crate) struct Options {
     /// Runs of each binary.
@@ -48,9 +64,13 @@ pub(crate) struct Options {
     pub(crate) frames: usize,
     /// A kept build to alternate with.
     pub(crate) baseline: Option<PathBuf>,
+    /// A git revision to build the baseline from.
+    pub(crate) baseline_rev: Option<String>,
     /// Where to keep this build's binaries.
     pub(crate) save_baseline: Option<PathBuf>,
-    /// Also measure the user guide's native project.
+    /// Fail when a figure is over its limit.
+    pub(crate) gate: bool,
+    /// Also measure the user guide's native projects.
     pub(crate) book: bool,
 }
 
@@ -85,7 +105,11 @@ pub(crate) fn run(root: &Path, opts: &Options) -> Result<()> {
     if let Some(dir) = &opts.save_baseline {
         save(root, dir, &release)?;
     }
-    if let Some(dir) = &opts.baseline {
+    let built_baseline = match &opts.baseline_rev {
+        Some(rev) => Some(build_at(root, rev, &out)?),
+        None => None,
+    };
+    if let Some(dir) = opts.baseline.as_ref().or(built_baseline.as_ref()) {
         for name in BINARIES {
             let path = dir.join(name);
             if !path.exists() {
@@ -127,7 +151,96 @@ pub(crate) fn run(root: &Path, opts: &Options) -> Result<()> {
         &out.join("report.json"),
         format!("{figures:#}\n").as_bytes(),
     )?;
+    if opts.gate {
+        let failures = judge(&rotation);
+        if !failures.is_empty() {
+            return Err(gate(&failures.join("; ")));
+        }
+        eprintln!("tui-gate: the gate holds");
+    }
     Ok(())
+}
+
+/// What the gate refuses in a finished rotation, one sentence each.
+fn judge(rotation: &[Measured]) -> Vec<String> {
+    let find = |label: &str| rotation.iter().find(|b| b.label == label);
+    let mut failures = Vec::new();
+    let (Some(mf2), Some(upstream)) = (find("tui-mf2"), find("tui-upstream")) else {
+        return vec!["the rotation lacks tui-mf2 or tui-upstream".to_owned()];
+    };
+    let allocs = |bin: &Measured, locale: &str| {
+        let at = bin.locales.iter().position(|l| l == locale)?;
+        bin.allocs.as_ref()?.get(at).copied()
+    };
+    for (locale, limit_1x) in ALLOCS_1X {
+        let Some(ours) = allocs(mf2, locale) else {
+            failures.push(format!("tui-mf2 reported no allocations for {locale}"));
+            continue;
+        };
+        let theirs = allocs(upstream, locale).unwrap_or(0);
+        if ours > *limit_1x || ours > theirs {
+            failures.push(format!(
+                "{locale}: tui-mf2 allocates {ours} times a frame, above 1.x's {limit_1x} \
+                 or the baseline renderer's {theirs}"
+            ));
+        }
+    }
+    if mf2.size > SIZE_LIMIT {
+        failures.push(format!(
+            "stripped tui-mf2 is {} B, above 1.x's {SIZE_LIMIT} B",
+            mf2.size
+        ));
+    }
+    if let Some(base) = find("tui-mf2 (baseline)") {
+        let (ours, theirs) = (median(&mf2.ns), median(&base.ns));
+        if ours > theirs {
+            failures.push(format!(
+                "tui-mf2 takes {:.1} µs a frame (median), above the baseline's {:.1} µs",
+                ours / 1000.0,
+                theirs / 1000.0
+            ));
+        }
+    }
+    failures
+}
+
+/// Builds the example's binaries as they were at `rev`, in a worktree under
+/// `out`, and returns the directory they are in.
+fn build_at(root: &Path, rev: &str, out: &Path) -> Result<PathBuf> {
+    let tree = out.join("baseline-src");
+    let git = |args: &[&OsStr]| cmd::run_capture(OsStr::new("git"), args, root, &[]);
+    if tree.exists() {
+        git(&[
+            OsStr::new("worktree"),
+            OsStr::new("remove"),
+            OsStr::new("--force"),
+            tree.as_os_str(),
+        ])?;
+    }
+    git(&[OsStr::new("worktree"), OsStr::new("prune")])?;
+    git(&[
+        OsStr::new("worktree"),
+        OsStr::new("add"),
+        OsStr::new("--detach"),
+        tree.as_os_str(),
+        OsStr::new(rev),
+    ])?;
+    let built = build(
+        root,
+        &tree.join("examples/tui/Cargo.toml"),
+        &out.join("baseline-target"),
+        &[],
+    );
+    let kept = out.join("baseline-bin");
+    let result = built.and_then(|release| save(&tree, &kept, &release));
+    git(&[
+        OsStr::new("worktree"),
+        OsStr::new("remove"),
+        OsStr::new("--force"),
+        tree.as_os_str(),
+    ])?;
+    result?;
+    Ok(kept)
 }
 
 /// Builds a manifest's binaries in release, stripped, into `target`, and
@@ -277,23 +390,21 @@ fn save(root: &Path, dir: &Path, release: &Path) -> Result<()> {
     Ok(())
 }
 
-/// The user guide's native project, as `cargo xtask docs` assembled it:
-/// its stripped size without and with the `tui` feature.
+/// The user guide's native projects, as `cargo xtask docs` assembled them:
+/// each binary's stripped size.
 fn book_sizes(root: &Path, out: &Path) -> Result<Vec<(String, u64)>> {
-    let manifest = root.join("target/docs/projects/native/Cargo.toml");
-    if !manifest.exists() {
-        return Err(gate(
-            "the user guide's native project is not assembled; run `cargo xtask docs` first",
-        ));
-    }
+    let projects = root.join("target/docs/projects");
     let target = out.join("book-target");
     let mut sizes = Vec::new();
-    for (label, features) in [
-        ("native-demo", &[][..]),
-        ("native-demo --features tui", &["tui"][..]),
-    ] {
-        let release = build(root, &manifest, &target, features)?;
-        sizes.push((label.to_owned(), file_size(&release.join("native-demo"))?));
+    for (project, binary) in [("count", "count"), ("hops", "hops"), ("trace", "trace-tui")] {
+        let manifest = projects.join(project).join("Cargo.toml");
+        if !manifest.exists() {
+            return Err(gate(
+                "the user guide's native projects are not assembled; run `cargo xtask docs` first",
+            ));
+        }
+        let release = build(root, &manifest, &target, &[])?;
+        sizes.push((binary.to_owned(), file_size(&release.join(binary))?));
     }
     Ok(sizes)
 }
@@ -355,7 +466,7 @@ fn report(rotation: &[Measured], book: &[(String, u64)], opts: &Options, load: &
         opts.runs, opts.frames,
     );
     if !book.is_empty() {
-        out.push_str("\n| The user guide's native project | Stripped size (B) |\n|---|---:|\n");
+        out.push_str("\n| The user guide's native projects | Stripped size (B) |\n|---|---:|\n");
         for (label, size) in book {
             let _ = writeln!(out, "| `{label}` | {size} |");
         }
@@ -391,7 +502,7 @@ fn gate(message: &str) -> Error {
 
 #[cfg(test)]
 mod tests {
-    use super::{Measured, median, record};
+    use super::{Measured, judge, median, record};
     use std::path::PathBuf;
 
     fn bin() -> Measured {
@@ -427,6 +538,49 @@ mod tests {
         let moved = RUN.replace("[3,4]", "[3,5]");
         let err = record(&mut b, moved.as_bytes()).unwrap_err().to_string();
         assert!(err.contains("not deterministic"), "{err}");
+    }
+
+    fn measured(label: &str, allocs: [u64; 4], size: u64, ns: f64) -> Measured {
+        Measured {
+            label: label.to_owned(),
+            path: PathBuf::from(label),
+            size,
+            locales: ["en", "de", "es", "fr"].map(str::to_owned).to_vec(),
+            allocs: Some(allocs.to_vec()),
+            bytes: None,
+            ns: vec![ns],
+        }
+    }
+
+    #[test]
+    fn the_gate_holds_below_every_limit() {
+        let rotation = [
+            measured("tui-mf2", [1329; 4], 1_800_000, 280.0),
+            measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
+            measured("tui-mf2 (baseline)", [1816; 4], 1_965_320, 300.0),
+        ];
+        assert!(judge(&rotation).is_empty());
+    }
+
+    // The negative controls: each limit, crossed alone, is refused.
+    #[test]
+    fn the_gate_refuses_each_limit_crossed() {
+        let upstream = measured("tui-upstream", [1517; 4], 1_400_000, 260.0);
+        let over_upstream = [
+            measured("tui-mf2", [1329, 1518, 1329, 1329], 1_800_000, 280.0),
+            measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
+        ];
+        let failures = judge(&over_upstream);
+        assert_eq!(failures.len(), 1, "{failures:?}");
+        assert!(failures[0].starts_with("de:"), "{failures:?}");
+        let too_big = [measured("tui-mf2", [1329; 4], 1_965_321, 280.0), upstream];
+        assert!(judge(&too_big)[0].contains("stripped"));
+        let slower = [
+            measured("tui-mf2", [1329; 4], 1_800_000, 301.0),
+            measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
+            measured("tui-mf2 (baseline)", [1816; 4], 1_965_320, 300.0),
+        ];
+        assert!(judge(&slower)[0].contains("median"));
     }
 
     #[test]

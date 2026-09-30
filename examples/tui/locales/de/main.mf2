@@ -139,7 +139,7 @@ license = Veröffentlicht unter der MIT-Lizenz.
 copyright = Copyright die Autoren des Beispiels.
 close = Beliebige Taste drücken, um zu schließen
 
-[language]
+[languages]
 title = Sprache
 current = {$name} (aktuell)
 
@@ -195,7 +195,7 @@ privacy = Datenschutz: Hops nach {$ttl :integer} verborgen
 no-response = Keine Antwort
 
 @do-not-translate
-[language-name]
+[language]
 en = English
 de = Deutsch
 es = Español

@@ -32,27 +32,8 @@ mf2 init --cli
 makes a complete command-line application in the current directory, which
 must be empty (or name a new one: `mf2 init --cli count`). It counts the
 files in a directory and says so in English or French; `cargo run -- --lang
-fr` tries it. Its manifest names `mf2` and, in the build script,
-`mf2-build`:
-
-```toml file=count/Cargo.toml generated
-[package]
-name = "count"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-clap = { version = "4", features = ["derive"] }
-mf2 = { version = "2", features = ["native", "fn-number"] }
-
-[build-dependencies]
-mf2-build = "2"
-
-# The build script compiles the messages again after every edit to
-# them: built optimized, it does so faster.
-[profile.dev.build-override]
-opt-level = 2
-```
+fr` tries it. [Native applications](native-apps.md#a-command-line-tool)
+shows and explains every file it writes.
 
 ```sh run=hops
 mf2 init --tui

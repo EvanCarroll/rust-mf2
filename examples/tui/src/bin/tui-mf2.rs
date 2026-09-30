@@ -3,32 +3,30 @@
 
 use clap::Parser;
 use demo_tui::bench::{self, Args, Renderer};
+use demo_tui::prelude::*;
 use demo_tui::{AREA, alloc::Counting, model::SAMPLE, ui};
-use mf2_native::NativeI18n;
 use ratatui::buffer::Buffer;
 
 #[global_allocator]
 static ALLOCATOR: Counting = Counting;
 
-struct Mf2(NativeI18n);
+struct Mf2;
 
 impl Renderer for Mf2 {
     const NAME: &'static str = "mf2";
 
     fn set_locale(&mut self, tag: &str) {
-        self.0
-            .set_locale(tag)
-            .expect("every benchmark locale is in the corpus");
+        set_locale(tag.parse().expect("every benchmark locale is in the corpus"));
     }
 
     fn draw(&self, buf: &mut Buffer) {
-        ui::draw(&self.0, &SAMPLE, AREA, buf);
+        ui::draw(&SAMPLE, AREA, buf);
     }
 }
 
-fn main() -> Result<(), mf2_native::NativeError> {
+fn main() {
     let args = Args::parse();
-    let i18n = NativeI18n::embedded(&demo_tui_i18n::CORPUS)?;
-    println!("{}", bench::run(&mut Mf2(i18n), args.frames));
-    Ok(())
+    demo_tui::install();
+    mf2::ratatui::set_theme(ui::theme());
+    println!("{}", bench::run(&mut Mf2, args.frames));
 }

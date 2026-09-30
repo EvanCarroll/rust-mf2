@@ -1,14 +1,12 @@
-//! `mf2-ratatui` — 1.x's Ratatui support of Rust MF2, kept as a shim: every
-//! item it named, under the name and path it named it, re-exported from
-//! [`mf2`](https://docs.rs/mf2), where the code now lives as
-//! `mf2::ratatui`, behind `mf2`'s `ratatui` feature (which implies
-//! `native`).
+//! `mf2-ratatui` — 1.x's Ratatui support of Rust MF2, now a pointer: it
+//! re-exports [`mf2`](https://docs.rs/mf2)'s `mf2::ratatui`, where the code
+//! lives, behind `mf2`'s `ratatui` feature (which implies `native`), and
+//! turns that feature on.
 //!
-//! A 1.x application keeps compiling unchanged, in a workspace beside a
-//! browser client too: `mf2` refuses `ratatui` beside `hydrate` or `csr`
-//! only when compiling for the browser (`wasm32`), so `cargo check
-//! --workspace`, which unifies `ratatui` with the client's mode, compiles
-//! as in 1.x. A new application names `mf2` alone:
+//! 1.x's `line`, `text` and `MarkupStyles`, which took a handle and a map
+//! of styles on every call, are gone in 2.0: a description converts into
+//! Ratatui's text itself, and a `Theme`, set once, styles its markup. An
+//! application names `mf2` alone:
 //!
 //! ```toml
 //! mf2 = { version = "2", features = ["ratatui"] }
@@ -24,7 +22,5 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
-/// A message as Ratatui text, its markup as styles: the styles of the
-/// markup names, and the two conversions, through `mf2::native`'s
-/// `NativeI18n`.
-pub use mf2::ratatui::{MarkupStyles, line, text};
+/// A message as Ratatui text, its markup as styles: `mf2::ratatui`.
+pub use mf2::ratatui::*;

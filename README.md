@@ -40,10 +40,10 @@ One macro works in every position: text, attributes, props, strings and
   islands-zero`, 2026-09-23).
 * **Client-only** applications and **lazy routes** are supported too.
 * **Native CLI and Ratatui apps** use the same messages and the same
-  `tr!` through `mf2-native`: the catalogs embedded in the executable or
-  shipped beside it, the system's language and time zone, and the locale
-  in state the application owns. `mf2-ratatui` turns messages into
-  Ratatui text, with MF2 markup as styles.
+  `tr!`, through `mf2`'s `native` feature: the catalogs embedded in the
+  executable or shipped beside it, the system's language and time zone.
+  With `ratatui`, a message is Ratatui text, its MF2 markup drawn by a
+  theme set once.
 * **No locale data in the wasm**: no message text, ids, argument names or
   plural rules. A translation edit leaves the wasm byte-for-byte the same,
   so readers keep their cached copy. The library's client code costs
@@ -90,21 +90,20 @@ Leptos 0.9 is the default; on Leptos 0.8, add both with
 [Getting started](docs/getting-started.md) builds a complete application
 step by step.
 
-In a native application, the translation crate's build script emits
-`mf2_build::Emit::Native`, and the application adds the native layer and,
-for a terminal UI, the Ratatui one:
+A native application needs no translation crate: its messages sit in
+`locales/`, its build script is `mf2_build::run()`, and it names `mf2`
+with `native` — or `ratatui`, for a terminal UI — and the functions its
+messages call:
 
 ```sh
-cargo add mf2-native@1
-cargo add mf2-ratatui@1           # only for a Ratatui application
+cargo add mf2 --features native,fn-number   # or ratatui,fn-number
+cargo add --build mf2-build
 ```
 
-[Native CLI and Ratatui apps](docs/native-apps.md) builds one, from the
-translation crate to the draw loop.
-
-`mf2-native` and `mf2-ratatui` are not on crates.io yet (they ship in
-2.0.0): until then, name them by path into a checkout of this repository
-instead.
+`mf2 init --cli` or `mf2 init --tui` writes a complete one;
+[Native CLI and Ratatui apps](docs/native-apps.md) explains every file.
+Version 2 of `mf2` and `mf2-build` is not on crates.io yet (it ships in
+2.0.0): until then, name them by path into a checkout of this repository.
 
 ## Documentation
 

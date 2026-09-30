@@ -43,8 +43,7 @@
 //! dependencies on this repository's crates pointed at the working tree (the
 //! pages write them as the first release will publish them), and each is
 //! checked for the targets it runs on, warnings denied, sharing one target
-//! directory. The native app example is checked both without and with its
-//! optional Ratatui feature. A client-only example also publishes its
+//! directory. A client-only example also publishes its
 //! catalogs with `mf2 compile --site`, as its page says to.
 
 use std::collections::BTreeMap;
@@ -202,7 +201,8 @@ const PROJECTS: &[Project] = &[
         site: false,
     },
     // command-line.md: the applications `mf2 init --cli` and `--tui` make,
-    // as they make them.
+    // as they make them; native-apps.md shows their files, held to what
+    // `init` wrote (plans/19 §1.1 and §1.2).
     Project {
         name: "count",
         base: None,
@@ -223,21 +223,16 @@ const PROJECTS: &[Project] = &[
         }],
         site: false,
     },
-    // native-apps.md: native CLI catalog loading and the optional Ratatui adapter.
+    // native-apps.md's workspace: a library that owns the messages and a
+    // terminal UI that draws them (plans/19 §1.3).
     Project {
-        name: "native",
+        name: "trace",
         base: None,
         remove: &[],
-        checks: &[
-            Check {
-                target: None,
-                args: &[],
-            },
-            Check {
-                target: None,
-                args: &["--features", "tui"],
-            },
-        ],
+        checks: &[Check {
+            target: None,
+            args: &[],
+        }],
         site: false,
     },
 ];

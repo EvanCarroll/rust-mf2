@@ -1,16 +1,13 @@
 # mf2-ratatui
 
-1.x's Ratatui support of Rust MF2, kept as a shim. Everything it named —
-`text` and `line`, which format a call site into owned Ratatui `Text` and
-`Line` values with the message's markup as styles, and `MarkupStyles`, the
-style of each markup name — now lives in [`mf2`](https://docs.rs/mf2) as
-`mf2::ratatui`, behind `mf2`'s `ratatui` feature, which implies `native`.
-This crate re-exports all of it under the names and paths 1.x used, so a
-1.x application keeps compiling, in a workspace beside a browser client
-too: `mf2` refuses `ratatui` beside `hydrate` or `csr` only when compiling
-for the browser (`wasm32`).
+1.x's Ratatui support of Rust MF2, now a pointer: it re-exports
+[`mf2`](https://docs.rs/mf2)'s `mf2::ratatui`, where the code lives, behind
+`mf2`'s `ratatui` feature, which implies `native`. 1.x's `text`, `line` and
+`MarkupStyles`, which took a handle and a map of styles on every call, are
+gone in 2.0: a call site converts into Ratatui's `Line` or `Text` itself, and
+a `Theme`, set once, says how its markup is drawn.
 
-A new application names `mf2` alone:
+An application names `mf2` alone:
 
 ```toml
 [dependencies]

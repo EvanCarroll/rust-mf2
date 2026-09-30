@@ -1,309 +1,712 @@
 # Native CLI and Ratatui apps
 
-The call sites `tr!` builds are Leptos-free values: a command-line tool or a
-terminal UI formats them as well as a web page does. Two crates make that
-comfortable:
+The call sites `tr!` builds are plain values: a command-line tool or a
+terminal UI formats them as well as a web page does. A native application
+names two crates of this library, and no more:
 
-* `mf2-native` loads the catalogs, picks the reader's language from the
-  system, keeps the active locale in a value the application owns, and
-  formats messages.
-* `mf2-ratatui` turns a message into [Ratatui](https://ratatui.rs) text,
-  with the message's markup as styles. It is optional.
+* **`mf2`**, with the `native` feature — or `ratatui`, which implies it —
+  and the features of the functions its messages call (`fn-number` here);
+* **`mf2-build`**, in its build script, whose whole body is
+  `mf2_build::run()`.
 
-This page builds one small application that does both. `cargo xtask docs`
-compiles it, with and without its `tui` feature.
+The messages sit in `locales/` beside the code that uses them: there is no
+separate translation crate, and no `mf2.toml` — its defaults (the source
+language is `en`; a message missing from a translation falls back to it) are
+what these applications want. Nothing passes a handle, a style map or a
+language tag around.
 
-## The translation crate
+This page builds three applications, and `cargo xtask docs` compiles each:
 
-As on the web, the messages live in a translation crate whose build script
-runs `mf2-build`. A native application asks for `Emit::Native`: the
-catalogs are embedded in the executable, the module formats through the
-native host, and everything the application needs is one generated value,
-`CORPUS`.
+* [`count`](#a-command-line-tool), a one-file command-line tool;
+* [`hops`](#a-terminal-ui), a Ratatui terminal UI with a language menu and a
+  live switch;
+* [`trace`](#a-library-and-its-terminal-ui), a workspace in which a library
+  owns the messages and a terminal UI draws them.
 
-```toml file=native/i18n/Cargo.toml
+The first two are what `mf2 init --cli` and `mf2 init --tui` write (see
+[the command line](command-line.md#init-a-starter)): the files below are
+theirs, and the book checks that they match. Write them by hand, or let
+`init` write them.
+
+## A command-line tool
+
+`count` counts the files in a directory and says so in the reader's
+language. Its manifest names `mf2` with `native` and `fn-number`, and
+`mf2-build` for the build script:
+
+```toml file=count/Cargo.toml generated
 [package]
-name = "native-demo-i18n"
+name = "count"
 version = "0.1.0"
 edition = "2024"
-build = "build.rs"
-
-# As on the web, the functions a message may use are this crate's
-# features; a native application simply turns them on by default.
-[features]
-default = ["fn-number"]
-fn-number = ["mf2/fn-number"]
-
-[dependencies]
-mf2 = { version = "1", features = ["host-std"] }
-
-[build-dependencies]
-mf2-build = "1"
-```
-
-```rust file=native/i18n/build.rs
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    mf2_build::Build::new()?
-        .emit(mf2_build::Emit::Native)
-        .emit_cargo(true)
-        .run()?
-        .into_result()?;
-    Ok(())
-}
-```
-
-```toml file=native/i18n/mf2.toml
-source_locale = "en"
-
-[catalog]
-missing = "fallback"
-```
-
-```rust file=native/i18n/src/lib.rs
-mf2::include_generated!();
-```
-
-`CORPUS` holds the source locale, the manifest hash, the locale table, the
-function registry and the catalogs. The crate also exports `tr!`, as it
-does for a Leptos application.
-
-The messages use markup — `{#ok}…{/ok}` — to mark a stretch of text
-without saying what it looks like. The terminal UI decides that below.
-
-```mf2 file=native/i18n/locales/en/main.mf2
-@locale en
----
-
-welcome = Welcome to the CLI and TUI example.
-title = Network status
-status = {#ok}Connected{/ok} to {#host}{$host}{/host}: {$sent :number} probes sent.
-```
-
-```mf2 file=native/i18n/locales/fr/main.mf2
-@locale fr
----
-
-welcome = Bienvenue dans l'exemple CLI et TUI.
-title = État du réseau
-status = {#ok}Connecté{/ok} à {#host}{$host}{/host} : {$sent :number} sondes envoyées.
-```
-
-## The application
-
-The application depends on `mf2-native` and the translation crate, and on
-Ratatui only when its `tui` feature is on, so a command-line-only build
-does not compile it.
-
-`cargo tree` will also show `leptos-mf2`: it defines the call-site types
-`tr!` builds, and `mf2` re-exports them. With none of its Leptos features
-on it compiles no Leptos code; [How the crates fit together](ecosystem.md)
-says why the types live there.
-
-```toml file=native/Cargo.toml
-[package]
-name = "native-demo"
-version = "0.1.0"
-edition = "2024"
-
-[workspace]
-members = [".", "i18n"]
-resolver = "3"
-
-[features]
-default = []
-tui = ["dep:mf2-ratatui", "dep:ratatui"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-mf2-native = "1"
-native-demo-i18n = { path = "i18n" }
-mf2-ratatui = { version = "1", optional = true }
-ratatui = { version = "0.30", default-features = false, features = ["crossterm"], optional = true }
+mf2 = { version = "2", features = ["native", "fn-number"] }
+
+[build-dependencies]
+mf2-build = "2"
 ```
 
-### Choosing the language
+The rest of the manifest only makes rebuilding quicker: the build script
+compiles the messages again after every edit to them, and built optimized it
+does so faster. An application may leave it out.
 
-`NativeI18n::embedded` loads every catalog of the corpus and checks each
-one against the build. It selects the language that best serves the
-system's preferred languages — `fr_CA.UTF-8` finds `fr` — and the source
-locale when none is close enough. `locale_source()` says which happened.
+```toml file=count/Cargo.toml generated
+# The build script compiles the messages again after every edit to
+# them: built optimized, it does so faster.
+[profile.dev.build-override]
+opt-level = 2
+```
 
-The languages are compared by CLDR's language-matching data, the way the
-Unicode locale standard (UTS #35) describes, and the same way on a web
-server and in a browser:
+The build script reads `locales/`, checks every message, and generates a
+module with the catalogs embedded in the executable:
 
-1. each tag is read as a language, a script and a region, ignoring case,
-   with `_` read as `-` and a POSIX `.charset` or `@modifier` left out
-   (`fr_CA.UTF-8` is `fr-CA`), and filled in with its likely script and
-   region (`zh-TW` is Traditional Chinese of Taiwan, `zh` Simplified of
-   China). `C`, `POSIX`, `*` and an empty value never match;
-2. two tags are as far apart as CLDR's data says for each part that
-   differs: another region of the same language is close (`fr-CA` finds
-   `fr`, `es-MX` finds `es`, and `es-419` first when the corpus has it);
-   another script is close only where CLDR says its readers read it
-   (Serbian's Latin and Cyrillic, yes; Traditional and Simplified Chinese,
-   no); another language only where CLDR says its readers understand it
-   (a reader of Catalan is served Spanish);
-3. the system's list is weighed as one: a regional variant of the first
-   language (`de-AT` finds `de`) beats an exact match of the second, and
-   only a language close enough is chosen.
+```rust file=count/build.rs generated
+fn main() {
+    mf2_build::run();
+}
+```
 
-A language the user names explicitly goes through `set_locale`, which
-uses the same rules and returns an error for a language nothing in the
-corpus serves, so a mistyped `--lang` is reported rather than ignored.
+One file per language. A plural's variants follow each language's own
+rules: French has a `many` form that English has not.
 
-```rust file=native/src/main.rs
+```mf2 file=count/locales/en/main.mf2 generated
+@locale en
+---
+
+files =
+  .input {$count :integer}
+  .match $count
+  0   {{{$dir} is empty.}}
+  one {{{$dir} holds one file.}}
+  *   {{{$dir} holds {$count} files.}}
+
+unreadable = Cannot read {$dir}: {$error}
+```
+
+```mf2 file=count/locales/fr/main.mf2 generated
+@locale fr
+---
+
+files =
+  .input {$count :integer}
+  .match $count
+  0    {{{$dir} est vide.}}
+  one  {{{$dir} contient {$count} fichier.}}
+  many {{{$dir} contient {$count} de fichiers.}}
+  *    {{{$dir} contient {$count} fichiers.}}
+
+unreadable = Impossible de lire {$dir} : {$error}
+```
+
+`mf2::include_generated!()` brings in what the build script generated:
+`tr!`, the `Locale` enum with one variant per language, `install()` and
+`set_locale`.
+
+```rust file=count/src/main.rs generated
+//! Counts the files in a directory, and says so in the reader's language.
+
+use std::path::PathBuf;
+use std::process::ExitCode;
+
 use clap::Parser;
 
+mf2::include_generated!();
+```
+
+`Locale` parses from a string, so clap takes `--lang` as one. The parse
+goes through the same language matcher as the system's languages do:
+`--lang fr_CA.UTF-8` is French, and `--lang de` is refused with the
+languages the application has.
+
+```rust file=count/src/main.rs generated
 #[derive(Parser)]
 struct Args {
-    /// The language to use instead of the system's.
+    /// The directory to count.
+    #[arg(default_value = ".")]
+    dir: PathBuf,
+    /// The language to answer in, instead of the system's.
     #[arg(long)]
-    lang: Option<String>,
-    /// Read the catalogs from this directory instead of the executable.
-    #[arg(long)]
-    catalogs: Option<std::path::PathBuf>,
+    lang: Option<Locale>,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> ExitCode {
     let args = Args::parse();
-    let corpus = &native_demo_i18n::CORPUS;
-    let mut i18n = match &args.catalogs {
-        Some(dir) => mf2_native::NativeI18n::from_directory(corpus, dir)?,
-        None => mf2_native::NativeI18n::embedded(corpus)?,
-    };
-    if let Some(lang) = args.lang.as_deref() {
-        i18n.set_locale(lang)?;
+    install();
+    if let Some(lang) = args.lang {
+        set_locale(lang);
     }
-```
-
-`available_locales()` lists the supported tags in build order, for a
-`--list-locales`, and `set_locale` can be called again at any time: the
-locale is a field of `NativeI18n`, not a process or thread global.
-
-### Formatting
-
-`format` returns the message as a `String` in the active locale.
-`format_with_errors` also returns the MF2 errors, for a tool that wants to
-log them. `formatter()` gives the runtime's `Formatter` over the active
-catalog, for code that needs more than text — a message's parts, for a
-renderer of its own, as `mf2-ratatui` does.
-
-```rust file=native/src/main.rs
-    println!("{}", i18n.format(&native_demo_i18n::tr!("welcome")));
-    Ok(())
+    match std::fs::read_dir(&args.dir) {
+        Ok(entries) => {
+            println!("{}", tr!("files", dir = &args.dir, count = entries.count()));
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("{}", tr!("unreadable", dir = &args.dir, error = error));
+            ExitCode::FAILURE
+        }
+    }
 }
 ```
 
-Two settings differ from the web:
+* **`install()`** loads the catalogs the executable embeds, once, and
+  chooses the first of the system's languages the application has. It
+  cannot fail: catalogs from the same build always load.
+* **`set_locale`** overrides that choice, for every thread.
+* **`println!("{}", tr!(…))`** formats the message in the language in
+  force. `tr!(…).to_string()` gives the text as a `String`.
+* **The arguments** are Rust values: `dir` is a path and `count` a number,
+  which `:integer` formats in the reader's way. `error` is an `io::Error`,
+  which has no typed form; its text is the argument.
 
-* **Bidi isolation is off.** MF2's default wraps a placeholder whose
-  direction could differ from the message's (a string) in invisible
-  isolation characters (U+2066–U+2069), which terminals and
-  logs tend to show as stray characters. An application that shows
-  right-to-left text in a terminal that applies them can turn them on with
-  `set_bidi(BidiStrategy::Default)`; `dir()` gives the active locale's
-  direction.
+`cargo run -- --lang fr` prints the French.
+
+### Two settings differ from the web
+
+* **Bidi isolation is off.** MF2 can wrap a placeholder whose direction
+  could differ from the message's in invisible isolation characters, which
+  terminals and logs tend to show as stray characters. An application that
+  shows right-to-left text in a terminal that honours them turns them on
+  with `mf2::native::set_bidi`.
 * **Dates use the system's time zone** — its IANA name when it has one,
   else a zone that follows the system's daylight-saving rules, else UTC.
-  `set_time_zone` changes it.
+  `mf2::native::set_time_zone` changes it.
 
 ### Catalogs outside the executable
 
-With `Emit::NativeFiles` in the build script instead of `Emit::Native`,
-the executable embeds no catalog. `CORPUS` records each language's file
-name, `<locale>.<hash>.mf2b`, where the hash is the first 8 bytes of the
-file's SHA-256, and the application loads the files with
-`NativeI18n::from_directory`, as `--catalogs` does above.
+A build script that asks `mf2_build::Build` for `Emit::NativeFiles`, in
+place of `run()`, embeds no catalog. The generated
+`install_from_directory(dir)` then loads the files, named
+`<locale>.<hash>.mf2b`, from a directory the application chooses. Each file
+is checked as it loads, its bytes against the hash in its name, so a catalog
+from another build is an error rather than wrong text. `mf2 compile --out
+DIR`, given the features the application builds with, writes the same files
+for a package to ship.
 
-The build writes the files to its own output directory. To ship them,
-write the same files where the package wants them:
+## A terminal UI
 
-```sh
-mf2 -C i18n compile --features fn-number --out dist/catalogs
+`hops` draws a trace in the shape of a network-diagnostic tool: a bordered
+table, a language menu, a key-hint bar with styled keys, a status line with
+a plural and numbers. `1` and `2` switch the language while it runs. Its
+manifest turns on `ratatui` in place of `native`:
+
+```toml file=hops/Cargo.toml generated
+[package]
+name = "hops"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+mf2 = { version = "2", features = ["ratatui", "fn-number"] }
+ratatui = "0.30"
+
+[build-dependencies]
+mf2-build = "2"
+
+# The build script compiles the messages again after every edit to
+# them: built optimized, it does so faster.
+[profile.dev.build-override]
+opt-level = 2
 ```
 
-Give it the translation crate's features as the application builds it:
-the features decide what the catalogs hold, and so their names.
-`catalog_file_name("fr")` gives the name the corpus expects, for an
-installer that copies the files itself. A file must keep that name.
+Its build script is the command-line tool's:
 
-Each file is checked when it is loaded: its bytes against the hash in its
-name, then its manifest against the build's. So a catalog from another
-build is an error, not wrong text: `NativeError::ContentMismatch`, whether
-only a translation changed or the messages did — the bytes differ either
-way, and that check comes first.
-
-## Ratatui
-
-`mf2_ratatui::line` and `mf2_ratatui::text` format a message into
-Ratatui's own `Line` and `Text`, which any widget takes. The application
-maps each markup name to a style; the translation decides where the styled
-stretch goes, so the French message above can move it without any change
-to the code. Nested elements combine their styles, and a name with no style
-keeps the style around it (the paragraph's, or an enclosing element's).
-
-```rust file=native/src/lib.rs
-#[cfg(feature = "tui")]
-pub mod tui {
-    use mf2_native::NativeI18n;
-    use mf2_ratatui::MarkupStyles;
-    use ratatui::style::{Color, Style};
-    use ratatui::widgets::{Block, Paragraph};
-
-    pub fn status(i18n: &NativeI18n, host: &str, sent: u32) -> Paragraph<'static> {
-        let styles = MarkupStyles::new()
-            .with("ok", Style::new().fg(Color::Green).bold())
-            .with("host", Style::new().underlined());
-        let title = mf2_ratatui::line(i18n, &native_demo_i18n::tr!("title"), &styles);
-        let status = mf2_ratatui::text(
-            i18n,
-            &native_demo_i18n::tr!("status", host = host, sent = sent),
-            &styles,
-        );
-        Paragraph::new(status).block(Block::bordered().title(title))
-    }
+```rust file=hops/build.rs generated
+fn main() {
+    mf2_build::run();
 }
 ```
 
-In English the paragraph reads "Connected to example.org: 1,204 probes
-sent.", with "Connected" green and bold and the host underlined.
+The messages mark up what a stretch of text is — a key, a host, a warning —
+and say nothing of how it looks. The translation decides where it goes:
 
-Every draw formats in the active locale, so a key that calls `set_locale`
-changes the next frame. The draw loop, with Ratatui's `crossterm` backend:
+```mf2 file=hops/locales/en/main.mf2 generated
+@locale en
+---
 
-```rust file=native/src/lib.rs
-#[cfg(feature = "tui")]
-pub mod app {
-    use mf2_native::NativeI18n;
-    use ratatui::crossterm::event::{self, Event, KeyCode};
+title = Trace to {#host}{$target}{/host}
+languages = Language
+hints = {#key}1{/key} {#key}2{/key} language · {#key}q{/key} quit
 
-    /// Draws the status until `q`; `f` and `e` switch the language.
-    pub fn run(i18n: &mut NativeI18n) -> std::io::Result<()> {
-        ratatui::run(|terminal| {
-            loop {
-                terminal.draw(|frame| {
-                    frame.render_widget(crate::tui::status(i18n, "example.org", 1204), frame.area());
-                })?;
-                if let Event::Key(key) = event::read()? {
-                    match key.code {
-                        KeyCode::Char('q') => return Ok(()),
-                        KeyCode::Char('f') => {
-                            let _ = i18n.set_locale("fr");
-                        }
-                        KeyCode::Char('e') => {
-                            let _ = i18n.set_locale("en");
-                        }
-                        _ => {}
-                    }
+status =
+  .input {$hops :integer}
+  .match $hops
+  one {{{$hops} hop · probes: {$sent :integer} · loss: {$loss :percent maximumFractionDigits=1}}}
+  *   {{{$hops} hops · probes: {$sent :integer} · loss: {$loss :percent maximumFractionDigits=1}}}
+
+[column]
+hop = #
+host = Host
+loss = Loss
+average = Avg (ms)
+
+[cell]
+no-reply = {#warn}no reply{/warn}
+loss = {$share :percent maximumFractionDigits=1}
+ms = {$ms :number minimumFractionDigits=1 maximumFractionDigits=1}
+
+# Each language's name, in that language: the same in every file.
+@do-not-translate
+[language]
+en = English
+fr = Français
+```
+
+```mf2 file=hops/locales/fr/main.mf2 generated
+@locale fr
+---
+
+title = Trace vers {#host}{$target}{/host}
+languages = Langue
+hints = {#key}1{/key} {#key}2{/key} langue · {#key}q{/key} quitter
+
+status =
+  .input {$hops :integer}
+  .match $hops
+  one  {{{$hops} saut · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+  many {{{$hops} de sauts · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+  *    {{{$hops} sauts · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+
+[column]
+hop = #
+host = Hôte
+loss = Perte
+average = Moy. (ms)
+
+[cell]
+no-reply = {#warn}pas de réponse{/warn}
+loss = {$share :percent maximumFractionDigits=1}
+ms = {$ms :number minimumFractionDigits=1 maximumFractionDigits=1}
+
+@do-not-translate
+[language]
+en = English
+fr = Français
+```
+
+The `language` section names each language in itself. When every language
+has its `language.<tag>` message, the generated `Locale` has a `name()`
+that returns it, for a language menu.
+
+`main` chooses the language as the command-line tool does, then sets the
+**theme**: how each markup name is drawn. `markup::…` holds a constant for
+every name the messages use, so a misspelt name does not compile.
+
+```rust file=hops/src/main.rs generated
+//! A trippy-shaped terminal UI in the reader's language. `1` and `2` switch
+//! the language live; `q` quits.
+
+mod ui;
+
+use clap::Parser;
+use mf2::ratatui::{Theme, set_theme};
+use ratatui::crossterm::event::{self, Event, KeyCode};
+use ratatui::style::Style;
+
+mf2::include_generated!();
+
+#[derive(Parser)]
+struct Args {
+    /// The language to draw in, instead of the system's.
+    #[arg(long)]
+    lang: Option<Locale>,
+}
+
+fn main() -> std::io::Result<()> {
+    let args = Args::parse();
+    install();
+    if let Some(lang) = args.lang {
+        set_locale(lang);
+    }
+    // What each markup name looks like: a message says what a stretch is,
+    // the theme how it is drawn. `markup::…` has a constant for every name
+    // the messages use, so a misspelt name does not compile.
+    set_theme(
+        Theme::default()
+            .style(markup::KEY, Style::new().bold().yellow())
+            .style(markup::HOST, Style::new().underlined())
+            .style(markup::WARN, Style::new().red()),
+    );
+    let trace = ui::Trace::sample();
+    ratatui::run(|terminal| {
+        loop {
+            terminal.draw(|frame| ui::draw(frame, &trace))?;
+            if let Event::Key(key) = event::read()? {
+                match key.code {
+                    // Every thread's next format is in the new language.
+                    KeyCode::Char('1') => set_locale(Locale::En),
+                    KeyCode::Char('2') => set_locale(Locale::Fr),
+                    KeyCode::Char('q') => return Ok(()),
+                    _ => {}
                 }
             }
-        })
+        }
+    })
+}
+```
+
+* **`set_theme`** sets the app-wide theme, once; every thread's next draw
+  uses it. `Theme::default()` already draws `b` and `strong` bold, `i` and
+  `em` italic, `u` underlined, `s` and `del` crossed out, and `code` and
+  `kbd` reversed; `.style(…)` adds or replaces one name's style.
+  `mf2::ratatui::with_theme` sets one for a scope on this thread.
+* **`set_locale(Locale::Fr)`** is the live switch: the next frame is
+  French, on every thread.
+* **`mod ui` is declared before the include.** It imports `tr!` with the
+  crate's prelude, `use crate::prelude::*`, which any module may do.
+
+```rust file=hops/src/ui.rs generated
+//! One frame: the hops in a bordered table, a language menu, a key-hint bar
+//! and a status line. Nothing is passed for translation: the text is in the
+//! current language, and the theme says how markup looks.
+
+use ratatui::Frame;
+use ratatui::layout::{Constraint, Layout};
+use ratatui::style::Stylize;
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{Block, Cell, List, Row, Table};
+
+use crate::prelude::*;
+
+/// A trace in progress.
+pub struct Trace {
+    pub target: &'static str,
+    pub sent: u64,
+    pub hops: Vec<Hop>,
+}
+
+/// One hop: the host that answered, if one did; the share of probes lost;
+/// the average round trip in milliseconds.
+pub struct Hop {
+    pub host: Option<&'static str>,
+    pub loss: f64,
+    pub average: f64,
+}
+
+impl Trace {
+    /// A trace to draw.
+    pub fn sample() -> Trace {
+        let hop = |host, loss, average| Hop { host, loss, average };
+        Trace {
+            target: "example.org",
+            sent: 1204,
+            hops: vec![
+                hop(Some("router.lan"), 0.0, 1.1),
+                hop(None, 1.0, 0.0),
+                hop(Some("example.org"), 0.021, 45.6),
+            ],
+        }
+    }
+
+    /// The share of probes lost over the whole path.
+    fn loss(&self) -> f64 {
+        self.hops.iter().map(|hop| hop.loss).sum::<f64>() / self.hops.len() as f64
     }
 }
 ```
 
-`text` starts a new line at each line break in the message; `line` keeps
-the message on one line. The adapter never writes bidi isolation
-characters: Ratatui places every character itself, so a terminal has
-nothing to reorder.
+A description converts to Ratatui's `Span`, `Line` and `Text`, so Ratatui
+takes it wherever it takes text: a `Row` of headers, a `Cell`, a block's
+title, a `Paragraph`, a `List`.
+
+```rust file=hops/src/ui.rs generated
+/// Draws the frame.
+pub fn draw(frame: &mut Frame, trace: &Trace) {
+    let [main, hints, status] = Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(1),
+        Constraint::Length(1),
+    ])
+    .areas(frame.area());
+    let [hops, menu] =
+        Layout::horizontal([Constraint::Fill(1), Constraint::Length(16)]).areas(main);
+```
+
+```rust file=hops/src/ui.rs generated
+    // A bordered table: a title with markup, headers, and cells in the
+    // reader's number format.
+    let header = Row::new([
+        tr!("column.hop"),
+        tr!("column.host"),
+        tr!("column.loss"),
+        tr!("column.average"),
+    ])
+    .bold();
+    let rows = trace.hops.iter().enumerate().map(|(i, hop)| {
+        let host = match hop.host {
+            Some(name) => Cell::from(name),
+            None => Cell::from(tr!("cell.no-reply")),
+        };
+        Row::new([
+            Cell::from((i + 1).to_string()),
+            host,
+            Cell::from(tr!("cell.loss", share = hop.loss)),
+            Cell::from(tr!("cell.ms", ms = hop.average)),
+        ])
+    });
+    let widths = [
+        Constraint::Length(3),
+        Constraint::Fill(1),
+        Constraint::Length(8),
+        Constraint::Length(10),
+    ];
+    let table = Table::new(rows, widths)
+        .header(header)
+        .block(Block::bordered().title(tr!("title", target = trace.target)));
+    frame.render_widget(table, hops);
+```
+
+**Markup is drawn by the theme**: the host in the title is underlined, and
+"no reply" is red. The French title puts the host where French wants it,
+with no change to the code. Nested elements patch their styles in order; a
+name the theme lacks keeps the style around it; standalone markup
+(`{#name/}`) draws nothing. Ratatui's own `Stylize` works on a description
+too: `.bold()` gives a `Line` that keeps the message's styles over bold.
+
+`Locale::ALL`, `name()` and `current_locale()` make the language menu:
+
+```rust file=hops/src/ui.rs generated
+    // The language menu: each language named in itself, the current one bold.
+    let items = Locale::ALL.iter().enumerate().map(|(i, &lang)| {
+        let item = Line::from(vec![Span::raw(format!("{} ", i + 1)), Span::from(lang.name())]);
+        if lang == current_locale() {
+            item.bold()
+        } else {
+            item
+        }
+    });
+    let list = List::new(items).block(Block::bordered().title(tr!("languages")));
+    frame.render_widget(list, menu);
+```
+
+The key-hint bar is **one message**, so that the translation places the
+keys:
+
+```rust file=hops/src/ui.rs generated
+    // The key-hint bar is one message, so a translation places the keys.
+    frame.render_widget(Line::from(tr!("hints")).right_aligned(), hints);
+
+    // The status line: a plural, a count and a percentage.
+    let summary = tr!(
+        "status",
+        hops = trace.hops.len(),
+        sent = trace.sent,
+        loss = trace.loss(),
+    );
+    frame.render_widget(Line::from(summary), status);
+}
+```
+
+### Lines, spans and markup
+
+* A `Text` starts a new line at each line break in the message; a `Line`
+  and a `Span` join the lines with a space.
+* **A `Span` has one style, so it keeps none of the message's markup.**
+  That has a trap: Ratatui collects anything that converts into a `Span`
+  into a `Line`, so `[tr!("a"), tr!("b")].into_iter().collect::<Line>()`
+  compiles, and loses both messages' styles. To keep them, write one
+  message for the styled line, as `hints` is — the translation then places
+  the pieces — or extend a `Line` with each message's
+  `Line::from(tr!(…)).spans`.
+
+A conversion borrows the catalog's text from the executable: a message with
+no placeholders makes a `Span` without allocating, and each placeholder is
+one `String`.
+
+## A library and its terminal UI
+
+`trace` is a workspace of two crates. The library, `trace-core`, owns the
+messages: `build.rs` and `locales/` are its. The terminal UI uses the
+library's `tr!`, `Locale` and `install()`; there is no third crate for the
+translations.
+
+```toml file=trace/Cargo.toml
+[workspace]
+members = ["core", "tui"]
+resolver = "3"
+```
+
+The library turns on `native` and the functions its messages call:
+
+```toml file=trace/core/Cargo.toml
+[package]
+name = "trace-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mf2 = { version = "2", features = ["native", "fn-number"] }
+
+[build-dependencies]
+mf2-build = "2"
+```
+
+```rust file=trace/core/build.rs
+fn main() {
+    mf2_build::run();
+}
+```
+
+```mf2 file=trace/core/locales/en/main.mf2
+@locale en
+---
+
+title = Trace to {#host}{$target}{/host}
+
+summary =
+  .input {$sent :integer}
+  .match $sent
+  one {{{$sent} probe sent · loss {$loss :percent maximumFractionDigits=1}}}
+  *   {{{$sent} probes sent · loss {$loss :percent maximumFractionDigits=1}}}
+
+[error]
+resolve = Could not resolve {$host}.
+permission = Tracing needs privileges: run as root, or use unprivileged mode.
+```
+
+```mf2 file=trace/core/locales/fr/main.mf2
+@locale fr
+---
+
+title = Trace vers {#host}{$target}{/host}
+
+summary =
+  .input {$sent :integer}
+  .match $sent
+  one  {{{$sent} sonde envoyée · perte {$loss :percent maximumFractionDigits=1}}}
+  many {{{$sent} de sondes envoyées · perte {$loss :percent maximumFractionDigits=1}}}
+  *    {{{$sent} sondes envoyées · perte {$loss :percent maximumFractionDigits=1}}}
+
+[error]
+resolve = Impossible de résoudre {$host}.
+permission = Le traçage demande des privilèges : lancez-le en root, ou en mode non privilégié.
+```
+
+The library returns **descriptions** — `mf2::TrArgs`, what `tr!` builds —
+rather than text, and formats its own errors. Neither takes a handle: an
+error prints in the language the application chose, because the process has
+one store of catalogs and one language.
+
+```rust file=trace/core/src/lib.rs
+//! What a trace knows, and every message the program shows. The terminal UI
+//! uses this crate's `tr!`, `Locale` and `install()`.
+
+use std::fmt;
+
+mf2::include_generated!();
+
+/// A trace in progress.
+pub struct Trace {
+    pub target: String,
+    pub sent: u64,
+    pub lost: u64,
+}
+
+impl Trace {
+    /// The trace's title: its target, marked as a host.
+    pub fn title(&self) -> mf2::TrArgs {
+        tr!("title", target = &self.target)
+    }
+
+    /// One line about the trace so far.
+    pub fn summary(&self) -> mf2::TrArgs {
+        let loss = self.lost as f64 / self.sent.max(1) as f64;
+        tr!("summary", sent = self.sent, loss = loss)
+    }
+}
+
+/// Why a trace cannot start, in the reader's language.
+#[derive(Debug)]
+pub enum Error {
+    Resolve { host: String },
+    Permission,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Resolve { host } => write!(f, "{}", tr!("error.resolve", host = host)),
+            Error::Permission => write!(f, "{}", tr!("error.permission")),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
+```
+
+The terminal UI names `mf2` only for `ratatui`. Cargo unifies the two
+crates' features in the workspace, and the library's build script sees the
+unified set, so `trace_core::markup` exists when the terminal UI is built.
+
+```toml file=trace/tui/Cargo.toml
+[package]
+name = "trace-tui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+mf2 = { version = "2", features = ["ratatui"] }
+ratatui = "0.30"
+trace-core = { path = "../core" }
+```
+
+```rust file=trace/tui/src/main.rs
+//! The terminal UI: the library's trace and messages, drawn with Ratatui.
+
+use clap::Parser;
+use mf2::ratatui::{Theme, set_theme};
+use ratatui::crossterm::event::{self, Event, KeyCode};
+use ratatui::style::Style;
+use ratatui::widgets::{Block, Paragraph};
+use trace_core::Trace;
+use trace_core::prelude::*;
+
+#[derive(Parser)]
+struct Args {
+    /// The host to trace.
+    target: String,
+    /// The language to draw in, instead of the system's.
+    #[arg(long)]
+    lang: Option<Locale>,
+}
+
+fn main() -> std::io::Result<()> {
+    let args = Args::parse();
+    trace_core::install();
+    if let Some(lang) = args.lang {
+        set_locale(lang);
+    }
+    set_theme(Theme::default().style(trace_core::markup::HOST, Style::new().underlined()));
+    let trace = Trace {
+        target: args.target,
+        sent: 1204,
+        lost: 25,
+    };
+    ratatui::run(|terminal| {
+        loop {
+            terminal.draw(|frame| {
+                let block = Block::bordered().title(trace.title());
+                frame.render_widget(Paragraph::new(trace.summary()).block(block), frame.area());
+            })?;
+            if let Event::Key(key) = event::read()? {
+                match key.code {
+                    KeyCode::Char('1') => set_locale(Locale::En),
+                    KeyCode::Char('2') => set_locale(Locale::Fr),
+                    KeyCode::Char('q') => return Ok(()),
+                    _ => {}
+                }
+            }
+        }
+    })
+}
+```
+
+Every module of either crate imports the library's prelude, as `ui.rs` does
+in `hops`.
+
+**A library shared with a browser client must not turn on `native`**: a
+browser build refuses it. Such a library returns descriptions and leaves
+each application to choose its mode. This one serves a terminal UI only.

@@ -143,7 +143,7 @@ license = Distribuido bajo la licencia MIT.
 copyright = Copyright de los autores del ejemplo.
 close = Pulse cualquier tecla para cerrar
 
-[language]
+[languages]
 title = Idioma
 current = {$name} (actual)
 
@@ -204,7 +204,7 @@ privacy = Privacidad: saltos ocultos a partir del {$ttl :integer}
 no-response = Sin respuesta
 
 @do-not-translate
-[language-name]
+[language]
 en = English
 de = Deutsch
 es = Español

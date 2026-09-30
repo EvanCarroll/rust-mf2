@@ -1,14 +1,15 @@
 # A trippy-shaped terminal UI, drawn into a Ratatui buffer: the Phase 10
 # sample and the `cargo xtask tui-gate` workload (plans/18-phase-10-work-order.md,
-# A1 and C8). It is written against the 1.x API exactly as the user guide's
-# native page has an application written — a translation crate beside it,
-# `mf2-native` and `mf2-ratatui` — and it carries `upstream.rs`, an in-house
-# re-implementation of trippy's own translation approach, as the baseline.
+# A1 and C8). It is written against 2.0 as the user guide's native page
+# writes an application — `mf2` with `ratatui`, `mf2-build` in the build
+# script, the messages in `locales/` — and it carries `upstream.rs`, an
+# in-house re-implementation of trippy's own translation approach, as the
+# baseline.
 #
-# A workspace of its own, like the other examples: its translation crate is
-# a member, and nothing here should unify into the root workspace's builds.
+# A workspace of its own, like the other examples: nothing here should unify
+# into the root workspace's builds.
 [workspace]
-members = [".", "i18n"]
+members = ["."]
 resolver = "3"
 
 [package]
@@ -21,9 +22,7 @@ publish = false
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
-demo-tui-i18n = { path = "i18n" }
-mf2-native = { path = "../../crates/mf2-native" }
-mf2-ratatui = { path = "../../crates/mf2-ratatui" }
+mf2 = { path = "../../crates/mf2", features = ["ratatui", "fn-number"] }
 # No terminal backend: every frame is drawn into a `Buffer`. The layout
 # cache is one of Ratatui's defaults; without it every frame re-solves every
 # layout, which costs thousands of allocations and hides everything else.
@@ -31,3 +30,6 @@ ratatui = { version = "0.30", default-features = false, features = ["std", "layo
 # The baseline's catalog: one TOML table per message, one value per locale.
 serde = { version = "1.0.229", features = ["derive"] }
 toml = "1.1.6"
+
+[build-dependencies]
+mf2-build = { path = "../../crates/mf2-build" }

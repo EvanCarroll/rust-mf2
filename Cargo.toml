@@ -60,8 +60,8 @@ exclude = [
     # unifies features across a workspace: each example is its own.
     "examples/demo-ssr",
     "examples/demo-islands",
-    # The terminal UI (Phase 10 A1): a native application with a
-    # translation crate of its own, measured by `cargo xtask tui-gate`.
+    # The terminal UI (Phase 10 A1, C8): a native application measured by
+    # `cargo xtask tui-gate`.
     "examples/tui",
 ]
 

@@ -1,6 +1,8 @@
 # The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
 # nightly-2026-09-24; features: (default)
 pub mod mf2_ratatui
-pub use mf2_ratatui::MarkupStyles
-pub use mf2_ratatui::line
-pub use mf2_ratatui::text
+pub use mf2_ratatui::Markup
+pub use mf2_ratatui::Theme
+pub use mf2_ratatui::set_theme
+pub use mf2_ratatui::theme
+pub use mf2_ratatui::with_theme

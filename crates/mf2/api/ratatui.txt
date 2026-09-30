@@ -167,17 +167,6 @@ impl core::hash::Hash for mf2::ratatui::Markup
 pub fn mf2::ratatui::Markup::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::Copy for mf2::ratatui::Markup
 impl core::marker::StructuralPartialEq for mf2::ratatui::Markup
-pub struct mf2::ratatui::MarkupStyles
-impl mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::get(&self, &str) -> core::option::Option<ratatui_core::style::Style>
-pub const fn mf2::ratatui::MarkupStyles::new() -> Self
-pub fn mf2::ratatui::MarkupStyles::with(self, impl core::convert::Into<alloc::string::String>, ratatui_core::style::Style) -> Self
-impl core::clone::Clone for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::clone(&self) -> Self
-impl core::default::Default for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::default() -> Self
-impl core::fmt::Debug for mf2::ratatui::MarkupStyles
-pub fn mf2::ratatui::MarkupStyles::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2::ratatui::Theme
 impl mf2::ratatui::Theme
 pub const fn mf2::ratatui::Theme::empty() -> mf2::ratatui::Theme
@@ -192,9 +181,7 @@ pub fn mf2::ratatui::Theme::default() -> mf2::ratatui::Theme
 impl core::fmt::Debug for mf2::ratatui::Theme
 pub fn mf2::ratatui::Theme::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for mf2::ratatui::Theme
-pub fn mf2::ratatui::line(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::line::Line<'static>
 pub fn mf2::ratatui::set_theme(mf2::ratatui::Theme)
-pub fn mf2::ratatui::text(&mf2::native::NativeI18n, &impl mf2::Message, &mf2::ratatui::MarkupStyles) -> ratatui_core::text::text::Text<'static>
 pub fn mf2::ratatui::theme() -> mf2::ratatui::Theme
 pub fn mf2::ratatui::with_theme<R>(&mf2::ratatui::Theme, impl core::ops::function::FnOnce() -> R) -> R
 pub macro mf2::include_generated!

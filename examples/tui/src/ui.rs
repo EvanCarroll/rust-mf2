@@ -1,43 +1,29 @@
-//! The frame, translated with MF2 through the 1.x API, as the user guide's
-//! native page writes an application: the `NativeI18n` handle passed to
-//! everything that makes text, `mf2_ratatui::line` for a message with markup
-//! and `NativeI18n::format` for plain text, and the markup's styles built
-//! for each draw.
+//! The frame, translated with MF2 as the user guide's native page writes an
+//! application: `tr!` wherever Ratatui takes text, in the language in force,
+//! and the markup's styles set once, as a theme.
 
-use demo_tui_i18n::tr;
-use mf2_native::NativeI18n;
-use mf2_ratatui::{MarkupStyles, line};
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Cell, Paragraph, Row, Table, Widget};
 
-use crate::model::{Host, LOCALES, Model, ms, percent};
+use crate::model::{Host, Model, ms, percent};
+use crate::prelude::*;
 
 /// What each markup name looks like. The messages say what a stretch is;
-/// this says how it is drawn.
-fn styles() -> MarkupStyles {
-    MarkupStyles::new()
-        .with(
-            "key",
-            Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
-        )
-        .with("host", Style::new().add_modifier(Modifier::UNDERLINED))
-        .with(
-            "ok",
-            Style::new().fg(Color::Green).add_modifier(Modifier::BOLD),
-        )
-        .with("warn", Style::new().fg(Color::Yellow))
-        .with(
-            "alert",
-            Style::new().fg(Color::Red).add_modifier(Modifier::BOLD),
-        )
+/// this says how it is drawn. `main` sets it once, with `set_theme`.
+pub fn theme() -> mf2::ratatui::Theme {
+    mf2::ratatui::Theme::default()
+        .style(crate::markup::KEY, Style::new().yellow().bold())
+        .style(crate::markup::HOST, Style::new().underlined())
+        .style(crate::markup::OK, Style::new().green().bold())
+        .style(crate::markup::WARN, Style::new().yellow())
+        .style(crate::markup::ALERT, Style::new().red().bold())
 }
 
 /// Draws the whole frame into `buf`.
-pub fn draw(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
-    let styles = styles();
+pub fn draw(model: &Model, area: Rect, buf: &mut Buffer) {
     let [header, middle, charts, bottom, footer] = Layout::vertical([
         Constraint::Length(7),
         Constraint::Length(16),
@@ -46,12 +32,12 @@ pub fn draw(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
         Constraint::Length(1),
     ])
     .areas(area);
-    draw_header(i18n, &styles, model, header, buf);
+    draw_header(model, header, buf);
     let [hops, details] =
         Layout::horizontal([Constraint::Min(0), Constraint::Length(46)]).areas(middle);
-    draw_hops(i18n, model, hops, buf);
-    draw_details(i18n, &styles, model, details, buf);
-    draw_charts(i18n, model, charts, buf);
+    draw_hops(model, hops, buf);
+    draw_details(model, details, buf);
+    draw_charts(model, charts, buf);
     let [settings, help, language, log] = Layout::horizontal([
         Constraint::Length(62),
         Constraint::Length(44),
@@ -59,76 +45,53 @@ pub fn draw(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
         Constraint::Min(0),
     ])
     .areas(bottom);
-    draw_settings(i18n, &styles, model, settings, buf);
-    draw_help(i18n, &styles, help, buf);
-    draw_language(i18n, language, buf);
-    draw_log(i18n, &styles, model, log, buf);
-    draw_footer(i18n, &styles, model, footer, buf);
+    draw_settings(model, settings, buf);
+    draw_help(help, buf);
+    draw_language(language, buf);
+    draw_log(model, log, buf);
+    draw_footer(model, footer, buf);
 }
 
-fn draw_header(
-    i18n: &NativeI18n,
-    styles: &MarkupStyles,
-    model: &Model,
+fn draw_header(model: &Model,
     area: Rect,
     buf: &mut Buffer,
 ) {
-    let block = Block::bordered().title(line(
-        i18n,
-        &tr!("app.title", version = model.version),
-        styles,
-    ));
+    let block = Block::bordered().title(Line::from(tr!("app.title", version = model.version)));
     let inner = block.inner(area);
     block.render(area, buf);
     let [left, right] =
         Layout::horizontal([Constraint::Min(0), Constraint::Length(84)]).areas(inner);
     Paragraph::new(vec![
-        line(
-            i18n,
-            &tr!(
+        Line::from(tr!(
                 "header.target",
                 source = model.source,
                 destination = model.destination
-            ),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("header.protocol", protocol = model.protocol),
-            styles,
-        ),
-        line(i18n, &tr!("header.status-running"), styles),
-        line(
-            i18n,
-            &tr!(
+            )),
+        Line::from(tr!("header.protocol", protocol = model.protocol)),
+        Line::from(tr!("header.status-running")),
+        Line::from(tr!(
                 "header.failures",
                 failed = model.failed,
                 total = model.sent,
                 rate = model.failure_rate()
-            ),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!(
+            )),
+        Line::from(tr!(
                 "header.discovered",
                 hops = model.hops.len(),
                 flows = model.flows.len()
-            ),
-            styles,
-        ),
+            )),
     ])
     .render(left, buf);
 
     let mut hints: Vec<Span<'static>> = Vec::new();
     for hint in [
-        line(i18n, &tr!("hint.help"), styles),
-        line(i18n, &tr!("hint.settings"), styles),
-        line(i18n, &tr!("hint.language"), styles),
-        line(i18n, &tr!("hint.freeze"), styles),
-        line(i18n, &tr!("hint.details"), styles),
-        line(i18n, &tr!("hint.chart"), styles),
-        line(i18n, &tr!("hint.quit"), styles),
+        Line::from(tr!("hint.help")),
+        Line::from(tr!("hint.settings")),
+        Line::from(tr!("hint.language")),
+        Line::from(tr!("hint.freeze")),
+        Line::from(tr!("hint.details")),
+        Line::from(tr!("hint.chart")),
+        Line::from(tr!("hint.quit")),
     ] {
         if !hints.is_empty() {
             hints.push(Span::raw("  "));
@@ -137,51 +100,51 @@ fn draw_header(
     }
     Paragraph::new(vec![
         Line::from(hints),
-        Line::raw(i18n.format(&tr!("header.privileged"))),
+        Line::from(tr!("header.privileged")),
     ])
     .alignment(Alignment::Right)
     .render(right, buf);
 }
 
-fn draw_hops(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
+fn draw_hops(model: &Model, area: Rect, buf: &mut Buffer) {
     let header = Row::new(vec![
-        Cell::from(i18n.format(&tr!("column.hop"))),
-        Cell::from(i18n.format(&tr!("column.host"))),
-        Cell::from(i18n.format(&tr!("column.loss"))),
-        Cell::from(i18n.format(&tr!("column.sent"))),
-        Cell::from(i18n.format(&tr!("column.received"))),
-        Cell::from(i18n.format(&tr!("column.last"))),
-        Cell::from(i18n.format(&tr!("column.average"))),
-        Cell::from(i18n.format(&tr!("column.best"))),
-        Cell::from(i18n.format(&tr!("column.worst"))),
-        Cell::from(i18n.format(&tr!("column.deviation"))),
-        Cell::from(i18n.format(&tr!("column.jitter"))),
-        Cell::from(i18n.format(&tr!("column.status"))),
-        Cell::from(i18n.format(&tr!("column.asn"))),
-        Cell::from(i18n.format(&tr!("column.location"))),
+        Cell::from(tr!("column.hop")),
+        Cell::from(tr!("column.host")),
+        Cell::from(tr!("column.loss")),
+        Cell::from(tr!("column.sent")),
+        Cell::from(tr!("column.received")),
+        Cell::from(tr!("column.last")),
+        Cell::from(tr!("column.average")),
+        Cell::from(tr!("column.best")),
+        Cell::from(tr!("column.worst")),
+        Cell::from(tr!("column.deviation")),
+        Cell::from(tr!("column.jitter")),
+        Cell::from(tr!("column.status")),
+        Cell::from(tr!("column.asn")),
+        Cell::from(tr!("column.location")),
     ])
-    .style(Style::new().add_modifier(Modifier::BOLD));
+    .bold();
     let rows = model.hops.iter().map(|hop| {
         let host = match hop.host {
-            Host::Name(name) => name.to_owned(),
-            Host::NoResponse => i18n.format(&tr!("status.no-response")),
-            Host::Resolving => i18n.format(&tr!("details.dns-pending")),
-            Host::LookupFailed => i18n.format(&tr!("details.dns-failed")),
-            Host::LookupTimedOut => i18n.format(&tr!("details.dns-timeout")),
-            Host::Hidden => i18n.format(&tr!("header.hidden")),
+            Host::Name(name) => Cell::from(name),
+            Host::NoResponse => Cell::from(tr!("status.no-response")),
+            Host::Resolving => Cell::from(tr!("details.dns-pending")),
+            Host::LookupFailed => Cell::from(tr!("details.dns-failed")),
+            Host::LookupTimedOut => Cell::from(tr!("details.dns-timeout")),
+            Host::Hidden => Cell::from(tr!("header.hidden")),
         };
         let asn = match hop.asn {
-            Some((number, _)) => format!("AS{number}"),
-            None => i18n.format(&tr!("details.asn-pending")),
+            Some((number, _)) => Cell::from(format!("AS{number}")),
+            None => Cell::from(tr!("details.asn-pending")),
         };
         let location = match hop.location {
-            Some((city, country)) => format!("{city}, {country}"),
-            None => i18n.format(&tr!("header.unknown")),
+            Some((city, country)) => Cell::from(format!("{city}, {country}")),
+            None => Cell::from(tr!("header.unknown")),
         };
         let status = if hop.received > 0 { "✓" } else { "✗" };
         Row::new(vec![
             Cell::from(hop.ttl.to_string()),
-            Cell::from(host),
+            host,
             Cell::from(percent(hop.loss)),
             Cell::from(hop.sent.to_string()),
             Cell::from(hop.received.to_string()),
@@ -192,8 +155,8 @@ fn draw_hops(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
             Cell::from(ms(hop.deviation)),
             Cell::from(ms(hop.jitter)),
             Cell::from(status),
-            Cell::from(asn),
-            Cell::from(location),
+            asn,
+            location,
         ])
     });
     let widths = [
@@ -214,14 +177,11 @@ fn draw_hops(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
     ];
     Table::new(rows, widths)
         .header(header)
-        .block(Block::bordered().title(i18n.format(&tr!("hops.title"))))
+        .block(Block::bordered().title(tr!("hops.title")))
         .render(area, buf);
 }
 
-fn draw_details(
-    i18n: &NativeI18n,
-    styles: &MarkupStyles,
-    model: &Model,
+fn draw_details(model: &Model,
     area: Rect,
     buf: &mut Buffer,
 ) {
@@ -229,42 +189,26 @@ fn draw_details(
     let (asn, name) = hop.asn.unwrap_or((0, ""));
     let (city, country) = hop.location.unwrap_or(("", ""));
     Paragraph::new(vec![
-        line(
-            i18n,
-            &tr!("details.host", host = model.selected_name()),
-            styles,
-        ),
-        line(i18n, &tr!("details.loss", loss = hop.loss), styles),
-        line(i18n, &tr!("details.sent", sent = hop.sent), styles),
-        line(
-            i18n,
-            &tr!("details.received", received = hop.received),
-            styles,
-        ),
-        line(i18n, &tr!("details.last", ms = hop.last), styles),
-        line(i18n, &tr!("details.average", ms = hop.average), styles),
-        line(i18n, &tr!("details.best", ms = hop.best), styles),
-        line(i18n, &tr!("details.worst", ms = hop.worst), styles),
-        line(i18n, &tr!("details.deviation", ms = hop.deviation), styles),
-        line(i18n, &tr!("details.jitter", ms = hop.jitter), styles),
-        line(i18n, &tr!("details.asn", asn = asn, name = name), styles),
-        line(
-            i18n,
-            &tr!("details.location", city = city, country = country),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("details.addresses", count = hop.addresses),
-            styles,
-        ),
-        line(i18n, &tr!("details.nav"), styles),
+        Line::from(tr!("details.host", host = model.selected_name())),
+        Line::from(tr!("details.loss", loss = hop.loss)),
+        Line::from(tr!("details.sent", sent = hop.sent)),
+        Line::from(tr!("details.received", received = hop.received)),
+        Line::from(tr!("details.last", ms = hop.last)),
+        Line::from(tr!("details.average", ms = hop.average)),
+        Line::from(tr!("details.best", ms = hop.best)),
+        Line::from(tr!("details.worst", ms = hop.worst)),
+        Line::from(tr!("details.deviation", ms = hop.deviation)),
+        Line::from(tr!("details.jitter", ms = hop.jitter)),
+        Line::from(tr!("details.asn", asn = asn, name = name)),
+        Line::from(tr!("details.location", city = city, country = country)),
+        Line::from(tr!("details.addresses", count = hop.addresses)),
+        Line::from(tr!("details.nav")),
     ])
-    .block(Block::bordered().title(i18n.format(&tr!("details.title", ttl = hop.ttl))))
+    .block(Block::bordered().title(tr!("details.title", ttl = hop.ttl)))
     .render(area, buf);
 }
 
-fn draw_charts(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
+fn draw_charts(model: &Model, area: Rect, buf: &mut Buffer) {
     let ttl = model.selected_hop().ttl;
     let [chart, frequency, history, flows] = Layout::horizontal([
         Constraint::Length(40),
@@ -274,47 +218,44 @@ fn draw_charts(i18n: &NativeI18n, model: &Model, area: Rect, buf: &mut Buffer) {
     ])
     .areas(area);
     Paragraph::new(vec![
-        Line::raw(i18n.format(&tr!("chart.samples"))),
-        Line::raw(i18n.format(&tr!("chart.rtt"))),
-        Line::raw(i18n.format(&tr!("chart.hop", ttl = ttl))),
-        Line::raw(i18n.format(&tr!("chart.zoom", factor = model.zoom))),
+        Line::from(tr!("chart.samples")),
+        Line::from(tr!("chart.rtt")),
+        Line::from(tr!("chart.hop", ttl = ttl)),
+        Line::from(tr!("chart.zoom", factor = model.zoom)),
     ])
-    .block(Block::bordered().title(i18n.format(&tr!("chart.title"))))
+    .block(Block::bordered().title(tr!("chart.title")))
     .render(chart, buf);
     Block::bordered()
-        .title(i18n.format(&tr!("chart.frequency", ttl = ttl)))
+        .title(tr!("chart.frequency", ttl = ttl))
         .render(frequency, buf);
     Block::bordered()
-        .title(i18n.format(&tr!("chart.history", ttl = ttl)))
+        .title(tr!("chart.history", ttl = ttl))
         .render(history, buf);
 
     let rows = model.flows.iter().map(|flow| {
         let state = if flow.running {
-            i18n.format(&tr!("flows.running"))
+            tr!("flows.running")
         } else {
-            i18n.format(&tr!("flows.frozen"))
+            tr!("flows.frozen")
         };
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("flows.selected", id = flow.id))),
+            Cell::from(tr!("flows.selected", id = flow.id)),
             Cell::from(state),
         ])
     });
     Table::new(rows, [Constraint::Length(12), Constraint::Min(0)])
         .header(Row::new(vec![Cell::from(
-            i18n.format(&tr!("flows.count", count = model.flows.len())),
+            tr!("flows.count", count = model.flows.len()),
         )]))
-        .block(Block::bordered().title(i18n.format(&tr!("flows.title"))))
+        .block(Block::bordered().title(tr!("flows.title")))
         .render(flows, buf);
 }
 
-fn draw_settings(
-    i18n: &NativeI18n,
-    styles: &MarkupStyles,
-    model: &Model,
+fn draw_settings(model: &Model,
     area: Rect,
     buf: &mut Buffer,
 ) {
-    let block = Block::bordered().title(i18n.format(&tr!("settings.title")));
+    let block = Block::bordered().title(tr!("settings.title"));
     let inner = block.inner(area);
     block.render(area, buf);
     let [info, tabs, values] = Layout::vertical([
@@ -323,154 +264,120 @@ fn draw_settings(
         Constraint::Min(0),
     ])
     .areas(inner);
-    line(i18n, &tr!("settings.info"), styles).render(info, buf);
+    Line::from(tr!("settings.info")).render(info, buf);
 
     let tab_rows = vec![
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-interface"))),
-            Cell::from(i18n.format(&tr!("settings.tab-interface-about"))),
+            Cell::from(tr!("settings.tab-interface")),
+            Cell::from(tr!("settings.tab-interface-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-trace"))),
-            Cell::from(i18n.format(&tr!("settings.tab-trace-about"))),
+            Cell::from(tr!("settings.tab-trace")),
+            Cell::from(tr!("settings.tab-trace-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-dns"))),
-            Cell::from(i18n.format(&tr!("settings.tab-dns-about"))),
+            Cell::from(tr!("settings.tab-dns")),
+            Cell::from(tr!("settings.tab-dns-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-geoip"))),
-            Cell::from(i18n.format(&tr!("settings.tab-geoip-about"))),
+            Cell::from(tr!("settings.tab-geoip")),
+            Cell::from(tr!("settings.tab-geoip-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-keys"))),
-            Cell::from(i18n.format(&tr!("settings.tab-keys-about"))),
+            Cell::from(tr!("settings.tab-keys")),
+            Cell::from(tr!("settings.tab-keys-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-theme"))),
-            Cell::from(i18n.format(&tr!("settings.tab-theme-about"))),
+            Cell::from(tr!("settings.tab-theme")),
+            Cell::from(tr!("settings.tab-theme-about")),
         ]),
         Row::new(vec![
-            Cell::from(i18n.format(&tr!("settings.tab-columns"))),
-            Cell::from(i18n.format(&tr!("settings.tab-columns-about"))),
+            Cell::from(tr!("settings.tab-columns")),
+            Cell::from(tr!("settings.tab-columns-about")),
         ]),
     ];
     Table::new(tab_rows, [Constraint::Length(12), Constraint::Min(0)]).render(tabs, buf);
 
-    let on = i18n.format(&tr!("settings.on"));
-    let off = i18n.format(&tr!("settings.off"));
-    let auto = i18n.format(&tr!("settings.auto"));
-    let mode = i18n.format(&tr!("header.unprivileged"));
+    let on = tr!("settings.on").to_string();
+    let off = tr!("settings.off").to_string();
+    let auto = tr!("settings.auto").to_string();
+    let mode = tr!("header.unprivileged").to_string();
     Paragraph::new(vec![
-        Line::raw(i18n.format(&tr!("settings.interval", ms = model.interval_ms))),
-        Line::raw(i18n.format(&tr!("settings.max-ttl", hops = model.max_ttl))),
-        Line::raw(i18n.format(&tr!("settings.timeout", ms = model.timeout_ms))),
-        Line::raw(i18n.format(&tr!("settings.reverse-dns", state = on))),
-        Line::raw(i18n.format(&tr!("settings.mode", mode = mode))),
-        Line::raw(i18n.format(&tr!("settings.geoip", state = auto))),
-        Line::raw(i18n.format(&tr!("settings.asn", state = off))),
+        Line::from(tr!("settings.interval", ms = model.interval_ms)),
+        Line::from(tr!("settings.max-ttl", hops = model.max_ttl)),
+        Line::from(tr!("settings.timeout", ms = model.timeout_ms)),
+        Line::from(tr!("settings.reverse-dns", state = on)),
+        Line::from(tr!("settings.mode", mode = mode)),
+        Line::from(tr!("settings.geoip", state = auto)),
+        Line::from(tr!("settings.asn", state = off)),
     ])
     .render(values, buf);
 }
 
-fn draw_help(i18n: &NativeI18n, styles: &MarkupStyles, area: Rect, buf: &mut Buffer) {
+fn draw_help(area: Rect, buf: &mut Buffer) {
     Paragraph::new(vec![
-        line(i18n, &tr!("app.tagline"), styles),
-        line(i18n, &tr!("help.settings"), styles),
-        line(i18n, &tr!("help.keys"), styles),
-        line(i18n, &tr!("help.columns"), styles),
-        line(i18n, &tr!("help.license"), styles),
-        line(i18n, &tr!("help.copyright"), styles),
-        line(i18n, &tr!("help.close"), styles),
+        Line::from(tr!("app.tagline")),
+        Line::from(tr!("help.settings")),
+        Line::from(tr!("help.keys")),
+        Line::from(tr!("help.columns")),
+        Line::from(tr!("help.license")),
+        Line::from(tr!("help.copyright")),
+        Line::from(tr!("help.close")),
     ])
-    .block(Block::bordered().title(i18n.format(&tr!("help.title"))))
+    .block(Block::bordered().title(tr!("help.title")))
     .render(area, buf);
 }
 
-fn draw_language(i18n: &NativeI18n, area: Rect, buf: &mut Buffer) {
-    let current = i18n.locale();
-    let lines: Vec<Line<'static>> = LOCALES
+fn draw_language(area: Rect, buf: &mut Buffer) {
+    // Each language named in itself, from its `language.<tag>` message.
+    let current = current_locale();
+    let lines: Vec<Line<'static>> = Locale::ALL
         .iter()
-        .map(|&tag| {
-            let name = match tag {
-                "de" => i18n.format(&tr!("language-name.de")),
-                "es" => i18n.format(&tr!("language-name.es")),
-                "fr" => i18n.format(&tr!("language-name.fr")),
-                _ => i18n.format(&tr!("language-name.en")),
-            };
-            if tag == current {
-                Line::styled(
-                    i18n.format(&tr!("language.current", name = name)),
-                    Style::new().add_modifier(Modifier::BOLD),
-                )
+        .map(|&lang| {
+            if lang == current {
+                let name = lang.name().to_string();
+                Line::from(tr!("languages.current", name = name)).bold()
             } else {
-                Line::raw(name)
+                Line::from(lang.name())
             }
         })
         .collect();
     Paragraph::new(lines)
-        .block(Block::bordered().title(i18n.format(&tr!("language.title"))))
+        .block(Block::bordered().title(tr!("languages.title")))
         .render(area, buf);
 }
 
-fn draw_log(i18n: &NativeI18n, styles: &MarkupStyles, model: &Model, area: Rect, buf: &mut Buffer) {
+fn draw_log(model: &Model, area: Rect, buf: &mut Buffer) {
     Paragraph::new(vec![
-        line(i18n, &tr!("log.awaiting"), styles),
-        line(i18n, &tr!("log.started", host = model.destination), styles),
-        line(i18n, &tr!("log.permission"), styles),
-        line(i18n, &tr!("log.resolve", host = model.unresolved), styles),
-        line(
-            i18n,
-            &tr!("header.status-frozen", seconds = model.frozen_seconds),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("log.dns-pending", count = model.dns_pending),
-            styles,
-        ),
-        line(i18n, &tr!("log.failed", error = model.error), styles),
-        line(i18n, &tr!("log.quit"), styles),
+        Line::from(tr!("log.awaiting")),
+        Line::from(tr!("log.started", host = model.destination)),
+        Line::from(tr!("log.permission")),
+        Line::from(tr!("log.resolve", host = model.unresolved)),
+        Line::from(tr!("header.status-frozen", seconds = model.frozen_seconds)),
+        Line::from(tr!("log.dns-pending", count = model.dns_pending)),
+        Line::from(tr!("log.failed", error = model.error)),
+        Line::from(tr!("log.quit")),
     ])
-    .block(Block::bordered().title(i18n.format(&tr!("log.title"))))
+    .block(Block::bordered().title(tr!("log.title")))
     .render(area, buf);
 }
 
-fn draw_footer(
-    i18n: &NativeI18n,
-    styles: &MarkupStyles,
-    model: &Model,
+fn draw_footer(model: &Model,
     area: Rect,
     buf: &mut Buffer,
 ) {
     let mut spans: Vec<Span<'static>> = Vec::new();
     for part in [
-        line(
-            i18n,
-            &tr!(
+        Line::from(tr!(
                 "status.summary",
                 hops = model.hops.len(),
                 sent = model.sent,
                 failed = model.failed
-            ),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("status.loss", rate = model.failure_rate()),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("status.elapsed", minutes = model.elapsed_minutes),
-            styles,
-        ),
-        line(
-            i18n,
-            &tr!("status.privacy", ttl = model.privacy_ttl),
-            styles,
-        ),
-        line(i18n, &tr!("status.frozen"), styles),
+            )),
+        Line::from(tr!("status.loss", rate = model.failure_rate())),
+        Line::from(tr!("status.elapsed", minutes = model.elapsed_minutes)),
+        Line::from(tr!("status.privacy", ttl = model.privacy_ttl)),
+        Line::from(tr!("status.frozen")),
     ] {
         if !spans.is_empty() {
             spans.push(Span::raw(" │ "));

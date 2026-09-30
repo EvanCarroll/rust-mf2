@@ -9,11 +9,13 @@ so that it can be measured.
 
 It is drawn twice:
 
-* `src/ui.rs` — with MF2, written against the 1.x API as the user guide's
-  native page has an application written: a translation crate beside it
-  (`i18n/`), `mf2-native`'s `NativeI18n` passed to everything that makes
-  text, `mf2-ratatui` for the messages with markup, and the markup's styles
-  built for each draw. Phase 10 rewrites it on 2.0 (C8).
+* `src/ui.rs` — with MF2, written against 2.0 as the user guide's native
+  page writes an application: `mf2` with `ratatui`, the messages in
+  `locales/` beside the code, a one-line `build.rs`, `tr!` wherever Ratatui
+  takes text, and the markup's styles set once as a theme (`ui::theme`).
+  1.x's form — a translation crate, a handle passed to everything, a style
+  map built for each draw — is at commit `3a296a9`, which the nightly gate
+  builds to compare with.
 * `src/upstream.rs` — the baseline: trippy's own approach, re-implemented
   here from a description of it (a TOML table per message, the locale
   `String` cloned by every lookup, `%{name}` replaced one `str::replace` at a
@@ -39,8 +41,17 @@ From the repository root:
 cargo xtask tui-gate                      # allocations, time per frame, stripped sizes
 cargo xtask tui-gate --save-baseline DIR  # and keep these binaries
 cargo xtask tui-gate --baseline DIR       # alternate with binaries kept earlier
-cargo xtask tui-gate --book               # add the user guide's native project
+cargo xtask tui-gate --book               # add the user guide's native projects
+cargo xtask tui-gate --gate --runs 3      # the CI gate: allocations and size
+cargo xtask tui-gate --gate --baseline-rev 3a296a920952239a8c62399f2e8d51aad46f84ec
+                                          # the nightly gate: and time, against 1.x
 ```
+
+The gate (plans/19-native-and-terminal.md §8 and §14): the MF2 frame
+allocates no more than 1.x's did and no more than the baseline renderer, in
+every language; stripped `tui-mf2` is no larger than 1.x's; and, with a
+baseline in the rotation, its median time per frame is no more than the
+baseline MF2 binary's.
 
 `src/bin/tui-mf2.rs` and `src/bin/tui-upstream.rs` are the measured
 binaries: each draws the frame in every language, counts the allocations

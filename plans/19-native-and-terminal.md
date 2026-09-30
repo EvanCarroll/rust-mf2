@@ -931,7 +931,7 @@ code:
 | Sample | 1.x (A1) | **2.0 target** |
 |---|---|---|
 | one-file CLI | 35 lines; 3 + 1 crates; 18 concepts; 1 command, 4 translation files by hand | **13 lines; 2 + 0 crates; 8 concepts; 1 command, 1 file by hand** (`build.rs`) |
-| trippy-shaped TUI (`examples/tui`) | 48; 4 + 1; 22; 1, 4 files | **24; 2 + 0; 14; 1, 1 file** |
+| trippy-shaped TUI (`examples/tui`) | 48; 4 + 1; 22; 1, 4 files | **24; 2 + 0; 14; 1, 1 file** (C8: 17 concepts — the menu adds `Locale::ALL`, `name`, `current_locale`, as the book's TUI; still below 22) |
 | — the book's TUI (§1.2) | — | 23; 2 + 0; 17; 1, 1 file |
 | two-crate workspace | 48; 4 + 1; 22; 1, 4 files | **19; 2 + 0; 16; 1, 1 file** |
 | Leptos `hello` | 96 (+ 3 changed); 4 + 1 and the `mf2` tool; 28; 5 commands, 2 of them this library's | **22 (0 changed); 2 + 0, no tool; 18; 3 commands, none of them this library's** |
@@ -964,6 +964,8 @@ comes back to this document with the reason, rather than landing above them.
   - `ui.rs` (1: the prelude).
   1.x's 48 was the CLI's 35, `mf2-ratatui`, three `use` lines, and an 8-line
   style map built for each draw (+1).
+  C8 keeps the theme in `ui.rs` (`ui::theme()`, 8 lines, for the bench binary
+  too) and `main.rs` calls `set_theme(ui::theme())`: the same 24.
 - **The book's TUI (23):**
   - as the CLI's Cargo.toml and build.rs (6);
   - `main.rs` (16): the include, `use mf2::ratatui`, `--lang` (2), `install()`,

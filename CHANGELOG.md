@@ -170,14 +170,16 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   and paths.
   `NativeI18n` implements `Debug`: the active locale, where it came from,
   the catalogs and the settings.
-* **Changed: the Ratatui support is `mf2`'s.** `MarkupStyles`, `line` and
-  `text` are the module `mf2::ratatui`, behind `mf2`'s new `ratatui`
-  feature, which implies `native` and adds `ratatui-core` alone. Like
+* **Changed: the Ratatui support is `mf2`'s.** It is the module
+  `mf2::ratatui`, behind `mf2`'s new `ratatui` feature, which implies `native` and adds `ratatui-core` alone. Like
   `native`, beside `hydrate` or `csr` it is a compile error when compiling
   for the browser (`wasm32`), in a sentence that names `ratatui`; on the
   host the two compile together, so a workspace that holds a browser
-  client and a terminal UI checks as one. **`mf2-ratatui` is a shim** that
-  re-exports the three under 1.x's names and paths.
+  client and a terminal UI checks as one. A call site converts into
+  Ratatui's `Span`, `Line` and `Text` itself, and a `Theme`, set once,
+  styles its markup. **Removed: 1.x's `MarkupStyles`, `line` and `text`**,
+  which took the handle and a map of styles on every call.
+  **`mf2-ratatui` is a pointer** that re-exports `mf2::ratatui`.
 * **`tr!` takes any number, text, date or path, and any type with
   `Display`.** An argument converts through the new `mf2::IntoArg`, which an
   application may implement for its own types: every integer type exactly

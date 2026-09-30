@@ -25,6 +25,13 @@
 # why it is a job of its own rather than a step of `cargo xtask ci`; whether it
 # runs on every push is the owner's call (plans/08, A9).
 #
+# Job `tui-gate`: the terminal UI's gate (plans/19-native-and-terminal.md
+# §8 and §14; `cargo xtask tui-gate --gate`): examples/tui's frame, drawn
+# with MF2, allocates no more than 1.x's did and no more than the in-house
+# re-implementation of trippy's approach, in every language — counts that
+# are the same in every run, so they are held on every push — and stripped
+# `tui-mf2` is no larger than 1.x's. Its time per frame is the nightly's.
+#
 # Job `b12`: budget B12 for the catalog reader (plans/09-phase-2-work-order.md,
 # A9; plans/06-size-and-perf.md §3): bench/b12/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
@@ -51,7 +58,8 @@
 # `rust`, `toml` and `mf2` blocks of docs/*.md — running the `mf2 init` the
 # pages show and checking generated files against their examples — then
 # checks each project for its documented targets with warnings denied. This
-# includes the CLI/Ratatui native example in both feature modes. A client-only
+# includes the three native applications (a CLI, a Ratatui TUI and a
+# two-crate workspace). A client-only
 # example also publishes catalogs with `mf2 compile --site`. GitHub Actions
 # separately builds and deploys the rendered book once the repository is on
 # GitHub. `cargo xtask ci` assembles examples without building them.
@@ -219,6 +227,63 @@ jobs:
           path: |
             target/parser-gate/report.md
             target/parser-gate/report.json
+          if-no-files-found: error
+
+  tui-gate:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: The terminal UI's gate (allocations per frame and stripped size)
+        # Three runs: the counts must agree between them. Time is nightly's.
+        run: cargo xtask tui-gate --gate --runs 3
+
+      - name: Upload the gate report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: tui-gate-report
+          path: |
+            target/tui-gate/report.md
+            target/tui-gate/report.json
           if-no-files-found: error
 
   catalog-size:

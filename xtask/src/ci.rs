@@ -4,6 +4,11 @@
 //! listings are made with (`cargo xtask api`) when it is missing: the
 //! specification text must already be in its cache (`cargo xtask spec-sync`,
 //! which CI runs first).
+//!
+//! The release-build gates are jobs of their own beside it, not steps:
+//! `parser-gate`, and `tui-gate` (`cargo xtask tui-gate --gate`: the terminal
+//! UI's allocations per frame and stripped size on every push; its time
+//! against the 1.x binary nightly).
 
 use std::ffi::OsStr;
 use std::path::Path;

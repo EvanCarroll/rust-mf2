@@ -60,6 +60,11 @@
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
 #   (bench/runtime-bench); load-sensitive too.
+# * `tui-gate` (a job of its own; plans/19 §8 and §14): examples/tui's
+#   frame on 2.0 against 1.x's binaries, built from commit 3a296a9 in a
+#   worktree and run alternately — allocations, stripped size, and the
+#   median time per frame, which may not exceed 1.x's
+#   (`cargo xtask tui-gate --gate --baseline-rev`). Load-sensitive.
 #
 # Actions: only Forgejo-maintained forks (see ci.yml). Sources are fetched
 # with plain git.
@@ -562,3 +567,67 @@ jobs:
 
       - name: mf2's Leptos layer, mf2-axum and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8
+
+  tui-gate:
+    # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          # examples/tui in its 1.x form (Phase 10 A1), built for the comparison.
+          BASE: 3a296a920952239a8c62399f2e8d51aad46f84ec
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$BASE"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+            git fetch --quiet --depth=1 origin "$BASE"
+          fi
+          git checkout --quiet --detach "$SHA"
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: The terminal UI's gate, with time against the 1.x binary
+        # Builds 1.x's binaries in a worktree and alternates them with this
+        # build's, 31 runs each: a time is only comparable within one run.
+        run: cargo xtask tui-gate --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
+
+      - name: Upload the gate report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: tui-gate-nightly-report
+          path: |
+            target/tui-gate/report.md
+            target/tui-gate/report.json
+          if-no-files-found: error
