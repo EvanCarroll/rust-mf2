@@ -291,15 +291,19 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `static-locale`; csr with Trunk and `compile --site`) or add translations to a crate; no mode lists the five.
   The 1.x translation-crate template is gone: Getting started, the migration guide and fluent-ab write it by
   hand until D6. ci; docs and scenarios (d5-gate) pass; fluent-ab not rerun.
+- **D6** (`3de4f0d`): book, README, demos and fluent-ab bench on `mf2` alone (one crate, `mf2::leptos` /
+  `mf2::axum`, the layer); `convert --from leptos-fluent` in the app's crate writes `use crate::tr`. No page,
+  example or bench uses `mf2-axum`'s glue (`install`, `provide_locale`): G1 can delete the shims. hello: 22
+  lines, 2 + 0 crates, 18 concepts, 3 commands, 1 file (all at target; the row falls). Nightly `fmt-check` added.
+  ci; docs; docs-rs; churn 84/84; e2e 0.9 and 0.8 1212/1212; sizes; islands-zero; fluent-migrate.
 
-**In flight:** D6 (the web book and examples), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **D1–D5 are done; D6 first** (E4 unblocked), checked with
-  `probes/p10-checks/` (its README).
+- **Part D is done; E4 first, then Part F** (F1 can start: its heading allows it after C8);
+  **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
 generated `setup()`), with questions 30 (backward compatibility is not a priority) and 32 (task
