@@ -303,6 +303,12 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From D1: the Leptos request glue (`provide_locale`, `negotiated`, 1.x's `install`) stays in the
+  `mf2-axum` shim: it needs `leptos_axum`, which cargo cannot turn on only when `axum`, `ssr` and a
+  line are all on. **D3**'s layer, which writes the headers itself, replaces it; if D3's probe fails
+  and its fallback keeps the context wiring, a feature of our own beside `ssr` is an owner question
+  then. Until D3 a Leptos server names `mf2-axum` for `provide_locale`, and G1 cannot delete that
+  shim before D3.
 - From C2 (its record):
   - Every change to a client-path crate: adding items no client reaches (a `Debug` impl) can move
     LLVM's inlining or function order in every client; read a names-kept build
