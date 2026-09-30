@@ -1,4 +1,4 @@
-# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
 # nightly-2026-09-24; mode: hydrate; features: compile,fn-number,datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
 pub mod mf2
 pub use mf2::Arg

@@ -1,4 +1,4 @@
-//! `cargo xtask api [--check]`: the public API of the 20 published crates,
+//! `cargo xtask api [--check]`: the public API of the 16 published crates,
 //! listed and committed (`plans/17-phase-9-work-order.md` A2;
 //! `docs/versioning.md`): as `crates/<name>/api.txt`, or, for a crate whose
 //! features select what it offers, once per mode, as
@@ -30,8 +30,9 @@
 //!   (`mf2::leptos::islands_gate!`, whose macro is exported, hidden, at the
 //!   crate's root): it is listed at the re-export's path;
 //! * a glob re-export of another crate's module, which the JSON cannot look
-//!   into, so that public-api prints the glob alone (the `leptos-mf2` shim's
-//!   `pub use mf2::leptos::*`): it is listed as one re-export per name it
+//!   into, so that public-api prints the glob alone (1.x's `leptos-mf2`
+//!   shim had `pub use mf2::leptos::*`; none is left, and the step stays
+//!   as the guard for the next one): it is listed as one re-export per name it
 //!   brings, read from that crate's own JSON built with the features the
 //!   listed crate turns on in it (`cargo tree`). What each name is, that
 //!   crate's own listing holds.
@@ -65,7 +66,7 @@ pub(crate) const NIGHTLY: &str = "nightly-2026-09-24";
 const WASM: &str = "wasm32-unknown-unknown";
 
 /// The first line of every listing.
-const HEADER: &str = "# The public API that 1.x promises (docs/versioning.md). Written by \
+const HEADER: &str = "# The public API that 2.x promises (docs/versioning.md). Written by \
                       `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.";
 
 /// What the second build gives rustdoc, so that the JSON has the hidden items

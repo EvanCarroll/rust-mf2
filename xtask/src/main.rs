@@ -239,8 +239,8 @@ enum Command {
     Refusals,
     /// The Leptos 0.8 opt-in (Phase 8, A0): `leptos-0-8` beside the default
     /// line refused with the fix named; then, on 0.8, `mf2`'s Leptos layer
-    /// linted for ssr, hydrate and csr, its render, churn and `fallback_lang`
-    /// tests, `mf2-axum`'s tests and conformance layer L6.
+    /// linted for ssr (with `axum`), hydrate and csr, its render, churn and
+    /// `fallback_lang` tests, and conformance layer L6.
     #[command(name = "leptos-0-8")]
     Leptos08 {
         /// The negative control: the same on a copy of the tree whose glue
@@ -249,7 +249,7 @@ enum Command {
         #[arg(long)]
         negative_control: bool,
     },
-    /// The public API of the 20 published crates (Phase 9, A2): written as
+    /// The public API of the 16 published crates (Phase 9, A2): written as
     /// `crates/<name>/api.txt`, or per mode as `crates/<name>/api/<mode>.txt`
     /// for a crate whose `[package.metadata.api]` names its modes (`mf2`,
     /// Phase 10 B5), from a pinned nightly's rustdoc JSON (the libraries)
@@ -260,7 +260,7 @@ enum Command {
         #[arg(long)]
         check: bool,
     },
-    /// The 20 published crates' packages (Phase 9, A4): each `.crate` audited
+    /// The 16 published crates' packages (Phase 9, A4): each `.crate` audited
     /// (every file from its own crate, none a copy of `third_party/`,
     /// `plans/` or the specification cache, under 10 MB) and its file list
     /// written as `crates/<name>/package.txt`.
@@ -273,14 +273,14 @@ enum Command {
         #[arg(long)]
         test: bool,
     },
-    /// The 20 published crates' documentation built as docs.rs builds it
+    /// The 16 published crates' documentation built as docs.rs builds it
     /// (Phase 9, A5): each library crate's `[package.metadata.docs.rs]`
     /// features and targets, on the pinned nightly with `--cfg docsrs`,
     /// every rustdoc warning (a broken intra-doc link among them) an error,
     /// and each front page pointing to the user guide.
     #[command(name = "docs-rs")]
     DocsRs,
-    /// The MSRV (Phase 9, A3): the 20 published crates checked on the
+    /// The MSRV (Phase 9, A3): the 16 published crates checked on the
     /// `rust-version` they state, natively and for wasm32-unknown-unknown,
     /// on both Leptos lines.
     Msrv {
@@ -296,7 +296,7 @@ enum Command {
     /// and `cargo publish --workspace --dry-run`. CI runs it on every
     /// change.
     Release {
-        /// Then publish the 20 with cargo's own stored login. The owner's
+        /// Then publish the 16 with cargo's own stored login. The owner's
         /// only: refused when `CI` is set. Prints the tag to create; never
         /// tags or pushes.
         #[arg(long, conflicts_with_all = ["allow_dirty", "baseline_rev"])]

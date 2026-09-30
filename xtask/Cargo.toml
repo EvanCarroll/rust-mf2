@@ -9,7 +9,7 @@ publish.workspace = true
 [dependencies]
 # `gzip -9` for the B5 sizes (plans/06 §3), in-process.
 flate2.workspace = true
-# Brotli 11 / 22 for `cargo xtask fluent-ab`'s sizes: what `mf2-axum` serves.
+# Brotli 11 / 22 for `cargo xtask fluent-ab`'s sizes: what `mf2::axum` serves.
 brotli.workspace = true
 clap.workspace = true
 mf2-catalog = { workspace = true, features = ["writer"] }

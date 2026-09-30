@@ -2,7 +2,7 @@
 //! messages and locale data, as a lossless encoding of the MF2 data model that the client reads in place.
 //!
 //! An application meets one type of this crate: [`Catalog`], a loaded
-//! catalog, which `leptos-mf2` and `mf2-axum` load and serve for it and
+//! catalog, which `mf2::leptos` and `mf2::axum` load and serve for it and
 //! which [`mf2_runtime`'s formatter](https://docs.rs/mf2-runtime) formats
 //! from — with its errors ([`CatalogError`], and on the build side
 //! `WriteError` and `ManifestError`). Everything else here is the byte
@@ -30,7 +30,7 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! An application starts at
 //! [`mf2`](https://docs.rs/mf2).
 

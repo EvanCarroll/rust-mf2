@@ -25,14 +25,14 @@
 //! argument name or a markup name.
 //!
 //! Both proc-macros are hidden from the documentation: only the generated
-//! wrapper calls them, and 1.x promises the `tr!` forms, not these
+//! wrapper calls them, and 2.x promises the `tr!` forms, not these
 //! (`docs/versioning.md`).
 //!
 //! # The user guide
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! An application calls `tr!` through the i18n crate that
 //! `mf2-build` generates, and names [`mf2`](https://docs.rs/mf2).
 

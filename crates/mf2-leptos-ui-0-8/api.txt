@@ -1,4 +1,4 @@
-# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
 # nightly-2026-09-24; features: ssr
 pub mod mf2_leptos_ui_0_8
 pub struct mf2_leptos_ui_0_8::AlternateLinksProps<L: mf2_leptos_ui_0_8::Layer>

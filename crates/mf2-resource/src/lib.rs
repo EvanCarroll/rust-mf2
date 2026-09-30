@@ -28,7 +28,7 @@
 //! # Not part of 1.x's promise
 //!
 //! `mf2-build` and the `mf2` command line read and write `.mf2` files with
-//! this crate; an application never names it. What 1.x promises is the
+//! this crate; an application never names it. What 2.x promises is the
 //! **file format as `mf2 fmt` writes it** (`docs/versioning.md`), not this
 //! Rust API: it mirrors a draft, and follows the draft as it changes. Its
 //! items are therefore hidden from the documentation.
@@ -55,9 +55,9 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! Its getting-started chapter shows the files this crate
-//! reads, and its versioning chapter what 1.x promises about their format.
+//! reads, and its versioning chapter what 2.x promises about their format.
 
 #![warn(missing_docs)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.

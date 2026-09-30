@@ -1,4 +1,4 @@
-//! The command tree 1.x promises (`docs/versioning.md`): every command and
+//! The command tree 2.x promises (`docs/versioning.md`): every command and
 //! its arguments as clap declares them, held against `api.txt` beside the
 //! manifest. `cargo xtask api` rewrites the file (`MF2_CLI_API_WRITE=1`);
 //! otherwise the test fails on any difference, so a changed flag is
@@ -10,7 +10,7 @@ use clap::{Arg, ArgAction, Command, CommandFactory};
 
 use crate::Cli;
 
-const HEADER: &str = "# The public API that 1.x promises (docs/versioning.md). Written by \
+const HEADER: &str = "# The public API that 2.x promises (docs/versioning.md). Written by \
                       `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.\n\
                       # The `mf2` command tree: commands, then each argument, its value and \
                       the values it accepts.\n";

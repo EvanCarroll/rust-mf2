@@ -3,20 +3,16 @@
 //! §10).
 //!
 //! Leptos 0.9 is the default line: `mf2`'s `leptos` feature. 0.8 is `mf2`'s
-//! `leptos-0-8` — and, through the 1.x shims, `default-features = false,
-//! features = ["leptos-0-8"]` on `leptos-mf2` and `mf2-axum` — which then
-//! depend on the 0.8 crates under renamed names. Both lines are in the one
+//! `leptos-0-8`, which depends on the 0.8 crates under renamed names. Both lines are in the one
 //! lock file, so this runs in the working tree.
 //!
 //! 1. **Both lines at once is an error that says what to write:** `mf2`'s
-//!    `leptos` beside `leptos-0-8` must fail, naming both; and `leptos-0-8`
-//!    beside the `leptos-mf2` shim's default features must fail, naming
-//!    `default-features = false`.
+//!    `leptos` beside `leptos-0-8` must fail, naming both.
 //! 2. **On 0.8:** `mf2`'s Leptos layer (and its 0.8 helper crate) linted for
-//!    `ssr` natively (every target, with `mark-fallback-lang`) and for
+//!    `ssr` natively (every target, with `axum` and `mark-fallback-lang`) and for
 //!    `hydrate` (also with `fn-datetime`) and `csr` on
 //!    `wasm32-unknown-unknown`; its `render`, `time_zone`, `churn` and
-//!    `fallback_lang` tests; `mf2-axum`'s tests; and conformance layer L6
+//!    `fallback_lang` tests; and conformance layer L6
 //!    (the `layers` and `l6` tests of `mf2-conformance`).
 //!
 //! `--negative-control` runs step 2 on a copy of the tracked tree (under
@@ -34,9 +30,6 @@ use crate::fsx;
 
 /// What the error for both lines at once must say, on `mf2` itself.
 const BOTH: &str = "both Leptos lines are on, `leptos` (Leptos 0.9) and `leptos-0-8`";
-
-/// …and what it must say to an application on the 1.x shims.
-const BOTH_SHIM: &str = "`default-features = false` beside `features = [\"leptos-0-8\"]`";
 
 /// The glue whose line-switched impls the negative control swaps.
 const GLUE: &str = "crates/mf2/src/leptos/glue/view.rs";
@@ -69,11 +62,14 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
     let wasm = "wasm32-unknown-unknown";
     let deny = ["--", "-D", "warnings"];
     let mf2 = ["-p", "mf2", "--features"];
-    let steps: [Vec<&str>; 11] = [
+    let steps: [Vec<&str>; 10] = [
         [
             &["clippy"][..],
             &mf2,
-            &["ssr,leptos-0-8,compile,mark-fallback-lang", "--all-targets"],
+            &[
+                "ssr,leptos-0-8,axum,compile,mark-fallback-lang",
+                "--all-targets",
+            ],
             &deny,
         ]
         .concat(),
@@ -137,14 +133,6 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
         vec![
             "test",
             "-p",
-            "mf2-axum",
-            "--no-default-features",
-            "--features",
-            "leptos-0-8",
-        ],
-        vec![
-            "test",
-            "-p",
             "mf2-conformance",
             "--no-default-features",
             "--features",
@@ -173,23 +161,17 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
     }
     eprintln!(
         "==> leptos-0-8: mf2's Leptos layer lints for ssr, hydrate and csr and passes render, \
-         time_zone, churn and fallback_lang; mf2-axum's tests and layer L6 pass — all on Leptos 0.8"
+         time_zone, churn and fallback_lang, and layer L6 passes — all on Leptos 0.8"
     );
     Ok(())
 }
 
-/// Step 1: both lines at once, on `mf2` itself and through the 1.x shim
-/// whose default is still Leptos 0.9.
+/// Step 1: both lines at once, on `mf2`.
 fn refuses_both(root: &Path) -> Result<()> {
     refuses(
         root,
         &["-p", "mf2", "--features", "ssr,leptos,leptos-0-8"],
         BOTH,
-    )?;
-    refuses(
-        root,
-        &["-p", "leptos-mf2", "--features", "ssr,leptos-0-8"],
-        BOTH_SHIM,
     )
 }
 

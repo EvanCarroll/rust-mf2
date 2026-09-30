@@ -21,7 +21,7 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! An application reaches this crate through
 //! [`mf2`](https://docs.rs/mf2), which re-exports it; a custom function is
 //! written against [`Function`].

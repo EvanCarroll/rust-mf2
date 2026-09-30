@@ -64,7 +64,7 @@ pub mod glue;
 #[cfg(feature = "mark-fallback-lang")]
 pub(crate) mod lang;
 /// The names the page carries, shared by the shell, the boot and
-/// `mf2-axum`: the wire between them, not an application's.
+/// `mf2::axum`: the wire between them, not an application's.
 #[doc(hidden)]
 pub mod links;
 pub(crate) mod markup;
@@ -86,7 +86,7 @@ pub use markup::{Flat, FlatHandler, NestingHandler};
 /// A signal as an argument, read when the message formats.
 pub use signal::{SignalArg, signal_arg};
 
-/// [`lookup_locale`] over a reader's list: what `mf2-axum` negotiates each
+/// [`lookup_locale`] over a reader's list: what `mf2::axum` negotiates each
 /// source's candidates with.
 #[doc(hidden)]
 pub use state::best_locale;
@@ -102,7 +102,7 @@ pub use crate::error::LoadError;
 /// The catalog a render reads, and what can go wrong loading one.
 pub use catalog::{active, read as read_catalog};
 
-/// The table of catalogs the server serves, which `mf2-axum` installs and
+/// The table of catalogs the server serves, which `mf2::axum` installs and
 /// reads.
 #[cfg(feature = "ssr")]
 #[doc(hidden)]

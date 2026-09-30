@@ -34,7 +34,7 @@
 //!   first, and never a panic.
 //! * **[`Catalogs`]** is the explicit form, with no globals:
 //!   `catalogs.format("fr", &message)`. [`NativeI18n`], 1.x's handle, is
-//!   kept beside it for 1.x applications.
+//!   kept beside it, built on it.
 //!
 //! Native only: the module is `std`, and reads the system's preferred
 //! languages and time zone and files beside the executable. Beside
@@ -58,6 +58,6 @@ pub use store::{
     set_time_zone, time_zone, with_locale,
 };
 
-/// 1.x's app-owned handle, kept beside the store and [`Catalogs`] for 1.x
-/// applications (the `mf2-native` shim) and `mf2::ratatui`'s 1.x functions.
+/// 1.x's app-owned handle, kept beside the store and [`Catalogs`], and
+/// built on the latter.
 pub use handle::NativeI18n;

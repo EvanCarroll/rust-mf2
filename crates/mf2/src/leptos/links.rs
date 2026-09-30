@@ -28,7 +28,7 @@ pub use crate::links::LOCALE_COOKIE;
 
 /// The cookie that carries the reader's time zone, an IANA name
 /// The client writes it when a page was
-/// rendered in another zone than the reader's; `mf2-axum` reads it and
+/// rendered in another zone than the reader's; `mf2::axum` reads it and
 /// renders the next page in that zone. Its attributes are
 /// [`LOCALE_COOKIE`]'s.
 pub const TIME_ZONE_COOKIE: &str = "mf2_tz";

@@ -21,11 +21,9 @@ contains none of the text.
 
 An application's translation crate depends on `mf2` and, as a build
 dependency, [`mf2-build`](https://docs.rs/mf2-build). A web application's
-server adds [`mf2-axum`](https://docs.rs/mf2-axum); a native one turns on
-`native`, and for a terminal UI `ratatui`. `leptos-mf2`, `mf2-native` and
-`mf2-ratatui`, where 1.x kept the Leptos layer, the native support and the
-Ratatui text, are now shims over `mf2::leptos`, `mf2::native` and
-`mf2::ratatui`. For native applications `mf2` also provides `Corpus`, the
+server turns on `axum`; a native one turns on `native`, and for a terminal
+UI `ratatui`. 1.x's `leptos-mf2` and `mf2-axum` are these features now
+(`mf2::leptos`, `mf2::axum`). For native applications `mf2` also provides `Corpus`, the
 one value a native build generates, and `Message`, which formats any `tr!`
 call site outside Leptos.
 

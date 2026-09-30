@@ -7,7 +7,7 @@
 //! needs.
 //!
 //! B7 (`plans/06-size-and-perf.md` §3) is stated on brotli 11 — the `.br`
-//! file the build writes and `mf2-axum` serves:
+//! file the build writes and `mf2::axum` serves:
 //!
 //! * the reference `en`: ≤ 0.91 × 25 KB = 23,296 B;
 //! * every locale: br ≤ 0.91 × (0.5 × MF2 source bytes + 1 KB), and

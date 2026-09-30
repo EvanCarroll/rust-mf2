@@ -1,4 +1,4 @@
-# The public API that 1.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
 # nightly-2026-09-24; features: datetime-icu,datetime-intl
 pub mod mf2_fn_datetime
 pub mod mf2_fn_datetime::icu

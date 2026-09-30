@@ -4,7 +4,7 @@
 //! system's file events: a corpus is a few hundred files, a poll costs a
 //! fraction of a millisecond, and nothing here has to know about inotify,
 //! kqueue, `ReadDirectoryChangesW` or the editors that write through a
-//! temporary file. Pushing the new catalog to open pages is `mf2-axum`'s dev
+//! temporary file. Pushing the new catalog to open pages is `mf2::axum`'s dev
 //! mode (P7).
 
 use std::collections::BTreeMap;

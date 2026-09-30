@@ -1,4 +1,4 @@
-//! `cargo xtask package [--check] [--test]`: the 20 published crates as
+//! `cargo xtask package [--check] [--test]`: the 16 published crates as
 //! crates.io receives them (`plans/17-phase-9-work-order.md` A4).
 //!
 //! `cargo package --no-verify` writes each `.crate`; each is then read back
@@ -163,7 +163,7 @@ pub(crate) fn run(root: &Path, check: bool, test: bool) -> Result<()> {
 }
 
 /// The workspace's publishable crates (A1's metadata test holds them to the
-/// 20), from `cargo metadata`.
+/// 16), from `cargo metadata`.
 fn publishable(root: &Path) -> Result<Vec<Published>> {
     let args = ["metadata", "--format-version", "1", "--no-deps"].map(OsStr::new);
     let bytes = run_capture(&cargo(), &args, root, &[])?;

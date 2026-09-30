@@ -22,7 +22,7 @@
 //!                                       the generated Rust module
 //! ```
 //!
-//! # What 1.x promises here
+//! # What 2.x promises here
 //!
 //! What an i18n crate's `build.rs` and a tool call: [`Build`] and what it
 //! returns ([`Outcome`], [`Published`], [`LocaleInfo`], [`Report`],
@@ -51,7 +51,7 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! An application names this crate in its i18n crate's
 //! `[build-dependencies]`, and [`mf2`](https://docs.rs/mf2) in its
 //! `[dependencies]`.

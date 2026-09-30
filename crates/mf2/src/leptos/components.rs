@@ -231,7 +231,7 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 ///
 /// With no client code — before the wasm loads, after a failed boot, or on
 /// an islands page where the switcher is not an island — the form's own
-/// `GET ?lang=…` is the switch, which `mf2-axum`'s `QueryParam` negotiates;
+/// `GET ?lang=…` is the switch, which `mf2::axum`'s `QueryParam` negotiates;
 /// the `<select>` takes its name from that installed `QueryParam`.
 /// Under `hydrate` and `csr` the submit is intercepted and becomes
 /// `set_locale`, live, with focus left on the button.
@@ -252,7 +252,7 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 /// * `children` (optional) — a list of one's own: one [`LocaleOption`] per
 ///   locale offered;
 /// * `href_of` (optional, `fn(&str) -> String`) — for a site whose
-///   languages live in its URLs (`/fr/…`, `mf2-axum`'s `PathPrefix`), the
+///   languages live in its URLs (`/fr/…`, `mf2::axum`'s `PathPrefix`), the
 ///   URL of the current page in the given locale. Each option then carries
 ///   it as `data-mf2-href`, and the submit navigates there instead of
 ///   switching in place — a `?lang=` cannot outrank the path. Without the

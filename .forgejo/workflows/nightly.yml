@@ -54,7 +54,7 @@
 # * `leptos-0-8` (a job of its own; plans/16 A0, plans/04 §10): the Leptos
 #   0.8 opt-in — both lines at once refused with the fix named; then, on
 #   0.8, mf2's Leptos layer linted for ssr, hydrate and csr, its render,
-#   churn and fallback_lang tests, mf2-axum's tests and conformance layer L6
+#   churn and fallback_lang tests and conformance layer L6
 #   (`cargo xtask leptos-0-8`). Not allowed to fail: 0.8 is supported.
 # * `fmt-check` (a job of its own; plans/19 §6, plans/04 §12.6): the demos
 #   are what readers copy, so no `Display` or `Debug` impl of ours may reach
@@ -570,7 +570,7 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: cargo xtask spec-sync --check
 
-      - name: mf2's Leptos layer, mf2-axum and layer L6 on Leptos 0.8
+      - name: mf2's Leptos layer and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8
 
   fmt-check:

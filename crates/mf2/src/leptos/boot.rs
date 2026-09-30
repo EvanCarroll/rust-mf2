@@ -248,7 +248,7 @@ fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     .map_err(|_| LoadError::Fetch)
 }
 
-/// The cookie the server negotiates from, with the attributes `mf2-axum`'s
+/// The cookie the server negotiates from, with the attributes `mf2::axum`'s
 /// `CookieLocale` writes by default. A server-rendered page's switch, live
 /// or not, is remembered here.
 #[cfg(not(feature = "csr"))]
@@ -655,7 +655,7 @@ fn remember_locale(tag: &str) {
 /// The locale a client-only application starts in: the one it remembered,
 /// else the one that best serves the reader's `navigator.languages` (and
 /// `navigator.language`), as a list — each later entry demoted — matched
-/// as `mf2-axum` matches `Accept-Language` (the one matcher,
+/// as `mf2::axum` matches `Accept-Language` (the one matcher,
 /// [`lookup_locale`](crate::leptos::lookup_locale)), else the source locale.
 ///
 /// It never fails: a remembered locale the build no longer has, or a reader

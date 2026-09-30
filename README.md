@@ -58,10 +58,11 @@ One macro works in every position: text, attributes, props, strings and
   on where a person reads the text.
 
 **Status:** 1.0.0 is on crates.io for all sixteen crates of the web
-family. 1.1.0 was not published and will not be: its fixes, and the native
-crates `mf2-native` and `mf2-ratatui`, ship in 2.0.0, the next release.
+family. 1.1.0 was not published and will not be: its fixes ship in 2.0.0,
+the next release, where the native and terminal support are `mf2`'s
+`native` and `ratatui` features.
 What each release contains, what it measures and its known limitations are
-in [`CHANGELOG.md`](CHANGELOG.md); what 1.x promises is in
+in [`CHANGELOG.md`](CHANGELOG.md); what 2.x promises is in
 [`docs/versioning.md`](docs/versioning.md).
 
 ## Install

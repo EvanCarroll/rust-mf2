@@ -96,8 +96,7 @@ impl LoadError {
 }
 
 /// Failure while loading or selecting a native application's catalog:
-/// `mf2::native::Error` (the `mf2-native` shim keeps 1.x's name for it,
-/// `NativeError`).
+/// `mf2::native::Error` (1.x's name for it was `NativeError`).
 #[cfg(feature = "native")]
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]

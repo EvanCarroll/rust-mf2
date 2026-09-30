@@ -93,7 +93,7 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 
 #![warn(missing_docs, missing_debug_implementations)]
 // docs.rs (`cargo xtask docs-rs`): each feature-gated item says which features it needs.
@@ -149,9 +149,7 @@ compile_error!("mf2: turn on exactly one of `ssr`, `hydrate` and `csr`.");
 #[cfg(all(feature = "leptos", feature = "leptos-0-8"))]
 compile_error!(
     "mf2: both Leptos lines are on, `leptos` (Leptos 0.9) and `leptos-0-8`: \
-     turn on one. Through leptos-mf2 or mf2-axum, whose default is Leptos \
-     0.9, Leptos 0.8 needs `default-features = false` beside \
-     `features = [\"leptos-0-8\"]` on every dependency on them."
+     turn on one."
 );
 #[cfg(all(feature = "ssr", not(any(feature = "leptos", feature = "leptos-0-8"))))]
 compile_error!(
@@ -352,35 +350,6 @@ pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr
 )]
 #[doc(no_inline)]
 pub use leptos::{Flat, FlatHandler, NestingHandler, SignalArg, signal_arg};
-
-/// 1.x's `mf2::leptos_mf2`, the Leptos layer as its own crate: every item it
-/// named, under the path it named it. What the examples, the book and `mf2
-/// init` still name until they move to `mf2::leptos`, and what the
-/// `leptos-mf2` shim re-exports when it has no mode of its own.
-///
-/// Present in every build: the layer is here whenever this build compiles
-/// it, whichever crate turned the mode on. 1.x's `mf2/ssr` turned on
-/// `leptos-mf2/ssr`; now an application may name its mode on `mf2` alone,
-/// and a crate on the shim's `leptos` feature still reaches the layer. With
-/// no layer, `islands_gate!` expands to nothing, as in 1.x.
-#[doc(hidden)]
-pub mod leptos_mf2 {
-    #[cfg(not(all(
-        any(feature = "ssr", feature = "hydrate", feature = "csr"),
-        any(feature = "leptos", feature = "leptos-0-8")
-    )))]
-    pub use crate::__islands_gate as islands_gate;
-    #[cfg(all(
-        any(feature = "ssr", feature = "hydrate", feature = "csr"),
-        any(feature = "leptos", feature = "leptos-0-8")
-    ))]
-    pub use crate::leptos::*;
-    pub use crate::{
-        ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler,
-        Text, Tr, TrArgs, TrDyn, TrRich, markup, markup_view, tr, tr_args_n, tr_args0, tr_args1,
-        tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
-    };
-}
 
 /// The proc-macro behind the generated `tr!` wrapper — reached as
 /// `__mf2::__tr_impl!`, never named by an application.

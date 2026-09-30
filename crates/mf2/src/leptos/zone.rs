@@ -3,7 +3,7 @@
 //! A date is shown in its own zone, else **the reader's**, else
 //! `Setup::with_time_zone`'s, else UTC. The server cannot know the reader's
 //! zone, so the client tells it: the browser's IANA name goes into the
-//! `mf2_tz` cookie, `mf2-axum` puts it in the request's context, and the page
+//! `mf2_tz` cookie, `mf2::axum` puts it in the request's context, and the page
 //! states the zone it was rendered in (`data-mf2-zone` on the preload link).
 //!
 //! **One formatting zone per thread.** [`current`] is what

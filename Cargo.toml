@@ -12,14 +12,10 @@ members = [
     "crates/mf2-fn-datetime",
     "crates/mf2-locale-data",
     "crates/mf2-host-std",
-    "crates/mf2-native",
-    "crates/mf2-ratatui",
     "crates/mf2-host-web",
     "crates/mf2-macros",
-    "crates/leptos-mf2",
     "crates/mf2-leptos-ui-0-9",
     "crates/mf2-leptos-ui-0-8",
-    "crates/mf2-axum",
     "crates/mf2",
     "xtask",
     "conformance",
@@ -66,7 +62,7 @@ exclude = [
 ]
 
 [workspace.package]
-version = "1.1.0"
+version = "2.0.0"
 edition = "2024"
 # The MSRV, measured (plans/17-phase-9-work-order.md A3; `cargo xtask msrv`):
 # the published crates inherit it. Raising it is a minor release.
@@ -82,33 +78,30 @@ publish = false
 clap = { version = "4.6.7", features = ["derive"] }
 # `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
 thiserror = { version = "2.0.20", default-features = false }
-mf2 = { path = "crates/mf2", version = "=1.1.0" }
-mf2-build = { path = "crates/mf2-build", version = "=1.1.0" }
-mf2-catalog = { path = "crates/mf2-catalog", version = "=1.1.0" }
+mf2 = { path = "crates/mf2", version = "=2.0.0" }
+mf2-build = { path = "crates/mf2-build", version = "=2.0.0" }
+mf2-catalog = { path = "crates/mf2-catalog", version = "=2.0.0" }
 mf2-conformance = { path = "conformance" }
-leptos-mf2 = { path = "crates/leptos-mf2", version = "=1.1.0", default-features = false }
-mf2-fn-number = { path = "crates/mf2-fn-number", version = "=1.1.0" }
-mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=1.1.0" }
+mf2-fn-number = { path = "crates/mf2-fn-number", version = "=2.0.0" }
+mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=2.0.0" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-l5-gen = { path = "conformance/l5/gen" }
 mf2-l5-en-us = { path = "conformance/l5/en-us" }
 mf2-l5-und = { path = "conformance/l5/und" }
 mf2-l5-fr = { path = "conformance/l5/fr" }
 mf2-l5-ar = { path = "conformance/l5/ar" }
-mf2-host-std = { path = "crates/mf2-host-std", version = "=1.1.0" }
-# No member names the `mf2-native` or `mf2-ratatui` shims (Phase 10 B2, B3):
-# each depends on `mf2` alone, so neither has an entry here.
-mf2-host-web = { path = "crates/mf2-host-web", version = "=1.1.0" }
+mf2-host-std = { path = "crates/mf2-host-std", version = "=2.0.0" }
+mf2-host-web = { path = "crates/mf2-host-web", version = "=2.0.0" }
 # The six Leptos components, one helper crate per Leptos line, which
 # `mf2::leptos` wraps with its `Layer` chosen (owner question 13 of Phase 10).
-mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=1.1.0" }
-mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=1.1.0" }
-mf2-locale-data = { path = "crates/mf2-locale-data", version = "=1.1.0" }
-mf2-macros = { path = "crates/mf2-macros", version = "=1.1.0" }
-mf2-model = { path = "crates/mf2-model", version = "=1.1.0" }
-mf2-resource = { path = "crates/mf2-resource", version = "=1.1.0" }
-mf2-runtime = { path = "crates/mf2-runtime", version = "=1.1.0" }
-mf2-syntax = { path = "crates/mf2-syntax", version = "=1.1.0" }
+mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=2.0.0" }
+mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=2.0.0" }
+mf2-locale-data = { path = "crates/mf2-locale-data", version = "=2.0.0" }
+mf2-macros = { path = "crates/mf2-macros", version = "=2.0.0" }
+mf2-model = { path = "crates/mf2-model", version = "=2.0.0" }
+mf2-resource = { path = "crates/mf2-resource", version = "=2.0.0" }
+mf2-runtime = { path = "crates/mf2-runtime", version = "=2.0.0" }
+mf2-syntax = { path = "crates/mf2-syntax", version = "=2.0.0" }
 # mf2-macros: the `tr!` proc-macro (plans/05-tooling.md §4). `full` for the
 # argument expressions a call site writes.
 proc-macro2 = "1.0.107"
@@ -184,8 +177,8 @@ js-sys = { version = "0.3.105", default-features = false }
 # or not (D10); a requirement on a pre-release admits every later one and the
 # release, so a new 0.9 is taken by an ordinary `cargo update`. Under its own
 # name for the crates that name it so: the 0.9 helper crate, whose `view!`
-# and `#[component]` expand to `::leptos`, the conformance harness and
-# mf2-axum. `mf2` names it `leptos_0_9` (below). `tachys` is named directly —
+# and `#[component]` expand to `::leptos`, and the conformance harness.
+# `mf2` names it `leptos_0_9` (below). `tachys` is named directly —
 # the glue is written against it — and unifies with the one `leptos` pulls
 # in.
 leptos = { version = "0.9.0-beta", default-features = false }
@@ -203,16 +196,15 @@ tower-service = "0.3.3"
 tower = { version = "0.5.3", default-features = false, features = ["util"] }
 leptos_axum = "0.9.0-beta"
 # The Leptos 0.8 line, an opt-in (04 §10): the same crates under the names
-# the `leptos-0-8` features of mf2, mf2-axum and the conformance harness turn
+# the `leptos-0-8` features of mf2 and the conformance harness turn
 # on, in place of the 0.9 ones above. `mf2` reaches both lines under these
 # names through a private alias module, since its module `leptos` takes
-# that name at its root; mf2-axum, the conformance harness and the 0.8
+# that name at its root; the conformance harness and the 0.8
 # helper crate rename the 0.8 line back (`extern crate leptos_0_8 as
 # leptos`), so one source serves both.
 leptos_0_8 = { package = "leptos", version = "0.8.20", default-features = false }
 tachys_0_2 = { package = "tachys", version = "0.2.18", default-features = false }
 reactive_graph_0_2 = { package = "reactive_graph", version = "0.2.14", default-features = false }
-leptos_axum_0_8 = { package = "leptos_axum", version = "0.8.10" }
 # The 0.9 line under names of its own too, for `mf2` (Phase 10 A7): its
 # module `mf2::leptos` takes the name `leptos`, so no crate of that name is
 # in its scope.

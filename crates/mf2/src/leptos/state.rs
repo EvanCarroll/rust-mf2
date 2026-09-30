@@ -264,7 +264,7 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
 /// `zh-TW`; `sr-Latn` finds `sr`; `zh-TW` does not find `zh-CN`, nor
 /// `pa-Arab` `pa`. `*`, `C` and the empty range match nothing.
 ///
-/// One matcher for both sides: `mf2-axum` negotiates a request with it, and
+/// One matcher for both sides: `mf2::axum` negotiates a request with it, and
 /// a client-only application its stored choice and `navigator.languages`.
 /// A server matches with CLDR's whole table; a browser's client with the
 /// build's cut for its locales, which gives them the same answers, when

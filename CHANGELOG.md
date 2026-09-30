@@ -5,24 +5,33 @@ covers them all. Newest first. What a version number promises is in
 [`docs/versioning.md`](docs/versioning.md); a release that raises the
 minimum Rust version says so here.
 
-## 1.1.0
+## 2.0.0
 
-**Not published, and it will not be.** All sixteen crates reached
-crates.io at 1.0.0 on 26 September 2026; the next release is 2.0.0,
-which carries what follows. 1.1.0 was prepared as a minor release after
-1.0.0: it adds native applications, gives every crate author, repository
-and book metadata, and calls the project Rust MF2; the native support adds
-public API to `mf2`, `mf2-build` and `mf2-catalog`.
+**Not yet published.** 1.0.0 reached crates.io on 26 September 2026.
+1.1.0, prepared as a minor release after it, was never published: its
+items are part of this release. 2.0.0 is a major release: an application
+names one crate, `mf2`, and turns on what it needs; it adds native
+applications, gives every crate author, repository and book metadata, and
+calls the project Rust MF2. What 2.x promises is in
+[`docs/versioning.md`](docs/versioning.md); the steps from 1.x are in
+[Upgrading from 1.x](docs/upgrading.md).
 
-* **Native CLI and terminal apps.** `mf2-native` (new): `NativeI18n` holds
+* **Changed: one crate.** 1.0.0's `leptos-mf2` and `mf2-axum`, and 1.1.0's
+  unpublished `mf2-native` and `mf2-ratatui`, are gone: they are `mf2`'s
+  features `leptos` (or `leptos-0-8`) with a mode, `axum`, `native` and
+  `ratatui`. Sixteen crates make up 2.0.0 — `mf2`, `mf2-build`, `mf2-cli`,
+  the eleven crates those three are built on, and the two
+  helper crates of the Leptos components — and each depends on the others
+  at exactly `=2.0.0`.
+* **Native CLI and terminal apps.** `mf2::native` (new): `NativeI18n` holds
   one generated corpus's catalogs and an app-owned active locale, picks the
   first of the system's preferred languages the corpus supports (else the
   source locale), reports where the locale came from, refuses an
   unsupported explicit locale, and formats in the system's time zone with
   bidi isolation off (both settable).
-* **`mf2-ratatui`** (new): a message as Ratatui `Text` or `Line`, its
+* **`mf2::ratatui`** (new): a message as Ratatui `Text` or `Line`, its
   markup (`{#name}…{/name}`) as styles the application maps by name. It
-  depends on `ratatui-core` only.
+  adds `ratatui-core` only.
 * **`mf2-build`: `Emit::Native` and `Emit::NativeFiles`.** A module for a
   native application — the native host, no `ssr` feature to declare — with
   one `CORPUS` value; the catalogs embedded, or written beside the build
@@ -41,7 +50,7 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   message's first format read the signal in the route's own render, so
   every change re-ran the route's view with fresh state: a button's
   handler seemed to do nothing, and reactive text stayed at its first
-  value. Loaded directly, the same route worked. `leptos-mf2` now formats
+  value. Loaded directly, the same route worked. The Leptos layer now formats
   every text, attribute and property untracked outside the node's own
   argument effect, which alone follows the signal.
 * **Changed: a switch that meets another deploy's catalog reloads.** When
@@ -145,9 +154,7 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   feature, which named the layer, now names the 0.9 line; a mode is what
   turns the layer on. The six components live in two new crates,
   `mf2-leptos-ui-0-9` and `mf2-leptos-ui-0-8`, one per Leptos line;
-  `mf2::leptos` wraps each under its own name. **`leptos-mf2` is a
-  shim** that re-exports everything under 1.x's paths and forwards its
-  features to `mf2`'s. Upgrading a 1.x translation crate means deleting its
+  `mf2::leptos` wraps each under its own name. Upgrading a 1.x translation crate means deleting its
   hand-written `setup()`: the generated module defines it now.
 * **Descriptions print.** Under a Leptos mode `Tr`, `TrArgs`, `TrRich` and
   `TrDyn` implement `Display`: the text the fmt-free `to_string()` builds,
@@ -166,8 +173,6 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   native application checks as one (`cargo check --workspace`, and
   rust-analyzer's check), as in 1.x.
   `LocaleSource`, where the active locale came from, keeps its name.
-  **`mf2-native` is a shim** that re-exports everything under 1.x's names
-  and paths.
   `NativeI18n` implements `Debug`: the active locale, where it came from,
   the catalogs and the settings.
 * **Changed: the Ratatui support is `mf2`'s.** It is the module
@@ -179,7 +184,6 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   Ratatui's `Span`, `Line` and `Text` itself, and a `Theme`, set once,
   styles its markup. **Removed: 1.x's `MarkupStyles`, `line` and `text`**,
   which took the handle and a map of styles on every call.
-  **`mf2-ratatui` is a pointer** that re-exports `mf2::ratatui`.
 * **`tr!` takes any number, text, date or path, and any type with
   `Display`.** An argument converts through the new `mf2::IntoArg`, which an
   application may implement for its own types: every integer type exactly
@@ -216,8 +220,8 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
   `catalogs.format("fr", &message)`. Before `install`, a build whose only
   mode is `native` panics, naming `install()`; beside a Leptos mode, the
   request's or the page's catalog comes first, and there is never a panic.
-  `NativeError` is named `mf2::native::Error`; the `mf2-native` shim keeps
-  1.x's names, `NativeError` and `NativeI18n`.
+  `NativeError` is named `mf2::native::Error`; `NativeI18n` keeps its
+  name.
 * **Changed: dates follow the system's daylight-saving rules.** A native
   application whose system zone has no IANA name (`TZ` holding a POSIX
   rule, or a copied `/etc/localtime`) formatted dates at the offset in
@@ -232,7 +236,7 @@ public API to `mf2`, `mf2-build` and `mf2-catalog`.
 * **Changed: one locale matcher, by CLDR's data.** Everything that chooses
   a language now chooses the same way: a native application's `install`,
   `set_locale`, `with_locale`, `Catalogs::format` and `NativeI18n`;
-  `mf2-axum`'s negotiation and `lookup_locale`; a client-only
+  `mf2::axum`'s negotiation and `lookup_locale`; a client-only
   application's boot. Each tag is filled in by CLDR's likely subtags
   (`zh-TW` is Traditional Chinese of Taiwan), the distance CLDR's
   language-matching data gives is added for each part that differs, a

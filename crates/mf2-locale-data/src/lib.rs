@@ -26,7 +26,7 @@
 //! `LocaleNeeds` / `NumberNeeds` (`NumberNeeds::add_message` reads them
 //! off the data model); `locale_entries` writes the entries.
 //!
-//! # What 1.x promises here
+//! # What 2.x promises here
 //!
 //! `mf2-build` and `mf2`'s `compile` feature use this crate; an application
 //! never names it. Its tables and entry builders are the catalog's layout,
@@ -39,7 +39,7 @@
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
 //! guide: how the crates fit together, web and native applications, the
-//! command line, and what 1.x promises.
+//! command line, and what 2.x promises.
 //! An application reaches this crate through `mf2-build`
 //! and [`mf2`](https://docs.rs/mf2)'s `compile` feature.
 

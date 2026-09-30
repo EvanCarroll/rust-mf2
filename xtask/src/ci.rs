@@ -353,20 +353,6 @@ const STEPS: &[&[&str]] = &[
         "--test",
         "axum",
     ],
-    // The `leptos-mf2` shim with no mode of its own while `mf2` has one: an
-    // application that names its mode on `mf2` alone, beside a crate on the
-    // shim's `leptos` (as `conformance/l7-web/sets/*` were until Phase 10's
-    // B4). In 1.x `mf2/ssr` turned on `leptos-mf2/ssr`; the layer's 1.x
-    // paths must still resolve.
-    &[
-        "test",
-        "-p",
-        "leptos-mf2",
-        "--features",
-        "leptos,mf2/ssr",
-        "--test",
-        "layer",
-    ],
     // `mf2-resource`'s `serde` feature is optional and nothing in the
     // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
     // or runs `tests/json.rs`.

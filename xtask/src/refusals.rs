@@ -200,31 +200,6 @@ const HOST: &[Host] = &[
         what: "`axum` beside `csr`, on the host",
         args: &["-p", "mf2", "--features", "axum,leptos,csr"],
     },
-    // 1.x's workspace: a browser client on `leptos-mf2` and a native
-    // application on `mf2-native`, checked together as `--workspace` does.
-    Host {
-        what: "`leptos-mf2` in `csr` beside `mf2-native`, on the host",
-        args: &[
-            "-p",
-            "leptos-mf2",
-            "-p",
-            "mf2-native",
-            "--features",
-            "leptos-mf2/csr",
-        ],
-    },
-    // …and with a terminal UI on `mf2-ratatui` beside the client.
-    Host {
-        what: "`leptos-mf2` in `csr` beside `mf2-ratatui`, on the host",
-        args: &[
-            "-p",
-            "leptos-mf2",
-            "-p",
-            "mf2-ratatui",
-            "--features",
-            "leptos-mf2/csr",
-        ],
-    },
 ];
 
 fn fail(message: impl Into<String>) -> Error {

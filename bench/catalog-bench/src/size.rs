@@ -19,7 +19,7 @@ use crate::names::{self, Encoding};
 use crate::report::{Build, delta, fixed, n, signed, unix_time};
 
 /// B7 is stated on brotli (quality 11, window 22: the `.br` file the build
-/// writes and `mf2-axum` serves; owner, 2026-09-21). Its limits are the
+/// writes and `mf2::axum` serves; owner, 2026-09-21). Its limits are the
 /// former gzip limits scaled by `BR_SCALE` = 91/100: the worst brotli/gzip
 /// ratio measured on the four locales (en-XA, 0.909 in P0.7 and in Phase 2),
 /// rounded up, so no locale is held tighter than it was under gzip.

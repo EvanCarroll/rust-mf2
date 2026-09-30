@@ -99,12 +99,7 @@ const INDEX_PAGES: &[&str] = &[
 ];
 
 /// This repository's crates, as a documented manifest names them.
-const OUR_CRATES: &[(&str, &str)] = &[
-    ("mf2", "crates/mf2"),
-    ("mf2-native", "crates/mf2-native"),
-    ("mf2-ratatui", "crates/mf2-ratatui"),
-    ("mf2-build", "crates/mf2-build"),
-];
+const OUR_CRATES: &[(&str, &str)] = &[("mf2", "crates/mf2"), ("mf2-build", "crates/mf2-build")];
 
 const WASM: &str = "wasm32-unknown-unknown";
 
