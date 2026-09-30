@@ -111,7 +111,8 @@ cargo cannot answer, `check` says so and checks with none.
 
 A finding names its file, line and column, the problem, and its code in
 brackets: `missing-translation`, for one, names the first ten missing ids
-of each language. `mf2.toml`'s `[lints]` raises or lowers a code.
+of each language. `mf2.toml`'s `[lints]` raises or lowers a code;
+[Lints](lints.md) explains each one, with an example and its fix.
 
 A message the source marks `@do-not-translate` — a brand, or a language's
 own name — needs no translation. A language that does not have it shows the
@@ -302,3 +303,28 @@ with 1 until none is an error:
 
 Fluent terms (`-brand`) have no MF2 counterpart: each is copied into every
 message that uses it, and the report counts where.
+
+## Every option
+
+Every command takes `-C DIR` (`--dir`), the crate that holds the messages
+(the current directory by default), and `-h` (`--help`). `--features LIST`
+names the features of `mf2` the application builds with, separated by
+commas (`fn-number,fn-datetime`). `--format json` reports as JSON, for CI and
+editors.
+
+| Command | Arguments and options |
+|---|---|
+| `init [DIR]` | `--cli`, `--tui`, `--ssr`, `--islands`, `--csr`: the kind of application; `--name NAME`: the crate's name (a new application's is its directory's); `--source-locale TAG` (default `en`); `--locale TAG`: another language, repeatable; `--force`: write over files that are there; `--no-messages`: no starter `locales/<tag>/main.mf2`, for messages that come from `convert` or `import` |
+| `check` | `--features LIST`; `--format text\|json`; `--deny-warnings`: fail on a warning too; `--src DIR`: the Rust sources, for [`unused-id`](lints.md#unused-id), repeatable |
+| `fmt [PATH]…` | the files or directories (default `locales/`); `--check`: write nothing, name the files that would change, exit 1 if any would |
+| `compile` | `--features LIST`; `-o`, `--out DIR` (default `dist`): the manifest, the catalogs and the generated module; `--site DIR`: instead, only what a static host serves, the catalogs and `index.json`, with the features cargo resolves; `--facade PATH`: the crate the generated module re-exports as `__mf2` (default `::mf2`); `-v`, `--verbose`: list what was written |
+| `stats` | `--features LIST`; `--format text\|json` |
+| `dump FILE.mf2b` | `--format mf2\|json`: MF2 source, one message per line (the default), or the data model as JSON; `--manifest FILE.mf2m`: the ids of a catalog built without them; `--id ID`: one message |
+| `pseudo` | `--locale en-XA\|ar-XB`: one of the two (both by default); `--dry-run`: write nothing |
+| `export LOCALE` | `-o`, `--out FILE` (default: standard output); `--format json\|xliff` (default `json`) |
+| `import LOCALE FILE` | `FILE` is flat JSON or XLIFF 2, told apart by content; `--dry-run`: write nothing; `--features LIST` |
+| `watch` | `--features LIST`; `-o`, `--out DIR` (default `dist`); `--interval MS`: how often to look (default 300); `--max-rebuilds N`: stop after N rebuilds (0, the default, never stops) |
+| `convert DIR` | `--from fluent\|leptos-fluent`; `--format text\|json`; `--write` (`leptos-fluent`): write the files, where without it the diff is shown; `--locales DIR` (`leptos-fluent`): the `.ftl` directory, if not the initializer's `locales:` or `APP_DIR/locales`; `--i18n-crate NAME` (`leptos-fluent`): the crate the rewritten `use` names |
+
+The lints `check` reports are listed, each with an example and its fix, in
+[Lints](lints.md), and `mf2.toml`'s keys in [`mf2.toml`](configuration.md).

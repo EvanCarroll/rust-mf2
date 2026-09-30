@@ -21,6 +21,8 @@ exclude = [
     "tests/build.rs",
     "tests/drift.rs",
     "tests/loaders.rs",
+    # Reads the user guide's pages, which are not in the package.
+    "tests/reference.rs",
     "tests/sizes.rs",
     "tests/slicing.rs",
     # Its own file list (`cargo xtask package`).

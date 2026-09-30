@@ -251,6 +251,7 @@ source language (`en` unless it says otherwise), what the catalogs leave
 out, what a missing translation shows, and the lints. The defaults suit
 this page: a message not translated yet shows in the source language, and
 the catalogs the browser downloads carry no message ids and no comments.
+[`mf2.toml`](configuration.md) lists every key.
 
 **Leptos 0.9 or 0.8.** `mf2`'s `leptos` feature is for Leptos 0.9. A
 requirement of `"0.9.0-beta"` takes every later `0.9.0-*` pre-release and

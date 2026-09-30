@@ -71,8 +71,17 @@ const PAGES: &[&str] = &[
     "README.md",
 ];
 
-/// Pages under `docs/` with no samples of their own.
-const INDEX_PAGES: &[&str] = &["docs/README.md", "docs/SUMMARY.md", "docs/versioning.md"];
+/// Pages under `docs/` with no application samples of their own: the
+/// indexes, and the reference pages, whose fragments `mf2-build`'s
+/// `tests/reference.rs` checks instead.
+const INDEX_PAGES: &[&str] = &[
+    "docs/README.md",
+    "docs/SUMMARY.md",
+    "docs/versioning.md",
+    "docs/configuration.md",
+    "docs/lints.md",
+    "docs/features.md",
+];
 
 /// This repository's crates, as a documented manifest names them.
 const OUR_CRATES: &[(&str, &str)] = &[
