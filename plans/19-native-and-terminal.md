@@ -1670,9 +1670,13 @@ design above did not settle a detail, or could not be built yet:
 - **`setup()`** came after C4 ([18](18-phase-10-work-order.md) questions 30
   and 31): `install()` installs it, and every hand-written one in the tree
   went in the same change, since it would clash with the generated one;
-- **not built:** `Locale::format` without `native`, and the `axum` column,
-  with D1; `tr` and `msg_id` in the prelude, which need C6's wrapper
+- **not built:** `tr` and `msg_id` in the prelude, which need C6's wrapper
   (rust-lang/rust#52234).
+- **D1** built the `axum` column and `Locale::format` without `native` (a
+  server's copy of `CORPUS`'s catalogs). The Leptos request glue
+  (`provide_locale`, `negotiated`, 1.x's `install`) stays in the `mf2-axum`
+  shim until D3: it needs `leptos_axum`, which no `mf2` feature can turn on
+  for `axum` with `ssr` and a line alone.
 
 ## 11. The build
 

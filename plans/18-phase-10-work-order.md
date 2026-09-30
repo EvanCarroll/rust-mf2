@@ -267,18 +267,19 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   a `.match` plural, key hints as markup, one message per "label: value" line, `--tui-locale` via `Locale: FromStr`;
   upstream's 22 locale tests pass (442 in all). `trip` stripped 8,917,240 B vs upstream 8,392,456 (+6.3 %), clean
   release 120 vs 92 s. Smoke run in `unshare -rn` under `script` (fr, ru). Record: 19 §"Prior art: trippy".
+- **D1**: `mf2::axum` (feature `axum`, refused beside a client mode for `wasm32` only): negotiation, catalog
+  routes, redirect, over the corpus the generated `install()` gives it (else a hand-installed Leptos store);
+  generated `Locale` extractor, `Locale::format` without `native` (`CORPUS` under `__if_format`). `mf2-axum`
+  re-exports it; `provide_locale`/`install`/`negotiated` stay in the shim (needs `leptos_axum`; 19 §10).
+  `api/axum.txt`; plain-Axum test `tools/i18n-fixture/tests/axum.rs` in `ci`.
 
-**In flight:** D1 (`mf2::axum`), started 2026-09-29 by an agent working in the main tree;
-uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part C is done; D1 first**, checked with `probes/p10-checks/` (its README). D1 (`mf2::axum`) stays
-  unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
-  touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
-  for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
-  `mf2`'s listed modes (B5's record).
+- **D1 is done; D2, D3 and D4 after it, one at a time (D2 first)**, checked with
+  `probes/p10-checks/` (its README). E4 is now unblocked.
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
 generated `setup()`), with questions 30 (backward compatibility is not a priority) and 32 (task
