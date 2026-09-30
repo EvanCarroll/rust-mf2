@@ -368,9 +368,10 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   "P10"`, 612/612, statuses unchanged; the check suite and its helpers moved to `tools/checks/`
   (target dirs kept), `probes/` deleted (records citing it are history); the master plan's "Later"
   reviewed; `CLAUDE.md` says Phases 1–10 done. ci, conformance-report, docs pass.
+- **Docs build, shared target** (2026-09-30; no change): every cargo call already shares
+  `target/docs/target` (since Phase 7); the cold time is the samples' distinct feature sets.
 
-**In flight:** the docs build's shared target folder (after Phase 10's exit), started 2026-09-30 by
-an agent working in the main tree; uncommitted changes there are its. Part A's probe branches and
+**In flight:** nothing. Part A's probe branches and
 worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
