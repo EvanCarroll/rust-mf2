@@ -346,8 +346,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **The owner publishes, in order:** `cargo xtask release --publish` (the 16), then in `pointers/`
   `cargo publish --no-verify -p leptos-mf2` and `-p mf2-axum`; then tag `v2.0.0` as the release prints.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
-measurement worktrees, are removed (questions 21 and 25).
+**In flight:** G3 (cold start; the first run, target/p10-g3/), started 2026-09-30 by an agent
+working in the main tree; uncommitted changes there are its. Part A's probe branches and worktrees,
+and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
