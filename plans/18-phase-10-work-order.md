@@ -325,8 +325,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `language.en-XA` / `ar-XB` (text: the tag) to every catalog, unseen by lints, `export`, `stats`,
   `unused-id`; test; guide's note gone. ci, docs, codegen-matrix, scenarios pass; sizes unmoved.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
-removed (questions 21 and 25).
+**In flight:** F4 (testing and troubleshooting), started 2026-09-30 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
