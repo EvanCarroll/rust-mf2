@@ -998,6 +998,11 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     **answered: not reserved.** No one depended on them; the upgrade guide says they were never
     published. *Rejected:* placeholder crates.
 
+36. **Publishing 2.0.0, and the old crates** (2026-09-30, after Phase 10's exit) — **answered: the
+    coordinator publishes the 16 once the release dry run is green; `leptos-mf2` and `mf2-axum` are
+    deleted from crates.io if its rules allow, with no pointer releases** (overturning question 34).
+    The owner deletes them on the website (an owner's action); if crates.io refuses, pointers or a
+    yank are asked then. `pointers/` stays until the deletion is done. The push stays the owner's.
 **Decided without asking, and the owner may overturn any of them:**
 - **Pseudo-locales need no name** (found by F3; 2026-09-30): with `en-XA` / `ar-XB` in an application
   whose languages have `language.<tag>` names, the build dropped the generated `Locale::name()`
