@@ -74,23 +74,20 @@ cargo install mf2-cli             # the `mf2` command
 rustup target add wasm32-unknown-unknown
 ```
 
-In a Leptos application, `mf2 init` makes the translation crate (it
-depends on `mf2`, and builds with `mf2-build`); the application adds the
-Leptos layer and, for its server, the Axum one:
+A Leptos application is one crate too: its messages sit in `locales/`, its
+build script is `mf2_build::run()`, and it names `mf2` with `leptos` and
+the functions its messages call, forwarding its `ssr` feature to `mf2/ssr`
+and `mf2/axum`, and `hydrate` to `mf2/hydrate`:
 
 ```sh
-mf2 -C i18n init --name my-app-i18n --locale fr
-cargo add my-app-i18n --path i18n
-cargo add leptos-mf2@1
-cargo add mf2-axum@1 --optional   # turned on by the application's `ssr` feature
+cargo add mf2 --features leptos,fn-number   # leptos-0-8 on Leptos 0.8
+cargo add --build mf2-build
 ```
 
-Leptos 0.9 is the default; on Leptos 0.8, add both with
-`--no-default-features --features leptos-0-8`.
-[Getting started](docs/getting-started.md) builds a complete application
-step by step.
+`mf2 init --ssr` (or `--islands`, `--csr`) writes a complete one, and
+[Getting started](docs/getting-started.md) builds one step by step.
 
-A native application needs no translation crate: its messages sit in
+A native application is the same shape: its messages sit in
 `locales/`, its build script is `mf2_build::run()`, and it names `mf2`
 with `native` — or `ratatui`, for a terminal UI — and the functions its
 messages call:

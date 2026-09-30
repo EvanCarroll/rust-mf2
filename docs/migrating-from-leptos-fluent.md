@@ -185,24 +185,29 @@ pub fn hydrate() {
 
 ## The conversion
 
-First the translation crate, `i18n/`, as on
-[Getting started](getting-started.md), but without its messages: the
-conversion writes them. Then the conversion. Without `--write` the command changes nothing: it
+First the crate gains what [Getting started](getting-started.md)'s has
+for its messages, and nothing else: its manifest names `mf2` (with the
+`leptos` feature) and `mf2-build`, and forwards `ssr` and `hydrate` to
+`mf2`, and it has the three-line build script. Here that is Getting
+started's `Cargo.toml` and `build.rs`, unchanged. (`mf2 init --ssr
+--no-messages`, in the crate, adds the same.) Then the conversion. Without `--write` the command changes nothing: it
 prints a diff of every Rust file it would rewrite, the `.mf2` files it would
 write, and its report. Read the diff, then run it again with `--write`:
 
 ```sh run=migrate status=1
-mf2 -C i18n convert --from leptos-fluent .
+mf2 convert --from leptos-fluent .
 ```
 
 ```sh run=migrate status=1 output=convert-report.txt
-mf2 -C i18n convert --from leptos-fluent . --write
+mf2 convert --from leptos-fluent . --write
 ```
 
 `.` is the application's crate. The `.ftl` directory is the initializer's
-`locales:` (or `--locales DIR`, else `locales/`), and the messages are written into the
-translation crate given with `-C`. The `use` lines name the translation
-crate, `hello_i18n` here, read from its `Cargo.toml` (or `--i18n-crate`).
+`locales:` (or `--locales DIR`, else `locales/`), and each `.ftl` file
+becomes a `.mf2` file beside it. The messages are in the application's own
+crate, so the rewritten `use` lines import `crate::tr`. (Messages kept in a
+crate of their own are written there with `-C DIR`, and the `use` lines
+name that crate, read from its `Cargo.toml`, or `--i18n-crate`.)
 
 Both runs exit with status 1, because the report is not empty: **a
 migration is finished when the report is empty.** Everything else was
@@ -214,7 +219,7 @@ written.
 
 ```rust file=migrate/src/components.rs generated
 use leptos::prelude::*;
-use hello_i18n::tr;
+use crate::tr;
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -263,7 +268,7 @@ The other rewrites:
   identifier, such as `$user-name`, is written `"user-name" = value`.
 * A Fluent attribute keeps its id: `search.placeholder` is the message the
   conversion made from `search`'s `.placeholder`.
-* `use leptos_fluent::{move_tr, tr};` becomes `use hello_i18n::tr;`.
+* `use leptos_fluent::{move_tr, tr};` becomes `use crate::tr;`.
 
 Every call is also checked against the converted messages. An id that is
 not a message, or arguments that are not exactly the message's variables,
@@ -280,7 +285,7 @@ For the application above, the report says:
 
 ```text file=migrate/convert-report.txt generated
 ./src/lib.rs:5:1: error: this `use leptos_fluent` is not rewritten: it names I18n, leptos_fluent, move_tr [leptos-fluent-import]
-./src/lib.rs:12:5: error: `leptos_fluent!` initializes leptos-fluent: replace it with the i18n crate's `setup()` and `leptos_mf2::install` / `mf2_axum::install`; its `lang` cookie is not read: the client always writes `mf2_locale`, so to keep the language readers chose before, add `CookieLocale { name: "lang", ..Default::default() }` to the server's `Negotiator` as an extra source, after `CookieLocale::default()` and before `AcceptLanguage` [leptos-fluent-initializer]
+./src/lib.rs:12:5: error: `leptos_fluent!` initializes leptos-fluent: replace it with the generated `install()`, on the server and in the browser; its `lang` cookie is not read: the client always writes `mf2_locale`, so to keep the language readers chose before, add `CookieLocale { name: "lang", ..Default::default() }` to the server's `Negotiator` as an extra source, after `CookieLocale::default()` and before `AcceptLanguage` [leptos-fluent-initializer]
 ./src/lib.rs:64:33: error: the `leptos-fluent` context: its language and languages become `<LocaleSwitcher>` or the locale API, its `tr` / `tr_with_args` `msg_id!` and `TrDyn` [leptos-fluent-context]
 mf2 convert: 22 entries in 2 locale(s), 2 .mf2 file(s) written; 2 Rust file(s) rewritten; 3 error(s), 0 warning(s)
 ```
@@ -291,10 +296,10 @@ Each code, and how to finish it:
 
 | Code | What | Instead |
 |---|---|---|
-| `leptos-fluent-initializer` | `leptos_fluent! { … }` or `static_loader! { … }` | the translation crate's `setup()`, installed with `leptos_mf2::install` in the browser and `mf2_axum::install` on the server. The language negotiation options become `mf2_axum`'s `Negotiator` ([Switching language](switching.md)) |
+| `leptos-fluent-initializer` | `leptos_fluent! { … }` or `static_loader! { … }` | the generated `install()`, called in the browser's entry point and at the server's start. The language negotiation options become `mf2::axum`'s `Negotiator` ([Switching language](switching.md)) |
 | `leptos-fluent-context` | the `I18n` context: `i18n.language`, `i18n.languages`, `i18n.tr(…)` | a language selector becomes `<LocaleSwitcher>`; a lookup by an id known only at run time becomes `msg_id!` and `TrDyn` ([Call sites](call-sites.md)) |
-| `leptos-fluent-import` | a `use leptos_fluent::…` naming more than `tr` and `move_tr` | import the translation crate's `tr` |
-| `leptos-fluent-dependency` | `leptos-fluent` or `fluent-templates` in a `Cargo.toml` | a dependency on the translation crate, with its `ssr` and `hydrate` features forwarded ([Getting started](getting-started.md)) |
+| `leptos-fluent-import` | a `use leptos_fluent::…` naming more than `tr` and `move_tr` | the generated `tr`, at the crate's root |
+| `leptos-fluent-dependency` | `leptos-fluent` or `fluent-templates` in a `Cargo.toml` | `mf2` (with `leptos`) and `mf2-build`, with `ssr` and `hydrate` forwarded to `mf2` ([Getting started](getting-started.md)) |
 | `leptos-fluent-dynamic-id` | an id that is not a string literal | a literal id, or `msg_id!` and `TrDyn` |
 | `leptos-fluent-if-form` | `tr!(if c { "a" } else { "b" })` | `if c { tr!("a") } else { tr!("b") }`, each branch the same type |
 | `leptos-fluent-cfg` | `#[cfg]` inside a call | a `#[cfg]` on a statement around it |
@@ -310,12 +315,13 @@ and the shell gains what [Getting started](getting-started.md) explains
 pub mod components;
 
 use components::Home;
-use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
+use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
+
+mf2::include_generated!();
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     let (lang, dir) = html_lang();
@@ -363,21 +369,20 @@ pub fn App() -> impl IntoView {
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(hello_i18n::setup());
-    leptos_mf2::hydrate_body(App);
+    install();
+    mf2::leptos::hydrate_body(App);
 }
 ```
 
 The server is [Getting started](getting-started.md)'s `src/main.rs`: it
-installs the translation crate with `mf2_axum::install` and negotiates each
-request's language. It reads this library's cookie, `mf2_locale`, which the
+calls the generated `install()` and negotiates each request's language. It reads this library's cookie, `mf2_locale`, which the
 client writes on every switch — not the initializer's `lang`. So that a
 reader's earlier choice is kept after the migration, add a source for the
 old cookie after the default one and before `AcceptLanguage`, as the
 report says: `.source(CookieLocale { name: "lang",
 ..CookieLocale::default() })`. The manifest is Getting started's too:
-`leptos-fluent` gives way to the translation crate and `leptos-mf2`, and
-`ssr` and `hydrate` forward to them.
+`leptos-fluent` gives way to `mf2` and `mf2-build`, and `ssr` and
+`hydrate` forward to `mf2`.
 
 ## What changes for the reader
 

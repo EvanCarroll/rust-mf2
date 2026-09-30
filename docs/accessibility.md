@@ -42,7 +42,7 @@ lists both. Its samples join the [call sites](call-sites.md) library.
   that it is announced. A signal-valued argument changes the text in
   place, so the same holds for it:
 
-  ```mf2 file=calls/i18n/locales/en/main.mf2
+  ```mf2 file=calls/locales/en/main.mf2
   [results]
 
   count =
@@ -84,7 +84,7 @@ lang>`, for crawlers and for tools that read schema.org. Keep it in step
 with a switch by reading `current_locale()` (from [Switching
 language](switching.md#the-current-language)) in a closure:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [article]
 headline = How the catalog is built
 ```
@@ -94,7 +94,7 @@ headline = How the catalog is built
 pub fn Article() -> impl IntoView {
     view! {
         <article itemscope itemtype="https://schema.org/Article">
-            <meta itemprop="inLanguage" content=move || hello_i18n::current_locale().tag() />
+            <meta itemprop="inLanguage" content=move || current_locale().tag() />
             <h2 itemprop="headline">{tr!("article.headline")}</h2>
         </article>
     }
@@ -112,7 +112,7 @@ Turn on `mark-fallback-lang` and the library does it:
 
 ```toml file=calls/Cargo.toml merge
 [dependencies]
-leptos-mf2 = { version = "1", features = ["mark-fallback-lang"] }
+mf2 = { version = "2", features = ["leptos", "fn-number", "datetime-icu", "mark-fallback-lang"] }
 ```
 
 A message the page's catalog borrowed then renders inside a `<span>`
@@ -138,13 +138,13 @@ Some places cannot be marked, and stay as they are:
 
 For those, the answer is to translate the message. Either way:
 
-* `mf2 -C i18n check` warns about missing translations
+* `mf2 check` warns about missing translations
   (`missing-translation`), once per language, naming the first ten
-  missing ids, and `mf2 -C i18n stats` counts them per language;
+  missing ids, and `mf2 stats` counts them per language;
 * to make a missing translation fail the build, raise the lint in
-  `mf2.toml`:
+  `mf2.toml`, beside `Cargo.toml`:
 
-  ```toml file=calls/i18n/mf2.toml merge
+  ```toml file=calls/mf2.toml
   [lints]
   missing-translation = "error"
   ```

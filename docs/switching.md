@@ -5,7 +5,7 @@ library provides, what a switch does, and how to build your own control.
 Its samples join the [call sites](call-sites.md) library, with these
 messages:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [language]
 label = Language
 apply = Apply
@@ -15,7 +15,7 @@ fr = Français
 
 ## How the server chooses
 
-On a server, `mf2-axum`'s `Negotiator` chooses each request's language. It
+On a server, `mf2::axum`'s `Negotiator` chooses each request's language. It
 tries an ordered list of **sources**, and the first one that names a
 language this build has wins (`fr-CA` finds `fr`). **Sinks** record the
 result in the response — `CookieLocale` as a sink writes the cookie only
@@ -49,8 +49,8 @@ it goes under it: add it to the router before the negotiator.
 ```rust file=calls/src/lib.rs
 /// A site whose pages live under `/en/…` and `/fr/…`.
 #[cfg(feature = "ssr")]
-pub fn path_negotiator() -> mf2_axum::Negotiator {
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
+pub fn path_negotiator() -> mf2::axum::Negotiator {
+    use mf2::axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
     Negotiator::empty()
         .source(PathPrefix)
         .source(QueryParam::default())
@@ -63,7 +63,7 @@ pub fn path_negotiator() -> mf2_axum::Negotiator {
 #[cfg(feature = "ssr")]
 pub fn with_path_redirect(router: axum::Router) -> axum::Router {
     router
-        .layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
+        .layer(axum::middleware::from_fn(mf2::axum::path_prefix_redirect))
         .layer(path_negotiator())
 }
 ```
@@ -76,7 +76,7 @@ URLs. `<AlternateLinks/>` in the `<head>` writes one
 #[component]
 pub fn Alternates() -> impl IntoView {
     view! {
-        <leptos_mf2::AlternateLinks href_of=|tag| format!("https://example.com/{tag}/") />
+        <mf2::leptos::AlternateLinks href_of=|tag| format!("https://example.com/{tag}/") />
     }
 }
 ```
@@ -106,7 +106,7 @@ Each part can be changed:
 * **`Negotiator::over(locales, default)`** starts from an explicit table
   of tags and directions instead of the build's, for a site that offers
   fewer languages than it built, or a test. `Negotiator::locales()` (and,
-  anywhere on the server or the client, `leptos_mf2::locales()`) returns
+  anywhere on the server or the client, `mf2::leptos::locales()`) returns
   the table in use: the tags and their directions, in build order — for a
   sitemap or a list of `hreflang` links.
 
@@ -114,8 +114,8 @@ Each part can be changed:
 /// `?hl=` first, a cookie an older version of the site wrote after this
 /// library's own, and French for a request nothing matches.
 #[cfg(feature = "ssr")]
-pub fn custom_negotiator() -> mf2_axum::Negotiator {
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
+pub fn custom_negotiator() -> mf2::axum::Negotiator {
+    use mf2::axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
     Negotiator::empty()
         .source(QueryParam("hl"))
         .source(CookieLocale::default())
@@ -133,7 +133,7 @@ pub fn custom_negotiator() -> mf2_axum::Negotiator {
 ```
 
 **What was negotiated.** `provide_locale` returns it, and
-`mf2_axum::negotiated()` gives it to any component that renders in the
+`mf2::axum::negotiated()` gives it to any component that renders in the
 request: the tag, its direction, `from` (the source that matched, such as
 `"query"` or `"cookie"`, or `"default"`) and `matched`.
 
@@ -142,7 +142,7 @@ request: the tag, its direction, `from` (the source that matched, such as
 #[cfg(feature = "ssr")]
 #[component]
 pub fn LanguageOrigin() -> impl IntoView {
-    let from = mf2_axum::negotiated().map_or("default", |n| n.from);
+    let from = mf2::axum::negotiated().map_or("default", |n| n.from);
     view! { <meta name="language-origin" content=from /> }
 }
 ```
@@ -159,7 +159,7 @@ it adds to the response for what was negotiated. A subdomain as a source:
 pub struct Subdomain;
 
 #[cfg(feature = "ssr")]
-impl mf2_axum::LocaleSource for Subdomain {
+impl mf2::axum::LocaleSource for Subdomain {
     fn name(&self) -> &'static str {
         "subdomain"
     }
@@ -195,7 +195,7 @@ message, so adding a language needs no code:
 pub fn Header() -> impl IntoView {
     view! {
         <header>
-            <leptos_mf2::LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
+            <mf2::leptos::LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
         </header>
     }
 }
@@ -239,14 +239,14 @@ fn account_href(tag: &str) -> String {
 #[component]
 pub fn AccountHeader() -> impl IntoView {
     view! {
-        <leptos_mf2::LocaleSwitcher
+        <mf2::leptos::LocaleSwitcher
             label=tr!("language.label")
             button=tr!("language.apply")
             href_of=account_href
         >
-            <leptos_mf2::LocaleOption tag=Locale::En>{Locale::En.name()}</leptos_mf2::LocaleOption>
-            <leptos_mf2::LocaleOption tag="fr">{tr!("language.fr")}</leptos_mf2::LocaleOption>
-        </leptos_mf2::LocaleSwitcher>
+            <mf2::leptos::LocaleOption tag=Locale::En>{Locale::En.name()}</mf2::leptos::LocaleOption>
+            <mf2::leptos::LocaleOption tag="fr">{tr!("language.fr")}</mf2::leptos::LocaleOption>
+        </mf2::leptos::LocaleSwitcher>
     }
 }
 ```
@@ -278,7 +278,7 @@ in both directions:
 
 ## What a switch does
 
-A live switch (`set_locale(Locale::Fr)`, from the i18n crate) does this,
+A live switch (`set_locale(Locale::Fr)`, generated beside `tr!`) does this,
 in order:
 
 1. it finds the French catalog's URL: from the page's `<CatalogLinks/>`
@@ -322,15 +322,12 @@ pub fn LanguageLinks() -> impl IntoView {
 }
 ```
 
-To switch live from your own control, call the i18n crate's
-`set_locale`. `preload_locale` fetches and checks a catalog without
+To switch live from your own control, call the generated `set_locale`. `preload_locale` fetches and checks a catalog without
 switching to it. Call it when the pointer or keyboard focus reaches a
 control, so that the switch itself is instant. Both are callable on the
 server too, where they do nothing, so a component needs no `#[cfg]`:
 
 ```rust file=calls/src/lib.rs
-use hello_i18n::{Locale, preload_locale, set_locale};
-
 /// A button that switches live. It needs client code, so it does nothing
 /// before hydration: prefer `LocaleSwitcher` unless the page cannot work
 /// without the wasm anyway.
@@ -352,7 +349,7 @@ pub fn SwitchButton(lang: Locale, children: Children) -> impl IntoView {
 
 ## The current language
 
-The i18n crate's `current_locale()` is the language the page is in. In the
+The generated `current_locale()` is the language the page is in. In the
 browser it is reactive: a view or an effect that reads it follows the next
 switch. On the server it is the request's language. As a closure it keeps
 an attribute in step, `content=move || current_locale().tag()`; the

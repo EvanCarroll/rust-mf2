@@ -1,7 +1,7 @@
 // Phase 7 A3 (plans/15-phase-7-work-order.md) against `examples/demo-ssr`
 // built with `cargo leptos build --split` and running at --base-url.
 //
-// P0.2's lazy-route assertions, against `leptos-mf2` rather than the
+// P0.2's lazy-route assertions, against `mf2::leptos` rather than the
 // probe's glue:
 //
 //   * the route's code is a chunk of its own: not fetched on the home page,

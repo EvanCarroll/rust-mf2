@@ -934,7 +934,8 @@ D4 finds the positions where 1.x needed `|c: AnyView|`, and removes the need.
   took the query name as its state; D4 made it a plain `from_fn` that reads the
   name from the negotiator's answer in the request (so it goes under the layer;
   outside it, `lang`). `mf2-axum`'s
-  context glue stays for the book until D6 (`mf2 init` dropped it in D5).
+  context glue is used by no page, example or bench since D6 (`mf2 init`
+  dropped it in D5), so G1 can delete it.
 - **`catalog_routes()`** is unchanged. The generated `install()` replaces
   `mf2_axum::install(setup(), CATALOGS)`.
 - **Plain Axum**, with no Leptos, has three things:

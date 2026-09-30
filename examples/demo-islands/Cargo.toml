@@ -19,9 +19,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 demo-islands-i18n = { path = "i18n" }
 leptos = { version = "0.9.0-beta", default-features = false, features = ["islands"] }
-leptos-mf2 = { path = "../../crates/leptos-mf2", features = ["static-locale"] }
 leptos_meta = "0.9.0-beta"
-mf2 = { path = "../../crates/mf2" }
+mf2 = { path = "../../crates/mf2", features = ["leptos", "static-locale"] }
 
 axum = { version = "0.8.9", optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
@@ -33,7 +32,6 @@ wasm-bindgen = { version = "0.2.128", optional = true }
 default = []
 hydrate = [
     "leptos/hydrate",
-    "leptos-mf2/hydrate",
     "mf2/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
@@ -41,7 +39,6 @@ hydrate = [
 ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
-    "leptos-mf2/ssr",
     "mf2/ssr",
     "mf2/axum",
     "dep:axum",

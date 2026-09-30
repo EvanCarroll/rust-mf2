@@ -19,7 +19,7 @@
 //! wrote, and must equal what the command wrote; a `sh` block marked
 //! `run=<project>` holds `mf2 …` commands, which are run in that project, in
 //! order, before its files are written — so the documented `mf2 init` is the
-//! one that makes the i18n crate. Nothing is hidden: there are no elided
+//! one that makes the application. Nothing is hidden: there are no elided
 //! lines, and a code block with no `file=` is refused.
 //!
 //! A block marked `before` shows code *before* a migration to this library
@@ -79,8 +79,6 @@ const OUR_CRATES: &[(&str, &str)] = &[
     ("mf2-native", "crates/mf2-native"),
     ("mf2-ratatui", "crates/mf2-ratatui"),
     ("mf2-build", "crates/mf2-build"),
-    ("leptos-mf2", "crates/leptos-mf2"),
-    ("mf2-axum", "crates/mf2-axum"),
 ];
 
 const WASM: &str = "wasm32-unknown-unknown";
@@ -148,11 +146,11 @@ const PROJECTS: &[Project] = &[
         site: None,
     },
     // call-sites.md, switching.md and accessibility.md: `tr!` in every
-    // position, as components of a library over hello's i18n crate.
+    // position, as components of a library set up as hello is.
     Project {
         name: "calls",
         base: Some("hello"),
-        remove: &["src", "i18n/locales"],
+        remove: &["src", "locales"],
         checks: LIB_SSR_AND_HYDRATE,
         site: None,
     },
@@ -172,13 +170,13 @@ const PROJECTS: &[Project] = &[
         site: None,
     },
     // migrating-from-leptos-fluent.md: Getting started's application as it
-    // would be on leptos-fluent, converted, then finished by hand. Its server
-    // is hello's, unchanged, and so is its i18n crate, whose messages the
-    // page's commands convert.
+    // would be on leptos-fluent, converted, then finished by hand. Its server,
+    // manifest and build script are hello's, unchanged; its messages are what
+    // the page's commands convert.
     Project {
         name: "migrate",
         base: Some("hello"),
-        remove: &["src/lib.rs", "i18n/locales"],
+        remove: &["src/lib.rs", "locales"],
         checks: SSR_AND_HYDRATE,
         site: None,
     },
@@ -190,10 +188,10 @@ const PROJECTS: &[Project] = &[
             target: Some(WASM),
             args: &[],
         }],
-        site: Some("i18n"),
+        site: Some("."),
     },
     // command-line.md: the `mf2` commands, run on Getting started's
-    // translation crate; the page shows what they print and write, and
+    // application; the page shows what they print and write, and
     // holds them to it. Nothing to compile beyond `hello`.
     Project {
         name: "cli",

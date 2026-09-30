@@ -19,12 +19,11 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 demo-i18n = { path = "i18n" }
 leptos = { version = "0.9.0-beta", default-features = false }
-leptos-mf2 = { path = "../../crates/leptos-mf2" }
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
 # `mark-fallback-lang`: borrowed text is marked with its language (the note
 # on the home page, untranslated in Arabic on purpose).
-mf2 = { path = "../../crates/mf2", features = ["fn-number", "fn-datetime", "datetime-icu", "mark-fallback-lang"] }
+mf2 = { path = "../../crates/mf2", features = ["leptos", "fn-number", "fn-datetime", "datetime-icu", "mark-fallback-lang"] }
 
 axum = { version = "0.8.9", optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
@@ -40,7 +39,6 @@ hydrate = [
     # Leptos 0.9 hydrates the `#[lazy_route]` only with this; without it
     # tachys panics at hydration.
     "leptos/lazy",
-    "leptos-mf2/hydrate",
     "mf2/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
@@ -49,7 +47,6 @@ ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
-    "leptos-mf2/ssr",
     "mf2/ssr",
     "mf2/axum",
     "dep:axum",

@@ -480,8 +480,8 @@ impl Walker<'_> {
 
     fn initializer(&mut self, span: Span, name: &str, group: Option<&Group>) {
         let mut message = format!(
-            "`{name}!` initializes leptos-fluent: replace it with the i18n crate's \
-             `setup()` and `leptos_mf2::install` / `mf2_axum::install`"
+            "`{name}!` initializes leptos-fluent: replace it with the generated \
+             `install()`, on the server and in the browser"
         );
         // mf2's client writes its own cookie on every switch, so the old
         // one can only be read, as an extra source, never renamed.

@@ -70,11 +70,11 @@ view! {
 #[wasm_bindgen]
 pub fn hydrate() {
     my_i18n::install();
-    leptos_mf2::hydrate_islands();
+    mf2::leptos::hydrate_islands();
 }
 
 // Once, in the application crate: the gate's export.
-leptos_mf2::islands_gate!();
+mf2::leptos::islands_gate!();
 ```
 
 **Why a gate.** Leptos' island script calls `hydrate()` and walks the

@@ -68,8 +68,8 @@ example cannot share one with libraries that are built both ways.
 `pkg/split_…lazy_page_view….wasm` (23,688 B, 11,405 B gz in a release
 build, 2026-09-27), fetched the first time the route is matched — on a client-side
 navigation, or, when the page *is* `/lazy`, preloaded by the server's HTML
-and awaited by `leptos_mf2::hydrate_lazy` before hydration walks it.
-Nothing in `leptos-mf2` is aware of chunks: they share the main module's
+and awaited by `mf2::leptos::hydrate_lazy` before hydration walks it.
+Nothing in `mf2` is aware of chunks: they share the main module's
 linear memory and thread-locals, so the chunk's descriptions read the
 catalog the boot installed, join the same node registry, and follow the
 same switch. The route has its own `<title>`, a text, an attribute, a markup message,

@@ -27,174 +27,52 @@ browser, so what you copy here is what CI builds.
   cargo install cargo-leptos
   ```
 
-* The `mf2` command, which makes the translation crate and checks
-  translations ([The command line](command-line.md) has all of it):
+* Optionally, the `mf2` command, which checks translations and makes
+  starters ([The command line](command-line.md) has all of it). Nothing on
+  this page needs it:
 
   ```sh
   cargo install mf2-cli
   ```
 
-  That installs 1.0.0, the release on crates.io. This page follows the
-  repository, which has changed since; to run exactly what it shows,
-  install from a checkout of this repository instead:
-  `cargo install --path crates/mf2-cli`.
+  `mf2 init --ssr` writes this whole application in one step
+  ([Command line](command-line.md#init-a-starter)); this page writes it by
+  hand, a file at a time, so that each line is explained.
 
 * For a client-only application only, [Trunk](https://trunkrs.dev)
   (`cargo install trunk`), which builds it
   ([Delivery modes](delivery-modes.md#client-only)).
 
-> **Which version these pages show.** Every crate named here is on
-> crates.io at 1.0.0, and the manifests on these pages name them as
-> crates.io resolves them: `mf2 = "1"`, `leptos-mf2 = "1"`,
-> `mf2-axum = "1"`, `mf2-build = "1"`. The pages follow this repository,
-> though, which has fixes that 1.0.0 lacks: they ship in 2.0.0, the next
-> release (1.1.0 was not published and will not be). `cargo xtask docs`
-> compiles these pages against the repository by replacing each `"1"` with
-> a path into a checkout, for example
-> `mf2 = { path = "../rust-mf2/crates/mf2" }`; do the same to build exactly
-> what CI builds.
+> **Which version these pages show.** The manifests on these pages name
+> `mf2 = "2"` and `mf2-build = "2"`: 2.0.0, the next release, which these
+> pages follow (1.0.0 is on crates.io; 1.1.0 was not published and will not
+> be). Until 2.0.0 is published, build from a checkout of this repository:
+> `cargo xtask docs` compiles these pages by replacing each `"2"` with a
+> path into it, for example `mf2 = { path = "../rust-mf2/crates/mf2" }`,
+> and `cargo install --path crates/mf2-cli` installs its `mf2` command.
 
 ## The shape of an application
 
 ```text
 hello/
-├── Cargo.toml        the application: a workspace of its own
-├── src/
-│   ├── lib.rs        the page, and the browser's entry point
-│   └── main.rs       the server
-└── i18n/             the translation crate
-    ├── Cargo.toml
-    ├── build.rs
-    ├── mf2.toml
-    ├── src/lib.rs
-    └── locales/
-        ├── en/main.mf2
-        └── fr/main.mf2
+├── Cargo.toml        the application, and the `mf2` it builds with
+├── build.rs          reads locales/, writes the catalogs and the module
+├── locales/
+│   ├── en/main.mf2
+│   └── fr/main.mf2
+└── src/
+    ├── lib.rs        the page, and the browser's entry point
+    └── main.rs       the server
 ```
 
-The translations live in a crate of their own, `i18n/`. Its build script
-reads `locales/`, checks every message, and writes three things: one binary
+One crate holds the application and its messages. Its build script reads
+`locales/`, checks every message, and writes three things: one binary
 catalog per language, a manifest describing all the messages, and a small
-Rust module that includes the `tr!` macro. The browser downloads the catalog for
-one language when it needs it. **No message text, message id, argument name
-or plural rule is compiled into the wasm.** So changing a translation
-leaves the wasm byte-for-byte the same, and every reader's cached copy
-stays valid.
-
-## The translation crate
-
-A crate of its own suits a workspace where several crates share one set of
-messages. For an application alone, `mf2 init --ssr` makes the whole of it
-in one crate, its messages beside its code
-([Command line](command-line.md#init-a-starter)). This page writes the
-translation crate by hand. Its manifest, `i18n/Cargo.toml`:
-
-```toml file=hello/i18n/Cargo.toml
-[package]
-name = "hello-i18n"
-version = "0.1.0"
-edition = "2024"
-
-# The functions a message may use are this crate's features, declared
-# once: the application's server and client builds both get them, so
-# the two always format alike. Turn on what the corpus needs.
-[features]
-default = []
-# The application forwards exactly one of these from its own build.
-ssr = ["mf2/host-std", "mf2/ssr"]
-hydrate = ["mf2/host-web", "mf2/hydrate"]
-csr = ["mf2/host-web", "mf2/csr"]
-fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu", "mf2-build/icu-blob"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
-intl = ["mf2/intl"]
-
-[dependencies]
-mf2 = "1"
-
-[build-dependencies]
-mf2-build = "1"
-```
-
-The features decide **which formatting functions exist**. A message can
-never add code to the wasm by itself: if a French translation uses
-`:datetime` and the crate was not built with `fn-datetime`, the build fails
-and names the message. With no features, a message can still use `:string`,
-`:number`, `:integer` and plural selection. Numbers then use neutral
-symbols (`1234.5`). Turn on `fn-number` for each language's own symbols and
-grouping (`1 234,5` in French, grouped with a narrow no-break space,
-U+202F), and `fn-datetime` with one date backend for
-dates:
-
-| Feature | Adds |
-|---|---|
-| `fn-number` | numbers in each locale's own symbols, `:percent`, `:currency`, `:unit` |
-| `fn-datetime` + `datetime-icu` | `:datetime`, `:date`, `:time` through ICU4X, on the server and in the browser alike |
-| `fn-datetime` + `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
-| `intl` | numbers and plural rules through the browser's `Intl` too |
-
-Its build script reads `locales/`, checks every message, and writes the
-catalogs, the manifest and the module to cargo's `OUT_DIR`:
-
-```rust file=hello/i18n/build.rs
-//! Parses locales/, writes the manifest and the catalogs to OUT_DIR, and
-//! generates the module src/lib.rs includes.
-
-fn main() {
-    let outcome = match mf2_build::Build::new().and_then(|build| build.emit_cargo(true).run()) {
-        Ok(outcome) => outcome,
-        Err(e) => {
-            println!("cargo::error={e}");
-            std::process::exit(1);
-        }
-    };
-    if let Err(e) = outcome.into_result() {
-        println!("cargo::error={e}");
-        std::process::exit(1);
-    }
-}
-```
-
-Its `src/lib.rs` includes what the build generates. That holds `setup()`,
-what the application installs once on each side:
-
-```rust file=hello/i18n/src/lib.rs
-//! The application's messages. Everything in here is generated: edit
-//! `locales/` instead.
-//!
-//! This brings in `tr!` and `msg_id!` as well, and a `prelude` that holds
-//! both. Another crate calls them as `<this crate>::tr!("id", name = value)`,
-//! or imports them with `use <this crate>::prelude::*;`; a module of this
-//! crate imports them with `use crate::prelude::*;`.
-
-mf2::include_generated!();
-```
-
-`mf2.toml` configures the build. `source_locale` is the language the
-messages are written in first. Every other language's catalog is checked
-against it:
-
-```toml file=hello/i18n/mf2.toml
-source_locale = "en"
-
-[catalog]
-strip = [
-    "cold",
-    "ids",
-]
-missing = "fallback"
-
-[locale_data]
-currencies = "used"
-units = "used"
-```
-
-`missing = "fallback"` means a message that has not been translated yet
-shows in the source language (and `mf2 check` counts how many there are).
-`strip` keeps message ids, attributes and comments out of the catalogs the
-browser downloads, and `"used"` under `[locale_data]` leaves out the
-currency and unit data no message uses.
+Rust module, which the crate includes, holding the `tr!` macro and the
+`Locale` type. The browser downloads the catalog for one language when it
+needs it. **No message text, message id, argument name or plural rule is
+compiled into the wasm.** So changing a translation leaves the wasm
+byte-for-byte the same, and every reader's cached copy stays valid.
 
 ## The messages
 
@@ -203,7 +81,7 @@ Messages are Unicode [MessageFormat 2](https://www.unicode.org/reports/tr35/tr35
 language. Then comes one message per `id = pattern`, and a `[section]`
 prefixes the ids that follow it (`language.label` below):
 
-```mf2 file=hello/i18n/locales/en/main.mf2
+```mf2 file=hello/locales/en/main.mf2
 @locale en
 ---
 
@@ -227,7 +105,7 @@ en = English
 fr = Français
 ```
 
-```mf2 file=hello/i18n/locales/fr/main.mf2
+```mf2 file=hello/locales/fr/main.mf2
 @locale fr
 ---
 
@@ -260,20 +138,14 @@ names are messages too. `language.fr` is `Français` in every catalog, so
 each language is named in its own language, and the names are catalog data
 rather than text in the wasm.
 
-`mf2 -C i18n check` runs every check that the build runs, with the
-translation crate's features as cargo resolves them for the build (or the
-ones `--features` names). It also works without cargo, so you can use it
-in a translator's editor: it then checks with no features, and says so.
+`mf2 check` runs every check that the build runs, with the features cargo
+resolves for the build (or the ones `--features` names). It also works
+without cargo, so you can use it in a translator's editor: it then checks
+with no features, and says so.
 
-## The application's manifest
+## The manifest
 
 ```toml file=hello/Cargo.toml
-# A workspace of its own. An application is built twice, once with `ssr`
-# and once with `hydrate`, and cargo unifies features across a workspace.
-[workspace]
-members = [".", "i18n"]
-resolver = "3"
-
 [package]
 name = "hello"
 version = "0.1.0"
@@ -283,24 +155,24 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-hello-i18n = { path = "i18n", features = ["fn-number", "fn-datetime", "datetime-icu"] }
 leptos = { version = "0.9.0-beta", default-features = false }
-leptos-mf2 = "1"
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
+mf2 = { version = "2", features = ["leptos", "fn-number"] }
 
 axum = { version = "0.8", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
 leptos_axum = { version = "0.9.0-beta", optional = true }
-mf2-axum = { version = "1", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
+
+[build-dependencies]
+mf2-build = "2"
 
 [features]
 hydrate = [
     "leptos/hydrate",
-    "leptos-mf2/hydrate",
-    "hello-i18n/hydrate",
+    "mf2/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
 ]
@@ -308,11 +180,10 @@ ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
-    "leptos-mf2/ssr",
-    "hello-i18n/ssr",
+    "mf2/ssr",
+    "mf2/axum",
     "dep:axum",
     "dep:leptos_axum",
-    "dep:mf2-axum",
     "dep:tokio",
 ]
 
@@ -327,9 +198,8 @@ bin-default-features = false
 lib-features = ["hydrate"]
 lib-default-features = false
 lib-profile-release = "wasm-release"
-# `cargo leptos watch` watches the crate's own sources only. Without this,
-# a translation edit is not seen until something else changes.
-watch-additional-files = ["i18n/locales"]
+# `cargo leptos watch` watches the crate's sources only.
+watch-additional-files = ["locales"]
 
 [profile.wasm-release]
 inherits = "release"
@@ -340,45 +210,81 @@ panic = "abort"
 strip = true
 ```
 
-The application forwards its own `ssr` or `hydrate` to the i18n crate and
-to `leptos-mf2`, just as it does to `leptos`. The i18n crate's features are
-the same for both builds, so the server and the browser format alike. Here
-they give numbers in each language's own symbols and dates through ICU4X,
-whose data travels in each language's catalog. A feature that is on but
-that no message uses adds nothing to the wasm.
+The application forwards its own `ssr` or `hydrate` to `mf2`, just as it
+does to `leptos`, and the server's build turns on `mf2/axum` beside it.
+`watch-additional-files` makes `cargo leptos watch` see an edit under
+`locales/`: without it, a translation edit is not seen until something
+else changes.
 
-**Leptos 0.9 or 0.8.** `leptos-mf2` and `mf2-axum` are built for Leptos
-0.9 by default. A requirement of `"0.9.0-beta"` takes every later
-`0.9.0-*` pre-release and the 0.9 releases with an ordinary `cargo update`.
-An application that stays on Leptos 0.8 names the 0.8 crates and turns
-the default line off in both of ours; the rest of the manifest, and every
-source file, is unchanged:
+`mf2`'s other features decide **which formatting functions exist**, and
+they are the same for both builds, so the server and the browser format
+alike. A message can never add code to the wasm by itself: if a French
+translation uses `:datetime` and the crate was not built with
+`fn-datetime`, the build fails and names the message. With no features, a
+message can still use `:string`, `:number`, `:integer` and plural
+selection. Numbers then use neutral symbols (`1234.5`). `fn-number` gives
+each language's own symbols and grouping (`1 234,5` in French, grouped with
+a narrow no-break space, U+202F); dates take `fn-datetime` and one backend:
+
+| Feature of `mf2` | Adds |
+|---|---|
+| `fn-number` | numbers in each locale's own symbols, `:percent`, `:currency`, `:unit` |
+| `datetime-icu` (with `features = ["icu-blob"]` on `mf2-build`) | `:datetime`, `:date`, `:time` through ICU4X, on the server and in the browser alike; it turns on `fn-datetime` |
+| `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
+| `intl` | numbers and plural rules through the browser's `Intl` too |
+
+A feature that is on but that no message uses adds nothing to the wasm.
+
+The build script is three lines. It reads `locales/`, checks every message,
+and writes the catalogs, the manifest and the module to cargo's `OUT_DIR`;
+a message with an error fails the build and is named:
+
+```rust file=hello/build.rs
+fn main() {
+    mf2_build::run();
+}
+```
+
+An optional `mf2.toml` beside `Cargo.toml` configures the build: the
+source language (`en` unless it says otherwise), what the catalogs leave
+out, what a missing translation shows, and the lints. The defaults suit
+this page: a message not translated yet shows in the source language, and
+the catalogs the browser downloads carry no message ids and no comments.
+
+**Leptos 0.9 or 0.8.** `mf2`'s `leptos` feature is for Leptos 0.9. A
+requirement of `"0.9.0-beta"` takes every later `0.9.0-*` pre-release and
+the 0.9 releases with an ordinary `cargo update`. An application that stays
+on Leptos 0.8 names the 0.8 crates and `mf2`'s `leptos-0-8` in place of
+`leptos`; the rest of the manifest, and every source file, is unchanged:
 
 ```toml file=hello-0-8/Cargo.toml merge
 [dependencies]
 leptos = { version = "0.8", default-features = false }
-leptos-mf2 = { version = "1", default-features = false, features = ["leptos-0-8"] }
 leptos_meta = "0.8"
 leptos_router = "0.8"
 leptos_axum = { version = "0.8", optional = true }
-mf2-axum = { version = "1", default-features = false, features = ["leptos-0-8"], optional = true }
+mf2 = { version = "2", features = ["leptos-0-8", "fn-number"] }
 ```
 
-Asking for both lines at once — `leptos-0-8` with the default features
-still on — is a compile error, the only one, that says what to write.
+Asking for both lines at once — `leptos` and `leptos-0-8` — is a compile
+error, the only one, that says what to write.
 
 ## The page
 
-`src/lib.rs` holds the document shell, the page, and the browser's entry
-point. The shell does three things for translation:
+`src/lib.rs` includes what the build generated, and holds the document
+shell, the page, and the browser's entry point. The shell does three things
+for translation:
 
 ```rust file=hello/src/lib.rs
-use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleSwitcher, html_lang};
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
+use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleSwitcher, html_lang};
+
+// What the build script generated: `tr!`, `Locale`, `install()` and the
+// rest, at this crate's root.
+mf2::include_generated!();
 
 /// The document. `lang` and `dir` are those of the language this request
 /// is rendered in, so an Arabic page is right-to-left from its first byte.
@@ -468,17 +374,21 @@ never loads, the form submits `?lang=fr` and the server renders the page
 in French. [Switching language](switching.md) explains why, and how to
 build your own switcher.
 
-The browser's entry point installs the i18n crate and hydrates:
+The switcher lists every language, in the order of `Locale::ALL`, each
+named by its `language.<tag>` message in its own language: adding a
+language to `locales/` adds it to the switcher, with no code.
+
+The browser's entry point installs what the build generated and hydrates:
 
 ```rust file=hello/src/lib.rs
-/// The browser's entry point: install what the i18n crate generated, then
+/// The browser's entry point: install what the build generated, then
 /// hydrate once this page's catalog has arrived.
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(hello_i18n::setup());
-    leptos_mf2::hydrate_body(App);
+    install();
+    mf2::leptos::hydrate_body(App);
 }
 ```
 
@@ -497,29 +407,16 @@ rather than be read wrongly.
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use std::sync::Arc;
-
     use axum::Router;
     use hello::{App, shell};
     use leptos::prelude::*;
-    use leptos_axum::{LeptosRoutes, file_and_error_handler_with_context, generate_route_list};
-    use mf2_axum::Negotiator;
+    use leptos_axum::{LeptosRoutes, file_and_error_handler, generate_route_list};
+    use mf2::axum::{Negotiator, catalog_routes};
 
-    // 1. Install the i18n crate and its catalogs. Every catalog is checked
-    //    against the build here, so a deploy that mixes builds fails at
-    //    start-up rather than in a request.
-    mf2_axum::install(hello_i18n::setup(), hello_i18n::CATALOGS)?;
-
-    // 2. How a request's language is chosen: the default is `?lang=` (a
-    //    link, or the switcher's form), then the cookie a choice leaves,
-    //    then the browser's `Accept-Language`.
-    let negotiator = Arc::new(Negotiator::default());
-    let context = {
-        let negotiator = Arc::clone(&negotiator);
-        move || {
-            mf2_axum::provide_locale(&negotiator);
-        }
-    };
+    // 1. The catalogs this build embeds, each checked against the build
+    //    once, here: a deploy that mixes builds fails at start-up rather
+    //    than in a request.
+    hello::install();
 
     let conf = get_configuration(None)?;
     let addr = conf.leptos_options.site_addr;
@@ -527,15 +424,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let routes = generate_route_list(App);
 
     let app = Router::new()
-        // 3. `/i18n/*`: the catalogs, served from the binary, each compressed
-        //    once and kept, cached for a year (each file's name carries its
-        //    content hash).
-        .merge(mf2_axum::catalog_routes())
-        .leptos_routes_with_context(&leptos_options, routes, context.clone(), {
+        .leptos_routes(&leptos_options, routes, {
             let leptos_options = leptos_options.clone();
             move || shell(leptos_options.clone())
         })
-        .fallback(file_and_error_handler_with_context(context, shell))
+        .fallback(file_and_error_handler(shell))
+        // 2. Each request's language: `?lang=` (a link, or the switcher's
+        //    form), then the cookie a choice leaves, then the browser's
+        //    `Accept-Language`. The response gets `Content-Language`, `Vary`
+        //    and the cookie.
+        .layer(Negotiator::default())
+        // 3. `/i18n/*`: the catalogs, served from the binary, each compressed
+        //    once and kept, cached for a year (each file's name carries its
+        //    content hash).
+        .merge(catalog_routes())
         .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -548,15 +450,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn main() {}
 ```
 
-**Pass the context to every `_with_context` entry point**: the routes and
-the fallback handler. If one is missed, the pages it serves render in the
-default language, and nothing else shows that anything is wrong.
-
-`provide_locale` negotiates the language for each request. It installs
-that language's catalog for everything the request renders, and adds
-`Content-Language`, `Vary` and the cookie to the response. The language is
-chosen **once, on the server**: the client reads it from the page and never
-negotiates again, so hydration cannot disagree with the server.
+The negotiator is a tower layer. Every page the routes and the fallback
+render finds the request's language through the request itself, so the
+routes and the error handler are Leptos's plain forms, with nothing to
+pass to each. The language is chosen **once, on the server**: the client
+reads it from the page and never negotiates again, so hydration cannot
+disagree with the server.
 
 ## Run it
 
@@ -569,7 +468,7 @@ on your browser's languages. Choose the other language and press the
 button: the page switches without reloading, `<html lang>` changes with it,
 and the count keeps its value. Reload, and the page is still in the
 language you chose, because the cookie remembers it. Edit a message in
-`i18n/locales/fr/main.mf2`: the watcher rebuilds, and the new text appears.
+`locales/fr/main.mf2`: the watcher rebuilds, and the new text appears.
 The wasm stays byte-for-byte the same.
 
 For a release build, run `cargo leptos build --release`.

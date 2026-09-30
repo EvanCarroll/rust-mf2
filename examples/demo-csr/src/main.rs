@@ -21,7 +21,7 @@
 
 use leptos::prelude::*;
 use leptos_meta::{Title, provide_meta_context};
-use leptos_mf2::LocaleSwitcher;
+use mf2::leptos::LocaleSwitcher;
 use mf2::DateTimeValue;
 
 use demo_csr_i18n::tr;
@@ -108,7 +108,7 @@ fn App() -> impl IntoView {
 /// know that the page mounted, and that a switch reached every node.
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mf2_live_nodes() -> usize {
-    leptos_mf2::live_nodes()
+    mf2::leptos::live_nodes()
 }
 
 fn main() {
@@ -116,5 +116,5 @@ fn main() {
     demo_csr_i18n::install();
     // Chooses the locale, loads the index and that locale's catalog, and
     // only then mounts.
-    leptos_mf2::mount_to_body(App);
+    mf2::leptos::mount_to_body(App);
 }

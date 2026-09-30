@@ -18,7 +18,7 @@
 
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher, html_lang};
+use mf2::leptos::{CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher, html_lang};
 
 use demo_islands_i18n::{Locale, tr};
 
@@ -166,7 +166,7 @@ fn more_server() -> impl IntoView {}
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mf2_live_nodes() -> usize {
-    leptos_mf2::live_nodes()
+    mf2::leptos::live_nodes()
 }
 
 /// The client's entry point: install the generated setup, start the catalog
@@ -177,9 +177,9 @@ pub fn mf2_live_nodes() -> usize {
 pub fn hydrate() {
     console_error_panic_hook::set_once();
     demo_islands_i18n::install();
-    leptos_mf2::hydrate_islands();
+    mf2::leptos::hydrate_islands();
 }
 
 // The island `IslandsGate` renders: the walk awaits it until the catalog is
 // installed.
-leptos_mf2::islands_gate!();
+mf2::leptos::islands_gate!();

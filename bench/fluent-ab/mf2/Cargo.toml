@@ -1,11 +1,10 @@
 # The migrated application's manifest, finished by hand as
-# docs/migrating-from-leptos-fluent.md says: `leptos-fluent` gives way to the
-# translation crate (written by `cargo xtask fluent-ab`, then `mf2 convert`) and `mf2`'s
-# Leptos layer, on the Leptos line `leptos-fluent` is on (0.8: `leptos-0-8`),
-# and `ssr` and `hydrate` forward to them. It names `mf2` where the guide
-# still names the 1.x shim `leptos-mf2` (Phase 10 B4; the guide follows with
-# the web book, D6). `cargo xtask fluent-ab` copies it over the converted
-# application, `{{ROOT}}` replaced with the repository's path (our crates are
+# docs/migrating-from-leptos-fluent.md says: `leptos-fluent` gives way to
+# `mf2` and `mf2-build`, on the Leptos line `leptos-fluent` is on (0.8:
+# `leptos-0-8`), and `ssr` and `hydrate` forward to `mf2`. The messages are
+# the crate's own `locales/`, which `mf2 convert` wrote; `build.rs` beside
+# this file is the three-line build script. `cargo xtask fluent-ab` copies
+# both over the converted application, `{{ROOT}}` replaced with the repository's path (our crates are
 # not published yet, so they are path dependencies, as the documentation's
 # own builds make them).
 #
@@ -15,8 +14,6 @@
 # target directory).
 
 [workspace]
-members = [".", "i18n"]
-resolver = "3"
 
 [package]
 name = "workload-app-mf2"
@@ -35,20 +32,20 @@ axum = { version = "0.8.9", optional = true }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"], optional = true }
 wasm-bindgen = "0.2.128"
 mf2 = { path = "{{ROOT}}/crates/mf2", features = ["leptos-0-8"] }
-mf2-axum = { path = "{{ROOT}}/crates/mf2-axum", default-features = false, features = ["leptos-0-8"], optional = true }
-workload-i18n = { path = "i18n" }
+
+[build-dependencies]
+mf2-build = { path = "{{ROOT}}/crates/mf2-build" }
 
 [features]
-hydrate = ["leptos/hydrate", "mf2/hydrate", "workload-i18n/hydrate"]
+hydrate = ["leptos/hydrate", "mf2/hydrate"]
 ssr = [
     "dep:axum",
     "dep:tokio",
     "dep:leptos_axum",
-    "dep:mf2-axum",
     "leptos/ssr",
     "leptos_router/ssr",
     "mf2/ssr",
-    "workload-i18n/ssr",
+    "mf2/axum",
 ]
 # The A/B's timing hooks (`src/ab.rs`), in the build the browser times and
 # never in the build whose size is measured.
@@ -76,4 +73,4 @@ bin-default-features = false
 lib-features = ["hydrate"]
 lib-default-features = false
 lib-profile-release = "wasm-release"
-watch-additional-files = ["i18n/locales"]
+watch-additional-files = ["locales"]

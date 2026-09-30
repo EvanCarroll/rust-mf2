@@ -36,7 +36,7 @@
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
 use demo_i18n::Locale;
-use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
+use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::{Lazy, LazyRoute, lazy_route, path};
 use mf2::DateTimeValue;
@@ -338,7 +338,7 @@ fn echo(typed: String) -> String {
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mf2_live_nodes() -> usize {
-    leptos_mf2::live_nodes()
+    mf2::leptos::live_nodes()
 }
 
 /// The client's entry point: install the generated setup, then boot.
@@ -353,5 +353,5 @@ pub fn mf2_live_nodes() -> usize {
 pub fn hydrate() {
     console_error_panic_hook::set_once();
     demo_i18n::install();
-    leptos_mf2::hydrate_lazy(App);
+    mf2::leptos::hydrate_lazy(App);
 }

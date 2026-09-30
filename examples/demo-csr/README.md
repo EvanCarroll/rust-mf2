@@ -45,7 +45,7 @@ Like the other examples, this is a **workspace of its own**.
 // main.rs: install the generated setup, then mount through the gate.
 fn main() {
     my_i18n::install();
-    leptos_mf2::mount_to_body(App);
+    mf2::leptos::mount_to_body(App);
 }
 ```
 

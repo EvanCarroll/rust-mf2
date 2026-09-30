@@ -23,9 +23,9 @@ loads the page's catalog (preloaded by the page, in parallel with the
 wasm), hydrates, and switches language live. Use it unless you have a
 reason to use one of the others.
 
-**One translation crate** is enough. The catalogs are embedded in the
-server binary only: the generated module's list of catalog files is
-compiled only with `ssr`. So a translation edit changes the server and
+**One crate** is enough. The catalogs are embedded in the server binary
+only: the generated module's list of catalog files is compiled only with
+`ssr`. So a translation edit changes the server and
 leaves the wasm alone, with no extra build step.
 
 ## Lazy routes
@@ -40,12 +40,13 @@ Two things change from Getting started: the route, and the entry point,
 `hydrate_lazy`. The shell is unchanged:
 
 ```rust file=lazy/src/lib.rs
-use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::{Lazy, LazyRoute, lazy_route, path};
+use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleSwitcher, html_lang};
+
+mf2::include_generated!();
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     let (lang, dir) = html_lang();
@@ -79,10 +80,7 @@ pub fn App() -> impl IntoView {
         <Title text=tr!("app-title") />
         <Router>
             <header>
-                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                    <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-                    <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-                </LocaleSwitcher>
+                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
             </header>
             <nav>
                 <A href="/">{tr!("app-title")}</A>
@@ -129,8 +127,8 @@ route's chunk before hydration reaches it:
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(hello_i18n::setup());
-    leptos_mf2::hydrate_lazy(App);
+    install();
+    mf2::leptos::hydrate_lazy(App);
 }
 ```
 
@@ -143,8 +141,7 @@ when hydration reaches the route:
 hydrate = [
     "leptos/hydrate",
     "leptos/lazy",
-    "leptos-mf2/hydrate",
-    "hello-i18n/hydrate",
+    "mf2/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
 ]
@@ -177,12 +174,12 @@ code, so it cannot follow a live switch. The documented default is
 therefore the `static-locale` feature: the switcher's form submits
 `?lang=`, and the server renders the whole page in the new language,
 server-only parts included, and remembers the choice in the cookie. Turn on `islands` in Leptos and `static-locale`
-in `leptos-mf2`:
+in `mf2`:
 
 ```toml file=islands/Cargo.toml merge
 [dependencies]
 leptos = { version = "0.9.0-beta", default-features = false, features = ["islands"] }
-leptos-mf2 = { version = "1", features = ["static-locale"] }
+mf2 = { version = "2", features = ["leptos", "fn-number", "static-locale"] }
 ```
 
 `static-locale` applies to the server and the client alike. Nothing on
@@ -198,10 +195,11 @@ Every island after it then hydrates against the page's catalog. It costs
 no extra request, and a few bytes of page:
 
 ```rust file=islands/src/lib.rs
-use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher, html_lang};
+use mf2::leptos::{CatalogPreload, IslandsGate, LocaleSwitcher, html_lang};
+
+mf2::include_generated!();
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     let (lang, dir) = html_lang();
@@ -239,10 +237,7 @@ pub fn App() -> impl IntoView {
     view! {
         <Title text=tr!("app-title") />
         <header>
-            <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-                <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-            </LocaleSwitcher>
+            <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
         </header>
         <main>
             <h1>{tr!("greeting", name = "Ada")}</h1>
@@ -262,9 +257,9 @@ fn Visits() -> impl IntoView {
 }
 ```
 
-The client's entry point installs the crate and starts loading the catalog
-(`hydrate_islands`). The application also has to export the gate's island
-function itself, because `leptos-mf2` forbids the `unsafe` code that a
+The client's entry point installs what the build generated and starts
+loading the catalog (`hydrate_islands`). The application also has to export
+the gate's island function itself, because `mf2` forbids the `unsafe` code that a
 `#[wasm_bindgen]` export expands to. `islands_gate!()` writes it:
 
 ```rust file=islands/src/lib.rs
@@ -272,12 +267,12 @@ function itself, because `leptos-mf2` forbids the `unsafe` code that a
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(hello_i18n::setup());
-    leptos_mf2::hydrate_islands();
+    install();
+    mf2::leptos::hydrate_islands();
 }
 
 // The island `<IslandsGate/>` renders.
-leptos_mf2::islands_gate!();
+mf2::leptos::islands_gate!();
 ```
 
 The server is the same as in Getting started. Islands change the client,
@@ -306,18 +301,14 @@ and any static file host can serve the site. Three things are different:
   (`.with_language_matching(&LANGUAGE_MATCHING)`) finds only a locale of
   the reader's own language (`fr-CA` still finds `fr`).
 * **The catalogs are published beside the wasm**, by `mf2 compile --site`.
-  There is no server to embed them in. The translation crate generates only
-  the module (`Emit::Module`), so the wasm names no catalog file.
+  There is no server to embed them in. With `csr`, the build script
+  generates only the module, so the wasm names no catalog file.
 * **The page finds them through a small index**, `i18n/index.json`. The
   page preloads it, so it downloads in parallel with the wasm.
 
 The application's manifest turns on `csr` everywhere:
 
 ```toml file=csr/Cargo.toml
-[workspace]
-members = [".", "i18n"]
-resolver = "3"
-
 [package]
 name = "hello-csr"
 version = "0.1.0"
@@ -325,10 +316,12 @@ edition = "2024"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-hello-i18n = { path = "i18n", features = ["csr", "fn-number"] }
 leptos = { version = "0.9.0-beta", features = ["csr"] }
-leptos-mf2 = { version = "1", features = ["csr"] }
 leptos_meta = "0.9.0-beta"
+mf2 = { version = "2", features = ["leptos", "csr", "fn-number"] }
+
+[build-dependencies]
+mf2-build = "2"
 
 [profile.release]
 opt-level = "z"
@@ -338,29 +331,7 @@ panic = "abort"
 strip = true
 ```
 
-The translation crate's build script emits the module only:
-
-```rust file=csr/i18n/build.rs
-//! Parses locales/, writes the manifest, and generates the module
-//! src/lib.rs includes. The catalogs are published by
-//! `mf2 compile --site` (Trunk.toml), so this crate names none of them.
-
-fn main() {
-    let outcome = match mf2_build::Build::new()
-        .and_then(|build| build.emit(mf2_build::Emit::Module).emit_cargo(true).run())
-    {
-        Ok(outcome) => outcome,
-        Err(e) => {
-            println!("cargo::error={e}");
-            std::process::exit(1);
-        }
-    };
-    if let Err(e) = outcome.into_result() {
-        println!("cargo::error={e}");
-        std::process::exit(1);
-    }
-}
-```
+The build script and the messages are Getting started's, unchanged.
 
 The application mounts through the same gate as hydration.
 `mount_to_body` loads the index, chooses the language from those it
@@ -369,10 +340,11 @@ then mounts. If the boot fails,
 it logs one `mf2:` line and mounts nothing:
 
 ```rust file=csr/src/main.rs
-use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{Title, provide_meta_context};
-use leptos_mf2::{LocaleOption, LocaleSwitcher};
+use mf2::leptos::LocaleSwitcher;
+
+mf2::include_generated!();
 
 #[component]
 fn App() -> impl IntoView {
@@ -381,10 +353,7 @@ fn App() -> impl IntoView {
     view! {
         <Title text=tr!("app-title") />
         <header>
-            <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-                <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-            </LocaleSwitcher>
+            <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
         </header>
         <main>
             <h1>{tr!("greeting", name = "Ada")}</h1>
@@ -396,8 +365,8 @@ fn App() -> impl IntoView {
 
 fn main() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(hello_i18n::setup());
-    leptos_mf2::mount_to_body(App);
+    install();
+    mf2::leptos::mount_to_body(App);
 }
 ```
 
@@ -428,12 +397,12 @@ dist = "dist"
 [[hooks]]
 stage = "post_build"
 command = "sh"
-command_arguments = ["-c", "mf2 -C i18n compile --site \"$TRUNK_STAGING_DIR/i18n\""]
+command_arguments = ["-c", "mf2 compile --site \"$TRUNK_STAGING_DIR/i18n\""]
 ```
 
 `mf2 compile --site` writes each catalog (with `.br` and `.gz` versions),
-named by its content hash, and `index.json`. It builds the catalogs for the
-translation crate's features **as cargo resolves them**, so the catalogs
+named by its content hash, and `index.json`. It builds the catalogs for
+`mf2`'s features in this crate **as cargo resolves them**, so the catalogs
 and the wasm always agree on which functions exist. If you pass a
 `--features` list that disagrees with cargo's, it fails and prints both
 lists. Serve the catalogs with a long cache lifetime, since their names

@@ -257,7 +257,7 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 ///   it as `data-mf2-href`, and the submit navigates there instead of
 ///   switching in place — a `?lang=` cannot outrank the path. Without the
 ///   wasm the form's `?lang=` still goes to the server, and
-///   `mf2_axum::path_prefix_redirect` sends it on to that URL.
+///   `mf2::axum::path_prefix_redirect` sends it on to that URL.
 ///
 /// ```ignore
 /// <LocaleSwitcher label=tr!("choose-language") button=tr!("apply-language")/>

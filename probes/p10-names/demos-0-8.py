@@ -9,8 +9,8 @@ of the e2e harness beside them, so that the checks which serve
 The tree builds the demos on Leptos 0.9 only; its 0.8 check is `cargo xtask
 leptos-0-8`. The conversion:
 * path dependencies made absolute (the copies live under `target/`);
-* the Leptos crates at their 0.8 releases, and `leptos-mf2` / `mf2-axum`
-  given `default-features = false, features = ["leptos-0-8", …]`;
+* the Leptos crates at their 0.8 releases, and `mf2`'s `leptos` feature
+  replaced by `leptos-0-8`;
 * demo-ssr: `leptos/lazy` dropped from `hydrate` — Leptos 0.8.21 has no such
   feature (`cargo info leptos@0.8.21`), and a copy that keeps it fails in
   `cargo metadata` at `2fb7f54` and on the branch alike (`--keep-lazy`
@@ -56,34 +56,15 @@ for demo in ["demo-ssr", "demo-islands", "demo-csr"]:
             text = text.replace('version = "0.9.0-beta"', 'version = "0.8"')
             text = text.replace('leptos_meta = "0.9.0-beta"', 'leptos_meta = "0.8"')
             text = text.replace('leptos_router = "0.9.0-beta"', 'leptos_router = "0.8"')
-            if demo == "demo-ssr":
+            # `mf2`'s Leptos line: `leptos-0-8` in place of `leptos` (Phase 10 D6).
+            text = must_replace(text, 'features = ["leptos", ', 'features = ["leptos-0-8", ', what)
+            if demo == "demo-ssr" and not KEEP_LAZY:
                 text = must_replace(
                     text,
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2" }}',
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", default-features = false, features = ["leptos-0-8"] }}',
-                    what,
-                )
-                if not KEEP_LAZY:
-                    text = must_replace(
-                        text,
-                        '    # Leptos 0.9 hydrates the `#[lazy_route]` only with this; without it\n'
-                        '    # tachys panics at hydration.\n'
-                        '    "leptos/lazy",\n',
-                        '    # (Phase 10 A7, the 0.8 copy: Leptos 0.8.21 has no `lazy` feature.)\n',
-                        what,
-                    )
-            elif demo == "demo-islands":
-                text = must_replace(
-                    text,
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", features = ["static-locale"] }}',
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", default-features = false, features = ["leptos-0-8", "static-locale"] }}',
-                    what,
-                )
-            else:
-                text = must_replace(
-                    text,
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", features = ["csr"] }}',
-                    f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", default-features = false, features = ["leptos-0-8", "csr"] }}',
+                    '    # Leptos 0.9 hydrates the `#[lazy_route]` only with this; without it\n'
+                    '    # tachys panics at hydration.\n'
+                    '    "leptos/lazy",\n',
+                    '    # (Phase 10 A7, the 0.8 copy: Leptos 0.8.21 has no `lazy` feature.)\n',
                     what,
                 )
             # The servers name `mf2::axum` (Phase 10 D3), whose line is `mf2`'s.

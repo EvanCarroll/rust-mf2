@@ -893,11 +893,12 @@ every Rust file it would change and the list of `.mf2` files it would write,
 then the report. `--write` writes both (a `.mf2` is never overwritten, as
 §6.1). The report is §6.1's — text, or `--format json` with the same
 fields — and the exit status is non-zero when it has an error: **a
-migration is finished when the report is empty.** The i18n crate's name,
-which the `use` rewrite writes, is `--i18n-crate NAME`, else the package
-name in `--dir`'s `Cargo.toml` (`-` read as `_`); `mf2 init --no-messages`
-makes that crate without the starter messages a conversion would collide
-with.
+migration is finished when the report is empty.** The crate the `use`
+rewrite names is `--i18n-crate NAME`, else `crate` when `--dir` is the
+application's own crate (2.0's one-crate shape, D6), else the package name
+in `--dir`'s `Cargo.toml` (`-` read as `_`); `mf2 init --ssr --no-messages`
+adds translations to a crate without the starter messages a conversion
+would collide with.
 
 **Edits.** A file is tokenized with `proc-macro2` (span locations on); every
 `tr!` and `move_tr!` is found at any depth — inside `view!` and inside any
@@ -944,7 +945,7 @@ refuses to compile).
 
 | Construct | Code | What to do (the guide) |
 |---|---|---|
-| `leptos_fluent! { … }`, `static_loader! { … }` — the initializer | **`leptos-fluent-initializer`** | the i18n crate's `setup()`, `leptos_mf2::install` and `mf2_axum::install`. With `cookie_name: "…"`, the finding also says to add `CookieLocale { name: "…", ..Default::default() }` to the `Negotiator` **as an extra source** (after the default `CookieLocale`, before `AcceptLanguage`), not a rename: the client always writes `mf2_locale` (Phase 9 B8) |
+| `leptos_fluent! { … }`, `static_loader! { … }` — the initializer | **`leptos-fluent-initializer`** | the generated `install()`, on the server and in the browser (D6). With `cookie_name: "…"`, the finding also says to add `CookieLocale { name: "…", ..Default::default() }` to the `Negotiator` **as an extra source** (after the default `CookieLocale`, before `AcceptLanguage`), not a rename: the client always writes `mf2_locale` (Phase 9 B8) |
 | `I18n`, or any `leptos_fluent::` path but the macros — the context, its `language` / `languages` (the language selector) and `tr` / `tr_with_args` (lookups by run-time id) | **`leptos-fluent-context`** | `<LocaleSwitcher>` or the locale API; `msg_id!` and `TrDyn` for a run-time id |
 | a `use leptos_fluent::…` naming anything but `tr` and `move_tr`, a `pub use` or a rename of them, or any `use` when the i18n crate's name is unknown; a `move_tr!` in a file that does not name `leptos_fluent` (it came through a re-export) | **`leptos-fluent-import`** | import the i18n crate's `tr` |
 | a call whose id is not a string literal | **`leptos-fluent-dynamic-id`** | a literal id, or `msg_id!` and `TrDyn` |
@@ -953,7 +954,7 @@ refuses to compile).
 | an argument key that is not a string literal | **`leptos-fluent-argument-name`** | the name, as the message spells it |
 | a call whose arguments are none of the forms above (and, for the negative control, a call a disabled rule would rewrite) | **`leptos-fluent-call`** | by hand |
 | a Rust file that does not tokenize | **`leptos-fluent-parse`** | fix the file; nothing in it was rewritten |
-| a `Cargo.toml` line naming `leptos-fluent` or `fluent-templates` | **`leptos-fluent-dependency`** | a dependency on the i18n crate, and its features |
+| a `Cargo.toml` line naming `leptos-fluent` or `fluent-templates` | **`leptos-fluent-dependency`** | `mf2` (with `leptos`) and `mf2-build`, with `ssr` and `hydrate` forwarded to `mf2` |
 | … and the two checks above | `leptos-fluent-unknown-id`, `leptos-fluent-arguments` | the message, or the call |
 
 Every code is an error: each is work left before the application builds

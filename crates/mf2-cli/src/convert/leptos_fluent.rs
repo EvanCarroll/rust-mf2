@@ -84,6 +84,8 @@ pub(crate) fn run(dir: &Path, request: &Request<'_>) -> Result<()> {
     let options = Options {
         i18n_crate: match request.i18n_crate {
             Some(name) => Some(name.replace('-', "_")),
+            // The messages in the application's own crate: `tr!` is at its root.
+            None if same_dir(dir, app) => Some("crate".to_owned()),
             None => package_name(&dir.join("Cargo.toml")),
         },
         without: None,
@@ -235,6 +237,14 @@ fn collect(
     Ok(())
 }
 
+/// Whether two paths name one directory.
+fn same_dir(a: &Path, b: &Path) -> bool {
+    match (a.canonicalize(), b.canonicalize()) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => false,
+    }
+}
+
 /// The package name in a `Cargo.toml`, as a path segment.
 fn package_name(path: &Path) -> Option<String> {
     let text = std::fs::read_to_string(path).ok()?;
@@ -265,7 +275,8 @@ pub(crate) fn dependencies(path: &Path, text: &str) -> Vec<Finding> {
                 column: u32::try_from(code[..at].chars().count() + 1).unwrap_or(u32::MAX),
                 id: None,
                 message: format!(
-                    "`{name}`: depend on the i18n crate instead, and forward its features"
+                    "`{name}`: depend on `mf2` (with `leptos`) and `mf2-build` instead, \
+                     and forward `ssr` and `hydrate` to `mf2`"
                 ),
             });
         }

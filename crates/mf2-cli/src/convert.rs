@@ -57,8 +57,9 @@ pub(crate) struct Args {
     /// `locales:` or `APP_DIR/locales`.
     #[arg(long, value_name = "DIR")]
     locales: Option<PathBuf>,
-    /// `leptos-fluent`: the i18n crate the rewritten `use` names, if not
-    /// the package in `--dir`'s Cargo.toml.
+    /// `leptos-fluent`: the crate the rewritten `use` names, if not
+    /// `crate` (the messages in the application's own crate) or the
+    /// package in `--dir`'s Cargo.toml.
     #[arg(long, value_name = "NAME")]
     i18n_crate: Option<String>,
 }

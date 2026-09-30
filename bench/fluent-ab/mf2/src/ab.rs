@@ -17,7 +17,7 @@
 
 use leptos::prelude::*;
 use wasm_bindgen::prelude::wasm_bindgen;
-use workload_i18n::tr;
+use crate::tr;
 
 #[wasm_bindgen]
 extern "C" {

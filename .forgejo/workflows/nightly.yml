@@ -56,6 +56,11 @@
 #   0.8, mf2's Leptos layer linted for ssr, hydrate and csr, its render,
 #   churn and fallback_lang tests, mf2-axum's tests and conformance layer L6
 #   (`cargo xtask leptos-0-8`). Not allowed to fail: 0.8 is supported.
+# * `fmt-check` (a job of its own; plans/19 §6, plans/04 §12.6): the demos
+#   are what readers copy, so no `Display` or `Debug` impl of ours may reach
+#   their clients. A debug-profile client build of each demo (a release
+#   build, even with names kept, misses the wrapper traps), then
+#   `tools/fmt-check.sh` over the three wasm files, through twiggy.
 # * `B10` (plans/10-phase-3-work-order.md, A11): formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
@@ -567,6 +572,64 @@ jobs:
 
       - name: mf2's Leptos layer, mf2-axum and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8
+
+  fmt-check:
+    # See the header. PLACEHOLDER: see ci.yml. The runner needs git, curl and
+    # a C linker.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+      TWIGGY_VERSION: "0.8.0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (pinned), the wasm32 target and twiggy
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+          cargo install --locked twiggy --version "$TWIGGY_VERSION"
+
+      - name: The demos' clients, debug profile (names kept)
+        run: |
+          set -eu
+          for demo in demo-ssr demo-islands; do
+            (cd "examples/$demo" && cargo build --lib --target wasm32-unknown-unknown \
+              --no-default-features --features hydrate)
+          done
+          (cd examples/demo-csr && cargo build --target wasm32-unknown-unknown)
+
+      - name: No Display / Debug of ours in a client
+        run: |
+          bash tools/fmt-check.sh \
+            examples/demo-ssr/target/wasm32-unknown-unknown/debug/demo_ssr.wasm \
+            examples/demo-islands/target/wasm32-unknown-unknown/debug/demo_islands.wasm \
+            examples/demo-csr/target/wasm32-unknown-unknown/debug/demo-csr.wasm
 
   tui-gate:
     # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker.

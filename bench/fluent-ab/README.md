@@ -17,7 +17,7 @@ cargo xtask fluent-ab --no-build --runs 20     # measure again what target/fluen
 | File | What it is |
 |---|---|
 | [`SNAPSHOT.md`](SNAPSHOT.md), [`snapshot.json`](snapshot.json) | the snapshot: the commit measured, the versions, the date, the machine's load, the command, every figure |
-| `mf2/` | the migrated application's hand-finishing, as [the migration guide](../../docs/migrating-from-leptos-fluent.md) describes it: `Cargo.toml`, `src/lib.rs`, `src/main.rs`, `src/support.rs`. Since Phase 10 B4 it names `mf2` (`leptos-0-8`) and `mf2::leptos` where the guide names the 1.x shim `leptos-mf2`; the guide follows with the web book (D6) |
+| `mf2/` | the migrated application's hand-finishing, as [the migration guide](../../docs/migrating-from-leptos-fluent.md) describes it: `Cargo.toml`, `build.rs`, `src/lib.rs`, `src/main.rs`, `src/support.rs`: one crate on `mf2` (`leptos-0-8`) and `mf2-build`, its messages in its own `locales/` (Phase 10 D6) |
 | `mf2/src/ab.rs`, `fluent/ab.rs` | the timing hooks, one per side, compiled only into the timed build (`ab-bench`); the message ids are filled in from the workload |
 
 Neither application is committed: both are generated, and `leptos-fluent`
@@ -34,7 +34,7 @@ application is.
   0.3.1, its newest release, requires Leptos < 0.9, so **both sides are on
   Leptos 0.8** (this library's `leptos-0-8` opt-in).
 * **mf2**: *that application migrated*, not a twin written by hand — a copy,
-  a translation crate, `mf2 convert --from leptos-fluent --write` (whose
+  `mf2 convert --from leptos-fluent --write` into its own `locales/` (whose
   report must be exactly the hand-finishing the guide describes, as in
   `cargo xtask fluent-migrate`), then finished as the guide says: the
   manifest, the entry points and the server from `mf2/`, and the shell's
@@ -55,7 +55,7 @@ its translations optimized away.
 **Size** — the client as it ships, built as `cargo xtask size` builds:
 `wasm32-unknown-unknown`, profile `wasm-release`, `wasm-bindgen --target
 web`, `wasm-opt -Oz`; raw, `gzip -9` and brotli (quality 11, window 22 —
-what `mf2-axum` serves a catalog with). What a first visit downloads in one
+what `mf2::axum` serves a catalog with). What a first visit downloads in one
 locale: the wasm, the JS and that locale's text (on `leptos-fluent` the text
 is in the wasm — every locale's). What each added locale costs: on
 `leptos-fluent`, the client with all four locales less the client with `en`

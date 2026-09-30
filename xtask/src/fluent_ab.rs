@@ -6,10 +6,11 @@
 //!    application — the reference application on `leptos-fluent`, in its
 //!    own idiom — and the workload's `.ftl` files.
 //! 2. **The mf2 side is that application migrated**, not a twin written by
-//!    hand: a copy given a translation crate and converted by `mf2 convert
-//!    --from leptos-fluent --write`, whose report must be exactly the
+//!    hand: a copy converted in place by `mf2 convert --from leptos-fluent
+//!    --write`, whose report must be exactly the
 //!    hand-finishing the guide describes, then finished as the guide says
-//!    (`bench/fluent-ab/mf2/`: the manifest, the entry points, the server;
+//!    (`bench/fluent-ab/mf2/`: the manifest, the build script, the entry
+//!    points, the server;
 //!    the shell's `<html lang dir>` and catalog links, edited in place).
 //! 3. Both built for the client with the profile and `wasm-opt` flags of
 //!    `cargo xtask size` — once as they ship, for the sizes, and once with
@@ -33,7 +34,7 @@ use std::time::{Duration, Instant};
 
 use crate::cmd::{cargo, run_capture, run_inherit, run_inherit_env};
 use crate::error::{Error, Result};
-use crate::{docs, fluent_migrate, fsx};
+use crate::{fluent_migrate, fsx};
 
 /// How many distinct simple messages the 2,000 live nodes cycle over.
 const NODE_MESSAGES: usize = 50;
@@ -158,28 +159,16 @@ fn prepare(root: &Path, out: &Path, wl: &Path) -> Result<()> {
     fsx::write(&out.join("ids.json"), ids.to_json().as_bytes())
 }
 
-/// The translation crate, then `mf2 convert --from leptos-fluent --write`:
-/// the guide's commands, whose report must be the hand-finishing only.
-/// `mf2 init` makes one-crate applications since 2.0, so the bench's
-/// two-crate layout writes its translation crate here, as 1.x's `init` did.
+/// `mf2 convert --from leptos-fluent --write` in the application's own
+/// crate, as the guide runs it: the messages go to its `locales/`, the
+/// rewritten `use` lines import `crate::tr`, and the report must be the
+/// hand-finishing only.
 fn migrate(root: &Path, app: &Path) -> Result<()> {
     let mf2 = root.join("target/debug/mf2");
-    let i18n = app.join("i18n");
-    eprintln!("==> the translation crate, in i18n/");
-    for (file, text) in I18N_CRATE {
-        fsx::write(&i18n.join(file), text.as_bytes())?;
-    }
-    // Our crates are not published yet: path dependencies on the tree, as
-    // `cargo xtask docs` makes them.
-    let manifest = i18n.join("Cargo.toml");
-    let text = fsx::read_to_string(&manifest)?;
-    let text = docs::local_dependencies(root, &manifest, &text)?;
-    fsx::write(&manifest, text.as_bytes())?;
-
-    eprintln!("==> mf2 -C i18n convert --from leptos-fluent . --write");
+    eprintln!("==> mf2 convert --from leptos-fluent . --write");
     let output = Command::new(&mf2)
         .arg("-C")
-        .arg(&i18n)
+        .arg(app)
         .args(["convert", "--from", "leptos-fluent"])
         .arg(app)
         .args(["--write", "--format", "json"])
@@ -197,40 +186,15 @@ fn migrate(root: &Path, app: &Path) -> Result<()> {
     fluent_migrate::check_report(&report, app).map_err(|e| fail(e.to_string()))
 }
 
-/// The bench's translation crate: its messages come from the conversion.
-const I18N_CRATE: &[(&str, &str)] = &[
-    (
-        "Cargo.toml",
-        "[package]
-name = \"workload-i18n\"
-version = \"0.1.0\"
-edition = \"2024\"
-
-[features]
-default = []
-ssr = [\"mf2/host-std\", \"mf2/ssr\"]
-hydrate = [\"mf2/host-web\", \"mf2/hydrate\"]
-
-[dependencies]
-mf2 = \"1\"
-
-[build-dependencies]
-mf2-build = \"1\"
-",
-    ),
-    ("mf2.toml", "source_locale = \"en\"\n"),
-    ("build.rs", "fn main() {\n    mf2_build::run();\n}\n"),
-    ("src/lib.rs", "mf2::include_generated!();\n"),
-];
-
-/// The guide's hand-finishing: the manifest, the entry points and the
-/// server from `bench/fluent-ab/mf2/`, and the shell edited in place.
+/// The guide's hand-finishing: the manifest, the build script, the entry
+/// points and the server from `bench/fluent-ab/mf2/`, and the shell edited
+/// in place.
 fn finish_mf2(root: &Path, app: &Path, ids: &Ids) -> Result<()> {
     let finish = root.join("bench/fluent-ab/mf2");
     let manifest = fsx::read_to_string(&finish.join("Cargo.toml"))?
         .replace("{{ROOT}}", &root.display().to_string());
     fsx::write(&app.join("Cargo.toml"), manifest.as_bytes())?;
-    for file in ["src/lib.rs", "src/main.rs", "src/support.rs"] {
+    for file in ["build.rs", "src/lib.rs", "src/main.rs", "src/support.rs"] {
         let text = fsx::read_to_string(&finish.join(file))?;
         fsx::write(&app.join(file), text.as_bytes())?;
     }
@@ -526,7 +490,7 @@ fn build(root: &Path, out: &Path, wl: &Path) -> Result<()> {
 // ---------------------------------------------------------------------------
 // Sizes.
 
-/// Raw, `gzip -9` and brotli (quality 11, window 22 — what `mf2-axum` serves
+/// Raw, `gzip -9` and brotli (quality 11, window 22 — what `mf2::axum` serves
 /// a catalog with, and B7's measure) of one file.
 #[derive(Clone, Copy, Default)]
 struct Size {
@@ -578,7 +542,7 @@ struct Sizes {
     fluent: (Size, Size),
     fluent_en: (Size, Size),
     mf2: (Size, Size),
-    /// Each locale's catalog, as `mf2-axum` serves it.
+    /// Each locale's catalog, as `mf2::axum` serves it.
     catalogs: Vec<(String, Size)>,
 }
 
@@ -590,16 +554,16 @@ fn measure_sizes(out: &Path, wl: &Path) -> Result<Sizes> {
             Size::file(&pkg.join(format!("{}.js", app.lib)))?,
         ))
     };
-    // The catalogs as the i18n crate's build writes them (`mf2 compile`
-    // runs the same build with the same `mf2.toml`).
+    // The catalogs as the application's build writes them (`mf2 compile`
+    // runs the same build).
     let catalogs_dir = out.join("catalogs");
     fsx::remove(&catalogs_dir)?;
-    let i18n = wl.join(MF2.dir).join("i18n");
+    let messages = wl.join(MF2.dir);
     run_inherit(
         fsx::repo_root().join("target/debug/mf2").as_os_str(),
         &[
             OsStr::new("-C"),
-            i18n.as_os_str(),
+            messages.as_os_str(),
             OsStr::new("compile"),
             OsStr::new("--site"),
             catalogs_dir.as_os_str(),
@@ -989,7 +953,7 @@ fn report(
          generated applications ship, `cargo leptos build --release --split` (the \
          lazy routes are separate chunks, fetched when first visited), with the \
          `ab-bench` hooks; on a first visit to `/` the browser downloaded, as the test \
-         servers send them (uncompressed; the catalog is brotli, as `mf2-axum` serves \
+         servers send them (uncompressed; the catalog is brotli, as `mf2::axum` serves \
          it):\n\n| engine | leptos-fluent main wasm | mf2 main wasm | mf2 `en` catalog |\n\
          |---|---:|---:|---:|\n{served_md}"
     );

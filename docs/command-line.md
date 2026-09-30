@@ -1,18 +1,18 @@
 # The command line
 
-`mf2` is the command for a translation crate: it makes one, checks it,
-formats its files, compiles its catalogs, and moves translations in and
+`mf2` is the command for an application's messages: it makes a starter,
+checks the messages, formats their files, compiles its catalogs, and moves translations in and
 out. Install it once:
 
 ```sh
 cargo install mf2-cli
 ```
 
-Every command works on a translation crate (the directory with
-`mf2.toml`), which is the current directory or the one `-C DIR` names. It
-needs no cargo and no build: a translator's machine, a CI job or an editor
-can run it. On this page it runs on the translation crate of
-[Getting started](getting-started.md), from the application's directory,
+Every command works on the crate that holds the messages (the directory
+with `locales/`, and `mf2.toml` if it has one), which is the current
+directory or the one `-C DIR` names. It needs no cargo and no build: a
+translator's machine, a CI job or an editor can run it. On this page it
+runs in the application of [Getting started](getting-started.md),
 and `cargo xtask docs` runs each command and checks that it prints and
 writes what the page shows.
 
@@ -89,7 +89,7 @@ Without a mode, `init` lists the five and changes nothing.
 ## `check`: every check the build makes
 
 ```sh run=cli output=check.txt
-mf2 -C i18n check --features fn-number,fn-datetime,datetime-icu
+mf2 check --features fn-number
 ```
 
 ```text file=cli/check.txt generated
@@ -98,8 +98,8 @@ mf2 check: 9 messages in 2 locales, nothing to report
 
 `check` parses every file, checks every message against the source
 language's, and runs the lints `mf2.toml` configures, exactly as the build
-script does. Which functions a message may use depends on the translation
-crate's features, so `check` uses the features cargo resolves for the
+script does. Which functions a message may use depends on `mf2`'s features
+in the crate, so `check` uses the features cargo resolves for the
 application's build. `--features` names them instead (as above); where
 cargo cannot answer, `check` says so and checks with none.
 
@@ -129,7 +129,7 @@ it, and a corpus that drops emphasis on purpose lowers the code with
 ## `fmt`: one layout for every file
 
 ```sh run=cli output=fmt.txt
-mf2 -C i18n fmt --check
+mf2 fmt --check
 ```
 
 ```text file=cli/fmt.txt generated
@@ -147,7 +147,7 @@ write `.mf2` files (`convert`, `import`, `pseudo`) write this layout too.
 ## `compile`: the catalogs
 
 ```sh run=cli output=compile.txt
-mf2 -C i18n compile --features fn-number,fn-datetime,datetime-icu --out catalogs
+mf2 compile --features fn-number --out catalogs
 ```
 
 ```text file=cli/compile.txt generated
@@ -165,7 +165,7 @@ catalog holds, and its content-hashed name. `-v` lists the files.
 
 ## `stats`, `dump`: what is in a catalog
 
-`mf2 -C i18n stats` prints, for each language, how many of the messages
+`mf2 stats` prints, for each language, how many of the messages
 that need translating it has and lacks (not those marked
 `@do-not-translate`), and its catalog's size raw, gzipped and
 brotli-compressed; then
@@ -182,7 +182,7 @@ A translation tool or a translator who does not work in the repository gets
 one language as a file, and gives it back. As JSON, one message per id:
 
 ```sh run=cli
-mf2 -C i18n export fr -o fr.json
+mf2 export fr -o fr.json
 ```
 
 ```json file=cli/fr.json generated
@@ -204,7 +204,7 @@ each translation, placeholders as `<ph>` elements the tool keeps intact,
 and a `.match` as a group of its variants:
 
 ```sh run=cli
-mf2 -C i18n export fr --format xliff -o fr.xlf
+mf2 export fr --format xliff -o fr.xlf
 ```
 
 `import` reads either back (it tells them apart by their content) into the
@@ -213,7 +213,7 @@ and the files keep their sections, comments and properties. `--dry-run`
 says what would change and writes nothing:
 
 ```sh run=cli output=import.txt
-mf2 -C i18n import fr fr.json --dry-run
+mf2 import fr fr.json --dry-run
 ```
 
 ```text file=cli/import.txt generated
@@ -232,13 +232,13 @@ the language has: it names the ones it leaves out, and exits with 1.
 ## `pseudo`: find what is not translated
 
 ```sh run=cli output=pseudo.txt
-mf2 -C i18n pseudo --dry-run
+mf2 pseudo --dry-run
 ```
 
 ```text file=cli/pseudo.txt generated
-would write i18n/locales/en-XA/main.mf2
+would write ./locales/en-XA/main.mf2
 mf2 pseudo: en-XA — 9 message(s) in 1 file(s) (dry run)
-would write i18n/locales/ar-XB/main.mf2
+would write ./locales/ar-XB/main.mf2
 mf2 pseudo: ar-XB — 9 message(s) in 1 file(s) (dry run)
 ```
 
@@ -251,7 +251,7 @@ Placeholders and markup are left alone. `--locale` writes one of the two.
 
 ## `watch`: rebuild on every edit
 
-`mf2 -C i18n watch --out DIR` compiles like `compile` (into `dist` if no
+`mf2 watch --out DIR` compiles like `compile` (into `dist` if no
 `--out` is given), then again each time a file under `locales/` changes, for a development server that serves the
 catalogs from `DIR`. A `cargo leptos watch` does not need it: its
 `watch-additional-files` rebuilds the application instead
@@ -265,12 +265,12 @@ its `.ftl` files and its call sites — and has
 `.ftl` files only, for a project that does not use `leptos-fluent`:
 
 ```sh
-mf2 -C i18n convert --from fluent locales-ftl
+mf2 convert --from fluent locales-ftl
 ```
 
 `locales-ftl` holds one directory per language (`locales-ftl/fr/*.ftl`),
 and each `.ftl` file becomes a `.mf2` file named after it, in the
-translation crate's `locales/`. A second run over the same files writes
+crate's `locales/`. A second run over the same files writes
 nothing and says the files are unchanged; a file it would write that
 already holds other text stops it, so nothing is overwritten.
 

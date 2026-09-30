@@ -5,20 +5,22 @@ attribute, a component prop, a `const` table, and a `String`, and it costs
 each call site about the same in the wasm wherever it is used. This page
 shows each position, with the messages it uses.
 
-The samples on this page are components in one library, which uses the
-translation crate from [Getting started](getting-started.md).
+The samples on this page are components in one library, set up as the
+application in [Getting started](getting-started.md) is: `mf2` with the
+`leptos` feature, a build script, and messages under `locales/`.
 `cargo xtask docs` compiles them for the server and for the browser. They
 begin with:
 
 ```rust file=calls/src/lib.rs
-use hello_i18n::tr;
 use leptos::prelude::*;
-use leptos_mf2::{ArgValue, DateTimeValue, Tr};
+use mf2::{ArgValue, DateTimeValue, Tr};
+
+mf2::include_generated!();
 ```
 
 and their messages begin with:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 @locale en
 ---
 
@@ -66,7 +68,7 @@ A description can be the value of an attribute — any but `class` and
 `style`, which Leptos types as class and style values rather than text, so
 `class=tr!(…)` does not compile:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [search]
 placeholder = Search the catalog
 label = Search
@@ -102,7 +104,7 @@ for a program they are junk:
 The name match ignores ASCII case, and the rule is the same on the server
 and in the browser. `prop:value=` (a DOM property) is always plain:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [signature]
 label = Signature
 text = Signed, {$name}
@@ -133,7 +135,7 @@ A description converts into what a component takes text as: `TextProp`,
 `#[prop(into)] TextProp`. It is *derived*, so the component re-reads it
 after a language switch:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [settings]
 title = Settings
 intro = Choose how the catalog looks to you.
@@ -174,7 +176,7 @@ reading `<Title text=…>`, therefore still gets the request's language.
 Arguments are named at the call site. They can be literals, variables or
 expressions:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [order]
 summary = {$customer}: {$items :integer} items, {$total :currency currency=EUR}
 exact = Exactly {$amount :number minimumFractionDigits=2}
@@ -210,10 +212,19 @@ may be. A type of your own implements `Display` to pass its text, or
 
 ### Dates
 
-A date needs the `fn-datetime` feature and a backend (`datetime-icu`, or
-`datetime-intl` for the browser's own formatter) on the translation crate:
+A date needs a date backend among `mf2`'s features: `datetime-icu` (which
+also needs `mf2-build`'s `icu-blob`, to put each language's date data in
+its catalog), or `datetime-intl` for the browser's own formatter:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```toml file=calls/Cargo.toml merge
+[dependencies]
+mf2 = { version = "2", features = ["leptos", "fn-number", "datetime-icu"] }
+
+[build-dependencies]
+mf2-build = { version = "2", features = ["icu-blob"] }
+```
+
+```mf2 file=calls/locales/en/main.mf2
 [post]
 published = Published {$when :datetime dateLength=long}
 ```
@@ -245,7 +256,7 @@ application:
   differently in the reader's zone, and only those; the rest of the page is
   not touched. It then remembers the zone in a cookie, `mf2_tz`.
 * **Every later page** is rendered in the reader's zone from the start:
-  `mf2-axum` reads the cookie, and the page says which zone it was rendered
+  the server reads the cookie, and the page says which zone it was rendered
   in, so nothing changes after hydration. A zone the server's time zone
   database does not know, or a malformed cookie, is ignored.
 * A **client-only** application renders in the reader's zone from its
@@ -262,7 +273,7 @@ page becomes interactive. A message that must show one particular zone —
 an event's local time, say — names it, and the reader's zone does not
 apply:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [event]
 starts = Doors open {$when :time timeZone=|Europe/Paris| timeZoneStyle=short}
 ```
@@ -289,7 +300,7 @@ cookie renders in the reader's zone.
 Pass a signal and the text follows it. The call site has no closure: the
 library runs one effect for the node, and that effect reads the signal.
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [cart]
 
 items =
@@ -323,7 +334,7 @@ A closure can return a different message depending on state. Every branch
 must return the same type: `Tr` for messages without arguments, `TrArgs`
 for messages with them.
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [status]
 online = Online
 offline = Offline
@@ -348,7 +359,7 @@ where the element goes, so a translation can move it to the place its
 grammar needs, and the view does not have to know the language's word
 order:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [terms]
 accept = By continuing you accept our {#link}terms of use{/link} and {#strong}our privacy policy{/strong}.
 ```
@@ -381,7 +392,7 @@ In code that needs text rather than a view, such as a toast, an error
 value, a server function argument or `format!`, turn the description into a
 `String`:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [file]
 saved = Saved {$name}
 default-name = Untitled {$n :integer}
@@ -414,7 +425,7 @@ it re-runs after a switch. A **text node** is always isolated, because it
 has no attribute name to decide by. When a text node must be plain (for
 example the starting text of a `<textarea>`), use a closure:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [draft]
 body = Dear {$name},
 ```
@@ -440,7 +451,7 @@ plain text is needed.
 A `Tr` is a constant, so a table of commands, menu entries or errors can
 hold messages as plain data and format them when they are shown:
 
-```mf2 file=calls/i18n/locales/en/main.mf2
+```mf2 file=calls/locales/en/main.mf2
 [command]
 pause = Pause
 resume = Resume
@@ -474,7 +485,7 @@ pub fn Commands() -> impl IntoView {
 
 `tr!` needs the id and the argument names when it is compiled. A tool that
 formats messages chosen by data (a preview, a test fixture, a server
-formatting a message named in a request) can use `hello_i18n::msg_id!("id")`
+formatting a message named in a request) can use `msg_id!("id")`
 and `TrDyn::new`. `TrDyn` carries argument names and matches them at run
 time: a name the message does not have is ignored, and a variable no name
 matches shows its fallback text. It is not for the browser: it puts names
@@ -486,10 +497,10 @@ for the server only:
 #[cfg(feature = "ssr")]
 pub fn notice(kind: &str, fields: Vec<(String, String)>) -> Option<String> {
     let id = match kind {
-        "saved" => hello_i18n::msg_id!("file.saved"),
-        "signed" => hello_i18n::msg_id!("signature.text"),
+        "saved" => msg_id!("file.saved"),
+        "signed" => msg_id!("signature.text"),
         _ => return None,
     };
-    Some(leptos_mf2::TrDyn::new(id, fields).to_plain_string())
+    Some(mf2::TrDyn::new(id, fields).to_plain_string())
 }
 ```
