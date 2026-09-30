@@ -358,13 +358,19 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **`-C` path fix** (`086311e`): with `-C DIR`, every relative path argument is read in DIR (rebased once in
   `main`); CLI test (`check --src`, `compile -o`) run from elsewhere; command-line.md says so. ci and docs.
 
-**In flight:** G3 (cold start; the fourth run, target/p10-g3/), started 2026-09-30 by an agent
-working in the main tree; uncommitted changes there are its. Part A's probe branches and worktrees,
-and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
+- **G3** (2026-09-30; a clean run, recorded): a fresh agent with only `docs/`, `mf2 init` and the
+  crates from `cargo xtask package` (`[patch.crates-io]` in `target/p10-g3/apps/.cargo/config.toml`)
+  built and ran the CLI, the Ratatui TUI and the SSR Leptos app, in two languages each, and ran every
+  check the guide names. Four runs: 1 found E4's start-up warning; 2, `mf2 check` offline and no
+  `.gitignore`; 3, `unused-id` on the generated `language.<tag>` ids (and `-C` read paths in the
+  wrong directory); 4 was clean but for one wording slip, fixed. Each run 1.7–3.7M tokens.
+
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **G1 and G2 are done; G3 first**;
+- **G1–G3 are done; G4 first**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
