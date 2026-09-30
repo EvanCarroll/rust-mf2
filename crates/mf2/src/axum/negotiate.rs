@@ -375,12 +375,49 @@ impl Negotiator {
                 };
             }
         }
+        self.unmatched(parts);
         Negotiated {
             tag: self.default,
             dir: self.dir_of(self.default),
             from: "default",
             matched: false,
         }
+    }
+
+    /// Says on the server, once per first language, that the reader named
+    /// languages and no catalog matches them (E4): a normal outcome, but the
+    /// one that shows an application which catalog it lacks — a Traditional
+    /// Chinese reader is not served Simplified (question 15).
+    fn unmatched(&self, parts: &Parts) {
+        let mut named: Vec<String> = Vec::new();
+        let mut candidates: Vec<Cow<'_, str>> = Vec::new();
+        for source in &self.sources {
+            candidates.clear();
+            source.candidates(parts, &mut candidates);
+            for candidate in &candidates {
+                if let Some(tag) = crate::warn::tag(candidate)
+                    && named.len() < 8
+                    && !named.iter().any(|n| n.eq_ignore_ascii_case(tag))
+                {
+                    named.push(tag.to_owned());
+                }
+            }
+        }
+        let Some(first) = named.first() else {
+            return;
+        };
+        crate::warn::once_for(
+            crate::warn::Kind::Unmatched,
+            &first.to_ascii_lowercase(),
+            || {
+                format!(
+                    "mf2: no catalog matches the reader's languages ({}), so they are served \
+                     the default language, `{}`; a catalog for one of them would serve them",
+                    named.join(", "),
+                    self.default
+                )
+            },
+        );
     }
 
     fn dir_of(&self, tag: &str) -> Dir {
@@ -518,6 +555,28 @@ mod tests {
         // the list's plain `zh` is: 5.
         assert_eq!(pick("zh-TW, zh;q=0.9"), "zh");
         assert_eq!(pick("zh-TW, fr;q=0.5"), "fr");
+    }
+
+    #[test]
+    fn a_reader_no_catalog_matches_is_named_once_per_language() {
+        let negotiator =
+            Negotiator::over(&[("en", Dir::Ltr), ("zh", Dir::Ltr)], "en").source(AcceptLanguage);
+        for _ in 0..3 {
+            let answer = negotiator.negotiate(&parts(
+                &[("accept-language", "zh-TW, zh-HK;q=0.8, *;q=0.1")],
+                "/",
+            ));
+            assert_eq!((answer.tag, answer.matched), ("en", false));
+        }
+        // A reader who names nothing is not warned about.
+        let _ = negotiator.negotiate(&parts(&[], "/"));
+        let lines = crate::warn::given(crate::warn::Kind::Unmatched);
+        let named: Vec<&String> = lines
+            .iter()
+            .filter(|l| l.contains("(zh-TW, zh-HK)"))
+            .collect();
+        assert_eq!(named.len(), 1, "{lines:?}");
+        assert!(named[0].contains("`en`"));
     }
 
     #[test]

@@ -274,6 +274,9 @@ mod markup;
 mod matching;
 mod message;
 mod tr;
+// The server's one-time warnings (E4).
+#[cfg(any(feature = "axum", feature = "ssr"))]
+mod warn;
 
 // A native application's catalogs and locale (its documentation is the
 // module's own).

@@ -34,17 +34,31 @@ use alloc::vec::Vec;
 ///
 /// The locales are the build's, from the generated `install()`.
 pub async fn path_prefix_redirect(request: Request, next: Next) -> Response {
-    let name = request
-        .extensions()
-        .get::<super::layer::RequestLocale>()
-        .and_then(super::layer::RequestLocale::query)
-        .unwrap_or(crate::links::LOCALE_QUERY);
+    let name = query_name(request.extensions());
     if matches!(*request.method(), Method::GET | Method::HEAD)
         && let Some(to) = path_for_query(request.uri(), name, super::locales())
     {
         return Redirect::to(&to).into_response();
     }
     next.run(request).await
+}
+
+/// The query parameter the negotiator's query source reads, from the
+/// request; outside a negotiator the default name, said once on the server
+/// (E4), since a redirect placed there reads `lang` whatever the negotiator
+/// was built with.
+fn query_name(extensions: &::http::Extensions) -> &'static str {
+    let Some(request) = extensions.get::<super::layer::RequestLocale>() else {
+        crate::warn::once(crate::warn::Kind::RedirectOutside, || {
+            String::from(
+                "mf2: path_prefix_redirect ran on a request the Negotiator has not seen, so it \
+                 reads the query parameter `lang`; add its .layer before the negotiator's, so \
+                 that it runs under it",
+            )
+        });
+        return crate::links::LOCALE_QUERY;
+    };
+    request.query().unwrap_or(crate::links::LOCALE_QUERY)
 }
 
 /// Where `uri` should go: its path under the locale `?<param>=` names, when
@@ -95,7 +109,8 @@ pub(crate) fn path_for_query(
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::indexing_slicing, reason = "a test")]
 mod tests {
-    use super::path_for_query;
+    use super::{path_for_query, query_name};
+    use crate::warn::{Kind, given};
     use ::http::Uri;
     use alloc::string::String;
     use mf2_catalog::Dir;
@@ -117,6 +132,16 @@ mod tests {
         assert_eq!(to("/en?lang=fr").as_deref(), Some("/fr"));
         // The same matcher as negotiation: a region falls back to its language.
         assert_eq!(to("/en-GB/about?lang=fr-CA").as_deref(), Some("/fr/about"));
+    }
+
+    #[test]
+    fn outside_the_negotiator_it_says_so_once() {
+        for _ in 0..3 {
+            assert_eq!(query_name(&::http::Extensions::new()), "lang");
+        }
+        let lines = given(Kind::RedirectOutside);
+        assert_eq!(lines.len(), 1);
+        assert!(lines[0].contains("path_prefix_redirect"));
     }
 
     #[test]

@@ -221,6 +221,17 @@ pub fn provide_locale_in_zone(tag: &str, zone: Option<mf2_runtime::TimeZone>) ->
         .iter()
         .find(|(t, _)| *t == tag)
         .map(|(t, _)| *t);
+    if found.is_none()
+        && let Some(named) = crate::warn::tag(tag)
+    {
+        crate::warn::once_for(crate::warn::Kind::UnknownLocale, named, || {
+            alloc::format!(
+                "mf2: provide_locale(\"{named}\"): this build has no catalog for that language, \
+                 so the page renders in the source language, `{}`",
+                state::source_locale()
+            )
+        });
+    }
     let tag = found.unwrap_or_else(state::source_locale);
     if let Some(c) = catalog(tag) {
         let request = RequestI18n::new(c);
@@ -289,10 +300,53 @@ pub fn active() -> Option<Arc<Catalog>> {
 /// per field would walk the owner chain twice for every rendered node.
 #[cfg(feature = "ssr")]
 pub(crate) fn current() -> Option<RequestI18n> {
-    match request() {
-        Some(cx) => Some(cx),
-        None => default_catalog().map(RequestI18n::new),
+    if let Some(cx) = request() {
+        return Some(cx);
     }
+    let fallback = default_catalog().map(RequestI18n::new);
+    unrequested(fallback.is_some());
+    fallback
+}
+
+/// Says once on the server what a render with no language for its request
+/// falls back to (E4): the source language's text, or, with no catalogs
+/// installed, empty text.
+///
+/// With `axum`, only inside a request (`leptos_axum`'s `Parts` in
+/// context): a render outside one, such as the route list the server
+/// builds at start-up, has no request to have a language.
+#[cfg(feature = "ssr")]
+fn unrequested(source_language: bool) {
+    use crate::warn::{Kind, once, pending};
+    let kind = if source_language {
+        Kind::Unrequested
+    } else {
+        Kind::NoCatalogs
+    };
+    if !pending(kind) {
+        return;
+    }
+    #[cfg(feature = "axum")]
+    if reactive_graph::owner::with_context::<::http::request::Parts, _>(|_| ()).is_none()
+        && source_language
+    {
+        return;
+    }
+    once(kind, || {
+        if source_language {
+            alloc::format!(
+                "mf2: a page rendered without the request's language, so it is in the source \
+                 language, `{}`; add mf2::axum's Negotiator layer to the router, or call \
+                 provide_locale in the render",
+                state::source_locale()
+            )
+        } else {
+            alloc::string::String::from(
+                "mf2: a message was formatted with no catalogs installed, so it rendered as \
+                 empty text; call the generated install() at start-up",
+            )
+        }
+    });
 }
 
 /// This request's own catalog: the one provided, else (with `axum`) the one
@@ -339,9 +393,33 @@ fn from_layer() -> Option<(
 
 /// The same on the client, where the catalog is a `thread_local!` and there
 /// is nothing to override: one application, one registry, one page.
+///
+/// With none active the text is empty; a debug build says so once in the
+/// browser's console (E4). A release build has no such code: its client
+/// wasm is unchanged.
 #[cfg(not(feature = "ssr"))]
 pub(crate) fn current() -> Option<Resolved> {
-    active().map(|catalog| Resolved { catalog })
+    let found = active().map(|catalog| Resolved { catalog });
+    #[cfg(all(debug_assertions, target_arch = "wasm32"))]
+    if found.is_none() {
+        no_catalog_warning();
+    }
+    found
+}
+
+/// The console warning, once per page, of a message formatted before any
+/// catalog was active.
+#[cfg(all(not(feature = "ssr"), debug_assertions, target_arch = "wasm32"))]
+fn no_catalog_warning() {
+    use core::sync::atomic::{AtomicBool, Ordering};
+    static GIVEN: AtomicBool = AtomicBool::new(false);
+    if !GIVEN.swap(true, Ordering::Relaxed) {
+        web_sys::console::warn_1(&wasm_bindgen::JsValue::from_str(
+            "mf2: a message was formatted before any catalog was active, so it rendered as \
+             empty text; start the page through mf2::leptos (hydrate_body, mount_to_body), \
+             which loads the catalog first. (Debug builds only.)",
+        ));
+    }
 }
 
 /// The request's own catalog, with no fallback to the source locale's: the
@@ -486,3 +564,63 @@ mod client {
 
 #[cfg(not(feature = "ssr"))]
 pub use client::{active, changed, set_active, track_locale};
+
+#[cfg(all(test, feature = "ssr"))]
+#[allow(clippy::expect_used, reason = "a test")]
+mod tests {
+    use crate::line::reactive_graph;
+    use crate::warn::{Kind, given};
+
+    #[test]
+    fn a_render_with_no_catalogs_says_so_once() {
+        // No unit test installs catalogs: every render falls back to none.
+        assert!(super::default_catalog().is_none());
+        for _ in 0..3 {
+            assert!(super::current().is_none());
+        }
+        assert_eq!(given(Kind::NoCatalogs).len(), 1);
+    }
+
+    #[test]
+    fn an_unknown_language_provided_is_named_once() {
+        for _ in 0..3 {
+            let _ = super::provide_locale("tlh-test");
+        }
+        let lines = given(Kind::UnknownLocale);
+        assert_eq!(
+            lines.iter().filter(|l| l.contains("\"tlh-test\"")).count(),
+            1
+        );
+    }
+
+    #[test]
+    fn a_request_rendered_without_its_language_says_so_once() {
+        // Outside a request (the route list built at start-up) it is quiet.
+        #[cfg(feature = "axum")]
+        {
+            super::unrequested(true);
+            assert!(given(Kind::Unrequested).is_empty());
+        }
+        let owner = reactive_graph::owner::Owner::new();
+        owner.with(|| {
+            #[cfg(feature = "axum")]
+            reactive_graph::owner::provide_context(
+                ::http::Request::builder()
+                    .body(())
+                    .expect("a request")
+                    .into_parts()
+                    .0,
+            );
+            for _ in 0..3 {
+                super::unrequested(true);
+            }
+        });
+        let lines = given(Kind::Unrequested);
+        assert_eq!(lines.len(), 1);
+        assert!(
+            lines
+                .iter()
+                .all(|l| l.contains("without the request's language"))
+        );
+    }
+}

@@ -59,6 +59,7 @@ src/native/store.rs
 src/native/zone.rs
 src/ratatui.rs
 src/tr.rs
+src/warn.rs
 tests/ambient.rs
 tests/arguments.rs
 tests/call_site.rs
