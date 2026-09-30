@@ -318,6 +318,10 @@ above the default script distance) does not arise. A8 found none; its 17 choices
 the owner's review, which approved them (question 17).
 
 **Found along the way, routed to later tasks** (details in the records):
+- From D4: `path_prefix_redirect` reads the query name from the negotiator's answer, so it must
+  sit under the negotiator (`.layer(from_fn(..)).layer(negotiator)`); placed outside it, it
+  falls back to `lang` without a word. **E4**: a server warning when the redirect runs with no
+  negotiated answer in the request.
 - From D1: the Leptos request glue (`provide_locale`, `negotiated`, 1.x's `install`) stays in the
   `mf2-axum` shim: it needs `leptos_axum`, which cargo cannot turn on only when `axum`, `ssr` and a
   line are all on. **D3**'s layer, which writes the headers itself, replaces it; if D3's probe fails
