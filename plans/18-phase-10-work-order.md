@@ -345,9 +345,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `leptos-mf2`/`mf2-axum`, README + `compile_error!`; `cargo publish --dry-run --no-verify` passes.
 - **The owner publishes, in order:** `cargo xtask release --publish` (the 16), then in `pointers/`
   `cargo publish --no-verify -p leptos-mf2` and `-p mf2-axum`; then tag `v2.0.0` as the release prints.
+- **E4 fix** (2026-09-30, G3 run 1): `generate_route_list` provides a bare `Parts`, so start-up warned; E4 now
+  needs axum's `OriginalUri` (the router puts it on every request). Unit test: starter-shaped route list
+  and a negotiated request quiet, a router without the negotiator warns once. troubleshooting.md says so.
 
-**In flight:** a fix from G3's first cold start: E4's start-up warning in the web starter, started
-2026-09-30 by an agent working in the main tree; uncommitted changes there are its. Part A's probe
+**In flight:** nothing. Part A's probe
 branches and worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
