@@ -297,7 +297,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   lines, 2 + 0 crates, 18 concepts, 3 commands, 1 file (all at target; the row falls). Nightly `fmt-check` added.
   ci; docs; docs-rs; churn 84/84; e2e 0.9 and 0.8 1212/1212; sizes; islands-zero; fluent-migrate.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** E4 (server and client warnings), started 2026-09-30 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
