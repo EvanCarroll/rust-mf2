@@ -301,14 +301,17 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `provide_locale` tag, reader's languages unmatched (named; question 15), `path_prefix_redirect` outside the
   negotiator. Debug browser builds warn once in the console with no catalog active; release unchanged.
   ci; e4-gate: B1 26724 (unchanged), b12, b12-generated, e2e 0.9 1212/1212.
+- **F1** (`b816fbe`): `docs/mf2-for-developers.md`, linked from Getting started, SUMMARY and the index. Its
+  blocks are one CLI, `guide` (en, fr), that `cargo xtask docs` compiles; `mf2 check` is clean and its run
+  prints what the page says. Took the notes on `Display` vs a `:string` key and one message per styled line;
+  the rest are F2–F5's. ci; f1-gate docs pass.
 
-**In flight:** F1 (MF2 for developers), started 2026-09-30 by an agent working in the main tree;
-uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **Part F (F1 first)**;
+- **Part F (F2 first)**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
