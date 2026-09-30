@@ -1,0 +1,18 @@
+# The 2.0.0 pointer releases of `leptos-mf2` and `mf2-axum` (plans/18 owner
+# question 34): 1.x crates whose code is `mf2`'s since 2.0. Each is a README
+# and a `compile_error!` naming the feature to turn on. Their own workspace,
+# excluded from the root one, so `cargo build --workspace` never meets the
+# error. Published by the owner, after the 16, with `--no-verify` (the
+# verification build is the error itself).
+[workspace]
+resolver = "3"
+members = ["leptos-mf2", "mf2-axum"]
+
+[workspace.package]
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+authors = ["Evan Carroll"]
+repository = "https://github.com/EvanCarroll/rust-mf2"
+homepage = "https://evancarroll.github.io/rust-mf2/"
