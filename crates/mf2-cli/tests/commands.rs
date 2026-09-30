@@ -702,6 +702,26 @@ fn pseudo_writes_the_two_pseudo_locales() {
     ok(&run(&dir, &["check"]));
 }
 
+/// A message marked `@do-not-translate` (itself or its section) is copied
+/// into the pseudo-locales as it stands, so that they pass `check`.
+#[test]
+fn pseudo_copies_do_not_translate_messages() {
+    let dir = small_corpus(
+        "cli-pseudo-dnt",
+        &[(
+            "en",
+            "greeting = Hello\n\n@do-not-translate\nlanguage-fr = Français\n\n\
+             @do-not-translate\n[brand]\nname = Example\n",
+        )],
+    );
+    ok(&run(&dir, &["pseudo"]));
+    let en_xa = std::fs::read_to_string(dir.join("locales/en-XA/main.mf2")).expect("read");
+    assert!(en_xa.contains("language-fr = Français\n"), "{en_xa}");
+    assert!(en_xa.contains("name = Example\n"), "{en_xa}");
+    assert!(!en_xa.contains("greeting = Hello"), "{en_xa}");
+    ok(&run(&dir, &["check"]));
+}
+
 #[test]
 fn init_without_a_mode_names_the_modes_and_changes_nothing() {
     let dir = fresh("cli-init-none");

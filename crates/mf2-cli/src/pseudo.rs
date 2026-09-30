@@ -59,7 +59,17 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 )));
             }
             let mut refused = Vec::new();
+            // A message marked `@do-not-translate` (itself, or its section or
+            // file) is copied as it stands: the check holds every language to
+            // the source's text for it, and it needs no translating.
+            let file_dnt = has_dnt(&resource.meta);
             let out = resource.map_values(|info, value| {
+                if file_dnt
+                    || has_dnt(info.meta)
+                    || info.section.is_some_and(|head| has_dnt(&head.meta))
+                {
+                    return value;
+                }
                 let Some(model) = mf2_syntax::parse_model(&value).message else {
                     refused.push(info.full_id().to_string());
                     return value;
@@ -99,6 +109,10 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         );
     }
     Ok(())
+}
+
+fn has_dnt(meta: &[mf2_resource::Meta<'_>]) -> bool {
+    meta.iter().any(|m| m.name == "do-not-translate")
 }
 
 /// The written resource says which locale it is.
