@@ -258,13 +258,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `--build mf2-build@2` plus the printed tip in a crate. `--help`'s summary names every command (tested);
   init's note and Getting started's `src/lib.rs` name the prelude. `docs/command-line.md` runs both;
   `docs` compiles `count` and `hops`. `ci` green. §1.2/§1.3's unused `Stylize` import dropped.
+- **C8**: `examples/tui` on 2.0 (no translation crate; menu via `Locale::ALL`/`name()`); frame allocs
+  1,329/1,329/1,329/1,328 (1.x 1,816–1,817, upstream 1,517–1,526), tui-mf2 1,812,352 B, 355.7 vs 1.x 363.9 µs (load 3.3).
+  `tui-gate --gate`: ci.yml job (allocs, size), nightly `--baseline-rev 3a296a9` (time). native-apps.md: count, hops
+  (held to `init`'s files), trace. `line`/`text`/`MarkupStyles` gone; `mf2-ratatui` re-exports `mf2::ratatui`.
+  UX recount: CLI 13; 2+0; 8; 1, 1 file · `examples/tui` 24; 2+0; 17 (19 §2 noted); 1, 1 · book TUI 23; 17 · two-crate 19; 2+0; 16; 1, 1 — all fall.
 
 **In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **C8** (the samples and `examples/tui` on 2.0) first, checked with `probes/p10-checks/` (its README),
+- **C9** first, checked with `probes/p10-checks/` (its README),
   as Part C's heading orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
