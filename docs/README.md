@@ -19,6 +19,7 @@ beside the executable, and follows the system's language.
 | [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |
 | [Native CLI and Ratatui apps](native-apps.md) | `mf2-native` for a command-line or terminal application: embedded or shipped catalogs, the system's language, Ratatui text with markup as styles |
 | [The command line](command-line.md) | every `mf2` command: `check`, `fmt`, `compile`, `stats`, `dump`, `export` and `import` (JSON, XLIFF 2), `pseudo`, `watch`, `convert --from fluent` and its report codes |
+| [Translating](translating.md) | a round of translation: XLIFF 2 for a translation tool, JSON for a review, an import that carries a mistake, pseudo-locales, `mf2 stats`, and the checks for CI |
 | [`mf2.toml`](configuration.md) | every key: the source language, fallback chains, what a catalog carries, lint levels, the application's own functions |
 | [Lints](lints.md) | every check the build and `mf2 check` make: what raises it, an example, the fix, its default level |
 | [Features of `mf2`](features.md) | every feature: the Leptos line and modes, a server, native applications, functions and their backends, hosts; what text costs in a browser build |

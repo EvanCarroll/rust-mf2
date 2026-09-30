@@ -485,5 +485,7 @@ For a release build, run `cargo leptos build --release`.
   download), and client-only applications.
 * [Switching language](switching.md): the switcher, negotiation, and your
   own controls.
+* [Translating](translating.md): translators, reviews, pseudo-locales and
+  the checks for CI.
 * [Accessibility](accessibility.md): what the library does for WCAG 2.2 AA,
   and what the application still has to do.

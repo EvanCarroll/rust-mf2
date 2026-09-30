@@ -9,6 +9,7 @@
 - [Switching language](switching.md)
 - [Native CLI and Ratatui apps](native-apps.md)
 - [The command line](command-line.md)
+- [Translating](translating.md)
 - [`mf2.toml`](configuration.md)
 - [Lints](lints.md)
 - [Features of `mf2`](features.md)

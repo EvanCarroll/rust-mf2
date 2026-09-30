@@ -22,12 +22,14 @@
 //! one that makes the application. Nothing is hidden: there are no elided
 //! lines, and a code block with no `file=` is refused.
 //!
-//! A block marked `before` shows code *before* a migration to this library
-//! — `leptos-fluent` code, which this workspace does not depend on, so it
-//! is never compiled. It is not exempt from checking: its file is written
-//! before the project's `run=` commands, a `before` block is only accepted
-//! in a project that has them, and those commands (`mf2 convert --from
-//! leptos-fluent`) turn it into what the page's `generated` blocks show. A
+//! A block marked `before` shows a file as it is *before* the project's
+//! commands: code before a migration to this library — `leptos-fluent`
+//! code, which this workspace does not depend on, so it is never compiled —
+//! or a file a translator sends back. It is not exempt from checking: its
+//! file is written before the project's `run=` commands, a `before` block is
+//! only accepted in a project that has them, and those commands (`mf2
+//! convert --from leptos-fluent`, `mf2 import`) turn it into what the page's
+//! `generated` blocks show. A
 //! `run=` block marked `status=N` holds commands that must exit with N — a
 //! conversion that leaves work for a person exits 1, which is what the page
 //! explains next. A `run=` block marked `output=<path>` writes what its
@@ -67,6 +69,7 @@ const PAGES: &[&str] = &[
     "docs/native-apps.md",
     "docs/migrating-from-leptos-fluent.md",
     "docs/command-line.md",
+    "docs/translating.md",
     "docs/ecosystem.md",
     "README.md",
 ];
@@ -206,6 +209,25 @@ const PROJECTS: &[Project] = &[
     Project {
         name: "cli",
         base: Some("hello"),
+        remove: &[],
+        checks: &[],
+        site: None,
+    },
+    // translating.md: Getting started's application gets German through
+    // XLIFF and a French review through JSON, then `stats` and the checks CI
+    // runs. Nothing to compile beyond `hello`.
+    Project {
+        name: "translate",
+        base: Some("hello"),
+        remove: &[],
+        checks: &[],
+        site: None,
+    },
+    // translating.md: the pseudo-locales, written into a copy of `translate`
+    // so that its `stats` and CI checks show the application without them.
+    Project {
+        name: "translate-pseudo",
+        base: Some("translate"),
         remove: &[],
         checks: &[],
         site: None,

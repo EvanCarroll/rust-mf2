@@ -179,6 +179,9 @@ from the manifest (`--manifest`) when the catalog was built without them.
 
 ## `export`, `import`: translations in and out
 
+[Translating](translating.md) follows a team through a round of this, from
+export to the checks in CI.
+
 A translation tool or a translator who does not work in the repository gets
 one language as a file, and gives it back. As JSON, one message per id:
 
