@@ -32,6 +32,13 @@ src/main.rs
 src/pseudo.rs
 src/stats.rs
 src/watch.rs
+starters/cli/en.mf2
+starters/cli/fr.mf2
+starters/cli/main.rs
+starters/tui/en.mf2
+starters/tui/fr.mf2
+starters/tui/main.rs
+starters/tui/ui.rs
 tests/fluent/constructs.expected/en/entries.mf2
 tests/fluent/constructs.expected/en/expressions.mf2
 tests/fluent/constructs.expected/en/functions.mf2

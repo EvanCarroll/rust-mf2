@@ -1,0 +1,11 @@
+@locale en
+---
+
+files =
+  .input {$count :integer}
+  .match $count
+  0   {{{$dir} is empty.}}
+  one {{{$dir} holds one file.}}
+  *   {{{$dir} holds {$count} files.}}
+
+unreadable = Cannot read {$dir}: {$error}

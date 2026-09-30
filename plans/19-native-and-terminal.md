@@ -259,7 +259,7 @@ mod ui;
 use clap::Parser;
 use mf2::ratatui::{Theme, set_theme};
 use ratatui::crossterm::event::{self, Event, KeyCode};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Style;
 
 mf2::include_generated!();
 
@@ -592,7 +592,7 @@ trace-core = { path = "../core" }
 use clap::Parser;
 use mf2::ratatui::{Theme, set_theme};
 use ratatui::crossterm::event::{self, Event, KeyCode};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Style;
 use ratatui::widgets::{Block, Paragraph};
 use trace_core::Trace;
 use trace_core::prelude::*;

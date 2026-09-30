@@ -6,7 +6,7 @@
 //!
 //! | Command | Does |
 //! |---|---|
-//! | `init` | scaffold an i18n crate: `locales/`, `mf2.toml`, `build.rs`, `src/lib.rs` |
+//! | `init` | a starter: `--cli` or `--tui` makes a native application, or adds translations to a crate; without either, a web application's translation crate |
 //! | `check` | every lint, with `--format json` for CI |
 //! | `compile` | the manifest, the catalogs and the generated module, without cargo |
 //! | `fmt` | canonical `.mf2` resources (`--check` to only say which differ) |
@@ -99,8 +99,9 @@ impl FeatureArgs {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Scaffold an i18n crate: `locales/<tag>/`, `mf2.toml`, `build.rs` and
-    /// the `src/lib.rs` that includes what the build generates.
+    /// Start: `--cli` or `--tui` makes a native application, or adds
+    /// translations to the crate there; without either, a web application's
+    /// translation crate.
     Init(init::Args),
     /// Run every lint over the corpus; exit 1 if anything is an error.
     Check(check::Args),
@@ -164,5 +165,25 @@ mod tests {
     #[test]
     fn the_command_line_is_well_formed() {
         Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn the_help_summary_names_every_command() {
+        let command = Cli::command();
+        let about = command
+            .get_about()
+            .map(ToString::to_string)
+            .unwrap_or_default();
+        for sub in command.get_subcommands() {
+            let name = sub.get_name();
+            let named = match name {
+                "export" | "import" => about.contains("export/import"),
+                _ => about.contains(name),
+            };
+            assert!(
+                named,
+                "`mf2 --help`'s summary does not name `{name}`: {about}"
+            );
+        }
     }
 }

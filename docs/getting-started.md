@@ -144,11 +144,10 @@ what the application installs once on each side:
 //! The application's messages. Everything in here is generated: edit
 //! `locales/` instead.
 //!
-//! This brings in `tr!` and `msg_id!` as well. Every *other* crate calls them
-//! as `<this crate>::tr!("id", name = value)`; inside this one they are
-//! called unqualified, because a `macro_export` macro that arrives through a
-//! macro expansion cannot be named by an absolute path in its own crate
-//! (rust-lang/rust#52234).
+//! This brings in `tr!` and `msg_id!` as well, and a `prelude` that holds
+//! both. Another crate calls them as `<this crate>::tr!("id", name = value)`,
+//! or imports them with `use <this crate>::prelude::*;`; a module of this
+//! crate imports them with `use crate::prelude::*;`.
 
 mf2::include_generated!();
 ```

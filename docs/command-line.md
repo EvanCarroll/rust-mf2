@@ -23,17 +23,64 @@ is for a person and may be worded differently in a later release: a
 script should read the exit status, or ask for `--format json` where a
 command offers it.
 
-## `init`: a new translation crate
+## `init`: a starter
+
+```sh run=count
+mf2 init --cli
+```
+
+makes a complete command-line application in the current directory, which
+must be empty (or name a new one: `mf2 init --cli count`). It counts the
+files in a directory and says so in English or French; `cargo run -- --lang
+fr` tries it. Its manifest names `mf2` and, in the build script,
+`mf2-build`:
+
+```toml file=count/Cargo.toml generated
+[package]
+name = "count"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+mf2 = { version = "2", features = ["native", "fn-number"] }
+
+[build-dependencies]
+mf2-build = "2"
+
+# The build script compiles the messages again after every edit to
+# them: built optimized, it does so faster.
+[profile.dev.build-override]
+opt-level = 2
+```
+
+```sh run=hops
+mf2 init --tui
+```
+
+makes a Ratatui terminal UI instead: a bordered table, a language menu, a
+key-hint bar and a status line, with `1` and `2` switching the language
+while it runs. Both are the shapes the [native applications](native-apps.md)
+page explains.
+
+In a directory that holds a crate already, `init --cli` or `--tui` adds
+translations to it instead: a build script, `locales/en/main.mf2`, and `mf2`
+and `mf2-build` through `cargo add`. It prints what is left to write — the
+include, `install()` and a first `tr!` — and the build-override above, for
+the workspace's root manifest. `--locale` adds a language, `--source-locale`
+changes the source language from `en`, `--no-messages` leaves the messages
+out, and `--force` writes over files that are there.
+
+Without `--cli` or `--tui`, `init` writes a web application's translation
+crate:
 
 ```sh
 mf2 -C i18n init --name hello-i18n --locale fr
 ```
 
 writes the crate: its manifest, build script, `mf2.toml`, `src/lib.rs` and
-starter messages for the source language and each `--locale`. `--no-messages`
-leaves the messages out (before a conversion, below), `--source-locale`
-changes the source language from `en`, and `--force` writes over an existing
-crate. [Getting started](getting-started.md) goes through what it writes.
+starter messages for the source language and each `--locale`.
+[Getting started](getting-started.md) goes through what it writes.
 
 ## `check`: every check the build makes
 

@@ -1,0 +1,29 @@
+@locale en
+---
+
+title = Trace to {#host}{$target}{/host}
+languages = Language
+hints = {#key}1{/key} {#key}2{/key} language · {#key}q{/key} quit
+
+status =
+  .input {$hops :integer}
+  .match $hops
+  one {{{$hops} hop · probes: {$sent :integer} · loss: {$loss :percent maximumFractionDigits=1}}}
+  *   {{{$hops} hops · probes: {$sent :integer} · loss: {$loss :percent maximumFractionDigits=1}}}
+
+[column]
+hop = #
+host = Host
+loss = Loss
+average = Avg (ms)
+
+[cell]
+no-reply = {#warn}no reply{/warn}
+loss = {$share :percent maximumFractionDigits=1}
+ms = {$ms :number minimumFractionDigits=1 maximumFractionDigits=1}
+
+# Each language's name, in that language: the same in every file.
+@do-not-translate
+[language]
+en = English
+fr = Français

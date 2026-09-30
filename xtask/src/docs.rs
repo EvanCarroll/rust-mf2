@@ -201,6 +201,28 @@ const PROJECTS: &[Project] = &[
         checks: &[],
         site: false,
     },
+    // command-line.md: the applications `mf2 init --cli` and `--tui` make,
+    // as they make them.
+    Project {
+        name: "count",
+        base: None,
+        remove: &[],
+        checks: &[Check {
+            target: None,
+            args: &[],
+        }],
+        site: false,
+    },
+    Project {
+        name: "hops",
+        base: None,
+        remove: &[],
+        checks: &[Check {
+            target: None,
+            args: &[],
+        }],
+        site: false,
+    },
     // native-apps.md: native CLI catalog loading and the optional Ratatui adapter.
     Project {
         name: "native",
@@ -769,7 +791,13 @@ fn assemble(
         if path.ends_with("Cargo.toml") {
             let file = dir.join(path.trim_start_matches("./"));
             let text = fsx::read_to_string(&file)?;
-            fsx::write(&file, local_dependencies(root, &file, &text)?.as_bytes())?;
+            let mut text = local_dependencies(root, &file, &text)?;
+            // A project stands alone, inside this repository's tree: a
+            // manifest `mf2 init` wrote says nothing of a workspace.
+            if path == "./Cargo.toml" && !text.contains("[workspace]") {
+                text.push_str("\n[workspace]\n");
+            }
+            fsx::write(&file, text.as_bytes())?;
         } else if has_extension(&path, "toml") {
             let file = dir.join(path.trim_start_matches("./"));
             fsx::read_to_string(&file)?

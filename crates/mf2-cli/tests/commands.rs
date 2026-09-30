@@ -726,6 +726,129 @@ fn init_scaffolds_a_crate_that_the_other_commands_understand() {
     ok(&run(&dir, &["compile", "-o", "dist"]));
 }
 
+/// A fresh, missing directory under the test's temporary directory.
+fn fresh(name: &str) -> PathBuf {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(name);
+    let _ = std::fs::remove_dir_all(&dir);
+    dir
+}
+
+#[test]
+fn init_cli_and_tui_make_a_new_application() {
+    let root = fresh("cli-init-new");
+    std::fs::create_dir_all(&root).expect("mkdir");
+    let text = ok(&run(&root, &["init", "--cli", "count"]));
+    assert!(text.contains("cargo run -- --lang fr"), "{text}");
+    let manifest = std::fs::read_to_string(root.join("count/Cargo.toml")).expect("manifest");
+    assert!(manifest.contains("name = \"count\""), "{manifest}");
+    assert!(
+        manifest.contains("features = [\"native\", \"fn-number\"]"),
+        "{manifest}"
+    );
+    assert!(
+        manifest.contains("[profile.dev.build-override]\nopt-level = 2"),
+        "{manifest}"
+    );
+    for file in [
+        "build.rs",
+        "src/main.rs",
+        "locales/en/main.mf2",
+        "locales/fr/main.mf2",
+    ] {
+        assert!(root.join("count").join(file).is_file(), "{file}");
+    }
+    // The directory is no longer empty, and holds a crate: another `init`
+    // would add translations to it, and refuses to overwrite them.
+    let out = run(&root.join("count"), &["init", "--cli"]);
+    assert!(!out.status.success());
+    assert!(stderr(&out).contains("--force"), "{}", stderr(&out));
+
+    ok(&run(&root, &["init", "--tui", "hops"]));
+    let manifest = std::fs::read_to_string(root.join("hops/Cargo.toml")).expect("manifest");
+    assert!(manifest.contains("ratatui = \"0.30\""), "{manifest}");
+    assert!(root.join("hops/src/ui.rs").is_file());
+    // Its messages are in `mf2 fmt`'s form.
+    for app in ["count", "hops"] {
+        let locales = root.join(app).join("locales");
+        ok(&run(
+            &root,
+            &["fmt", "--check", &locales.display().to_string()],
+        ));
+    }
+
+    // A new application's languages are its messages'.
+    let out = run(&root, &["init", "--cli", "de", "--locale", "de"]);
+    assert!(!out.status.success());
+    assert!(stderr(&out).contains("--locale"), "{}", stderr(&out));
+    // A directory with files and no crate is not one to write into.
+    std::fs::write(root.join("notes.txt"), "x").expect("write");
+    let out = run(&root, &["init", "--cli"]);
+    assert!(!out.status.success());
+    assert!(
+        stderr(&out).contains("neither empty nor a crate"),
+        "{}",
+        stderr(&out)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn init_tui_adds_translations_to_an_existing_crate() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let dir = fresh("cli-init-existing");
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    std::fs::write(
+        dir.join("Cargo.toml"),
+        "[package]\nname = \"app\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+    )
+    .expect("manifest");
+    std::fs::write(dir.join("src/main.rs"), "fn main() {}\n").expect("main");
+    // A cargo that writes down what it was asked to do.
+    let log = dir.join("cargo.log");
+    let cargo = dir.join("fake-cargo");
+    std::fs::write(
+        &cargo,
+        format!("#!/bin/sh\necho \"$@\" >> '{}'\n", log.display()),
+    )
+    .expect("fake cargo");
+    std::fs::set_permissions(&cargo, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+
+    let out = Command::new(mf2())
+        .arg("-C")
+        .arg(&dir)
+        .args(["init", "--tui", "--locale", "fr"])
+        .env("CARGO", &cargo)
+        .output()
+        .expect("the mf2 binary runs");
+    let text = ok(&out);
+    assert!(
+        text.contains("[profile.dev.build-override]\nopt-level = 2"),
+        "{text}"
+    );
+    assert!(text.contains("use crate::prelude::*;"), "{text}");
+    let asked = std::fs::read_to_string(&log).expect("cargo ran");
+    assert_eq!(
+        asked, "add mf2@2 -F native,ratatui\nadd --build mf2-build@2\n",
+        "{asked}"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.join("build.rs")).expect("build.rs"),
+        "fn main() {\n    mf2_build::run();\n}\n"
+    );
+    assert!(dir.join("locales/en/main.mf2").is_file());
+    assert!(dir.join("locales/fr/main.mf2").is_file());
+    assert!(
+        !dir.join("mf2.toml").exists(),
+        "en is the default source locale"
+    );
+    // The application's own files are left alone.
+    assert_eq!(
+        std::fs::read_to_string(dir.join("src/main.rs")).expect("main"),
+        "fn main() {}\n"
+    );
+}
+
 #[test]
 fn watch_rebuilds_when_a_locale_changes() {
     let dir = corpus("cli-watch");

@@ -45,12 +45,15 @@ mf2 import
   <file> (position 2) (required)
   <locale> (position 1) (required)
 mf2 init
+  --cli
   --dir, -C <DIR> (global)
   --force
   --locale <TAG> (repeatable)
   --name <NAME>
   --no-messages
+  <path> (position 1)
   --source-locale <TAG>
+  --tui
 mf2 pseudo
   --dir, -C <DIR> (global)
   --dry-run

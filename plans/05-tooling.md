@@ -1142,6 +1142,8 @@ Designed on 2026-09-28 and approved by the owner the same day (question 12; revi
   build-override tip.
 - **Without a mode flag**, `init` names the five, and changes nothing.
   `--locale` and `--no-messages` stay as in 1.x.
+  As built (C7): until D5, no flag still writes 1.x's translation crate, which the web pages run;
+  a new application refuses `--locale`, `--source-locale` and `--no-messages` (its messages are en and fr).
 - **`mf2 --help`'s summary names every command**, `init` and `convert`
   included (review #17).
 - **The book runs `init` in `run=` blocks**, so `cargo xtask docs` compiles

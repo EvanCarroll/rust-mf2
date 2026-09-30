@@ -1,0 +1,29 @@
+@locale fr
+---
+
+title = Trace vers {#host}{$target}{/host}
+languages = Langue
+hints = {#key}1{/key} {#key}2{/key} langue · {#key}q{/key} quitter
+
+status =
+  .input {$hops :integer}
+  .match $hops
+  one  {{{$hops} saut · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+  many {{{$hops} de sauts · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+  *    {{{$hops} sauts · sondes : {$sent :integer} · perte : {$loss :percent maximumFractionDigits=1}}}
+
+[column]
+hop = #
+host = Hôte
+loss = Perte
+average = Moy. (ms)
+
+[cell]
+no-reply = {#warn}pas de réponse{/warn}
+loss = {$share :percent maximumFractionDigits=1}
+ms = {$ms :number minimumFractionDigits=1 maximumFractionDigits=1}
+
+@do-not-translate
+[language]
+en = English
+fr = Français

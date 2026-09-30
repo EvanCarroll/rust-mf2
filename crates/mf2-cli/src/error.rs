@@ -59,6 +59,17 @@ pub(crate) enum Error {
         message: String,
     },
 
+    /// `mf2 init` could not add `mf2` or `mf2-build` to an existing crate.
+    #[error("{dir}: {command}: {message}")]
+    CargoAdd {
+        /// The crate.
+        dir: PathBuf,
+        /// The command that failed.
+        command: String,
+        /// What went wrong.
+        message: String,
+    },
+
     /// `--features` and the crate's `mf2` disagree on which functions exist,
     /// so the catalogs would be built for another wasm than the one cargo
     /// builds.
