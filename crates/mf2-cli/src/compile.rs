@@ -18,14 +18,14 @@ pub(crate) struct Args {
     features: FeatureArgs,
     /// Where to write the manifest, the catalogs and the generated module.
     #[arg(long, short, value_name = "DIR", default_value = "dist")]
-    out: PathBuf,
+    pub(crate) out: PathBuf,
     /// Instead, write only what a static host serves: the catalogs and
     /// `index.json`, which a client-only application reads to find them
     /// (a trunk hook points this at its staging directory's `i18n/`).
     /// The functions are the features cargo resolves for the crate's `mf2`;
     /// `--features`, if given, must agree with them.
     #[arg(long, value_name = "DIR", conflicts_with = "out")]
-    site: Option<PathBuf>,
+    pub(crate) site: Option<PathBuf>,
     /// The crate path the generated module re-exports as `__mf2`.
     #[arg(long, value_name = "PATH", default_value = "::mf2")]
     facade: String,

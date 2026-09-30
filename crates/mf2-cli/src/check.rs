@@ -24,7 +24,7 @@ pub(crate) struct Args {
     /// Where the application's Rust sources are, for `unused-id`: an id no
     /// `tr!` in them names. Repeat for several directories.
     #[arg(long, value_name = "DIR")]
-    src: Vec<std::path::PathBuf>,
+    pub(crate) src: Vec<std::path::PathBuf>,
 }
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {

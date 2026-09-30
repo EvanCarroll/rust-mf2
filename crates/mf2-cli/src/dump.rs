@@ -22,13 +22,13 @@ pub(crate) enum Shape {
 pub(crate) struct Args {
     /// The catalog.
     #[arg(value_name = "FILE.mf2b")]
-    catalog: PathBuf,
+    pub(crate) catalog: PathBuf,
     /// What to write.
     #[arg(long, value_enum, default_value_t = Shape::Mf2)]
     format: Shape,
     /// The manifest, for the ids of a catalog whose id table was stripped.
     #[arg(long, value_name = "FILE.mf2m")]
-    manifest: Option<PathBuf>,
+    pub(crate) manifest: Option<PathBuf>,
     /// Only this message.
     #[arg(long, value_name = "ID")]
     id: Option<String>,

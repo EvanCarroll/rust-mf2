@@ -18,7 +18,7 @@ pub(crate) struct Args {
     /// The files or directories to format; the corpus's `locales/` by
     /// default.
     #[arg(value_name = "PATH")]
-    paths: Vec<PathBuf>,
+    pub(crate) paths: Vec<PathBuf>,
 }
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {

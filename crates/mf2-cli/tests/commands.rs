@@ -460,7 +460,7 @@ hello = Bonjour
         ],
     );
     std::fs::create_dir_all(dir.join("src")).expect("mkdir");
-    // `--src` is the caller's path, not `-C`'s.
+    // An absolute `--src` is read as it is, whatever `-C` says.
     let src = dir.join("src");
     let src = src.to_str().expect("a UTF-8 path");
     std::fs::write(dir.join("src/main.rs"), "fn main() { tr!(\"hello\"); }\n").expect("write");
@@ -476,6 +476,34 @@ hello = Bonjour
         "{text}"
     );
     assert!(!text.contains("language."), "{text}");
+}
+
+/// `-C DIR` works like `git -C`: relative path arguments are read in DIR,
+/// not in the directory the command was started from.
+#[test]
+fn dash_c_reads_relative_paths_in_its_directory() {
+    let dir = small_corpus("cli-dash-c", &[("en", "hello = Hello\n")]);
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    std::fs::write(dir.join("src/main.rs"), "fn main() { tr!(\"hello\"); }\n").expect("write");
+    let elsewhere = Path::new(env!("CARGO_TARGET_TMPDIR"));
+    let from_elsewhere = |args: &[&str]| {
+        Command::new(mf2())
+            .current_dir(elsewhere)
+            .arg("-C")
+            .arg(&dir)
+            .args(args)
+            .output()
+            .expect("the mf2 binary runs")
+    };
+    let text = ok(&from_elsewhere(&[
+        "check",
+        "--src",
+        "src",
+        "--deny-warnings",
+    ]));
+    assert!(!text.contains("unused-id"), "{text}");
+    ok(&from_elsewhere(&["compile", "-o", "out"]));
+    assert!(dir.join("out/manifest.mf2m").is_file());
 }
 
 /// The UX review's case (Phase 10 E1): the French terms sentence lost its

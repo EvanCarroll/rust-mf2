@@ -43,7 +43,7 @@ pub(crate) struct ExportArgs {
     locale: String,
     /// Where to write it; standard output by default.
     #[arg(long, short, value_name = "FILE")]
-    out: Option<PathBuf>,
+    pub(crate) out: Option<PathBuf>,
     /// The format.
     #[arg(long, value_enum, default_value_t)]
     format: ExportFormat,
@@ -57,7 +57,7 @@ pub(crate) struct ImportArgs {
     locale: String,
     /// The flat JSON or XLIFF 2 document to read (told apart by content).
     #[arg(value_name = "FILE")]
-    file: PathBuf,
+    pub(crate) file: PathBuf,
     /// Say what would change and write nothing.
     #[arg(long)]
     dry_run: bool,

@@ -45,7 +45,7 @@ pub(crate) struct Args {
     /// `fluent`: the directory holding one subdirectory per locale
     /// (`<DIR>/<locale>/**.ftl`). `leptos-fluent`: the application's crate.
     #[arg(value_name = "DIR")]
-    input: PathBuf,
+    pub(crate) input: PathBuf,
     /// How to report.
     #[arg(long, value_enum, default_value_t = Format::Text)]
     format: Format,
@@ -56,7 +56,7 @@ pub(crate) struct Args {
     /// `leptos-fluent`: the `.ftl` directory, if not the initializer's
     /// `locales:` or `APP_DIR/locales`.
     #[arg(long, value_name = "DIR")]
-    locales: Option<PathBuf>,
+    pub(crate) locales: Option<PathBuf>,
     /// `leptos-fluent`: the crate the rewritten `use` names, if not
     /// `crate` (the messages in the application's own crate) or the
     /// package in `--dir`'s Cargo.toml.

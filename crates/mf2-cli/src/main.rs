@@ -42,7 +42,7 @@ mod watch;
 #[cfg(all(test, mf2_workspace))]
 mod workspace_tests;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -129,13 +129,48 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+    in_dir(&mut cli);
     match run(&cli) {
         Ok(()) => ExitCode::SUCCESS,
         Err(Error::Corpus) => ExitCode::FAILURE,
         Err(e) => {
             eprintln!("mf2: {e}");
             ExitCode::FAILURE
+        }
+    }
+}
+
+/// `-C DIR` works like `git -C`: every relative path argument is read in
+/// DIR, as if the command had started there. `init`'s own path already is.
+fn in_dir(cli: &mut Cli) {
+    let dir = cli.dir.clone();
+    if dir == Path::new(".") {
+        return;
+    }
+    let at = |path: &mut PathBuf| {
+        if path.is_relative() {
+            *path = dir.join(&*path);
+        }
+    };
+    match &mut cli.command {
+        Command::Init(_) | Command::Stats(_) | Command::Pseudo(_) => {}
+        Command::Check(args) => args.src.iter_mut().for_each(at),
+        Command::Compile(args) => {
+            at(&mut args.out);
+            args.site.iter_mut().for_each(at);
+        }
+        Command::Fmt(args) => args.paths.iter_mut().for_each(at),
+        Command::Dump(args) => {
+            at(&mut args.catalog);
+            args.manifest.iter_mut().for_each(at);
+        }
+        Command::Export(args) => args.out.iter_mut().for_each(at),
+        Command::Import(args) => at(&mut args.file),
+        Command::Watch(args) => at(&mut args.out),
+        Command::Convert(args) => {
+            at(&mut args.input);
+            args.locales.iter_mut().for_each(at);
         }
     }
 }

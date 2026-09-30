@@ -318,10 +318,11 @@ message that uses it, and the report counts where.
 ## Every option
 
 Every command takes `-C DIR` (`--dir`), the crate that holds the messages
-(the current directory by default), and `-h` (`--help`). `--features LIST`
-names the features of `mf2` the application builds with, separated by
-commas (`fn-number,fn-datetime`). `--format json` reports as JSON, for CI and
-editors.
+(the current directory by default); like `git -C`, it makes every relative
+path the command takes read in DIR. Every command also takes `-h`
+(`--help`). `--features LIST` names the features of `mf2` the application
+builds with, separated by commas (`fn-number,fn-datetime`). `--format json`
+reports as JSON, for CI and editors.
 
 | Command | Arguments and options |
 |---|---|

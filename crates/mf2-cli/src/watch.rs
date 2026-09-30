@@ -25,7 +25,7 @@ pub(crate) struct Args {
     features: FeatureArgs,
     /// Where to write the outputs.
     #[arg(long, short, value_name = "DIR", default_value = "dist")]
-    out: PathBuf,
+    pub(crate) out: PathBuf,
     /// How often to look, in milliseconds.
     #[arg(long, value_name = "MS", default_value_t = 300)]
     interval: u64,
