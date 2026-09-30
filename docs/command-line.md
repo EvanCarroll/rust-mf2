@@ -83,7 +83,9 @@ mode's features) and `mf2-build` through `cargo add`. It prints what is
 left to write, which it cannot write into an existing manifest or code: for
 a Leptos application, the lines that forward its `ssr` and `hydrate`
 features to `mf2`, the include, `install()` on each side and a first
-`tr!`; and the build-override above, for the workspace's root manifest.
+`tr!`; and, for the workspace's root manifest, the optional
+`[profile.dev.build-override]` setting that makes rebuilding the messages
+quicker ([Native CLI and Ratatui apps](native-apps.md#a-command-line-tool)).
 `--locale` adds a language, `--source-locale` changes the source language
 from `en`, `--no-messages` leaves the messages out, and `--force` writes
 over files that are there.
