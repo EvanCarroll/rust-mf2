@@ -27,7 +27,7 @@
 //! **Where the option text comes from, and why it is not in the wasm.**
 //! Each language's name is a message of the application's own catalog —
 //! `language.fr` in *every* locale's catalog — and never a literal in the
-//! client: the generated `setup()` names each one ([`Setup::with_names`]),
+//! client: the generated `setup()` names each one ([`Setup::with_names`](crate::leptos::Setup::with_names)),
 //! and a [`LocaleOption`] takes its text as children. What keeps the
 //! autonyms out of the wasm is that they are catalog data.
 
