@@ -6,7 +6,7 @@
 //!    application — the reference application on `leptos-fluent`, in its
 //!    own idiom — and the workload's `.ftl` files.
 //! 2. **The mf2 side is that application migrated**, not a twin written by
-//!    hand: a copy converted by `mf2 init --no-messages` and `mf2 convert
+//!    hand: a copy given a translation crate and converted by `mf2 convert
 //!    --from leptos-fluent --write`, whose report must be exactly the
 //!    hand-finishing the guide describes, then finished as the guide says
 //!    (`bench/fluent-ab/mf2/`: the manifest, the entry points, the server;
@@ -158,30 +158,17 @@ fn prepare(root: &Path, out: &Path, wl: &Path) -> Result<()> {
     fsx::write(&out.join("ids.json"), ids.to_json().as_bytes())
 }
 
-/// `mf2 init --no-messages`, then `mf2 convert --from leptos-fluent --write`:
+/// The translation crate, then `mf2 convert --from leptos-fluent --write`:
 /// the guide's commands, whose report must be the hand-finishing only.
+/// `mf2 init` makes one-crate applications since 2.0, so the bench's
+/// two-crate layout writes its translation crate here, as 1.x's `init` did.
 fn migrate(root: &Path, app: &Path) -> Result<()> {
     let mf2 = root.join("target/debug/mf2");
     let i18n = app.join("i18n");
-    eprintln!("==> mf2 -C i18n init --name workload-i18n --no-messages");
-    run_inherit(
-        mf2.as_os_str(),
-        &[
-            OsStr::new("-C"),
-            i18n.as_os_str(),
-            OsStr::new("init"),
-            OsStr::new("--name"),
-            OsStr::new("workload-i18n"),
-            OsStr::new("--no-messages"),
-            OsStr::new("--locale"),
-            OsStr::new("pl"),
-            OsStr::new("--locale"),
-            OsStr::new("en-XA"),
-            OsStr::new("--locale"),
-            OsStr::new("ar-XB"),
-        ],
-        root,
-    )?;
+    eprintln!("==> the translation crate, in i18n/");
+    for (file, text) in I18N_CRATE {
+        fsx::write(&i18n.join(file), text.as_bytes())?;
+    }
     // Our crates are not published yet: path dependencies on the tree, as
     // `cargo xtask docs` makes them.
     let manifest = i18n.join("Cargo.toml");
@@ -209,6 +196,32 @@ fn migrate(root: &Path, app: &Path) -> Result<()> {
     })?;
     fluent_migrate::check_report(&report, app).map_err(|e| fail(e.to_string()))
 }
+
+/// The bench's translation crate: its messages come from the conversion.
+const I18N_CRATE: &[(&str, &str)] = &[
+    (
+        "Cargo.toml",
+        "[package]
+name = \"workload-i18n\"
+version = \"0.1.0\"
+edition = \"2024\"
+
+[features]
+default = []
+ssr = [\"mf2/host-std\", \"mf2/ssr\"]
+hydrate = [\"mf2/host-web\", \"mf2/hydrate\"]
+
+[dependencies]
+mf2 = \"1\"
+
+[build-dependencies]
+mf2-build = \"1\"
+",
+    ),
+    ("mf2.toml", "source_locale = \"en\"\n"),
+    ("build.rs", "fn main() {\n    mf2_build::run();\n}\n"),
+    ("src/lib.rs", "mf2::include_generated!();\n"),
+];
 
 /// The guide's hand-finishing: the manifest, the entry points and the
 /// server from `bench/fluent-ab/mf2/`, and the shell edited in place.

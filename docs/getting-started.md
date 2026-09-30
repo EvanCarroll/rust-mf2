@@ -62,7 +62,7 @@ hello/
 ├── src/
 │   ├── lib.rs        the page, and the browser's entry point
 │   └── main.rs       the server
-└── i18n/             the translation crate: made by `mf2 init`
+└── i18n/             the translation crate
     ├── Cargo.toml
     ├── build.rs
     ├── mf2.toml
@@ -81,18 +81,15 @@ or plural rule is compiled into the wasm.** So changing a translation
 leaves the wasm byte-for-byte the same, and every reader's cached copy
 stays valid.
 
-## The translation crate: `mf2 init`
+## The translation crate
 
-In `hello/`:
+A crate of its own suits a workspace where several crates share one set of
+messages. For an application alone, `mf2 init --ssr` makes the whole of it
+in one crate, its messages beside its code
+([Command line](command-line.md#init-a-starter)). This page writes the
+translation crate by hand. Its manifest, `i18n/Cargo.toml`:
 
-```sh run=hello
-mf2 -C i18n init --name hello-i18n --locale fr
-```
-
-This writes `i18n/` and prints what to do next (this page covers each
-step). The crate's manifest:
-
-```toml file=hello/i18n/Cargo.toml generated
+```toml file=hello/i18n/Cargo.toml
 [package]
 name = "hello-i18n"
 version = "0.1.0"
@@ -137,10 +134,32 @@ dates:
 | `fn-datetime` + `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
 | `intl` | numbers and plural rules through the browser's `Intl` too |
 
+Its build script reads `locales/`, checks every message, and writes the
+catalogs, the manifest and the module to cargo's `OUT_DIR`:
+
+```rust file=hello/i18n/build.rs
+//! Parses locales/, writes the manifest and the catalogs to OUT_DIR, and
+//! generates the module src/lib.rs includes.
+
+fn main() {
+    let outcome = match mf2_build::Build::new().and_then(|build| build.emit_cargo(true).run()) {
+        Ok(outcome) => outcome,
+        Err(e) => {
+            println!("cargo::error={e}");
+            std::process::exit(1);
+        }
+    };
+    if let Err(e) = outcome.into_result() {
+        println!("cargo::error={e}");
+        std::process::exit(1);
+    }
+}
+```
+
 Its `src/lib.rs` includes what the build generates. That holds `setup()`,
 what the application installs once on each side:
 
-```rust file=hello/i18n/src/lib.rs generated
+```rust file=hello/i18n/src/lib.rs
 //! The application's messages. Everything in here is generated: edit
 //! `locales/` instead.
 //!
@@ -156,7 +175,7 @@ mf2::include_generated!();
 messages are written in first. Every other language's catalog is checked
 against it:
 
-```toml file=hello/i18n/mf2.toml generated
+```toml file=hello/i18n/mf2.toml
 source_locale = "en"
 
 [catalog]

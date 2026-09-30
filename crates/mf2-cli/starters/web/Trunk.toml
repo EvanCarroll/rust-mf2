@@ -1,0 +1,11 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+# The catalogs and their index, published beside the wasm after each build.
+# They are built for the features `mf2` has in this crate, so the catalogs
+# and the wasm always agree on which functions exist.
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "mf2 compile --site \"$TRUNK_STAGING_DIR/i18n\""]

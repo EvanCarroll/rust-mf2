@@ -12,7 +12,7 @@ beside the executable, and follows the system's language.
 | Page | What it covers |
 |---|---|
 | [How the crates fit together](ecosystem.md) | which crate does what, and which ones an application names |
-| [Getting started](getting-started.md) | installing, `mf2 init`, the messages, a server-rendered application that hydrates and switches language live |
+| [Getting started](getting-started.md) | installing, the translation crate, the messages, a server-rendered application that hydrates and switches language live |
 | [Call sites](call-sites.md) | `tr!` in text, attributes, props and strings; arguments, signals, dates; markup as elements; plain and isolated text |
 | [Delivery modes](delivery-modes.md) | SSR + hydrate, lazy routes, islands, client-only |
 | [Switching language](switching.md) | how the server chooses, the switcher, what a switch does, your own control |

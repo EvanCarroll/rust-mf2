@@ -99,9 +99,8 @@ impl FeatureArgs {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Start: `--cli` or `--tui` makes a native application, or adds
-    /// translations to the crate there; without either, a web application's
-    /// translation crate.
+    /// Start: `--cli`, `--tui`, `--ssr`, `--islands` or `--csr` makes an
+    /// application, or adds translations to the crate there.
     Init(init::Args),
     /// Run every lint over the corpus; exit 1 if anything is an error.
     Check(check::Args),

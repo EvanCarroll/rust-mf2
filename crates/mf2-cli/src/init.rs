@@ -1,8 +1,9 @@
-//! `mf2 init`: a starter (`plans/05-tooling.md` §6.4). `--cli` and `--tui`
-//! make a complete native application in an empty or missing directory — the
-//! shapes of `plans/19-native-and-terminal.md` §1.1 and §1.2 — or add
-//! translations to the crate already there. Without a mode, it writes the
-//! translation crate the web pages use, until the web starters replace it.
+//! `mf2 init`: a starter (`plans/05-tooling.md` §6.4). Each mode makes a
+//! complete application in an empty or missing directory — `--cli` and
+//! `--tui` the shapes of `plans/19-native-and-terminal.md` §1.1 and §1.2,
+//! `--ssr` §1.4's, `--islands` and `--csr` the delivery modes' — or adds
+//! translations to the crate already there. Without a mode, it names the
+//! five and changes nothing.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -19,16 +20,26 @@ const MAJOR: &str = "2";
 // Each bool is a flag of its own on the command line.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, ClapArgs)]
+#[command(group = clap::ArgGroup::new("mode").multiple(false))]
 pub(crate) struct Args {
     /// A command-line application: `clap`, `--lang`, a plural, `println!`.
-    #[arg(long, conflicts_with = "tui")]
+    #[arg(long, group = "mode")]
     cli: bool,
     /// A Ratatui terminal UI: a table, a language menu, a live switch.
-    #[arg(long)]
+    #[arg(long, group = "mode")]
     tui: bool,
-    /// With `--cli` or `--tui`: the new application's directory (empty or
-    /// missing), or a crate to add translations to. The current directory
-    /// by default.
+    /// A Leptos application rendered on the server and hydrated, built
+    /// with cargo-leptos.
+    #[arg(long, group = "mode")]
+    ssr: bool,
+    /// A Leptos islands application: only its islands run in the browser.
+    #[arg(long, group = "mode")]
+    islands: bool,
+    /// A client-only Leptos application, built with Trunk.
+    #[arg(long, group = "mode")]
+    csr: bool,
+    /// The new application's directory (empty or missing), or a crate to
+    /// add translations to. The current directory by default.
     #[arg(value_name = "DIR")]
     path: Option<PathBuf>,
     /// The crate's name: a new application's is its directory's.
@@ -49,19 +60,37 @@ pub(crate) struct Args {
     no_messages: bool,
 }
 
-/// What `--cli` and `--tui` make.
+/// What each mode flag makes.
 #[derive(Clone, Copy, PartialEq)]
 enum Mode {
     Cli,
     Tui,
+    Ssr,
+    Islands,
+    Csr,
 }
 
 impl Mode {
+    fn of(args: &Args) -> Option<Mode> {
+        [
+            (args.cli, Mode::Cli),
+            (args.tui, Mode::Tui),
+            (args.ssr, Mode::Ssr),
+            (args.islands, Mode::Islands),
+            (args.csr, Mode::Csr),
+        ]
+        .into_iter()
+        .find_map(|(on, mode)| on.then_some(mode))
+    }
+
     /// The features of `mf2` the application needs.
     fn features(self) -> &'static str {
         match self {
             Mode::Cli => "native",
             Mode::Tui => "native,ratatui",
+            Mode::Ssr => "leptos,fn-number",
+            Mode::Islands => "leptos,fn-number,static-locale",
+            Mode::Csr => "leptos,csr,fn-number",
         }
     }
 
@@ -69,9 +98,26 @@ impl Mode {
         match self {
             Mode::Cli => "a command-line application",
             Mode::Tui => "a terminal UI",
+            Mode::Ssr => "a server-rendered Leptos application",
+            Mode::Islands => "a Leptos islands application",
+            Mode::Csr => "a client-only Leptos application",
         }
     }
+
+    fn web(self) -> bool {
+        matches!(self, Mode::Ssr | Mode::Islands | Mode::Csr)
+    }
 }
+
+/// What `init` says without a mode.
+const MODES: &str = "say what to make:
+  --cli       a command-line application
+  --tui       a Ratatui terminal UI
+  --ssr       a Leptos application, rendered on the server and hydrated
+  --islands   a Leptos islands application
+  --csr       a client-only Leptos application
+In an empty or missing directory, each makes a complete application; in a
+crate, it adds translations to it.";
 
 /// The build script every starter writes.
 const BUILD_RS: &str = "fn main() {\n    mf2_build::run();\n}\n";
@@ -80,16 +126,8 @@ const BUILD_RS: &str = "fn main() {\n    mf2_build::run();\n}\n";
 const BUILD_OVERRIDE: &str = "[profile.dev.build-override]\nopt-level = 2\n";
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
-    let mode = match (args.cli, args.tui) {
-        (true, _) => Mode::Cli,
-        (_, true) => Mode::Tui,
-        _ if args.path.is_some() => {
-            return Err(Error::Usage(
-                "a directory is for --cli or --tui; the translation crate is written in -C's"
-                    .into(),
-            ));
-        }
-        _ => return translation_crate(dir, args),
+    let Some(mode) = Mode::of(args) else {
+        return Err(Error::Usage(MODES.into()));
     };
     let target = match &args.path {
         Some(path) => dir.join(path),
@@ -157,35 +195,13 @@ fn new_application(target: &Path, mode: Mode, args: &Args) -> Result<()> {
             })
             .ok_or_else(|| Error::Usage("name the application with --name".into()))?
     };
-    let (en, fr, main) = match mode {
-        Mode::Cli => (
-            include_str!("../starters/cli/en.mf2"),
-            include_str!("../starters/cli/fr.mf2"),
-            include_str!("../starters/cli/main.rs"),
-        ),
-        Mode::Tui => (
-            include_str!("../starters/tui/en.mf2"),
-            include_str!("../starters/tui/fr.mf2"),
-            include_str!("../starters/tui/main.rs"),
-        ),
-    };
-    let mut files = vec![
-        (target.join("Cargo.toml"), application_toml(&name, mode)),
-        (target.join("build.rs"), BUILD_RS.to_owned()),
-        (target.join("locales/en/main.mf2"), en.to_owned()),
-        (target.join("locales/fr/main.mf2"), fr.to_owned()),
-        (target.join("src/main.rs"), main.to_owned()),
-    ];
-    if mode == Mode::Tui {
-        files.push((
-            target.join("src/ui.rs"),
-            include_str!("../starters/tui/ui.rs").to_owned(),
-        ));
-    }
+    let files = starter_files(target, &name, mode);
     write_all(&files, args.force)?;
     let try_it = match mode {
         Mode::Cli => "cargo run -- --lang fr",
         Mode::Tui => "cargo run    (1 and 2 switch the language, q quits)",
+        Mode::Ssr | Mode::Islands => "cargo leptos watch    (then open http://127.0.0.1:3000)",
+        Mode::Csr => "trunk serve    (with `mf2` on the PATH: Trunk.toml runs it)",
     };
     println!(
         "\nmf2 init: {what} in {dir}. Try it:\n\
@@ -198,12 +214,85 @@ fn new_application(target: &Path, mode: Mode, args: &Args) -> Result<()> {
     Ok(())
 }
 
-/// A new application's manifest: 19 §1.1's or §1.2's, with the
-/// build-override that keeps an edit to a message quick.
+/// Every file of a new application.
+fn starter_files(target: &Path, name: &str, mode: Mode) -> Vec<(PathBuf, String)> {
+    let (en, fr) = match mode {
+        Mode::Cli => (
+            include_str!("../starters/cli/en.mf2"),
+            include_str!("../starters/cli/fr.mf2"),
+        ),
+        Mode::Tui => (
+            include_str!("../starters/tui/en.mf2"),
+            include_str!("../starters/tui/fr.mf2"),
+        ),
+        Mode::Ssr | Mode::Islands | Mode::Csr => (
+            include_str!("../starters/web/en.mf2"),
+            include_str!("../starters/web/fr.mf2"),
+        ),
+    };
+    let mut files = vec![
+        (target.join("Cargo.toml"), application_toml(name, mode)),
+        (target.join("build.rs"), BUILD_RS.to_owned()),
+        (target.join("locales/en/main.mf2"), en.to_owned()),
+        (target.join("locales/fr/main.mf2"), fr.to_owned()),
+    ];
+    // The server names the library, which is the package's name.
+    let server = || {
+        let lib = name.replace('-', "_");
+        include_str!("../starters/web/server.rs").replace("hello::", &format!("{lib}::"))
+    };
+    let sources: Vec<(&str, String)> = match mode {
+        Mode::Cli => vec![(
+            "src/main.rs",
+            include_str!("../starters/cli/main.rs").into(),
+        )],
+        Mode::Tui => vec![
+            (
+                "src/main.rs",
+                include_str!("../starters/tui/main.rs").into(),
+            ),
+            ("src/ui.rs", include_str!("../starters/tui/ui.rs").into()),
+        ],
+        Mode::Ssr => vec![
+            ("src/lib.rs", include_str!("../starters/web/ssr.rs").into()),
+            ("src/main.rs", server()),
+        ],
+        Mode::Islands => vec![
+            (
+                "src/lib.rs",
+                include_str!("../starters/web/islands.rs").into(),
+            ),
+            ("src/main.rs", server()),
+        ],
+        Mode::Csr => vec![
+            ("src/main.rs", include_str!("../starters/web/csr.rs").into()),
+            (
+                "index.html",
+                include_str!("../starters/web/index.html")
+                    .replace("data-bin=\"hello\"", &format!("data-bin={name:?}")),
+            ),
+            (
+                "Trunk.toml",
+                include_str!("../starters/web/Trunk.toml").into(),
+            ),
+        ],
+    };
+    files.extend(
+        sources
+            .into_iter()
+            .map(|(path, body)| (target.join(path), body)),
+    );
+    files
+}
+
+/// A new application's manifest — 19 §1.1's, §1.2's or §1.4's, or the
+/// delivery modes' — with the build-override that keeps an edit to a
+/// message quick.
 fn application_toml(name: &str, mode: Mode) -> String {
-    let (mf2, ratatui) = match mode {
-        Mode::Cli => ("\"native\", \"fn-number\"", ""),
-        Mode::Tui => ("\"ratatui\", \"fn-number\"", "ratatui = \"0.30\"\n"),
+    let body = match mode {
+        Mode::Cli | Mode::Tui => native_toml(mode),
+        Mode::Ssr | Mode::Islands => leptos_toml(name, mode == Mode::Islands),
+        Mode::Csr => csr_toml(),
     };
     format!(
         "[package]\n\
@@ -211,19 +300,127 @@ fn application_toml(name: &str, mode: Mode) -> String {
          version = \"0.1.0\"\n\
          edition = \"2024\"\n\
          \n\
-         [dependencies]\n\
-         clap = {{ version = \"4\", features = [\"derive\"] }}\n\
-         mf2 = {{ version = \"{MAJOR}\", features = [{mf2}] }}\n\
-         {ratatui}\
-         \n\
-         [build-dependencies]\n\
-         mf2-build = \"{MAJOR}\"\n\
+         {body}\
          \n\
          # The build script compiles the messages again after every edit to\n\
          # them: built optimized, it does so faster.\n\
          {BUILD_OVERRIDE}"
     )
 }
+
+fn native_toml(mode: Mode) -> String {
+    let (mf2, ratatui) = match mode {
+        Mode::Tui => ("\"ratatui\", \"fn-number\"", "ratatui = \"0.30\"\n"),
+        _ => ("\"native\", \"fn-number\"", ""),
+    };
+    format!(
+        "[dependencies]\n\
+         clap = {{ version = \"4\", features = [\"derive\"] }}\n\
+         mf2 = {{ version = \"{MAJOR}\", features = [{mf2}] }}\n\
+         {ratatui}\
+         \n\
+         [build-dependencies]\n\
+         mf2-build = \"{MAJOR}\"\n"
+    )
+}
+
+/// cargo-leptos's application: the server natively, the client in wasm.
+fn leptos_toml(name: &str, islands: bool) -> String {
+    let (leptos, mf2) = if islands {
+        (
+            ", features = [\"islands\"]",
+            "\"leptos\", \"fn-number\", \"static-locale\"",
+        )
+    } else {
+        ("", "\"leptos\", \"fn-number\"")
+    };
+    let output = name.replace('-', "_");
+    format!(
+        "[lib]\n\
+         crate-type = [\"cdylib\", \"rlib\"]\n\
+         \n\
+         [dependencies]\n\
+         leptos = {{ version = \"0.9.0-beta\", default-features = false{leptos} }}\n\
+         leptos_meta = \"0.9.0-beta\"\n\
+         leptos_router = \"0.9.0-beta\"\n\
+         mf2 = {{ version = \"{MAJOR}\", features = [{mf2}] }}\n\
+         \n\
+         axum = {{ version = \"0.8\", optional = true }}\n\
+         console_error_panic_hook = {{ version = \"0.1\", optional = true }}\n\
+         leptos_axum = {{ version = \"0.9.0-beta\", optional = true }}\n\
+         tokio = {{ version = \"1\", features = [\"rt-multi-thread\", \"macros\", \"net\"], optional = true }}\n\
+         wasm-bindgen = {{ version = \"0.2\", optional = true }}\n\
+         \n\
+         [build-dependencies]\n\
+         mf2-build = \"{MAJOR}\"\n\
+         \n\
+         [features]\n\
+         hydrate = [\n\
+         \x20   \"leptos/hydrate\",\n\
+         \x20   \"mf2/hydrate\",\n\
+         \x20   \"dep:console_error_panic_hook\",\n\
+         \x20   \"dep:wasm-bindgen\",\n\
+         ]\n\
+         ssr = [\n\
+         \x20   \"leptos/ssr\",\n\
+         \x20   \"leptos_meta/ssr\",\n\
+         \x20   \"leptos_router/ssr\",\n\
+         \x20   \"mf2/ssr\",\n\
+         \x20   \"mf2/axum\",\n\
+         \x20   \"dep:axum\",\n\
+         \x20   \"dep:leptos_axum\",\n\
+         \x20   \"dep:tokio\",\n\
+         ]\n\
+         \n\
+         [package.metadata.leptos]\n\
+         output-name = \"{output}\"\n\
+         site-root = \"target/site\"\n\
+         site-pkg-dir = \"pkg\"\n\
+         site-addr = \"127.0.0.1:3000\"\n\
+         reload-port = 3001\n\
+         bin-features = [\"ssr\"]\n\
+         bin-default-features = false\n\
+         lib-features = [\"hydrate\"]\n\
+         lib-default-features = false\n\
+         lib-profile-release = \"wasm-release\"\n\
+         # `cargo leptos watch` watches the crate's sources only.\n\
+         watch-additional-files = [\"locales\"]\n\
+         \n\
+         {WASM_RELEASE}"
+    )
+}
+
+/// Trunk's application: the client alone, in wasm.
+fn csr_toml() -> String {
+    format!(
+        "[dependencies]\n\
+         console_error_panic_hook = \"0.1\"\n\
+         leptos = {{ version = \"0.9.0-beta\", features = [\"csr\"] }}\n\
+         leptos_meta = \"0.9.0-beta\"\n\
+         mf2 = {{ version = \"{MAJOR}\", features = [\"leptos\", \"csr\", \"fn-number\"] }}\n\
+         \n\
+         [build-dependencies]\n\
+         mf2-build = \"{MAJOR}\"\n\
+         \n\
+         [profile.release]\n\
+         opt-level = \"z\"\n\
+         lto = \"fat\"\n\
+         codegen-units = 1\n\
+         panic = \"abort\"\n\
+         strip = true\n"
+    )
+}
+
+/// The profile a shipped wasm is built with.
+const WASM_RELEASE: &str = "\
+[profile.wasm-release]
+inherits = \"release\"
+opt-level = \"z\"
+lto = \"fat\"
+codegen-units = 1
+panic = \"abort\"
+strip = true
+";
 
 /// Translations for the crate in `target`: a build script, the source
 /// locale's messages, and `mf2` and `mf2-build` added with `cargo add`.
@@ -249,29 +446,92 @@ fn existing_crate(target: &Path, mode: Mode, args: &Args) -> Result<()> {
     )?;
     cargo_add(target, &["add", "--build", &format!("mf2-build@{MAJOR}")])?;
     write_all(&files, args.force)?;
-    let ratatui = match mode {
-        Mode::Cli => "",
-        Mode::Tui => {
-            "\x20 4. a message is Ratatui text — `Line::from(tr!(\"hello\"))` — and\n\
-             \x20    `mf2::ratatui::set_theme` says how its markup is drawn;\n"
-        }
+    let next = if mode.web() {
+        web_steps(mode)
+    } else {
+        native_steps(mode)
     };
     println!(
         "\nmf2 init: translations for the crate in {dir}. Next:\n\
-         \x20 1. include the generated module once, at the crate root (src/main.rs\n\
-         \x20    or src/lib.rs):\n\
-         \x20      mf2::include_generated!();\n\
-         \x20 2. at the start of `main`, load the embedded catalogs and take the\n\
-         \x20    system's language: `install();`\n\
-         \x20 3. call `tr!(\"hello\")`: at the root, after the include, it needs no\n\
-         \x20    import; any other module writes `use crate::prelude::*;`\n\
-         {ratatui}\
+         {next}\
          Tip: the build script compiles the messages again after every edit to\n\
          them. Built optimized, it does so faster: add this to the workspace's\n\
          root Cargo.toml:\n\n{BUILD_OVERRIDE}",
         dir = target.display(),
     );
     Ok(())
+}
+
+/// Where a call site finds `tr!`.
+const TR_STEP: &str = "call `tr!(\"hello\")`: at the root, after the include, it needs no\n\
+     \x20    import; any other module writes `use crate::prelude::*;`";
+
+/// What is left to write in a native crate.
+fn native_steps(mode: Mode) -> String {
+    let ratatui = if mode == Mode::Tui {
+        "\x20 4. a message is Ratatui text — `Line::from(tr!(\"hello\"))` — and\n\
+         \x20    `mf2::ratatui::set_theme` says how its markup is drawn;\n"
+    } else {
+        ""
+    };
+    format!(
+        "\x20 1. include the generated module once, at the crate root (src/main.rs\n\
+         \x20    or src/lib.rs):\n\
+         \x20      mf2::include_generated!();\n\
+         \x20 2. at the start of `main`, load the embedded catalogs and take the\n\
+         \x20    system's language: `install();`\n\
+         \x20 3. {TR_STEP}\n\
+         {ratatui}"
+    )
+}
+
+/// What is left to write in a Leptos crate: what `init` cannot write into
+/// its manifest, and the calls.
+fn web_steps(mode: Mode) -> String {
+    let line = "\x20    (on Leptos 0.8, `mf2`'s feature `leptos-0-8` replaces `leptos`)\n";
+    if mode == Mode::Csr {
+        return format!(
+            "\x20 1. include the generated module once, at the root of the binary\n\
+             \x20    (src/main.rs), and in `main` install it before mounting:\n\
+             \x20      mf2::include_generated!();\n\
+             \x20      install();\n\
+             \x20      mf2::leptos::mount_to_body(App);\n\
+             {line}\
+             \x20 2. {TR_STEP}\n\
+             \x20 3. publish the catalogs beside the wasm after each build, with a\n\
+             \x20    post_build hook in Trunk.toml that runs\n\
+             \x20      mf2 compile --site \"$TRUNK_STAGING_DIR/i18n\"\n\
+             \x20    and preload `i18n/index.json` in index.html:\n\
+             \x20      <link rel=\"preload\" as=\"fetch\" crossorigin=\"anonymous\" href=\"i18n/index.json\" data-mf2-index />\n"
+        );
+    }
+    let client = if mode == Mode::Islands {
+        "\x20      mf2::leptos::hydrate_islands();\n\
+         \x20    with `mf2::leptos::islands_gate!();` at the root, and\n\
+         \x20    `<IslandsGate/>` first in <body>;\n"
+    } else {
+        "\x20      mf2::leptos::hydrate_body(App);\n"
+    };
+    format!(
+        "\x20 1. forward the modes to `mf2`, in the crate's [features]:\n\
+         \x20      ssr = [..., \"mf2/ssr\", \"mf2/axum\"]\n\
+         \x20      hydrate = [..., \"mf2/hydrate\"]\n\
+         {line}\
+         \x20 2. include the generated module once, at the root of the library\n\
+         \x20    (src/lib.rs):\n\
+         \x20      mf2::include_generated!();\n\
+         \x20 3. on the server, before serving: `<library>::install();`, and on\n\
+         \x20    the router\n\
+         \x20      .layer(mf2::axum::Negotiator::default())\n\
+         \x20      .merge(mf2::axum::catalog_routes())\n\
+         \x20 4. in the browser's entry point:\n\
+         \x20      install();\n\
+         {client}\
+         \x20 5. {TR_STEP}\n\
+         \x20 6. so that `cargo leptos watch` sees a translation change, add to\n\
+         \x20    [package.metadata.leptos]:\n\
+         \x20      watch-additional-files = [\"locales\"]\n"
+    )
 }
 
 /// Runs `cargo <args>` in `dir`: the cargo that ran us, if one did.
@@ -323,100 +583,3 @@ fn locale_files(dir: &Path, args: &Args) -> Vec<(PathBuf, String)> {
         })
         .collect()
 }
-
-/// Without a mode: the translation crate of a web application.
-fn translation_crate(dir: &Path, args: &Args) -> Result<()> {
-    let name = args.name.as_deref().unwrap_or("my-app-i18n");
-    let mut config = Config::default();
-    config.source_locale.clone_from(&args.source_locale);
-    let mut files = vec![
-        (dir.join("mf2.toml"), config.to_toml()),
-        (dir.join("Cargo.toml"), cargo_toml(name)),
-        (dir.join("build.rs"), I18N_BUILD_RS.to_owned()),
-        (dir.join("src/lib.rs"), LIB_RS.to_owned()),
-    ];
-    files.extend(locale_files(dir, args));
-    write_all(&files, args.force)?;
-    let krate = name.replace('-', "_");
-    println!(
-        "\nmf2 init: {name} in {dir}. Next:\n\
-         \x20 1. add it to the workspace and to the application's dependencies, and\n\
-         \x20    forward the application's `ssr`, `hydrate` or `csr` feature to it;\n\
-         \x20 2. install it once on each side: `mf2_axum::install({krate}::setup(),\n\
-         \x20    {krate}::CATALOGS)` in the server's `main`, and\n\
-         \x20    `leptos_mf2::install({krate}::setup())` before the client boots;\n\
-         \x20 3. from any crate that depends on it, call `{krate}::tr!(\"id\", name = value)`,\n\
-         \x20    or write `use {krate}::prelude::*;` and call `tr!` itself;\n\
-         \x20 4. add this to the application's [package.metadata.leptos], so that\n\
-         \x20    `cargo leptos watch` sees a translation change:\n\
-         \x20      watch-additional-files = [\"{dir}/locales\"]\n\
-         \x20 5. only for a client-only application (no server to embed the\n\
-         \x20    catalogs in): emit `mf2_build::Emit::Module` in build.rs, and\n\
-         \x20    publish the catalogs beside the wasm with\n\
-         \x20      mf2 -C {dir} compile --site <site>/i18n\n\
-         \x20    which builds them for this crate's features as cargo resolves them.",
-        dir = dir.display(),
-    );
-    Ok(())
-}
-
-fn cargo_toml(name: &str) -> String {
-    format!(
-        "[package]\n\
-         name = {name:?}\n\
-         version = \"0.1.0\"\n\
-         edition = \"2024\"\n\
-         \n\
-         # The functions a message may use are this crate's features, declared\n\
-         # once: the application's server and client builds both get them, so\n\
-         # the two always format alike. Turn on what the corpus needs.\n\
-         [features]\n\
-         default = []\n\
-         # The application forwards exactly one of these from its own build.\n\
-         ssr = [\"mf2/host-std\", \"mf2/ssr\"]\n\
-         hydrate = [\"mf2/host-web\", \"mf2/hydrate\"]\n\
-         csr = [\"mf2/host-web\", \"mf2/csr\"]\n\
-         fn-number = [\"mf2/fn-number\"]\n\
-         fn-datetime = [\"mf2/fn-datetime\"]\n\
-         datetime-icu = [\"fn-datetime\", \"mf2/datetime-icu\", \"mf2-build/icu-blob\"]\n\
-         datetime-intl = [\"fn-datetime\", \"mf2/datetime-intl\"]\n\
-         intl = [\"mf2/intl\"]\n\
-         \n\
-         [dependencies]\n\
-         mf2 = \"1\"\n\
-         \n\
-         [build-dependencies]\n\
-         mf2-build = \"1\"\n"
-    )
-}
-
-const I18N_BUILD_RS: &str = "\
-//! Parses locales/, writes the manifest and the catalogs to OUT_DIR, and
-//! generates the module src/lib.rs includes.
-
-fn main() {
-    let outcome = match mf2_build::Build::new().and_then(|build| build.emit_cargo(true).run()) {
-        Ok(outcome) => outcome,
-        Err(e) => {
-            println!(\"cargo::error={e}\");
-            std::process::exit(1);
-        }
-    };
-    if let Err(e) = outcome.into_result() {
-        println!(\"cargo::error={e}\");
-        std::process::exit(1);
-    }
-}
-";
-
-const LIB_RS: &str = "\
-//! The application's messages. Everything in here is generated: edit
-//! `locales/` instead.
-//!
-//! This brings in `tr!` and `msg_id!` as well, and a `prelude` that holds
-//! both. Another crate calls them as `<this crate>::tr!(\"id\", name = value)`,
-//! or imports them with `use <this crate>::prelude::*;`; a module of this
-//! crate imports them with `use crate::prelude::*;`.
-
-mf2::include_generated!();
-";

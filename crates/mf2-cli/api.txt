@@ -46,13 +46,16 @@ mf2 import
   <locale> (position 1) (required)
 mf2 init
   --cli
+  --csr
   --dir, -C <DIR> (global)
   --force
+  --islands
   --locale <TAG> (repeatable)
   --name <NAME>
   --no-messages
   <path> (position 1)
   --source-locale <TAG>
+  --ssr
   --tui
 mf2 pseudo
   --dir, -C <DIR> (global)

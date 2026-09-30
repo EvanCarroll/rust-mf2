@@ -44,24 +44,47 @@ key-hint bar and a status line, with `1` and `2` switching the language
 while it runs. Both are the shapes the [native applications](native-apps.md)
 page explains.
 
-In a directory that holds a crate already, `init --cli` or `--tui` adds
-translations to it instead: a build script, `locales/en/main.mf2`, and `mf2`
-and `mf2-build` through `cargo add`. It prints what is left to write — the
-include, `install()` and a first `tr!` — and the build-override above, for
-the workspace's root manifest. `--locale` adds a language, `--source-locale`
-changes the source language from `en`, `--no-messages` leaves the messages
-out, and `--force` writes over files that are there.
+Three more make a Leptos application, each in one crate, with its messages
+in `locales/` beside its code:
 
-Without `--cli` or `--tui`, `init` writes a web application's translation
-crate:
-
-```sh
-mf2 -C i18n init --name hello-i18n --locale fr
+```sh run=hello-ssr
+mf2 init --ssr
 ```
 
-writes the crate: its manifest, build script, `mf2.toml`, `src/lib.rs` and
-starter messages for the source language and each `--locale`.
-[Getting started](getting-started.md) goes through what it writes.
+makes a server-rendered application that hydrates in the browser, built
+with [cargo-leptos](https://github.com/leptos-rs/cargo-leptos): `cargo
+leptos watch` serves it on <http://127.0.0.1:3000>. Its page shows a
+greeting, a counter whose text is a plural, and a language switcher that
+changes the language live.
+
+```sh run=hello-islands
+mf2 init --islands
+```
+
+makes the same page as an [islands](delivery-modes.md#islands) application:
+only the counter runs in the browser, and a switch loads the page again in
+the new language.
+
+```sh run=hello-csr
+mf2 init --csr
+```
+
+makes a [client-only](delivery-modes.md#client-only) application, built
+with Trunk: `trunk serve` builds it, and its `Trunk.toml` runs `mf2 compile
+--site` after each build, to publish the catalogs beside the wasm.
+
+In a directory that holds a crate already, each mode adds translations to
+it instead: a build script, `locales/en/main.mf2`, and `mf2` (with the
+mode's features) and `mf2-build` through `cargo add`. It prints what is
+left to write, which it cannot write into an existing manifest or code: for
+a Leptos application, the lines that forward its `ssr` and `hydrate`
+features to `mf2`, the include, `install()` on each side and a first
+`tr!`; and the build-override above, for the workspace's root manifest.
+`--locale` adds a language, `--source-locale` changes the source language
+from `en`, `--no-messages` leaves the messages out, and `--force` writes
+over files that are there.
+
+Without a mode, `init` lists the five and changes nothing.
 
 ## `check`: every check the build makes
 

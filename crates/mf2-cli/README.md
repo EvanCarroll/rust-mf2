@@ -1,9 +1,9 @@
 # mf2-cli
 
-The `mf2` command for a MessageFormat 2 corpus: `init` (a translation
-crate), `check`, `compile`, `fmt`, `stats`, `dump`, `pseudo`, `watch`,
-`export` and `import` (XLIFF 2), and `convert` (from Fluent and from
-`leptos-fluent`).
+The `mf2` command for a MessageFormat 2 corpus: `init` (a starter
+application, or translations for a crate), `check`, `compile`, `fmt`,
+`stats`, `dump`, `pseudo`, `watch`, `export` and `import` (XLIFF 2), and
+`convert` (from Fluent and from `leptos-fluent`).
 
 ```sh
 cargo install mf2-cli

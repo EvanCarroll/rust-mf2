@@ -908,16 +908,6 @@ fn tree(dir: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
     out
 }
 
-#[test]
-fn init_no_messages_leaves_room_for_a_conversion() {
-    let dir = scratch("lf-init");
-    let out = run(&dir, &["init", "--no-messages", "--locale", "fr"]);
-    assert!(out.status.success(), "{}", text(&out.stderr));
-    assert!(dir.join("Cargo.toml").is_file());
-    assert!(!dir.join("locales/en/main.mf2").exists());
-    assert!(!dir.join("locales/fr/main.mf2").exists());
-}
-
 // One test per rule (§6.2), named after it.
 
 #[test]

@@ -703,27 +703,59 @@ fn pseudo_writes_the_two_pseudo_locales() {
 }
 
 #[test]
-fn init_scaffolds_a_crate_that_the_other_commands_understand() {
-    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("cli-init");
-    let _ = std::fs::remove_dir_all(&dir);
+fn init_without_a_mode_names_the_modes_and_changes_nothing() {
+    let dir = fresh("cli-init-none");
     std::fs::create_dir_all(&dir).expect("mkdir");
-    let text = ok(&run(&dir, &["init", "--locale", "pl", "--locale", "de"]));
-    assert!(text.contains("watch-additional-files"), "{text}");
-    for file in ["mf2.toml", "Cargo.toml", "build.rs", "src/lib.rs"] {
-        assert!(dir.join(file).is_file(), "{file}");
-    }
-    assert!(dir.join("locales/en/main.mf2").is_file());
-    assert!(dir.join("locales/de/main.mf2").is_file());
-
-    // A second `init` refuses to overwrite.
-    let out = run(&dir, &["init"]);
+    let out = run(&dir, &["init", "--locale", "fr"]);
     assert!(!out.status.success());
-    assert!(stderr(&out).contains("--force"), "{}", stderr(&out));
+    let err = stderr(&out);
+    for flag in ["--cli", "--tui", "--ssr", "--islands", "--csr"] {
+        assert!(err.contains(flag), "{err}");
+    }
+    assert_eq!(std::fs::read_dir(&dir).expect("read_dir").count(), 0);
+    // One mode at a time.
+    let out = run(&dir, &["init", "--ssr", "--csr"]);
+    assert!(!out.status.success());
+}
 
-    // What it scaffolded checks and compiles.
-    let checked = ok(&run(&dir, &["check"]));
-    assert!(checked.contains("0 error(s)"), "{checked}");
-    ok(&run(&dir, &["compile", "-o", "dist"]));
+#[test]
+fn init_web_modes_make_a_new_application() {
+    let root = fresh("cli-init-web");
+    std::fs::create_dir_all(&root).expect("mkdir");
+    let text = ok(&run(&root, &["init", "--ssr", "my-app"]));
+    assert!(text.contains("cargo leptos watch"), "{text}");
+    let app = root.join("my-app");
+    let manifest = std::fs::read_to_string(app.join("Cargo.toml")).expect("manifest");
+    for line in [
+        "features = [\"leptos\", \"fn-number\"]",
+        "\"mf2/ssr\",\n    \"mf2/axum\",",
+        "watch-additional-files = [\"locales\"]",
+        "output-name = \"my_app\"",
+        "[profile.dev.build-override]\nopt-level = 2",
+    ] {
+        assert!(manifest.contains(line), "{line}: {manifest}");
+    }
+    let server = std::fs::read_to_string(app.join("src/main.rs")).expect("main");
+    assert!(server.contains("my_app::install();"), "{server}");
+    assert!(app.join("src/lib.rs").is_file());
+
+    ok(&run(&root, &["init", "--islands", "isles"]));
+    let manifest = std::fs::read_to_string(root.join("isles/Cargo.toml")).expect("manifest");
+    assert!(manifest.contains("\"static-locale\""), "{manifest}");
+    assert!(manifest.contains("features = [\"islands\"]"), "{manifest}");
+
+    let text = ok(&run(&root, &["init", "--csr", "client"]));
+    assert!(text.contains("trunk serve"), "{text}");
+    let index = std::fs::read_to_string(root.join("client/index.html")).expect("index");
+    assert!(index.contains("data-bin=\"client\""), "{index}");
+    assert!(root.join("client/Trunk.toml").is_file());
+    for app in ["my-app", "isles", "client"] {
+        let locales = root.join(app).join("locales");
+        ok(&run(
+            &root,
+            &["fmt", "--check", &locales.display().to_string()],
+        ));
+    }
 }
 
 /// A fresh, missing directory under the test's temporary directory.
@@ -847,6 +879,53 @@ fn init_tui_adds_translations_to_an_existing_crate() {
         std::fs::read_to_string(dir.join("src/main.rs")).expect("main"),
         "fn main() {}\n"
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn init_ssr_adds_translations_to_an_existing_crate() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let dir = fresh("cli-init-existing-web");
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    std::fs::write(
+        dir.join("Cargo.toml"),
+        "[package]\nname = \"site\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+    )
+    .expect("manifest");
+    let log = dir.join("cargo.log");
+    let cargo = dir.join("fake-cargo");
+    std::fs::write(
+        &cargo,
+        format!("#!/bin/sh\necho \"$@\" >> '{}'\n", log.display()),
+    )
+    .expect("fake cargo");
+    std::fs::set_permissions(&cargo, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+
+    let out = Command::new(mf2())
+        .arg("-C")
+        .arg(&dir)
+        .args(["init", "--ssr", "--no-messages", "--locale", "fr"])
+        .env("CARGO", &cargo)
+        .output()
+        .expect("the mf2 binary runs");
+    let text = ok(&out);
+    for line in [
+        "\"mf2/ssr\", \"mf2/axum\"",
+        "\"mf2/hydrate\"",
+        "watch-additional-files = [\"locales\"]",
+        "Negotiator::default()",
+    ] {
+        assert!(text.contains(line), "{line}: {text}");
+    }
+    let asked = std::fs::read_to_string(&log).expect("cargo ran");
+    assert_eq!(
+        asked, "add mf2@2 -F leptos,fn-number\nadd --build mf2-build@2\n",
+        "{asked}"
+    );
+    assert!(dir.join("build.rs").is_file());
+    // Room for a conversion: no starter messages.
+    assert!(!dir.join("locales").exists());
 }
 
 #[test]

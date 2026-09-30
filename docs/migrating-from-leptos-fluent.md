@@ -185,14 +185,9 @@ pub fn hydrate() {
 
 ## The conversion
 
-First the translation crate, as on [Getting started](getting-started.md),
-but without its starter messages, which the conversion would collide with:
-
-```sh run=migrate
-mf2 -C i18n init --name hello-i18n --no-messages --locale fr
-```
-
-Then the conversion. Without `--write` the command changes nothing: it
+First the translation crate, `i18n/`, as on
+[Getting started](getting-started.md), but without its messages: the
+conversion writes them. Then the conversion. Without `--write` the command changes nothing: it
 prints a diff of every Rust file it would rewrite, the `.mf2` files it would
 write, and its report. Read the diff, then run it again with `--write`:
 

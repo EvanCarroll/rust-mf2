@@ -34,7 +34,7 @@ application is.
   0.3.1, its newest release, requires Leptos < 0.9, so **both sides are on
   Leptos 0.8** (this library's `leptos-0-8` opt-in).
 * **mf2**: *that application migrated*, not a twin written by hand — a copy,
-  `mf2 init --no-messages`, `mf2 convert --from leptos-fluent --write` (whose
+  a translation crate, `mf2 convert --from leptos-fluent --write` (whose
   report must be exactly the hand-finishing the guide describes, as in
   `cargo xtask fluent-migrate`), then finished as the guide says: the
   manifest, the entry points and the server from `mf2/`, and the shell's

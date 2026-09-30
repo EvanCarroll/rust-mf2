@@ -95,7 +95,7 @@ pub(crate) fn run(dir: &Path, request: &Request<'_>) -> Result<()> {
 
     let pending = pending(
         &outputs,
-        " (mf2 init --no-messages makes the i18n crate without starter messages)",
+        " (`mf2 init --ssr --no-messages`, in a crate, adds translations without starter messages)",
     );
     let pending = if request.write {
         pending?

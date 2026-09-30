@@ -39,6 +39,14 @@ starters/tui/en.mf2
 starters/tui/fr.mf2
 starters/tui/main.rs
 starters/tui/ui.rs
+starters/web/Trunk.toml
+starters/web/csr.rs
+starters/web/en.mf2
+starters/web/fr.mf2
+starters/web/index.html
+starters/web/islands.rs
+starters/web/server.rs
+starters/web/ssr.rs
 tests/fluent/constructs.expected/en/entries.mf2
 tests/fluent/constructs.expected/en/expressions.mf2
 tests/fluent/constructs.expected/en/functions.mf2

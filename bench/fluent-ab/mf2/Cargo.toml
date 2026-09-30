@@ -1,6 +1,6 @@
 # The migrated application's manifest, finished by hand as
 # docs/migrating-from-leptos-fluent.md says: `leptos-fluent` gives way to the
-# translation crate (`mf2 init --no-messages`, then `mf2 convert`) and `mf2`'s
+# translation crate (written by `cargo xtask fluent-ab`, then `mf2 convert`) and `mf2`'s
 # Leptos layer, on the Leptos line `leptos-fluent` is on (0.8: `leptos-0-8`),
 # and `ssr` and `hydrate` forward to them. It names `mf2` where the guide
 # still names the 1.x shim `leptos-mf2` (Phase 10 B4; the guide follows with

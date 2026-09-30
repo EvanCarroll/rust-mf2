@@ -123,8 +123,9 @@ struct Project {
     /// Files or directories of the base this one does not have.
     remove: &'static [&'static str],
     checks: &'static [Check],
-    /// Publish the catalogs with `mf2 compile --site`, as a static host would.
-    site: bool,
+    /// Publish the catalogs with `mf2 -C <dir> compile --site`, as a static
+    /// host would: the crate that holds the messages.
+    site: Option<&'static str>,
 }
 
 /// Bases before the projects built on them.
@@ -135,7 +136,7 @@ const PROJECTS: &[Project] = &[
         base: None,
         remove: &[],
         checks: SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     // getting-started.md: the same application kept on Leptos 0.8, the
     // opt-in line (`plans/16-phase-8-work-order.md` A0).
@@ -144,7 +145,7 @@ const PROJECTS: &[Project] = &[
         base: Some("hello"),
         remove: &[],
         checks: SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     // call-sites.md, switching.md and accessibility.md: `tr!` in every
     // position, as components of a library over hello's i18n crate.
@@ -153,7 +154,7 @@ const PROJECTS: &[Project] = &[
         base: Some("hello"),
         remove: &["src", "i18n/locales"],
         checks: LIB_SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     // delivery-modes.md: a lazy route, islands, and client-only.
     Project {
@@ -161,24 +162,25 @@ const PROJECTS: &[Project] = &[
         base: Some("hello"),
         remove: &["src/lib.rs"],
         checks: SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     Project {
         name: "islands",
         base: Some("hello"),
         remove: &["src/lib.rs"],
         checks: SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     // migrating-from-leptos-fluent.md: Getting started's application as it
     // would be on leptos-fluent, converted, then finished by hand. Its server
-    // is hello's, unchanged; its i18n crate is made by the page's commands.
+    // is hello's, unchanged, and so is its i18n crate, whose messages the
+    // page's commands convert.
     Project {
         name: "migrate",
         base: Some("hello"),
-        remove: &["src/lib.rs", "i18n"],
+        remove: &["src/lib.rs", "i18n/locales"],
         checks: SSR_AND_HYDRATE,
-        site: false,
+        site: None,
     },
     Project {
         name: "csr",
@@ -188,7 +190,7 @@ const PROJECTS: &[Project] = &[
             target: Some(WASM),
             args: &[],
         }],
-        site: true,
+        site: Some("i18n"),
     },
     // command-line.md: the `mf2` commands, run on Getting started's
     // translation crate; the page shows what they print and write, and
@@ -198,7 +200,7 @@ const PROJECTS: &[Project] = &[
         base: Some("hello"),
         remove: &[],
         checks: &[],
-        site: false,
+        site: None,
     },
     // command-line.md: the applications `mf2 init --cli` and `--tui` make,
     // as they make them; native-apps.md shows their files, held to what
@@ -211,7 +213,7 @@ const PROJECTS: &[Project] = &[
             target: None,
             args: &[],
         }],
-        site: false,
+        site: None,
     },
     Project {
         name: "hops",
@@ -221,7 +223,33 @@ const PROJECTS: &[Project] = &[
             target: None,
             args: &[],
         }],
-        site: false,
+        site: None,
+    },
+    // command-line.md: the web applications `mf2 init --ssr`, `--islands`
+    // and `--csr` make, as they make them (plans/05 §6.4).
+    Project {
+        name: "hello-ssr",
+        base: None,
+        remove: &[],
+        checks: SSR_AND_HYDRATE,
+        site: None,
+    },
+    Project {
+        name: "hello-islands",
+        base: None,
+        remove: &[],
+        checks: SSR_AND_HYDRATE,
+        site: None,
+    },
+    Project {
+        name: "hello-csr",
+        base: None,
+        remove: &[],
+        checks: &[Check {
+            target: Some(WASM),
+            args: &[],
+        }],
+        site: Some("."),
     },
     // native-apps.md's workspace: a library that owns the messages and a
     // terminal UI that draws them (plans/19 §1.3).
@@ -233,7 +261,7 @@ const PROJECTS: &[Project] = &[
             target: None,
             args: &[],
         }],
-        site: false,
+        site: None,
     },
 ];
 
@@ -358,15 +386,15 @@ pub(crate) fn run(root: &Path, build: bool) -> Result<()> {
                 ],
             )?;
         }
-        if project.site {
+        if let Some(messages) = project.site {
             let site = out.join("sites").join(project.name).join("i18n");
             fsx::remove(&site)?;
-            eprintln!("==> {}: mf2 -C i18n compile --site", project.name);
+            eprintln!("==> {}: mf2 -C {messages} compile --site", project.name);
             run_inherit(
                 mf2.as_os_str(),
                 &[
                     OsStr::new("-C"),
-                    OsStr::new("i18n"),
+                    OsStr::new(messages),
                     OsStr::new("compile"),
                     OsStr::new("--site"),
                     site.as_os_str(),
