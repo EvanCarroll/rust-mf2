@@ -330,7 +330,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   stale manifest, empty text, default-language pages, zh-Hant), messages from the code or a run. Linked
   from SUMMARY, the index, Getting started. ci; f4-gate docs pass.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** F5 (first pages and upgrading), started 2026-09-30 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
