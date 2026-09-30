@@ -1914,7 +1914,91 @@ approved as written. The ones to look at first came first.
 
 ## Prior art: trippy
 
-*C9 writes this section: call sites and keys, lines added and removed against
-upstream, stripped size and build time against upstream, each upstream bug
-class with the compile error that now catches it, and what did not fit
-(18, C9).*
+*C9's record (2026-09-29; [18](18-phase-10-work-order.md), C9). `vendor/trippy` is upstream
+trippy at `12aca14` with the port as uncommitted changes; it is never committed here. The
+owner's 1.x port was saved first as `target/p10-c9/port-1x.patch` (and the added files as a
+tar beside it).*
+
+**What the port is.** `trippy-tui` depends on `mf2` (`ratatui`, `fn-number`) and `mf2-build`;
+`build.rs` is `mf2_build::run()`; `lib.rs` has `mf2::include_generated!()`. Upstream's TOML
+catalog, its `t!` macro, the `thread_local!` locale `String`, and the 1.x port's
+`thread_local! RefCell<NativeI18n>` wrapper are gone: every call site is `tr!` directly.
+`locale.rs` keeps upstream's two functions: `set_locale(Option<&str>)` calls `install()` (the
+system's languages), sets the theme, and, when `--tui-locale` (or the config file) names one,
+`set_locale(tag.parse::<Locale>())` — `Locale: FromStr` through the CLDR matcher, English
+when nothing matches, as upstream fell back; `available_locales()` is `Locale::ALL`'s tags.
+`sys-locale` and `unic-langid` left the workspace.
+
+**Call sites and keys.** Upstream: 167 `t!` (162 in the application), 112 keys. The port: 153
+`tr!` in the application (the AS and flow words folded into their lines) plus 15 in tests; 110
+keys in 12 locales, of which 4 are `.match` messages and 11 carry markup.
+
+**The messages, made MF2** (`locales/*/main.mf2`, rewritten from the 1.x files by a script):
+- **the plural:** `discovered_flows` selects on `$flow_count :integer` (`one` / `*`, and
+  Russian's `one` / `few` / `many` / `*` written out); the `plural_flows` argument and the
+  `flow` / `flows` keys are gone;
+- **the key hints:** upstream bolded a key by slicing it off the translated word when the word
+  began with it (`help` → **h**elp) and else wrote `[h]hilfe`. Each hint is now one message
+  that selects on `$key :string`: a variant for the word's own initial draws it as
+  `{#key}h{/key}elp`, the catch-all as `[{#key}{$key}{/key}] aide`; `Theme` bolds `key`.
+  `help_show_*` mark their `[{$key}]` too;
+- **word order:** each "label: value" line is one message with its value as a placeholder
+  (`target`, `status` with `{#b}` for the bold label, `host`, `ext`, `geo`, `pos`,
+  `as_name`, `as_info`, `labels`, `dns_failed`, `dns_timeout`, `status_frozen`, `hop`, the
+  GeoIP and chart titles); French writes its space before the colon. The failure rate is
+  `:percent` with one fraction digit, and counts are grouped (`2,411 of 14,448 (16.7%)`).
+
+**Lines against upstream** (`git diff HEAD --shortstat`): code (`src/`, both `Cargo.toml`,
+`build.rs`) +290 −437 over 19 files, of which `locale.rs` +76 −143; messages +1,541 −1,566
+(the TOML table per key out, a file per locale in).
+
+**Size and build time against upstream**, `cargo build --release -p trippy` (fat LTO), rustc
+1.98.1, `CARGO_BUILD_JOBS=3`, each in a fresh target directory from upstream's lockfile (the
+port's is it plus `mf2`'s crates, which lifted `serde`, `serde_json`, `proc-macro2` and `quote`
+by patch versions), one run each under the machine's load:
+
+| | upstream | port | change |
+|---|---|---|---|
+| `trip`, stripped | 8,392,456 B | 8,917,240 B | +524,784 B (+6.3 %) |
+| clean build | 92 s, 222 crates | 120 s, 255 crates | +28 s |
+
+**Each upstream bug class, and what now catches it** (`cargo check`, observed):
+- **a key typo** (`t!("chart")`, upstream drew the word "chart"; the 1.x port had added a
+  `chart` message to English): `error: unknown message id `chart`` at the call. Fixed to
+  `title_chart`;
+- **a placeholder typo at a call:** `error: message `discovered_flows` has no variable
+  `$plural_flow` (its variables: $flow_count, $hop_count)`, and `… needs argument
+  `hop_count`` for one left out;
+- **a placeholder typo in a translation** (upstream's `%{plural_flow}` in `zh` and `zh-TW`
+  printed as text): the build script fails, `$hop_cout is not an input of the source message
+  … [undeclared-variable]`;
+- **an English-only plural** (`> 1`): no compile error; the `.match` replaces it, and the build
+  warns for each locale whose plural category no variant names (`many` in es, fr, it, pt);
+- **word order by `format!`** (the ASN line drew "AS awaited: <awaited>", its arguments out of
+  order): no compile error; one message per line leaves no order to get wrong;
+- **the slicing hack:** gone with the code; no error class of its own;
+- **a translation missing** (`column_sprt` in `pt`): upstream fell back silently; the build now
+  warns `[missing-translation]`.
+
+**Checks.** `cargo build` (the workspace) and `cargo test -p trippy-tui`: 442 passed, among
+them upstream's 22 locale cases (`zh-CN` → `zh`, `zh-Hant-TW` → `zh-TW`, `en?` → `en`,
+unknown → `en`), `test_available_languages`, the `zh` / `zh-TW` translations, and a new
+`test_messages` (the plural in en, fr and ru, the percentage, the hints, French's colon).
+**Smoke run:** `trip` needs `CAP_NET_RAW` and `-u` is refused on Linux; it ran in a
+user and network namespace under `script` (`unshare -rn`, loopback up, `trip 127.0.0.1
+--tui-locale fr|ru`, stopped after 8 s): the frame drew `Cible : 127.0.0.1 -> 127.0.0.1`,
+`Statut : En cours, …`, `[h] aide [s] paramètres quitter` with `h`, `s` and `q` in bold
+(SGR 1), and in Russian `[h] помощь [s] настройки [q] Выход` and a hop row.
+
+**What did not fit:**
+- **the ambient forms panic before `install()`** (§5, as designed), so the three column tests
+  that format a heading each gained `crate::install()`; upstream's defaulted to English;
+- **`Line::raw`, `Span::raw` and `Span::styled` take `Into<Cow<str>>`**, which a description
+  never gives (§8): 16 `Line::raw(t!(…))` became `Line::from(tr!(…))`, and 31 calls where a
+  `Cow` is typed (the column names, the privilege word, the splash, the BSOD line) add `.to_cow()`;
+- **`status_failures` and `discovered` do not select** on their counts (only the flows'
+  plural was the task); a translator can add a `.match` without a code change;
+- **the status bar's compact `privacy:{ttl:2}`** stays a `format!`: MF2 has no space padding;
+- **messages a translator must still check:** the new "label: value" lines and the hint
+  variants were generated from the 1.x words, and the `one` variants reuse the old singular
+  word (French's `unique` agreement and Russian's forms were written by hand).
