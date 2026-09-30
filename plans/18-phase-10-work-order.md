@@ -277,14 +277,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `Layer::locale_query()` (was a const) gives the switcher's `<select name>`. Getting started uses the default.
   `demo.mjs` `formSwitch`: wasm blocked, query > cookie > `Accept-Language`, both Leptos lines. Left: a
   `static-locale` switch still strips `lang` from the URL, and `path_prefix_redirect` reads `lang`.
+- **D3**: `Negotiator` is a tower `Layer` (`mf2::axum::Negotiate`): answer in the request's extensions, the
+  render finds it through leptos_axum's `Parts`; `Content-Language`/`Vary`/cookie only when read. Demos: plain
+  `leptos_routes`/`file_and_error_handler`, generated `install()` both sides, i18n crates with no `[features]`
+  (`mf2_build::run()`). `path_prefix_redirect` takes the name (`from_fn_with_state`). `mf2-axum` glue kept for
+  the book/`mf2 init` (D5/D6). ci; e2e 0.9 and 0.8 (1212/1212 each), scenarios, l6-web pass.
 
-**In flight:** D3 (server wiring and the generated setup), started 2026-09-30 by an agent working in
-the main tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's
-and B2's measurement worktrees, are removed (questions 21 and 25).
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
+worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **D1 and D2 are done; D3 first, then D4, one at a time**, checked with
+- **D1, D2 and D3 are done; D4 first**, checked with
   `probes/p10-checks/` (its README). E4 is now unblocked.
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
