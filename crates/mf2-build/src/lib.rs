@@ -2,11 +2,11 @@
 //! application ships: the manifest, one catalog per locale, and a generated
 //! Rust module.
 //!
-//! It runs from an i18n crate's `build.rs`
-//! (`Build::new()?.emit_cargo(true).run()?.into_result()?`) and from
-//! `mf2-cli`,
-//! reading the same [`Config`] both times so that the two can never
-//! disagree. Nothing here is linked into the client wasm.
+//! It runs from the `build.rs` of the crate that includes the generated
+//! module — `fn main() { mf2_build::run(); }`, which reads `mf2`'s features
+//! through `links` ([`run`]) — and from `mf2-cli`, reading the same
+//! [`Config`] both times so that the two can never disagree. Nothing here is
+//! linked into the client wasm.
 //!
 //! ```text
 //! locales/<tag>/*.mf2   ─▶ Loader ─▶ records ─▶ mf2-syntax ─▶ models
@@ -85,6 +85,7 @@ pub mod manifest;
 #[doc(hidden)]
 pub mod pseudo;
 mod report;
+mod run;
 #[doc(hidden)]
 pub mod slice;
 
@@ -108,3 +109,4 @@ pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};
 #[doc(hidden)]
 pub use mf2_catalog::Manifest;
 pub use report::{Diagnostic, Report};
+pub use run::run;

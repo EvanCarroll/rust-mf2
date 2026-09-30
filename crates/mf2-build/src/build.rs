@@ -89,6 +89,9 @@ pub struct Build {
     write: bool,
     emit_cargo: bool,
     inline_manifest: bool,
+    /// How a web server's catalogs are compressed: at a fast level in a
+    /// debug build's script (plans/19 §11), else at the best.
+    compress: catalog::Compress,
 }
 
 /// One locale in the built corpus.
@@ -257,7 +260,14 @@ impl Build {
                     .to_owned(),
             )
         })?;
-        Ok(Build::at(root, out_dir))
+        let mut build = Build::at(root, out_dir);
+        // A debug build compresses at a fast level: maximum-quality brotli
+        // cost seconds per translation edit in an unoptimized build script.
+        // Cargo says `release` for `release` and the profiles that inherit it.
+        if std::env::var_os("PROFILE").is_some_and(|p| p != "release") {
+            build.compress = catalog::Compress::Fast;
+        }
+        Ok(build)
     }
 
     /// A build of the corpus at `root`, writing to `out_dir`.
@@ -273,6 +283,7 @@ impl Build {
             write: true,
             emit_cargo: false,
             inline_manifest: false,
+            compress: catalog::Compress::Best,
         }
     }
 
@@ -357,14 +368,16 @@ impl Build {
         };
         if self.emit_cargo {
             println!("cargo::rerun-if-changed={}", layout.locales.display());
-            println!(
-                "cargo::rerun-if-changed={}",
-                self.root.join(crate::config::FILE_NAME).display()
-            );
+            // Only a file that exists: cargo reruns a script whose watched
+            // file is missing on every build, and `mf2.toml` is optional.
+            let config_file = self.root.join(crate::config::FILE_NAME);
+            if config_file.is_file() {
+                println!("cargo::rerun-if-changed={}", config_file.display());
+            }
         }
         let outcome = self.corpus(&layout, &config, &features)?;
         if self.emit_cargo {
-            print!("{}", outcome.report.to_cargo_warnings());
+            print!("{}", outcome.report.to_cargo_lines());
         }
         Ok(outcome)
     }
@@ -495,7 +508,10 @@ impl Build {
                 slice,
                 config,
                 // Only a web server serves them compressed.
-                matches!(self.emit, Emit::Both | Emit::Catalogs),
+                match self.emit {
+                    Emit::Both | Emit::Catalogs => self.compress,
+                    _ => catalog::Compress::No,
+                },
             )?;
             locales.push(LocaleInfo {
                 tag: tag.clone(),

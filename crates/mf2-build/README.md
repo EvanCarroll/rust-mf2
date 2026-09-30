@@ -6,12 +6,13 @@ one binary catalog per locale, and a generated Rust module with the
 application's `tr!` macro. It checks every message and reports what a
 translation is missing or gets wrong.
 
-A translation crate's `build.rs` runs it:
+The build script of the crate that includes the generated module — the
+application, or a translation crate several share — runs it, and reads the
+features of that crate's `mf2` dependency through `links`:
 
 ```rust
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    mf2_build::Build::new()?.emit_cargo(true).run()?.into_result()?;
-    Ok(())
+fn main() {
+    mf2_build::run();
 }
 ```
 

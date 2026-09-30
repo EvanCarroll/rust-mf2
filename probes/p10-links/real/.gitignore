@@ -1,0 +1,7 @@
+# Copied from tools/i18n-fixture by real.sh, and edited by it.
+single/locales/
+single/mf2.toml
+# Only the verdicts are kept.
+results/*
+!results/real.txt
+!results/loop.txt

@@ -12,6 +12,7 @@ api/hydrate.txt
 api/native.txt
 api/ratatui.txt
 api/ssr.txt
+build.rs
 src/__arg.rs
 src/__generated.rs
 src/arg.rs

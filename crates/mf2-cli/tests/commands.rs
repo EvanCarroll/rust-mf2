@@ -87,11 +87,22 @@ fn ok(output: &Output) -> String {
 
 /// Makes `dir` a cargo package, the i18n crate `mf2 compile --site` reads
 /// its features from, with `default` as its default features.
-fn i18n_crate(dir: &Path, default: &str) {
+fn i18n_crate(dir: &Path, features: &str) {
+    // A stand-in `mf2` with the features that decide the functions: the
+    // command reads the set cargo resolves for it, as the build does
+    // through `links`.
+    std::fs::create_dir_all(dir.join("mf2/src")).expect("mkdir");
+    std::fs::write(
+        dir.join("mf2/Cargo.toml"),
+        "[package]\nname = \"mf2\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
+         [features]\nfn-number = []\nfn-datetime = []\n\
+         datetime-icu = [\"fn-datetime\"]\nintl = []\n",
+    )
+    .expect("write");
+    std::fs::write(dir.join("mf2/src/lib.rs"), "").expect("write");
     let manifest = format!(
         "[package]\nname = \"cli-i18n\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
-         [features]\ndefault = [{default}]\nfn-number = []\nfn-datetime = []\n\
-         datetime-icu = [\"fn-datetime\"]\nintl = []\n\n\
+         [dependencies]\nmf2 = {{ path = \"mf2\", features = [{features}] }}\n\n\
          # Not a member of the repository's workspace.\n[workspace]\n"
     );
     std::fs::write(dir.join("Cargo.toml"), manifest).expect("write");
@@ -236,8 +247,8 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     assert!(!out.status.success(), "{}", stdout(&out));
     assert!(stderr(&out).contains("no Cargo.toml"), "{}", stderr(&out));
 
-    // Without `--features`, cargo's: `fn-number` is a default, so `:percent`
-    // builds.
+    // Without `--features`, cargo's: the crate turns `mf2`'s `fn-number`
+    // on, so `:percent` builds.
     i18n_crate(&dir, "\"fn-number\"");
     ok(&run(&dir, &["compile", "--site", site]));
     // The same list, or one that differs only in what no catalog depends on,
@@ -263,13 +274,13 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     let err = stderr(&out);
     assert!(
         err.contains("--features names [fn-datetime, fn-number]")
-            && err.contains("cargo resolves [fn-number] for cli-i18n"),
+            && err.contains("cargo resolves [fn-number] for mf2 in cli-i18n"),
         "{err}"
     );
     assert!(!dir.join("site").exists());
 
-    // Cargo's features are the crate's as the build enables them: with
-    // `fn-number` no longer a default, `--features fn-number` disagrees…
+    // Cargo's features are mf2's as the build enables them: with `fn-number`
+    // no longer on, `--features fn-number` disagrees…
     i18n_crate(&dir, "");
     let out = run(
         &dir,
@@ -311,13 +322,14 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
         &[("en", "share = {$n :percent}\nitems = {$n :integer}\n")],
     );
 
-    // Not a cargo package: checked with no features, and a note says so,
-    // on stderr (the JSON stays one document).
+    // Not a cargo package: checked as if every function were on, so no
+    // function is reported as gated that a build may have, and a note says
+    // so, on stderr (the JSON stays one document).
     let out = run(&dir, &["check"]);
-    assert!(!out.status.success(), "{}", stdout(&out));
-    assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
+    ok(&out);
+    assert!(!stdout(&out).contains("gated-function"), "{}", stdout(&out));
     assert!(
-        stderr(&out).contains("note: checking with no function features")
+        stderr(&out).contains("checks as if every function were on")
             && stderr(&out).contains("no Cargo.toml"),
         "{}",
         stderr(&out)
@@ -325,8 +337,8 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     let out = run(&dir, &["check", "--format", "json"]);
     let _: serde_json::Value = serde_json::from_slice(&out.stdout).expect("one JSON document");
 
-    // The i18n crate turns `fn-number` on by default: a bare check is
-    // clean, as the build is, and says nothing about cargo.
+    // The crate turns `mf2`'s `fn-number` on: a bare check is clean, as the
+    // build is, and says nothing about cargo.
     i18n_crate(&dir, "\"fn-number\"");
     let out = run(&dir, &["check"]);
     let text = ok(&out);
@@ -338,7 +350,7 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     assert!(!out.status.success(), "{}", stdout(&out));
     assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
 
-    // …and cargo's are the crate's as the build enables them.
+    // …and cargo's are mf2's as the build enables them.
     i18n_crate(&dir, "");
     let out = run(&dir, &["check"]);
     assert!(!out.status.success(), "{}", stdout(&out));

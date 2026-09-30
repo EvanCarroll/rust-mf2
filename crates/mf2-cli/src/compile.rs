@@ -22,8 +22,8 @@ pub(crate) struct Args {
     /// Instead, write only what a static host serves: the catalogs and
     /// `index.json`, which a client-only application reads to find them
     /// (a trunk hook points this at its staging directory's `i18n/`).
-    /// The functions are the i18n crate's cargo features; `--features`, if
-    /// given, must agree with them.
+    /// The functions are the features cargo resolves for the crate's `mf2`;
+    /// `--features`, if given, must agree with them.
     #[arg(long, value_name = "DIR", conflicts_with = "out")]
     site: Option<PathBuf>,
     /// The crate path the generated module re-exports as `__mf2`.
@@ -80,9 +80,9 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     Ok(())
 }
 
-/// The features a site's catalogs are built for: the i18n crate's, as cargo
-/// resolves them — the wasm is built from the same crate, and a catalog
-/// built for other functions is one the wasm rejects or misformats.
+/// The features a site's catalogs are built for: those cargo resolves for
+/// the crate's `mf2` — the wasm is built with the same, and a catalog built
+/// for other functions is one the wasm rejects or misformats.
 fn site_features(dir: &Path, args: &FeatureArgs) -> Result<mf2_build::Features> {
     let (krate, resolved) = resolved_features(dir, false)?;
     if let Some(given) = args.given()

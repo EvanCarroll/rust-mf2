@@ -1,0 +1,12 @@
+opt0 1484 ms
+opt2 641 ms
+opt0 622 ms
+opt2 614 ms
+opt0 644 ms
+opt2 616 ms
+opt0 644 ms
+opt2 660 ms
+opt0 654 ms
+opt2 679 ms
+opt0 659 ms
+opt2 632 ms

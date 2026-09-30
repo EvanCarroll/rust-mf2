@@ -19,6 +19,21 @@ use crate::slice::Slice;
 /// `Accept-Encoding: br`.
 const BROTLI_QUALITY: u32 = 11;
 const BROTLI_WINDOW: u32 = 22;
+/// A debug build's brotli (plans/19 §11): on a 197 KB catalog, the brotli
+/// CLI took 3 % of quality 11's time at quality 5, for 12 % more bytes;
+/// quality 9 took 2.4 times quality 5's, for 3 % fewer.
+const BROTLI_FAST_QUALITY: u32 = 5;
+
+/// How [`write`] compresses a catalog.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Compress {
+    /// Not at all: nothing serves it (a module-only or native build).
+    No,
+    /// At a fast level: a debug build, served by a development server.
+    Fast,
+    /// As B7 is measured: what a release serves.
+    Best,
+}
 
 /// One locale's catalog and what it cost.
 #[derive(Clone)]
@@ -184,7 +199,7 @@ pub fn write(
     chain_tags: &[String],
     slice: Slice,
     config: &Config,
-    compress: bool,
+    compress: Compress,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
         locale: tag.to_owned(),
@@ -230,10 +245,13 @@ pub fn write(
     // 22-bit window is the most expensive thing in the pass — so the split
     // that was meant to take work off the i18n crate does not pay for output
     // it then discards (`Build::emit`).
-    let (br, gz) = if compress {
-        (brotli(tag, &bytes)?, gzip(tag, &bytes)?)
-    } else {
-        (Vec::new(), Vec::new())
+    let (br, gz) = match compress {
+        Compress::No => (Vec::new(), Vec::new()),
+        Compress::Fast => (
+            brotli_at(tag, &bytes, BROTLI_FAST_QUALITY)?,
+            gzip_at(tag, &bytes, flate2::Compression::fast())?,
+        ),
+        Compress::Best => (brotli(tag, &bytes)?, gzip(tag, &bytes)?),
     };
     let hash = content_hash(&bytes);
     let mut locale_entries: Vec<(u32, usize)> = options
@@ -262,6 +280,10 @@ pub use mf2_catalog::content_hash;
 
 /// Brotli at the quality and window B7 is measured with.
 pub fn brotli(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
+    brotli_at(locale, bytes, BROTLI_QUALITY)
+}
+
+fn brotli_at(locale: &str, bytes: &[u8], quality: u32) -> Result<Vec<u8>> {
     let fail = |source| Error::Compress {
         locale: locale.to_owned(),
         format: "brotli",
@@ -269,8 +291,7 @@ pub fn brotli(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
     };
     let mut out = Vec::new();
     {
-        let mut writer =
-            brotli::CompressorWriter::new(&mut out, 4096, BROTLI_QUALITY, BROTLI_WINDOW);
+        let mut writer = brotli::CompressorWriter::new(&mut out, 4096, quality, BROTLI_WINDOW);
         writer.write_all(bytes).map_err(fail)?;
         // `CompressorWriter`'s `Drop` flushes too, but it cannot report; this
         // is where a truncated stream would otherwise pass silently.
@@ -281,12 +302,16 @@ pub fn brotli(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
 
 /// gzip at its best setting, for clients without brotli.
 pub fn gzip(locale: &str, bytes: &[u8]) -> Result<Vec<u8>> {
+    gzip_at(locale, bytes, flate2::Compression::best())
+}
+
+fn gzip_at(locale: &str, bytes: &[u8], level: flate2::Compression) -> Result<Vec<u8>> {
     let fail = |source| Error::Compress {
         locale: locale.to_owned(),
         format: "gzip",
         source,
     };
-    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), level);
     encoder.write_all(bytes).map_err(fail)?;
     encoder.finish().map_err(fail)
 }

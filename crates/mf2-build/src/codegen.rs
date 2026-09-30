@@ -992,22 +992,31 @@ fn tr(s: &mut String, m: &Module<'_>) {
 ///
 /// {how}, and a manifest whose hash differs is
 /// reported as stale rather than used (D8).
+#[doc(hidden)]
 #[macro_export]
-macro_rules! tr {{
+macro_rules! __mf2_tr {{
     ($($t:tt)*) => {{
         $crate::__mf2::__tr_impl!({source} 0x{hash:016x}u64 ; $crate ; $($t)*)
     }};
 }}
+// Exported under a hidden name and named `tr` by a `use`, so that any module
+// of this crate reaches it by path (`use crate::tr;`, the prelude), which a
+// `macro_export` macro from an expansion cannot be (rust-lang/rust#52234).
+#[allow(unused_imports)]
+pub use __mf2_tr as tr;
 
 /// `msg_id!(\"id\")` — the id checked against the manifest, and nothing
 /// else: the `MsgId` a caller needs to format a message whose arguments are
 /// not known until run time (`mf2::TrDyn`).
+#[doc(hidden)]
 #[macro_export]
-macro_rules! msg_id {{
+macro_rules! __mf2_msg_id {{
     ($($t:tt)*) => {{
         $crate::__mf2::__msg_id_impl!({source} 0x{hash:016x}u64 ; $crate ; $($t)*)
     }};
 }}
+#[allow(unused_imports)]
+pub use __mf2_msg_id as msg_id;
 ",
         hash = m.manifest_hash
     );
@@ -1034,11 +1043,10 @@ impl Locale {{
     s.push_str("        }\n    }\n}\n");
 }
 
-/// The prelude: `Locale`, the functions that choose and read the language
-/// where this build has them, and the description types for signatures.
-/// `install`, `setup` and `markup` stay out: each is named once. `tr` and
-/// `msg_id` wait for the wrapper that can be re-exported in its own crate
-/// (C6): today's cannot (rust-lang/rust#52234).
+/// The prelude: `tr` and `msg_id`, `Locale`, the functions that choose and
+/// read the language where this build has them, and the description types
+/// for signatures. `install`, `setup` and `markup` stay out: each is named
+/// once.
 fn prelude(s: &mut String, m: &Module<'_>) {
     let mode = if has_corpus(m.emit) {
         "__if_mode"
@@ -1048,12 +1056,13 @@ fn prelude(s: &mut String, m: &Module<'_>) {
     let _ = write!(
         s,
         "
-/// What an application names everywhere, for `use …::prelude::*;`: `Locale`,
-/// the functions that choose and read the language where this build has
-/// them, and the description types for signatures. `install`, `setup` and
+/// What an application names everywhere, for `use …::prelude::*;` (in this
+/// crate, `use crate::prelude::*;`): `tr!` and `msg_id!`, `Locale`, the
+/// functions that choose and read the language where this build has them,
+/// and the description types for signatures. `install`, `setup` and
 /// `markup` stay out: each is named once.
 pub mod prelude {{
-    pub use super::Locale;
+    pub use super::{{Locale, msg_id, tr}};
     pub use super::__mf2::{{Tr, TrArgs, TrDyn, TrRich}};
     super::__mf2::{mode}! {{
         pub use super::{{current_locale, set_locale}};
@@ -1527,7 +1536,7 @@ mod tests {
         let code = write(&m);
         let prelude = &code[code.find("pub mod prelude {").unwrap_or(0)..];
         for expected in [
-            "pub use super::Locale;",
+            "pub use super::{Locale, msg_id, tr};",
             "pub use super::__mf2::{Tr, TrArgs, TrDyn, TrRich};",
             "super::__mf2::__if_mode! {\n        pub use super::{current_locale, set_locale};",
             "super::__mf2::__if_leptos! {\n        pub use super::preload_locale;",
@@ -1560,7 +1569,21 @@ mod tests {
         let code = write(&m);
         let name = code.find("pub fn name(self) -> __mf2::Tr").unwrap_or(0);
         assert!(
-            name > code.find("macro_rules! tr {").unwrap_or(usize::MAX),
+            name > code.find("macro_rules! __mf2_tr {").unwrap_or(usize::MAX),
+            "{code}"
+        );
+        // A3's shape (3c): exported under hidden names, named by a `use`,
+        // and no textual `tr` beside it, which would make the name ambiguous.
+        for expected in [
+            "#[doc(hidden)]\n#[macro_export]\nmacro_rules! __mf2_tr {",
+            "pub use __mf2_tr as tr;",
+            "#[doc(hidden)]\n#[macro_export]\nmacro_rules! __mf2_msg_id {",
+            "pub use __mf2_msg_id as msg_id;",
+        ] {
+            assert!(code.contains(expected), "{expected}:\n{code}");
+        }
+        assert!(
+            !code.contains("macro_rules! tr ") && !code.contains("macro_rules! msg_id "),
             "{code}"
         );
         assert!(

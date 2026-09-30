@@ -1,6 +1,8 @@
-//! What cargo says the i18n crate's features are, so that `mf2 compile
-//! --site` builds the catalogs for the functions the wasm is built with,
-//! and `mf2 check` checks what the build checks (`plans/05-tooling.md` §6).
+//! What cargo says `mf2`'s features are, as the crate that includes the
+//! generated module depends on it — the set its build script reads through
+//! `links` — so that `mf2 compile --site` builds the catalogs for the
+//! functions the wasm is built with, and `mf2 check` checks what the build
+//! checks (`plans/05-tooling.md` §6, `plans/19-native-and-terminal.md` §11).
 
 use std::path::Path;
 use std::process::Command;
@@ -10,10 +12,10 @@ use serde_json::Value;
 
 use crate::error::{Error, Result};
 
-/// The i18n crate in `dir`: its package name and the features cargo resolves
-/// for it, unified across its workspace as `cargo metadata` reports them.
-/// `offline` keeps cargo off the network: it answers from what it has
-/// already fetched, or fails.
+/// The crate in `dir`: its package name, and the features cargo resolves for
+/// the `mf2` it names as a normal dependency, unified across its workspace as
+/// `cargo metadata` reports them. `offline` keeps cargo off the network: it
+/// answers from what it has already fetched, or fails.
 pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Features)> {
     let fail = |message: String| Error::Cargo {
         dir: dir.to_owned(),
@@ -22,7 +24,7 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
     let manifest = dir.join("Cargo.toml");
     if !manifest.is_file() {
         return Err(fail(
-            "no Cargo.toml here; the functions are the i18n crate's features".into(),
+            "no Cargo.toml here; the functions are the features of its `mf2`".into(),
         ));
     }
     let manifest = manifest
@@ -58,12 +60,39 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
         .ok_or_else(|| fail("the crate is not in its own metadata".into()))?;
     let id = &package["id"];
     let name = package["name"].as_str().unwrap_or_default().to_owned();
-    let node = metadata["resolve"]["nodes"]
+    let nodes = || {
+        metadata["resolve"]["nodes"]
+            .as_array()
+            .into_iter()
+            .flatten()
+    };
+    let node = nodes()
+        .find(|node| &node["id"] == id)
+        .ok_or_else(|| fail(format!("{name} is not in the resolve")))?;
+    // `mf2` as a normal dependency (a `null` kind), under whatever name.
+    let is_mf2 = |pkg: &Value| {
+        metadata["packages"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .any(|p| &p["id"] == pkg && p["name"] == "mf2")
+    };
+    let mf2 = node["deps"]
         .as_array()
         .into_iter()
         .flatten()
-        .find(|node| &node["id"] == id)
-        .ok_or_else(|| fail(format!("{name} is not in the resolve")))?;
+        .find(|dep| {
+            is_mf2(&dep["pkg"])
+                && dep["dep_kinds"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .any(|kind| kind["kind"].is_null())
+        })
+        .ok_or_else(|| fail(format!("{name} does not name `mf2` in its [dependencies]")))?;
+    let node = nodes()
+        .find(|node| node["id"] == mf2["pkg"])
+        .ok_or_else(|| fail("mf2 is not in the resolve".into()))?;
     let features = node["features"]
         .as_array()
         .into_iter()

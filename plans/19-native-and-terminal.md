@@ -1702,6 +1702,8 @@ D19, as A2 adopted it:
 **Compression** is only for a web server. A debug build compresses at a fast
 level, which C6 picks by measurement (review #18: maximum-quality brotli in a
 debug build cost seconds per edit). A release build compresses at the maximum.
+As built (C6): brotli 5 and gzip 1 in a debug build (the brotli CLI on a 197 KB catalog: quality 5
+in 3 % of 11's time, for 12 % more bytes), from `Build::new()`, so in any build script.
 
 **`mf2.toml` is optional**, and its defaults are 1.x's `Config::default()`. The
 build prints `rerun-if-changed` only for a file that exists (A3 found a missing
@@ -1717,6 +1719,8 @@ build prints `rerun-if-changed` only for a file that exists (A3 found a missing
 - **`mf2 check` and `mf2 compile --site` read `mf2`'s node** in the cargo
   resolve (A2, row 11), plus `--features`. A failed `cargo metadata` says so,
   and turns no function into a false `gated-function` error (A1's finding).
+  As built (C6): `--features`, given, still names the whole set; without cargo's answer, `check`
+  checks as if every function were on.
 
 **One crate is the default** for native and web applications (A6). Two crates
 are for a corpus several crates share (§1.3).

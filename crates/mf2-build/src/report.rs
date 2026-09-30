@@ -157,14 +157,21 @@ impl Report {
         serde_json::to_string_pretty(self).unwrap_or_else(|_| "{}".to_owned())
     }
 
-    /// The cargo instructions a `build.rs` prints for its warnings.
-    pub fn to_cargo_warnings(&self) -> String {
+    /// The cargo instructions a `build.rs` prints for its report:
+    /// `cargo::error=` for an error, `cargo::warning=` for the rest.
+    pub fn to_cargo_lines(&self) -> String {
         let mut out = String::new();
         for d in &self.diagnostics {
             let mut line = String::new();
             d.write_text(&mut line);
-            let _ = write!(out, "cargo::warning={}", line.trim_end());
-            out.push('\n');
+            let kind = if d.level == Level::Error {
+                "error"
+            } else {
+                "warning"
+            };
+            for line in line.trim_end().lines() {
+                let _ = writeln!(out, "cargo::{kind}={line}");
+            }
         }
         out
     }

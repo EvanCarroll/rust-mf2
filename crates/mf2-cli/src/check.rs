@@ -12,7 +12,7 @@ use crate::{FeatureArgs, Format};
 /// `mf2 check`.
 #[derive(Debug, ClapArgs)]
 pub(crate) struct Args {
-    // Without `--features`, the i18n crate's, as cargo resolves them.
+    // Without `--features`, mf2's, as cargo resolves them for this crate.
     #[command(flatten)]
     features: FeatureArgs,
     /// How to report.
@@ -58,12 +58,13 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     Ok(())
 }
 
-/// The features to check with: `--features` if given, else the i18n
-/// crate's as cargo resolves them — the build checks with those, so a
-/// check with others warns where the build does not and fails where it
-/// succeeds. Without an answer from cargo, none, and a note says so (on
-/// stderr, so that `--format json` stays one document). `mf2 import`
-/// checks what it would write with the same.
+/// The features to check with: `--features` if given, else those cargo
+/// resolves for the crate's `mf2` — the build reads the same through
+/// `links`, so a check with others warns where the build does not and fails
+/// where it succeeds. Without an answer from cargo, every function's, so
+/// that no function is reported as gated when it may not be, and a note
+/// says so (on stderr, so that `--format json` stays one document). `mf2
+/// import` checks what it would write with the same.
 pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     if let Some(given) = args.given() {
         return given;
@@ -72,10 +73,11 @@ pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
         Ok((_, resolved)) => resolved,
         Err(e) => {
             eprintln!(
-                "note: checking with no function features, as cargo could not name the \
-                 i18n crate's ({e}); --features names them"
+                "note: cargo could not say which features mf2 has here ({e}), so this \
+                 checks as if every function were on and reports none as gated; \
+                 --features names them"
             );
-            mf2_build::Features::default()
+            mf2_build::Features::from_names(["fn-number", "fn-datetime"])
         }
     }
 }

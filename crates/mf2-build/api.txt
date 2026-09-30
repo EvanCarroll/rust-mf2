@@ -50,6 +50,7 @@ pub mf2_build::Error::Config::path: std::path::PathBuf
 pub mf2_build::Error::Corpus
 pub mf2_build::Error::Corpus::errors: usize
 pub mf2_build::Error::Corpus::locales: usize
+pub mf2_build::Error::IcuBlob
 pub mf2_build::Error::Io
 pub mf2_build::Error::Io::path: std::path::PathBuf
 pub mf2_build::Error::Io::source: core::io::error::Error
@@ -71,6 +72,10 @@ pub mf2_build::Error::Manifest(mf2_catalog::error::ManifestError)
 pub mf2_build::Error::MarkupHash
 pub mf2_build::Error::MarkupHash::first: alloc::string::String
 pub mf2_build::Error::MarkupHash::second: alloc::string::String
+pub mf2_build::Error::Mf2Version
+pub mf2_build::Error::Mf2Version::build: alloc::string::String
+pub mf2_build::Error::Mf2Version::mf2: alloc::string::String
+pub mf2_build::Error::NoMf2
 pub mf2_build::Error::Write
 pub mf2_build::Error::Write::locale: alloc::string::String
 pub mf2_build::Error::Write::source: mf2_catalog::error::WriteError
@@ -369,7 +374,7 @@ pub fn mf2_build::Report::is_clean(&self) -> bool
 pub fn mf2_build::Report::is_empty(&self) -> bool
 pub fn mf2_build::Report::new() -> mf2_build::Report
 pub fn mf2_build::Report::push(&mut self, mf2_build::Diagnostic)
-pub fn mf2_build::Report::to_cargo_warnings(&self) -> alloc::string::String
+pub fn mf2_build::Report::to_cargo_lines(&self) -> alloc::string::String
 pub fn mf2_build::Report::to_json(&self) -> alloc::string::String
 pub fn mf2_build::Report::to_text(&self) -> alloc::string::String
 pub fn mf2_build::Report::warnings(&self) -> usize
@@ -381,4 +386,5 @@ impl core::fmt::Debug for mf2_build::Report
 pub fn mf2_build::Report::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl serde_core::ser::Serialize for mf2_build::Report
 pub fn mf2_build::Report::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+pub fn mf2_build::run()
 pub type mf2_build::Result<T> = core::result::Result<T, mf2_build::Error>

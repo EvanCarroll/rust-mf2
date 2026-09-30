@@ -22,5 +22,6 @@ src/loader/resource.rs
 src/manifest.rs
 src/pseudo.rs
 src/report.rs
+src/run.rs
 src/slice.rs
 tests/config.rs

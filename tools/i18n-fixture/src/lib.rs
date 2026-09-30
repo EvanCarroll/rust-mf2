@@ -8,6 +8,11 @@ mf2::include_generated!();
 /// The fixture's own check that the generated items are usable.
 #[cfg(test)]
 mod tests {
+    // A module of the crate that includes the module names `tr!` by path,
+    // as every other crate does (`mf2_i18n_fixture::tr!`, `src/main.rs`).
+    #[allow(unused_imports)]
+    use crate::tr;
+
     #[test]
     fn the_generated_module_says_what_it_should() {
         assert_eq!(super::SOURCE_LOCALE, "en");
@@ -106,12 +111,6 @@ mod tests {
         static CX: mf2::FormatContext = mf2::FormatContext::new(&mf2::host_std::HOST);
         // A description is `const`-constructible, so a call site can sit in
         // a static table and be formatted when it is shown.
-        //
-        // Inside the i18n crate itself the macro is called unqualified: a
-        // `macro_export` macro that is itself macro-expanded — and this one
-        // arrives through `include_generated!` — cannot be reached by an
-        // absolute path in its own crate (rustc #52234). Every other crate
-        // writes `mf2_i18n_fixture::tr!`, which `src/main.rs` does.
         const SAVE: mf2::Tr = tr!("plain");
 
         let bytes = super::catalog("en").expect("en is embedded");

@@ -133,6 +133,37 @@ pub enum Error {
         /// In how many locales.
         locales: usize,
     },
+
+    /// [`run`](crate::run) cannot see `mf2`'s features: cargo passes them
+    /// only to a crate that names `mf2` as a normal dependency.
+    #[error(
+        "mf2-build: this crate does not name `mf2` in its [dependencies], so its \
+         build script cannot see mf2's features (DEP_MF2_V2_FEATURES): add it \
+         there, as the crate that includes the generated module needs it anyway"
+    )]
+    NoMf2,
+
+    /// `mf2` and `mf2-build` are not the same version.
+    #[error(
+        "mf2-build {build} builds for mf2 {build}, but this crate's mf2 is {mf2}: \
+         name the same version of both"
+    )]
+    Mf2Version {
+        /// What `mf2` says its version is.
+        mf2: String,
+        /// This crate's.
+        build: String,
+    },
+
+    /// `mf2` has `datetime-icu`, and this `mf2-build` was built without
+    /// `icu-blob`, which writes ICU4X's date data into the catalogs. A
+    /// build-dependency's features cannot come through `links`.
+    #[error(
+        "mf2-build: `mf2` has `datetime-icu`, whose catalogs carry ICU4X's date \
+         data: add `features = [\"icu-blob\"]` to this crate's `mf2-build` \
+         build-dependency"
+    )]
+    IcuBlob,
 }
 
 fn plural(n: usize) -> &'static str {

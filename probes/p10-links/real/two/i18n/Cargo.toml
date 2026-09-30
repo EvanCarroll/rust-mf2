@@ -1,0 +1,16 @@
+# The translation crate: `mf2` with no features, and no [features] at all.
+[package]
+name = "c6-i18n"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+name = "i18n"
+
+[dependencies]
+mf2 = { path = "../../../../../crates/mf2" }
+
+[build-dependencies]
+mf2-build = { path = "../../../../../crates/mf2-build" }

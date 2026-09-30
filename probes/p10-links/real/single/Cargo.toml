@@ -1,0 +1,26 @@
+# A one-crate application: build.rs, mf2.toml and locales/ beside the code.
+[package]
+name = "c6-single"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+name = "single"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+mf2 = { path = "../../../../crates/mf2", features = ["fn-number"] }
+
+[build-dependencies]
+mf2-build = { path = "../../../../crates/mf2-build" }
+
+# The application's choices, forwarded to `mf2`: the build script reads
+# mf2's features, never these.
+[features]
+native = ["mf2/native"]
+ssr = ["mf2/ssr", "mf2/leptos"]
+hydrate = ["mf2/hydrate", "mf2/leptos"]
+# A module that calls `tr!` without importing it (a negative control).
+forget = []

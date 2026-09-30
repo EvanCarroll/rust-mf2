@@ -59,11 +59,11 @@ pub(crate) enum Error {
         message: String,
     },
 
-    /// `--features` and the i18n crate disagree on which functions exist,
+    /// `--features` and the crate's `mf2` disagree on which functions exist,
     /// so the catalogs would be built for another wasm than the one cargo
     /// builds.
     #[error(
-        "--features names {given} but cargo resolves {resolved} for {krate}; \
+        "--features names {given} but cargo resolves {resolved} for mf2 in {krate}; \
          the catalogs must be built for the functions the wasm is built with \
          (drop --features to take cargo's)"
     )]
@@ -72,7 +72,7 @@ pub(crate) enum Error {
         krate: String,
         /// The catalog features `--features` names.
         given: String,
-        /// The catalog features cargo resolves for the crate.
+        /// The catalog features cargo resolves for the crate's `mf2`.
         resolved: String,
     },
 
