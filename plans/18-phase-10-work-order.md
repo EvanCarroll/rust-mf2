@@ -319,8 +319,10 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `mf2 pseudo` accented `@do-not-translate` messages (check failed). Found: pseudo-locales lack names,
   so `Locale::name()` is not generated while they exist; `stats` takes no features from cargo. ci; docs pass.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
-measurement worktrees, are removed (questions 21 and 25).
+**In flight:** a fix: pseudo-locales keep `Locale::name()`, and `mf2 stats` reads the build's
+features (found by F3), started 2026-09-30 by an agent working in the main tree; uncommitted changes
+there are its. Part A's probe branches and worktrees, and B1's and B2's measurement worktrees, are
+removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
@@ -938,6 +940,11 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     no change.
 
 **Decided without asking, and the owner may overturn any of them:**
+- **Pseudo-locales need no name** (found by F3; 2026-09-30): with `en-XA` / `ar-XB` in an application
+  whose languages have `language.<tag>` names, the build dropped the generated `Locale::name()`
+  (19 §10: only when every language has one), so a switcher calling it stopped building during
+  pseudo testing. Pseudo-locales are exempt from that rule and show their tag. *Not chosen:*
+  documenting the trap.
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
   built on it; it keeps servers, tools and several message sets possible later.
 - **A native-only build that formats with nothing installed panics**, and the message names
