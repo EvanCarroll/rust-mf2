@@ -287,14 +287,17 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `set_locale`/`preload_locale` log failures once; `markup_view` infers `|c| view!`; client strips the installed
   query name (`data-mf2-query`); `path_prefix_redirect` is `from_fn`, name from the request (under the layer).
   ci; docs; churn 84/84; e2e 0.9 and 0.8 1212/1212 each. Demos and book on the new forms.
+- **D5** (`3c75213`): `mf2 init --ssr|--islands|--csr` make one-crate apps (§1.4's hello; islands with
+  `static-locale`; csr with Trunk and `compile --site`) or add translations to a crate; no mode lists the five.
+  The 1.x translation-crate template is gone: Getting started, the migration guide and fluent-ab write it by
+  hand until D6. ci; docs and scenarios (d5-gate) pass; fluent-ab not rerun.
 
-**In flight:** D5 (`mf2 init` as a starter, web), started 2026-09-30 by an agent working in the main
-tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **D1–D4 are done; D5 first** (E4 unblocked), checked with
+- **D1–D5 are done; D6 first** (E4 unblocked), checked with
   `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
