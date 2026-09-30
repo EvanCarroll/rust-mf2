@@ -32,10 +32,6 @@ const ZONED: u8 = 2;
 #[derive(Clone, Debug)]
 pub(crate) struct RequestLocale {
     negotiated: Negotiated,
-    #[cfg_attr(
-        not(all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))),
-        allow(dead_code, reason = "only a Leptos render reads it")
-    )]
     query: Option<&'static str>,
     reads: Arc<AtomicU8>,
 }
@@ -47,11 +43,8 @@ impl RequestLocale {
         &self.negotiated
     }
 
-    /// The installed query source's name: what the switcher's form submits.
-    #[cfg_attr(
-        not(all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8"))),
-        allow(dead_code, reason = "only a Leptos render reads it")
-    )]
+    /// The installed query source's name: what the switcher's form submits,
+    /// and what `path_prefix_redirect` reads.
     pub(crate) fn query(&self) -> Option<&'static str> {
         self.query
     }

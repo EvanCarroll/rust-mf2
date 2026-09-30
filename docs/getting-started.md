@@ -357,7 +357,7 @@ point. The shell does three things for translation:
 use hello_i18n::tr;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
+use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleSwitcher, html_lang};
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
 
@@ -410,10 +410,7 @@ pub fn App() -> impl IntoView {
         <Title text=tr!("app-title") />
         <Router>
             <header>
-                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                    <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-                    <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-                </LocaleSwitcher>
+                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
             </header>
             <main>
                 <Routes fallback=|| view! { <p>{tr!("not-found")}</p> }>

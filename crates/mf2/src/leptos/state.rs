@@ -14,7 +14,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use mf2_catalog::Dir;
 use mf2_runtime::{BidiStrategy, FormatContext, Host, Registry, TimeZone};
 
-use crate::LanguageMatching;
+use crate::{LanguageMatching, Tr};
 
 use std::sync::OnceLock;
 
@@ -104,6 +104,8 @@ pub struct Setup {
     /// The build's cut of CLDR's language-matching data
     /// ([`Setup::with_language_matching`]).
     matching: Option<&'static LanguageMatching>,
+    /// Each language's name ([`Setup::with_names`]).
+    names: Option<fn(usize) -> Option<Tr>>,
 }
 
 impl Setup {
@@ -124,6 +126,7 @@ impl Setup {
             locales,
             time_zone: TimeZone::UTC,
             matching: None,
+            names: None,
         }
     }
 
@@ -147,6 +150,16 @@ impl Setup {
     #[must_use]
     pub const fn with_language_matching(mut self, matching: &'static LanguageMatching) -> Setup {
         self.matching = Some(matching);
+        self
+    }
+
+    /// The same with each language's name: `names(index)` is the
+    /// `language.<tag>` message of `locales[index]`, if the corpus has one —
+    /// what `<LocaleSwitcher>` with no children lists. The generated
+    /// `setup()` passes it.
+    #[must_use]
+    pub const fn with_names(mut self, names: fn(usize) -> Option<Tr>) -> Setup {
+        self.names = Some(names);
         self
     }
 
@@ -226,6 +239,15 @@ pub fn source_locale() -> &'static str {
 #[must_use]
 pub fn locales() -> &'static [(&'static str, Dir)] {
     RUNTIME.get().map_or(&[], |r| r.setup.locales)
+}
+
+/// The name of the language at `index` in [`locales`], if the installed
+/// setup has one ([`Setup::with_names`]).
+pub(crate) fn locale_name(index: usize) -> Option<Tr> {
+    RUNTIME
+        .get()
+        .and_then(|r| r.setup.names)
+        .and_then(|names| names(index))
 }
 
 /// The base direction of `tag`, as the build recorded it.

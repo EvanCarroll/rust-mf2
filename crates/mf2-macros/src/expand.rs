@@ -298,7 +298,13 @@ fn emit(
             let handler = (*handler)?;
             let mut key = Literal::u64_suffixed(markup_key(name));
             key.set_span(span);
-            Some(quote_spanned! {span=> (#key, #krate::__mf2::markup(#handler)) })
+            // A closure goes through `markup_view`, whose `Fn` bound gives
+            // it its argument's type: `|c| view! { … }` needs no `c: AnyView`.
+            Some(if matches!(handler, Expr::Closure(_)) {
+                quote_spanned! {span=> (#key, #krate::__mf2::markup_view(#handler)) }
+            } else {
+                quote_spanned! {span=> (#key, #krate::__mf2::markup(#handler)) }
+            })
         });
     quote_spanned! {span=> #krate::__mf2::tr_rich(#description, [#(#entries),*].into()) }
 }

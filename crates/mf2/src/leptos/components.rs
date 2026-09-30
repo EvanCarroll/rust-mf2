@@ -25,9 +25,10 @@
 //!   a screen reader pronounces "Français" with an English voice.
 //!
 //! **Where the option text comes from, and why it is not in the wasm.**
-//! [`LocaleOption`] takes its text as children, so each language's name is a
-//! message of the application's own catalog — `language.fr` in *every*
-//! locale's catalog — and never a literal in the client. What keeps the
+//! Each language's name is a message of the application's own catalog —
+//! `language.fr` in *every* locale's catalog — and never a literal in the
+//! client: the generated `setup()` names each one ([`Setup::with_names`]),
+//! and a [`LocaleOption`] takes its text as children. What keeps the
 //! autonyms out of the wasm is that they are catalog data.
 
 use alloc::string::String;
@@ -65,18 +66,24 @@ impl ui::Layer for Mf2 {
     }
 
     #[cfg(feature = "ssr")]
-    fn preload() -> Option<(String, Option<String>)> {
+    fn preload() -> Option<(String, Option<String>, Option<&'static str>)> {
         let href = crate::leptos::catalog::active()
             .and_then(|catalog| crate::leptos::catalog::catalog_name(catalog.locale()))
             .map(crate::leptos::links::catalog_href)?;
         let zone = crate::leptos::catalog::request_time_zone()
             .and_then(|zone| crate::leptos::zone::zone_name(&zone).map(String::from));
-        Some((href, zone))
+        let query = crate::leptos::catalog::locale_query();
+        let query = (query != crate::links::LOCALE_QUERY).then_some(query);
+        Some((href, zone, query))
     }
 
     #[cfg(not(feature = "ssr"))]
-    fn preload() -> Option<(String, Option<String>)> {
+    fn preload() -> Option<(String, Option<String>, Option<&'static str>)> {
         None
+    }
+
+    fn locale_name(index: usize) -> Option<crate::line::leptos::text_prop::TextProp> {
+        crate::leptos::state::locale_name(index).map(Into::into)
     }
 
     #[cfg(feature = "ssr")]
@@ -96,10 +103,7 @@ impl ui::Layer for Mf2 {
     fn switch(tag: String) {
         crate::line::leptos::task::spawn_local(async move {
             if let Err(error) = crate::leptos::set_locale(&tag).await {
-                web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(match error {
-                    crate::error::LoadError::UnknownLocale => "mf2: no such locale",
-                    _ => "mf2: the locale could not be switched; the page is unchanged",
-                }));
+                switch_failed(&error);
             }
         });
     }
@@ -107,6 +111,19 @@ impl ui::Layer for Mf2 {
     #[cfg(feature = "ssr")]
     fn switch(_tag: String) {}
 }
+
+/// A client's switch that failed, logged once: the page is as it was.
+#[cfg(any(feature = "hydrate", feature = "csr"))]
+pub(crate) fn switch_failed(error: &crate::error::LoadError) {
+    web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(match error {
+        crate::error::LoadError::UnknownLocale => "mf2: no such locale",
+        _ => "mf2: the locale could not be switched; the page is unchanged",
+    }));
+}
+
+/// The language a [`LocaleOption`] selects: the generated `Locale` converts
+/// into it (`tag=Locale::Fr`), and so does a `&'static str`.
+pub use ui::LocaleTag;
 
 /// The props of [`CatalogPreload`] (none).
 pub type CatalogPreloadProps = ui::CatalogPreloadProps<Mf2>;
@@ -220,8 +237,11 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 /// `set_locale`, live, with focus left on the button.
 ///
 /// The `<select>` is inside its `<label>`, so there is no fixed `id` and a
-/// page may carry two switchers (a header and a footer). The options are
-/// [`LocaleOption`]s the caller writes, each carrying its own `lang`.
+/// page may carry two switchers (a header and a footer). With no children
+/// it offers every language, in `Locale::ALL`'s order, each named by its
+/// `language.<tag>` message (its tag when the corpus has none); children
+/// are a list of one's own, [`LocaleOption`]s. Each option carries its own
+/// `lang`, and takes no fallback-language span.
 ///
 /// Its props:
 /// * `label` (into `TextProp`) — the control's accessible name: a `<label>`,
@@ -229,7 +249,8 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 ///   visible as well as announced (WCAG 3.3.2);
 /// * `button` (into `TextProp`) — the submit button's text, the
 ///   application's own message in the page's language;
-/// * `children` — the options: one [`LocaleOption`] per locale offered;
+/// * `children` (optional) — a list of one's own: one [`LocaleOption`] per
+///   locale offered;
 /// * `href_of` (optional, `fn(&str) -> String`) — for a site whose
 ///   languages live in its URLs (`/fr/…`, `mf2-axum`'s `PathPrefix`), the
 ///   URL of the current page in the given locale. Each option then carries
@@ -239,9 +260,10 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 ///   `mf2_axum::path_prefix_redirect` sends it on to that URL.
 ///
 /// ```ignore
+/// <LocaleSwitcher label=tr!("choose-language") button=tr!("apply-language")/>
 /// <LocaleSwitcher label=tr!("choose-language") button=tr!("apply-language")>
-///     <LocaleOption tag="en">{tr!("language-en")}</LocaleOption>
-///     <LocaleOption tag="fr">{tr!("language-fr")}</LocaleOption>
+///     <LocaleOption tag=Locale::En>{Locale::En.name()}</LocaleOption>
+///     <LocaleOption tag=Locale::Fr>{Locale::Fr.name()}</LocaleOption>
 /// </LocaleSwitcher>
 /// ```
 #[must_use]
@@ -252,10 +274,10 @@ pub fn LocaleSwitcher(props: LocaleSwitcherProps) -> impl IntoView {
 
 /// One `<option>`, named in its own language and marked as being in it.
 ///
-/// Its props: `tag`, the BCP 47 tag this option selects (a
-/// `&'static str`), and `children`, the language's name **in that
-/// language** — from the application's own catalog, so it is never a
-/// literal in the client.
+/// Its props: `tag`, the language this option selects (the generated
+/// `Locale`, or its BCP 47 tag as a `&'static str`: [`LocaleTag`]), and
+/// `children`, the language's name **in that language** — from the
+/// application's own catalog, so it is never a literal in the client.
 ///
 /// The option of the page's locale is `selected` in the markup, so that the
 /// control shows the right language before any client code runs — the form

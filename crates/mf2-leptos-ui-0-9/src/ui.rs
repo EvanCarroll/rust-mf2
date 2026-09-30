@@ -23,9 +23,10 @@
 //!   a screen reader pronounces "Français" with an English voice.
 //!
 //! **Where the option text comes from, and why it is not in the wasm.**
-//! [`LocaleOption`] takes its text as children, so each language's name is a
-//! message of the application's own catalog — `language.fr` in *every*
-//! locale's catalog — and never a literal in the client. The options render
+//! Each language's name is a message of the application's own catalog —
+//! `language.fr` in *every* locale's catalog — and never a literal in the
+//! client: [`LocaleSwitcher`] with no children renders each through
+//! [`Layer::locale_name`], and a [`LocaleOption`] takes it as children. The options render
 //! on both sides, like any other description: what keeps the autonyms out of
 //! the wasm is that they are catalog data, not that the client skips them
 //! (and the browser check greps the bundle for them).
@@ -40,7 +41,10 @@ use core::marker::PhantomData;
 use std::string::String;
 use std::vec::Vec;
 
+use leptos::either::Either;
+use leptos::oco::Oco;
 use leptos::prelude::*;
+use leptos::text_prop::TextProp;
 use mf2_model::Dir;
 
 /// What the components need from `mf2`, which they cannot name: `mf2`
@@ -74,10 +78,16 @@ pub trait Layer: 'static {
     /// in, whose option [`LocaleOption`] marks `selected`.
     fn html_lang() -> (String, &'static str);
 
-    /// The preload link for the catalog of the page's locale: its URL, and
-    /// the reader's time zone the page was rendered in, if it was. A
-    /// server's; `None` in a client build, which never renders it.
-    fn preload() -> Option<(String, Option<String>)>;
+    /// The preload link for the catalog of the page's locale: its URL, the
+    /// reader's time zone the page was rendered in, if it was, and the query
+    /// parameter the switcher submits, when it is not the default one (the
+    /// client's switch takes it out of the address). A server's; `None` in a
+    /// client build, which never renders it.
+    fn preload() -> Option<(String, Option<String>, Option<&'static str>)>;
+
+    /// The name of the language at `index` in [`Layer::locales`], in that
+    /// language: its `language.<tag>` message, when the corpus has one.
+    fn locale_name(index: usize) -> Option<TextProp>;
 
     /// Every locale's catalog, as its tag and URL: the in-page map. A
     /// server's; empty in a client build, which never renders it.
@@ -107,7 +117,7 @@ pub fn CatalogPreload<L: Layer>(
 ) -> impl IntoView {
     #[cfg(feature = "ssr")]
     {
-        L::preload().map(|(href, zone)| {
+        L::preload().map(|(href, zone, query)| {
             view! {
                 <link
                     rel="preload"
@@ -116,6 +126,7 @@ pub fn CatalogPreload<L: Layer>(
                     href=href
                     data-mf2=""
                     data-mf2-zone=zone
+                    data-mf2-query=query
                 />
             }
         })
@@ -212,8 +223,11 @@ pub fn AlternateLinks<L: Layer>(
 /// with focus left on the button.
 ///
 /// The `<select>` is inside its `<label>`, so there is no fixed `id` and a
-/// page may carry two switchers (a header and a footer). The options are
-/// [`LocaleOption`]s the caller writes, each carrying its own `lang`.
+/// page may carry two switchers (a header and a footer). With no children
+/// it offers every language, in [`Layer::locales`]' order, each named by its
+/// `language.<tag>` message (its tag when the corpus has none); children
+/// are a list of one's own, [`LocaleOption`]s. Each option carries its own
+/// `lang`.
 ///
 /// **A site whose languages live in its URLs** (`/fr/…`, a path prefix)
 /// passes `href_of`, the shape [`AlternateLinks`] takes: each option then
@@ -232,8 +246,10 @@ pub fn LocaleSwitcher<L: Layer>(
     /// page's language, like `label`.
     #[prop(into)]
     button: TextProp,
-    /// The options: one [`LocaleOption`] per locale offered.
-    children: Children,
+    /// A list of one's own: one [`LocaleOption`] per locale offered. With
+    /// none, every language.
+    #[prop(optional)]
+    children: Option<Children>,
     /// For a site whose languages live in its URLs: the URL of the current
     /// page in the given locale. The submit then navigates there.
     #[prop(optional)]
@@ -255,7 +271,10 @@ pub fn LocaleSwitcher<L: Layer>(
             <label>
                 <span>{move || label.get()}</span>
                 <select name=query node_ref=select>
-                    {children()}
+                    {match children {
+                        Some(children) => Either::Left(children()),
+                        None => Either::Right(every_option::<L>()),
+                    }}
                 </select>
             </label>
             <button type="submit">{move || button.get()}</button>
@@ -270,8 +289,10 @@ pub fn LocaleSwitcher<L: Layer>(
 /// submits it as it stands.
 #[component]
 pub fn LocaleOption<L: Layer>(
-    /// The BCP 47 tag this option selects.
-    tag: &'static str,
+    /// The language this option selects: the generated `Locale`
+    /// (`tag=Locale::Fr`), or its BCP 47 tag.
+    #[prop(into)]
+    tag: LocaleTag,
     /// The language's name **in that language** — from the application's own
     /// catalog, so it is never a literal in the client.
     children: Children,
@@ -279,11 +300,45 @@ pub fn LocaleOption<L: Layer>(
     #[prop(optional)]
     _layer: PhantomData<L>,
 ) -> impl IntoView {
+    option::<L>(tag.0, children())
+}
+
+/// The language a [`LocaleOption`] selects, as a BCP 47 tag. The generated
+/// `Locale` converts into it, and so does a `&'static str`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LocaleTag(pub &'static str);
+
+impl From<&'static str> for LocaleTag {
+    fn from(tag: &'static str) -> LocaleTag {
+        LocaleTag(tag)
+    }
+}
+
+/// Every language's option, in [`Layer::locales`]' order: a switcher with
+/// no children.
+fn every_option<L: Layer>() -> Vec<impl IntoView> {
+    L::locales()
+        .iter()
+        .enumerate()
+        .map(|(index, &(tag, _))| {
+            let name = L::locale_name(index);
+            // An option's text is plain: an element inside `<option>` is
+            // dropped by the parser, and its `lang` is already the option's.
+            option::<L>(tag, move || {
+                name.as_ref().map_or(Oco::Borrowed(tag), TextProp::get)
+            })
+        })
+        .collect()
+}
+
+/// One `<option>` for `tag`, `selected` when it is the page's language,
+/// with the enclosing switcher's URL for it.
+fn option<L: Layer>(tag: &'static str, text: impl IntoView + 'static) -> impl IntoView {
     let selected = L::html_lang().0 == tag;
     let href = use_context::<SwitcherHref>().and_then(|SwitcherHref(f)| f.map(|f| f(tag)));
     view! {
         <option value=tag lang=tag selected=selected data-mf2-href=href>
-            {children()}
+            {text}
         </option>
     }
 }

@@ -931,7 +931,9 @@ D4 finds the positions where 1.x needed `|c: AnyView|`, and removes the need.
   As built (D3): the headers go on only when something read the answer (a
   static file or a catalog under the layer says no language), with `Vary:
   cookie` when the render used the `mf2_tz` zone; `path_prefix_redirect`
-  takes the query name as its state (`from_fn_with_state`). `mf2-axum`'s
+  took the query name as its state; D4 made it a plain `from_fn` that reads the
+  name from the negotiator's answer in the request (so it goes under the layer;
+  outside it, `lang`). `mf2-axum`'s
   context glue stays for the book and `mf2 init` until D5/D6.
 - **`catalog_routes()`** is unchanged. The generated `install()` replaces
   `mf2_axum::install(setup(), CATALOGS)`.

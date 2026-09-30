@@ -76,7 +76,7 @@ pub(crate) mod zone;
 pub use components::{
     AlternateLinks, AlternateLinksProps, CatalogLinks, CatalogLinksProps, CatalogPreload,
     CatalogPreloadProps, IslandsGate, IslandsGateProps, LocaleOption, LocaleOptionProps,
-    LocaleSwitcher, LocaleSwitcherProps, html_lang,
+    LocaleSwitcher, LocaleSwitcherProps, LocaleTag, html_lang,
 };
 
 /// The view closure a rich call site writes, and the flat handler

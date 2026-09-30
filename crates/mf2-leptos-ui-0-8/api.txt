@@ -33,7 +33,7 @@ pub fn mf2_leptos_ui_0_8::IslandsGateProps<L>::builder() -> IslandsGatePropsBuil
 pub struct mf2_leptos_ui_0_8::LocaleOptionProps<L: mf2_leptos_ui_0_8::Layer>
 pub mf2_leptos_ui_0_8::LocaleOptionProps::_layer: core::marker::PhantomData<L>
 pub mf2_leptos_ui_0_8::LocaleOptionProps::children: leptos::children::Children
-pub mf2_leptos_ui_0_8::LocaleOptionProps::tag: &'static str
+pub mf2_leptos_ui_0_8::LocaleOptionProps::tag: mf2_leptos_ui_0_8::LocaleTag
 impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::LocaleOptionProps<L>
 pub type mf2_leptos_ui_0_8::LocaleOptionProps<L>::Builder = LocaleOptionPropsBuilder<L>
 pub fn mf2_leptos_ui_0_8::LocaleOptionProps<L>::builder() -> Self::Builder
@@ -42,7 +42,7 @@ pub fn mf2_leptos_ui_0_8::LocaleOptionProps<L>::builder() -> LocaleOptionPropsBu
 pub struct mf2_leptos_ui_0_8::LocaleSwitcherProps<L: mf2_leptos_ui_0_8::Layer>
 pub mf2_leptos_ui_0_8::LocaleSwitcherProps::_layer: core::marker::PhantomData<L>
 pub mf2_leptos_ui_0_8::LocaleSwitcherProps::button: leptos::text_prop::TextProp
-pub mf2_leptos_ui_0_8::LocaleSwitcherProps::children: leptos::children::Children
+pub mf2_leptos_ui_0_8::LocaleSwitcherProps::children: core::option::Option<leptos::children::Children>
 pub mf2_leptos_ui_0_8::LocaleSwitcherProps::href_of: core::option::Option<fn(&str) -> alloc::string::String>
 pub mf2_leptos_ui_0_8::LocaleSwitcherProps::label: leptos::text_prop::TextProp
 impl<L: mf2_leptos_ui_0_8::Layer> leptos::component::Props for mf2_leptos_ui_0_8::LocaleSwitcherProps<L>
@@ -50,14 +50,27 @@ pub type mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::Builder = LocaleSwitcherProp
 pub fn mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::builder() -> Self::Builder
 impl<L: mf2_leptos_ui_0_8::Layer> mf2_leptos_ui_0_8::LocaleSwitcherProps<L>
 pub fn mf2_leptos_ui_0_8::LocaleSwitcherProps<L>::builder() -> LocaleSwitcherPropsBuilder<L, ((), (), (), (), ())>
+pub struct mf2_leptos_ui_0_8::LocaleTag(pub &'static str)
+impl core::clone::Clone for mf2_leptos_ui_0_8::LocaleTag
+pub fn mf2_leptos_ui_0_8::LocaleTag::clone(&self) -> Self
+impl core::cmp::Eq for mf2_leptos_ui_0_8::LocaleTag
+impl core::cmp::PartialEq for mf2_leptos_ui_0_8::LocaleTag
+pub fn mf2_leptos_ui_0_8::LocaleTag::eq(&self, &Self) -> bool
+impl core::convert::From<&'static str> for mf2_leptos_ui_0_8::LocaleTag
+pub fn mf2_leptos_ui_0_8::LocaleTag::from(&'static str) -> mf2_leptos_ui_0_8::LocaleTag
+impl core::fmt::Debug for mf2_leptos_ui_0_8::LocaleTag
+pub fn mf2_leptos_ui_0_8::LocaleTag::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_leptos_ui_0_8::LocaleTag
+impl core::marker::StructuralPartialEq for mf2_leptos_ui_0_8::LocaleTag
 pub trait mf2_leptos_ui_0_8::Layer: 'static
 pub const mf2_leptos_ui_0_8::Layer::CATALOG_LINK_REL: &'static str
 pub const mf2_leptos_ui_0_8::Layer::ISLANDS_GATE: &'static str
 pub fn mf2_leptos_ui_0_8::Layer::catalog_links() -> alloc::vec::Vec<(&'static str, alloc::string::String)>
 pub fn mf2_leptos_ui_0_8::Layer::html_lang() -> (alloc::string::String, &'static str)
+pub fn mf2_leptos_ui_0_8::Layer::locale_name(usize) -> core::option::Option<leptos::text_prop::TextProp>
 pub fn mf2_leptos_ui_0_8::Layer::locale_query() -> &'static str
 pub fn mf2_leptos_ui_0_8::Layer::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
-pub fn mf2_leptos_ui_0_8::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>)>
+pub fn mf2_leptos_ui_0_8::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>, core::option::Option<&'static str>)>
 pub fn mf2_leptos_ui_0_8::Layer::source_locale() -> &'static str
 pub fn mf2_leptos_ui_0_8::Layer::switch(alloc::string::String)
 pub fn mf2_leptos_ui_0_8::AlternateLinks<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::AlternateLinksProps<L>) -> impl leptos::into_view::IntoView

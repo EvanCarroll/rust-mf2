@@ -21,7 +21,7 @@
 
 use leptos::prelude::*;
 use leptos_meta::{Title, provide_meta_context};
-use leptos_mf2::{LocaleOption, LocaleSwitcher, html_lang};
+use leptos_mf2::LocaleSwitcher;
 use mf2::DateTimeValue;
 
 use demo_csr_i18n::tr;
@@ -30,13 +30,8 @@ use demo_csr_i18n::tr;
 #[component]
 fn App() -> impl IntoView {
     provide_meta_context();
-    // `html_lang` reads the active catalog, which is not a signal; the
-    // trigger a switch fires is what makes this follow it (`track_locale`
-    // subscribes until the reader's next run, so nothing is left behind).
-    let in_language = move || {
-        leptos_mf2::track_locale();
-        html_lang().0
-    };
+    // The generated `current_locale()` is reactive: this follows a switch.
+    let in_language = move || demo_csr_i18n::current_locale().tag();
     let count = RwSignal::new(3);
     // A fixed instant, so that the browser check can compare it. With no
     // server there is nothing to correct: the page mounts in the reader's
@@ -54,11 +49,9 @@ fn App() -> impl IntoView {
                 // A choice applies on the button, never on the select's
                 // `change`, which the keyboard fires per arrow key (WCAG
                 // 3.2.2).
-                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                    <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-                    <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-                    <LocaleOption tag="ar">{tr!("language.ar")}</LocaleOption>
-                </LocaleSwitcher>
+                // With no children it offers every language, each named
+                // by its `language.<tag>` message.
+                <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
             </header>
 
             <main>
@@ -70,7 +63,7 @@ fn App() -> impl IntoView {
                         <input id="search" type="search" placeholder=tr!("search-placeholder") />
                     </label>
                     <p id="hotkey">
-                        {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                        {tr!("hotkey", kbd = |children| view! { <kbd>{children}</kbd> })}
                     </p>
                 </section>
 

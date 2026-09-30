@@ -35,6 +35,7 @@
 
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
+use demo_i18n::Locale;
 use leptos_mf2::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::{Lazy, LazyRoute, lazy_route, path};
@@ -92,15 +93,12 @@ pub fn App() -> impl IntoView {
                     // A choice applies on the button, never on the select's
                     // `change`, which the keyboard fires per arrow key
                     // (WCAG 3.2.2). Before the wasm loads, the form's own
-                    // `GET ?lang=` switches.
+                    // `GET ?lang=` switches. With no children it offers
+                    // every language, each named by its `language.<tag>`.
                     <LocaleSwitcher
                         label=demo_i18n::tr!("language.label")
                         button=demo_i18n::tr!("language.apply")
-                    >
-                        <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
-                        <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
-                        <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
-                    </LocaleSwitcher>
+                    />
                 </header>
                 <nav aria-label=demo_i18n::tr!("nav.label")>
                     <ul class="row nav">
@@ -128,17 +126,11 @@ pub fn App() -> impl IntoView {
     }
 }
 
-/// The locale the page is in, following a switch.
-///
-/// `html_lang` reads the active catalog, which is not a signal; on the
-/// client the trigger a switch fires is what makes this follow it —
-/// `track_locale` rather than `changed().track()`, so that the lazy route's
-/// reader leaves the trigger when the route unmounts. On the server a
-/// request never changes locale.
-fn current_locale() -> String {
-    #[cfg(not(feature = "ssr"))]
-    leptos_mf2::track_locale();
-    html_lang().0
+/// The locale the page is in, following a switch: the generated
+/// `current_locale()` is reactive in the browser, and the request's on the
+/// server.
+fn current_locale() -> &'static str {
+    demo_i18n::current_locale().tag()
 }
 
 /// A page whose language is its URL's first segment, as on a site that
@@ -154,9 +146,9 @@ fn AboutPage() -> impl IntoView {
                 button=demo_i18n::tr!("language.apply")
                 href_of=about_href
             >
-                <LocaleOption tag="en">{demo_i18n::tr!("language.en")}</LocaleOption>
-                <LocaleOption tag="fr">{demo_i18n::tr!("language.fr")}</LocaleOption>
-                <LocaleOption tag="ar">{demo_i18n::tr!("language.ar")}</LocaleOption>
+                <LocaleOption tag=Locale::En>{Locale::En.name()}</LocaleOption>
+                <LocaleOption tag=Locale::Fr>{Locale::Fr.name()}</LocaleOption>
+                <LocaleOption tag=Locale::Ar>{Locale::Ar.name()}</LocaleOption>
             </LocaleSwitcher>
         </section>
     }
@@ -211,7 +203,7 @@ fn HomePage() -> impl IntoView {
             // of the middle — without the view knowing anything about
             // word order.
             <p id="hotkey">
-                {demo_i18n::tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                {demo_i18n::tr!("hotkey", kbd = |children| view! { <kbd>{children}</kbd> })}
             </p>
             <p id="published">
                 {published
@@ -302,7 +294,7 @@ impl LazyRoute for LazyPage {
                 <p id="lazy-body">
                     {demo_i18n::tr!(
                         "lazy.body",
-                        strong = |children: AnyView| view! { <strong>{children}</strong> }
+                        strong = |children| view! { <strong>{children}</strong> }
                     )}
                 </p>
                 <p>

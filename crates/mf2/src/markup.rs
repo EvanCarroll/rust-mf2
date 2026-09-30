@@ -27,6 +27,34 @@ pub fn markup<H: IntoMarkupHandler>(handler: H) -> Arc<dyn MarkupHandler> {
     handler.into_markup_handler()
 }
 
+/// `markup_view(h)` — what the macro emits when the handler is written as a
+/// closure. In a Leptos mode its bound is the nesting closure's own
+/// signature, so `|c| view! { <kbd>{c}</kbd> }` needs no `c: AnyView`: a
+/// closure passed where a trait other than `Fn` is expected is never given
+/// its argument's type. Elsewhere it is [`markup`].
+#[cfg(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+))]
+#[must_use]
+pub fn markup_view<F, V>(handler: F) -> Arc<dyn MarkupHandler>
+where
+    F: Fn(crate::line::tachys::view::any_view::AnyView) -> V + Send + Sync + 'static,
+    V: crate::line::tachys::view::any_view::IntoAny,
+{
+    handler.into_markup_handler()
+}
+
+/// `markup_view(h)` without a Leptos mode: [`markup`].
+#[cfg(not(all(
+    any(feature = "ssr", feature = "hydrate", feature = "csr"),
+    any(feature = "leptos", feature = "leptos-0-8")
+)))]
+#[must_use]
+pub fn markup_view<H: IntoMarkupHandler>(handler: H) -> Arc<dyn MarkupHandler> {
+    handler.into_markup_handler()
+}
+
 /// What [`markup`] accepts.
 ///
 /// | Form | Available | What it is |

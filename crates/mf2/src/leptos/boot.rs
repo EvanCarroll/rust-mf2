@@ -60,7 +60,7 @@ use crate::leptos::links::{CATALOG_LINK_LOCALE_ATTR, CATALOG_ROUTE, PRELOAD_ATTR
 #[cfg(feature = "csr")]
 use crate::leptos::links::{CSR_INDEX_ATTR, CSR_INDEX_URL, LOCALE_STORAGE_KEY};
 #[cfg(not(feature = "csr"))]
-use crate::leptos::links::{LOCALE_COOKIE, LOCALE_QUERY};
+use crate::leptos::links::{LOCALE_COOKIE, LOCALE_QUERY, QUERY_ATTR};
 #[cfg(any(feature = "hydrate", not(feature = "static-locale")))]
 use crate::leptos::registry;
 use crate::leptos::{catalog, state};
@@ -240,7 +240,7 @@ fn reload_into(window: &web_sys::Window, tag: &str) -> Result<(), LoadError> {
     match location
         .search()
         .ok()
-        .and_then(|search| without_param(&search, LOCALE_QUERY))
+        .and_then(|search| without_param(&search, &page_query()))
     {
         Some(search) => location.set_search(&search),
         None => location.reload(),
@@ -310,7 +310,7 @@ fn drop_locale_query(window: &web_sys::Window) {
     let Some(search) = location
         .search()
         .ok()
-        .and_then(|search| without_param(&search, LOCALE_QUERY))
+        .and_then(|search| without_param(&search, &page_query()))
     else {
         return;
     };
@@ -321,6 +321,22 @@ fn drop_locale_query(window: &web_sys::Window) {
     if let Ok(history) = window.history() {
         let _ = history.replace_state_with_url(&JsValue::NULL, "", Some(&url));
     }
+}
+
+/// The query parameter that names a language in this page's address: the
+/// one its preload link states (`data-mf2-query`, the server's installed
+/// query source), else [`LOCALE_QUERY`].
+#[cfg(not(feature = "csr"))]
+fn page_query() -> String {
+    document()
+        .and_then(|document| {
+            document
+                .query_selector(&["link[", PRELOAD_ATTR, "][", QUERY_ATTR, "]"].concat())
+                .ok()
+                .flatten()
+        })
+        .and_then(|link| link.get_attribute(QUERY_ATTR))
+        .unwrap_or_else(|| String::from(LOCALE_QUERY))
 }
 
 /// `search` (`?a=1&lang=fr&b=2`) without the pairs named `name`, or `None`

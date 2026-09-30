@@ -13,9 +13,9 @@ lists both. Its samples join the [call sites](call-sites.md) library.
   right-to-left language lays out right-to-left without a second
   stylesheet, as long as the CSS uses flexbox and logical properties
   (below).
-* **The language of each option (3.1.2).** Each `<LocaleOption>` carries
-  its own `lang` and names its language in that language, so a screen
-  reader reads "Français" with a French voice.
+* **The language of each option (3.1.2).** Each option of the switcher
+  carries its own `lang` and names its language in that language, so a
+  screen reader reads "Français" with a French voice.
 * **No change of context on input (3.2.2).** The switcher applies a choice
   when its button is pressed, never on the `<select>`'s `change`, which the
   keyboard fires at every arrow key. See [Switching language](switching.md).
@@ -81,7 +81,7 @@ lists both. Its samples join the [call sites](call-sites.md) library.
 
 A page can state its language as structured data as well as in `<html
 lang>`, for crawlers and for tools that read schema.org. Keep it in step
-with a switch by reading `current_language` (from [Switching
+with a switch by reading `current_locale()` (from [Switching
 language](switching.md#the-current-language)) in a closure:
 
 ```mf2 file=calls/i18n/locales/en/main.mf2
@@ -94,7 +94,7 @@ headline = How the catalog is built
 pub fn Article() -> impl IntoView {
     view! {
         <article itemscope itemtype="https://schema.org/Article">
-            <meta itemprop="inLanguage" content=current_language />
+            <meta itemprop="inLanguage" content=move || hello_i18n::current_locale().tag() />
             <h2 itemprop="headline">{tr!("article.headline")}</h2>
         </article>
     }

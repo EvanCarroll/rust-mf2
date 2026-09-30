@@ -546,15 +546,47 @@ impl Build {
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect();
-        let names = locales.iter().all(|locale| {
-            let id = format!("language.{}", locale.tag);
-            built
-                .manifest
-                .ids
+        let names: Vec<bool> = locales
+            .iter()
+            .map(|locale| {
+                let id = format!("language.{}", locale.tag);
+                built
+                    .manifest
+                    .ids
+                    .iter()
+                    .position(|i| *i == id)
+                    .is_some_and(|at| built.manifest.slots.get(at).is_some_and(Vec::is_empty))
+            })
+            .collect();
+        // Some languages named and not all: the switcher shows the others'
+        // tags, and `Locale::name()` is not generated.
+        if names.contains(&true) && names.contains(&false) {
+            let missing: Vec<String> = locales
                 .iter()
-                .position(|i| *i == id)
-                .is_some_and(|at| built.manifest.slots.get(at).is_some_and(Vec::is_empty))
-        });
+                .zip(&names)
+                .filter(|(_, named)| !**named)
+                .map(|(locale, _)| format!("`language.{}`", locale.tag))
+                .collect();
+            let source = &sources[source_index];
+            let file = source
+                .loaded
+                .files
+                .first()
+                .map_or_else(|| source.path.clone(), |f| f.path.clone());
+            Sink::new(&mut report, &config.source_locale).add(
+                Level::Warn,
+                None,
+                &file,
+                mf2_resource::Position { line: 1, column: 1 },
+                None,
+                format!(
+                    "some languages have a name message and some do not ({} missing, each \
+                     with no argument): the locale switcher shows those languages' tags, \
+                     and `Locale::name()` is not generated",
+                    missing.join(", ")
+                ),
+            );
+        }
         let module = codegen::Module {
             facade: &self.facade,
             manifest_path: &self.out_dir.join(MANIFEST_FILE),
@@ -574,7 +606,7 @@ impl Build {
                 None
             },
             markup: &markup,
-            names,
+            names: &names,
         };
         codegen::check(&module)?;
         let generated = codegen::write(&module);

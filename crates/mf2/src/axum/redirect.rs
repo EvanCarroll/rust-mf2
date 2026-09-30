@@ -2,7 +2,7 @@
 //! switcher's form submits `?lang=`, which a path prefix outranks, so the
 //! server sends the reader to that language's URL instead (Phase 9 B4).
 
-use ::axum::extract::{Request, State};
+use ::axum::extract::Request;
 use ::axum::middleware::Next;
 use ::axum::response::{IntoResponse, Redirect, Response};
 use ::http::{Method, Uri};
@@ -20,23 +20,25 @@ use alloc::vec::Vec;
 /// submits before the wasm has loaded, or on a page without it. Anything
 /// else passes through.
 ///
-/// `name` is the query parameter the negotiator's query source reads
-/// ([`Negotiator::query_name`](super::Negotiator::query_name)), given as the
-/// middleware's state:
+/// `name` is the query parameter the [`Negotiator`](super::Negotiator)'s
+/// query source reads, which the negotiator puts in the request: so the
+/// redirect goes **under** it, a `.layer` before the negotiator's. Outside
+/// one, it reads the default name, `lang`.
 ///
 /// ```ignore
-/// let query = negotiator.query_name().unwrap_or(mf2::axum::QueryParam::default().0);
 /// let app = Router::new()
 ///     // …routes…
-///     .layer(axum::middleware::from_fn_with_state(query, mf2::axum::path_prefix_redirect));
+///     .layer(axum::middleware::from_fn(mf2::axum::path_prefix_redirect))
+///     .layer(negotiator);
 /// ```
 ///
 /// The locales are the build's, from the generated `install()`.
-pub async fn path_prefix_redirect(
-    State(name): State<&'static str>,
-    request: Request,
-    next: Next,
-) -> Response {
+pub async fn path_prefix_redirect(request: Request, next: Next) -> Response {
+    let name = request
+        .extensions()
+        .get::<super::layer::RequestLocale>()
+        .and_then(super::layer::RequestLocale::query)
+        .unwrap_or(crate::links::LOCALE_QUERY);
     if matches!(*request.method(), Method::GET | Method::HEAD)
         && let Some(to) = path_for_query(request.uri(), name, super::locales())
     {

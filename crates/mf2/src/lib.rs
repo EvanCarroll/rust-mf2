@@ -333,7 +333,7 @@ pub mod __arg;
 #[doc(hidden)]
 pub mod __generated;
 #[doc(hidden)]
-pub use markup::markup;
+pub use markup::{markup, markup_view};
 #[doc(hidden)]
 pub use tr::{tr, tr_args_n, tr_args0, tr_args1, tr_args2, tr_args3, tr_args4, tr_rich};
 
@@ -374,8 +374,8 @@ pub mod leptos_mf2 {
     pub use crate::leptos::*;
     pub use crate::{
         ArgList, ArgSource, ArgValue, DateTimeValue, Handler, IntoMarkupHandler, MarkupHandler,
-        Text, Tr, TrArgs, TrDyn, TrRich, markup, tr, tr_args_n, tr_args0, tr_args1, tr_args2,
-        tr_args3, tr_args4, tr_dyn, tr_rich,
+        Text, Tr, TrArgs, TrDyn, TrRich, markup, markup_view, tr, tr_args_n, tr_args0, tr_args1,
+        tr_args2, tr_args3, tr_args4, tr_dyn, tr_rich,
     };
 }
 

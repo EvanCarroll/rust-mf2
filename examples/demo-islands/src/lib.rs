@@ -20,7 +20,7 @@ use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
 use leptos_mf2::{CatalogPreload, IslandsGate, LocaleOption, LocaleSwitcher, html_lang};
 
-use demo_islands_i18n::tr;
+use demo_islands_i18n::{Locale, tr};
 
 /// The document. Islands mode: the scripts hydrate islands, not the body.
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -78,7 +78,7 @@ pub fn App() -> impl IntoView {
                     </label>
                     // Markup on the server: real elements, no client code.
                     <p id="hotkey">
-                        {tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}
+                        {tr!("hotkey", kbd = |children| view! { <kbd>{children}</kbd> })}
                     </p>
                 </section>
 
@@ -106,7 +106,7 @@ fn Counter() -> impl IntoView {
     view! {
         <section class="card">
             <p id="island-note">
-                {tr!("island-note", em = |children: AnyView| view! { <em>{children}</em> })}
+                {tr!("island-note", em = |children| view! { <em>{children}</em> })}
             </p>
             // Signal-valued: under `static-locale` this is the one node that
             // registers, because its argument effect needs somewhere to live.
@@ -133,9 +133,9 @@ fn Counter() -> impl IntoView {
 fn Switcher() -> impl IntoView {
     view! {
         <LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-            <LocaleOption tag="en">{tr!("language.en")}</LocaleOption>
-            <LocaleOption tag="fr">{tr!("language.fr")}</LocaleOption>
-            <LocaleOption tag="ar">{tr!("language.ar")}</LocaleOption>
+            <LocaleOption tag=Locale::En>{Locale::En.name()}</LocaleOption>
+            <LocaleOption tag=Locale::Fr>{Locale::Fr.name()}</LocaleOption>
+            <LocaleOption tag=Locale::Ar>{Locale::Ar.name()}</LocaleOption>
         </LocaleSwitcher>
     }
 }
@@ -151,8 +151,8 @@ fn more_server() -> impl IntoView {
             <p>{tr!("server-note")}</p>
             <input type="search" placeholder=tr!("search-placeholder") />
             <p>{tr!("people-online", count = 12)}</p>
-            <p>{tr!("hotkey", kbd = |children: AnyView| view! { <kbd>{children}</kbd> })}</p>
-            <p>{tr!("island-note", em = |children: AnyView| view! { <strong>{children}</strong> })}</p>
+            <p>{tr!("hotkey", kbd = |children| view! { <kbd>{children}</kbd> })}</p>
+            <p>{tr!("island-note", em = |children| view! { <strong>{children}</strong> })}</p>
         </section>
     }
 }

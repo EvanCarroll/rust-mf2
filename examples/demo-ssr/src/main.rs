@@ -32,7 +32,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             secure: false,
             ..CookieLocale::default()
         });
-    let query = negotiator.query_name().unwrap_or(QueryParam::default().0);
 
     let conf = get_configuration(None)?;
     let addr = conf.leptos_options.site_addr;
@@ -47,14 +46,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             move || shell(leptos_options.clone())
         })
         .fallback(file_and_error_handler(shell))
-        .layer(negotiator)
         // On a page whose language is in its URL, the switcher's form
         // (without the wasm) submits `?lang=`, which the path outranks: send
-        // it to that language's URL instead.
-        .layer(axum::middleware::from_fn_with_state(
-            query,
-            mf2::axum::path_prefix_redirect,
-        ))
+        // it to that language's URL instead. Under the negotiator, which
+        // tells it the query's name.
+        .layer(axum::middleware::from_fn(mf2::axum::path_prefix_redirect))
+        .layer(negotiator)
         .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

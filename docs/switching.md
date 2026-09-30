@@ -43,7 +43,8 @@ then the cookie, then `Accept-Language`. A site with a language in its URLs puts
 A `?lang=` then cannot change the language of `/en/…`, so the switcher's
 form, which submits one, needs the server to send it on to the other
 language's URL: `path_prefix_redirect` answers `/en/page?lang=fr` with a
-redirect to `/fr/page`.
+redirect to `/fr/page`. It reads the query's name from the negotiator, so
+it goes under it: add it to the router before the negotiator.
 
 ```rust file=calls/src/lib.rs
 /// A site whose pages live under `/en/…` and `/fr/…`.
@@ -58,13 +59,12 @@ pub fn path_negotiator() -> mf2_axum::Negotiator {
         .sink(CookieLocale::default())
 }
 
-/// The redirect, as a layer on the application's router.
+/// The redirect under the negotiator, as layers on the application's router.
 #[cfg(feature = "ssr")]
 pub fn with_path_redirect(router: axum::Router) -> axum::Router {
-    router.layer(axum::middleware::from_fn_with_state(
-        mf2_axum::QueryParam::default().0,
-        mf2_axum::path_prefix_redirect,
-    ))
+    router
+        .layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
+        .layer(path_negotiator())
 }
 ```
 
@@ -186,21 +186,23 @@ impl mf2_axum::LocaleSource for Subdomain {
 `<LocaleSwitcher>` is the switcher the library provides. It is a
 `<form method="get">`. Inside it are a `<select name="lang">` (named for
 the negotiator's `QueryParam`) in its own
-`<label>`, and a submit button whose text you supply:
+`<label>`, and a submit button whose text you supply. With no children it
+offers every language the build has, each named by its `language.<tag>`
+message, so adding a language needs no code:
 
 ```rust file=calls/src/lib.rs
 #[component]
 pub fn Header() -> impl IntoView {
     view! {
         <header>
-            <leptos_mf2::LocaleSwitcher label=tr!("language.label") button=tr!("language.apply")>
-                <leptos_mf2::LocaleOption tag="en">{tr!("language.en")}</leptos_mf2::LocaleOption>
-                <leptos_mf2::LocaleOption tag="fr">{tr!("language.fr")}</leptos_mf2::LocaleOption>
-            </leptos_mf2::LocaleSwitcher>
+            <leptos_mf2::LocaleSwitcher label=tr!("language.label") button=tr!("language.apply") />
         </header>
     }
 }
 ```
+
+A language without a `language.<tag>` message is shown by its tag, and the
+build warns about it.
 
 **Nothing happens until the button is pressed.** A `<select>` fires
 `change` on every arrow key, so a switcher that switched on `change` would
@@ -224,7 +226,9 @@ there the switcher is not an island, so no client code runs, and the form's
 `<AlternateLinks/>` takes. Each option then carries its language's URL,
 and pressing the button goes there instead of switching in place. Without
 the wasm, the form's `?lang=` goes to the server, and
-`path_prefix_redirect` (above) sends it on to the same URL:
+`path_prefix_redirect` (above) sends it on to the same URL. This sample
+also makes a list of its own: `<LocaleOption>` children, whose `tag` is
+the generated `Locale` or a tag as a string:
 
 ```rust file=calls/src/lib.rs
 /// This page's URL in `tag`, on a site under `/en/…` and `/fr/…`.
@@ -240,7 +244,7 @@ pub fn AccountHeader() -> impl IntoView {
             button=tr!("language.apply")
             href_of=account_href
         >
-            <leptos_mf2::LocaleOption tag="en">{tr!("language.en")}</leptos_mf2::LocaleOption>
+            <leptos_mf2::LocaleOption tag=Locale::En>{Locale::En.name()}</leptos_mf2::LocaleOption>
             <leptos_mf2::LocaleOption tag="fr">{tr!("language.fr")}</leptos_mf2::LocaleOption>
         </leptos_mf2::LocaleSwitcher>
     }
@@ -274,7 +278,8 @@ in both directions:
 
 ## What a switch does
 
-A live switch (`leptos_mf2::set_locale("fr")`) does this, in order:
+A live switch (`set_locale(Locale::Fr)`, from the i18n crate) does this,
+in order:
 
 1. it finds the French catalog's URL: from the page's `<CatalogLinks/>`
    if the shell renders them, or else by asking `GET /i18n/fr`, which
@@ -295,7 +300,7 @@ A live switch (`leptos_mf2::set_locale("fr")`) does this, in order:
    server-rendered page, `localStorage` in a client-only application.
 
 If any other step before the install fails, the page stays as it was and
-`set_locale` returns the error.
+`set_locale` logs one line, beginning `mf2:`, to the console.
 
 ## Your own control
 
@@ -317,71 +322,39 @@ pub fn LanguageLinks() -> impl IntoView {
 }
 ```
 
-To switch live from your own control, call `set_locale` where there is
-client code: under this application's `hydrate` feature (a client-only
-application's is `csr`). `preload_locale` fetches and checks a catalog without
+To switch live from your own control, call the i18n crate's
+`set_locale`. `preload_locale` fetches and checks a catalog without
 switching to it. Call it when the pointer or keyboard focus reaches a
-control, so that the switch itself is instant:
+control, so that the switch itself is instant. Both are callable on the
+server too, where they do nothing, so a component needs no `#[cfg]`:
 
 ```rust file=calls/src/lib.rs
+use hello_i18n::{Locale, preload_locale, set_locale};
+
 /// A button that switches live. It needs client code, so it does nothing
 /// before hydration: prefer `LocaleSwitcher` unless the page cannot work
 /// without the wasm anyway.
 #[component]
-pub fn SwitchButton(tag: &'static str, children: Children) -> impl IntoView {
+pub fn SwitchButton(lang: Locale, children: Children) -> impl IntoView {
     view! {
         <button
             type="button"
-            lang=tag
-            on:click=move |_| switch_to(tag)
-            on:pointerenter=move |_| warm(tag)
-            on:focus=move |_| warm(tag)
+            lang=lang.tag()
+            on:click=move |_| set_locale(lang)
+            on:pointerenter=move |_| preload_locale(lang)
+            on:focus=move |_| preload_locale(lang)
         >
             {children()}
         </button>
     }
 }
-
-#[cfg(feature = "hydrate")]
-fn switch_to(tag: &'static str) {
-    leptos::task::spawn_local(async move {
-        // On failure the page is left as it was.
-        let _ = leptos_mf2::set_locale(tag).await;
-    });
-}
-
-#[cfg(feature = "hydrate")]
-fn warm(tag: &'static str) {
-    leptos::task::spawn_local(async move {
-        let _ = leptos_mf2::preload_locale(tag).await;
-    });
-}
-
-// The server renders the button; nothing clicks it there.
-#[cfg(feature = "ssr")]
-fn switch_to(_: &'static str) {}
-
-#[cfg(feature = "ssr")]
-fn warm(_: &'static str) {}
 ```
 
 ## The current language
 
-`html_lang()` returns the current language and its direction
-(`("fr", "ltr")`). It reads the catalog in force, which is not a signal. In
-the browser, `track_locale()` subscribes the code that calls it to the
-next switch. Together they make a value that follows the language:
-
-```rust file=calls/src/lib.rs
-/// The page's language, following a switch.
-pub fn current_language() -> String {
-    // A request's language never changes on the server.
-    #[cfg(not(feature = "ssr"))]
-    leptos_mf2::track_locale();
-    leptos_mf2::html_lang().0
-}
-```
-
-Use it as a closure in a view, `content=current_language`. The
+The i18n crate's `current_locale()` is the language the page is in. In the
+browser it is reactive: a view or an effect that reads it follows the next
+switch. On the server it is the request's language. As a closure it keeps
+an attribute in step, `content=move || current_locale().tag()`; the
 [accessibility](accessibility.md) page uses it for schema.org's
 `inLanguage`.

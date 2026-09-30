@@ -214,7 +214,8 @@ pub fn current_locale(locales: &[(&str, Dir)]) -> Option<usize> {
 }
 
 /// The generated `set_locale(Locale)`: the native app-wide language, and a
-/// client's switch, spawned (a failure leaves the page as it is). On the
+/// client's switch, spawned (a failure is logged once and leaves the page as
+/// it is). On the
 /// server it does nothing: the request's language is the negotiation's.
 ///
 /// # Panics
@@ -238,13 +239,15 @@ pub fn set_locale(tag: &'static str) {
         any(feature = "leptos", feature = "leptos-0-8")
     ))]
     wasm_bindgen_futures::spawn_local(async move {
-        let _ = crate::leptos::set_locale(tag).await;
+        if let Err(error) = crate::leptos::set_locale(tag).await {
+            crate::leptos::components::switch_failed(&error);
+        }
     });
     let _ = tag;
 }
 
 /// The generated `preload_locale(Locale)`: a client fetches and checks the
-/// catalog, spawned; the server does nothing.
+/// catalog, spawned (a failure is logged once); the server does nothing.
 #[cfg(all(
     any(feature = "ssr", feature = "hydrate", feature = "csr"),
     any(feature = "leptos", feature = "leptos-0-8")
@@ -252,7 +255,11 @@ pub fn set_locale(tag: &'static str) {
 pub fn preload_locale(tag: &'static str) {
     #[cfg(any(feature = "hydrate", feature = "csr"))]
     wasm_bindgen_futures::spawn_local(async move {
-        let _ = crate::leptos::preload_locale(tag).await;
+        if crate::leptos::preload_locale(tag).await.is_err() {
+            web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(
+                "mf2: the locale could not be preloaded",
+            ));
+        }
     });
     let _ = tag;
 }

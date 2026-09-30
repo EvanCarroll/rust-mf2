@@ -94,9 +94,10 @@ pub struct Module<'a> {
     pub manifest_bytes: Option<&'a [u8]>,
     /// The markup names the corpus uses, ascending: `markup::*`.
     pub markup: &'a [String],
-    /// Every locale has a `language.<tag>` message with no argument:
-    /// `Locale::name()`.
-    pub names: bool,
+    /// For each of `locales`, whether it has a `language.<tag>` message with
+    /// no argument: the switcher's names, and `Locale::name()` when every
+    /// locale has one.
+    pub names: &'a [bool],
 }
 
 /// Refuses what would make the generated module ambiguous: two tags that
@@ -201,7 +202,7 @@ pub fn write(module: &Module<'_>) -> String {
     functions(&mut s, module);
     markup(&mut s, module);
     tr(&mut s, module);
-    if module.names {
+    if module.names.contains(&true) {
         names(&mut s, module);
     }
     prelude(&mut s, module);
@@ -789,7 +790,7 @@ fn functions(s: &mut String, m: &Module<'_>) {
     gate(
         s,
         "__if_leptos",
-        "/// What the Leptos layer is given, from what this build generated: the
+        &"/// What the Leptos layer is given, from what this build generated: the
 /// registry, the host, the manifest hash and the locales, and a client-only
 /// application's language-matching data. `install()` installs it; an
 /// application that adds to it (`setup().with_time_zone(…)`) installs it
@@ -807,9 +808,17 @@ pub fn setup() -> __mf2::leptos::Setup {
     __mf2::__if_csr! {
         let setup = setup.with_language_matching(&LANGUAGE_MATCHING);
     }
-    setup
+    __NAMES__setup
 }
-",
+"
+        .replace(
+            "__NAMES__",
+            if m.names.contains(&true) {
+                "let setup = setup.with_names(__locale_name);\n    "
+            } else {
+                ""
+            },
+        ),
     );
 
     // `install()`.
@@ -954,6 +963,13 @@ __mf2::{mode}! {{
 pub fn preload_locale(locale: Locale) {
     __mf2::__generated::preload_locale(locale.tag());
 }
+
+/// `<LocaleOption tag=Locale::Fr>`: the helper's tag type.
+impl From<Locale> for __mf2::leptos::LocaleTag {
+    fn from(locale: Locale) -> __mf2::leptos::LocaleTag {
+        __mf2::leptos::LocaleTag(locale.tag())
+    }
+}
 ",
     );
 
@@ -1059,9 +1075,10 @@ pub use __mf2_msg_id as msg_id;
 /// `Locale::name()`: after `tr!`, which it expands, as a macro is in scope
 /// only after its definition.
 fn names(s: &mut String, m: &Module<'_>) {
-    let _ = write!(
-        s,
-        "
+    if m.names.len() == m.locales.len() && m.names.iter().all(|named| *named) {
+        let _ = write!(
+            s,
+            "
 impl Locale {{
     /// The language's name, for a language menu: its `language.<tag>`
     /// message, which each translation writes.
@@ -1069,12 +1086,30 @@ impl Locale {{
     pub fn name(self) -> __mf2::Tr {{
         match self {{
 "
-    );
-    for l in m.locales {
-        let id = format!("language.{}", l.tag);
-        let _ = writeln!(s, "            Locale::{} => tr!({id:?}),", variant(&l.tag));
+        );
+        for l in m.locales {
+            let id = format!("language.{}", l.tag);
+            let _ = writeln!(s, "            Locale::{} => tr!({id:?}),", variant(&l.tag));
+        }
+        s.push_str("        }\n    }\n}\n");
     }
-    s.push_str("        }\n    }\n}\n");
+    // What `setup()` gives the switcher: each named language's message, by
+    // its index in `LOCALES`.
+    s.push_str(
+        "
+__mf2::__if_leptos! {
+    /// The name of the language at `index` in `LOCALES`: `setup()`'s names.
+    fn __locale_name(index: usize) -> Option<__mf2::Tr> {
+        match index {
+",
+    );
+    for (index, (l, named)) in m.locales.iter().zip(m.names).enumerate() {
+        if *named {
+            let id = format!("language.{}", l.tag);
+            let _ = writeln!(s, "            {index} => Some(tr!({id:?})),");
+        }
+    }
+    s.push_str("            _ => None,\n        }\n    }\n}\n");
 }
 
 /// The prelude: `tr` and `msg_id`, `Locale`, the functions that choose and
@@ -1182,7 +1217,7 @@ mod tests {
             manifest_bytes: None,
             language_matching: "__mf2::LanguageMatching::EMPTY",
             markup: &[],
-            names: false,
+            names: &[],
         }
     }
 
@@ -1302,11 +1337,12 @@ mod tests {
         let features = Features::parse("fn-number,fn-datetime");
         let custom = BTreeMap::new();
         let markup = ["key".to_owned()];
+        let named = vec![true; locales.len()];
         for emit in [Emit::Native, Emit::NativeFiles, Emit::Both] {
             let mut m = module(&[], &features, &custom, &locales, true);
             m.emit = emit;
             m.markup = &markup;
-            m.names = true;
+            m.names = &named;
             let code = write(&m).to_ascii_lowercase();
             assert_eq!(
                 code.contains("wasm"),
@@ -1606,9 +1642,13 @@ mod tests {
         let locales = locales();
         let features = Features::default();
         let custom = BTreeMap::new();
+        let named = vec![true; locales.len()];
+        let some = vec![false; locales.len()];
         let mut m = module(&[], &features, &custom, &locales, false);
         assert!(!write(&m).contains("pub fn name("));
-        m.names = true;
+        m.names = &some;
+        assert!(!write(&m).contains("with_names"));
+        m.names = &named;
         let code = write(&m);
         let name = code.find("pub fn name(self) -> __mf2::Tr").unwrap_or(0);
         assert!(
@@ -1631,6 +1671,13 @@ mod tests {
         );
         assert!(
             code.contains("Locale::Ar => tr!(\"language.ar\"),"),
+            "{code}"
+        );
+        // The switcher's names, by index, after the macro too.
+        let at = code.find("fn __locale_name(").unwrap_or(0);
+        assert!(at > code.find("macro_rules! __mf2_tr {").unwrap_or(usize::MAX));
+        assert!(
+            code.contains("let setup = setup.with_names(__locale_name);"),
             "{code}"
         );
     }

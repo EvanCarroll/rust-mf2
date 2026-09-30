@@ -22,6 +22,7 @@ pub use leptos_mf2::LocaleOption
 pub use leptos_mf2::LocaleOptionProps
 pub use leptos_mf2::LocaleSwitcher
 pub use leptos_mf2::LocaleSwitcherProps
+pub use leptos_mf2::LocaleTag
 pub use leptos_mf2::MarkupHandler
 pub use leptos_mf2::NestingHandler
 pub use leptos_mf2::RequestI18n

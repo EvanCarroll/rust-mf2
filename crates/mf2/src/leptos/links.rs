@@ -40,6 +40,11 @@ pub const ZONE_ATTR: &str = "data-mf2-zone";
 
 pub use crate::links::LOCALE_QUERY;
 
+/// The attribute of the preload link ([`PRELOAD_ATTR`]) that names the query
+/// parameter the switcher submits, when it is not [`LOCALE_QUERY`]: what a
+/// client's switch takes out of the address.
+pub const QUERY_ATTR: &str = "data-mf2-query";
+
 /// The `data-` attribute that marks a client-only page's preload of its
 /// catalog index: `index.html` writes
 /// `<link rel="preload" as="fetch" crossorigin="anonymous" href="i18n/index.json" data-mf2-index>`,

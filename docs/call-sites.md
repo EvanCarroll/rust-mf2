@@ -360,8 +360,8 @@ pub fn Terms() -> impl IntoView {
         <p>
             {tr!(
                 "terms.accept",
-                link = |children: AnyView| view! { <a href="/terms">{children}</a> },
-                strong = |children: AnyView| view! { <strong>{children}</strong> },
+                link = |children| view! { <a href="/terms">{children}</a> },
+                strong = |children| view! { <strong>{children}</strong> },
             )}
         </p>
     }
