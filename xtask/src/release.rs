@@ -28,7 +28,10 @@
 //! 6. the packages' own tests from their `.crate` files (A4, `--test`);
 //! 7. the documentation as docs.rs builds it (A5);
 //! 8. the MSRV build (A3);
-//! 9. `cargo publish --workspace --dry-run`, the released crates excluded;
+//! 9. `cargo publish --workspace --dry-run`, the released crates excluded,
+//!    after clearing this version's extracts from cargo's temporary local
+//!    registries (cargo never re-extracts one, so a second dry run would
+//!    verify against the first run's sources);
 //! 10. the tree as it was at the start: no step may have written to it.
 //!
 //! With `--publish` — the owner's, never CI's: it refuses when `CI` is set —
@@ -184,6 +187,7 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
     if released.len() == packages::PUBLISHED.len() {
         eprintln!("==> cargo publish: nothing left to publish; all 16 are on crates.io");
     } else {
+        clear_local_extracts(&version)?;
         let mut dry = publish_args(&released);
         dry.push("--dry-run".to_owned());
         if options.allow_dirty {
@@ -1066,16 +1070,80 @@ fn install_semver_checks(root: &Path) -> Result<std::path::PathBuf> {
     Ok(tool)
 }
 
+/// Removes what earlier dry runs extracted from cargo's temporary local
+/// registry: cargo extracts each version once and reuses the folder after,
+/// so a new dry run would verify against an old run's sources.
+fn clear_local_extracts(version: &str) -> Result<()> {
+    let home = std::env::var_os("CARGO_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".cargo")));
+    let Some(src) = home.map(|h| h.join("registry").join("src")) else {
+        return Ok(());
+    };
+    let Ok(entries) = std::fs::read_dir(&src) else {
+        return Ok(());
+    };
+    let dirs: Vec<String> = entries
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .collect();
+    let mut removed = Vec::new();
+    for path in local_extracts(&src, &dirs, version) {
+        if path.is_dir() {
+            std::fs::remove_dir_all(&path)
+                .map_err(|e| fail(format!("cannot remove {}: {e}", path.display())))?;
+            removed.push(path.display().to_string());
+        }
+    }
+    if !removed.is_empty() {
+        eprintln!(
+            "==> removed stale local-registry extracts: {}",
+            removed.join(", ")
+        );
+    }
+    Ok(())
+}
+
+/// The extract folders of this version's 16 under every local registry in
+/// `src` (`$CARGO_HOME/registry/src`). A local registry has no host, so its
+/// folder's name starts with `-`; crates.io's (`index.crates.io-…`) is kept.
+fn local_extracts(src: &Path, dirs: &[String], version: &str) -> Vec<PathBuf> {
+    dirs.iter()
+        .filter(|d| d.starts_with('-'))
+        .flat_map(|d| {
+            packages::PUBLISHED
+                .iter()
+                .map(move |name| src.join(d).join(format!("{name}-{version}")))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
     use super::{
-        Against, Registered, Source, name_problems, placeholder_manifest, publish_args, released,
-        retry_after, spelling, target_gated,
+        Against, Registered, Source, local_extracts, name_problems, placeholder_manifest,
+        publish_args, released, retry_after, spelling, target_gated,
     };
     use crate::api::Modes;
     use crate::fsx::repo_root;
+
+    #[test]
+    fn only_local_registry_extracts_are_cleared() {
+        let src = std::path::Path::new("/c/registry/src");
+        let dirs = [
+            "-0123abcd".to_owned(),
+            "index.crates.io-1949cf8c".to_owned(),
+        ];
+        let found = local_extracts(src, &dirs, "2.0.0");
+        assert_eq!(found.len(), 16);
+        assert!(
+            found
+                .iter()
+                .all(|p| p.starts_with("/c/registry/src/-0123abcd"))
+        );
+        assert!(found.contains(&src.join("-0123abcd/mf2-build-2.0.0")));
+    }
 
     /// This tree's packages, as far as these tests need: `mf2-model`'s.
     fn local() -> BTreeMap<&'static str, String> {
