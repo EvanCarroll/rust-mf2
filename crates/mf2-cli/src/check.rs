@@ -64,7 +64,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// where it succeeds. Without an answer from cargo, every function's, so
 /// that no function is reported as gated when it may not be, and a note
 /// says so (on stderr, so that `--format json` stays one document). `mf2
-/// import` checks what it would write with the same.
+/// import` checks what it would write with the same, and `mf2 stats`
+/// counts what the build ships.
 pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     if let Some(given) = args.given() {
         return given;

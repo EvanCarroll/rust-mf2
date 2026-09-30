@@ -480,6 +480,34 @@ fn stats_reports_coverage_sizes_and_the_pins() {
 }
 
 #[test]
+fn stats_takes_the_i18n_crates_features_from_cargo() {
+    // `:integer` formats with CLDR's number symbols only with `fn-number`,
+    // so whether the catalog carries them says which features stats used.
+    let dir = small_corpus("cli-stats-features", &[("en", "items = {$n :integer}\n")]);
+    let symbols = |dir: &Path| -> bool {
+        let out = run(dir, &["stats", "--format", "json"]);
+        let value: serde_json::Value = serde_json::from_str(&ok(&out)).expect("json");
+        value["locales"][0]["locale_data"]
+            .as_array()
+            .expect("an array")
+            .iter()
+            .any(|e| e["entry"] == "number.symbols")
+    };
+    // The crate turns `mf2`'s `fn-number` on, or leaves it off: stats
+    // counts what that build ships, as `check` checks it.
+    i18n_crate(&dir, "\"fn-number\"");
+    assert!(symbols(&dir));
+    i18n_crate(&dir, "");
+    assert!(!symbols(&dir));
+    // `--features` still wins over cargo's.
+    let out = run(
+        &dir,
+        &["stats", "--features", "fn-number", "--format", "json"],
+    );
+    assert!(ok(&out).contains("number.symbols"));
+}
+
+#[test]
 fn fmt_leaves_the_generated_corpus_alone() {
     // The layout `mf2 fmt` writes is the one `bench/workload-gen` writes, so
     // a generated corpus is already canonical — which is what makes `--check`

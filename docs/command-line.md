@@ -171,7 +171,8 @@ that need translating it has and lacks (not those marked
 `@do-not-translate`), and its catalog's size raw, gzipped and
 brotli-compressed; then
 the locale data each catalog carries, entry by entry. `--format json` for
-a dashboard.
+a dashboard. Like `check`, it uses the features cargo resolves for the
+application's `mf2`, or those `--features` names.
 
 `mf2 dump <file.mf2b>` prints a compiled catalog back as MF2 (or, with
 `--format json`, as data), all of it or one message (`--id`), reading ids

@@ -378,9 +378,9 @@ translating: the three names marked `@do-not-translate` count in neither,
 here or in `check`. German lacks one of seven. The next columns are the
 language's catalog, raw, gzipped and brotli-compressed, and the last
 section is the locale data each catalog carries, entry by entry.
-`--format json` prints the same for a dashboard. Unlike `check`, `stats`
-does not ask cargo for the features: name them with `--features`, as the
-application turns them on for `mf2`.
+`--format json` prints the same for a dashboard. Like `check`, `stats`
+counts with the features cargo resolves for the application's `mf2`;
+`--features` names them instead, as here.
 
 ## The checks in CI
 
@@ -440,7 +440,7 @@ jobs:
       - name: Every check the build makes
         run: mf2 check --deny-warnings
       - name: What each language lacks
-        run: mf2 stats --features fn-number
+        run: mf2 stats
 ```
 
 The job fetches the sources with git; a private repository adds its token

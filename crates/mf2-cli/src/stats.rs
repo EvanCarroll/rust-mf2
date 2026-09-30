@@ -20,6 +20,7 @@ pub(crate) const SPEC_COMMIT: &str = "5c4ddb27e726fd7881c1787a632efba83ab0d850";
 /// `mf2 stats`.
 #[derive(Debug, ClapArgs)]
 pub(crate) struct Args {
+    // Without `--features`, mf2's, as cargo resolves them for this crate.
     #[command(flatten)]
     features: FeatureArgs,
     /// How to report.
@@ -31,7 +32,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
     let outcome = Build::at(dir, std::env::temp_dir().join("mf2-stats"))
         .config(config)
-        .features(args.features.features())
+        .features(crate::check::features(dir, &args.features))
         .check()?;
     let total = outcome.manifest.ids.len();
     // Coverage counts only the messages that need translating: one marked
