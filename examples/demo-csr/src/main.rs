@@ -120,7 +120,7 @@ pub fn mf2_live_nodes() -> usize {
 
 fn main() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(demo_csr_i18n::setup());
+    demo_csr_i18n::install();
     // Chooses the locale, loads the index and that locale's catalog, and
     // only then mounts.
     leptos_mf2::mount_to_body(App);

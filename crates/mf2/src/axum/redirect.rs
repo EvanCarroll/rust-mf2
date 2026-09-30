@@ -2,7 +2,7 @@
 //! switcher's form submits `?lang=`, which a path prefix outranks, so the
 //! server sends the reader to that language's URL instead (Phase 9 B4).
 
-use ::axum::extract::Request;
+use ::axum::extract::{Request, State};
 use ::axum::middleware::Next;
 use ::axum::response::{IntoResponse, Redirect, Response};
 use ::http::{Method, Uri};
@@ -13,24 +13,32 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 /// Middleware for a site whose first path segment is the locale
-/// ([`PathPrefix`](super::PathPrefix)): a `GET` whose `?lang=` names another
-/// locale than its path is redirected to the same path under that locale,
-/// `?lang=` removed and every other parameter kept — `/en/about?lang=fr` to
-/// `/fr/about`. That is what `<LocaleSwitcher>`'s form submits before the
-/// wasm has loaded, or on a page without it. Anything else passes through.
+/// ([`PathPrefix`](super::PathPrefix)): a `GET` whose `?<name>=` names
+/// another locale than its path is redirected to the same path under that
+/// locale, the parameter removed and every other one kept —
+/// `/en/about?lang=fr` to `/fr/about`. That is what `<LocaleSwitcher>`'s form
+/// submits before the wasm has loaded, or on a page without it. Anything
+/// else passes through.
+///
+/// `name` is the query parameter the negotiator's query source reads
+/// ([`Negotiator::query_name`](super::Negotiator::query_name)), given as the
+/// middleware's state:
 ///
 /// ```ignore
+/// let query = negotiator.query_name().unwrap_or(mf2::axum::QueryParam::default().0);
 /// let app = Router::new()
 ///     // …routes…
-///     .layer(axum::middleware::from_fn(mf2::axum::path_prefix_redirect));
+///     .layer(axum::middleware::from_fn_with_state(query, mf2::axum::path_prefix_redirect));
 /// ```
 ///
-/// The query parameter is [`QueryParam::default`](super::QueryParam)'s and
-/// the locales are the build's, from the generated `install()`.
-pub async fn path_prefix_redirect(request: Request, next: Next) -> Response {
+/// The locales are the build's, from the generated `install()`.
+pub async fn path_prefix_redirect(
+    State(name): State<&'static str>,
+    request: Request,
+    next: Next,
+) -> Response {
     if matches!(*request.method(), Method::GET | Method::HEAD)
-        && let Some(to) =
-            path_for_query(request.uri(), crate::links::LOCALE_QUERY, super::locales())
+        && let Some(to) = path_for_query(request.uri(), name, super::locales())
     {
         return Redirect::to(&to).into_response();
     }

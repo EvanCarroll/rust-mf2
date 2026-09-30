@@ -27,14 +27,18 @@
 //! The extractor takes the language a layer negotiated, when one did, else
 //! negotiates the request with [`Negotiator::default`]'s sources.
 //!
-//! A Leptos server (`ssr`) serializes the negotiated locale into the page
-//! (`<html lang dir>` and the preload link), and the client reads it rather
-//! than negotiating again. Until the negotiation is a tower layer, its
-//! request glue (`provide_locale`, which needs `leptos_axum`) is the
-//! `mf2-axum` crate's.
+//! 4. **The layer.** [`Negotiator`] is a tower layer: `.layer(
+//!    Negotiator::default())` negotiates each request once, and writes
+//!    `Content-Language`, `Vary` and the cookie on a response that read the
+//!    answer. A Leptos server (`ssr`) finds the answer through the request
+//!    `Parts` that `leptos_axum` provides, so `leptos_routes` and
+//!    `file_and_error_handler` are Leptos's plain forms. It serializes the
+//!    locale into the page (`<html lang dir>` and the preload link), and the
+//!    client reads it rather than negotiating again.
 //!
 //! See the user guide, the [Rust MF2 book](https://evancarroll.github.io/rust-mf2/).
 
+mod layer;
 mod negotiate;
 mod redirect;
 mod serve;
@@ -45,6 +49,10 @@ use mf2_catalog::Dir;
 
 use crate::Corpus;
 
+pub use layer::Negotiate;
+pub(crate) use layer::RequestLocale;
+#[cfg(all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8")))]
+pub(crate) use negotiate::cookie as negotiate_cookie;
 pub use negotiate::{
     AcceptLanguage, CookieLocale, LocaleSink, LocaleSource, Negotiated, Negotiator, PathPrefix,
     QueryParam,
@@ -153,8 +161,8 @@ pub(crate) fn locale_index(
     locales: &'static [(&'static str, Dir)],
     source: &'static str,
 ) -> Option<usize> {
-    let tag = match parts.extensions.get::<Negotiated>() {
-        Some(negotiated) => negotiated.tag,
+    let tag = match parts.extensions.get::<RequestLocale>() {
+        Some(request) => request.read().tag,
         None => {
             Negotiator::over(locales, source)
                 .defaults()
@@ -163,4 +171,20 @@ pub(crate) fn locale_index(
         }
     };
     locales.iter().position(|(t, _)| *t == tag)
+}
+
+/// What the [`Negotiator`] layer negotiated for the request this Leptos
+/// render answers, for a component that needs it: a `<LocaleSwitcher>`, an
+/// `hreflang` block, a note on where the language came from. `None` with no
+/// layer, or with no request (route listing, a bare owner).
+#[cfg(all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8")))]
+#[must_use]
+pub fn negotiated() -> Option<Negotiated> {
+    crate::line::reactive_graph::owner::with_context::<::http::request::Parts, _>(|parts| {
+        parts
+            .extensions
+            .get::<RequestLocale>()
+            .map(|request| request.read().clone())
+    })
+    .flatten()
 }

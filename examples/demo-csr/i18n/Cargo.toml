@@ -7,29 +7,14 @@ edition = "2024"
 license = "MIT"
 publish = false
 
-[features]
-# Numbers in each locale's own symbols (the counter). The build script
-# compiles the wasm's half for these, and `mf2 compile --site`
-# (`../Trunk.toml`) reads them from cargo to build the catalogs the browser
-# fetches.
-#
-# Dates through the browser's own `Intl.DateTimeFormat` (`datetime-intl`):
-# a client-only application has a browser to ask, so it ships no date data.
-# The published line is shown in the reader's time zone, read at mount.
-default = ["fn-number", "datetime-intl"]
-# The generated module names these whether or not the corpus uses them.
-fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
-
 [dependencies]
-mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web"] }
+# Numbers in each locale's own symbols (the counter), and dates through the
+# browser's own `Intl.DateTimeFormat` (`datetime-intl`): a client-only
+# application has a browser to ask, so it ships no date data. The published
+# line is shown in the reader's time zone, read at mount. The build reads
+# `mf2`'s features from `mf2` itself, and `mf2 compile --site`
+# (`../Trunk.toml`) from cargo, to build the catalogs the browser fetches.
+mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web", "fn-number", "datetime-intl"] }
 
 [build-dependencies]
 mf2-build = { path = "../../../crates/mf2-build" }
-
-# The generated module gates its server half on `ssr`; a client-only
-# application has no server half, so the feature is not declared.
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("ssr"))'] }

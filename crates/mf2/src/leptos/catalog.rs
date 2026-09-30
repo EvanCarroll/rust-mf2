@@ -140,10 +140,10 @@ pub use store::{
 
 /// What one request formats with, in its `Owner`.
 ///
-/// The catalog is the whole of it for an ordinary application, and
-/// `mf2-axum` provides that from `additional_context` — it must be passed to
-/// **every** `leptos_axum` `_with_context` entry point. The other two
-/// exist because something does need them:
+/// The catalog is the whole of it for an ordinary application, and with
+/// `axum` the render provides it itself, from what the `Negotiator` layer
+/// put in the request's extensions. The other two exist because something
+/// does need them:
 ///
 /// * `registry` — a process that serves two applications, and conformance
 ///   L6, which formats the same suite with the full registry and again with
@@ -152,7 +152,7 @@ pub use store::{
 ///   wants a subtree rendered without the isolating marks.
 ///
 /// The request's **time zone** is the reader's, when the `mf2_tz` cookie
-/// named one this server knows; `mf2-axum` sets it.
+/// named one this server knows; the `Negotiator` layer's render sets it.
 #[cfg(feature = "ssr")]
 #[derive(Clone, Debug)]
 pub struct RequestI18n {
@@ -214,7 +214,7 @@ pub fn provide_locale(tag: &str) -> &'static str {
 }
 
 /// [`provide_locale`], with the reader's time zone when it is known — what
-/// `mf2-axum` calls with the `mf2_tz` cookie's zone.
+/// the render calls with the `mf2_tz` cookie's zone.
 #[cfg(feature = "ssr")]
 pub fn provide_locale_in_zone(tag: &str, zone: Option<mf2_runtime::TimeZone>) -> &'static str {
     let found = state::locales()
@@ -235,7 +235,7 @@ pub fn provide_locale_in_zone(tag: &str, zone: Option<mf2_runtime::TimeZone>) ->
 
 /// The query parameter the server's negotiator reads (its `QueryParam`'s
 /// name), for this request: the name `<LocaleSwitcher>`'s `<select>`
-/// submits under. `mf2-axum` provides it with the locale.
+/// submits under. The render provides it with the locale.
 #[cfg(feature = "ssr")]
 #[derive(Clone, Copy, Debug)]
 struct LocaleQuery(&'static str);
@@ -253,6 +253,17 @@ pub fn provide_locale_query(name: &'static str) {
 pub(crate) fn locale_query() -> &'static str {
     #[cfg(feature = "ssr")]
     if let Some(LocaleQuery(name)) = reactive_graph::owner::use_context::<LocaleQuery>() {
+        return name;
+    }
+    #[cfg(all(feature = "ssr", feature = "axum"))]
+    if let Some(name) = reactive_graph::owner::with_context::<::http::request::Parts, _>(|parts| {
+        parts
+            .extensions
+            .get::<crate::axum::RequestLocale>()
+            .and_then(crate::axum::RequestLocale::query)
+    })
+    .flatten()
+    {
         return name;
     }
     crate::links::LOCALE_QUERY
@@ -278,10 +289,52 @@ pub fn active() -> Option<Arc<Catalog>> {
 /// per field would walk the owner chain twice for every rendered node.
 #[cfg(feature = "ssr")]
 pub(crate) fn current() -> Option<RequestI18n> {
-    match reactive_graph::owner::use_context::<RequestI18n>() {
+    match request() {
         Some(cx) => Some(cx),
         None => default_catalog().map(RequestI18n::new),
     }
+}
+
+/// This request's own catalog: the one provided, else (with `axum`) the one
+/// the `Negotiator` layer chose, found through the request `Parts`
+/// `leptos_axum` provides and then provided here, so that the next lookup
+/// under this owner finds it at once.
+#[cfg(feature = "ssr")]
+fn request() -> Option<RequestI18n> {
+    if let Some(cx) = reactive_graph::owner::use_context::<RequestI18n>() {
+        return Some(cx);
+    }
+    #[cfg(feature = "axum")]
+    if let Some((tag, zone, query)) = from_layer() {
+        if let Some(name) = query {
+            provide_locale_query(name);
+        }
+        provide_locale_in_zone(tag, zone);
+        return reactive_graph::owner::use_context::<RequestI18n>();
+    }
+    None
+}
+
+/// What the `Negotiator` layer put in the request's extensions: the tag, the
+/// reader's time zone (the `mf2_tz` cookie, when this server knows it) and
+/// the query source's name. `None` with no request or no layer.
+#[cfg(all(feature = "ssr", feature = "axum"))]
+fn from_layer() -> Option<(
+    &'static str,
+    Option<mf2_runtime::TimeZone>,
+    Option<&'static str>,
+)> {
+    reactive_graph::owner::with_context::<::http::request::Parts, _>(|parts| {
+        let request = parts.extensions.get::<crate::axum::RequestLocale>()?;
+        let tag = request.read().tag;
+        let zone = crate::axum::negotiate_cookie(parts, crate::leptos::links::TIME_ZONE_COOKIE)
+            .and_then(crate::leptos::reader_time_zone);
+        if zone.is_some() {
+            request.zoned();
+        }
+        Some((tag, zone, request.query()))
+    })
+    .flatten()
 }
 
 /// The same on the client, where the catalog is a `thread_local!` and there
@@ -297,7 +350,7 @@ pub(crate) fn current() -> Option<Resolved> {
 /// store's.
 #[cfg(all(feature = "ssr", feature = "native"))]
 pub(crate) fn requested() -> Option<RequestI18n> {
-    reactive_graph::owner::use_context::<RequestI18n>()
+    request()
 }
 
 /// On the client, the page's catalog, which has no fallback anyway.

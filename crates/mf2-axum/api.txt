@@ -6,6 +6,7 @@ pub use mf2_axum::CATALOG_PREFIX
 pub use mf2_axum::CookieLocale
 pub use mf2_axum::LocaleSink
 pub use mf2_axum::LocaleSource
+pub use mf2_axum::Negotiate
 pub use mf2_axum::Negotiated
 pub use mf2_axum::Negotiator
 pub use mf2_axum::PathPrefix

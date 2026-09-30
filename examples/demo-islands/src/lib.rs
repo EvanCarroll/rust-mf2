@@ -176,7 +176,7 @@ pub fn mf2_live_nodes() -> usize {
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(demo_islands_i18n::setup());
+    demo_islands_i18n::install();
     leptos_mf2::hydrate_islands();
 }
 

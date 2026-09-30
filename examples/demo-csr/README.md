@@ -44,7 +44,7 @@ Like the other examples, this is a **workspace of its own**.
 ```rust
 // main.rs: install the generated setup, then mount through the gate.
 fn main() {
-    leptos_mf2::install(my_i18n::setup());
+    my_i18n::install();
     leptos_mf2::mount_to_body(App);
 }
 ```

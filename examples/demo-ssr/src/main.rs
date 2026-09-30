@@ -1,10 +1,8 @@
-//! The server (`plans/04-leptos-integration.md` §6).
+//! The server (`plans/04-leptos-integration.md` §12.5).
 //!
-//! Three things are wired, and the third is the one that is easy to get
-//! wrong: **the context goes to every `_with_context` entry point.** Route
-//! list generation, the routes themselves (which also register server
-//! functions), and the file/error handler. A missed one renders that path in
-//! the default locale with no other symptom.
+//! The generated `install()`, the `Negotiator` as a layer, and the catalog
+//! routes. The routes and the file/error handler are Leptos's plain forms:
+//! the render finds the negotiated language in the request itself.
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
@@ -12,39 +10,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use axum::Router;
     use demo_ssr::{App, shell};
     use leptos::prelude::*;
-    use leptos_axum::{LeptosRoutes, file_and_error_handler_with_context, generate_route_list};
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
-    use std::sync::Arc;
+    use leptos_axum::{LeptosRoutes, file_and_error_handler, generate_route_list};
+    use mf2::axum::{AcceptLanguage, CookieLocale, Negotiator, PathPrefix, QueryParam};
 
-    // The generated module, installed once: the registry, the host, the
-    // manifest hash, the locale table, and the catalogs — every one of which
-    // is validated against `MANIFEST_HASH` here, so a deploy that mixes
-    // builds fails at boot rather than in a request.
-    mf2_axum::install(demo_i18n::setup(), demo_i18n::CATALOGS)?;
+    // The generated module, installed once: the setup and the catalogs,
+    // each checked against the manifest hash.
+    demo_i18n::install();
 
     // Negotiation: an ordered list. A path prefix first, for the pages whose
     // language is in their URL (`/fr/about`; any other path names no locale
     // and falls through); then a query parameter, so that a link can force a
     // locale for a screenshot or a test; then the cookie the switcher wrote;
     // then what the browser asked for.
-    let negotiator = Arc::new(
-        Negotiator::empty()
-            .source(PathPrefix)
-            .source(QueryParam::default())
-            .source(CookieLocale::default())
-            .source(AcceptLanguage)
-            .sink(CookieLocale {
-                // The demo is served over plain HTTP on localhost.
-                secure: false,
-                ..CookieLocale::default()
-            }),
-    );
-    let context = {
-        let negotiator = Arc::clone(&negotiator);
-        move || {
-            mf2_axum::provide_locale(&negotiator);
-        }
-    };
+    let negotiator = Negotiator::empty()
+        .source(PathPrefix)
+        .source(QueryParam::default())
+        .source(CookieLocale::default())
+        .source(AcceptLanguage)
+        .sink(CookieLocale {
+            // The demo is served over plain HTTP on localhost.
+            secure: false,
+            ..CookieLocale::default()
+        });
+    let query = negotiator.query_name().unwrap_or(QueryParam::default().0);
 
     let conf = get_configuration(None)?;
     let addr = conf.leptos_options.site_addr;
@@ -53,16 +41,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         // `/i18n/*`: the catalogs, immutable and precompressed.
-        .merge(mf2_axum::catalog_routes())
-        .leptos_routes_with_context(&leptos_options, routes, context.clone(), {
+        .merge(mf2::axum::catalog_routes())
+        .leptos_routes(&leptos_options, routes, {
             let leptos_options = leptos_options.clone();
             move || shell(leptos_options.clone())
         })
-        .fallback(file_and_error_handler_with_context(context, shell))
+        .fallback(file_and_error_handler(shell))
+        .layer(negotiator)
         // On a page whose language is in its URL, the switcher's form
         // (without the wasm) submits `?lang=`, which the path outranks: send
         // it to that language's URL instead.
-        .layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
+        .layer(axum::middleware::from_fn_with_state(
+            query,
+            mf2::axum::path_prefix_redirect,
+        ))
         .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

@@ -1,5 +1,8 @@
 //! The per-request locale, installed from inside the render
-//! (`plans/04-leptos-integration.md` §5, §6).
+//! (`plans/04-leptos-integration.md` §5, §6): 1.x's request glue, kept for
+//! 1.x's pages. `mf2`'s `Negotiator` is now a tower layer, and
+//! `.layer(negotiator)` replaces all of this: the render finds the answer in
+//! the request itself, so no entry point needs the context.
 //!
 //! `leptos_axum` already provides the request's [`Parts`] and a
 //! [`ResponseOptions`] in the reactive context, so negotiation, the catalog
@@ -92,10 +95,11 @@ pub fn provide_locale(negotiator: &Negotiator) -> Negotiated {
 }
 
 /// What this request negotiated, for a component that needs it — the shell's
-/// `<html lang dir>`, a `<LocaleSwitcher>`, an `hreflang` block.
+/// `<html lang dir>`, a `<LocaleSwitcher>`, an `hreflang` block: what
+/// [`provide_locale`] provided, else what the `Negotiator` layer chose.
 #[must_use]
 pub fn negotiated() -> Option<Negotiated> {
-    use_context::<Negotiated>()
+    use_context::<Negotiated>().or_else(mf2::axum::negotiated)
 }
 
 /// Empty request parts: what route-list generation effectively has.

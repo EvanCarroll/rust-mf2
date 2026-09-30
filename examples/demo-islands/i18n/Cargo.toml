@@ -7,23 +7,14 @@ edition = "2024"
 license = "MIT"
 publish = false
 
-[features]
-# Numbers in each locale's own symbols (the counter). No dates: this example
-# is about where the wasm goes, and needs nothing more.
-default = ["fn-number"]
-ssr = ["mf2/host-std", "mf2/ssr"]
-hydrate = ["mf2/host-web", "mf2/hydrate"]
-# The generated module names these whether or not the corpus uses them.
-fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
-
 [dependencies]
-# `static-locale` belongs to the application and applies to its server and
-# client alike (master plan §5): on an islands page a switch is a cookie and a
-# reload, so nothing on the client follows the locale.
-mf2 = { path = "../../../crates/mf2", features = ["static-locale"] }
+# Numbers in each locale's own symbols (the counter). No dates: this example
+# is about where the wasm goes, and needs nothing more. `static-locale`
+# belongs to the application and applies to its server and client alike
+# (master plan §5): on an islands page a switch is a cookie and a reload, so
+# nothing on the client follows the locale. The build reads `mf2`'s features
+# from `mf2` itself.
+mf2 = { path = "../../../crates/mf2", features = ["fn-number", "static-locale"] }
 
 [build-dependencies]
 mf2-build = { path = "../../../crates/mf2-build" }

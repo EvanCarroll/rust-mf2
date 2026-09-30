@@ -8,4 +8,5 @@ README.md
 api.txt
 src/context.rs
 src/lib.rs
+tests/layer.rs
 tests/time_zone.rs

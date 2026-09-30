@@ -18,6 +18,7 @@ src/__arg.rs
 src/__generated.rs
 src/arg.rs
 src/axum.rs
+src/axum/layer.rs
 src/axum/negotiate.rs
 src/axum/redirect.rs
 src/axum/serve.rs

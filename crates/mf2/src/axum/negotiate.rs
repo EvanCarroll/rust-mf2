@@ -12,9 +12,9 @@
 //! page, so the client never negotiates again (§11 item 3).
 
 use alloc::borrow::{Cow, ToOwned};
-use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 
 use ::http::header::{ACCEPT_LANGUAGE, COOKIE, HeaderName, HeaderValue, SET_COOKIE};
@@ -277,11 +277,15 @@ impl LocaleSource for QueryParam {
     }
 }
 
-/// The ordered list itself.
-#[derive(Debug)]
+/// The ordered list itself, and a tower layer: `.layer(Negotiator::default())`
+/// negotiates each request, puts the answer in its extensions (where a
+/// Leptos render and the generated `Locale` extractor find it), and writes
+/// `Content-Language`, `Vary` and every sink's header on a response that
+/// read it.
+#[derive(Clone, Debug)]
 pub struct Negotiator {
-    sources: Vec<Box<dyn LocaleSource>>,
-    sinks: Vec<Box<dyn LocaleSink>>,
+    sources: Vec<Arc<dyn LocaleSource>>,
+    sinks: Vec<Arc<dyn LocaleSink>>,
     locales: &'static [(&'static str, Dir)],
     default: &'static str,
     vary: Option<HeaderValue>,
@@ -315,7 +319,7 @@ impl Negotiator {
     /// Appends a source. Order is precedence.
     #[must_use]
     pub fn source(mut self, source: impl LocaleSource + 'static) -> Negotiator {
-        self.sources.push(Box::new(source));
+        self.sources.push(Arc::new(source));
         self.vary = None;
         self
     }
@@ -323,7 +327,7 @@ impl Negotiator {
     /// Appends a sink.
     #[must_use]
     pub fn sink(mut self, sink: impl LocaleSink + 'static) -> Negotiator {
-        self.sinks.push(Box::new(sink));
+        self.sinks.push(Arc::new(sink));
         self
     }
 

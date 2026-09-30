@@ -69,7 +69,7 @@ view! {
 // The client entry point: set the owner, start the catalog load.
 #[wasm_bindgen]
 pub fn hydrate() {
-    leptos_mf2::install(my_i18n::setup());
+    my_i18n::install();
     leptos_mf2::hydrate_islands();
 }
 

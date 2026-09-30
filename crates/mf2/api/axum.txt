@@ -101,6 +101,17 @@ pub fn mf2::axum::CookieLocale::candidates<'r>(&self, &'r http::request::Parts, 
 pub fn mf2::axum::CookieLocale::name(&self) -> &'static str
 pub fn mf2::axum::CookieLocale::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::CookieLocale::vary(&self) -> core::option::Option<http::header::name::HeaderName>
+pub struct mf2::axum::Negotiate<S>
+impl<S, B, R> tower_service::Service<http::request::Request<B>> for mf2::axum::Negotiate<S> where S: tower_service::Service<http::request::Request<B>, Response = http::response::Response<R>>, <S as tower_service::Service>::Future: core::marker::Send + 'static, <S as tower_service::Service>::Error: 'static, R: 'static
+pub type mf2::axum::Negotiate<S>::Error = <S as tower_service::Service<http::request::Request<B>>>::Error
+pub type mf2::axum::Negotiate<S>::Future = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = core::result::Result<http::response::Response<R>, <S as tower_service::Service<http::request::Request<B>>>::Error>> + core::marker::Send)>>
+pub type mf2::axum::Negotiate<S>::Response = http::response::Response<R>
+pub fn mf2::axum::Negotiate<S>::call(&mut self, http::request::Request<B>) -> Self::Future
+pub fn mf2::axum::Negotiate<S>::poll_ready(&mut self, &mut core::task::wake::Context<'_>) -> core::task::poll::Poll<core::result::Result<(), <S as tower_service::Service>::Error>>
+impl<S: core::clone::Clone> core::clone::Clone for mf2::axum::Negotiate<S>
+pub fn mf2::axum::Negotiate<S>::clone(&self) -> Self
+impl<S: core::fmt::Debug> core::fmt::Debug for mf2::axum::Negotiate<S>
+pub fn mf2::axum::Negotiate<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 #[non_exhaustive] pub struct mf2::axum::Negotiated
 pub mf2::axum::Negotiated::dir: mf2_model::id::Dir
 pub mf2::axum::Negotiated::from: &'static str
@@ -128,10 +139,15 @@ pub fn mf2::axum::Negotiator::sink(self, impl mf2::axum::LocaleSink + 'static) -
 pub fn mf2::axum::Negotiator::source(self, impl mf2::axum::LocaleSource + 'static) -> mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::store(&self, &mf2::axum::Negotiated) -> impl core::iter::traits::iterator::Iterator<Item = (http::header::name::HeaderName, http::header::value::HeaderValue)>
 pub fn mf2::axum::Negotiator::vary(&self) -> core::option::Option<http::header::value::HeaderValue>
+impl core::clone::Clone for mf2::axum::Negotiator
+pub fn mf2::axum::Negotiator::clone(&self) -> Self
 impl core::default::Default for mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::default() -> mf2::axum::Negotiator
 impl core::fmt::Debug for mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> tower_layer::Layer<S> for mf2::axum::Negotiator
+pub type mf2::axum::Negotiator::Service = mf2::axum::Negotiate<S>
+pub fn mf2::axum::Negotiator::layer(&self, S) -> mf2::axum::Negotiate<S>
 pub struct mf2::axum::PathPrefix
 impl core::clone::Clone for mf2::axum::PathPrefix
 pub fn mf2::axum::PathPrefix::clone(&self) -> Self
@@ -191,7 +207,7 @@ pub fn mf2::axum::QueryParam::name(&self) -> &'static str
 pub fn mf2::axum::QueryParam::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::QueryParam::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub fn mf2::axum::catalog_routes<S>() -> axum::routing::Router<S> where S: core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
-pub async fn mf2::axum::path_prefix_redirect(axum_core::extract::Request, axum::middleware::from_fn::Next) -> axum_core::response::Response
+pub async fn mf2::axum::path_prefix_redirect(axum::extract::state::State<&'static str>, axum_core::extract::Request, axum::middleware::from_fn::Next) -> axum_core::response::Response
 pub macro mf2::include_generated!
 #[non_exhaustive] pub enum mf2::ArgValue
 pub mf2::ArgValue::Custom(alloc::sync::Arc<(dyn mf2_runtime::value::CustomValue + core::marker::Send + core::marker::Sync)>)

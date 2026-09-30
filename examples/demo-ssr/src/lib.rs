@@ -142,7 +142,7 @@ fn current_locale() -> String {
 }
 
 /// A page whose language is its URL's first segment, as on a site that
-/// wants a crawlable URL per language (`mf2_axum::PathPrefix`). A `?lang=`
+/// wants a crawlable URL per language (`mf2::axum::PathPrefix`). A `?lang=`
 /// cannot change it, so its switcher takes each language's URL.
 #[component]
 fn AboutPage() -> impl IntoView {
@@ -360,6 +360,6 @@ pub fn mf2_live_nodes() -> usize {
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     console_error_panic_hook::set_once();
-    leptos_mf2::install(demo_i18n::setup());
+    demo_i18n::install();
     leptos_mf2::hydrate_lazy(App);
 }

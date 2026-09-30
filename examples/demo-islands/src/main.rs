@@ -1,11 +1,8 @@
 //! The server (`plans/04-leptos-integration.md` §6) — the same wiring as
 //! `examples/demo-ssr`'s. Islands change the client, not the server.
 //!
-//! Three things are wired, and the third is the one that is easy to get
-//! wrong: **the context goes to every `_with_context` entry point.** Route
-//! list generation, the routes themselves (which also register server
-//! functions), and the file/error handler. A missed one renders that path in
-//! the default locale with no other symptom.
+//! The generated `install()`, the `Negotiator` as a layer, and the catalog
+//! routes; the routes and the file/error handler are Leptos's plain forms.
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
@@ -13,36 +10,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use axum::Router;
     use demo_islands::{App, shell};
     use leptos::prelude::*;
-    use leptos_axum::{LeptosRoutes, file_and_error_handler_with_context, generate_route_list};
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
-    use std::sync::Arc;
+    use leptos_axum::{LeptosRoutes, file_and_error_handler, generate_route_list};
+    use mf2::axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
 
-    // The generated module, installed once: the registry, the host, the
-    // manifest hash, the locale table, and the catalogs — every one of which
-    // is validated against `MANIFEST_HASH` here, so a deploy that mixes
-    // builds fails at boot rather than in a request.
-    mf2_axum::install(demo_islands_i18n::setup(), demo_islands_i18n::CATALOGS)?;
+    // The generated module, installed once: the setup and the catalogs,
+    // each checked against the manifest hash.
+    demo_islands_i18n::install();
 
     // Negotiation: an ordered list. A query parameter first, so that a link
     // can force a locale for a screenshot or a test; then the cookie the
     // switcher wrote; then what the browser asked for.
-    let negotiator = Arc::new(
-        Negotiator::empty()
-            .source(QueryParam::default())
-            .source(CookieLocale::default())
-            .source(AcceptLanguage)
-            .sink(CookieLocale {
-                // The demo is served over plain HTTP on localhost.
-                secure: false,
-                ..CookieLocale::default()
-            }),
-    );
-    let context = {
-        let negotiator = Arc::clone(&negotiator);
-        move || {
-            mf2_axum::provide_locale(&negotiator);
-        }
-    };
+    let negotiator = Negotiator::empty()
+        .source(QueryParam::default())
+        .source(CookieLocale::default())
+        .source(AcceptLanguage)
+        .sink(CookieLocale {
+            // The demo is served over plain HTTP on localhost.
+            secure: false,
+            ..CookieLocale::default()
+        });
 
     let conf = get_configuration(None)?;
     let addr = conf.leptos_options.site_addr;
@@ -51,12 +37,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         // `/i18n/*`: the catalogs, immutable and precompressed.
-        .merge(mf2_axum::catalog_routes())
-        .leptos_routes_with_context(&leptos_options, routes, context.clone(), {
+        .merge(mf2::axum::catalog_routes())
+        .leptos_routes(&leptos_options, routes, {
             let leptos_options = leptos_options.clone();
             move || shell(leptos_options.clone())
         })
-        .fallback(file_and_error_handler_with_context(context, shell))
+        .fallback(file_and_error_handler(shell))
+        .layer(negotiator)
         .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

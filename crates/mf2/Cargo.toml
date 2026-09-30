@@ -83,7 +83,15 @@ ratatui = ["native", "dep:ratatui-core"]
 # the generated `Locale` as an extractor, with `Locale::format`. Never in a
 # browser build: with `hydrate` or `csr` it is a compile error when compiling
 # for `wasm32`; on the host the two compile together, as `native` does.
-axum = ["host-std", "dep:axum", "dep:http", "dep:brotli", "dep:flate2"]
+axum = [
+    "host-std",
+    "dep:axum",
+    "dep:http",
+    "dep:tower-layer",
+    "dep:tower-service",
+    "dep:brotli",
+    "dep:flate2",
+]
 # `clap`: a generated `Locale` gets a value parser, so that `--lang` parses
 # through the one matcher (`fr_CA.UTF-8` is French) and `--help` lists the
 # tags. std; for a native application's command line.
@@ -185,10 +193,12 @@ jiff = { workspace = true, optional = true }
 # re-exports.
 ratatui-core = { workspace = true, optional = true }
 
-# The Axum module (`axum`): the router, the request's parts, and the
-# catalogs' precompressed variants.
+# The Axum module (`axum`): the router, the request's parts, the
+# negotiation's tower layer, and the catalogs' precompressed variants.
 axum = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
+tower-layer = { workspace = true, optional = true }
+tower-service = { workspace = true, optional = true }
 brotli = { workspace = true, optional = true }
 flate2 = { workspace = true, optional = true }
 

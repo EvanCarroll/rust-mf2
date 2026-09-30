@@ -192,10 +192,12 @@ leptos = { version = "0.9.0-beta", default-features = false }
 tachys = { version = "0.3.0-beta", default-features = false }
 oco_ref = "0.2.1"
 any_spawner = "0.3.0"
-# `mf2::axum`: the server. `leptos_axum` provides the request's `Parts` and a
-# `ResponseOptions` in context, which the `mf2-axum` shim's request glue uses.
+# `mf2::axum`: the server. Its `Negotiator` is a tower layer, and a Leptos
+# render finds its answer in the request `Parts` `leptos_axum` provides.
 axum = { version = "0.8.9", default-features = false }
 http = "1.5.0"
+tower-layer = "0.3.3"
+tower-service = "0.3.3"
 # The plain-Axum test (`tools/i18n-fixture/tests/axum.rs`) sends requests
 # through a router with `ServiceExt::oneshot`.
 tower = { version = "0.5.3", default-features = false, features = ["util"] }

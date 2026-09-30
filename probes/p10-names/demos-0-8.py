@@ -86,13 +86,7 @@ for demo in ["demo-ssr", "demo-islands", "demo-csr"]:
                     f'leptos-mf2 = {{ path = "{CRATES}/leptos-mf2", default-features = false, features = ["leptos-0-8", "csr"] }}',
                     what,
                 )
-            if demo != "demo-csr":
-                text = must_replace(
-                    text,
-                    f'mf2-axum = {{ path = "{CRATES}/mf2-axum", optional = true }}',
-                    f'mf2-axum = {{ path = "{CRATES}/mf2-axum", default-features = false, features = ["leptos-0-8"], optional = true }}',
-                    what,
-                )
+            # The servers name `mf2::axum` (Phase 10 D3), whose line is `mf2`'s.
             if "0.9.0-beta" in text:
                 sys.exit(f"{what}: a 0.9 requirement is left")
         manifest.write_text(text)

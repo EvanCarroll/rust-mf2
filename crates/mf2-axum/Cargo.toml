@@ -32,9 +32,11 @@ leptos_0_8 = { workspace = true, optional = true }
 leptos_axum_0_8 = { workspace = true, optional = true }
 mf2 = { workspace = true, features = ["axum"] }
 
-# `tests/time_zone.rs` compiles a date message and formats it through the
-# native host, as a server does.
+# `tests/time_zone.rs` and `tests/layer.rs` compile a date message and
+# format it through the native host, as a server does; `layer.rs` sends the
+# request through the `Negotiator` layer.
 [dev-dependencies]
+tower.workspace = true
 mf2 = { workspace = true, features = ["compile", "host-std", "fn-datetime"] }
 
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
