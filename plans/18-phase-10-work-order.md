@@ -335,7 +335,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `[locale_data]`, checks), 1.x as `excerpt` blocks (new builder marker), 2.0 `main` compiled as project
   `upgrade`; the routed F notes placed; README → plans/18. ci; f5-gate docs; `mdbook build` clean.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** G1 (18 crates become 16), started 2026-09-30 by an agent working in the main tree;
+uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
