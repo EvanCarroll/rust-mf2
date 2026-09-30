@@ -61,7 +61,10 @@ pub fn path_negotiator() -> mf2_axum::Negotiator {
 /// The redirect, as a layer on the application's router.
 #[cfg(feature = "ssr")]
 pub fn with_path_redirect(router: axum::Router) -> axum::Router {
-    router.layer(axum::middleware::from_fn(mf2_axum::path_prefix_redirect))
+    router.layer(axum::middleware::from_fn_with_state(
+        mf2_axum::QueryParam::default().0,
+        mf2_axum::path_prefix_redirect,
+    ))
 }
 ```
 
