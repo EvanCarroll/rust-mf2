@@ -268,8 +268,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   upstream's 22 locale tests pass (442 in all). `trip` stripped 8,917,240 B vs upstream 8,392,456 (+6.3 %), clean
   release 120 vs 92 s. Smoke run in `unshare -rn` under `script` (fr, ru). Record: 19 §"Prior art: trippy".
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and
-B2's measurement worktrees, are removed (questions 21 and 25).
+**In flight:** D1 (`mf2::axum`), started 2026-09-29 by an agent working in the main tree;
+uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
