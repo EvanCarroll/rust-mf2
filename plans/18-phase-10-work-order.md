@@ -252,10 +252,11 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   3c's `tr!` / `msg_id!` in the prelude, `check` / `compile --site` on `mf2`'s node. A2's scenarios on
   the real crates with Leptos, 19/19 (`probes/p10-links/real/`); the edit loop, under load: 644 ms
   median without the opt-level tip, 637 with. `ci`, `scenarios`, `codegen-matrix`, `docs`, `package
-  --check` green. Open: `neutral-numbers` on a string-only corpus (an owner question); init's note (C7).
+  --check` green. `neutral-numbers` on a string-only corpus: reworded (question 33, `0d6ce75`); init's note goes to C7.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
-worktrees, are removed (questions 21 and 25).
+**In flight:** C7 (`mf2 init` as a starter), started 2026-09-29 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
