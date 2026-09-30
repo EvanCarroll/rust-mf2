@@ -364,15 +364,17 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   check the guide names. Four runs: 1 found E4's start-up warning; 2, `mf2 check` offline and no
   `.gitignore`; 3, `unused-id` on the generated `language.<tag>` ids (and `-C` read paths in the
   wrong directory); 4 was clean but for one wording slip, fixed. Each run 1.7–3.7M tokens.
+- **G4** (2026-09-30): [phase-10-results](phase-10-results.md); `P10` in the matrix, `current_phase =
+  "P10"`, 612/612, statuses unchanged; the check suite and its helpers moved to `tools/checks/`
+  (target dirs kept), `probes/` deleted (records citing it are history); the master plan's "Later"
+  reviewed; `CLAUDE.md` says Phases 1–10 done. ci, conformance-report, docs pass.
 
-**In flight:** G4 (exit), started 2026-09-30 by an agent working in the main tree; uncommitted
-changes there are its. Part A's probe branches and worktrees, and B1's and B2's measurement
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **G1–G3 are done; G4 first**;
-  **Part G after B–F**, checked with `probes/p10-checks/` (its README).
+- **Phase 10 is done; the publish is the owner's** (G2's entry above).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
 generated `setup()`), with questions 30 (backward compatibility is not a priority) and 32 (task

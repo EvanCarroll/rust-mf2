@@ -542,9 +542,13 @@ Reviewed into a post-1.0 order at the close of Phase 9 (A8, 2026-09-28;
 proposed, the owner may reorder); the reasons are in
 [phase-9-results](phase-9-results.md), "What follows v1". Phase 10 (2.0)
 comes first. It absorbs the hygiene item on item docs that cite `plans/`:
-they are rewritten as the crates merge. Starter templates, once a candidate
-here, are in Phase 10 too (`mf2 init`). First, when it happens: Leptos 0.9's
-release, taken as a patch.
+they are rewritten as the crates merge (**not done by Phase 10**: 183
+comment lines in `crates/*/src` still cite `plans/` at G4; it stays here).
+Starter templates, once a candidate here, are **done** (Phase 10 C7 and D5:
+`mf2 init --cli|--tui|--ssr|--islands|--csr`). First, when it happens:
+Leptos 0.9's release, taken as a patch. Reviewed again at Phase 10's exit
+(G4, [phase-10-results](phase-10-results.md)): none of 1–9 was done in the
+phase.
 
 1. Hygiene after the release: the zones vector test against time-zone data
    releases, a markup message with a signal argument in a lazy route, a date
@@ -569,11 +573,19 @@ release, taken as a patch.
 
 Kept open by Phase 10's design, not built (owner, 2026-09-28):
 - custom-function ergonomics (the `Function` trait is hard to implement);
-- a plain-Axum per-request language context;
+- ~~a plain-Axum per-request language context~~ **done** (Phase 10 D1: the
+  generated `Locale` extractor over `mf2::axum`);
 - several message sets in one process (the native store keyed by corpus);
 - RTL alignment in terminals by `Locale::dir()`;
 - column widths computed across locales;
 - pseudo-locales embedded in debug builds.
+
+Routed here by Phase 10 (not scheduled; plans/18's records):
+- the `tr!` argument refusal's note names the hidden `KindNeither::__mf2_kind`,
+  and underlining the whole argument needs `Span::join` (nightly only);
+- an argument shorthand, `tr!("id", error)` for `error = error`;
+- each `.match` message allocates four times inside the runtime (A4);
+- `mf2-catalog`'s timing test `linear.rs` failed once under load 10–13 (C3).
 
 ## 10. Risks
 
