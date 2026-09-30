@@ -853,6 +853,15 @@ Transcribed from the review (2026-09-27), since its file is not in the tree.
     rules). A definition loads only when a session starts, so the first task agent of the next
     session is the first at `high`; until then task agents run as `general-purpose` with those
     rules in their brief. The first figure at `high` is compared with C4's.
+33. **The `neutral-numbers` warning's false alarm** (found by A3, left open by C6; 2026-09-29) —
+    **answered: reword it.** MF2 writes a number passed into a plain placeholder the reader's way
+    (the suite's `syntax.json` #90: `1.3` → `1,3` in French); with `fn-number` off it is written
+    neutrally, a degradation the ledger records, and the warning says so. The build cannot see what
+    an application passes, so it warns on any plain placeholder, text-only ones too; 1.x does the
+    same. The warning keeps firing and its text says a placeholder *can* receive a number.
+    *Rejected:* warning only on explicit number functions (the #90 case builds silently, and
+    `drift.rs`'s cross-check changes); `fn-number` on by default (unmeasured size in every client);
+    no change.
 
 **Decided without asking, and the owner may overturn any of them:**
 - **`NativeI18n` stays** as the explicit, no-globals `mf2::native::Catalogs`. The ambient store is
