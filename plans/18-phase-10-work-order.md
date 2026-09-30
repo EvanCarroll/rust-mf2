@@ -338,14 +338,20 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `mf2::leptos_mf2`; 16 crates at `2.0.0`, `=2.0.0` pins; 0.8's shim steps → `mf2/axum` linted on 0.8.
   Kept: `NativeI18n`, B5's `baseline."1.0.0"`, api's glob step. `## 1.1.0` → `## 2.0.0`; versioning.md
   for 2.x; listings say "2.x promises"; `CLAUDE.md` already named `mf2`. ci, docs-rs, g1-gate pass.
+- **G2** (2026-09-30): `cargo xtask release` dry run at 2.0.0 green: names ours; semver-checks vs 1.0.0 as
+  a major, 15 comparisons clean (mf2 core/csr/hydrate/ssr; the three B5 refusals pass); ci, package
+  `--check --test`, docs-rs, msrv, `cargo publish --workspace --dry-run`. Refusing still: `msrv --below`,
+  `api --check` with an unlisted item, `refusals`, release.rs tests. `pointers/` (own workspace): 2.0.0
+  `leptos-mf2`/`mf2-axum`, README + `compile_error!`; `cargo publish --dry-run --no-verify` passes.
+- **The owner publishes, in order:** `cargo xtask release --publish` (the 16), then in `pointers/`
+  `cargo publish --no-verify -p leptos-mf2` and `-p mf2-axum`; then tag `v2.0.0` as the release prints.
 
-**In flight:** G2 (the release checks), started 2026-09-30 by an agent working in the main tree;
-uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **G1 is done; G2 first**;
+- **G1 and G2 are done; G3 first**;
   **Part G after B–F**, checked with `probes/p10-checks/` (its README).
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
