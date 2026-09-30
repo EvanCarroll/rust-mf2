@@ -263,15 +263,17 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   `tui-gate --gate`: ci.yml job (allocs, size), nightly `--baseline-rev 3a296a9` (time). native-apps.md: count, hops
   (held to `init`'s files), trace. `line`/`text`/`MarkupStyles` gone; `mf2-ratatui` re-exports `mf2::ratatui`.
   UX recount: CLI 13; 2+0; 8; 1, 1 file · `examples/tui` 24; 2+0; 17 (19 §2 noted); 1, 1 · book TUI 23; 17 · two-crate 19; 2+0; 16; 1, 1 — all fall.
+- **C9**: `vendor/trippy` on 2.0, untracked (1.x port saved to `target/p10-c9/`): `tr!` direct, 153 calls, 110 keys,
+  a `.match` plural, key hints as markup, one message per "label: value" line, `--tui-locale` via `Locale: FromStr`;
+  upstream's 22 locale tests pass (442 in all). `trip` stripped 8,917,240 B vs upstream 8,392,456 (+6.3 %), clean
+  release 120 vs 92 s. Smoke run in `unshare -rn` under `script` (fr, ru). Record: 19 §"Prior art: trippy".
 
-**In flight:** C9 (the trippy port as acceptance), started 2026-09-29 by an agent working in the
-main tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and
 B2's measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **C9** first, checked with `probes/p10-checks/` (its README),
-  as Part C's heading orders, then the rest of Part C in that order, each building what 19 designs. D1 (`mf2::axum`) stays
+- **Part C is done; D1 first**, checked with `probes/p10-checks/` (its README). D1 (`mf2::axum`) stays
   unblocked by B4, as Part D's heading orders (D1 after B4). One task at a time: the tasks after B1
   touch the same crates and plans. D1's `axum` follows `native`'s and `ratatui`'s rule, refused
   for `wasm32` only (question 24), with its cases on both sides of `cargo xtask refusals`, and joins
