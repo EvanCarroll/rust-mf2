@@ -142,16 +142,22 @@ pub enum DataSet {
     Used,
     /// Every one CLDR has (`"all"`).
     All,
-    /// What the corpus uses, plus these.
+    /// What the corpus names in a literal option, plus these. When an
+    /// option is a variable, these are the codes it can hold: the catalog
+    /// carries the list, not every code, and there is no warning.
     Listed(BTreeSet<String>),
 }
 
 impl DataSet {
     /// This set together with the codes the corpus was found to use.
+    ///
+    /// An explicit list wins over a variable's every-code: the developer's
+    /// list says which codes the variable can hold.
     pub fn with_used(&self, used: &Selection) -> Selection {
         match (self, used) {
-            (DataSet::All, _) | (_, Selection::All) => Selection::All,
+            (DataSet::All, _) => Selection::All,
             (DataSet::Used, used) => used.clone(),
+            (DataSet::Listed(listed), Selection::All) => Selection::Listed(listed.clone()),
             (DataSet::Listed(listed), Selection::Listed(used)) => {
                 Selection::Listed(listed.iter().chain(used).cloned().collect())
             }
@@ -447,4 +453,31 @@ fn is_tag(name: &str) -> bool {
         && name
             .split('-')
             .all(|part| !part.is_empty() && part.chars().all(|c| c.is_ascii_alphanumeric()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn set(codes: &[&str]) -> BTreeSet<String> {
+        codes.iter().map(|c| (*c).to_owned()).collect()
+    }
+
+    #[test]
+    fn an_explicit_list_wins_over_a_variables_every_code() {
+        let listed = DataSet::Listed(set(&["EUR", "USD"]));
+        assert_eq!(
+            listed.with_used(&Selection::All),
+            Selection::Listed(set(&["EUR", "USD"]))
+        );
+        assert_eq!(
+            listed.with_used(&Selection::Listed(set(&["JPY"]))),
+            Selection::Listed(set(&["EUR", "JPY", "USD"]))
+        );
+        assert_eq!(DataSet::Used.with_used(&Selection::All), Selection::All);
+        assert_eq!(
+            DataSet::All.with_used(&Selection::Listed(set(&["JPY"]))),
+            Selection::All
+        );
+    }
 }

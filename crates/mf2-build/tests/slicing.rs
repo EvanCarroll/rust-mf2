@@ -53,6 +53,17 @@ unannotated = You have {$n}
 /// Writes a one-file corpus for every locale of `tags`, all with the same
 /// messages, and builds it.
 fn build_panel(name: &str, body: &str, tags: &[&str], features: &Features) -> mf2_build::Outcome {
+    build_panel_with(name, body, tags, features, Config::default())
+}
+
+/// [`build_panel`] with `config` in place of the defaults.
+fn build_panel_with(
+    name: &str,
+    body: &str,
+    tags: &[&str],
+    features: &Features,
+    mut config: Config,
+) -> mf2_build::Outcome {
     let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
         .join("slicing")
         .join(name);
@@ -62,7 +73,6 @@ fn build_panel(name: &str, body: &str, tags: &[&str], features: &Features) -> mf
         std::fs::create_dir_all(path.parent().expect("a parent")).expect("mkdir");
         std::fs::write(&path, format!("@locale {tag}\n---\n\n{body}")).expect("write");
     }
-    let mut config = Config::default();
     tags[0].clone_into(&mut config.source_locale);
     // Every locale here has the same messages; the plural variants are the
     // source's, which other locales' categories do not match.
@@ -366,4 +376,59 @@ fn a_declaration_annotates_the_placeholders_that_use_it() {
             "the registry disagrees with the slice for:\n{source}"
         );
     }
+}
+
+#[test]
+fn an_explicit_list_narrows_a_variable_currency() {
+    use mf2_build::{DataSet, Lint};
+    use mf2_locale_data::number::Selection;
+
+    let features = Features::parse("fn-number");
+    let body = "price = {$n :currency currency=$code}\n";
+    let every = build_panel("dynamic-every", body, &["en"], &features);
+
+    let mut config = Config::default();
+    let listed: std::collections::BTreeSet<String> =
+        ["EUR", "USD"].iter().map(|c| (*c).to_owned()).collect();
+    config.locale_data.currencies = DataSet::Listed(listed.clone());
+    let narrow = build_panel_with("dynamic-listed", body, &["en"], &features, config);
+
+    let codes = |o: &mf2_build::Outcome| {
+        o.catalog("en")
+            .expect("en")
+            .slice
+            .needs
+            .numbers
+            .currency
+            .as_ref()
+            .map(|c| c.codes.clone())
+    };
+    assert_eq!(codes(&every), Some(Selection::All));
+    assert_eq!(codes(&narrow), Some(Selection::Listed(listed)));
+
+    let size = |o: &mf2_build::Outcome| {
+        o.catalog("en")
+            .expect("en")
+            .locale_entries
+            .iter()
+            .find(|(k, _)| *k == locale_key::CURRENCY_DATA)
+            .map(|(_, n)| *n)
+            .expect("a currency entry")
+    };
+    assert!(
+        size(&narrow) * 10 < size(&every),
+        "listed {} bytes, every {} bytes",
+        size(&narrow),
+        size(&every)
+    );
+
+    // Following the warning's advice silences it.
+    let warns = |o: &mf2_build::Outcome| {
+        o.report
+            .diagnostics
+            .iter()
+            .any(|d| d.lint == Some(Lint::DynamicCurrency))
+    };
+    assert!(warns(&every));
+    assert!(!warns(&narrow));
 }

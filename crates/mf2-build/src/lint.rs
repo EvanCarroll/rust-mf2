@@ -144,9 +144,9 @@ lints! {
     /// Unpaired bidi isolates in literal text.
     SuspiciousBidi = ("suspicious-bidi", Warn, Allow);
     /// A `:currency` whose `currency` option is not a literal, so the catalog
-    /// must carry every currency CLDR has; listing them in `mf2.toml`
-    /// `[locale_data]` would cost far less (`plans/02-catalog-format.md`
-    /// §4.4).
+    /// must carry every currency CLDR has; listing the codes it can hold in
+    /// `mf2.toml` `[locale_data]` carries only those and silences this
+    /// (`plans/02-catalog-format.md` §4.4).
     DynamicCurrency = ("dynamic-currency", Warn, Allow);
     /// The same for `:unit`.
     DynamicUnit = ("dynamic-unit", Warn, Allow);

@@ -108,15 +108,20 @@ How much of CLDR's currency and unit data a catalog carries, when `mf2`'s
   messages name.
 
 A `:currency` whose `currency` option is a variable makes the catalog carry
-every currency, whatever this key says, and raises
-[`dynamic-currency`](lints.md#dynamic-currency).
+every currency under `"used"` or `"all"`, and `"used"` raises
+[`dynamic-currency`](lints.md#dynamic-currency). A list says which codes the
+variable can hold: the catalog carries only those (and the ones the
+messages name), with no warning. A code outside the list formats with the
+code itself as its symbol and name, and two fraction digits.
 
 ### `units`
 
 The same for `:unit` and CLDR's unit identifiers (`"kilometer"`,
 `"liter-per-100-kilometer"`): `"used"`, `"all"`, or a list. A `:unit` whose
-`unit` option is a variable carries every unit and raises
-[`dynamic-unit`](lints.md#dynamic-unit).
+`unit` option is a variable carries every unit under `"used"` (raising
+[`dynamic-unit`](lints.md#dynamic-unit)) or `"all"`, and only the listed
+ones under a list. A unit outside the list is an Unsupported Operation
+error when formatted, unless it is `X-per-Y` of two units the catalog has.
 
 ## `[lints]`
 

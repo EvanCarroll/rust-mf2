@@ -22,7 +22,7 @@ use mf2_model::Message;
 
 use crate::catalog::{self, Catalog, Filler};
 use crate::codegen;
-use crate::config::{Config, Layout};
+use crate::config::{Config, DataSet, Layout};
 use crate::corpus::{self, LocaleSource};
 use crate::error::{Error, Result};
 use crate::features::Features;
@@ -745,7 +745,10 @@ fn report_slicing(
              receive text, set `neutral-numbers = \"allow\"` in mf2.toml)",
         );
     }
-    if slice.dynamic_currency {
+    // An explicit list says which codes the variable can hold, so the
+    // catalog carries only those and there is nothing to warn about.
+    let listed = |set: &DataSet| matches!(set, DataSet::Listed(_));
+    if slice.dynamic_currency && !listed(&config.locale_data.currencies) {
         sink.add(
             config.level(Lint::DynamicCurrency),
             Some(Lint::DynamicCurrency),
@@ -753,11 +756,11 @@ fn report_slicing(
             at,
             None,
             "a `:currency` takes its currency from a variable, so the catalog \
-             carries every currency CLDR has; listing the ones this application \
-             uses under [locale_data] currencies would cost far less",
+             carries every currency CLDR has; listing the codes it can hold \
+             under [locale_data] currencies carries only those",
         );
     }
-    if slice.dynamic_unit {
+    if slice.dynamic_unit && !listed(&config.locale_data.units) {
         sink.add(
             config.level(Lint::DynamicUnit),
             Some(Lint::DynamicUnit),
@@ -765,8 +768,8 @@ fn report_slicing(
             at,
             None,
             "a `:unit` takes its unit from a variable, so the catalog carries \
-             every unit CLDR has; listing the ones this application uses under \
-             [locale_data] units would cost far less",
+             every unit CLDR has; listing the ids it can hold under \
+             [locale_data] units carries only those",
         );
     }
     let _ = Level::Warn;

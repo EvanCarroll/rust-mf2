@@ -324,31 +324,34 @@ formatted, so a message rarely needs these characters by hand.
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 
-A `:currency` whose `currency` option is a variable, so the catalog carries
-the data of every currency CLDR has.
+A `:currency` whose `currency` option is a variable, and `[locale_data]
+currencies` is not a list, so the catalog carries the data of every currency
+CLDR has.
 
 ```text
 en   price = It costs {$amount :currency currency=$code}
 ```
 
-Fix: name the currency (`currency=EUR`), with one message for each currency
-the application uses; or, if the application takes the currency from its
-data, accept the size and lower it to `allow`. Listing codes under
-[`[locale_data] currencies`](configuration.md#currencies) adds to what a
-catalog carries; it does not narrow a variable's.
+Fix: list the codes the variable can hold under
+[`[locale_data] currencies`](configuration.md#currencies)
+(`currencies = ["EUR", "USD"]`): the catalog carries only those, and the
+warning stops. Or name the currency (`currency=EUR`), or accept the size
+and lower it to `allow`.
 
 ### `dynamic-unit`
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 
-The same for a `:unit` whose `unit` option is a variable: the catalog
-carries every unit.
+The same for a `:unit` whose `unit` option is a variable, and
+`[locale_data] units` is not a list: the catalog carries every unit.
 
 ```text
 en   distance = {$value :unit unit=$how}
 ```
 
-Fix: name the unit (`unit=kilometer`), or accept the size and lower it.
+Fix: list the units the variable can hold under
+[`[locale_data] units`](configuration.md#units), name the unit
+(`unit=kilometer`), or accept the size and lower it.
 
 ### `nonstandard-name`
 
