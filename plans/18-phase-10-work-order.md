@@ -355,6 +355,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **G3 run 3's fix** (`cdef4ce`): `unused-id` counts the ids the generated module names (`language.<tag>`,
   codegen's rule) as used and reports each unused id at its definition, not `src:1:1`; lints.md says
   so. CLI test on a named two-language corpus. ci and docs.
+- **`-C` path fix** (`086311e`): with `-C DIR`, every relative path argument is read in DIR (rebased once in
+  `main`); CLI test (`check --src`, `compile -o`) run from elsewhere; command-line.md says so. ci and docs.
 
 **In flight:** nothing. Part A's
 probe branches and worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and
