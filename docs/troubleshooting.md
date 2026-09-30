@@ -122,7 +122,8 @@ once:
   mf2: a page rendered without the request's language, so it is in the source language, `en`; add mf2::axum's Negotiator layer to the router, or call provide_locale in the render
   ```
 
-  The render ran outside the negotiator. **Fix:** add the `Negotiator`
+  A request's render ran outside the negotiator (the route list the
+  server builds at start-up never prints it). **Fix:** add the `Negotiator`
   layer to the router that serves the pages, as
   [Getting started](getting-started.md#the-server) does, or call
   `provide_locale` in the render.

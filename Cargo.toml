@@ -198,6 +198,8 @@ tower-service = "0.3.3"
 # through a router with `ServiceExt::oneshot`.
 tower = { version = "0.5.3", default-features = false, features = ["util"] }
 leptos_axum = "0.9.0-beta"
+# mf2's unit test of the start-up route list runs the router on a runtime.
+tokio = { version = "1.53.1", default-features = false }
 # The Leptos 0.8 line, an opt-in (04 §10): the same crates under the names
 # the `leptos-0-8` features of mf2 and the conformance harness turn
 # on, in place of the 0.9 ones above. `mf2` reaches both lines under these

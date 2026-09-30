@@ -195,7 +195,9 @@ ratatui-core = { workspace = true, optional = true }
 
 # The Axum module (`axum`): the router, the request's parts, the
 # negotiation's tower layer, and the catalogs' precompressed variants.
-axum = { workspace = true, optional = true }
+# `original-uri`: the mark of a request the router served, which the
+# start-up route list's made-up request lacks (E4).
+axum = { workspace = true, optional = true, features = ["original-uri"] }
 http = { workspace = true, optional = true }
 tower-layer = { workspace = true, optional = true }
 tower-service = { workspace = true, optional = true }
@@ -234,6 +236,11 @@ mf2-catalog = { workspace = true, features = ["writer"] }
 # `mf2-build` does, and checks the cut against the whole.
 mf2-locale-data.workspace = true
 mf2-syntax.workspace = true
+# The E4 warning's unit test builds the server as the web starter does:
+# the route list at start-up, then requests through the router.
+leptos_axum.workspace = true
+tower.workspace = true
+tokio = { workspace = true, features = ["rt"] }
 
 # The call-site core formats against a catalog the caller supplies: the test
 # builds one with `compile_str` and formats it through the native host.

@@ -312,9 +312,11 @@ pub(crate) fn current() -> Option<RequestI18n> {
 /// falls back to (E4): the source language's text, or, with no catalogs
 /// installed, empty text.
 ///
-/// With `axum`, only inside a request (`leptos_axum`'s `Parts` in
-/// context): a render outside one, such as the route list the server
-/// builds at start-up, has no request to have a language.
+/// With `axum`, only inside a request Axum's `Router` served: its `Parts`
+/// carry the `OriginalUri` the router inserts into every request, routes
+/// and fallback alike, before any handler runs. The `Parts` `leptos_axum`
+/// makes up for the route list it builds at start-up (and for static
+/// routes) come from a bare request, with none: no request, no language.
 #[cfg(feature = "ssr")]
 fn unrequested(source_language: bool) {
     use crate::warn::{Kind, once, pending};
@@ -327,9 +329,7 @@ fn unrequested(source_language: bool) {
         return;
     }
     #[cfg(feature = "axum")]
-    if reactive_graph::owner::with_context::<::http::request::Parts, _>(|_| ()).is_none()
-        && source_language
-    {
+    if source_language && !served() {
         return;
     }
     once(kind, || {
@@ -347,6 +347,19 @@ fn unrequested(source_language: bool) {
             )
         }
     });
+}
+
+/// Whether this render is inside a request Axum's `Router` served (see
+/// [`unrequested`]).
+#[cfg(all(feature = "ssr", feature = "axum"))]
+fn served() -> bool {
+    reactive_graph::owner::with_context::<::http::request::Parts, _>(|parts| {
+        parts
+            .extensions
+            .get::<::axum::extract::OriginalUri>()
+            .is_some()
+    })
+    .unwrap_or(false)
 }
 
 /// This request's own catalog: the one provided, else (with `axum`) the one
@@ -568,7 +581,6 @@ pub use client::{active, changed, set_active, track_locale};
 #[cfg(all(test, feature = "ssr"))]
 #[allow(clippy::expect_used, reason = "a test")]
 mod tests {
-    use crate::line::reactive_graph;
     use crate::warn::{Kind, given};
 
     #[test]
@@ -595,26 +607,21 @@ mod tests {
 
     #[test]
     fn a_request_rendered_without_its_language_says_so_once() {
-        // Outside a request (the route list built at start-up) it is quiet.
-        #[cfg(feature = "axum")]
+        // The warning is once per process, so the cases run in order in one
+        // test: the quiet ones first, then the one that warns.
+        #[cfg(all(feature = "axum", feature = "leptos"))]
+        through_leptos_axum();
+        #[cfg(not(all(feature = "axum", feature = "leptos")))]
         {
-            super::unrequested(true);
-            assert!(given(Kind::Unrequested).is_empty());
+            use crate::line::reactive_graph::owner;
+            owner::Owner::new().with(|| {
+                #[cfg(feature = "axum")]
+                owner::provide_context(served_parts());
+                for _ in 0..3 {
+                    super::unrequested(true);
+                }
+            });
         }
-        let owner = reactive_graph::owner::Owner::new();
-        owner.with(|| {
-            #[cfg(feature = "axum")]
-            reactive_graph::owner::provide_context(
-                ::http::Request::builder()
-                    .body(())
-                    .expect("a request")
-                    .into_parts()
-                    .0,
-            );
-            for _ in 0..3 {
-                super::unrequested(true);
-            }
-        });
         let lines = given(Kind::Unrequested);
         assert_eq!(lines.len(), 1);
         assert!(
@@ -622,5 +629,72 @@ mod tests {
                 .iter()
                 .all(|l| l.contains("without the request's language"))
         );
+    }
+
+    /// A request's `Parts` as Axum's router hands them on.
+    #[cfg(all(feature = "axum", not(feature = "leptos")))]
+    fn served_parts() -> ::http::request::Parts {
+        let mut parts = ::http::Request::builder()
+            .body(())
+            .expect("a request")
+            .into_parts()
+            .0;
+        let uri = parts.uri.clone();
+        parts.extensions.insert(::axum::extract::OriginalUri(uri));
+        parts
+    }
+
+    /// The server as the web starter's `main` builds it: the route list at
+    /// start-up, then requests through the router, with the negotiator and
+    /// without it.
+    #[cfg(all(feature = "axum", feature = "leptos"))]
+    fn through_leptos_axum() {
+        use ::axum::{Router, body::Body, http::Request};
+        use leptos_axum::{LeptosRoutes, generate_route_list};
+        use tower::ServiceExt;
+
+        // What formatting does when the render has no language for its
+        // request (with no catalogs installed here, `current` would take
+        // the other branch): the negotiator's answer is the language.
+        fn page() {
+            if super::from_layer().is_none() {
+                super::unrequested(true);
+            }
+        }
+        fn server(negotiator: bool) -> Router {
+            let options = crate::line::leptos::config::LeptosOptions::builder()
+                .output_name("unrequested")
+                .build();
+            let routes = generate_route_list(page);
+            let router = Router::new().leptos_routes(&options, routes, page);
+            let router = if negotiator {
+                router.layer(crate::axum::Negotiator::default())
+            } else {
+                router
+            };
+            router.with_state(options)
+        }
+        async fn get(router: Router) {
+            let response = router
+                .oneshot(Request::get("/").body(Body::empty()).expect("a request"))
+                .await
+                .expect("a response");
+            let _ = ::axum::body::to_bytes(response.into_body(), usize::MAX).await;
+        }
+
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("a runtime");
+        // Start-up: the route list, with the negotiator on the router.
+        let with = server(true);
+        assert!(given(Kind::Unrequested).is_empty());
+        // A request the negotiator answered.
+        runtime.block_on(get(with));
+        assert!(given(Kind::Unrequested).is_empty());
+        // A router without it: the first request says so, the next not again.
+        let without = server(false);
+        runtime.block_on(get(without.clone()));
+        runtime.block_on(get(without));
     }
 }
