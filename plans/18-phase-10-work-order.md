@@ -272,14 +272,18 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   generated `Locale` extractor, `Locale::format` without `native` (`CORPUS` under `__if_format`). `mf2-axum`
   re-exports it; `provide_locale`/`install`/`negotiated` stay in the shim (needs `leptos_axum`; 19 §10).
   `api/axum.txt`; plain-Axum test `tools/i18n-fixture/tests/axum.rs` in `ci`.
+- **D2**: `Negotiator::default()` is `QueryParam`, cookie, `Accept-Language`; the cookie sink `Secure` outside debug.
+  `LocaleSource::query` and `Negotiator::query_name`; `provide_locale` provides the name, which the helpers'
+  `Layer::locale_query()` (was a const) gives the switcher's `<select name>`. Getting started uses the default.
+  `demo.mjs` `formSwitch`: wasm blocked, query > cookie > `Accept-Language`, both Leptos lines. Left: a
+  `static-locale` switch still strips `lang` from the URL, and `path_prefix_redirect` reads `lang`.
 
-**In flight:** D2 (defaults), started 2026-09-29 by an agent working in the main tree; uncommitted
-changes there are its. Part A's probe branches and worktrees, and B1's and B2's measurement
+**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's measurement
 worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
-- **D1 is done; D2, D3 and D4 after it, one at a time (D2 first)**, checked with
+- **D1 and D2 are done; D3 first, then D4, one at a time**, checked with
   `probes/p10-checks/` (its README). E4 is now unblocked.
 
 **Owner questions found in the work:** none waiting. C4 found one, answered as question 31 (the
