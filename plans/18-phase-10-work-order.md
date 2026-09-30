@@ -288,8 +288,9 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   query name (`data-mf2-query`); `path_prefix_redirect` is `from_fn`, name from the request (under the layer).
   ci; docs; churn 84/84; e2e 0.9 and 0.8 1212/1212 each. Demos and book on the new forms.
 
-**In flight:** nothing. Part A's probe branches and worktrees,
-and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
+**In flight:** D5 (`mf2 init` as a starter, web), started 2026-09-30 by an agent working in the main
+tree; uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
+measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
 agent `mf2-task` once a session has loaded it (question 32):**
