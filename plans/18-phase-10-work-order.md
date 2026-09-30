@@ -302,7 +302,8 @@ start from fresh sessions or fresh agents, one at a time, as listed under
   negotiator. Debug browser builds warn once in the console with no catalog active; release unchanged.
   ci; e4-gate: B1 26724 (unchanged), b12, b12-generated, e2e 0.9 1212/1212.
 
-**In flight:** nothing. Part A's probe branches and worktrees, and B1's and B2's
+**In flight:** F1 (MF2 for developers), started 2026-09-30 by an agent working in the main tree;
+uncommitted changes there are its. Part A's probe branches and worktrees, and B1's and B2's
 measurement worktrees, are removed (questions 21 and 25).
 
 **Next, each from a fresh session or agent, one at a time, in lean mode (question 27), as the
