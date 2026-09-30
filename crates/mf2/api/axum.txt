@@ -79,6 +79,7 @@ impl core::marker::Copy for mf2::axum::AcceptLanguage
 impl mf2::axum::LocaleSource for mf2::axum::AcceptLanguage
 pub fn mf2::axum::AcceptLanguage::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::AcceptLanguage::name(&self) -> &'static str
+pub fn mf2::axum::AcceptLanguage::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::AcceptLanguage::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub struct mf2::axum::CookieLocale
 pub mf2::axum::CookieLocale::max_age: u32
@@ -98,6 +99,7 @@ pub fn mf2::axum::CookieLocale::store(&self, &mf2::axum::Negotiated) -> core::op
 impl mf2::axum::LocaleSource for mf2::axum::CookieLocale
 pub fn mf2::axum::CookieLocale::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::CookieLocale::name(&self) -> &'static str
+pub fn mf2::axum::CookieLocale::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::CookieLocale::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 #[non_exhaustive] pub struct mf2::axum::Negotiated
 pub mf2::axum::Negotiated::dir: mf2_model::id::Dir
@@ -121,6 +123,7 @@ pub fn mf2::axum::Negotiator::empty() -> mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::locales(&self) -> &'static [(&'static str, mf2_model::id::Dir)]
 pub fn mf2::axum::Negotiator::negotiate(&self, &http::request::Parts) -> mf2::axum::Negotiated
 pub fn mf2::axum::Negotiator::over(&'static [(&'static str, mf2_model::id::Dir)], &'static str) -> mf2::axum::Negotiator
+pub fn mf2::axum::Negotiator::query_name(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::Negotiator::sink(self, impl mf2::axum::LocaleSink + 'static) -> mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::source(self, impl mf2::axum::LocaleSource + 'static) -> mf2::axum::Negotiator
 pub fn mf2::axum::Negotiator::store(&self, &mf2::axum::Negotiated) -> impl core::iter::traits::iterator::Iterator<Item = (http::header::name::HeaderName, http::header::value::HeaderValue)>
@@ -140,6 +143,7 @@ impl core::marker::Copy for mf2::axum::PathPrefix
 impl mf2::axum::LocaleSource for mf2::axum::PathPrefix
 pub fn mf2::axum::PathPrefix::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::PathPrefix::name(&self) -> &'static str
+pub fn mf2::axum::PathPrefix::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::PathPrefix::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub struct mf2::axum::QueryParam(pub &'static str)
 impl core::clone::Clone for mf2::axum::QueryParam
@@ -152,6 +156,7 @@ impl core::marker::Copy for mf2::axum::QueryParam
 impl mf2::axum::LocaleSource for mf2::axum::QueryParam
 pub fn mf2::axum::QueryParam::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::QueryParam::name(&self) -> &'static str
+pub fn mf2::axum::QueryParam::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::QueryParam::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub const mf2::axum::CATALOG_PREFIX: &str
 pub trait mf2::axum::LocaleSink: core::marker::Send + core::marker::Sync + core::fmt::Debug
@@ -163,22 +168,27 @@ pub fn mf2::axum::CookieLocale::store(&self, &mf2::axum::Negotiated) -> core::op
 pub trait mf2::axum::LocaleSource: core::marker::Send + core::marker::Sync + core::fmt::Debug
 pub fn mf2::axum::LocaleSource::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::LocaleSource::name(&self) -> &'static str
+pub fn mf2::axum::LocaleSource::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::LocaleSource::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 impl mf2::axum::LocaleSource for mf2::axum::AcceptLanguage
 pub fn mf2::axum::AcceptLanguage::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::AcceptLanguage::name(&self) -> &'static str
+pub fn mf2::axum::AcceptLanguage::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::AcceptLanguage::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 impl mf2::axum::LocaleSource for mf2::axum::CookieLocale
 pub fn mf2::axum::CookieLocale::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::CookieLocale::name(&self) -> &'static str
+pub fn mf2::axum::CookieLocale::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::CookieLocale::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 impl mf2::axum::LocaleSource for mf2::axum::PathPrefix
 pub fn mf2::axum::PathPrefix::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::PathPrefix::name(&self) -> &'static str
+pub fn mf2::axum::PathPrefix::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::PathPrefix::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 impl mf2::axum::LocaleSource for mf2::axum::QueryParam
 pub fn mf2::axum::QueryParam::candidates<'r>(&self, &'r http::request::Parts, &mut alloc::vec::Vec<alloc::borrow::Cow<'r, str>>)
 pub fn mf2::axum::QueryParam::name(&self) -> &'static str
+pub fn mf2::axum::QueryParam::query(&self) -> core::option::Option<&'static str>
 pub fn mf2::axum::QueryParam::vary(&self) -> core::option::Option<http::header::name::HeaderName>
 pub fn mf2::axum::catalog_routes<S>() -> axum::routing::Router<S> where S: core::clone::Clone + core::marker::Send + core::marker::Sync + 'static
 pub async fn mf2::axum::path_prefix_redirect(axum_core::extract::Request, axum::middleware::from_fn::Next) -> axum_core::response::Response

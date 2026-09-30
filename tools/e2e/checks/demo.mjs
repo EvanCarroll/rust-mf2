@@ -30,6 +30,10 @@
 //     new locale, remembered in the cookie (Phase 9 B2);
 //   * on a page whose language is in its URL, the switcher goes to the
 //     other language's URL, with the wasm and without it (Phase 9 B4);
+//   * with the wasm blocked, the switcher's form is the switch: its
+//     `<select>` is named for the server's `QueryParam`, the `?lang=` it
+//     submits outranks the cookie and `Accept-Language`, and the cookie it
+//     leaves outranks `Accept-Language` on the next visit (Phase 10 D2);
 //   * no message text is in the client bundle (B6).
 
 import {
@@ -371,6 +375,7 @@ export async function run(ctx) {
 
   await switchSkew(browser, baseUrl, assert, data);
   await pathPrefix(browser, baseUrl, assert, data, get);
+  await formSwitch(browser, baseUrl, assert, data);
 
   // ----------------------------------------------------------- canary ---
 
@@ -614,6 +619,44 @@ async function switchSkew(browser, baseUrl, assert, data) {
     after.mf2.length === 1 && after.mf2[0].includes('another deploy'),
     after.mf2,
   );
+  await context.close();
+}
+
+/**
+ * Phase 10 D2: the default order — `?lang=`, the cookie, `Accept-Language` —
+ * seen through the switcher's form alone, with the wasm blocked.
+ */
+async function formSwitch(browser, baseUrl, assert, data) {
+  const context = await browser.newContext({ locale: 'en-US' });
+  await context.route('**/*.wasm', (route) => route.abort());
+  await context.addCookies([{ name: 'mf2_locale', value: 'ar', url: baseUrl }]);
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/`, { waitUntil: 'load' });
+  const before = {
+    lang: await page.getAttribute('html', 'lang'),
+    name: await page.locator('.mf2-locale-switcher select').first().getAttribute('name'),
+  };
+  assert('form-switch-cookie-outranks-accept-language', before.lang === 'ar', before);
+  assert('form-switch-select-named-for-the-query-source', before.name === 'lang', before);
+  await chooseLocale(page, 'fr');
+  let landed = true;
+  try {
+    await page.waitForURL(/[?&]lang=fr/, { timeout: 5000 });
+  } catch {
+    landed = false;
+  }
+  const after = {
+    landed,
+    url: page.url(),
+    lang: await page.getAttribute('html', 'lang'),
+    cookie: (await context.cookies(baseUrl)).find((c) => c.name === 'mf2_locale')?.value,
+  };
+  assert('form-switch-query-outranks-the-cookie', landed && after.lang === 'fr', after);
+  assert('form-switch-remembers-the-choice', after.cookie === 'fr', after.cookie);
+  await page.goto(`${baseUrl}/`, { waitUntil: 'load' });
+  after.revisit = await page.getAttribute('html', 'lang');
+  assert('form-switch-cookie-decides-the-next-visit', after.revisit === 'fr', after.revisit);
+  data.formSwitch = { before, after };
   await context.close();
 }
 

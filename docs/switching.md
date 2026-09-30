@@ -38,8 +38,8 @@ server is the **only** place a language is negotiated. The client reads it
 from the page (`<html lang>` and the preload link), so hydration cannot
 choose differently.
 
-Getting started lists the sources as query, cookie, then
-`Accept-Language`. A site with a language in its URLs puts the path first.
+`Negotiator::default()`, which Getting started uses, reads the query,
+then the cookie, then `Accept-Language`. A site with a language in its URLs puts the path first.
 A `?lang=` then cannot change the language of `/en/…`, so the switcher's
 form, which submits one, needs the server to send it on to the other
 language's URL: `path_prefix_redirect` answers `/en/page?lang=fr` with a
@@ -80,14 +80,15 @@ pub fn Alternates() -> impl IntoView {
 
 ## The server's options
 
-`Negotiator::default()` is what a site gets when it says nothing more: the
-cookie, then `Accept-Language`, with the cookie as its sink. A site that
-wants `?lang=` too, or another order, starts from `Negotiator::empty()`
-and lists its sources, as Getting started does. Each part can be changed:
+`Negotiator::default()` is what a site gets when it says nothing more:
+`?lang=`, the cookie, then `Accept-Language`, with the cookie as its sink,
+`Secure` except in a debug build. A site that wants another order or
+another source starts from `Negotiator::empty()` and lists its sources.
+Each part can be changed:
 
 * **`QueryParam("hl")`** reads another parameter name than `lang`.
-  `QueryParam::default()` is `lang`, the name `<LocaleSwitcher>`'s form
-  submits.
+  `QueryParam::default()` is `lang`. `<LocaleSwitcher>`'s form submits
+  under the name of the negotiator's first `QueryParam`.
 * **`CookieLocale`'s fields**: `name` (`mf2_locale`), `max_age` (a year,
   in seconds), `path` (`/`), `same_site` (`Lax`) and `secure` (`true`).
   The client writes the cookie under `mf2_locale` on every switch, so a
@@ -96,7 +97,7 @@ and lists its sources, as Getting started does. Each part can be changed:
   stored from a page served over plain HTTP — browsers make an exception
   for `127.0.0.1` and `localhost` — so a development server reached without
   TLS at any other address (a phone on the local network, say) sets
-  `secure: false` (Getting started ties it to `debug_assertions`).
+  `secure: false` (`Negotiator::default()` ties it to `debug_assertions`).
 * **`.default_locale("fr")`** answers a request no source matched in
   French instead of the source language, if the build has French.
 * **`Negotiator::over(locales, default)`** starts from an explicit table
@@ -180,7 +181,8 @@ impl mf2_axum::LocaleSource for Subdomain {
 ## The switcher
 
 `<LocaleSwitcher>` is the switcher the library provides. It is a
-`<form method="get">`. Inside it are a `<select name="lang">` in its own
+`<form method="get">`. Inside it are a `<select name="lang">` (named for
+the negotiator's `QueryParam`) in its own
 `<label>`, and a submit button whose text you supply:
 
 ```rust file=calls/src/lib.rs

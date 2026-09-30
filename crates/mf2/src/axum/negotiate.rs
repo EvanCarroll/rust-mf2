@@ -55,6 +55,12 @@ pub trait LocaleSource: Send + Sync + std::fmt::Debug {
         None
     }
 
+    /// The query parameter this source reads, if it reads one: the name
+    /// `<LocaleSwitcher>`'s `<select>` submits under.
+    fn query(&self) -> Option<&'static str> {
+        None
+    }
+
     /// The tags this request offers, best first. Called once per request.
     fn candidates<'r>(&self, parts: &'r Parts, out: &mut Vec<Cow<'r, str>>);
 }
@@ -251,6 +257,10 @@ impl LocaleSource for QueryParam {
         "query"
     }
 
+    fn query(&self) -> Option<&'static str> {
+        Some(self.0)
+    }
+
     fn candidates<'r>(&self, parts: &'r Parts, out: &mut Vec<Cow<'r, str>>) {
         let Some(query) = parts.uri.query() else {
             return;
@@ -325,6 +335,13 @@ impl Negotiator {
             self.default = found;
         }
         self
+    }
+
+    /// The query parameter of the first source that reads one — the name
+    /// `<LocaleSwitcher>`'s form submits under — or `None` without one.
+    #[must_use]
+    pub fn query_name(&self) -> Option<&'static str> {
+        self.sources.iter().find_map(|source| source.query())
     }
 
     /// Every locale this build has, with its direction.
@@ -405,11 +422,13 @@ impl Negotiator {
 }
 
 impl Default for Negotiator {
-    /// Cookie, then `Accept-Language`, with the cookie as the sink: what a
-    /// site wants unless it has said otherwise. Neither source is an explicit
-    /// choice, so the sink writes nothing until a query or path source is
-    /// added; the client writes the cookie on a switch. A path prefix is
-    /// deliberately not here — it changes URLs, so a site opts into it.
+    /// `?lang=`, then the cookie, then `Accept-Language`, with the cookie as
+    /// the sink: what a site wants unless it has said otherwise. The sink
+    /// remembers a `?lang=` choice (the switcher's form without the wasm);
+    /// the client writes the cookie itself on a switch. The cookie is
+    /// `Secure` except in a debug build, which is served over plain HTTP. A
+    /// path prefix is deliberately not here — it changes URLs, so a site
+    /// opts into it.
     fn default() -> Negotiator {
         Negotiator::empty().defaults()
     }
@@ -420,9 +439,13 @@ impl Negotiator {
     /// locales: what the generated `Locale` extractor negotiates with when
     /// no layer negotiated first.
     pub(crate) fn defaults(self) -> Negotiator {
-        self.source(CookieLocale::default())
+        self.source(QueryParam::default())
+            .source(CookieLocale::default())
             .source(AcceptLanguage)
-            .sink(CookieLocale::default())
+            .sink(CookieLocale {
+                secure: !cfg!(debug_assertions),
+                ..CookieLocale::default()
+            })
     }
 }
 
@@ -527,6 +550,46 @@ mod tests {
         assert_eq!(negotiated.tag, "ar");
         assert_eq!(negotiated.from, "cookie");
         assert_eq!(negotiated.dir_attr(), "rtl");
+    }
+
+    #[test]
+    fn the_default_is_query_then_cookie_then_accept_language() {
+        let negotiator = negotiator().defaults();
+        assert_eq!(negotiator.query_name(), Some("lang"));
+        let all = [("cookie", "mf2_locale=fr-CA"), ("accept-language", "en")];
+        let negotiated = negotiator.negotiate(&parts(&all, "/?x=1&lang=ar"));
+        assert_eq!((negotiated.tag, negotiated.from), ("ar", "query"));
+        let negotiated = negotiator.negotiate(&parts(&all, "/"));
+        assert_eq!((negotiated.tag, negotiated.from), ("fr-CA", "cookie"));
+        let negotiated = negotiator.negotiate(&parts(&all[1..], "/"));
+        assert_eq!((negotiated.tag, negotiated.from), ("en", "accept-language"));
+        // A `?lang=` choice is remembered; `Secure` only outside a debug build.
+        let negotiated = negotiator.negotiate(&parts(&[], "/?lang=ar"));
+        let cookie: Vec<String> = negotiator
+            .store(&negotiated)
+            .map(|(_, v)| v.to_str().unwrap_or("").to_owned())
+            .collect();
+        let secure = if cfg!(debug_assertions) {
+            ""
+        } else {
+            "; Secure"
+        };
+        assert_eq!(
+            cookie,
+            [alloc::format!(
+                "mf2_locale=ar; Max-Age=31536000; Path=/; SameSite=Lax{secure}"
+            )]
+        );
+    }
+
+    #[test]
+    fn the_query_name_is_the_first_query_source() {
+        assert_eq!(negotiator().query_name(), None);
+        let negotiator = negotiator()
+            .source(AcceptLanguage)
+            .source(super::QueryParam("hl"))
+            .source(super::QueryParam::default());
+        assert_eq!(negotiator.query_name(), Some("hl"));
     }
 
     #[test]

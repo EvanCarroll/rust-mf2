@@ -58,6 +58,10 @@ pub fn provide_locale(negotiator: &Negotiator) -> Negotiated {
     });
     // The catalog, for every `Tr` this request renders, in the reader's zone.
     leptos_mf2::provide_locale_in_zone(negotiated.tag, zone);
+    // The name the switcher's form submits: the installed query source's.
+    if let Some(name) = negotiator.query_name() {
+        leptos_mf2::provide_locale_query(name);
+    }
     // The answer, serialized for the shell to read.
     provide_context(negotiated.clone());
 

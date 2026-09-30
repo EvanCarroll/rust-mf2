@@ -106,7 +106,10 @@ pub use catalog::{active, read as read_catalog};
 /// reads.
 #[cfg(feature = "ssr")]
 #[doc(hidden)]
-pub use catalog::{CatalogEntry, catalog_entries, catalog_file, catalog_name, install_catalogs};
+pub use catalog::{
+    CatalogEntry, catalog_entries, catalog_file, catalog_name, install_catalogs,
+    provide_locale_query,
+};
 /// The server's catalogs and per-request locale.
 #[cfg(feature = "ssr")]
 #[cfg_attr(docsrs, doc(cfg(feature = "ssr")))]

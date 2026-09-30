@@ -487,28 +487,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use hello::{App, shell};
     use leptos::prelude::*;
     use leptos_axum::{LeptosRoutes, file_and_error_handler_with_context, generate_route_list};
-    use mf2_axum::{AcceptLanguage, CookieLocale, Negotiator, QueryParam};
+    use mf2_axum::Negotiator;
 
     // 1. Install the i18n crate and its catalogs. Every catalog is checked
     //    against the build here, so a deploy that mixes builds fails at
     //    start-up rather than in a request.
     mf2_axum::install(hello_i18n::setup(), hello_i18n::CATALOGS)?;
 
-    // 2. How a request's language is chosen: the first source, in order,
-    //    that names a language this build has. `?lang=` first, so a link
-    //    (and the switcher's form) can choose; then the cookie a choice
-    //    leaves; then the browser's `Accept-Language`.
-    let negotiator = Arc::new(
-        Negotiator::empty()
-            .source(QueryParam::default())
-            .source(CookieLocale::default())
-            .source(AcceptLanguage)
-            .sink(CookieLocale {
-                // `Secure` except in a debug build served over plain HTTP.
-                secure: !cfg!(debug_assertions),
-                ..CookieLocale::default()
-            }),
-    );
+    // 2. How a request's language is chosen: the default is `?lang=` (a
+    //    link, or the switcher's form), then the cookie a choice leaves,
+    //    then the browser's `Accept-Language`.
+    let negotiator = Arc::new(Negotiator::default());
     let context = {
         let negotiator = Arc::clone(&negotiator);
         move || {

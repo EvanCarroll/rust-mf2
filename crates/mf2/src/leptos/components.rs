@@ -45,9 +45,12 @@ use crate::line::ui;
 pub struct Mf2;
 
 impl ui::Layer for Mf2 {
-    const LOCALE_QUERY: &'static str = crate::leptos::links::LOCALE_QUERY;
     const ISLANDS_GATE: &'static str = crate::leptos::links::ISLANDS_GATE;
     const CATALOG_LINK_REL: &'static str = crate::leptos::links::CATALOG_LINK_REL;
+
+    fn locale_query() -> &'static str {
+        crate::leptos::catalog::locale_query()
+    }
 
     fn locales() -> &'static [(&'static str, Dir)] {
         crate::leptos::state::locales()
@@ -201,7 +204,8 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 
 /// A labelled native control that switches locale, applied by a button.
 ///
-/// A `<form method="get">` holding a `<select name="lang">` inside its
+/// A `<form method="get">` holding a `<select name="lang">` (the name the
+/// server's `QueryParam` reads) inside its
 /// `<label>` and a submit button. Choosing a language changes nothing until
 /// the button is pressed: the keyboard fires a `<select>`'s `change` on
 /// every arrow key, so switching on it would change the page's language —
@@ -210,7 +214,8 @@ pub fn AlternateLinks(props: AlternateLinksProps) -> impl IntoView {
 ///
 /// With no client code — before the wasm loads, after a failed boot, or on
 /// an islands page where the switcher is not an island — the form's own
-/// `GET ?lang=…` is the switch, which `mf2-axum`'s `QueryParam` negotiates.
+/// `GET ?lang=…` is the switch, which `mf2-axum`'s `QueryParam` negotiates;
+/// the `<select>` takes its name from that installed `QueryParam`.
 /// Under `hydrate` and `csr` the submit is intercepted and becomes
 /// `set_locale`, live, with focus left on the button.
 ///

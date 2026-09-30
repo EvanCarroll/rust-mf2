@@ -51,10 +51,6 @@ use mf2_model::Dir;
 /// calls `L::locales()` directly: the call is resolved when the component is
 /// compiled for `mf2`'s type.
 pub trait Layer: 'static {
-    /// The query parameter the switcher's `<select>` submits, which the
-    /// server negotiates when no client code runs.
-    const LOCALE_QUERY: &'static str;
-
     /// The island name [`IslandsGate`] renders; `mf2`'s `islands_gate!`
     /// exports the function of that name.
     const ISLANDS_GATE: &'static str;
@@ -62,6 +58,11 @@ pub trait Layer: 'static {
     /// The `rel` of [`CatalogLinks`]' links, which the client's boot looks
     /// for.
     const CATALOG_LINK_REL: &'static str;
+
+    /// The query parameter the switcher's `<select>` submits, which the
+    /// server negotiates when no client code runs: the name its installed
+    /// query source reads.
+    fn locale_query() -> &'static str;
 
     /// Every locale this corpus was built for, with its base direction.
     fn locales() -> &'static [(&'static str, Dir)];
@@ -242,7 +243,7 @@ pub fn LocaleSwitcher<L: Layer>(
     _layer: PhantomData<L>,
 ) -> impl IntoView {
     let select = NodeRef::<leptos::html::Select>::new();
-    let query = L::LOCALE_QUERY;
+    let query = L::locale_query();
     let on_submit = move |event: leptos::ev::SubmitEvent| switch_on_submit::<L>(&event, select);
     provide_context(SwitcherHref(href_of));
     view! {

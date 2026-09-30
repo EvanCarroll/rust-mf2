@@ -233,6 +233,31 @@ pub fn provide_locale_in_zone(tag: &str, zone: Option<mf2_runtime::TimeZone>) ->
     tag
 }
 
+/// The query parameter the server's negotiator reads (its `QueryParam`'s
+/// name), for this request: the name `<LocaleSwitcher>`'s `<select>`
+/// submits under. `mf2-axum` provides it with the locale.
+#[cfg(feature = "ssr")]
+#[derive(Clone, Copy, Debug)]
+struct LocaleQuery(&'static str);
+
+/// Provides the query parameter the switcher submits for this request.
+#[cfg(feature = "ssr")]
+pub fn provide_locale_query(name: &'static str) {
+    reactive_graph::owner::provide_context(LocaleQuery(name));
+}
+
+/// The query parameter the switcher submits: the installed query source's
+/// on the server, else [`LOCALE_QUERY`](crate::links::LOCALE_QUERY). On the
+/// client the attribute is the server's (hydration keeps a static
+/// attribute), and a live switch does not submit the form.
+pub(crate) fn locale_query() -> &'static str {
+    #[cfg(feature = "ssr")]
+    if let Some(LocaleQuery(name)) = reactive_graph::owner::use_context::<LocaleQuery>() {
+        return name;
+    }
+    crate::links::LOCALE_QUERY
+}
+
 /// The reader's time zone this request renders in, if it knows one — what
 /// the page states on its preload link.
 #[cfg(feature = "ssr")]

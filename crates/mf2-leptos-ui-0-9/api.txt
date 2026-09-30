@@ -53,9 +53,9 @@ pub fn mf2_leptos_ui_0_9::LocaleSwitcherProps<L>::builder() -> LocaleSwitcherPro
 pub trait mf2_leptos_ui_0_9::Layer: 'static
 pub const mf2_leptos_ui_0_9::Layer::CATALOG_LINK_REL: &'static str
 pub const mf2_leptos_ui_0_9::Layer::ISLANDS_GATE: &'static str
-pub const mf2_leptos_ui_0_9::Layer::LOCALE_QUERY: &'static str
 pub fn mf2_leptos_ui_0_9::Layer::catalog_links() -> alloc::vec::Vec<(&'static str, alloc::string::String)>
 pub fn mf2_leptos_ui_0_9::Layer::html_lang() -> (alloc::string::String, &'static str)
+pub fn mf2_leptos_ui_0_9::Layer::locale_query() -> &'static str
 pub fn mf2_leptos_ui_0_9::Layer::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
 pub fn mf2_leptos_ui_0_9::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>)>
 pub fn mf2_leptos_ui_0_9::Layer::source_locale() -> &'static str
