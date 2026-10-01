@@ -787,7 +787,7 @@ fn semver(
             args.extend(["--baseline-version".to_owned(), v]);
         }
         eprintln!("==> cargo-semver-checks {}", args.join(" "));
-        if run_inherit(tool.as_os_str(), &args.map_os(), root).is_err() {
+        if !semver_run(&tool, &args, root) {
             failed.push(p.name.clone());
         }
     }
@@ -795,11 +795,27 @@ fn semver(
         Ok(())
     } else {
         Err(fail(format!(
-            "cargo-semver-checks refused {}: a breaking change needs a new major version \
-             (docs/versioning.md)",
+            "cargo-semver-checks failed for {} three times (its output is above): a breaking \
+             change needs a new major version (docs/versioning.md), or the tool could not run",
             failed.join(", ")
         )))
     }
+}
+
+/// cargo-semver-checks, tried up to three times. It fetches crates.io's index
+/// without retrying, so one dropped connection used to read as a refusal
+/// (2026-09-30); a real refusal fails every time.
+fn semver_run(tool: &Path, args: &[String], root: &Path) -> bool {
+    for attempt in 1..=3 {
+        if run_inherit(tool.as_os_str(), &args.map_os(), root).is_ok() {
+            return true;
+        }
+        if attempt < 3 {
+            eprintln!("==> cargo-semver-checks failed (attempt {attempt} of 3); again in 10 s");
+            std::thread::sleep(std::time::Duration::from_secs(10));
+        }
+    }
+    false
 }
 
 /// What a crate listed per mode is compared with.
@@ -878,7 +894,7 @@ fn semver_modes(
             }
         }
         eprintln!("==> cargo-semver-checks {} ({mode})", args.join(" "));
-        if run_inherit(tool.as_os_str(), &args.map_os(), root).is_err() {
+        if !semver_run(tool, &args, root) {
             failed.push(label);
         }
     }
