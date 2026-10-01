@@ -67,7 +67,8 @@ use crate::{changelog, packages};
 const SEMVER_CHECKS: &str = "0.50.0";
 
 /// How this command names itself to crates.io's API, which requires a user
-/// agent.
+/// agent. Each request is retried on a transient failure (`--retry-all-errors`),
+/// since one reset connection would otherwise end the whole release.
 const USER_AGENT: &str = "rust-mf2-release-check (cargo xtask release)";
 
 /// How many times a publish stopped by crates.io's rate limit is resumed.
@@ -364,6 +365,11 @@ fn published_digest(root: &Path, name: &str, version: &str) -> Result<Option<Str
         "=https",
         "--max-time",
         "120",
+        "--retry",
+        "5",
+        "--retry-all-errors",
+        "--retry-delay",
+        "3",
         "-A",
         USER_AGENT,
         "-o",
@@ -389,6 +395,11 @@ fn in_index(name: &str, version: &str) -> Result<bool> {
         "=https",
         "--max-time",
         "60",
+        "--retry",
+        "5",
+        "--retry-all-errors",
+        "--retry-delay",
+        "3",
         "-A",
         USER_AGENT,
         "-w",
@@ -455,6 +466,11 @@ fn get(url: &str) -> Result<(u16, Value)> {
         "=https",
         "--max-time",
         "60",
+        "--retry",
+        "5",
+        "--retry-all-errors",
+        "--retry-delay",
+        "3",
         "-A",
         USER_AGENT,
         "-w",
