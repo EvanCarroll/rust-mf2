@@ -200,19 +200,9 @@ fn previous(version: &str) -> Result<String> {
     }
 }
 
-/// The toolchain and the wasm target, through rustup (a no-op when present).
+/// The toolchain and the wasm target (rustup, only when either is missing).
 fn install(root: &Path, toolchain: &str) -> Result<()> {
-    let args = [
-        "toolchain",
-        "install",
-        toolchain,
-        "--profile",
-        "minimal",
-        "--target",
-        WASM,
-    ]
-    .map(OsStr::new);
-    run_capture(OsStr::new("rustup"), &args, root, &[]).map(|_| ())
+    crate::cmd::rustup_install(root, toolchain, WASM)
 }
 
 #[cfg(test)]

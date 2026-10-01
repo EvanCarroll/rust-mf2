@@ -53,6 +53,34 @@ pub(crate) fn run_inherit_env(
     }
 }
 
+/// `rustup toolchain install TOOLCHAIN --profile minimal --target TARGET`,
+/// skipped when rustup already has both. The install checks the network for
+/// updates even when nothing is missing, so it failed every time this
+/// machine lost its connection, though the toolchain was there.
+pub(crate) fn rustup_install(dir: &Path, toolchain: &str, target: &str) -> Result<()> {
+    let rustup = OsStr::new("rustup");
+    let list = ["target", "list", "--installed", "--toolchain", toolchain].map(OsStr::new);
+    let present = run_capture(rustup, &list, dir, &[]).is_ok_and(|out| {
+        String::from_utf8_lossy(&out)
+            .lines()
+            .any(|l| l.trim() == target)
+    });
+    if present {
+        return Ok(());
+    }
+    let install = [
+        "toolchain",
+        "install",
+        toolchain,
+        "--profile",
+        "minimal",
+        "--target",
+        target,
+    ]
+    .map(OsStr::new);
+    run_capture(rustup, &install, dir, &[]).map(|_| ())
+}
+
 /// Runs a command in `dir`, capturing stdout; stderr is captured and reported on failure.
 pub(crate) fn run_capture(
     program: &OsStr,

@@ -838,20 +838,10 @@ fn cli(root: &Path, check: bool) -> Result<()> {
         .map_err(|_| fail("crates/mf2-cli/api.txt differs from the command tree (above)"))
 }
 
-/// The pinned nightly, through rustup (a no-op when present), with the
-/// wasm target `mf2-host-web` needs.
+/// The pinned nightly, with the wasm target `mf2-host-web` needs
+/// (rustup, only when either is missing).
 pub(crate) fn install(root: &Path) -> Result<()> {
-    let args = [
-        "toolchain",
-        "install",
-        NIGHTLY,
-        "--profile",
-        "minimal",
-        "--target",
-        WASM,
-    ]
-    .map(OsStr::new);
-    run_capture(OsStr::new("rustup"), &args, root, &[]).map(|_| ())
+    crate::cmd::rustup_install(root, NIGHTLY, WASM)
 }
 
 #[cfg(test)]
