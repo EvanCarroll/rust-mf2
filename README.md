@@ -100,8 +100,7 @@ cargo add --build mf2-build
 
 `mf2 init --cli` or `mf2 init --tui` writes a complete one;
 [Native CLI and Ratatui apps](docs/native-apps.md) explains every file.
-Version 2 of `mf2` and `mf2-build` is not on crates.io yet (it ships in
-2.0.0): until then, name them by path into a checkout of this repository.
+Both are on crates.io at 2.0.0.
 
 ## Documentation
 

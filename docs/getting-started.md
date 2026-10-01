@@ -46,12 +46,8 @@ Every file below is complete.
   ([Delivery modes](delivery-modes.md#client-only)).
 
 > **Which version these pages show.** The manifests on these pages name
-> `mf2 = "2"` and `mf2-build = "2"`: 2.0.0, the next release, which these
-> pages follow (1.0.0 is on crates.io; 1.1.0 was not published and will not
-> be). Until 2.0.0 is published, build from a checkout of this repository:
-> `cargo xtask docs` compiles these pages by replacing each `"2"` with a
-> path into it, for example `mf2 = { path = "../rust-mf2/crates/mf2" }`,
-> and `cargo install --path crates/mf2-cli` installs its `mf2` command.
+> `mf2 = "2"` and `mf2-build = "2"`: 2.0.0, on crates.io.
+> `cargo install mf2-cli` installs the `mf2` command.
 
 ## The shape of an application
 

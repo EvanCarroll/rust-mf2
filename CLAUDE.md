@@ -11,9 +11,8 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 2. Read the companion document for the area you touch (`plans/README.md` maps
    crates to documents).
 3. **Phases 1–10 are done.**
-   - Release: 1.0.0 is on crates.io; 1.1.0 will not be published (owner, 2026-09-28); **2.0.0
-     is ready and its publish is the owner's** (the commands: `plans/18-phase-10-work-order.md`,
-     G2's entry under "Where the work stands").
+   - Release: 1.0.0 and **2.0.0 are on crates.io** (2.0.0 published 2026-09-30, tag `v2.0.0`);
+     1.1.0 was never published.
    - Phase 10 — 2.0, the user experience — ran from `plans/18-phase-10-work-order.md`; its
      results are in `plans/phase-10-results.md`. The check suite is `tools/checks/` (its README).
    - Its decisions are the master plan's D16–D24: one crate, `mf2` with features; native and

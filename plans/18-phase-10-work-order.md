@@ -371,6 +371,12 @@ start from fresh sessions or fresh agents, one at a time, as listed under
 - **Docs build, shared target** (2026-09-30; no change): every cargo call already shares
   `target/docs/target` (since Phase 7); the cold time is the samples' distinct feature sets.
 
+- **2.0.0 published** (2026-09-30, 22:40; question 36): all 16 crates are on crates.io at 2.0.0,
+  checked in the index; tag `v2.0.0` at `5216549`, created locally. Getting there took fixes to the
+  release tool: stale local-registry extracts and builds, `rustup` offline, and retries for curl and
+  cargo-semver-checks. Left to the owner: the push (`main` and the tag) and deleting `leptos-mf2` /
+  `mf2-axum` on crates.io, if allowed.
+
 **In flight:** nothing. Part A's probe branches and
 worktrees, and B1's and B2's measurement worktrees, are removed (questions 21 and 25).
 
