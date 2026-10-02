@@ -5,9 +5,16 @@ covers them all. Newest first. What a version number promises is in
 [`docs/versioning.md`](docs/versioning.md); a release that raises the
 minimum Rust version says so here.
 
+## 3.0.0
+
+**Not yet published.** A major release, prepared by Phase 11: it carries
+breaking changes that 2.x cannot, and each task that changes what an
+application sees adds its line here.
+
 ## 2.0.0
 
-**Not yet published.** 1.0.0 reached crates.io on 26 September 2026.
+**Published on 30 September 2026.** 1.0.0 reached crates.io on
+26 September 2026.
 1.1.0, prepared as a minor release after it, was never published: its
 items are part of this release. 2.0.0 is a major release: an application
 names one crate, `mf2`, and turns on what it needs; it adds native

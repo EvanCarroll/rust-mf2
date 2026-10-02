@@ -138,7 +138,7 @@ pub enum Error {
     /// only to a crate that names `mf2` as a normal dependency.
     #[error(
         "mf2-build: this crate does not name `mf2` in its [dependencies], so its \
-         build script cannot see mf2's features (DEP_MF2_V2_FEATURES): add it \
+         build script cannot see mf2's features (DEP_MF2_V3_FEATURES): add it \
          there, as the crate that includes the generated module needs it anyway"
     )]
     NoMf2,

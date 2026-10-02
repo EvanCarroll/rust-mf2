@@ -1,9 +1,9 @@
 //! [`run`]: the whole build script of the crate that includes the generated
 //! module (plans/19-native-and-terminal.md §11).
 //!
-//! `mf2` has `links = "mf2-v2"` and a build script that prints its features,
+//! `mf2` has `links = "mf2-v3"` and a build script that prints its features,
 //! its target and its version; cargo hands them to the build script of each
-//! crate that names `mf2` as a normal dependency, as `DEP_MF2_V2_*`. So the
+//! crate that names `mf2` as a normal dependency, as `DEP_MF2_V3_*`. So the
 //! features are written once, on `mf2`, and the build sees exactly what the
 //! crate is compiled with, in each of cargo-leptos's two builds too.
 
@@ -13,9 +13,9 @@ use crate::features::Features;
 
 /// `mf2`'s features, sorted and comma-separated: set for a crate that names
 /// `mf2` as a normal dependency, and only for one.
-const FEATURES: &str = "DEP_MF2_V2_FEATURES";
+const FEATURES: &str = "DEP_MF2_V3_FEATURES";
 /// `mf2`'s version, which must be this crate's.
-const VERSION: &str = "DEP_MF2_V2_VERSION";
+const VERSION: &str = "DEP_MF2_V3_VERSION";
 
 /// Everything a build script does: `fn main() { mf2_build::run(); }`.
 ///

@@ -64,7 +64,7 @@ exclude = [
 ]
 
 [workspace.package]
-version = "2.0.0"
+version = "3.0.0"
 edition = "2024"
 # The MSRV, measured (plans/17-phase-9-work-order.md A3; `cargo xtask msrv`):
 # the published crates inherit it. Raising it is a minor release.
@@ -80,30 +80,30 @@ publish = false
 clap = { version = "4.6.7", features = ["derive"] }
 # `default-features = false` for the no_std crates; std crates add `features = ["std"]`.
 thiserror = { version = "2.0.20", default-features = false }
-mf2 = { path = "crates/mf2", version = "=2.0.0" }
-mf2-build = { path = "crates/mf2-build", version = "=2.0.0" }
-mf2-catalog = { path = "crates/mf2-catalog", version = "=2.0.0" }
+mf2 = { path = "crates/mf2", version = "=3.0.0" }
+mf2-build = { path = "crates/mf2-build", version = "=3.0.0" }
+mf2-catalog = { path = "crates/mf2-catalog", version = "=3.0.0" }
 mf2-conformance = { path = "conformance" }
-mf2-fn-number = { path = "crates/mf2-fn-number", version = "=2.0.0" }
-mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=2.0.0" }
+mf2-fn-number = { path = "crates/mf2-fn-number", version = "=3.0.0" }
+mf2-fn-datetime = { path = "crates/mf2-fn-datetime", version = "=3.0.0" }
 mf2-l4-runner = { path = "conformance/l4-runner" }
 mf2-l5-gen = { path = "conformance/l5/gen" }
 mf2-l5-en-us = { path = "conformance/l5/en-us" }
 mf2-l5-und = { path = "conformance/l5/und" }
 mf2-l5-fr = { path = "conformance/l5/fr" }
 mf2-l5-ar = { path = "conformance/l5/ar" }
-mf2-host-std = { path = "crates/mf2-host-std", version = "=2.0.0" }
-mf2-host-web = { path = "crates/mf2-host-web", version = "=2.0.0" }
+mf2-host-std = { path = "crates/mf2-host-std", version = "=3.0.0" }
+mf2-host-web = { path = "crates/mf2-host-web", version = "=3.0.0" }
 # The six Leptos components, one helper crate per Leptos line, which
 # `mf2::leptos` wraps with its `Layer` chosen (owner question 13 of Phase 10).
-mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=2.0.0" }
-mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=2.0.0" }
-mf2-locale-data = { path = "crates/mf2-locale-data", version = "=2.0.0" }
-mf2-macros = { path = "crates/mf2-macros", version = "=2.0.0" }
-mf2-model = { path = "crates/mf2-model", version = "=2.0.0" }
-mf2-resource = { path = "crates/mf2-resource", version = "=2.0.0" }
-mf2-runtime = { path = "crates/mf2-runtime", version = "=2.0.0" }
-mf2-syntax = { path = "crates/mf2-syntax", version = "=2.0.0" }
+mf2-leptos-ui-0-9 = { path = "crates/mf2-leptos-ui-0-9", version = "=3.0.0" }
+mf2-leptos-ui-0-8 = { path = "crates/mf2-leptos-ui-0-8", version = "=3.0.0" }
+mf2-locale-data = { path = "crates/mf2-locale-data", version = "=3.0.0" }
+mf2-macros = { path = "crates/mf2-macros", version = "=3.0.0" }
+mf2-model = { path = "crates/mf2-model", version = "=3.0.0" }
+mf2-resource = { path = "crates/mf2-resource", version = "=3.0.0" }
+mf2-runtime = { path = "crates/mf2-runtime", version = "=3.0.0" }
+mf2-syntax = { path = "crates/mf2-syntax", version = "=3.0.0" }
 # mf2-macros: the `tr!` proc-macro (plans/05-tooling.md §4). `full` for the
 # argument expressions a call site writes.
 proc-macro2 = "1.0.107"

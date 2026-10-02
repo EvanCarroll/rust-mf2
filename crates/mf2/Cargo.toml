@@ -18,9 +18,9 @@ categories = ["internationalization", "localization", "wasm", "web-programming"]
 # The package\'s file list (`cargo xtask package`) is not part of it.
 exclude = ["package.txt"]
 # Its features reach the build script of the crate that includes the
-# generated module as `DEP_MF2_V2_FEATURES` (`mf2_build::run()`, plans/19 §11).
-# The major version is in the name, so that a 3.x resolves beside it.
-links = "mf2-v2"
+# generated module as `DEP_MF2_V3_FEATURES` (`mf2_build::run()`, plans/19 §11).
+# The major version is in the name, so that a 4.x resolves beside it.
+links = "mf2-v3"
 build = "build.rs"
 
 [features]
@@ -388,43 +388,44 @@ native = ["compile", "fn-number", "datetime-icu", "host-std", "native"]
 ratatui = ["compile", "fn-number", "datetime-icu", "host-std", "ratatui"]
 axum = ["compile", "fn-number", "datetime-icu", "host-std", "axum"]
 
-# How 1.0.0 spelled the modes it had, for `cargo xtask release`'s comparison
-# with it: its `leptos` was the layer, which a mode implied, and the Leptos
-# line came from `leptos-mf2` (`leptos-mf2/leptos-0-9`). It had no `native`,
-# no `ratatui` (1.x's native crates were never published) and no `axum`
-# (1.x's was the crate `mf2-axum`), so those three are not compared with it.
-[package.metadata.api.baseline."1.0.0"]
+# How 2.0.0, the published release this one is compared with, spelled each of
+# its modes, for `cargo xtask release`: a later rename of a feature must not
+# change how the baseline is built. 2.0.0 had all seven modes.
+[package.metadata.api.baseline."2.0.0"]
 core = ["compile", "fn-number", "datetime-icu", "host-std"]
 ssr = [
     "compile",
     "fn-number",
     "datetime-icu",
     "host-std",
+    "leptos",
     "ssr",
     "static-locale",
     "mark-fallback-lang",
-    "leptos-mf2/leptos-0-9",
 ]
 hydrate = [
     "compile",
     "fn-number",
     "datetime-icu",
     "host-std",
+    "leptos",
     "hydrate",
     "static-locale",
     "mark-fallback-lang",
-    "leptos-mf2/leptos-0-9",
 ]
 csr = [
     "compile",
     "fn-number",
     "datetime-icu",
     "host-std",
+    "leptos",
     "csr",
     "static-locale",
     "mark-fallback-lang",
-    "leptos-mf2/leptos-0-9",
 ]
+native = ["compile", "fn-number", "datetime-icu", "host-std", "native"]
+ratatui = ["compile", "fn-number", "datetime-icu", "host-std", "ratatui"]
+axum = ["compile", "fn-number", "datetime-icu", "host-std", "axum"]
 
 [lints]
 workspace = true

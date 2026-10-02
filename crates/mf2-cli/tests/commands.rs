@@ -1046,7 +1046,7 @@ fn init_tui_adds_translations_to_an_existing_crate() {
     assert!(text.contains("use crate::prelude::*;"), "{text}");
     let asked = std::fs::read_to_string(&log).expect("cargo ran");
     assert_eq!(
-        asked, "add mf2@2 -F native,ratatui\nadd --build mf2-build@2\n",
+        asked, "add mf2@3 -F native,ratatui\nadd --build mf2-build@3\n",
         "{asked}"
     );
     assert_eq!(
@@ -1107,7 +1107,7 @@ fn init_ssr_adds_translations_to_an_existing_crate() {
     }
     let asked = std::fs::read_to_string(&log).expect("cargo ran");
     assert_eq!(
-        asked, "add mf2@2 -F leptos,fn-number\nadd --build mf2-build@2\n",
+        asked, "add mf2@3 -F leptos,fn-number\nadd --build mf2-build@3\n",
         "{asked}"
     );
     assert!(dir.join("build.rs").is_file());

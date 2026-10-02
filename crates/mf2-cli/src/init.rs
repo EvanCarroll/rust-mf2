@@ -14,7 +14,7 @@ use mf2_build::Config;
 use crate::error::{Error, Result, write};
 
 /// The major version of `mf2` and `mf2-build` a starter names.
-const MAJOR: &str = "2";
+const MAJOR: &str = "3";
 
 /// `mf2 init`.
 // Each bool is a flag of its own on the command line.

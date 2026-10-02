@@ -1167,14 +1167,14 @@ mod tests {
             "-0123abcd".to_owned(),
             "index.crates.io-1949cf8c".to_owned(),
         ];
-        let found = local_extracts(src, &dirs, "2.0.0");
+        let found = local_extracts(src, &dirs, "3.0.0");
         assert_eq!(found.len(), 16);
         assert!(
             found
                 .iter()
                 .all(|p| p.starts_with("/c/registry/src/-0123abcd"))
         );
-        assert!(found.contains(&src.join("-0123abcd/mf2-build-2.0.0")));
+        assert!(found.contains(&src.join("-0123abcd/mf2-build-3.0.0")));
     }
 
     /// This tree's packages, as far as these tests need: `mf2-model`'s.
@@ -1376,7 +1376,7 @@ mod tests {
         // A release the table does not name, or a revision of this tree,
         // spells each mode as it is now.
         for later in [
-            Against::Published("2.0.0".to_owned()),
+            Against::Published("3.0.0".to_owned()),
             Against::Revision("HEAD"),
         ] {
             assert_eq!(

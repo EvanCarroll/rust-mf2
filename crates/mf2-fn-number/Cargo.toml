@@ -34,7 +34,7 @@ mf2-catalog.workspace = true
 mf2-runtime.workspace = true
 
 [dev-dependencies]
-# Path-only, not the workspace's `=1.1.0`: `mf2` depends on this crate, so
+# Path-only, not the workspace's `=3.0.0`: `mf2` depends on this crate, so
 # a versioned dev-dependency on it is a cycle `cargo package` cannot
 # resolve. Cargo strips a path-only dev-dependency from the package, and
 # the tests that use `mf2` stay in the workspace (`exclude` above;

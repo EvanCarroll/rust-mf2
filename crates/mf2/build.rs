@@ -1,9 +1,9 @@
 //! Carries this crate's features to the build script of the crate that
 //! includes the generated module (plans/19-native-and-terminal.md §11).
 //!
-//! `links = "mf2-v2"` makes cargo hand each `cargo::metadata=KEY=VALUE` below
+//! `links = "mf2-v3"` makes cargo hand each `cargo::metadata=KEY=VALUE` below
 //! to the build script of every crate that names `mf2` as a dependency, as
-//! `DEP_MF2_V2_KEY`. `mf2_build::run()` reads them to decide what to emit, so
+//! `DEP_MF2_V3_KEY`. `mf2_build::run()` reads them to decide what to emit, so
 //! that no translation crate declares or forwards a feature of its own.
 
 fn main() {

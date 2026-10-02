@@ -42,10 +42,10 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-mf2 = { version = "2", features = ["native", "fn-number"] }
+mf2 = { version = "3", features = ["native", "fn-number"] }
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 ```
 
 The rest of the manifest only makes rebuilding quicker: the build script
@@ -207,11 +207,11 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-mf2 = { version = "2", features = ["ratatui", "fn-number"] }
+mf2 = { version = "3", features = ["ratatui", "fn-number"] }
 ratatui = "0.30"
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 
 # The build script compiles the messages again after every edit to
 # them: built optimized, it does so faster.

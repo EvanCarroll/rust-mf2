@@ -46,7 +46,7 @@ pub(crate) const PUBLISHED: [&str; 16] = [
 ];
 
 /// Every published crate's version (`[workspace.package]`).
-const VERSION: &str = "2.0.0";
+const VERSION: &str = "3.0.0";
 
 /// The crates that ship data derived from CLDR, whose licence is
 /// `MIT AND Unicode-3.0`: `mf2-locale-data`'s tables, and `mf2`'s
@@ -242,10 +242,10 @@ mod tests {
             .iter_mut()
             .find(|d| d["name"] == "mf2-runtime")
             .unwrap();
-        dep["req"] = "^2.0.0".into();
+        dep["req"] = "^3.0.0".into();
         assert_eq!(
             problems(&m),
-            ["mf2 → mf2-runtime: `^2.0.0`, not `=2.0.0` (or a path-only dev-dependency)"]
+            ["mf2 → mf2-runtime: `^3.0.0`, not `=3.0.0` (or a path-only dev-dependency)"]
         );
     }
 
@@ -285,7 +285,7 @@ mod tests {
                 "mf2-locale-data: no `readme`",
                 "mf2-macros: rust-version 1.85, not the workspace's 1.88",
                 "mf2-model: keyword \"1st\" is not one crates.io accepts",
-                "mf2-model: version is not 2.0.0",
+                "mf2-model: version is not 3.0.0",
                 "mf2-syntax: no `rust-version`",
             ]
         );

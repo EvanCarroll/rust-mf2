@@ -17,10 +17,16 @@ stops: the next phase starts in a fresh session.
 ## State
 
 * **In flight:** nothing.
-* **Next:** 11.1, then 11.3, then 11.4.
+* **Next:** 11.3, then 11.4.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **11.1** The workspace is 3.0.0: the version and the fifteen pins, `mf2`'s
+  `links = "mf2-v3"` with `DEP_MF2_V3_*` through `mf2-build`, the CLI's
+  `mf2@3`, a `## 3.0.0` changelog entry, 2.0.0 marked published, and a
+  `baseline."2.0.0"` table of the seven modes in place of `"1.0.0"`'s.
+  `cargo xtask api` and `package` rewrote nothing: neither records a version.
 
 * **11.0** The tree compiles again. `tests/xliff.rs` and
   `src/workspace_tests.rs` no longer read the moved `plans/05-tooling.md`:
@@ -135,7 +141,10 @@ Change:
 
 Do not touch: `pointers/` (the two pointer crates; Phase 16 asks the owner),
 the documents that say 2.0.0 is the current release (Phase 16), the
-`version = "2"` samples in `docs/` (Phase 15).
+`version = "2"` samples in `docs/` (Phase 15). Departure: `cargo xtask ci`'s
+docs check compares `mf2 init`'s output with the generated blocks of
+`docs/native-apps.md`, so those four lines had to say `"3"`; the page's other
+samples and the rest of `docs/` wait for Phase 15.
 
 Done when: `cargo xtask ci` is green and
 `rg -n "2\.0\.0|mf2-v2|DEP_MF2_V2" Cargo.toml xtask crates -g '!*.txt'` shows
