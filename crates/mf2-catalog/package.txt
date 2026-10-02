@@ -15,6 +15,7 @@ src/format.rs
 src/lib.rs
 src/manifest.rs
 src/markup.rs
+src/nfc_map.rs
 src/number.rs
 src/plural.rs
 src/reader.rs
@@ -23,6 +24,7 @@ src/view.rs
 src/writer.rs
 src/writer/currency.rs
 src/writer/encode.rs
+src/writer/nfc_map.rs
 src/writer/number.rs
 src/writer/pool.rs
 src/writer/unit.rs

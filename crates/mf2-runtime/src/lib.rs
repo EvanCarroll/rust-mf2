@@ -48,6 +48,9 @@ mod function;
 pub mod functions;
 mod host;
 mod number;
+// Task 13.1 builds the check; 13.4 is what calls it.
+#[allow(dead_code)]
+mod nfc;
 mod parts;
 mod plural;
 mod scratch;

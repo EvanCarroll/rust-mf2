@@ -23,11 +23,16 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 13.1
+* **Next:** 13.2
 
 ## Done
 
-(nothing yet)
+* **13.1** The builder (`mf2-catalog/src/writer/nfc_map.rs`), the map it writes
+  (`mf2-catalog/src/nfc_map.rs`: fixed-width tables, binary search) and the
+  check (`mf2-runtime/src/nfc.rs`), nothing calling them yet. The lookup
+  computes Hangul syllables instead of listing them; a key set nothing at or
+  above U+0300 reaches gets no map. Oracle `unicode-normalization`: every code
+  point, and mark sequences, over seven key sets.
 
 ## Before this phase
 

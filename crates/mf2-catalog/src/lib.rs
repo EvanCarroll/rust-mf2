@@ -62,6 +62,8 @@ pub mod format;
 mod manifest;
 mod markup;
 #[doc(hidden)]
+pub mod nfc_map;
+#[doc(hidden)]
 pub mod number;
 mod plural;
 mod reader;

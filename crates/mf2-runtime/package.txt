@@ -16,6 +16,7 @@ src/functions/number.rs
 src/functions/string.rs
 src/host.rs
 src/lib.rs
+src/nfc.rs
 src/number.rs
 src/number/decimal.rs
 src/number/decimal/fixed.rs

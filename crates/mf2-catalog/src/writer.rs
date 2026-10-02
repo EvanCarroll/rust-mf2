@@ -8,6 +8,7 @@
 
 pub mod currency;
 mod encode;
+pub mod nfc_map;
 pub mod number;
 mod pool;
 pub mod unit;
