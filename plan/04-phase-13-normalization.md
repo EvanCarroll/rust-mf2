@@ -23,7 +23,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 13.2
+* **Next:** 13.3
 
 ## Done
 
@@ -33,6 +33,11 @@ exit", then stops: the next phase starts in a fresh session.
   computes Hangul syllables instead of listing them; a key set nothing at or
   above U+0300 reaches gets no map. Oracle `unicode-normalization`: every code
   point, and mark sequences, over seven key sets.
+* **13.2** The differential fuzz target (`fuzz/fuzz_targets/nfc.rs`, in the
+  `long-runs` job and `fuzz/README.md`): index bytes split on `0xFF` draw a key
+  set and a candidate from decomposable characters and marks; every pair is
+  checked against NFD equality. Seeds walk the alphabet in blocks (54 files).
+  A 241 s run (3,640 execs, 15/s — the map build dominates) was clean.
 
 ## Before this phase
 

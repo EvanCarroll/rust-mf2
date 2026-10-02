@@ -19,7 +19,7 @@ use crate::text::nfc_quick;
 
 /// Whether `value` is canonically equivalent to `key`, a string the catalog
 /// holds in NFC, given the catalog's `map`.
-pub(crate) fn equivalent(map: NfcMap<'_>, value: &str, key: &str) -> bool {
+pub fn equivalent(map: NfcMap<'_>, value: &str, key: &str) -> bool {
     if value == key {
         return true;
     }

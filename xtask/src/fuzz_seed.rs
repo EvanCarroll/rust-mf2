@@ -16,7 +16,12 @@
 //!   with its `params` as positional arguments; the workload catalogs with a
 //!   few arguments; and 400 generated L4 cases (`mf2_conformance::l4gen`);
 //! * `fuzz/corpus/resource/` and `fuzz/corpus/pipeline/` — the reference
-//!   workload and the suite's messages, each written as one resource file.
+//!   workload and the suite's messages, each written as one resource file;
+//! * `fuzz/corpus/nfc/` — index bytes for the `nfc` target: the target maps
+//!   every byte into its own alphabet by remainder, so a seed only has to
+//!   walk the table (in blocks of sixteen) and the shapes — two keys and a
+//!   candidate, a key equal to the candidate, long runs of one mark, empty
+//!   fields, eight keys, and a field past the target's character cap.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -190,8 +195,67 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     )?;
     n += 1;
     eprintln!("fuzz-seed: wrote {n} files to {}", dir.display());
+
+    let dir = create(root, "fuzz/corpus/nfc")?;
+    let mut n = 0usize;
+    for b in 0u8..16 {
+        let block: Vec<u8> = (0..16u8).map(|i| b * 16 + i).collect();
+        let mut rev = block.clone();
+        rev.reverse();
+        let mut rot = block.clone();
+        rot.rotate_left(1);
+        // Two keys, and a candidate that is neither.
+        let mut seed = block.clone();
+        seed.push(SEP);
+        seed.extend_from_slice(&rev);
+        seed.push(SEP);
+        seed.extend_from_slice(&rot);
+        write(&dir, &format!("block-{b:02}"), &seed)?;
+        // One key, with the candidate equal to it.
+        let mut seed = block.clone();
+        seed.push(SEP);
+        seed.extend_from_slice(&block);
+        write(&dir, &format!("same-{b:02}"), &seed)?;
+        // A starter and a long run of one character, against a mixed run of
+        // the same length: the canonical-ordering path.
+        let (x, y, z) = (b * 16, b * 16 + 1, b * 16 + 2);
+        let mut seed = vec![x];
+        seed.extend([y; 6]);
+        seed.push(SEP);
+        seed.push(x);
+        seed.extend([z; 3]);
+        seed.extend([y; 3]);
+        write(&dir, &format!("run-{b:02}"), &seed)?;
+        n += 3;
+    }
+    for (name, seed) in [
+        ("sep", vec![SEP]),
+        ("seps", vec![SEP, SEP, SEP]),
+        ("key-only", vec![0x08, 0x18, SEP]),
+        ("value-only", vec![SEP, 0x08, 0x18]),
+        (
+            "eight-keys",
+            (0u8..8).flat_map(|i| [i * 7, i * 7 + 1, SEP]).collect(),
+        ),
+    ] {
+        write(&dir, name, &seed)?;
+        n += 1;
+    }
+    // A field past the target's character cap, on both sides.
+    let long: Vec<u8> = (0..600u32)
+        .map(|i| u8::try_from(i % 251).unwrap_or(0))
+        .collect();
+    let mut seed = long.clone();
+    seed.push(SEP);
+    seed.extend_from_slice(&long);
+    write(&dir, "long", &seed)?;
+    n += 1;
+    eprintln!("fuzz-seed: wrote {n} files to {}", dir.display());
     Ok(())
 }
+
+/// The `nfc` target's field separator.
+const SEP: u8 = 0xFF;
 
 /// The entries as one resource file, sectioned by the first part of each id.
 ///

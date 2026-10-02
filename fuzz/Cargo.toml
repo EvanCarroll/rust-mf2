@@ -27,6 +27,8 @@ mf2-model = { path = "../crates/mf2-model" }
 mf2-resource = { path = "../crates/mf2-resource" }
 mf2-runtime = { path = "../crates/mf2-runtime" }
 mf2-syntax = { path = "../crates/mf2-syntax" }
+# The oracle of the `nfc` target: full NFC/NFD.
+unicode-normalization = { version = "0.1.25", features = ["std"] }
 
 [workspace]
 members = ["."]
@@ -62,6 +64,13 @@ bench = false
 [[bin]]
 name = "format"
 path = "fuzz_targets/format.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nfc"
+path = "fuzz_targets/nfc.rs"
 test = false
 doc = false
 bench = false

@@ -21,8 +21,8 @@
 # * `differential`: mf2-syntax vs ox_mf2_parser on 90,000 generated and mutated
 #   messages. ox hangs on some inputs and then allocates without bound, so it
 #   runs in a child process with a timeout, under a memory limit.
-# * `fuzz`: 30 minutes each of the `parse`, `catalog` and `format` fuzz
-#   targets (cargo-fuzz, nightly toolchain; see fuzz/README.md).
+# * `fuzz`: 30 minutes each of the `parse`, `catalog`, `format` and `nfc`
+#   fuzz targets (cargo-fuzz, nightly toolchain; see fuzz/README.md).
 # * `reader bench` (plans/09-phase-2-work-order.md, A9): the catalog reader's
 #   load and lookup against P0.8's figures, 0 allocations and 0 copies at load
 #   (bench/catalog-bench). Here rather than on every push because its timing
@@ -180,6 +180,13 @@ jobs:
           set -eu
           cd fuzz
           cargo +nightly fuzz run format -- -dict=mf2.dict -max_len=131072 -timeout=10 \
+            -rss_limit_mb=2048 -max_total_time=1800
+
+      - name: Fuzz the canonical-equivalence check (30 minutes)
+        run: |
+          set -eu
+          cd fuzz
+          cargo +nightly fuzz run nfc -- -max_len=4096 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Reader bench (median of 31, exit 1 on failure)

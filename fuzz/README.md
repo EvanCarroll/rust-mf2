@@ -16,6 +16,7 @@ pinned by `rust-toolchain.toml`.
 | `pipeline` | bytes → `from_utf8_lossy`, taken as one locale's resource file; the target makes a two-locale corpus from it, the translation holding every other entry | `mf2-build`: no panic; a corpus the build refused reported an error and wrote no catalog; one it accepted has catalogs that load under the manifest's hash, decode message by message to the flattened models — **built unstripped**, since that round trip is F1 and stripping COLD is entitled to drop a non-NFC name's original spelling (§2.3) — carry the right fallback flag, are byte-identical on a second build that writes nothing, and a generated module that names no catalog outside its `ssr` block |
 | `resource` | bytes → `from_utf8_lossy` | `mf2-resource`: no panic; every span — diagnostics, entries, ids, values, comments, properties — is in bounds and on char boundaries, and every cooked offset of every value maps back into the file; a file read **without a diagnostic** serializes in both styles, parses to the same resource and writes itself again byte for byte (`mf2 fmt` is idempotent); the whole check stays within 50 ms + 50 µs per input byte |
 | `format` | `[flags] [n] [n argument bytes] [payload]`: flags bit 0 = bidi `None`, bit 1 = the default configuration's registry; arguments `[tag] …` (`tag % 8`: string, `i64`, `f64`, decimal text, opaque value, date/time literal text, date/time instant in epoch ms, unset); payload a catalog (starts with `MF2B`, loaded with its header's hash) or MF2 source up to a NUL, a locale byte and a strip byte, written as a one-message catalog for that locale (valid or not) with its plural rules, number data and — when it formats a date or can receive one — the locale's `icu.blob` with every shape's data (built once per locale); source mode's compile is build side and off the clock (the `parse` and `catalog` targets hold it to linear time) | `mf2-runtime` with the L4 registry (all features: `:string`, the localized numeric functions, `:percent`, `:currency`, `:unit`, `:datetime` / `:date` / `:time` over ICU4X from the catalog's `icu.blob`, the unannotated hooks, `:test:*`; or the default configuration's) — in catalog mode with the date functions over the neutral backend, since ICU4X does not promise to survive a damaged blob (a smoke run found `DecimalFormatter` panicking on a damaged numbering-system name, in release builds too): ICU4X reads only the pristine blobs of source mode — and `mf2-host-std` (with `jiff`'s zone data): every message formatted positionally to a string twice (deterministic), to parts (they concatenate to the string, same errors) and with named arguments under its own slot names (same output, when the names are distinct and NFC); an id past the last message is a Missing Message; no panic; the run — a catalog's load and the formatting — within 50 ms + 50 µs per input byte + 100 ns per byte of output |
+| `nfc` | index bytes split on `0xFF`: the last field is the candidate string, the earlier ones (at most eight) the keys; each byte of a field picks a character of the target's alphabet — decomposable letters, singletons, combining marks of many classes, Hangul syllables and jamo, and characters nothing decomposes into — by remainder. An input with no separator is skipped | `mf2-runtime`'s canonical-equivalence check (`nfc.rs`, `plan/01` §4.3) against the full tables: the writer builds the catalog's map from the keys (in NFC, as a catalog holds them), the map loads and reports its own length, and for every pair — the candidate and each key against each key — the check agrees with comparing NFD forms through `unicode-normalization`; the check stays within the usual budget per byte compared. Building the map walks every code point, so it is cached per key set and left off the clock, as source mode's compile is in `format` |
 
 `catalog` charges resolved text because `Catalog::text` is linear in the
 string by design (F4) and a string may be referenced many times, so the text
@@ -38,6 +39,8 @@ cargo +nightly fuzz run resource -- -dict=mf2.dict -max_len=16384 -timeout=10 \
     -rss_limit_mb=2048 -max_total_time=3900
 cargo +nightly fuzz run pipeline -- -dict=mf2.dict -max_len=16384 -timeout=10 \
     -rss_limit_mb=2048 -max_total_time=3900
+cargo +nightly fuzz run nfc -- -max_len=4096 -timeout=10 \
+    -rss_limit_mb=2048 -max_total_time=3900
 ```
 
 Seeds (`cargo xtask fuzz-seed`):
@@ -52,6 +55,11 @@ Seeds (`cargo xtask fuzz-seed`):
   suite's messages, each as one resource file (`workload.mf2`, 76.6 KB;
   `suite.mf2`, 20.1 KB — the sources the container cannot write, the malformed
   ones with a lone `\`, are left out);
+* `corpus/nfc/`: index bytes (the target maps each one into its alphabet by
+  remainder, so a seed does not name characters): the table in blocks of
+  sixteen as two keys and a candidate, as a key equal to the candidate and as
+  a long run of one mark against a mixed run; plus empty fields, eight keys
+  and a field past the target's character cap — 54 files;
 * `corpus/format/`: per L4 suite test (301), its catalog for its locale,
   unstripped and stripped, and its source (source mode), each behind its
   `params` as positional arguments; the workload catalogs with a few
