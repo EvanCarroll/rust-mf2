@@ -16,7 +16,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 12.3.
+* **In flight:** nothing.
 * **Next:** 12.4
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
@@ -37,6 +37,12 @@ exit", then stops: the next phase starts in a fresh session.
   turns it on (`ssr`, `axum` and the conformance runner do).
   `crates/mf2/tests/zone_db.rs` supplies a TZif in `TZDIR` and asserts which
   database each build reads. `native,fn-datetime`: 819440 B, was 1029736 B.
+* **12.3 `mf2` has no jiff of its own.** The system-zone reader is
+  `mf2_host_std::system_time_zone()`, beside a `pub use jiff`; `mf2` names
+  neither jiff nor a host static — `Corpus::with_host` carries the generated
+  `host::HOST`, the zone host only where a date can reach a message, and the
+  jiff `IntoArg` impls moved to `host-std` with `fn-datetime`. `native`:
+  623016 B; `native,fn-datetime`: 820264 B (the field costs ~200 B).
 
 ## Before this phase
 

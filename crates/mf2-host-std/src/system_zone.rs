@@ -1,22 +1,30 @@
-//! The system's time zone, as a native application's dates are shown in it
-//! (plans/19-native-and-terminal.md §5): by its IANA name; without one, the
-//! rules it follows; UTC as the last resort. Never the offset in force when
-//! the application started, which the next change of offset would leave
-//! behind (1.x's behaviour).
+//! The machine's own time zone: a platform service, as the offset of a
+//! named zone is, so it belongs with the host rather than in `mf2`
+//! (`plan/01` §4.1). A native application shows its dates in it: by its
+//! IANA name; without one, the rules it follows; UTC as the last resort.
+//! Never the offset in force when the application started, which the next
+//! change of offset would leave behind (1.x's behaviour).
 
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
 use mf2_runtime::TimeZone;
 
-/// The system's zone, read once per process.
-pub(crate) fn system() -> TimeZone {
+/// The time zone the machine is set to, read once per process: its IANA
+/// name where it has one, else the daylight-saving rules it follows (which
+/// [`ZONES_HOST`](crate::ZONES_HOST) evaluates), else UTC. What
+/// `mf2::native` gives a native application's dates unless the program sets
+/// another.
+#[cfg_attr(docsrs, doc(cfg(feature = "time-zones")))]
+#[must_use]
+pub fn system_time_zone() -> TimeZone {
     static SYSTEM: OnceLock<TimeZone> = OnceLock::new();
     *SYSTEM.get_or_init(read)
 }
 
-/// The system's zone: jiff's, by its IANA name; else the POSIX TZ rule it
-/// follows ([`TimeZone::rules`], which the native host evaluates); else UTC.
+/// jiff's answer, by its IANA name; else the POSIX TZ rule the zone
+/// follows ([`TimeZone::rules`], which [`ZONES_HOST`](crate::ZONES_HOST)
+/// evaluates); else UTC.
 fn read() -> TimeZone {
     if let Ok(zone) = jiff::tz::TimeZone::try_system()
         && let Some(named) = zone.iana_name().and_then(TimeZone::named)

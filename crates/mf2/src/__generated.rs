@@ -66,13 +66,17 @@ forward!($ __if_install, any(feature = "native", feature = "axum", all(any(featu
 forward!($ __if_ratatui, feature = "ratatui");
 
 /// The host: the native one wherever there is one (a server, a native
-/// application, a test) — with dates, the one that resolves a named time
-/// zone, so that a build without them links no time-zone database.
+/// application, a test) — for a corpus a date can reach, the one that
+/// resolves a named time zone, so that nothing else links a time-zone
+/// database.
 #[cfg(all(feature = "host-std", feature = "fn-datetime"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
-    ($($dates:ident)?) => {
+    () => {
+        pub use $crate::host_std::HOST;
+    };
+    (dates) => {
         pub use $crate::host_std::ZONES_HOST as HOST;
     };
 }
@@ -408,7 +412,7 @@ mod server {
         };
         let mut out = String::new();
         if let Some(catalog) = at(locale).or_else(|| at(corpus.source_locale())) {
-            let cx = FormatContext::new(crate::NATIVE_HOST);
+            let cx = FormatContext::new(corpus.host());
             let f = Formatter::new(catalog, corpus.registry(), &cx);
             message.write(&f, &mut out, &mut NoErrors);
         }

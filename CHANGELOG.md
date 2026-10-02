@@ -30,6 +30,21 @@ application sees adds its line here.
   the new feature `mf2/tzdb-bundled`, which `ssr` and `axum` turn on. Turn it
   on by hand to carry the bundle in any other build; a zone no database holds
   is *Bad Option*, as before.
+* **`mf2` no longer depends on jiff.** The date library is the native host's
+  alone: `mf2::host_std::jiff` re-exports it (feature `host-std` with
+  `fn-datetime`), and `mf2::host_std::system_time_zone()` reads the zone the
+  machine is set to. A program that hands `mf2` a jiff value and wants no
+  jiff dependency of its own uses that re-export. The `IntoArg` impls for
+  jiff's `Timestamp`, `Zoned`, `civil::Date` and `civil::DateTime` now come
+  with `host-std` and `fn-datetime` rather than with `native`, so a server
+  has them too.
+* **A build links a time-zone database only where a date can reach a
+  message.** The generated `host::HOST` names the zone-resolving host when
+  `fn-datetime` is on *and* some message uses `:datetime`, `:date` or
+  `:time` or has a placeholder with no function; otherwise it names the
+  plain host, and `Catalogs` and `Locale::format` take the host from the
+  corpus. An application that formats through the generated module needs no
+  change.
 
 ## 2.0.0
 

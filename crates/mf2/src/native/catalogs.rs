@@ -158,12 +158,15 @@ impl Catalogs {
             }
             by_locale.push(catalog);
         }
-        let mut cx = FormatContext::new(crate::NATIVE_HOST);
+        // The host the generated module named for this corpus: with dates
+        // the one that resolves a named zone, else the plain one, so that a
+        // corpus no date can reach links no zone database (`plan/01` §4.1).
+        let mut cx = FormatContext::new(corpus.host());
         cx.bidi = BidiStrategy::None;
         // Without dates, nothing reads the zone, so nothing looks it up.
         #[cfg(feature = "fn-datetime")]
         {
-            cx.time_zone = super::zone::system();
+            cx.time_zone = mf2_host_std::system_time_zone();
         }
         Ok(Catalogs {
             corpus,

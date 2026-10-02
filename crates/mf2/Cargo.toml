@@ -50,12 +50,12 @@ datetime-icu = [
     "mf2-locale-data?/icu-blob",
 ]
 datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/datetime-intl"]
-# Time zones from jiff's bundled IANA database rather than the machine's
-# (`plan/01` §4.1). A native application follows the system it runs on, so
-# that a zone added or amended since this binary was built is right; a
+# Time zones from the IANA database bundled into this binary rather than the
+# machine's (`plan/01` §4.1). A native application follows the system it runs
+# on, so that a zone added or amended since this binary was built is right; a
 # server, where every reply must say the same thing whatever the host holds,
 # turns this on — `ssr` and `axum` do it for you. Nothing without
-# `fn-datetime`, which is what links jiff at all.
+# `fn-datetime`, which is what links a zone database at all.
 tzdb-bundled = ["mf2-host-std?/tzdb-bundled"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
@@ -64,17 +64,13 @@ host-web = ["dep:mf2-host-web"]
 # one generated corpus's catalogs, embedded in the executable (read in place,
 # `static-bytes`) or shipped beside it (checked against the content hash in
 # their names, `content-hash`); the system's preferred languages
-# (`sys-locale`) and time zone (jiff's `tz-system`). std, and never in a
-# browser build: with `hydrate` or `csr` it is a compile error when
-# compiling for `wasm32`; on the host the two compile together, as a
-# workspace's check unifies them. Implies the native host. `dep:jiff` too,
-# so that cargo adds no public feature `jiff`.
+# (`sys-locale`) and time zone (the native host's, with `fn-datetime`).
+# std, and never in a browser build: with `hydrate` or `csr` it is a compile
+# error when compiling for `wasm32`; on the host the two compile together,
+# as a workspace's check unifies them. Implies the native host.
 native = [
     "host-std",
     "dep:sys-locale",
-    "dep:jiff",
-    "jiff/std",
-    "jiff/tz-system",
     "mf2-catalog/static-bytes",
     "mf2-catalog/content-hash",
 ]
@@ -193,10 +189,12 @@ mf2-runtime.workspace = true
 mf2-syntax = { workspace = true, optional = true }
 thiserror.workspace = true
 
-# The native module (`native`): the system's preferred languages, and its
-# time zone (formatting uses mf2-host-std's bundled database).
+# The native module (`native`): the system's preferred languages. The
+# machine's time zone and the zone database are the native host's
+# (`mf2-host-std`, feature `time-zones`), whose date library this crate
+# reaches through its re-export — for the `IntoArg` impls and for their test
+# — so that nothing here depends on it directly.
 sys-locale = { workspace = true, optional = true }
-jiff = { workspace = true, optional = true }
 
 # The Ratatui module (`ratatui`): the text and style types, which `ratatui`
 # re-exports.
@@ -236,10 +234,6 @@ wasm-bindgen = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true }
 
 [dev-dependencies]
-# `tests/native.rs` builds jiff values in a named zone. The host carries a
-# zone database only with dates (`mf2-host-std/time-zones`), so the test
-# asks for one of its own.
-jiff = { workspace = true, features = ["std", "tzdb-bundle-always"] }
 # `tests/churn.rs` runs the client's effects natively.
 any_spawner = { workspace = true, features = ["futures-executor"] }
 # `tests/fallback_lang.rs` writes catalogs that borrow a message from another

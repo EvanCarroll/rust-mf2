@@ -45,7 +45,7 @@ use crate::arg::{ArgValue, DateTimeValue, Text};
 /// | `Cow<'static, str>` | a string; borrowed text stays borrowed |
 /// | `&Path`, `PathBuf`, `&OsStr`, `OsString` (with `std`: `host-std`, `native` or a Leptos mode) | its text, lossy where it is not UTF-8 |
 /// | `SystemTime` (with `std`) | an instant, to the millisecond; nothing past the years a date can hold |
-/// | jiff's `Timestamp`, `Zoned`, `civil::Date`, `civil::DateTime` (with `native`) | a date: an instant, an instant with its zone, or a floating date and time |
+/// | jiff's `Timestamp`, `Zoned`, `civil::Date`, `civil::DateTime` (with `host-std` and `fn-datetime`) | a date: an instant, an instant with its zone, or a floating date and time |
 /// | [`DateTimeValue`], the runtime's [`DateTime`] | a date and time |
 /// | [`ArgValue`] | itself: an exact decimal, a value read at format time, … |
 /// | `Arc<C>` for a [`CustomValue`] | an application value a function reads |
@@ -371,14 +371,16 @@ mod with_std {
     }
 }
 
-/// jiff's instants and civil dates, with `native` (whose store keeps its
-/// time zone with jiff).
-#[cfg(feature = "native")]
+/// jiff's instants and civil dates, wherever the native host carries jiff
+/// — `host-std` with `fn-datetime` — through that crate's re-export, so
+/// that this one has no jiff dependency of its own (`plan/01` §4.1).
+#[cfg(all(feature = "host-std", feature = "fn-datetime"))]
 mod with_jiff {
     use alloc::string::String;
 
-    use jiff::Zoned;
-    use jiff::civil;
+    use mf2_host_std::jiff;
+    use mf2_host_std::jiff::Zoned;
+    use mf2_host_std::jiff::civil;
     use mf2_runtime::{Date, DateTime, Time};
 
     use super::{ArgValue, DateTimeValue, IntoArg};

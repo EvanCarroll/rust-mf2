@@ -10,7 +10,7 @@ use crate::LanguageMatching;
 
 /// A corpus as a native build generates it: the generated module's
 /// `CORPUS`. Never written by hand; read it through its methods.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct Corpus {
     source_locale: &'static str,
     manifest_hash: u64,
@@ -25,6 +25,33 @@ pub struct Corpus {
         allow(dead_code, reason = "read by `mf2::native`")
     )]
     language_matching: Option<&'static LanguageMatching>,
+    /// The host this corpus formats through (the generated `host::HOST`):
+    /// with dates the one that resolves a named time zone, else the plain
+    /// one, so that a corpus no date can reach links no time-zone database
+    /// (`plan/01` §4.1). `None` in a corpus built by hand, which then
+    /// formats through the plain native host.
+    #[cfg_attr(
+        not(all(
+            feature = "host-std",
+            any(feature = "native", feature = "axum", feature = "ssr")
+        )),
+        allow(dead_code, reason = "read where a corpus is formatted from")
+    )]
+    host: Option<&'static dyn mf2_runtime::Host>,
+}
+
+/// Everything but the host, which is a `&dyn` with nothing to show.
+impl core::fmt::Debug for Corpus {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Corpus")
+            .field("source_locale", &self.source_locale)
+            .field("manifest_hash", &self.manifest_hash)
+            .field("locales", &self.locales)
+            .field("registry", &self.registry)
+            .field("catalogs", &self.catalogs)
+            .field("language_matching", &self.language_matching)
+            .finish_non_exhaustive()
+    }
 }
 
 /// One locale's compiled catalog: its file name and, when the build
@@ -54,6 +81,7 @@ impl Corpus {
             registry,
             catalogs,
             language_matching: None,
+            host: None,
         }
     }
 
@@ -65,6 +93,25 @@ impl Corpus {
     pub const fn with_language_matching(mut self, matching: &'static LanguageMatching) -> Corpus {
         self.language_matching = Some(matching);
         self
+    }
+
+    /// The same, formatting through `host`: what the generated module
+    /// calls, with its own `host::HOST`. A corpus without one formats
+    /// through the plain native host, whose named zones are *Bad Option*.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn with_host(mut self, host: &'static dyn mf2_runtime::Host) -> Corpus {
+        self.host = Some(host);
+        self
+    }
+
+    /// The host a corpus is formatted through.
+    #[cfg(all(
+        feature = "host-std",
+        any(feature = "native", feature = "axum", feature = "ssr")
+    ))]
+    pub(crate) fn host(&self) -> &'static dyn mf2_runtime::Host {
+        self.host.unwrap_or(&mf2_host_std::HOST)
     }
 
     /// What a language is matched with among these locales

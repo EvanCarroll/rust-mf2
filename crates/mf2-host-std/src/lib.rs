@@ -12,6 +12,10 @@
 //! | [`ZONES_HOST`] | `time-zones` | the UTC offset of a named zone through `jiff`, from the **system's** IANA database (`TZDIR`, else `/usr/share/zoneinfo`, else `jiff`'s own copy where the platform has none) |
 //! | the same | `tzdb-bundled` | `jiff`'s **bundled** database instead, so that every build answers alike whatever the machine holds: what a server (`mf2`'s `ssr` and `axum` turn it on) and the conformance suite want |
 //!
+//! `time-zones` also gives [`system_time_zone`], the zone the machine is set
+//! to, and re-exports [`jiff`] itself, so that a program converting `jiff`
+//! values needs no `jiff` dependency of its own.
+//!
 //! # The user guide
 //!
 //! The [Rust MF2 book](https://evancarroll.github.io/rust-mf2/) is the user
@@ -27,11 +31,26 @@
 #![forbid(unsafe_code)]
 
 extern crate alloc;
+// The system's zone reads the environment and the file system.
+#[cfg(feature = "time-zones")]
+extern crate std;
 
 use alloc::string::String;
 
 use mf2_runtime::Host;
 use unicode_normalization::UnicodeNormalization;
+
+#[cfg(feature = "time-zones")]
+mod system_zone;
+
+/// `jiff`, as the time zones are read through it: a program that hands
+/// `mf2` a `jiff` value (`mf2`'s `IntoArg` impls) uses this one, so that the
+/// two never disagree about the version and nothing depends on `jiff` twice.
+#[cfg(feature = "time-zones")]
+#[cfg_attr(docsrs, doc(cfg(feature = "time-zones")))]
+pub use jiff;
+#[cfg(feature = "time-zones")]
+pub use system_zone::system_time_zone;
 
 /// The native host: NFC and float text.
 #[derive(Clone, Copy, Default, Debug)]

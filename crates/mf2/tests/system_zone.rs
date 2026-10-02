@@ -45,13 +45,16 @@ fn in_a_process_whose_zone_is_a_rule() {
     let bytes: &'static [u8] = Box::leak(compiled.catalog.as_bytes().to_vec().into_boxed_slice());
     let files: &'static [CatalogFile] =
         Box::leak(Box::new([CatalogFile::new("en", "en.mf2b", Some(bytes))]));
-    let corpus: &'static Corpus = Box::leak(Box::new(Corpus::new(
-        "en",
-        compiled.catalog.manifest_hash(),
-        &[("en", Dir::Ltr)],
-        &REGISTRY,
-        files,
-    )));
+    let corpus: &'static Corpus = Box::leak(Box::new(
+        Corpus::new(
+            "en",
+            compiled.catalog.manifest_hash(),
+            &[("en", Dir::Ltr)],
+            &REGISTRY,
+            files,
+        )
+        .with_host(&mf2::host_std::ZONES_HOST),
+    ));
     native::install(corpus);
     assert_eq!(
         format!("{:?}", native::time_zone()),

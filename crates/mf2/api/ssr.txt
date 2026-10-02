@@ -220,6 +220,8 @@ impl core::clone::Clone for mf2::ArgValue
 pub fn mf2::ArgValue::clone(&self) -> Self
 impl core::convert::From<&alloc::string::String> for mf2::ArgValue
 pub fn mf2::ArgValue::from(&alloc::string::String) -> mf2::ArgValue
+impl core::convert::From<&jiff::zoned::Zoned> for mf2::ArgValue
+pub fn mf2::ArgValue::from(&jiff::zoned::Zoned) -> mf2::ArgValue
 impl core::convert::From<&std::ffi::os_str::OsString> for mf2::ArgValue
 pub fn mf2::ArgValue::from(&std::ffi::os_str::OsString) -> mf2::ArgValue
 impl core::convert::From<&std::path::PathBuf> for mf2::ArgValue
@@ -802,6 +804,14 @@ impl mf2::IntoArg for i8
 pub fn i8::into_arg(self) -> mf2::ArgValue
 impl mf2::IntoArg for isize
 pub fn isize::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::civil::date::Date
+pub fn jiff::civil::date::Date::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::civil::datetime::DateTime
+pub fn jiff::civil::datetime::DateTime::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::timestamp::Timestamp
+pub fn jiff::timestamp::Timestamp::into_arg(self) -> mf2::ArgValue
+impl mf2::IntoArg for jiff::zoned::Zoned
+pub fn jiff::zoned::Zoned::into_arg(self) -> mf2::ArgValue
 impl mf2::IntoArg for mf2::ArgValue
 pub fn mf2::ArgValue::into_arg(self) -> mf2::ArgValue
 impl mf2::IntoArg for mf2::DateTimeValue

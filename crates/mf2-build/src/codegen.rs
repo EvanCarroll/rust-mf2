@@ -191,7 +191,7 @@ pub fn write(module: &Module<'_>) -> String {
     }
     registry(&mut s, module);
     if is_native(module.emit) {
-        native_host(&mut s);
+        native_host(&mut s, module);
     } else {
         host(&mut s, module);
     }
@@ -531,16 +531,23 @@ pub fn registry() -> &'static __mf2::Registry {{
     );
 }
 
+/// Whether a date can reach this corpus's messages: a date function, or a
+/// placeholder with no function, which may be handed one at run time. The
+/// date host is named only then (`plan/01` §4.1).
+fn reaches_a_date(m: &Module<'_>) -> bool {
+    m.features.fn_datetime()
+        && (m.unannotated
+            || m.functions
+                .iter()
+                .any(|f| matches!(f.as_str(), "datetime" | "date" | "time")))
+}
+
 fn host(s: &mut String, m: &Module<'_>) {
     // Which host depends on how `mf2` was built, which is not the build's
     // to know: `__use_host!` is defined once per combination of `mf2`'s
     // features, and names one static, so the others are never linked
     // (B1′). A corpus with no date names no date host at all.
-    let dates = if m.features.fn_datetime() {
-        "dates"
-    } else {
-        ""
-    };
+    let dates = if reaches_a_date(m) { "dates" } else { "" };
     let _ = write!(
         s,
         "
@@ -554,14 +561,16 @@ pub mod host {{
     );
 }
 
-fn native_host(s: &mut String) {
+fn native_host(s: &mut String, m: &Module<'_>) {
+    let dates = if reaches_a_date(m) { "dates" } else { "" };
     let _ = write!(
         s,
         "
-/// The host this build formats through: the native one — with dates, the
-/// one that resolves a named time zone (B1′).
+/// The host this build formats through: the native one — for a corpus a
+/// date can reach, the one that resolves a named time zone, so that nothing
+/// else links a time-zone database (B1′).
 pub mod host {{
-    super::__mf2::__use_host!();
+    super::__mf2::__use_host!({dates});
 }}
 "
     );
@@ -595,7 +604,9 @@ pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
             file = locale.file_name
         );
     }
-    c.push_str("    ],\n)\n.with_language_matching(&LANGUAGE_MATCHING);\n");
+    c.push_str(
+        "    ],\n)\n.with_language_matching(&LANGUAGE_MATCHING)\n.with_host(&host::HOST);\n",
+    );
     s.push('\n');
     if is_native(m.emit) {
         s.push_str(&c);
@@ -1338,9 +1349,12 @@ mod tests {
                 .contains("    (\"ar\", \"ar.fedcba9876543210.mf2b\", MF2_CATALOG_BYTES[1]),"),
             "{code}"
         );
-        // The corpus carries the cut its locales are matched with.
+        // The corpus carries the cut its locales are matched with, and the
+        // host this build formats it through.
         assert!(
-            code.contains("\n.with_language_matching(&LANGUAGE_MATCHING);"),
+            code.contains(
+                "\n.with_language_matching(&LANGUAGE_MATCHING)\n.with_host(&host::HOST);"
+            ),
             "{code}"
         );
         assert!(
@@ -1502,9 +1516,20 @@ mod tests {
         let code = write(&module(&[], &none, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
 
+        // `fn-datetime` is not enough: nothing in this corpus can be a date.
         let dates = Features::parse("fn-datetime,datetime-intl");
         let code = write(&module(&[], &dates, &custom, &locales, false));
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+
+        // A date function, or a plain placeholder, which may be handed one.
+        let time = ["time".to_owned()];
+        let code = write(&module(&time, &dates, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
+        let code = write(&module(&[], &dates, &custom, &locales, true));
+        assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
+        // Without the feature, neither names one.
+        let code = write(&module(&time, &none, &custom, &locales, true));
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
     }
 
     #[test]

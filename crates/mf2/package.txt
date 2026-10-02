@@ -56,7 +56,6 @@ src/native/catalogs.rs
 src/native/handle.rs
 src/native/locale.rs
 src/native/store.rs
-src/native/zone.rs
 src/ratatui.rs
 src/tr.rs
 src/warn.rs

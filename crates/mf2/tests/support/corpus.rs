@@ -103,6 +103,10 @@ pub(crate) fn corpus_of(
         Box::leak(files.into_boxed_slice()),
     )
     .with_language_matching(mf2::LanguageMatching::cldr());
+    // With dates, the host that resolves a named zone, as a generated
+    // corpus names it (`Corpus::with_host`).
+    #[cfg(feature = "fn-datetime")]
+    let corpus = corpus.with_host(&mf2::host_std::ZONES_HOST);
     (Box::leak(Box::new(corpus)), raw)
 }
 
