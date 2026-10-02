@@ -16,8 +16,8 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
-* **Next:** the Phase exit, which the coordinator carries out.
+* **In flight:** the Phase exit, step 1 (`run.sh p12 --against p11b`).
+* **Next:** the exit's steps 2 and 3; every task is done.
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
   `p11` holds two runs at once and its figures are not real. Before starting
