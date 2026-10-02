@@ -20,12 +20,17 @@
 //! is printed on every run and written to `target/native-canaries/report.md`.
 //! It is what answers `plan/01` §8, "`native` links by use".
 //!
-//! There are no forbidding rows yet. Since 12.1 jiff is `mf2-host-std`'s
-//! only conditional dependency (feature `time-zones`), and the `native` row
-//! reports it absent; `unicode-normalization` and `ryu` are still
-//! unconditional, so every native binary links them whether it formats
-//! anything or not. The rest of Phase 12 and Phase 13 make those
-//! conditional, and add the rows that hold them so.
+//! Phase 12 made jiff conditional (`mf2-host-std`'s feature `time-zones`,
+//! which only `fn-datetime` turns on) and removed `ryu` outright, so every
+//! dateless set forbids both. `unicode-normalization` is still
+//! unconditional — every native binary links it whether it normalizes
+//! anything or not — and Phase 13 adds the row that holds it conditional.
+//!
+//! One entry of [`CRATES`] is a module path rather than a crate:
+//! jiff's bundled IANA database is its own `jiff::tz::db::bundled`, not a
+//! separate crate in the symbol table, and whether a native application
+//! reads the system's database or carries a copy (a quarter of a megabyte)
+//! is exactly what a row should be able to say.
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;
@@ -37,9 +42,27 @@ use crate::cmd;
 use crate::error::{Error, Result};
 use crate::fsx;
 
-/// The crates whose presence every row reports: the four heavy native
-/// dependencies of `mf2-host-std` and `mf2`'s own `native` additions.
-const CRATES: &[&str] = &["jiff", "unicode_normalization", "ryu", "sha2", "sys_locale"];
+/// The crates whose presence every row reports: the heavy native
+/// dependencies of `mf2-host-std`, `mf2`'s own `native` additions, and —
+/// the one entry that is a module path, not a crate — jiff's bundled copy
+/// of the IANA database.
+const CRATES: &[&str] = &[
+    "jiff",
+    BUNDLED_TZDB,
+    "unicode_normalization",
+    "ryu",
+    "sha2",
+    "sys_locale",
+];
+
+/// The bundled IANA database, which lives in jiff's own
+/// `jiff::tz::db::bundled` and so owns no crate name of its own.
+const BUNDLED_TZDB: &str = "jiff::tz::db::bundled";
+
+/// That module's path as both mangling schemes write it: v0 puts the crate
+/// after a `Cs<hash>_` disambiguator, the legacy scheme after `_ZN`, and
+/// both then write each component as a length and its bytes.
+const BUNDLED_TZDB_PATH: &str = "4jiff2tz2db7bundled";
 
 /// One row: a feature set of the canary application, and what its binary
 /// must and must not carry.
@@ -60,18 +83,47 @@ const ROWS: &[Row] = &[
         what: "a native application with no formatting functions",
         features: "native",
         requires: &[],
-        forbids: &[],
+        forbids: DATELESS,
     },
     Row {
-        // The positive control: a date in a named zone reaches
+        what: "a native application formatting numbers",
+        features: "native,fn-number",
+        requires: &[],
+        forbids: DATELESS,
+    },
+    Row {
+        what: "a terminal UI formatting numbers",
+        features: "ratatui,fn-number",
+        requires: &[],
+        forbids: DATELESS,
+    },
+    Row {
+        // `axum` turns `tzdb-bundled` on, so that every reply says the same
+        // thing whatever the host holds — but it does not turn `fn-datetime`
+        // on, and `tzdb-bundled` is weak in jiff. A server with no date in
+        // any message therefore links no zone database at all.
+        what: "an Axum server with no date in any message",
+        features: "axum",
+        requires: &[],
+        forbids: DATELESS,
+    },
+    Row {
+        // The positive control, and the one row about which database a
+        // lookup reads: a date in a named zone reaches
         // `Host::zone_offset`, which is jiff. If this row reported no jiff,
-        // the reader would be broken and every forbidding row vacuous.
+        // the reader would be broken and every forbidding row vacuous. The
+        // zone comes from the system, so jiff's bundled copy of the IANA
+        // database — a quarter of a megabyte — must not be linked.
         what: "a native application formatting a date in a named zone (the positive control)",
         features: "native,fn-datetime",
         requires: &["jiff"],
-        forbids: &[],
+        forbids: &[BUNDLED_TZDB],
     },
 ];
+
+/// What a set with no date must not link: the date library, and the float
+/// writer `StdHost::f64_to_text` stopped using in 12.4.
+const DATELESS: &[&str] = &["jiff", BUNDLED_TZDB, "ryu"];
 
 /// The canary application's binary.
 const BIN: &str = "native-canary";
@@ -184,6 +236,9 @@ fn owners(root: &Path, bin: &Path) -> Result<BTreeSet<String>> {
         if let Some(owner) = owner(name) {
             owners.insert(owner.to_owned());
         }
+        if name.contains(BUNDLED_TZDB_PATH) {
+            owners.insert(BUNDLED_TZDB.to_owned());
+        }
     }
     Ok(owners)
 }
@@ -282,5 +337,21 @@ mod tests {
         );
         assert_eq!(owner("main"), None);
         assert_eq!(owner("_RNvC"), None);
+    }
+
+    /// The bundled database is jiff's own module, so it is recognised by
+    /// that path and not by a crate name — including on an item of another
+    /// crate instantiated for one of its types, which is just as good
+    /// evidence that the bundle was linked.
+    #[test]
+    fn the_bundled_database_is_recognised_by_its_module_path() {
+        for symbol in [
+            "_RNvNtNtNtNtNtCs44JDraXbvz1_4jiff2tz2db7bundled5inner6global12CACHED_ZONES",
+            "_ZN4jiff2tz2db7bundled5inner17h0123456789abcdefE",
+            "_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueNtNtNtNtNtNtCs44JDraXbvz1_4jiff2tz2db7bundled5inner6global10CachedZoneEBN_",
+        ] {
+            assert!(symbol.contains(super::BUNDLED_TZDB_PATH), "{symbol}");
+        }
+        assert!(!"_RNvNtNtCs44JDraXbvz1_4jiff2tz11TimeZone3new".contains(super::BUNDLED_TZDB_PATH));
     }
 }

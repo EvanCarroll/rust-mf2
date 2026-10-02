@@ -388,6 +388,9 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
    `compile`. This is the check that would have caught the 308 KiB. An absent
    symbol means no named function or static of that crate remains — the
    crate a symbol's path begins with, not whichever crate instantiated it.
+   One row names a module path instead of a crate (12.5): jiff's bundled
+   IANA database is `jiff::tz::db::bundled`, not a crate in the symbol
+   table, and a dateless or system-zone build must not carry it.
    The workload is `tools/native-canary`, the smallest application that uses
    MF2, a workspace of its own; `nm` reads the symbols. Phase 11 lands the
    command with the positive control and the report only: the forbidding

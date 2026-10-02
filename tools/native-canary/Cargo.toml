@@ -31,6 +31,14 @@ native = ["mf2/native"]
 fn-number = ["mf2/fn-number"]
 fn-datetime = ["mf2/fn-datetime"]
 compile = ["mf2/compile"]
+# A terminal UI and an Axum server: the two other native shapes `mf2` has a
+# module for. Each embeds the catalogs the same way, so each turns `native`
+# on beside its own layer.
+ratatui = ["native", "mf2/ratatui"]
+axum = ["native", "mf2/axum"]
+# The bundled IANA database rather than the machine's, which a server turns
+# on. Nothing without `fn-datetime`.
+tzdb-bundled = ["mf2/tzdb-bundled"]
 
 [dependencies]
 mf2 = { path = "../../crates/mf2" }

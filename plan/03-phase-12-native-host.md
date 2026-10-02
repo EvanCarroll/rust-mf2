@@ -16,7 +16,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 12.5.
+* **In flight:** nothing.
 * **Next:** the Phase exit, which the coordinator carries out.
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
@@ -49,6 +49,12 @@ exit", then stops: the next phase starts in a fresh session.
   dev-dependency, the oracle of `crates/mf2-host-std/tests/floats.rs` (edge
   values and 200,000 random floats). The two agree bar an exact last-digit
   tie (46 of 200,000), where both are shortest and round-trip.
+
+* **12.5 The canary rows.** `native`, `native,fn-number`, `ratatui,fn-number`
+  and `axum` forbid jiff and `ryu`, and every row holds; `axum` turns
+  `tzdb-bundled` on but never `fn-datetime`, so it links no zone database
+  (636072 B). The bundle is jiff's own `jiff::tz::db::bundled`, no crate of
+  its own, so the reader matches that path and `native,fn-datetime` forbids it.
 
 ## Before this phase
 
