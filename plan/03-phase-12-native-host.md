@@ -16,8 +16,8 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 12.2.
-* **Next:** 12.3
+* **In flight:** nothing.
+* **Next:** 12.4
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
   `p11` holds two runs at once and its figures are not real. Before starting
@@ -31,6 +31,12 @@ exit", then stops: the next phase starts in a fresh session.
   a cfg-split `__use_host!`, which `native_host` now calls; native code reads
   the system's zone only with `fn-datetime`. `native` links no jiff: 622800 B
   against 1029736 B with dates (`cargo xtask native-canaries`).
+* **12.2 The system's database, unless the bundle is asked for.**
+  `time-zones` is now jiff's `tzdb-zoneinfo` and `tzdb-bundle-platform`; the
+  weak `tzdb-bundled` asks the bundle instead, and `mf2`'s `tzdb-bundled`
+  turns it on (`ssr`, `axum` and the conformance runner do).
+  `crates/mf2/tests/zone_db.rs` supplies a TZif in `TZDIR` and asserts which
+  database each build reads. `native,fn-datetime`: 819440 B, was 1029736 B.
 
 ## Before this phase
 
