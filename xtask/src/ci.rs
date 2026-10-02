@@ -5,6 +5,11 @@
 //! specification text must already be in its cache (`cargo xtask spec-sync`,
 //! which CI runs first).
 //!
+//! The feature sets the steps build are not listed here: they are rows of
+//! `feature_sets::SETS` (`plan/01` §6.3), which `codegen-matrix`, `msrv` and
+//! `refusals` read too. The browser sets run first, then the workspace's
+//! tests, then the host sets.
+//!
 //! The release-build gates are jobs of their own beside it, not steps:
 //! `parser-gate`, and `tui-gate` (`cargo xtask tui-gate --gate`: the terminal
 //! UI's allocations per frame and stripped size on every push; its time
@@ -15,10 +20,12 @@ use std::path::Path;
 
 use crate::cmd::{cargo, run_inherit};
 use crate::error::{Error, Result};
+use crate::feature_sets::{self, CiStep, Set, Target};
 use crate::report;
 
-/// The cargo invocations, in order.
-const STEPS: &[&[&str]] = &[
+/// The cargo invocations the workspace's own lists give, in order; the rest
+/// come from the feature-set table.
+const FIRST: &[&[&str]] = &[
     &["fmt", "--all", "--check"],
     &[
         "clippy",
@@ -28,349 +35,65 @@ const STEPS: &[&[&str]] = &[
         "-D",
         "warnings",
     ],
-    // The `intl` client option's code compiles only for wasm32-unknown-unknown
-    // (plans/03-runtime.md §5.3): lint it there, or nothing does.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2-runtime",
-        "-p",
-        "mf2-fn-number",
-        "-p",
-        "mf2-host-web",
-        "--features",
-        "mf2-fn-number/intl,mf2-host-web/intl",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // `--workspace` builds `mf2`'s Leptos layer with `ssr` (the conformance
-    // crate turns it on, and cargo unifies), so nothing
-    // above ever compiles the **client** half: the hydration cursor, the
-    // boot, the fetch. Lint it where it runs.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,hydrate",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // `static-locale` (strategy C, the islands default) changes what the
-    // registry and the glue compile; nothing else builds it, and Phase 7
-    // found it had rotted — a signal-valued argument that never updated.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,hydrate,static-locale",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // `csr` (Phase 7 A2) has a boot of its own — the index, the stored
-    // locale, `navigator.languages` — and, with `static-locale`, a switch
-    // that reloads rather than writing a cookie. Nothing else builds either.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,static-locale",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // `mark-fallback-lang` (Phase 7 A14) compiles a second shape of the text
-    // glue — the adopted wrapper, the fitted span — that no other step
-    // builds. Lint its client half with and without `static-locale`, whose
-    // unregistered nodes fit the wrapper through a rebuild.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,hydrate,mark-fallback-lang",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,static-locale,mark-fallback-lang",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // `fn-datetime` (Phase 8 A7) compiles the reader's time zone: the boot's
-    // correction and the glue's hydration queue for `hydrate` — with and
-    // without `static-locale`, where the queue, not the registry, holds the
-    // nodes — and the mount's zone for `csr`. The server's half is in
-    // `--workspace`, which unifies the feature in.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,hydrate,fn-datetime",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,hydrate,fn-datetime,static-locale,mark-fallback-lang",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,fn-datetime",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // The call-site core with no mode, on the client target: what a
-    // Leptos-free client (the size workload `tr`) compiles.
-    &[
-        "clippy",
-        "--target",
-        "wasm32-unknown-unknown",
-        "-p",
-        "mf2",
-        "--features",
-        "host-web",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &["test", "--workspace"],
-    // The client half's conversions under churn (Phase 7 A5): natively, with
-    // `csr`, which `--workspace` never builds (it unifies `ssr`). The browser
-    // measurement of every row shape is `cargo xtask churn`.
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,compile,host-std",
-        "--test",
-        "churn",
-    ],
-    // The server's half of `mark-fallback-lang`, with its test and the
-    // test's catalogs that borrow; the browser's is `demo.mjs`.
-    &[
-        "clippy",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,ssr,compile,mark-fallback-lang",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,ssr,mark-fallback-lang",
-        "--test",
-        "fallback_lang",
-    ],
-    // The native module (Phase 10 B2) as a native application builds it,
-    // with no Leptos layer beside it: `--workspace` always unifies `ssr`
-    // into `mf2` (the conformance crate turns it on), so nothing above compiles `native`
-    // alone. Its tests and the matcher's run here too.
-    &[
-        "clippy",
-        "-p",
-        "mf2",
-        "--features",
-        "native,compile",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    // Phase 10 C2: the store, before `install` (a binary that never
-    // installs), `install_from_directory` (one that does), and the system's
-    // zone as a POSIX rule (a child process whose `TZ` is one), each here
-    // with `native` alone, where the ambient forms panic before `install`;
-    // and (C3) choosing a language with no allocation, in a binary that
-    // counts them.
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "native,compile",
-        "--lib",
-        "--test",
-        "native",
-        "--test",
-        "ambient",
-        "--test",
-        "uninstalled",
-        "--test",
-        "from_directory",
-        "--test",
-        "locale_allocations",
-    ],
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "native,compile,fn-datetime",
-        "--test",
-        "system_zone",
-    ],
-    // The one lookup with a client mode beside `native`, on the host, where
-    // the two compile together (question 24): the page's catalog first, then
-    // the store's. `--workspace` covers `ssr` beside `native`.
-    &[
-        "clippy",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,native,compile",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "leptos,csr,native,compile",
-        "--test",
-        "lookup",
-        "--test",
-        "ambient",
-    ],
-    // The Ratatui module (Phase 10 B3) as a terminal UI builds it, with no
-    // Leptos layer beside it, for the same reason; its tests run here too.
-    &[
-        "clippy",
-        "-p",
-        "mf2",
-        "--features",
-        "ratatui,compile",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "test",
-        "-p",
-        "mf2",
-        "--features",
-        "ratatui,compile",
-        "--test",
-        "ratatui",
-    ],
-    // The Axum module (Phase 10 D1) as a plain Axum server builds it, with
-    // no Leptos layer beside it, for the same reason; its unit tests, and a
-    // plain Axum application answering per `Accept-Language` through the
-    // generated `Locale` extractor and `Locale::format`.
-    &[
-        "clippy",
-        "-p",
-        "mf2",
-        "--features",
-        "axum,compile",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &["test", "-p", "mf2", "--features", "axum,compile", "--lib"],
-    &[
-        "clippy",
-        "-p",
-        "mf2-i18n-fixture",
-        "--features",
-        "axum",
-        "--all-targets",
-        "--",
-        "-D",
-        "warnings",
-    ],
-    &[
-        "test",
-        "-p",
-        "mf2-i18n-fixture",
-        "--features",
-        "axum",
-        "--test",
-        "axum",
-    ],
-    // `mf2-resource`'s `serde` feature is optional and nothing in the
-    // workspace turns it on, so `--workspace` alone never builds `src/json.rs`
-    // or runs `tests/json.rs`.
-    &["test", "-p", "mf2-resource", "--features", "serde"],
 ];
+
+/// `cargo clippy` for a set, with warnings denied; `--all-targets` on the
+/// host, where the tests and examples compile.
+fn clippy(set: &'static Set) -> Vec<&'static str> {
+    let mut args = vec!["clippy"];
+    if let Some(triple) = set.target.triple() {
+        args.push("--target");
+        args.push(triple);
+    }
+    args.extend(set.selection());
+    if set.target == Target::Host {
+        args.push("--all-targets");
+    }
+    args.extend(["--", "-D", "warnings"]);
+    args
+}
+
+/// `cargo test` for a set, with the targets only this set builds.
+fn test(set: &'static Set, targets: &'static [&'static str]) -> Vec<&'static str> {
+    let mut args = vec!["test"];
+    args.extend(set.selection());
+    args.extend(targets);
+    args
+}
+
+/// The cargo invocations, in order: the workspace's fmt and lint, then every
+/// browser set, then the workspace's tests, then every host set.
+fn steps() -> Vec<Vec<&'static str>> {
+    let mut steps: Vec<Vec<&'static str>> = FIRST.iter().map(|step| step.to_vec()).collect();
+    let sets = feature_sets::used_by(|set| set.ci().is_some());
+    let push = |steps: &mut Vec<Vec<&'static str>>, target: Target| {
+        for set in sets.iter().filter(|set| set.target == target) {
+            for step in set.ci().unwrap_or_default() {
+                steps.push(match step {
+                    CiStep::Clippy => clippy(set),
+                    CiStep::Test(targets) => test(set, targets),
+                });
+            }
+        }
+    };
+    push(&mut steps, Target::Wasm);
+    steps.push(vec!["test", "--workspace"]);
+    push(&mut steps, Target::Host);
+    steps
+}
 
 pub(crate) fn run(root: &Path) -> Result<()> {
     // The spec text is not vendored (upstream #1112): without the cache the
     // first build script to read it would stop the run minutes in. Say so now.
     mf2_conformance::spec::spec_dir(root)?;
     let cargo = cargo();
-    for step in STEPS {
+    for step in steps() {
         let shown = format!("cargo {}", step.join(" "));
         eprintln!("==> {shown}");
         let args: Vec<&OsStr> = step.iter().map(OsStr::new).collect();
         run_inherit(&cargo, &args, root).map_err(|_| Error::CiStepFailed(shown))?;
     }
-    // What plans/19 §3 refuses: each misuse of `mf2`'s features is `mf2`'s
+    // What `mf2` refuses: each misuse of its features is `mf2`'s
     // one sentence, whichever crate cargo compiles first; and what it
     // refuses only for the browser compiles on the host.
     eprintln!("==> cargo xtask refusals");

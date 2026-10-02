@@ -1,5 +1,5 @@
 //! `cargo xtask msrv`: the 16 published crates built on the oldest Rust they
-//! claim (`plans/17-phase-9-work-order.md` A3; `docs/versioning.md`).
+//! claim (Phase 9 A3; `docs/versioning.md`).
 //!
 //! The MSRV is `rust-version` in `[workspace.package]`, which the 16 inherit
 //! (A1's metadata test holds them to it). It was measured, not assumed:
@@ -12,6 +12,8 @@
 //! targets — what an application compiles; tests and dev-dependencies may
 //! need a newer Rust — into `target/msrv/<toolchain>`, against the working
 //! tree's lock file:
+//!
+//! The steps are the `msrv` rows of `feature_sets::SETS` (`plan/01` §6.3):
 //!
 //! 1. natively on Leptos 0.9, all 16 but the web host and the 0.8 helper, with every feature an application can
 //!    turn on at once for its server (`ssr`, `axum`, the native and Ratatui
@@ -34,101 +36,7 @@ use std::path::Path;
 use crate::cmd::{cargo, run_capture, run_inherit_env};
 use crate::error::{Error, Result};
 
-const WASM: &str = "wasm32-unknown-unknown";
-
-/// Every feature an application can turn on at once for its server, across
-/// the 16 (step 1; also what `cargo xtask package --test` tests the unpacked
-/// packages with).
-pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,\
-     mf2/leptos,mf2/ssr,mf2/axum,mf2/static-locale,mf2/mark-fallback-lang,mf2/native,mf2/ratatui,mf2-catalog/decode,mf2-catalog/static-bytes,\
-     mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
-     mf2-runtime/fixed-decimal";
-
-/// Every step's `cargo check` arguments, after `check`.
-const STEPS: [(&str, &[&str]); 5] = [
-    (
-        "native, Leptos 0.9, every server feature",
-        &[
-            "-p",
-            "mf2",
-            "-p",
-            "mf2-cli",
-            "-p",
-            "mf2-build",
-            "-p",
-            "mf2-catalog",
-            "-p",
-            "mf2-locale-data",
-            "-p",
-            "mf2-model",
-            "-p",
-            "mf2-resource",
-            "-p",
-            "mf2-runtime",
-            "-p",
-            "mf2-syntax",
-            "-p",
-            "mf2-macros",
-            "-p",
-            "mf2-host-std",
-            "-p",
-            "mf2-fn-number",
-            "-p",
-            "mf2-fn-datetime",
-            "-p",
-            "mf2-leptos-ui-0-9",
-            "--features",
-            SERVER_FEATURES,
-        ],
-    ),
-    (
-        "native, Leptos 0.8",
-        &[
-            "-p",
-            "mf2",
-            "-p",
-            "mf2-leptos-ui-0-8",
-            "--no-default-features",
-            "--features",
-            "mf2/ssr,mf2/axum,mf2/leptos-0-8",
-        ],
-    ),
-    (
-        "wasm32, hydrate, ICU4X dates",
-        &[
-            "--target",
-            WASM,
-            "-p",
-            "mf2",
-            "-p",
-            "mf2-host-web",
-            "--features",
-            "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/datetime-icu,mf2/intl",
-        ],
-    ),
-    (
-        "wasm32, csr, intl, Intl dates",
-        &[
-            "--target",
-            WASM,
-            "-p",
-            "mf2",
-            "--features",
-            "mf2/leptos,mf2/csr,mf2/fn-number,mf2/datetime-intl,mf2/intl",
-        ],
-    ),
-    (
-        "wasm32, hydrate, Leptos 0.8",
-        &[
-            "--target",
-            WASM,
-            "-p",
-            "mf2",
-            "--features",
-            "hydrate,leptos-0-8,fn-datetime",
-        ],
-    ),
-];
+use crate::feature_sets::{self, WASM};
 
 fn fail(message: impl Into<String>) -> Error {
     Error::Msrv(message.into())
@@ -144,11 +52,20 @@ pub(crate) fn run(root: &Path, below: bool) -> Result<()> {
     install(root, &toolchain)?;
     let target_dir = root.join("target").join("msrv").join(&toolchain);
     let envs = [("CARGO_TARGET_DIR", target_dir.as_os_str())];
-    let steps: &[(&str, &[&str])] = if below { &STEPS[..1] } else { &STEPS };
-    for (what, args) in steps {
-        eprintln!("==> msrv: Rust {toolchain}, {what}");
-        let head = ["run", toolchain.as_str(), "cargo", "check"];
-        let args: Vec<&OsStr> = head.iter().chain(args.iter()).map(OsStr::new).collect();
+    let sets = feature_sets::used_by(|set| set.msrv().is_some());
+    let sets = if below { &sets[..1] } else { &sets[..] };
+    for set in sets {
+        eprintln!(
+            "==> msrv: Rust {toolchain}, {}",
+            set.msrv().unwrap_or_default()
+        );
+        let mut args: Vec<&str> = vec!["run", toolchain.as_str(), "cargo", "check"];
+        if let Some(triple) = set.target.triple() {
+            args.push("--target");
+            args.push(triple);
+        }
+        args.extend(set.selection());
+        let args: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
         let outcome = run_inherit_env(OsStr::new("rustup"), &args, root, &envs);
         match (outcome, below) {
             (Ok(()), false) => {}

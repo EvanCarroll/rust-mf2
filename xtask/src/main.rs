@@ -15,6 +15,7 @@ mod codegen_matrix;
 mod docs;
 mod docs_rs;
 mod error;
+mod feature_sets;
 mod fluent_ab;
 mod fluent_migrate;
 mod fsx;
@@ -231,7 +232,19 @@ enum Command {
         #[arg(long)]
         no_build: bool,
     },
-    /// The combinations of `mf2`'s features that plans/19 §3 refuses (Phase
+    /// One `mf2` feature at a time (`plan/01` §6.3): every feature of `mf2`
+    /// compiled alone, with the Leptos line or the target it needs, the way
+    /// a dependent that turns on one thing compiles it. Nightly: one
+    /// `cargo check` each.
+    FeatureSets {
+        /// Print the whole feature-set table instead — every set the
+        /// workspace compiles, with its target, outcome and the commands
+        /// that use it.
+        #[arg(long)]
+        list: bool,
+    },
+    /// The combinations of `mf2`'s features that §3 of the native and
+    /// terminal design refuses (Phase
     /// 10): each must fail with `mf2`'s one sentence and nothing else, even
     /// where a helper crate compiled before `mf2` says it; and those it
     /// refuses only for the browser (`wasm32`) must compile on the host.
@@ -473,6 +486,14 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
+        Command::FeatureSets { list } => {
+            if list {
+                feature_sets::list();
+                Ok(())
+            } else {
+                feature_sets::check_each(&root)
+            }
+        }
         Command::Refusals => refusals::run(&root),
         Command::Api { check } => api::run(&root, check),
         Command::DocsRs => docs_rs::run(&root),

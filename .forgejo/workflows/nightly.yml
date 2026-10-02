@@ -65,6 +65,11 @@
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
 #   (bench/runtime-bench); load-sensitive too.
+# * `feature-sets` (a job of its own; plan/01 §6.3): every feature of `mf2`
+#   compiled alone — with the Leptos line or the browser target it needs,
+#   which `xtask/src/feature_sets.rs` states — the way a dependent that turns
+#   on one thing compiles it (`cargo xtask feature-sets`). One `cargo check`
+#   per feature, which is why it is nightly and not in `ci`.
 # * `tui-gate` (a job of its own; plans/19 §8 and §14): examples/tui's
 #   frame on 2.0 against 1.x's binaries, built from commit 3a296a9 in a
 #   worktree and run alternately — allocations, stripped size, and the
@@ -572,6 +577,57 @@ jobs:
 
       - name: mf2's Leptos layer and layer L6 on Leptos 0.8
         run: cargo xtask leptos-0-8
+
+  feature-sets:
+    # plan/01 §6.3: `ci` builds the feature sets applications really use,
+    # which is not the same as each feature being valid by itself. This job
+    # compiles each of `mf2`'s features alone, on the target the table says
+    # it needs. PLACEHOLDER: see ci.yml. The runner needs git, curl and a C
+    # linker.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (pinned) and the wasm32 target
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: Every feature of mf2, alone
+        run: cargo xtask feature-sets
 
   fmt-check:
     # See the header. PLACEHOLDER: see ci.yml. The runner needs git, curl and

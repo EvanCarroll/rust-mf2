@@ -14,69 +14,28 @@ use std::path::Path;
 
 use crate::cmd;
 use crate::error::{Error, Result};
-
-/// The fixture crate.
-const FIXTURE: &str = "mf2-i18n-fixture";
-
-/// The client target.
-const WASM: &str = "wasm32-unknown-unknown";
-
-/// Server combinations: what an application's `ssr` build forwards. The
-/// last two also turn on `mf2`'s Leptos layer, on each line (Phase 10 B1):
-/// the generated module beside the description types' Leptos impls.
-const SERVER: [&str; 8] = [
-    "ssr",
-    "ssr,fn-number",
-    "ssr,fn-datetime",
-    "ssr,fn-datetime,datetime-icu",
-    "ssr,fn-number,fn-datetime",
-    "ssr,fn-number,fn-datetime,datetime-icu",
-    "ssr,fn-number,fn-datetime,mf2/leptos,mf2/ssr",
-    "ssr,fn-datetime,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
-];
-
-/// Native combinations (Phase 10 C4): the module a native application
-/// includes (`Emit::Native`), alone and with `clap`, `ratatui` and the date
-/// functions; beside the Leptos layer's server, from one table of embedded
-/// bytes that `CORPUS` and `CATALOGS` share; and a web module with `native`
-/// turned on beside `ssr`.
-const NATIVE: [&str; 5] = [
-    "native",
-    "native,fn-number,mf2/clap",
-    "native,fn-number,fn-datetime,datetime-icu,mf2/ratatui",
-    "native,ssr,fn-number,mf2/leptos,mf2/ssr",
-    "ssr,fn-datetime,mf2/leptos,mf2/ssr,mf2/native",
-];
-
-/// Client combinations: what its `hydrate` build forwards. `intl` is the
-/// client-only option of decision D4. The last three also turn on `mf2`'s
-/// Leptos layer, on each line and in both client modes (Phase 10 B1).
-const CLIENT: [&str; 10] = [
-    "hydrate",
-    "hydrate,fn-number",
-    "hydrate,fn-number,intl",
-    "hydrate,fn-datetime",
-    "hydrate,fn-datetime,datetime-icu",
-    "hydrate,fn-datetime,datetime-intl",
-    "hydrate,fn-number,fn-datetime,datetime-intl,intl",
-    "hydrate,fn-number,fn-datetime,mf2/leptos,mf2/hydrate",
-    "hydrate,mf2/leptos,mf2/csr,mf2/static-locale",
-    "hydrate,fn-datetime,mf2/leptos-0-8,mf2/hydrate",
-];
+use crate::feature_sets::{self, FIXTURE, Group, Set, WASM};
 
 pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
     let cargo = cmd::cargo();
-    let server: &[&str] = if quick { &SERVER[..2] } else { &SERVER };
-    let client: &[&str] = if quick { &CLIENT[..2] } else { &CLIENT };
-    let native: &[&str] = if quick { &NATIVE[..2] } else { &NATIVE };
+    let list = |group: Group| {
+        let mut sets = feature_sets::used_by(move |set| set.group() == Some(group));
+        if quick {
+            sets.truncate(2);
+        }
+        sets
+    };
+    let server = list(Group::Server);
+    let native = list(Group::Native);
+    let client = list(Group::Client);
 
-    for features in server.iter().chain(native) {
-        eprintln!("codegen-matrix: native --features {features}");
-        check(&cargo, root, features, None)?;
+    for set in server.iter().chain(&native) {
+        eprintln!("codegen-matrix: native --features {}", set.features);
+        check(&cargo, root, set)?;
     }
-    for features in client {
-        eprintln!("codegen-matrix: {WASM} --features {features}");
-        check(&cargo, root, features, Some(WASM))?;
+    for set in &client {
+        eprintln!("codegen-matrix: {WASM} --features {}", set.features);
+        check(&cargo, root, set)?;
     }
     eprintln!(
         "codegen-matrix: {} combinations compiled ({} server, {} native, {} client)",
@@ -186,22 +145,18 @@ fn find(haystack: &[u8], needle: &[u8]) -> bool {
         .any(|window| window == needle)
 }
 
-fn check(cargo: &OsStr, root: &Path, features: &str, target: Option<&str>) -> Result<()> {
-    let mut args: Vec<&OsStr> = vec![
-        OsStr::new("check"),
-        OsStr::new("-p"),
-        OsStr::new(FIXTURE),
-        OsStr::new("--no-default-features"),
-        OsStr::new("--features"),
-        OsStr::new(features),
-    ];
-    if let Some(target) = target {
-        args.push(OsStr::new("--target"));
-        args.push(OsStr::new(target));
+/// `cargo check` of the fixture for one set.
+fn check(cargo: &OsStr, root: &Path, set: &Set) -> Result<()> {
+    let mut args: Vec<&str> = vec!["check"];
+    args.extend(set.selection());
+    if let Some(triple) = set.target.triple() {
+        args.push("--target");
+        args.push(triple);
     }
+    let args: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
     cmd::run_inherit(cargo, &args, root).map_err(|e| match e {
         Error::CommandFailed { status, .. } => Error::CommandFailed {
-            command: format!("cargo check -p {FIXTURE} --features {features}"),
+            command: format!("cargo check -p {FIXTURE} --features {}", set.features),
             status,
             stderr: String::new(),
         },

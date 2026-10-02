@@ -47,8 +47,10 @@
 # reported, not gated, with GNU gzip when the runner has it (else flate2).
 #
 # Job `build-pipeline`: Phase 5a's two whole-pipeline checks (plans/12, A5 and
-# A9): `cargo xtask codegen-matrix` compiles the generated module in 13 feature
-# combinations of the facade (6 server, 7 client on wasm32-unknown-unknown) and
+# A9): `cargo xtask codegen-matrix` compiles the generated module in the 23
+# feature combinations of the facade the feature-set table holds
+# (`xtask/src/feature_sets.rs`: 8 server, 5 native, 10 client on
+# wasm32-unknown-unknown) and
 # greps the client artifact for budget B6; `cargo xtask scenarios` runs the
 # incremental-rebuild scenarios of P0.9 on tools/i18n-fixture, where a
 # translation-only edit must leave the client wasm byte-identical.

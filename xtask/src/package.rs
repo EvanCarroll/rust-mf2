@@ -374,7 +374,7 @@ fn test_unpacked(root: &Path, published: &[Published], out: &Path) -> Result<()>
         "--no-fail-fast",
         "--workspace",
         "--features",
-        crate::msrv::SERVER_FEATURES,
+        crate::feature_sets::SERVER_FEATURES,
     ];
     eprintln!("==> (target/package-test) cargo {}", args.join(" "));
     let args: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
