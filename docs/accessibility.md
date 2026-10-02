@@ -159,5 +159,5 @@ every language, right to left included.
 over 28 pages in Chromium and Firefox and finds no violations. It also
 checks contrast, reflow at 320 CSS pixels, text spacing, landmarks, and the
 switcher from the keyboard. The audit and its findings are in
-[`plans/phase-7-results.md`](https://github.com/EvanCarroll/rust-mf2/blob/main/plans/phase-7-results.md). It has not been done with a screen reader; the
+[`plan/archive/phase-7-results.md`](https://github.com/EvanCarroll/rust-mf2/blob/main/plan/archive/phase-7-results.md). It has not been done with a screen reader; the
 browsers' accessibility tree stands in for one.

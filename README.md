@@ -130,9 +130,10 @@ a Ratatui mode — is the application
 
 ## Developing
 
-* Plans and decisions: [`plans/`](plans/README.md). Start with
-  [`plans/00-master-plan.md`](plans/00-master-plan.md).
-* Current work order: [`plans/18-phase-10-work-order.md`](plans/18-phase-10-work-order.md).
+* Current plans: [`plan/`](plan/). Start with
+  [`plan/01-size-and-features.md`](plan/01-size-and-features.md).
+* The plans and results of phases 0–10, kept as history:
+  [`plan/archive/`](plan/archive/README.md).
 * Vendored, pinned inputs (read-only): [`third_party/`](third_party/). The MF2
   specification text is not among them: its license does not allow public
   redistribution, so `cargo xtask spec-sync` fetches it, at the pinned commit

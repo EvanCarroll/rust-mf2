@@ -79,7 +79,7 @@ const LINKS: [(Option<&str>, &str, &str); 4] = [
 ];
 
 /// Where no packaged file may come from (by content).
-const FORBIDDEN: [&str; 3] = ["third_party", "plans", "target/xtask-cache"];
+const FORBIDDEN: [&str; 3] = ["third_party", "plan", "target/xtask-cache"];
 
 fn fail(message: impl Into<String>) -> Error {
     Error::Package(message.into())
