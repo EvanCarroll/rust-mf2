@@ -29,6 +29,7 @@ mod l7_web;
 mod leptos_0_8;
 mod locale_data;
 mod msrv;
+mod native_canaries;
 mod package;
 mod packages;
 mod pin;
@@ -219,6 +220,13 @@ enum Command {
         #[arg(long)]
         book: bool,
     },
+    /// What a feature set links into a native binary (`plan/01` §6.1): the
+    /// smallest native application (`tools/native-canary`) is linked once
+    /// per row, unstripped, in the profile releases use, and its symbols
+    /// read. A row fails when it links a crate it forbids, or none of a
+    /// crate it requires; the report says which of jiff,
+    /// unicode-normalization, ryu, sha2 and sys-locale each row carries.
+    NativeCanaries,
     /// The conversions under churn (Phase 7, A5): P0.11's churning list on
     /// mf2's Leptos layer, one row shape per variant, built as a client-only
     /// site and run in the browser; no shape may grow the heap
@@ -531,6 +539,7 @@ fn run(command: Command) -> Result<()> {
                 book,
             },
         ),
+        Command::NativeCanaries => native_canaries::run(&root),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {

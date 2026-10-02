@@ -59,6 +59,10 @@ pub(crate) enum Error {
     /// The terminal UI's measurement could not be made, or did not repeat.
     #[error("tui-gate: {0}")]
     TuiGate(String),
+    /// A feature set links a crate a row forbids, or none of a crate a row
+    /// requires — or the canary application could not be linked or read.
+    #[error("native-canaries: {0}")]
+    NativeCanaries(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

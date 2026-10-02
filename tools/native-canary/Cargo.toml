@@ -1,0 +1,39 @@
+# The workload of `cargo xtask native-canaries` (`plan/01` §6.1): the
+# smallest native application that uses MF2 — a typed language, a plain
+# message, a number and, with `fn-datetime`, a date — so that what a feature
+# set *links* can be read out of the binary's symbols.
+#
+# A workspace of its own, like the examples: the feature sets it is built
+# with must not unify into the root workspace's builds, and the canaries
+# build it one set at a time.
+[workspace]
+members = ["."]
+resolver = "3"
+
+# What releases use, so the symbols read are the ones a release links. Not
+# stripped: the canaries need the symbol table.
+[profile.release]
+lto = "fat"
+
+[package]
+name = "native-canary"
+description = "The smallest native MF2 application, linked once per feature set so its symbols can be read."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[features]
+default = ["native"]
+# What a native application turns on: the embedded catalogs, the typed
+# languages and the store.
+native = ["mf2/native"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+compile = ["mf2/compile"]
+
+[dependencies]
+mf2 = { path = "../../crates/mf2" }
+
+[build-dependencies]
+mf2-build = { path = "../../crates/mf2-build" }

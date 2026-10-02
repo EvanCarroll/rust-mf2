@@ -1,0 +1,5 @@
+source_locale = "en"
+
+[lints]
+# The canary is built with and without `fn-number` on purpose.
+neutral-numbers = "allow"

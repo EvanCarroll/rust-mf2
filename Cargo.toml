@@ -58,6 +58,10 @@ exclude = [
     # The terminal UI (Phase 10 A1, C8): a native application measured by
     # `cargo xtask tui-gate`.
     "examples/tui",
+    # The native canaries' workload (`plan/01` §6.1): linked once per
+    # feature set by `cargo xtask native-canaries`, so its feature sets must
+    # not unify into this workspace's builds either.
+    "tools/native-canary",
     # The 2.0.0 pointer releases of `leptos-mf2` and `mf2-axum`: each a
     # `compile_error!` (plans/18 question 34).
     "pointers",

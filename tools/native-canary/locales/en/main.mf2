@@ -1,0 +1,12 @@
+# The base corpus: text and a number — what every row links.
+@locale en
+---
+
+plain = Save
+
+items =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} item}}
+  *   {{{$count} items}}
+

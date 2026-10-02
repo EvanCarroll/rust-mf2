@@ -32,6 +32,14 @@
 # are the same in every run, so they are held on every push — and stripped
 # `tui-mf2` is no larger than 1.x's. Its time per frame is the nightly's.
 #
+# Job `native-canaries`: guard rail 1 of `plan/01` §6.1 (`cargo xtask
+# native-canaries`): the smallest native application (`tools/native-canary`)
+# is linked once per feature set, unstripped, in the profile releases use,
+# and its symbols read — so that a feature set that must not pull a heavy
+# crate in cannot start doing so unnoticed. The report says which of jiff,
+# unicode-normalization, ryu, sha2 and sys-locale each set links. A job of
+# its own, beside `tui-gate`: it is two release builds.
+#
 # Job `b12`: budget B12 for the catalog reader (plans/09-phase-2-work-order.md,
 # A9; plans/06-size-and-perf.md §3): bench/b12/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
@@ -286,6 +294,60 @@ jobs:
           path: |
             target/tui-gate/report.md
             target/tui-gate/report.json
+          if-no-files-found: error
+
+  native-canaries:
+    # PLACEHOLDER: see the `ci` job.
+    runs-on: PLACEHOLDER-runner-label
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+        run: |
+          set -eu
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            export PATH="$HOME/.cargo/bin:$PATH"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          rustup toolchain install
+          rustup show active-toolchain
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: cargo xtask spec-sync --check
+
+      - name: What each feature set links into a native binary
+        run: cargo xtask native-canaries
+
+      - name: Upload the canaries' report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: native-canaries-report
+          path: target/native-canaries/report.md
           if-no-files-found: error
 
   catalog-size:

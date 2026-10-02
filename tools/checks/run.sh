@@ -15,7 +15,7 @@
 set -u
 cd "$(dirname "$0")/../.."
 all=(ci sizes demos docs docs-rs codegen-matrix scenarios msrv leptos-0-8 churn l6-web l7-web
-     e2e-0-9 e2e-0-8 b12 b12-generated conformance-report api refusals tui-gate)
+     e2e-0-9 e2e-0-8 b12 b12-generated conformance-report api refusals tui-gate native-canaries)
 usage='usage: run.sh LABEL [--against EARLIER] [--only CHECK,...] [--summarize]'
 label=${1:?$usage}; shift
 against= only= summarize=
@@ -51,7 +51,7 @@ exec_check() {
     demos)
       bash tools/checks/demo-hashes.sh "${against:-$label}" "$label" &&
         cp "target/p10-b2/logs/hashes/$label.sha256" "$out/demo-files.sha256" ;;
-    docs|docs-rs|codegen-matrix|scenarios|msrv|leptos-0-8|churn|l6-web|l7-web|b12-generated|refusals)
+    docs|docs-rs|codegen-matrix|scenarios|msrv|leptos-0-8|churn|l6-web|l7-web|b12-generated|refusals|native-canaries)
       CARGO_BUILD_JOBS=3 cargo xtask "$1" ;;
     e2e-0-9) bash tools/checks/e2e.sh . "$label-leptos-0-9" ;;
     e2e-0-8)
@@ -106,6 +106,7 @@ figures() {
     l7-web) sed -n 's/^l7-web: \(L7c*d\) \([0-9]*\/[0-9]*\) .*/\1=\2 /p' "$f" ;;
     b12-generated) sed -n -e 's/^B1′ = .* = \([+-]*[0-9]*\) B.*/b1p=\1 /p' \
                           -e 's/^B13 = .* = \([+-]*[0-9]*\) B.*/b13=\1 /p' "$f" ;;
+    native-canaries) sed -n 's/^native-canaries: \([0-9]*\) feature sets linked.*/sets=\1 /p' "$f" ;;
     tui-gate) awk -F'|' '$2 ~ /`tui-mf2`/ { s = $3; a = $4; u = $6 } $2 ~ /`tui-mf2 \(baseline\)`/ { b = $6 }
                 END { gsub(/ /, "", s); gsub(/ /, "", a); gsub(/ /, "", u); gsub(/ /, "", b)
                       if (s != "") printf "tui=%s allocs=%s us=%s ", s, a, u; if (b != "") printf "base_us=%s", b }' "$f" ;;
