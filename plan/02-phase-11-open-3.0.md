@@ -16,11 +16,17 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 11.3.
+* **In flight:** nothing.
 * **Next:** 11.4.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **11.3** `xtask/src/feature_sets.rs` holds all 87 sets once — packages,
+  features, target, builds-or-refused, the commands that use them; `ci`,
+  `codegen-matrix`, `msrv` and `refusals` read it, and the capture of their
+  cargo command lines is byte-identical to the one taken first. New nightly
+  `cargo xtask feature-sets` (`--list` prints the table): all 19 alone, green.
 
 * **11.1** The workspace is 3.0.0: the version and the fifteen pins, `mf2`'s
   `links = "mf2-v3"` with `DEP_MF2_V3_*` through `mf2-build`, the CLI's
