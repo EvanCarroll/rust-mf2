@@ -46,6 +46,16 @@ stops: the next phase starts in a fresh session.
   baseline could not be taken on it. Task 11.0 repairs it first and the
   baseline is taken on the repaired tree. The repair touches a test only, so
   no size moves and `v2` stays the comparison point the later phases use.
+* **Done.** The baseline was taken on the repaired tree (`cfa19a6`): twenty
+  checks, every one a pass, under `target/p10-checks/v2/`. The figures the
+  later phases are compared against are `b1=26723`, `app=41896`, `b5=8.2`,
+  `b5v=10.4`, `b7.en=18072`, `b7.pl=24137`, `b7.en-XA=21537`,
+  `b7.ar-XB=18423`, `rlib=46320`, `tui=1812352`,
+  `allocs=1329/1329/1329/1328`, `files=30`, `b13=+13573`, `tests=932` and
+  conformance `suite=612 ledger=612 gaps=0`. Frame time was 374.8 µs, taken
+  under load and so shown, not judged. A later phase compares with
+  `bash tools/checks/run.sh LABEL --against v2`; do not take this baseline
+  again.
 
 ## Standing rules
 
