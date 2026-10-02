@@ -12,7 +12,7 @@ machine.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.1
+* **Next:** 16.0, then 16.1
 
 ## Done
 
@@ -34,6 +34,51 @@ machine.
 * One build at a time, `CARGO_BUILD_JOBS=3`.
 
 ## Tasks
+
+### 16.0 Plan pointers in the code — audit, then repair
+
+The tree cites the planning documents by path, and the old `plans/`
+directory is now `plan/archive/`: every one of those citations names a path
+that no longer exists. Measured on 2026-10-02, before Phase 11's work:
+**705 matches of `plans/` in about 300 files**, across `crates/`, `xtask/`,
+`conformance/`, `bench/`, `examples/`, `fuzz/`, `tools/` and
+`.forgejo/workflows/` — mostly module headers and doc comments of the shape
+"plans/03-runtime.md §4". Task 11.0 swept `crates/mf2-cli` only, and 11.3
+reworded three more in passing. 3.0.0 should not go out with them.
+
+Audit first, change nothing: count the matches by shape — a bare path in a
+header, a path with a section number, a path inside a generated file — and
+report the counts to the coordinator.
+
+Then repair them under one rule. A citation may **not** be repointed at
+`plan/archive/`: `CLAUDE.md` forbids referencing the archive, and a path
+the reader is not allowed to open tells them nothing. So each citation
+either says on its own what it meant — the rule, the budget, the invariant,
+or the code that defines it — or it goes. Where the comment around it
+already says that, dropping the path is the whole repair.
+
+Make it a reviewed pass over the matches of the `rg` below, one commit by
+path. Generated text changes through its generator and is regenerated, by
+hand never: `crates/mf2-locale-data/data/*.txt`, `conformance/REPORT.md`,
+`conformance/COVERAGE.md`, `conformance/ledger.toml`, the records under
+`bench/`, and the `package.txt` header (11.0 changed that generator
+already).
+
+Citations of `plan/01` to `plan/07` are a different thing and stay: those
+documents still exist, and 16.4's second question decides whether they move
+to the archive. If the answer moves them, the same rule applies to them, in
+16.3's commit.
+
+If a citation carries a fact found nowhere else in the tree, or the pass
+cannot be made mechanical, stop at a safe point and report: dropping the
+fact is the owner's call, not the agent's.
+
+Text only: no behaviour and no size moves, which is why this runs before
+the pre-flight rather than after it.
+
+Done when: `rg -n "plans/" crates xtask tools conformance bench examples
+fuzz docs .forgejo .github` is empty, `cargo xtask ci` is green, and the
+audit's counts are in the Done entry.
 
 ### 16.1 Pre-flight
 
