@@ -103,6 +103,15 @@ replace (+4 KiB) and about 9 KiB of other changes.
    is meant to give an application both `Intl.NumberFormat` and
    `Intl.PluralRules` through `Host::numbers`. That a build with the feature
    gets neither (§8 F1) is a defect, not a design choice. Task 14.0 fixes it.
+5. **One release, and the fix goes out in it** (owner, 2026-10-02). The
+   `intl` defect is fixed in 3.x, never as a 2.x patch, and **no intermediary
+   release is published**: 3.0.0 is the next thing on crates.io and it carries
+   the fix, the size work, the renames and the guide together. The phases may
+   therefore run in whatever order suits the work — the owner does not mind —
+   because nothing is published between them. One consequence to keep in
+   mind: the zone work (§4.1) is itself breaking, so publishing before it
+   would force the savings into a 4.0.0 and make a developer who adopted
+   3.0's names upgrade twice.
 
 ## 3. The feature structure
 
