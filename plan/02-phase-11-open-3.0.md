@@ -16,7 +16,7 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
+* **In flight:** 11.0.
 * **Next:** 11.1, then 11.3, then 11.4.
 * A worktree made for a task is removed once its work is merged.
 
@@ -36,6 +36,10 @@ stops: the next phase starts in a fresh session.
   `plan/07`. `cargo xtask release` refuses a dirty tree.
 * The coordinator runs the check suite once on that tree, as the comparison
   point for every later phase: `bash tools/checks/run.sh v2`.
+* That run found the tree red: the move of `plans/` broke the build, so the
+  baseline could not be taken on it. Task 11.0 repairs it first and the
+  baseline is taken on the repaired tree. The repair touches a test only, so
+  no size moves and `v2` stays the comparison point the later phases use.
 
 ## Standing rules
 
@@ -49,6 +53,32 @@ stops: the next phase starts in a fresh session.
   stop at a safe point and report to the coordinator. The owner decides.
 
 ## Tasks
+
+### 11.0 Make the tree compile again
+
+Found by the baseline run, not planned: `cargo clippy --workspace
+--all-targets` fails, so every `cargo xtask ci` on this tree is red and no
+task may commit.
+
+`crates/mf2-cli/tests/xliff.rs` has `include_str!("../../../plans/05-tooling.md")`
+in `every_code_has_a_test`, which reads §6.3's import table out of the
+document and asserts each `xliff-<code>` in it has a test in the file. The
+owner's move of `plans/` to `plan/archive/` deleted that path.
+
+The test may not be made to read `plan/archive/`: the archive is history and
+CLAUDE.md forbids reading it. Make the test stand on its own — the six codes
+belong to the CLI's own contract, so take them from the code that defines
+them, or failing that from a literal list in the test — and keep what it
+checks: every import code has a test named after it, and the count is the
+whole set. The same file's two stale `plans/05-tooling.md` mentions (its
+module comment and the string near line 54) point into the archive; reword
+them so they do not.
+
+If the honest repair is to drop the test rather than keep it, stop and report
+to the coordinator instead: that is the owner's call.
+
+Done when: `cargo xtask ci` is green and
+`rg -n "plans/" crates/mf2-cli` is empty.
 
 ### 11.1 Version 3.0.0
 
