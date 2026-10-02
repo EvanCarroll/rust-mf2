@@ -16,8 +16,8 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
-* **Next:** 11.3, then 11.4.
+* **In flight:** 11.3.
+* **Next:** 11.4.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
