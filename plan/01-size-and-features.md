@@ -444,6 +444,12 @@ Task 11.2 answers F1–F3 here, in at most ten lines in all.
   links neither `sha2` nor `sys-locale`, and one that formats a date in a
   named zone links `jiff`; but jiff, `unicode-normalization` and `ryu` are
   linked with no date at all, which is what §4.1–§4.3 remove.
+* **3.0.0's own 215 B.** Measured (11.5): B1 26723 → 26938 B gz, the whole
+  app 41896 → 42017, from 133 B raw in the `tr` wasm's code section — no new
+  code (same function count, same data length, 1072 bodies permuted netting
+  +133: the 3.0.0 version and `links` name change `-C metadata`, so the same
+  code is laid out differently). Reverting only those two reproduces v2's
+  figures exactly, so 3.0.0 costs this and there is nothing to take out.
 * **Float text.** That `core`'s formatting is already in most native binaries
   is not verified.
 * **Every byte figure** in §1.4 is an estimate by subtraction.

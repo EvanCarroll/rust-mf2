@@ -16,15 +16,19 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** the Phase exit, step 1. Phase 11's session ended before
-  carrying it out: its `run.sh p11` died inside `ci` and left a stub under
-  `target/p10-checks/p11/`. Phase 12's coordinator takes it on the same tree
-  (`56d02f0`, clean), because a comparison point for `p11` cannot be taken
-  once Phase 12 has changed a size.
-* **Next:** exit steps 2 and 4; every task is done.
+* **In flight:** nothing.
+* **Next:** the Phase exit, steps 1, 2 and 4, on this tree; every task is
+  done. Step 1's comparison point is `target/p10-checks/p11b`
+  (`--against v2`, all 21 green), whose +215 B 11.5 accounted for.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **11.5** The phase's +215 B gz on B1 (26723 → 26938; whole app 41896 →
+  42017) is 133 B raw in the 1860-site `tr` wasm's code section, and no new
+  code: reverting only the 3.0.0 version and the `links` name to 2.x
+  measures the old figures exactly (`run.sh p11base --only sizes`), and the
+  133 B is 1072 permuted bodies — `-C metadata`. Nothing to take out (§8).
 
 * **11.4** `cargo xtask native-canaries` links `tools/native-canary` (a new
   workspace of its own, the smallest MF2 application) once per row,
