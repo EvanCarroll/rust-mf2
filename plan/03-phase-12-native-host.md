@@ -16,7 +16,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
+* **In flight:** 12.3.
 * **Next:** 12.4
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
