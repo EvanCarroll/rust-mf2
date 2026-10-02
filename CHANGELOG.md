@@ -11,6 +11,16 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **A catalog carries its own canonical-equivalence map, and the binary
+  format is version 2.** A compiled catalog now holds a small table of the
+  code points that can reach its variant keys and argument names after
+  decomposition, so the runtime can answer "is this value the same string as
+  that key, allowing for accents written either way?" without any
+  normalization tables. The format's major version moved with it: a 3.0
+  reader refuses a catalog written by 1.x or 2.x (`not an .mf2b catalog` ·
+  `unsupported .mf2b format version`), so rebuild your catalogs when you
+  upgrade — a `mf2 build` does it. The table is catalog data: nothing of it
+  reaches the client wasm. `mf2 stats` and `mf2 dump` report it.
 * **The native host has a time-zone database only with dates.**
   `mf2-host-std` gained a feature `time-zones`, which `mf2`'s `fn-datetime`
   turns on, and a second static, `mf2::host_std::ZONES_HOST`: it resolves a

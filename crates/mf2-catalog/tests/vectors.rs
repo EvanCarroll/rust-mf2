@@ -32,7 +32,7 @@ fn compile(m: &Message<'_>, options: &Options) -> (Vec<u8>, u64) {
 }
 
 const V1: &str = "
-    4D 46 32 42  00 01  03 00  EC 7E DC A7 AE 6C 0D D8
+    4D 46 32 42  00 02  03 00  EC 7E DC A7 AE 6C 0D D8
     01 00 00 00  00 00 00 00  00 00 00 00  00 00  06 00
     01 00 5C 00 00 00 04 00 00 00
     02 00 60 00 00 00 00 00 00 00
@@ -45,7 +45,7 @@ const V1: &str = "
     65 6E 00 48 65 6C 6C 6F 00";
 
 const V2: &str = "
-    4D 46 32 42  00 01  00 00  28 06 D0 17 9E ED 37 AC
+    4D 46 32 42  00 02  00 00  28 06 D0 17 9E ED 37 AC
     01 00 00 00  00 00 00 00  00 00 00 00  00 00  08 00
     01 00 70 00 00 00 04 00 00 00
     02 00 74 00 00 00 0C 00 00 00
@@ -65,7 +65,7 @@ const V2: &str = "
     65 6E 00 73 74 72 69 6E 67 00 75 73 65 72 00 78 00 21 00 48 69 20 00";
 
 const V3: &str = "
-    4D 46 32 42  00 01  03 00  E2 3D 9F F4 10 B9 4F 20
+    4D 46 32 42  00 02  03 00  E2 3D 9F F4 10 B9 4F 20
     01 00 00 00  02 00 00 00  01 02 30 00  00 00  06 00
     01 00 5C 00 00 00 04 00 00 00
     02 00 60 00 00 00 17 00 00 00
@@ -89,7 +89,7 @@ fn v1_simple() {
     assert_eq!(hash, 0xd80d_6cae_a7dc_7eec);
     assert_eq!(bytes, hex(V1));
     let cat = Catalog::new(bytes, hash).unwrap();
-    assert_eq!(cat.format_version(), 0x0100);
+    assert_eq!(cat.format_version(), 0x0200);
     assert_eq!(cat.locale(), "en");
     assert_eq!(cat.dir(), Dir::Ltr);
     assert_eq!(cat.message_count(), 1);

@@ -14,6 +14,7 @@ pub mf2_catalog::CatalogError::Magic
 pub mf2_catalog::CatalogError::ManifestMismatch
 pub mf2_catalog::CatalogError::MissingSection
 pub mf2_catalog::CatalogError::Names
+pub mf2_catalog::CatalogError::Nfc
 pub mf2_catalog::CatalogError::SectionTable
 pub mf2_catalog::CatalogError::Strings
 pub mf2_catalog::CatalogError::Truncated
@@ -92,6 +93,7 @@ pub fn mf2_catalog::Catalog::lookup(&self, &str) -> core::option::Option<mf2_mod
 pub fn mf2_catalog::Catalog::manifest_hash(&self) -> u64
 pub fn mf2_catalog::Catalog::message_count(&self) -> u32
 pub fn mf2_catalog::Catalog::new(alloc::vec::Vec<u8>, u64) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
+pub fn mf2_catalog::Catalog::nfc_map(&self) -> NfcMap<'_>
 impl core::fmt::Debug for mf2_catalog::Catalog
 pub fn mf2_catalog::Catalog::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2_catalog::CldrVersion

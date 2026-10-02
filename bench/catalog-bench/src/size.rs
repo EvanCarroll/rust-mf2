@@ -514,7 +514,7 @@ impl SizeReport {
         // --- sections ---
         let _ = writeln!(o, "\n## Sections (raw bytes)\n");
         let names = [
-            "INDEX", "MESSAGES", "COLD", "NAMES", "LOCALE", "FUNCS", "IDS", "STRINGS",
+            "INDEX", "MESSAGES", "COLD", "NAMES", "LOCALE", "FUNCS", "IDS", "NFC", "STRINGS",
         ];
         let _ = writeln!(
             o,

@@ -23,7 +23,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 13.3
+* **Next:** 13.4
 
 ## Done
 
@@ -38,6 +38,12 @@ exit", then stops: the next phase starts in a fresh session.
   set and a candidate from decomposable characters and marks; every pair is
   checked against NFD equality. Seeds walk the alphabet in blocks (54 files).
   A 241 s run (3,640 execs, 15/s — the map build dominates) was clean.
+* **13.3** Section kind NFC (9), written by `catalog` from the keys and slot
+  names `encode_all` collects, read as `Catalog::nfc_map` and validated at
+  load (`CatalogError::Nfc`). The format's major version is 2, so a 1.x/2.x
+  catalog is refused. `mf2 stats` lists the map per locale, `mf2 dump` ahead
+  of the messages. B7 holds: the reference corpora's keys are ASCII, so no
+  catalog there carries the section at all.
 
 ## Before this phase
 

@@ -51,6 +51,9 @@ pub enum CatalogError {
     /// NAMES is malformed.
     #[error("invalid NAMES section")]
     Names,
+    /// The NFC section is not a whole canonical-equivalence map.
+    #[error("invalid NFC section")]
+    Nfc,
     /// IDS is malformed.
     #[error("invalid IDS section")]
     Ids,

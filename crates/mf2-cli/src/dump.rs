@@ -94,6 +94,24 @@ pub(crate) fn run(args: &Args) -> Result<()> {
             args.catalog.display()
         )));
     }
+    // The canonical-equivalence map is a fact about the whole catalog, so it
+    // is shown once, ahead of the messages, when the catalog carries one.
+    let map = catalog.nfc_map();
+    if args.id.is_none() && !map.is_empty() {
+        match args.format {
+            Shape::Mf2 => println!(
+                "# canonical-equivalence map: {} code points, {} B",
+                map.code_points(),
+                map.len_bytes()
+            ),
+            Shape::Json => println!(
+                "{}",
+                serde_json::json!({
+                    "nfc_map": { "code_points": map.code_points(), "bytes": map.len_bytes() },
+                })
+            ),
+        }
+    }
     print!("{out}");
     Ok(())
 }

@@ -125,11 +125,19 @@ pub fn catalog(
 
     let layout = names_layout(manifest, messages)?;
     let mut pool = Pool::new();
-    encode_all(manifest, messages, options, &fallback, &layout, &mut pool)?;
+    // Every variant key and argument name, in NFC, as the one pass sees them
+    // (`plan/01` §8 F3): the NFC section is built from them below.
+    let mut keys = BTreeSet::new();
+    encode_all(
+        manifest, messages, options, &fallback, &layout, &mut pool, &mut keys,
+    )?;
     pool.finish()?;
-    let s = encode_all(manifest, messages, options, &fallback, &layout, &mut pool)?;
+    let s = encode_all(
+        manifest, messages, options, &fallback, &layout, &mut pool, &mut keys,
+    )?;
+    let nfc_section = nfc_map::build(keys.iter().map(String::as_str));
 
-    let mut sections: Vec<(u16, Vec<u8>)> = Vec::with_capacity(9);
+    let mut sections: Vec<(u16, Vec<u8>)> = Vec::with_capacity(10);
     sections.push((section::INDEX, planes(&s.index)));
     sections.push((section::MESSAGES, s.messages));
     if !options.strip_cold && !s.cold.is_empty() {
@@ -143,6 +151,9 @@ pub fn catalog(
     sections.push((section::FUNCS, s.funcs));
     if let Some(ids) = ids {
         sections.push((section::IDS, ids));
+    }
+    if !nfc_section.is_empty() {
+        sections.push((section::NFC, nfc_section));
     }
     sections.push((section::STRINGS, pool.into_bytes()));
 
@@ -258,6 +269,7 @@ fn encode_all(
     fallback: &[(u32, &str)],
     layout: &NamesLayout<'_>,
     pool: &mut Pool,
+    keys: &mut BTreeSet<String>,
 ) -> Result<Structure, WriteError> {
     let locale = pool.r(&options.locale, Class::Ident)?;
     let mut funcs = Vec::with_capacity(manifest.functions.len() * 4);
@@ -289,6 +301,11 @@ fn encode_all(
     for (slots, locals) in &layout.order {
         varint(count(slots.len(), "slots")?, &mut names);
         varint(count(locals.len(), "locals")?, &mut names);
+        for s in slots.iter().map(String::as_str) {
+            if !keys.contains(s) {
+                keys.insert(String::from(s));
+            }
+        }
         for s in slots
             .iter()
             .map(String::as_str)
@@ -313,8 +330,15 @@ fn encode_all(
         }
         let slots = manifest.slots.get(i).unwrap_or(&empty);
         let mut body = Vec::new();
-        let enc = MsgEncoder::new(pool, &manifest.functions, slots, i, options.strip_cold)
-            .message(m, &mut body)?;
+        let enc = MsgEncoder::new(
+            pool,
+            &manifest.functions,
+            slots,
+            i,
+            options.strip_cold,
+            keys,
+        )
+        .message(m, &mut body)?;
         let at = count(out.len(), "MESSAGES")?;
         if at > MAX_OFFSET {
             return Err(WriteError::TooLarge("MESSAGES"));

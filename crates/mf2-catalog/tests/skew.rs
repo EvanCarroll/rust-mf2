@@ -140,7 +140,7 @@ fn f7_fallback_locales_round_trip() {
 fn f9_unknown_major_versions_are_rejected() {
     let (bytes, manifest) = build(&IDS, &EN, &Options::new("en", Dir::Rtl));
     let h = manifest.hash();
-    for major in [0u8, 2, 0xff] {
+    for major in [0u8, 1, 3, 0xff] {
         let mut b = bytes.clone();
         b[5] = major;
         assert_eq!(Catalog::new(b, h).map(|_| ()), Err(CatalogError::Version));
@@ -148,7 +148,7 @@ fn f9_unknown_major_versions_are_rejected() {
     let mut b = bytes;
     b[4] = 0x42; // a later minor: additive, still readable
     let cat = Catalog::new(b, h).unwrap();
-    assert_eq!(cat.format_version(), 0x0142);
+    assert_eq!(cat.format_version(), 0x0242);
     assert_eq!(cat.dir(), Dir::Rtl);
 }
 

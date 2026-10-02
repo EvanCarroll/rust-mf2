@@ -158,6 +158,13 @@ fn walk(cat: &Catalog) -> usize {
     for id in ["m00", "m03", "m05", "zz", ""] {
         let _ = cat.lookup(id);
     }
+    let map = cat.nfc_map();
+    n += map.code_points() + map.len_bytes();
+    for ch in ['a', '\u{e9}', '\u{301}', '\u{ac01}', '\u{10FFFF}'] {
+        if let Some(d) = map.decomposition(ch) {
+            n += d.count();
+        }
+    }
     n
 }
 
@@ -175,6 +182,39 @@ fn the_rich_catalog_loads_and_walks() {
     assert_eq!(cat.fallback_locale(MsgId::new(0, 3).unwrap()), Some("de"));
     assert_eq!(cat.locale_entry(77), Some(&[1u8, 2, 3][..]));
     assert_eq!(cat.locale_entry(2), Some(&[][..]));
+}
+
+/// The NFC section (`plan/01` §4.3): written when a code point outside the
+/// catalog's own keys and names can reach one, read back as that map, and
+/// left out entirely when nothing can.
+#[test]
+fn the_canonical_equivalence_map_round_trips() {
+    let (bytes, hash) = rich();
+    let cat = Catalog::new(bytes, hash).unwrap();
+    // `rich` has the argument name `café`, so U+00E9 is reachable.
+    let map = cat.nfc_map();
+    assert!(!map.is_empty() && map.len_bytes() > 0);
+    let decomp: Vec<char> = map.decomposition('\u{e9}').unwrap().collect();
+    assert_eq!(decomp, ['e', '\u{301}']);
+    assert!(map.decomposition('\u{df}').is_none(), "ß reaches nothing");
+    assert!(
+        cat.sections()
+            .any(|(kind, _, len)| kind == section::NFC && len as usize == map.len_bytes())
+    );
+
+    // An ASCII-only catalog gets no section at all.
+    let message = parse(".match $n 1 {{one}} * {{other}}");
+    let manifest = Manifest {
+        ids: vec!["a".into()],
+        slots: vec![vec!["n".into()]],
+        markup: vec![vec![]],
+        functions: vec![],
+    };
+    let options = Options::new("en", Dir::Ltr);
+    let bytes = catalog(&manifest, &[Some(&message)], &options).unwrap();
+    let cat = Catalog::new(bytes, manifest.hash()).unwrap();
+    assert!(!cat.sections().any(|(kind, _, _)| kind == section::NFC));
+    assert!(cat.nfc_map().is_empty());
 }
 
 #[test]
@@ -253,7 +293,9 @@ fn every_catalog_error() {
     };
     expect(edit(&|b| b[3] = b'X'), hash, CatalogError::Magic);
     expect(b"MF2".to_vec(), hash, CatalogError::Magic);
-    expect(edit(&|b| b[5] = 2), hash, CatalogError::Version);
+    expect(edit(&|b| b[5] = 3), hash, CatalogError::Version);
+    // Version 1 wrote no canonical-equivalence map, so 3.0 refuses it.
+    expect(edit(&|b| b[5] = 1), hash, CatalogError::Version);
     // A minor bump is fine.
     assert!(Catalog::new(edit(&|b| b[4] = 7), hash).is_ok());
     expect(good[..5].to_vec(), hash, CatalogError::Truncated);
@@ -384,6 +426,9 @@ fn every_catalog_error() {
     // IDS: a wrong restart offset.
     let (_, idoff, _) = find(&good, section::IDS);
     expect(edit(&|b| b[idoff] = 1), hash, CatalogError::Ids);
+    // NFC: a count the section's length cannot hold.
+    let (_, noff, _) = find(&good, section::NFC);
+    expect(edit(&|b| b[noff] = 0xFF), hash, CatalogError::Nfc);
 }
 
 #[test]

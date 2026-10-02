@@ -14,6 +14,7 @@ use crate::format::{
     HEADER_LEN, IDS_RESTART, MAGIC, MAX_FALLBACK_LOCALES, MAX_MESSAGES, SECTION_ENTRY_LEN,
     VERSION_MAJOR, flags, header, kind, locale_key, section,
 };
+use crate::nfc_map::NfcMap;
 use crate::plural;
 use crate::view::{MsgView, Names};
 
@@ -111,6 +112,7 @@ pub struct Catalog {
     plural: [Option<Span>; 2],
     funcs: Span,
     ids: Option<Span>,
+    nfc: Option<Span>,
     pub(crate) strings: Span,
 }
 
@@ -178,6 +180,7 @@ struct Found {
     locale: Option<Span>,
     funcs: Option<Span>,
     ids: Option<Span>,
+    nfc: Option<Span>,
     strings: Option<Span>,
 }
 
@@ -192,6 +195,7 @@ impl Found {
             section::LOCALE => &mut self.locale,
             section::FUNCS => &mut self.funcs,
             section::IDS => &mut self.ids,
+            section::NFC => &mut self.nfc,
             section::STRINGS => &mut self.strings,
             _ => return None,
         })
@@ -283,6 +287,9 @@ impl Catalog {
         if let Some(ids) = found.ids {
             check_ids(ids.of(b), count as usize).ok_or(CatalogError::Ids)?;
         }
+        if let Some(nfc) = found.nfc {
+            NfcMap::from_bytes(nfc.of(b)).ok_or(CatalogError::Nfc)?;
+        }
         Ok(Catalog {
             version,
             flags,
@@ -301,6 +308,7 @@ impl Catalog {
             plural,
             funcs,
             ids: found.ids,
+            nfc: found.nfc,
             strings,
             bytes,
         })
@@ -452,6 +460,18 @@ impl Catalog {
     pub fn function(&self, index: u32) -> Option<&str> {
         let at = (index as usize).checked_mul(4)?;
         self.text(StrRef(u32_at(self.funcs.of(&self.bytes), at)?))
+    }
+
+    /// The canonical-equivalence map this catalog carries (`plan/01` §4.3):
+    /// how the runtime decides whether a value the program passed in is
+    /// canonically equivalent to one of this catalog's variant keys or
+    /// argument names. An absent section is the empty map.
+    pub fn nfc_map(&self) -> NfcMap<'_> {
+        match self.nfc {
+            // Checked by `validate`, so this cannot fail.
+            Some(s) => NfcMap::from_bytes(s.of(&self.bytes)).unwrap_or(NfcMap::EMPTY),
+            None => NfcMap::EMPTY,
+        }
     }
 
     /// The number of FUNCS entries.

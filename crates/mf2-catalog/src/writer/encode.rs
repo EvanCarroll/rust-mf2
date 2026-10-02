@@ -7,7 +7,7 @@
 //! overrides come out in site order.
 
 use alloc::borrow::Cow;
-use alloc::collections::BTreeMap;
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::string::String;
 use alloc::vec::Vec;
 
@@ -53,6 +53,9 @@ pub(crate) struct MsgEncoder<'m, 'p> {
     functions: &'p [String],
     /// This message's slot names (NFC, ascending).
     slots: &'p [String],
+    /// Every variant key of every message, in NFC, for the NFC section
+    /// (`plan/01` §4.3): the writer's one pass sees them all.
+    keys: &'p mut BTreeSet<String>,
     /// The message's index, for errors.
     index: usize,
     strip_cold: bool,
@@ -74,11 +77,13 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
         slots: &'p [String],
         index: usize,
         strip_cold: bool,
+        keys: &'p mut BTreeSet<String>,
     ) -> Self {
         MsgEncoder {
             pool,
             functions,
             slots,
+            keys,
             index,
             strip_cold,
             scope: BTreeMap::new(),
@@ -365,6 +370,10 @@ impl<'m, 'p> MsgEncoder<'m, 'p> {
         match k {
             Key::Literal(l) => {
                 let r = self.name(&l.value)?;
+                let n = nfc(&l.value);
+                if !self.keys.contains(&*n) {
+                    self.keys.insert(String::from(&*n));
+                }
                 varint(r + 1, out);
             }
             Key::CatchAll(c) => {

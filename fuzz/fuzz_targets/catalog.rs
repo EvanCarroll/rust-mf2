@@ -318,7 +318,7 @@ fn check(bytes: Vec<u8>, work: &mut usize) {
 }
 
 fn walk_catalog<'c>(cat: &'c Catalog, work: &mut usize) -> Vec<Option<Message<'c>>> {
-    assert_eq!(cat.format_version() >> 8, 1);
+    assert_eq!(cat.format_version() >> 8, 2);
     assert_eq!(cat.manifest_hash(), header_hash(cat.as_bytes()));
     assert!(matches!(cat.dir(), Dir::Ltr | Dir::Rtl));
     let _ = (cat.cldr_version(), cat.cold_stripped(), cat.ids_stripped());

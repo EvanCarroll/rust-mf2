@@ -1,12 +1,17 @@
-//! The byte-format constants of `.mf2b` version 1 (`plans/02-catalog-format.md`
-//! §2). The writer and the reader both use these, so they cannot drift.
+//! The byte-format constants of `.mf2b` version 2. The writer and the reader
+//! both use these, so they cannot drift.
+//!
+//! Version 2 (3.0.0) adds the NFC section (`plan/01` §4.3). The major version
+//! moved because an older catalog has no section to say which code points can
+//! reach its keys, and a 3.0 reader must not read one as if its map were
+//! empty: that would silently stop matching a decomposed selector value.
 
 /// `"MF2B"`.
 pub const MAGIC: [u8; 4] = *b"MF2B";
-/// `format_version`: major 1, minor 0 (`major << 8 | minor`).
-pub const VERSION: u16 = 0x0100;
+/// `format_version`: major 2, minor 0 (`major << 8 | minor`).
+pub const VERSION: u16 = 0x0200;
 /// The one major version this reader understands (F9).
-pub const VERSION_MAJOR: u16 = 1;
+pub const VERSION_MAJOR: u16 = 2;
 
 /// Length of the fixed header, before the section table.
 pub const HEADER_LEN: usize = 32;
@@ -64,6 +69,10 @@ pub mod section {
     pub const LOCALE: u16 = 6;
     pub const FUNCS: u16 = 7;
     pub const IDS: u16 = 8;
+    /// The canonical-equivalence map (`crate::nfc_map`), written only when
+    /// some code point outside the keys themselves can reach them. Absent
+    /// means the empty map: only an identical string matches a key.
+    pub const NFC: u16 = 9;
     /// The string pool: always present, always the last section.
     pub const STRINGS: u16 = 15;
 
@@ -78,6 +87,7 @@ pub mod section {
             LOCALE => "LOCALE",
             FUNCS => "FUNCS",
             IDS => "IDS",
+            NFC => "NFC",
             STRINGS => "STRINGS",
             _ => return None,
         })

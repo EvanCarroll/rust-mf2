@@ -355,17 +355,22 @@ mf2 stats --features fn-number
 
 ```text file=translate/stats.txt generated
 corpus . — 10 messages (3 marked @do-not-translate), source locale en, manifest 0x6e06fdf7f6d6e715
-CLDR 48.2.1 · MF2 spec 5c4ddb27 · catalog format v1
+CLDR 48.2.1 · MF2 spec 5c4ddb27 · catalog format v2
 
 locale    coverage  missing       raw        gz        br  catalog
-de           85.7%        1       425       328       271  de.dd01d173fa211668.mf2b
-en          100.0%        0       394       306       225  en.1b178a31f1849357.mf2b
-fr          100.0%        0       448       350       306  fr.6dea50f6252f5092.mf2b
+de           85.7%        1       425       328       271  de.bf22f132db3ecb6e.mf2b
+en          100.0%        0       394       307       225  en.672c914838662fd5.mf2b
+fr          100.0%        0       448       350       307  fr.06bc11d3b946c25a.mf2b
 
 locale data, entry by entry (raw bytes in the catalog):
   de           17 B  plural.cardinal 5 B, number.symbols 12 B
   en           17 B  plural.cardinal 5 B, number.symbols 12 B
   fr           30 B  plural.cardinal 16 B, number.symbols 14 B
+
+canonical equivalence, the keys a decomposed value can reach:
+  de            0 B  (nothing: only an identical string matches a key)
+  en            0 B  (nothing: only an identical string matches a key)
+  fr            0 B  (nothing: only an identical string matches a key)
 
 0 error(s), 1 warning(s) — run `mf2 check`
 ```

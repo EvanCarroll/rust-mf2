@@ -4,7 +4,8 @@ use std::path::Path;
 
 use clap::Args as ClapArgs;
 use mf2_build::{Build, Config};
-use mf2_catalog::format::locale_key;
+use mf2_catalog::format::{HEADER_LEN, SECTION_ENTRY_LEN, header, locale_key, section};
+use mf2_catalog::nfc_map::NfcMap;
 
 use crate::error::Result;
 use crate::{FeatureArgs, Format};
@@ -56,11 +57,12 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 outcome.manifest_hash
             );
             println!(
-                "CLDR {}.{}.{} · MF2 spec {} · catalog format v1",
+                "CLDR {}.{}.{} · MF2 spec {} · catalog format v{}",
                 CLDR.major,
                 CLDR.minor,
                 CLDR.patch,
-                &SPEC_COMMIT[..8]
+                &SPEC_COMMIT[..8],
+                mf2_catalog::format::VERSION_MAJOR
             );
             println!(
                 "\n{:<8} {:>9} {:>8} {:>9} {:>9} {:>9}  catalog",
@@ -97,6 +99,16 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 };
                 println!("  {:<8} {total_bytes:>6} B  {list}", catalog.tag);
             }
+            println!("\ncanonical equivalence, the keys a decomposed value can reach:");
+            for catalog in &outcome.catalogs {
+                let (code_points, bytes) = nfc_map(&catalog.bytes);
+                let what = if code_points == 0 {
+                    "(nothing: only an identical string matches a key)".to_owned()
+                } else {
+                    format!("{code_points} code points")
+                };
+                println!("  {:<8} {bytes:>6} B  {what}", catalog.tag);
+            }
             let warnings = outcome.report.warnings();
             let errors = outcome.report.errors();
             if warnings > 0 || errors > 0 {
@@ -121,6 +133,10 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                         "raw": catalog.bytes.len(),
                         "gz": catalog.gz.len(),
                         "br": catalog.br.len(),
+                        "nfc_map": {
+                            "code_points": nfc_map(&catalog.bytes).0,
+                            "bytes": nfc_map(&catalog.bytes).1,
+                        },
                         "locale_data": entries
                             .iter()
                             .map(|(name, n)| serde_json::json!({ "entry": name, "bytes": n }))
@@ -135,7 +151,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 "manifest_hash": format!("{:#018x}", outcome.manifest_hash),
                 "cldr": format!("{}.{}.{}", CLDR.major, CLDR.minor, CLDR.patch),
                 "spec": SPEC_COMMIT,
-                "catalog_format": 1,
+                "catalog_format": mf2_catalog::format::VERSION_MAJOR,
                 "locales": locales,
                 "errors": outcome.report.errors(),
                 "warnings": outcome.report.warnings(),
@@ -157,6 +173,36 @@ fn percent(part: usize, whole: usize) -> f64 {
     {
         part as f64 * 100.0 / whole as f64
     }
+}
+
+/// A catalog's NFC section, as code points listed and raw bytes: the
+/// canonical-equivalence map (`plan/01` §4.3). Read from the section table
+/// directly, so that `stats` needs no manifest hash.
+fn nfc_map(bytes: &[u8]) -> (usize, usize) {
+    let count = bytes
+        .get(header::SECTION_COUNT..header::SECTION_COUNT + 2)
+        .and_then(|b| <[u8; 2]>::try_from(b).ok())
+        .map_or(0, |b| usize::from(u16::from_le_bytes(b)));
+    for i in 0..count {
+        let at = HEADER_LEN + i * SECTION_ENTRY_LEN;
+        let Some(entry) = bytes.get(at..at + SECTION_ENTRY_LEN) else {
+            break;
+        };
+        let field = |lo: usize| {
+            u32::from_le_bytes([entry[lo], entry[lo + 1], entry[lo + 2], entry[lo + 3]]) as usize
+        };
+        if u16::from_le_bytes([entry[0], entry[1]]) != section::NFC {
+            continue;
+        }
+        let (off, len) = (field(2), field(6));
+        let Some(payload) = bytes.get(off..off.saturating_add(len)) else {
+            break;
+        };
+        if let Some(map) = NfcMap::from_bytes(payload) {
+            return (map.code_points(), map.len_bytes());
+        }
+    }
+    (0, 0)
 }
 
 /// The LOCALE entries of a catalog, named and measured.

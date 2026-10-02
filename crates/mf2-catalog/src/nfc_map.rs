@@ -104,6 +104,12 @@ impl<'a> NfcMap<'a> {
         self.decomp.is_empty()
     }
 
+    /// How many code points the map lists (Hangul syllables are computed,
+    /// not listed, so they are not counted).
+    pub fn code_points(&self) -> usize {
+        self.decomp.len() / DECOMP_ENTRY
+    }
+
     /// The map's bytes, as [`NfcMap::from_bytes`] took them (the writer's
     /// section payload).
     pub fn len_bytes(&self) -> usize {
