@@ -467,6 +467,15 @@ pub use mf2_fn_datetime as fn_datetime;
 #[cfg(feature = "host-std")]
 pub use mf2_host_std as host_std;
 
+/// The native host this build formats through: with dates, the one that
+/// resolves a named time zone (`ZONES_HOST`); without them, the plain one,
+/// so that no time-zone database is linked.
+#[cfg(all(feature = "host-std", feature = "fn-datetime"))]
+pub(crate) const NATIVE_HOST: &dyn mf2_runtime::Host = &mf2_host_std::ZONES_HOST;
+/// The native host this build formats through, without dates.
+#[cfg(all(feature = "host-std", not(feature = "fn-datetime")))]
+pub(crate) const NATIVE_HOST: &dyn mf2_runtime::Host = &mf2_host_std::HOST;
+
 /// The browser host (`mf2-host-web`).
 #[cfg(feature = "host-web")]
 pub use mf2_host_web as host_web;

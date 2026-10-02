@@ -16,7 +16,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 12.1.
+* **In flight:** nothing.
 * **Next:** 12.2
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
@@ -25,7 +25,12 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## Done
 
-(nothing yet)
+* **12.1 Zones leave `HOST`.** `mf2-host-std` has a feature `time-zones`
+  (jiff optional, still bundled) and `ZONES_HOST`; `HOST` keeps the trait's
+  `zone_offset`. `mf2` names the right one through `crate::NATIVE_HOST` and
+  a cfg-split `__use_host!`, which `native_host` now calls; native code reads
+  the system's zone only with `fn-datetime`. `native` links no jiff: 622800 B
+  against 1029736 B with dates (`cargo xtask native-canaries`).
 
 ## Before this phase
 

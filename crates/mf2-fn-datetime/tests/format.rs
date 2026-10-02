@@ -147,7 +147,7 @@ fn context(host: &'static dyn Host, zone: TimeZone) -> FormatContext {
 
 /// The std host (no zone data), UTC.
 fn std_utc() -> FormatContext {
-    context(&mf2::host_std::HOST, TimeZone::UTC)
+    context(&mf2::host_std::ZONES_HOST, TimeZone::UTC)
 }
 
 /// The zone host, UTC.
@@ -490,7 +490,7 @@ fn neutral_pieces() {
     );
     // An rtl catalog isolates it (ltr in rtl).
     let m = mf2::compile_str("{|2006-01-02| :date}", "ar").unwrap();
-    let cx = FormatContext::new(&mf2::host_std::HOST);
+    let cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
     let mut s = String::new();
     Formatter::new(&m.catalog, &REGISTRY, &cx).write(
         mf2::Compiled::ID,
@@ -1270,7 +1270,10 @@ fn the_context_zone() {
         ),
         "15:04 +01:00"
     );
-    let plus2 = context(&mf2::host_std::HOST, TimeZone::offset(2 * HOUR).unwrap());
+    let plus2 = context(
+        &mf2::host_std::ZONES_HOST,
+        TimeZone::offset(2 * HOUR).unwrap(),
+    );
     assert_eq!(
         ok_in(&plus2, "{$i :time timeZoneStyle=long}", &args),
         "17:04 +02:00"

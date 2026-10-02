@@ -65,7 +65,7 @@ const PANEL: [&str; 11] = [
 ];
 
 fn cx(zone: TimeZone) -> FormatContext {
-    let mut cx = FormatContext::new(&mf2::host_std::HOST);
+    let mut cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
     cx.bidi = BidiStrategy::None;
     cx.time_zone = zone;
     cx
@@ -452,7 +452,7 @@ fn parts_and_direction() {
     }
     for (locale, dir) in [("en", Dir::Ltr), ("ar", Dir::Rtl), ("he", Dir::Rtl)] {
         let m = mf2::compile_str("{|2006-01-02| :date}", locale).unwrap();
-        let cx = FormatContext::new(&mf2::host_std::HOST);
+        let cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
         let f = Formatter::new(&m.catalog, &REGISTRY, &cx);
         let mut k = Kinds(Vec::new());
         f.parts(mf2::Compiled::ID, &[], &mut k, &mut Vec::new());

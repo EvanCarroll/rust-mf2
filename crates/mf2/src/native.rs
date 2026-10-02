@@ -48,6 +48,8 @@ mod catalogs;
 mod handle;
 mod locale;
 pub(crate) mod store;
+// The system's time zone is read only where a date can be shown.
+#[cfg(feature = "fn-datetime")]
 mod zone;
 
 pub use crate::error::NativeError as Error;

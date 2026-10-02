@@ -11,6 +11,17 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **The native host has a time-zone database only with dates.**
+  `mf2-host-std` gained a feature `time-zones`, which `mf2`'s `fn-datetime`
+  turns on, and a second static, `mf2::host_std::ZONES_HOST`: it resolves a
+  named time zone, as `HOST` used to. Without dates `HOST` has no zone data,
+  so a named zone is *Bad Option* and the IANA database is not linked. The
+  generated `host::HOST` names the right one for the build, so an
+  application that formats through it needs no change; one that names
+  `mf2::host_std::HOST` itself and shows dates in a named zone writes
+  `ZONES_HOST`. Native code reads the system's zone only with
+  `fn-datetime`; without it the default zone is UTC.
+
 ## 2.0.0
 
 **Published on 30 September 2026.** 1.0.0 reached crates.io on

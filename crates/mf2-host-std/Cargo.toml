@@ -3,7 +3,7 @@ name = "mf2-host-std"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through ryu, time-zone offsets through jiff's bundled IANA database."
+description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through ryu, and, with `time-zones`, time-zone offsets through jiff's bundled IANA database."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,11 +16,15 @@ categories = ["internationalization", "localization"]
 # The package\'s file list (`cargo xtask package`) is not part of it.
 exclude = ["package.txt"]
 
+[features]
+# `ZONES_HOST`: `Host::zone_offset` for a named zone, through jiff. Off, the
+# crate has no jiff and a named zone is *Bad Option*, as in the browser.
+# The bundled IANA database, never the system's, so every build answers
+# alike (owner decision 1); `std` for jiff's cache of parsed zones.
+time-zones = ["dep:jiff", "jiff/std", "jiff/tzdb-bundle-always"]
+
 [dependencies]
-# Named zones (owner decision 1, plans/03 §5.2): the bundled IANA database,
-# never the system's, so every build answers alike; `std` for its cache of
-# parsed zones.
-jiff = { workspace = true, features = ["std", "tzdb-bundle-always"] }
+jiff = { workspace = true, optional = true }
 mf2-runtime.workspace = true
 ryu.workspace = true
 unicode-normalization.workspace = true
@@ -28,6 +32,7 @@ unicode-normalization.workspace = true
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
+features = ["time-zones"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lints]

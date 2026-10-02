@@ -20,10 +20,12 @@
 //! is printed on every run and written to `target/native-canaries/report.md`.
 //! It is what answers `plan/01` §8, "`native` links by use".
 //!
-//! There are no forbidding rows yet: today `mf2-host-std` depends on jiff,
-//! `unicode-normalization` and `ryu` unconditionally, so every native binary
-//! links them whether it formats a date or not. Phases 12 and 13 make those
-//! dependencies conditional, and add the rows that hold them so.
+//! There are no forbidding rows yet. Since 12.1 jiff is `mf2-host-std`'s
+//! only conditional dependency (feature `time-zones`), and the `native` row
+//! reports it absent; `unicode-normalization` and `ryu` are still
+//! unconditional, so every native binary links them whether it formats
+//! anything or not. The rest of Phase 12 and Phase 13 make those
+//! conditional, and add the rows that hold them so.
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;

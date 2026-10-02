@@ -158,9 +158,13 @@ impl Catalogs {
             }
             by_locale.push(catalog);
         }
-        let mut cx = FormatContext::new(&mf2_host_std::HOST);
+        let mut cx = FormatContext::new(crate::NATIVE_HOST);
         cx.bidi = BidiStrategy::None;
-        cx.time_zone = super::zone::system();
+        // Without dates, nothing reads the zone, so nothing looks it up.
+        #[cfg(feature = "fn-datetime")]
+        {
+            cx.time_zone = super::zone::system();
+        }
         Ok(Catalogs {
             corpus,
             by_locale,

@@ -365,7 +365,11 @@ fn refresh(
     generation: u64,
 ) -> (BidiStrategy, TimeZone) {
     let settings = *SETTINGS.read().unwrap_or_else(PoisonError::into_inner);
+    // The system's zone is read only where a date can be shown.
+    #[cfg(feature = "fn-datetime")]
     let zone = settings.time_zone.unwrap_or_else(super::zone::system);
+    #[cfg(not(feature = "fn-datetime"))]
+    let zone = settings.time_zone.unwrap_or(TimeZone::UTC);
     local.set((generation, settings.bidi, zone));
     (settings.bidi, zone)
 }

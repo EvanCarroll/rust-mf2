@@ -227,7 +227,7 @@ fn main() -> Result<(), Error> {
         .nth(1)
         .unwrap_or_else(|| "cases.json".into());
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
-    let mut cx = FormatContext::new(&mf2::host_std::HOST);
+    let mut cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
     cx.bidi = BidiStrategy::None;
     cx.time_zone = TimeZone::UTC;
     let mut cases = Vec::new();

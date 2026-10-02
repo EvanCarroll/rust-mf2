@@ -261,7 +261,7 @@ fn record(test: &SuiteTest, krate: &Crate, registry: &'static Registry) -> Resul
     };
     let catalog = Catalog::new((krate.catalog)().to_vec(), (krate.manifest_hash)())
         .map_err(|e| format!("the L5 catalog of {} does not load: {e:?}", krate.locale))?;
-    let mut cx = FormatContext::new(&mf2::host_std::HOST);
+    let mut cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
     cx.bidi = match test.bidi_isolation.as_deref() {
         Some("none") => BidiStrategy::None,
         _ => BidiStrategy::Default,

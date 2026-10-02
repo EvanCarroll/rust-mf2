@@ -558,9 +558,10 @@ fn native_host(s: &mut String) {
     let _ = write!(
         s,
         "
-/// The host this build formats through: the native one.
+/// The host this build formats through: the native one — with dates, the
+/// one that resolves a named time zone (B1′).
 pub mod host {{
-    pub use super::__mf2::host_std::HOST;
+    super::__mf2::__use_host!();
 }}
 "
     );
@@ -1325,10 +1326,7 @@ mod tests {
         m.emit = Emit::Native;
         let code = write(&m);
         assert!(!code.contains("host_web"), "{code}");
-        assert!(
-            code.contains("pub use super::__mf2::host_std::HOST;"),
-            "{code}"
-        );
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
         // One table of bytes: `CORPUS` always, and `CATALOGS` beside `ssr`.
         assert_eq!(code.matches("include_bytes!").count(), 2, "{code}");
         assert!(

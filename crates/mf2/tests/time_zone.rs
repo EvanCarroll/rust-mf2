@@ -44,7 +44,7 @@ fn installed() {
         let hash = compiled.catalog.manifest_hash();
         let bytes: &'static [u8] = Vec::leak(compiled.catalog.into_bytes());
         install(
-            Setup::new(&REGISTRY, &mf2::host_std::HOST, hash, "en", LOCALES)
+            Setup::new(&REGISTRY, &mf2::host_std::ZONES_HOST, hash, "en", LOCALES)
                 .with_time_zone(zone("Asia/Tokyo")),
         );
         install_catalogs(&[("en", "en.test.mf2b", bytes)]).expect("the catalog loads");
@@ -75,7 +75,7 @@ fn in_request<R>(reader: Option<&str>, body: impl FnOnce() -> R) -> R {
 fn formatted(source: &str, zone: TimeZone) -> String {
     installed();
     let compiled = mf2::compile_str(source, "en").expect("compiles");
-    let mut cx = FormatContext::new(&mf2::host_std::HOST);
+    let mut cx = FormatContext::new(&mf2::host_std::ZONES_HOST);
     cx.time_zone = zone;
     let f = Formatter::new(&compiled.catalog, &REGISTRY, &cx);
     let mut out = String::new();

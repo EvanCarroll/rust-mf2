@@ -89,13 +89,13 @@ impl Config {
     }
 }
 
-static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::HOST);
+static DEFAULT_BIDI: FormatContext = FormatContext::new(&mf2_host_std::ZONES_HOST);
 
 fn context(bidi: BidiStrategy) -> &'static FormatContext {
     static NO_BIDI: std::sync::OnceLock<FormatContext> = std::sync::OnceLock::new();
     match bidi {
         BidiStrategy::None => NO_BIDI.get_or_init(|| {
-            let mut cx = FormatContext::new(&mf2_host_std::HOST);
+            let mut cx = FormatContext::new(&mf2_host_std::ZONES_HOST);
             cx.bidi = BidiStrategy::None;
             cx
         }),

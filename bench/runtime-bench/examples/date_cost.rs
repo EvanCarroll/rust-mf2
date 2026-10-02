@@ -34,7 +34,7 @@ static NEUTRAL: [(&str, &dyn Function); 3] = [
 ];
 static NEUTRAL_REGISTRY: Registry = Registry::new(&NEUTRAL);
 
-static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
+static CX: FormatContext = FormatContext::new(&mf2::host_std::ZONES_HOST);
 
 #[allow(clippy::cast_precision_loss)]
 fn time(label: &str, registry: &Registry, src: &str, locale: &str) {

@@ -67,7 +67,7 @@ fn installed() {
     ONCE.get_or_init(|| {
         mf2::leptos::install(Setup::new(
             &mf2_l4_runner::DEFAULT_REGISTRY,
-            &mf2::host_std::HOST,
+            &mf2::host_std::ZONES_HOST,
             0,
             "en-US",
             LOCALES,

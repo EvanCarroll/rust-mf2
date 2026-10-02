@@ -21,7 +21,7 @@ static FUNCTIONS: [(&str, &dyn Function); 4] = [
 /// gets when `fn-datetime` is on — without it they are a Bad Operand, which
 /// is the documented default-configuration degradation (L4d).
 static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2::fn_datetime::DATES);
-static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
+static CX: FormatContext = FormatContext::new(&mf2::host_std::ZONES_HOST);
 
 /// A message compiled for `en`, and the slot order its manifest fixed.
 fn compiled(src: &str) -> Compiled {

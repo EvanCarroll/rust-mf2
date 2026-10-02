@@ -25,7 +25,7 @@ static FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("string", &functions::STRING),
 ];
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
-static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
+static CX: FormatContext = FormatContext::new(&mf2::host_std::ZONES_HOST);
 
 /// `value` in a one-variable message, with the errors discarded.
 fn formatted(source: &str, value: ArgValue) -> String {

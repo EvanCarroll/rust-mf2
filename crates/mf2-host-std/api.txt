@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: (default)
+# nightly-2026-09-24; features: time-zones
 pub mod mf2_host_std
 pub struct mf2_host_std::StdHost
 impl core::clone::Clone for mf2_host_std::StdHost
@@ -12,5 +12,17 @@ impl core::marker::Copy for mf2_host_std::StdHost
 impl mf2_runtime::host::Host for mf2_host_std::StdHost
 pub fn mf2_host_std::StdHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
 pub fn mf2_host_std::StdHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
-pub fn mf2_host_std::StdHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
+pub struct mf2_host_std::ZonesStdHost
+impl core::clone::Clone for mf2_host_std::ZonesStdHost
+pub fn mf2_host_std::ZonesStdHost::clone(&self) -> Self
+impl core::default::Default for mf2_host_std::ZonesStdHost
+pub fn mf2_host_std::ZonesStdHost::default() -> Self
+impl core::fmt::Debug for mf2_host_std::ZonesStdHost
+pub fn mf2_host_std::ZonesStdHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_host_std::ZonesStdHost
+impl mf2_runtime::host::Host for mf2_host_std::ZonesStdHost
+pub fn mf2_host_std::ZonesStdHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
+pub fn mf2_host_std::ZonesStdHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
+pub fn mf2_host_std::ZonesStdHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
 pub static mf2_host_std::HOST: mf2_host_std::StdHost
+pub static mf2_host_std::ZONES_HOST: mf2_host_std::ZonesStdHost
