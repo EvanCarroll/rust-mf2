@@ -47,11 +47,23 @@ stops: the next phase starts in a fresh session.
   a browser application formats no number at all — and that task 14.0 fixes
   it.
 
-  Step 2 is **not done**: `cargo xtask release --allow-dirty` reaches
-  crates.io, which this session is not permitted to do. The owner runs it;
-  its `cargo-semver-checks` step must pass for every crate against the
-  published 2.0.0. Record the result here, and until then Phase 11 is not
-  closed.
+  Step 2: `CARGO_BUILD_JOBS=3 cargo xtask release --allow-dirty` — **passed**
+  (exit 0, "the dry run of 3.0.0 passed"), on the owner's say-so, since the
+  command reaches crates.io. `cargo-semver-checks` ran 21 times against the
+  published 2.0.0 — the sixteen crates, with `mf2` once per mode (axum, core,
+  csr, hydrate, native, ratatui, ssr) — and every one reported "no semver
+  update required"; `mf2-macros` is skipped by design, being a proc-macro
+  crate. `cargo publish --workspace --dry-run` then packaged all sixteen at
+  3.0.0.
+
+  One caveat on that run, so nobody reads it as more than it is: Phase 12's
+  commits (`b8945c7` through `a7571a9`) landed on `main` while it was in
+  flight, and `--allow-dirty` reads the working tree, so it is not a snapshot
+  of one commit. It is good evidence that 3.0.0 is publishable and that the
+  version bump did what 11.1 intended; the record that counts for the release
+  is Phase 16's pre-flight, which runs the same command on a quiet tree.
+
+  **Phase 11 is closed.**
 
 * **11.5** The phase's +215 B gz on B1 (26723 → 26938; whole app 41896 →
   42017) is 133 B raw in the 1860-site `tr` wasm's code section, and no new
