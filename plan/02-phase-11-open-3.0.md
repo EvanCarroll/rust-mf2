@@ -16,13 +16,17 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
-  is merged.
-* **Next:** 11.1
+* **In flight:** nothing.
+* **Next:** 11.1, then 11.3, then 11.4.
+* A worktree made for a task is removed once its work is merged.
 
 ## Done
 
-(nothing yet)
+* **11.2** F1–F3 answered in `plan/01` §8. `intl` formats no number in a
+  browser today (no host with `Host::numbers`); jiff's feature names hold and
+  `tzdb-bundle-always` only matters where there is no system copy; both
+  catalog writers see every key and name, normalized in `encode_all`'s pass.
+  Read-only: no build run.
 
 ## Before this phase
 

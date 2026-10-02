@@ -414,15 +414,21 @@ task starts.
 
 Task 11.2 answers F1–F3 here, in at most ten lines in all.
 
-* **F1, number `intl`.** No generated host names
-  `mf2_host_web::NUMBERS_HOST`. What an application with `intl` does in the
-  browser was not traced. *Open.*
-* **F2, jiff's features.** The names for the system database, the platform
-  bundle and system-zone detection (`tzdb-zoneinfo`, `tzdb-bundle-platform`,
-  `tz-system`) are from memory, and whether the bundle is linked when only
-  the system lookup is called was not checked. *Open.*
-* **F3, the one-message writer.** That `writer::single` sees every key and
-  name it needs for the map is inferred from its description. *Open.*
+* **F1, number `intl`.** Broken in a browser: `__use_host!` names only
+  `host_web::{HOST, ZONES_HOST, INTL_HOST}`, none of which overrides
+  `Host::numbers` (default `None`), so every number is *Unsupported
+  Operation*. Fix (14.1): `IntlNumbers` statics over each date host, named by
+  new `intl` arms. Off `wasm32-unknown-unknown` the Rust path is chosen by
+  target, so `intl` is inert there.
+* **F2, jiff 0.2.37.** The names hold (`tzdb-zoneinfo`: `TZDIR` else
+  `/usr/share/zoneinfo`; `tzdb-bundle-platform`: a bundle only where no system
+  copy exists; `tz-system`). `TimeZone::get` goes through `tz::db()`
+  (`from_env`); `tzdb-bundle-always` changes what it returns only where there
+  is no system copy.
+* **F3, the writers.** Both see every key and name: `catalog` holds each
+  message's AST and the manifest's slots (locals via `locals_of`), and
+  `single` passes `compile_str`'s NFC externals through. Keys and names are
+  normalized inside `encode_all`'s one pass, so §4.3's map is collected there.
 * **`native` links by use.** That `sha2` and `sys-locale` drop out of a
   binary that does not use them is expected, not measured; the native
   canaries report it (task 11.4).
