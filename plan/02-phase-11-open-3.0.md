@@ -242,6 +242,7 @@ Done when: the command passes, the report is in §8, `cargo xtask ci` is green.
    It must pass its `cargo-semver-checks` step for every crate against the
    published 2.0.0. If it does not, that is a task for this phase, not the
    next.
-3. If F1 says `intl` does not work in an application, tell the owner in one
-   paragraph: it is a defect in 2.0.0, fixed by task 14.1.
+3. Done ahead of the exit: F1 found `intl` broken, the owner was told on
+   2026-10-02 and confirmed the intent (`plan/01` §2 decision 4). Task 14.0
+   fixes it, so there is nothing left to report here.
 4. Add a Done entry for the exit: the two commands and their results.

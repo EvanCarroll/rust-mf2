@@ -99,6 +99,10 @@ replace (+4 KiB) and about 9 KiB of other changes.
    bundled database for the same answer everywhere. Servers (`ssr`, `axum`)
    keep the bundle. A container with no tzdata cannot resolve a named zone
    unless `tzdb-bundled` is on.
+4. **`intl` must reach `Host::numbers`** (owner, 2026-10-02). The host wiring
+   is meant to give an application both `Intl.NumberFormat` and
+   `Intl.PluralRules` through `Host::numbers`. That a build with the feature
+   gets neither (§8 F1) is a defect, not a design choice. Task 14.0 fixes it.
 
 ## 3. The feature structure
 
@@ -371,7 +375,12 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
    row says which crates' symbols must be absent or present for a set: no
    `jiff` and no `ryu` without dates, no `unicode_normalization` without
    `compile`. This is the check that would have caught the 308 KiB. An absent
-   symbol means no named function or static of that crate remains.
+   symbol means no named function or static of that crate remains — the
+   crate a symbol's path begins with, not whichever crate instantiated it.
+   The workload is `tools/native-canary`, the smallest application that uses
+   MF2, a workspace of its own; `nm` reads the symbols. Phase 11 lands the
+   command with the positive control and the report only: the forbidding
+   rows arrive with the phases that make them true.
 2. **`tui-gate`'s limit follows the measurement.** `SIZE_LIMIT` in
    `xtask/src/tui_gate.rs` (1,965,320 B, also written in
    `tools/checks/compare.sh`) is lowered to the measured size of `tui-mf2` at
@@ -416,9 +425,10 @@ Task 11.2 answers F1–F3 here, in at most ten lines in all.
 
 * **F1, number `intl`.** Broken in a browser: `__use_host!` names only
   `host_web::{HOST, ZONES_HOST, INTL_HOST}`, none of which overrides
-  `Host::numbers` (default `None`), so every number is *Unsupported
-  Operation*. Fix (14.1): `IntlNumbers` statics over each date host, named by
-  new `intl` arms. Off `wasm32-unknown-unknown` the Rust path is chosen by
+  `Host::numbers` (default `None`), so every number and every plural
+  selector is *Unsupported Operation*. A defect, confirmed by the owner
+  (decision 4). Fix (14.0): `IntlNumbers` statics over each date host, named
+  by new `intl` arms. Off `wasm32-unknown-unknown` the Rust path is chosen by
   target, so `intl` is inert there.
 * **F2, jiff 0.2.37.** The names hold (`tzdb-zoneinfo`: `TZDIR` else
   `/usr/share/zoneinfo`; `tzdb-bundle-platform`: a bundle only where no system
@@ -429,9 +439,11 @@ Task 11.2 answers F1–F3 here, in at most ten lines in all.
   message's AST and the manifest's slots (locals via `locals_of`), and
   `single` passes `compile_str`'s NFC externals through. Keys and names are
   normalized inside `encode_all`'s one pass, so §4.3's map is collected there.
-* **`native` links by use.** That `sha2` and `sys-locale` drop out of a
-  binary that does not use them is expected, not measured; the native
-  canaries report it (task 11.4).
+* **`native` links by use** — measured (11.4, `cargo xtask
+  native-canaries`): a native application that formats text and a number
+  links neither `sha2` nor `sys-locale`, and one that formats a date in a
+  named zone links `jiff`; but jiff, `unicode-normalization` and `ryu` are
+  linked with no date at all, which is what §4.1–§4.3 remove.
 * **Float text.** That `core`'s formatting is already in most native binaries
   is not verified.
 * **Every byte figure** in §1.4 is an estimate by subtraction.

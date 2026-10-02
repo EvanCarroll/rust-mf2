@@ -18,7 +18,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.1
+* **Next:** 14.0, then 14.1
 
 ## Done
 
@@ -43,6 +43,48 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## Tasks
 
+### 14.0 `intl` reaches `Host::numbers`
+
+Design: `plan/01` §8 F1 and §2 decision 4 (owner, 2026-10-02): a build with
+the feature is meant to get both `Intl.NumberFormat` and `Intl.PluralRules`
+through `Host::numbers`, and gets neither. It is a defect in 2.0.0, found by
+task 11.2, and it is fixed before the feature is renamed so that one commit
+fixes behaviour and the next only renames.
+
+What is already built: `crates/mf2-host-web/src/numbers.rs` has
+`IntlNumbers`, whose `numbers()` hands out an `Intl` whose `format` is
+`Intl.NumberFormat` and whose `plural` is `Intl.PluralRules`, given out only
+on an engine that passes the `Intl.NumberFormat` v3 probe, and
+`pub static NUMBERS_HOST: IntlNumbers = IntlNumbers(&HOST)`. Nothing names
+it. `__use_host!` (`crates/mf2/src/__generated.rs`) can emit only
+`host_web::{HOST, ZONES_HOST, INTL_HOST}`, so `Host::numbers` keeps its
+`None` default (`crates/mf2-runtime/src/host.rs`) and `check_host` refuses
+every numeric function and plural selector.
+
+Build:
+
+* `mf2-host-web`: an `IntlNumbers` static over **each** date host an
+  application can be given, not `HOST` alone — a build that formats dates
+  and numbers must reach both. The wrapped field is `pub`, so a static is
+  enough; no new JS is needed.
+* `crates/mf2/src/__generated.rs`, and whatever writes it: `intl` arms that
+  name the matching static for every combination the feature structure
+  allows (§3.4, §3.5).
+* A browser test that proves both halves on a real engine, where the Rust
+  path cannot be mistaken for the host's: a number whose grouping or
+  currency only `Intl.NumberFormat` produces, and a variant only
+  `Intl.PluralRules` selects. Put it with the existing web asserts (`l4-web`
+  or the e2e harness). It must fail if the new arms are removed.
+* If a feature set that was refused becomes valid, say so in the one feature
+  table (task 11.3) rather than in `refusals.rs`.
+
+This changes behaviour, so it earns a `## 3.0.0` line in `CHANGELOG.md`:
+`intl` formatted no number and selected no plural in a browser in 2.0.0.
+
+Done when: `cargo xtask ci`, `cargo xtask refusals` and
+`cargo xtask codegen-matrix` are green, the browser test passes, and it fails
+with the arms removed.
+
 ### 14.1 `intl` becomes `number-intl`
 
 Design: `plan/01` §3.4, §3.5 and §8 F1.
@@ -58,12 +100,8 @@ Build:
   `conformance/`, `bench/`, the feature table in `crates/mf2/src/lib.rs`.
   Find them with `rg -n '"intl"|/intl\b|features.*\bintl\b' crates xtask
   tools conformance bench examples`.
-* If F1 says an application with the feature never reaches
-  `mf2_host_web::NUMBERS_HOST`: the generated host names it. `__use_host!`
-  (`crates/mf2/src/__generated.rs`) gets the arms, and `IntlNumbers` wraps
-  whichever date host the build would otherwise name. A browser test proves a
-  number is formatted by `Intl.NumberFormat` (the existing `l4-web` or e2e
-  harness).
+* The wiring is task 14.0's, landed before this one: rename what it added
+  along with everything else.
 * The baseline table `[package.metadata.api.baseline."2.0.0"]` (task 11.1)
   keeps 2.0.0's spelling, `intl`.
 
