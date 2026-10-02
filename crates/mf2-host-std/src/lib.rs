@@ -1,7 +1,7 @@
 //! `mf2-host-std` — the [`Host`] of `mf2-runtime` for native code and for the
 //! `wasm32-wasip1`: NFC
 //! through `unicode-normalization` and the shortest round-trip text of a
-//! float through `ryu`. Never
+//! float through `core`'s own formatting. Never
 //! linked into the browser client, which uses `mf2-host-web`.
 //!
 //! Two hosts, so that a build without dates carries no time-zone database:
@@ -36,6 +36,7 @@ extern crate alloc;
 extern crate std;
 
 use alloc::string::String;
+use core::fmt::{self, Write as _};
 
 use mf2_runtime::Host;
 use unicode_normalization::UnicodeNormalization;
@@ -72,11 +73,33 @@ impl Host for StdHost {
         if !x.is_finite() {
             return None;
         }
-        let mut b = ryu::Buffer::new();
-        let text = b.format_finite(x).as_bytes();
-        let out = buf.get_mut(..text.len())?;
-        out.copy_from_slice(text);
-        core::str::from_utf8(out).ok()
+        // `core`'s `{:?}` is the shortest text that round-trips: it keeps
+        // `.0` on a whole number and takes an exponent past 1e16 and below
+        // 1e-4. The widest it writes is a sign, seventeen digits, a point
+        // and `e-308`, which the buffer holds.
+        let len = {
+            let mut out = Cursor { buf, len: 0 };
+            write!(out, "{x:?}").ok()?;
+            out.len
+        };
+        core::str::from_utf8(buf.get(..len)?).ok()
+    }
+}
+
+/// A [`fmt::Write`] over the caller's fixed buffer: it writes what fits and
+/// reports an error rather than overflowing.
+struct Cursor<'b> {
+    buf: &'b mut [u8; 32],
+    len: usize,
+}
+
+impl fmt::Write for Cursor<'_> {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let end = self.len.checked_add(s.len()).ok_or(fmt::Error)?;
+        let out = self.buf.get_mut(self.len..end).ok_or(fmt::Error)?;
+        out.copy_from_slice(s.as_bytes());
+        self.len = end;
+        Ok(())
     }
 }
 

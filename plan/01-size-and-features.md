@@ -276,6 +276,17 @@ is never in a browser client, so `fmt` is allowed there. A test compares the
 parsed `Number` for both over the edge values and a large random sample
 before `ryu` goes; the conformance suite decides. Fallback: keep `ryu`.
 
+Done in 12.4. The two agree except where the shortest round-trip text is an
+exact tie between two decimals (46 of 200,000 random floats): `core` rounds
+the last digit up where `ryu` rounds it to even. Both are shortest and both
+round-trip, so the test asserts "equal, or a last-digit tie".
+
+The saving needs the application to format a float somewhere of its own, as
+trippy and the `tui` example do (`{:.1}`): then `core`'s tables are already
+linked and `ryu`'s 10.7 KiB go. A binary that formats no float itself links
+them for `mf2` alone and grows instead — the `native` canary went from
+623,016 B to 634,808 B.
+
 ### 4.3 Normalization: a fact about the catalog, not a platform service
 
 MF2 compares `:string` selector values and argument names with variant keys

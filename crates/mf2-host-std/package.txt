@@ -8,3 +8,4 @@ README.md
 api.txt
 src/lib.rs
 src/system_zone.rs
+tests/floats.rs

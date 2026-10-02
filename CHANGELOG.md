@@ -45,6 +45,13 @@ application sees adds its line here.
   plain host, and `Catalogs` and `Locale::format` take the host from the
   corpus. An application that formats through the generated module needs no
   change.
+* **`mf2-host-std` no longer depends on `ryu`.** Float text is `core`'s own
+  shortest round-trip formatting; `ryu` is now only the test oracle. A native
+  binary carries one dependency and about 13 KiB less, and nothing a program
+  writes changes. Where the shortest text that round-trips a float is an
+  exact tie between two decimals (about one `f64` in 4,000, such as
+  `1731590483420272.25`), the last digit shown may differ from 2.x: both
+  answers are the same length and the same distance from the value.
 
 ## 2.0.0
 

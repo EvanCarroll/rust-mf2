@@ -16,7 +16,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 12.4.
+* **In flight:** nothing.
 * **Next:** 12.5
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
@@ -43,6 +43,12 @@ exit", then stops: the next phase starts in a fresh session.
   `host::HOST`, the zone host only where a date can reach a message, and the
   jiff `IntoArg` impls moved to `host-std` with `fn-datetime`. `native`:
   623016 B; `native,fn-datetime`: 820264 B (the field costs ~200 B).
+
+* **12.4 Float text from `core`.** `StdHost::f64_to_text` writes `core`'s
+  `{:?}` into the buffer through a `fmt::Write` cursor; `ryu` is a
+  dev-dependency, the oracle of `crates/mf2-host-std/tests/floats.rs` (edge
+  values and 200,000 random floats). The two agree bar an exact last-digit
+  tie (46 of 200,000), where both are shortest and round-trip.
 
 ## Before this phase
 

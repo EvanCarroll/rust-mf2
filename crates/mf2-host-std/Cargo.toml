@@ -3,7 +3,7 @@ name = "mf2-host-std"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through ryu, and, with `time-zones`, time-zone offsets and the machine's own zone through jiff (the system's IANA database, or the bundled one with `tzdb-bundled`)."
+description = "The native Host of mf2-runtime (servers, tests, wasm32-wasip1): NFC through unicode-normalization, float text through `core`, and, with `time-zones`, time-zone offsets and the machine's own zone through jiff (the system's IANA database, or the bundled one with `tzdb-bundled`)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -34,8 +34,12 @@ tzdb-bundled = ["jiff?/tzdb-bundle-always"]
 [dependencies]
 jiff = { workspace = true, optional = true }
 mf2-runtime.workspace = true
-ryu.workspace = true
 unicode-normalization.workspace = true
+
+# `ryu` formatted the floats through 2.x; it is now only the oracle
+# `tests/floats.rs` compares `core`'s own text against (`plan/01` §4.2).
+[dev-dependencies]
+ryu.workspace = true
 
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
