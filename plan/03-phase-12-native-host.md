@@ -16,8 +16,8 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
-* **Next:** 12.2
+* **In flight:** 12.2.
+* **Next:** 12.3
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
   `p11` holds two runs at once and its figures are not real. Before starting
@@ -116,6 +116,12 @@ Build:
   `native/zone.rs` is deleted.
 * `native` in `crates/mf2/Cargo.toml` drops `dep:jiff`, `jiff/std` and
   `jiff/tz-system`; `mf2` drops the dependency.
+* 12.1 left that manifest a **dev**-dependency on jiff: `tests/native.rs`
+  builds `Zoned` values in a named zone, and the host no longer carries a
+  bundle for it. Take the test through the re-export this task adds, so the
+  dev-dependency goes with it and the `rg` below is empty. If the test
+  cannot be written that way, keep it, say so in the Done entry, and read
+  the `rg` as "no jiff outside `[dev-dependencies]`".
 * The `IntoArg` impls for jiff's types (`mod with_jiff` in
   `crates/mf2/src/into_arg.rs`) are gated on
   `all(feature = "host-std", feature = "fn-datetime")` and use jiff through a
