@@ -1,7 +1,7 @@
 //! `mf2 export` / `mf2 import`: flat JSON, the shape every
 //! translation-management system speaks, and XLIFF 2, the standard a
 //! translation tool protects placeholders in ([`xliff`];
-//! `plans/05-tooling.md` §6.3).
+//! the tooling design §6.3).
 //!
 //! Export writes `{id: source}` sorted by id. Import reads one back into the
 //! container the locale already uses: a `.mf2` resource keeps its sections,

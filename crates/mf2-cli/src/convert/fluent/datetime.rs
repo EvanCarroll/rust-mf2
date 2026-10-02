@@ -1,4 +1,4 @@
-//! `DATETIME` (`plans/05-tooling.md` §6.1, "`DATETIME` options").
+//! `DATETIME` (the tooling design §6.1, "`DATETIME` options").
 //!
 //! Fluent's options are `Intl.DateTimeFormat`'s; MF2's `:date`, `:time` and
 //! `:datetime` take semantic fields and lengths. This is the nearest mapping,

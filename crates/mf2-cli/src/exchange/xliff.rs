@@ -1,5 +1,5 @@
 //! `mf2 export --format xliff` and `mf2 import` of an XLIFF 2 document
-//! (`plans/05-tooling.md` §6.3, Phase 8 A6).
+//! (the tooling design §6.3, Phase 8 A6).
 //!
 //! Export writes one document per target locale: a `<file>` per source
 //! resource, a `<group>` per section, a `<unit>` per message — or, for a

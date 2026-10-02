@@ -1,5 +1,5 @@
 //! Fluent → MF2, one locale at a time, by the mapping of
-//! `plans/05-tooling.md` §6.1.
+//! the tooling design §6.1.
 //!
 //! "Faithful" means: for the same arguments, the converted message selects
 //! the variant `fluent-bundle` 0.16 selects and writes the same text around

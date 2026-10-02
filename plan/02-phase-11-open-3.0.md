@@ -16,11 +16,17 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 11.0.
+* **In flight:** nothing.
 * **Next:** 11.1, then 11.3, then 11.4.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **11.0** The tree compiles again. `tests/xliff.rs` and
+  `src/workspace_tests.rs` no longer read the moved `plans/05-tooling.md`:
+  the import codes are a literal list in the test, held against
+  `Finding::ALL` (length and codes) by `workspace_tests`, whose three tests
+  keep their "a test is named after it" half. No `plans/` left in `mf2-cli`.
 
 * **11.2** F1–F3 answered in `plan/01` §8. `intl` formats no number in a
   browser today (no host with `Host::numbers`); jiff's feature names hold and
@@ -76,6 +82,12 @@ them so they do not.
 
 If the honest repair is to drop the test rather than keep it, stop and report
 to the coordinator instead: that is the owner's call.
+
+Done differently: emptying the `rg` reaches past that one test, so the stale
+`plans/` mentions in the crate's other comments and in `Cargo.toml` are
+reworded too, and with them the one generated line — `package.txt`'s header,
+in `xtask/src/package.rs` and in all 16 committed `package.txt` files. Text
+only: no file list and no size moves.
 
 Done when: `cargo xtask ci` is green and
 `rg -n "plans/" crates/mf2-cli` is empty.

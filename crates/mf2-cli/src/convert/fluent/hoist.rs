@@ -1,4 +1,4 @@
-//! Hoisting (`plans/05-tooling.md` §6.1, "Selection"): Fluent puts a select
+//! Hoisting (the tooling design §6.1, "Selection"): Fluent puts a select
 //! expression anywhere in a pattern, MF2 has one `.match` per message.
 //!
 //! Every select becomes one selector column; the message's variants are the

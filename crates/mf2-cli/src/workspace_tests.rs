@@ -1,59 +1,54 @@
 //! The tests that hold this crate against the repository around it: the
-//! plan's tables of report codes and rules, the integration tests that name
-//! them, and the pinned specification commit. None of that travels in the
+//! integration tests that name every report code, rule and XLIFF finding,
+//! and the pinned specification commit. None of that travels in the
 //! package, so this file does not either (`exclude` in `Cargo.toml`), and
-//! `build.rs` compiles it only where it is
-//! (`plans/17-phase-9-work-order.md` A4).
+//! `build.rs` compiles it only where it is (the Phase 9 work order A4).
 
 use crate::convert::leptos_fluent::rewrite::Rule;
 use crate::convert::report::Code;
 use crate::exchange::xliff::Finding;
 use crate::stats::SPEC_COMMIT;
 
-const PLAN: &str = include_str!("../../../plans/05-tooling.md");
 const CONVERT_TESTS: &str = include_str!("../tests/convert.rs");
+const XLIFF_TESTS: &str = include_str!("../tests/xliff.rs");
 
-/// Every code of `plans/05-tooling.md` §6.1 has its own test, and the plan
-/// names every code this crate writes.
+/// Every conversion code this crate writes has its own test, named after it.
 #[test]
-fn every_code_is_tested_and_planned() {
+fn every_code_is_tested() {
     for code in Code::ALL {
         let name = code.name();
         assert!(
             CONVERT_TESTS.contains(&format!("fn {}(", name.replace('-', "_"))),
             "no test named {name} in tests/convert.rs"
         );
-        assert!(
-            PLAN.contains(&format!("`{name}`")),
-            "{name} is not in plans/05 §6.1"
-        );
     }
 }
 
-/// Every rule of §6.2 has its own test, named after it, and the plan names
-/// every rule.
+/// Every call-site rewrite rule has its own test, named after it.
 #[test]
-fn every_rule_is_tested_and_planned() {
+fn every_rule_is_tested() {
     for rule in Rule::ALL {
         let name = rule.name();
         assert!(
             CONVERT_TESTS.contains(&format!("fn rule_{}(", name.replace('-', "_"))),
             "no test named rule_{name} in tests/convert.rs"
         );
-        assert!(
-            PLAN.contains(&format!("| `{name}` |")),
-            "{name} is not in plans/05 §6.2"
-        );
     }
 }
 
-/// Every XLIFF finding is in 05 §6.3's table.
+/// `tests/xliff.rs` lists the import codes literally, because an integration
+/// test cannot see `Finding`; this holds that list against the enum, both
+/// its length and every code in it.
 #[test]
-fn every_xliff_code_is_in_the_plan() {
+fn every_xliff_code_is_listed_by_its_tests() {
+    assert!(
+        XLIFF_TESTS.contains(&format!("IMPORT_CODES: [&str; {}]", Finding::ALL.len())),
+        "tests/xliff.rs lists a different number of import codes"
+    );
     for f in Finding::ALL {
         assert!(
-            PLAN.contains(&format!("**`{}`**", f.code())),
-            "{}",
+            XLIFF_TESTS.contains(&format!("\"{}\"", f.code())),
+            "{} is not in tests/xliff.rs's IMPORT_CODES",
             f.code()
         );
     }

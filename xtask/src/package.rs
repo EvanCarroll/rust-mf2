@@ -1,5 +1,5 @@
 //! `cargo xtask package [--check] [--test]`: the 16 published crates as
-//! crates.io receives them (`plans/17-phase-9-work-order.md` A4).
+//! crates.io receives them (the Phase 9 work order A4).
 //!
 //! `cargo package --no-verify` writes each `.crate`; each is then read back
 //! and audited, file by file:
@@ -10,7 +10,7 @@
 //!   `mf2-leptos-ui-0-8`'s `src/ui.rs`
 //!   (→ `mf2-leptos-ui-0-9`'s: one source for both Leptos lines) are the
 //!   only files packaged from outside it, and each must point where it says;
-//! * no file is a copy of anything under `third_party/`, `plans/` or the
+//! * no file is a copy of anything under `third_party/`, `plan/` or the
 //!   specification cache (`target/xtask-cache/`; the text Unicode does not
 //!   let us redistribute, D13), compared by SHA-256 — `LICENSE-UNICODE` is
 //!   the one expected copy, in each crate that ships CLDR-derived data;
@@ -44,7 +44,7 @@ use crate::fsx;
 use crate::pin::sha256_hex;
 
 /// The first line of every `package.txt`.
-const HEADER: &str = "# The files crates.io receives for this crate (plans/17-phase-9-work-order.md \
+const HEADER: &str = "# The files crates.io receives for this crate (the Phase 9 work order \
                       A4). Written by `cargo xtask package`, checked by `cargo xtask ci`; \
                       commit it with the change.";
 

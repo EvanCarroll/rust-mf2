@@ -1,4 +1,4 @@
-//! The call-site rules of `plans/05-tooling.md` §6.2, as byte-range edits of
+//! The call-site rules of the tooling design §6.2, as byte-range edits of
 //! one Rust file.
 //!
 //! The file is tokenized with `proc-macro2` (span locations on, so every

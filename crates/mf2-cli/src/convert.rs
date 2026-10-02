@@ -1,4 +1,4 @@
-//! `mf2 convert`: a one-shot migration into MF2 (`plans/05-tooling.md`
+//! `mf2 convert`: a one-shot migration into MF2 (the tooling design
 //! §6.1).
 //!
 //! `--from fluent FTL_DIR` reads `FTL_DIR/<locale>/**.ftl` and writes

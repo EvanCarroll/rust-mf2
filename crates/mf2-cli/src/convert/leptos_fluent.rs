@@ -1,4 +1,4 @@
-//! `mf2 convert --from leptos-fluent APP_DIR` (`plans/05-tooling.md` §6.2):
+//! `mf2 convert --from leptos-fluent APP_DIR` (the tooling design §6.2):
 //! §6.1 on the application's `.ftl` files, then its Rust call sites.
 //!
 //! Nothing is written without `--write`: the command shows what it would

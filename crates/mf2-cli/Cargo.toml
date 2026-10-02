@@ -13,11 +13,11 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-cli"
 keywords = ["messageformat", "mf2", "i18n", "cli", "xliff"]
 categories = ["internationalization", "localization", "command-line-utilities"]
-# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
-# A4): the integration tests generate their corpora with `workload-gen`, which
-# is not published, or read `third_party/` and `plans/`; the unit tests that
-# read the repository compile only where they are (`build.rs`). The `.ftl`
-# corpus under `tests/fluent/` stays: `src/convert.rs`'s own tests read it.
+# Left out of the package, run in the workspace (the Phase 9 work order A4):
+# the integration tests generate their corpora with `workload-gen`, which is
+# not published, or read `third_party/`; the unit tests that read the
+# repository compile only where they are (`build.rs`). The `.ftl` corpus
+# under `tests/fluent/` stays: `src/convert.rs`'s own tests read it.
 exclude = [
     "tests/*.rs",
     "src/workspace_tests.rs",
@@ -45,11 +45,11 @@ mf2-model = { workspace = true, features = ["serde"] }
 mf2-resource.workspace = true
 mf2-runtime.workspace = true
 mf2-syntax.workspace = true
-# `convert --from leptos-fluent` (plans/05 §6.2): the call sites, located by
-# span, parsed by syn, and the diff before `--write`.
+# `convert --from leptos-fluent` (the tooling design §6.2): the call sites,
+# located by span, parsed by syn, and the diff before `--write`.
 proc-macro2 = { workspace = true, features = ["span-locations"] }
 quote.workspace = true
-# `export --format xliff` / `import` of XLIFF 2 (plans/05 §6.3).
+# `export --format xliff` / `import` of XLIFF 2 (the tooling design §6.3).
 quick-xml.workspace = true
 serde_json.workspace = true
 similar.workspace = true

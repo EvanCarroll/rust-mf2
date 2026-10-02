@@ -1,6 +1,6 @@
 //! Which variants a message that selects offers a translator
-//! (`plans/05-tooling.md` §6.3, owner question 7 of
-//! `plans/16-phase-8-work-order.md`: the **target** language's plural
+//! (the tooling design §6.3, owner question 7 of
+//! the Phase 8 work order: the **target** language's plural
 //! forms).
 //!
 //! A message is seen as selectors and variants; a message without `.match`

@@ -1,5 +1,5 @@
 //! The XLIFF 2 document: the tree `mf2 export --format xliff` writes, and
-//! what `mf2 import` reads back of one (`plans/05-tooling.md` §6.3).
+//! what `mf2 import` reads back of one (the tooling design §6.3).
 //!
 //! Only the core is used — no module — so every document this writes
 //! validates against `third_party/xliff/schemas/xliff_core_2.0.xsd` alone.

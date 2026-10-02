@@ -1,5 +1,5 @@
 //! A `tr!` / `move_tr!` call's arguments, in the forms `leptos-fluent`
-//! 0.3.1's `macro_rules!` accept (`plans/05-tooling.md` §6.2):
+//! 0.3.1's `macro_rules!` accept (the tooling design §6.2):
 //!
 //! ```text
 //! "id"                          "id", { "name" => value, … }

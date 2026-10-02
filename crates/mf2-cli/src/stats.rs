@@ -168,7 +168,7 @@ fn entries(catalog: &mf2_build::catalog::Catalog) -> Vec<(&'static str, usize)> 
         .collect()
 }
 
-/// What a LOCALE key is called (`plans/02-catalog-format.md` §4).
+/// What a LOCALE key is called (the catalog-format design §4).
 fn entry_name(key: u32) -> &'static str {
     match key {
         locale_key::PLURAL_CARDINAL => "plural.cardinal",

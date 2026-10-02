@@ -595,8 +595,8 @@ fn stats_reports_coverage_sizes_and_the_pins() {
     assert!(text.contains("CLDR 48.2.1"), "{text}");
     assert!(text.contains("MF2 spec 5c4ddb27"), "{text}");
     assert!(text.contains("plural.cardinal"), "{text}");
-    // The reference workload's manifest hash is the figure plans/02 §3
-    // records for it.
+    // The reference workload's manifest hash is the figure the
+    // catalog-format design §3 records for it.
     assert!(text.contains("0x43e0dc12eeb05ef1"), "{text}");
 
     let json = ok(&run(&dir, &["stats", "--format", "json"]));

@@ -1,4 +1,4 @@
-//! `mf2 convert --from fluent` (Phase 8 A1; `plans/05-tooling.md` §6.1),
+//! `mf2 convert --from fluent` (Phase 8 A1; the tooling design §6.1),
 //! run as a user runs it.
 //!
 //! The construct corpus under `tests/fluent/constructs/` holds every entry
@@ -634,7 +634,7 @@ fn fluent_datetime_approximate() {
     );
 }
 
-// `mf2 convert --from leptos-fluent` (Phase 8 A4; plans/05 §6.2): one test
+// `mf2 convert --from leptos-fluent` (Phase 8 A4; the tooling design §6.2): one test
 // per rule and one per code, on a one-file application.
 
 /// The messages every application below has.

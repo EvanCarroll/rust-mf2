@@ -1,5 +1,5 @@
 //! Converted catalogs format as the Fluent originals (Phase 8 A3;
-//! `plans/16-phase-8-work-order.md`, `plans/05-tooling.md` §6.1).
+//! the Phase 8 work order, the tooling design §6.1).
 //!
 //! In one process, each original is formatted with **`fluent-bundle`** — what
 //! a Fluent application formats with, a dev-dependency here and nothing
@@ -1228,7 +1228,7 @@ fn converted_catalogs_format_as_the_fluent_originals() {
 }
 
 /// The classes of difference the owner approved (2026-09-24,
-/// `plans/16-phase-8-work-order.md` §A3): what "formats identically" allows.
+/// the Phase 8 work order §A3): what "formats identically" allows.
 const APPROVED: [&str; 5] = [
     // Localized numbers where `fluent-bundle` writes `f64`'s `Display`.
     "number rendering:",

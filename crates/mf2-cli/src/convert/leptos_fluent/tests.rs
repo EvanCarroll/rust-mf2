@@ -1,4 +1,4 @@
-//! The reference application, converted (`plans/16-phase-8-work-order.md`
+//! The reference application, converted (the Phase 8 work order
 //! A4): `fluent-view` — the reference workload's call sites in
 //! `leptos-fluent`'s idiom — rewritten by §6.2's rules must be, byte for
 //! byte, `fluent-converted`: `tr-view` with each documented difference

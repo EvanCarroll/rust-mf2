@@ -1,6 +1,6 @@
 //! What a conversion says: one finding per construct it could not map, or
 //! mapped but wants a person to look at, each under a stable code
-//! (`plans/05-tooling.md` §6.1, "The codes").
+//! (the tooling design §6.1, "The codes").
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;

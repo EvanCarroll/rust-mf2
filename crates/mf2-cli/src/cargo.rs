@@ -2,7 +2,7 @@
 //! generated module depends on it — the set its build script reads through
 //! `links` — so that `mf2 compile --site` builds the catalogs for the
 //! functions the wasm is built with, and `mf2 check` checks what the build
-//! checks (`plans/05-tooling.md` §6, `plans/19-native-and-terminal.md` §11).
+//! checks (the tooling design §6, the native-and-terminal design §11).
 
 use std::path::Path;
 use std::process::Command;

@@ -1,6 +1,6 @@
-//! `mf2 init`: a starter (`plans/05-tooling.md` §6.4). Each mode makes a
+//! `mf2 init`: a starter (the tooling design §6.4). Each mode makes a
 //! complete application in an empty or missing directory — `--cli` and
-//! `--tui` the shapes of `plans/19-native-and-terminal.md` §1.1 and §1.2,
+//! `--tui` the shapes of the native-and-terminal design §1.1 and §1.2,
 //! `--ssr` §1.4's, `--islands` and `--csr` the delivery modes' — or adds
 //! translations to the crate already there. Without a mode, it names the
 //! five and changes nothing.

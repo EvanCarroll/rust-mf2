@@ -1,5 +1,5 @@
 //! `mf2 export --format xliff` and `mf2 import` of XLIFF 2 (Phase 8 A6;
-//! `plans/05-tooling.md` §6.3), run as a user runs them.
+//! the tooling design §6.3), run as a user runs them.
 //!
 //! Every document exported here is validated with `xmllint` against the
 //! vendored core schema; `xmllint` missing fails the test, it does not skip
@@ -51,7 +51,7 @@ fn validate(file: &Path) -> Output {
         .output()
         .expect(
             "xmllint must be installed (libxml2): every XLIFF export is validated against \
-             the vendored schema, plans/05-tooling.md §6.3",
+             the vendored schema, the tooling design §6.3",
         )
 }
 
@@ -598,19 +598,25 @@ fn a_flat_json_locale_exchanges_too() {
     );
 }
 
-/// Every code of 05 §6.3's import table has a test named after it here.
+/// Every code `mf2 import` can report. An integration test cannot see the
+/// crate's own `Finding`, so the set is literal here;
+/// `src/workspace_tests.rs` holds this list against `Finding::ALL`, both its
+/// length and every code in it, so it cannot drift from the code.
+const IMPORT_CODES: [&str; 6] = [
+    "xliff-code-edited",
+    "xliff-unknown-code",
+    "xliff-unknown-unit",
+    "xliff-do-not-translate",
+    "xliff-incomplete",
+    "xliff-malformed",
+];
+
+/// Every import code has a test named after it here.
 #[test]
 fn every_code_has_a_test() {
-    let plan = include_str!("../../../plans/05-tooling.md");
-    let section = &plan[plan.find("### 6.3").expect("§6.3")..];
-    let section = &section[..section.find("\n## ").unwrap_or(section.len())];
     let me = include_str!("xliff.rs");
-    let mut codes = 0;
-    for piece in section.split("**`xliff-").skip(1) {
-        let code = &piece[..piece.find('`').expect("closing tick")];
-        let test = format!("fn xliff_{}()", code.replace('-', "_"));
+    for code in IMPORT_CODES {
+        let test = format!("fn {}()", code.replace('-', "_"));
         assert!(me.contains(&test), "no test {test}");
-        codes += 1;
     }
-    assert_eq!(codes, 6);
 }

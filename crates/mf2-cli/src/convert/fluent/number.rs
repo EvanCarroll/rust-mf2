@@ -1,4 +1,4 @@
-//! `NUMBER` (`plans/05-tooling.md` §6.1, "`NUMBER` options").
+//! `NUMBER` (the tooling design §6.1, "`NUMBER` options").
 //!
 //! [`Opts`] mirrors `fluent-bundle` 0.16's `FluentNumberOptions` field for
 //! field, and [`Opts::merge`] its `merge`, because a number key matches a
