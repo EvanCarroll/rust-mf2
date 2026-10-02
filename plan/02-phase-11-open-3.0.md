@@ -244,6 +244,47 @@ check in `tools/checks/run.sh` (and its README).
 
 Done when: the command passes, the report is in §8, `cargo xtask ci` is green.
 
+### 11.5 Attribute the 215 bytes
+
+Found by the Phase exit, not planned. The exit's check run says this phase
+moved the client's fixed cost: on the quiet re-run (`target/p10-checks/p11b`,
+`run.sh p11b --against v2`) `b1 = 26938` against the baseline's `26723`
+(+215 B), `app = 42017` against `41896` (+121 B), `rlib = 46316` against
+`46320` (-4 B), `b5 = 8.1` against `8.2`. The catalogs are byte-identical
+(every `b7.*` unchanged), so it is the wasm. Every size gate passed, so this
+is drift inside the budget, not a breach — but this phase claims to move no
+size, and Phases 12 to 16 compare against `v2`.
+
+Known already; do not redo it:
+
+* The only shipping files changed since the baseline `cfa19a6` are
+  `crates/mf2-build/src/{run,error}.rs`, `crates/mf2-cli/src/init.rs`,
+  `crates/mf2-cli/tests/commands.rs`, `crates/mf2/{Cargo.toml,build.rs}` and
+  the two `mf2-fn-*` comments. None of them is client-path code.
+* No dependency moved: nothing was fetched into the cargo cache after the
+  baseline run, so the `Cargo.lock` rewrite at 03:01 was the internal pins.
+* It reproduces: two runs at `HEAD` both measure 26938.
+* The first exit run (`target/p10-checks/p11`) had `scenarios`, `api` and
+  both `e2e` red because a second session ran its own suite into the same
+  label at the same time. The clean re-run passes all 21 checks. Spend no
+  time on those four.
+
+Measure, do not reason: `bash tools/checks/run.sh LABEL --only sizes` at
+`cfa19a6` and at `HEAD`, one build at a time, nothing else running, the
+baseline measured in a detached checkout or a worktree that you restore —
+never leave the repository off `main`. Then narrow: the candidates are the
+version literal wherever generated code carries it, the `links` key and its
+`DEP_MF2_V3_*` metadata, and the `mf2` manifest's new baseline table.
+
+Then either take the cost back out, or record it: one line in `plan/01` §8
+naming what the 215 bytes are, and the figures in this task's Done entry. If
+3.0.0 simply costs 215 B more on the client and nothing can be done about it,
+say that plainly — it is a result, not a failure. If the cause is not found
+by measurement, stop and report rather than guess.
+
+Done when: the cause is named with the measurement that shows it, the figures
+are recorded in `plan/01` §8, and `cargo xtask ci` is green.
+
 ## Phase exit (coordinator)
 
 1. `bash tools/checks/run.sh p11 --against v2`. Nothing should have moved:
