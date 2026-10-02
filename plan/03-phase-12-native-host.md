@@ -16,14 +16,36 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** the Phase exit, step 1 (`run.sh p12 --against p11b`).
-* **Next:** the exit's steps 2 and 3; every task is done.
+* **In flight:** nothing. The phase is done, exit and all.
+* **Next:** Phase 13 (`plan/04-phase-13-normalization.md`), in a fresh session.
 * A worktree made for a task is removed once its work is merged.
 * This phase's exit compares against `p11b`, never `p11` (`plan/02` Done):
   `p11` holds two runs at once and its figures are not real. Before starting
   a check suite, make sure no other session is running one.
 
 ## Done
+
+* **Phase exit** (coordinator, 2026-10-02).
+
+  Step 1: `bash tools/checks/run.sh p12 --against p11b` on `9120bdb` —
+  **all 21 checks pass**, `compare.sh p11b p12` reports **no flags**.
+  Stripped `tui-mf2` is **1454264 B, was 1812352 B: −358088 B** (349.7 KiB,
+  against §1.4's estimate of 308 KiB + 12.8 KiB). The client is untouched, as
+  the phase intended: `b1=26938`, `b5=8.1`, `app=42017`, `b5v=10.4`, every
+  `b7.*` and `rlib=46316` identical to `p11b`; `allocs=1329/1329/1329/1328`
+  unchanged; `demos changed=0`; conformance `suite=612 ledger=612 gaps=0`;
+  `tests=944` (+11, from 12.2 and 12.4). Frame time 334.1 µs against a
+  335.8 µs baseline, taken under load and so shown, not judged.
+
+  This answers 12.4's open question: `core`'s float text costs the canary
+  ~11.8 KiB, which formats no float of its own, but `tui-mf2` — which does —
+  is smaller, so `ryu` is gone for good and nothing is reverted.
+
+  Step 2: `5c59a94` lowers `SIZE_LIMIT` in `xtask/src/tui_gate.rs` from
+  `1_965_320` to `1_454_264`, with the same figure in `tools/checks/compare.sh`
+  and the suite's README. The gate's fixtures now read `SIZE_LIMIT` and
+  `SIZE_LIMIT + 1` rather than repeating the number, so the next phase to
+  lower it has one line to change. `cargo xtask ci` green.
 
 * **12.1 Zones leave `HOST`.** `mf2-host-std` has a feature `time-zones`
   (jiff optional, still bundled) and `ZONES_HOST`; `HOST` keeps the trait's
