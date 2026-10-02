@@ -16,11 +16,17 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 11.4 (the last task; the coordinator does Phase exit after it).
-* **Next:** nothing.
+* **In flight:** nothing.
+* **Next:** the Phase exit, which the coordinator carries out; every task is done.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **11.4** `cargo xtask native-canaries` links `tools/native-canary` (a new
+  workspace of its own, the smallest MF2 application) once per row,
+  unstripped, in the release profile, and reads its symbols by owning crate.
+  Positive control green; no forbidding rows yet. `native` links jiff,
+  unicode-normalization and ryu, and neither sha2 nor sys-locale (§8).
 
 * **11.3** `xtask/src/feature_sets.rs` holds all 87 sets once — packages,
   features, target, builds-or-refused, the commands that use them; `ci`,
