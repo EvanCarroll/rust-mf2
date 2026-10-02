@@ -28,7 +28,8 @@
 //! - `tui-mf2`'s allocations per frame, in each language, are at most
 //!   1.x's ([`ALLOCS_1X`]) and `tui-upstream`'s in the same build. The counts
 //!   are deterministic, so CI holds them on every push;
-//! - stripped `tui-mf2` is at most [`SIZE_LIMIT`] bytes, the 1.x binary's;
+//! - stripped `tui-mf2` is at most [`SIZE_LIMIT`] bytes, the smallest it has
+//!   been measured at;
 //! - with a baseline in the rotation, `tui-mf2`'s median time per frame is
 //!   at most the baseline `tui-mf2`'s: nightly, alternating with the 1.x
 //!   binary, since a time is only comparable within one session.
@@ -53,8 +54,10 @@ const BINARIES: &[&str] = &["tui-mf2", "tui-upstream"];
 /// 1.x's allocations per frame (A1, the binaries of `3a296a9`), by locale.
 const ALLOCS_1X: &[(&str, u64)] = &[("en", 1816), ("de", 1815), ("es", 1816), ("fr", 1817)];
 
-/// The stripped 1.x `tui-mf2`, in bytes (A1): 2.0's may not be larger.
-const SIZE_LIMIT: u64 = 1_965_320;
+/// The stripped `tui-mf2`, in bytes, as Phase 12's exit measured it: a later
+/// change may not make it larger. It began as 1.x's `1_965_320` B (A1) and came
+/// down when the native host stopped linking a time-zone database and `ryu`.
+const SIZE_LIMIT: u64 = 1_454_264;
 
 /// What `cargo xtask tui-gate` was asked to do.
 pub(crate) struct Options {
@@ -187,7 +190,7 @@ fn judge(rotation: &[Measured]) -> Vec<String> {
     }
     if mf2.size > SIZE_LIMIT {
         failures.push(format!(
-            "stripped tui-mf2 is {} B, above 1.x's {SIZE_LIMIT} B",
+            "stripped tui-mf2 is {} B, above the {SIZE_LIMIT} B it has been",
             mf2.size
         ));
     }
@@ -502,7 +505,7 @@ fn gate(message: &str) -> Error {
 
 #[cfg(test)]
 mod tests {
-    use super::{Measured, judge, median, record};
+    use super::{Measured, SIZE_LIMIT, judge, median, record};
     use std::path::PathBuf;
 
     fn bin() -> Measured {
@@ -555,7 +558,7 @@ mod tests {
     #[test]
     fn the_gate_holds_below_every_limit() {
         let rotation = [
-            measured("tui-mf2", [1329; 4], 1_800_000, 280.0),
+            measured("tui-mf2", [1329; 4], SIZE_LIMIT, 280.0),
             measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
             measured("tui-mf2 (baseline)", [1816; 4], 1_965_320, 300.0),
         ];
@@ -567,16 +570,19 @@ mod tests {
     fn the_gate_refuses_each_limit_crossed() {
         let upstream = measured("tui-upstream", [1517; 4], 1_400_000, 260.0);
         let over_upstream = [
-            measured("tui-mf2", [1329, 1518, 1329, 1329], 1_800_000, 280.0),
+            measured("tui-mf2", [1329, 1518, 1329, 1329], SIZE_LIMIT, 280.0),
             measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
         ];
         let failures = judge(&over_upstream);
         assert_eq!(failures.len(), 1, "{failures:?}");
         assert!(failures[0].starts_with("de:"), "{failures:?}");
-        let too_big = [measured("tui-mf2", [1329; 4], 1_965_321, 280.0), upstream];
+        let too_big = [
+            measured("tui-mf2", [1329; 4], SIZE_LIMIT + 1, 280.0),
+            upstream,
+        ];
         assert!(judge(&too_big)[0].contains("stripped"));
         let slower = [
-            measured("tui-mf2", [1329; 4], 1_800_000, 301.0),
+            measured("tui-mf2", [1329; 4], SIZE_LIMIT, 301.0),
             measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
             measured("tui-mf2 (baseline)", [1816; 4], 1_965_320, 300.0),
         ];
