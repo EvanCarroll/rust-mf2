@@ -140,6 +140,16 @@ A mode implies its host; an application rarely names one.
 
 Formatting on a native target: servers, tests, `wasm32-wasip1`.
 
+### `tzdb-bundled`
+
+A named time zone is looked up in the IANA database jiff carries, not the
+one the machine has. A server turns this on — `ssr` and `axum` do it for you
+— so that every reply says the same thing whatever its host holds. Without
+it a native application follows its machine (`TZDIR`, else
+`/usr/share/zoneinfo`, else jiff's copy where the platform has none), so a
+zone amended since the binary was built is right. It adds nothing without
+[`fn-datetime`](#fn-datetime), which is what reads a zone at all.
+
 ### `host-web`
 
 Formatting in the browser.

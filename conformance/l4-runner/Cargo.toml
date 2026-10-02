@@ -14,7 +14,7 @@ mf2-fn-datetime = { workspace = true, features = ["datetime-icu"] }
 # The localized numeric functions and :percent (Phase 4, A3).
 mf2-fn-number.workspace = true
 # The suite's dates name IANA zones, so the host that resolves them.
-mf2-host-std = { workspace = true, features = ["time-zones"] }
+mf2-host-std = { workspace = true, features = ["time-zones", "tzdb-bundled"] }
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true
 

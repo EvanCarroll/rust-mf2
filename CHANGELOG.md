@@ -21,6 +21,15 @@ application sees adds its line here.
   `mf2::host_std::HOST` itself and shows dates in a named zone writes
   `ZONES_HOST`. Native code reads the system's zone only with
   `fn-datetime`; without it the default zone is UTC.
+* **A named time zone is read from the system's IANA database, unless the
+  bundle is asked for.** 2.0 always answered from jiff's bundled copy. A
+  native application now follows the machine it runs on (`TZDIR`, else
+  `/usr/share/zoneinfo`, else jiff's copy on a platform that has none), so a
+  zone amended since the binary was built is right. A server, where every
+  reply must say the same thing whatever the host holds, keeps the bundle:
+  the new feature `mf2/tzdb-bundled`, which `ssr` and `axum` turn on. Turn it
+  on by hand to carry the bundle in any other build; a zone no database holds
+  is *Bad Option*, as before.
 
 ## 2.0.0
 

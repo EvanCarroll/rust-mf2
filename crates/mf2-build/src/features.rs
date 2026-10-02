@@ -161,7 +161,9 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
 /// The features that decide what a catalog may hold: which functions a
 /// message may call, and which locale data the catalog carries for them.
 /// The wasm and the catalogs must agree on these; the others (`intl`,
-/// `datetime-intl`, the host features) change only the client code.
+/// `datetime-intl`, `tzdb-bundled`, the host features) change only the code
+/// a build compiles — `tzdb-bundled` only which IANA database a named time
+/// zone is looked up in.
 pub const CATALOG_FEATURES: [&str; 3] = ["fn-number", "fn-datetime", "datetime-icu"];
 
 impl Features {

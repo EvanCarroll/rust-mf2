@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: time-zones
+# nightly-2026-09-24; features: time-zones,tzdb-bundled
 pub mod mf2_host_std
 pub struct mf2_host_std::StdHost
 impl core::clone::Clone for mf2_host_std::StdHost

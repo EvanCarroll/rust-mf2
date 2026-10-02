@@ -76,3 +76,4 @@ tests/support/corpus.rs
 tests/system_zone.rs
 tests/time_zone.rs
 tests/uninstalled.rs
+tests/zone_db.rs

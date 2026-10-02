@@ -9,7 +9,8 @@
 //! | static | feature | adds |
 //! |---|---|---|
 //! | [`HOST`] | — | NFC and float text; a named zone is *Bad Option* |
-//! | [`ZONES_HOST`] | `time-zones` | the UTC offset of a named zone through `jiff`'s **bundled** IANA database — never the system's, so every server, test and `wasm32-wasip1` run answers alike |
+//! | [`ZONES_HOST`] | `time-zones` | the UTC offset of a named zone through `jiff`, from the **system's** IANA database (`TZDIR`, else `/usr/share/zoneinfo`, else `jiff`'s own copy where the platform has none) |
+//! | the same | `tzdb-bundled` | `jiff`'s **bundled** database instead, so that every build answers alike whatever the machine holds: what a server (`mf2`'s `ssr` and `axum` turn it on) and the conformance suite want |
 //!
 //! # The user guide
 //!
@@ -61,7 +62,8 @@ impl Host for StdHost {
 }
 
 /// The native host with time zones: [`StdHost`]'s NFC and float text, and
-/// the UTC offset of a named time zone through `jiff`.
+/// the UTC offset of a named time zone through `jiff`, read from the
+/// system's IANA database — or, with `tzdb-bundled`, from `jiff`'s own copy.
 #[cfg(feature = "time-zones")]
 #[cfg_attr(docsrs, doc(cfg(feature = "time-zones")))]
 #[derive(Clone, Copy, Default, Debug)]
@@ -86,13 +88,20 @@ impl Host for ZonesStdHost {
 
     /// The offset of `zone` (an IANA name, looked up case-insensitively, or
     /// one of jiff's special zones such as `UTC`) at `epoch_ms`, from the
-    /// bundled database; else, when `zone` is a POSIX TZ rule
+    /// database [`ZONES_HOST`] names; else, when `zone` is a POSIX TZ rule
     /// (`TimeZone::rules`: a native application's system zone without an
-    /// IANA name), from that rule. `None` for anything else, or an instant
-    /// outside jiff's range (years −9999 to 9999).
+    /// IANA name), from that rule. `None` for anything else — a name the
+    /// database does not hold is *Bad Option*, never a panic — or for an
+    /// instant outside jiff's range (years −9999 to 9999).
     fn zone_offset(&self, zone: &str, epoch_ms: i64) -> Option<i32> {
         let t = jiff::Timestamp::from_millisecond(epoch_ms).ok()?;
-        let tz = match jiff::tz::TimeZoneDatabase::bundled().get(zone) {
+        // One database per build: the bundle where it was asked for, else
+        // whatever the machine has. `db()` reads `TZDIR` once, on first use.
+        #[cfg(feature = "tzdb-bundled")]
+        let found = jiff::tz::TimeZoneDatabase::bundled().get(zone);
+        #[cfg(not(feature = "tzdb-bundled"))]
+        let found = jiff::tz::db().get(zone);
+        let tz = match found {
             Ok(tz) => tz,
             Err(_) => jiff::tz::TimeZone::posix(zone).ok()?,
         };
@@ -143,7 +152,11 @@ mod tests {
         ((days * 24 + hour) * 60 + minute) * 60_000 + second * 1000
     }
 
-    #[cfg(feature = "time-zones")]
+    /// The bundled database's answers, which are 2.0's: this build asked for
+    /// the bundle, so they do not depend on the machine. Without
+    /// `tzdb-bundled` the lookup reads the system's database, which
+    /// `crates/mf2/tests/zone_db.rs` tests against one it supplies itself.
+    #[cfg(all(feature = "time-zones", feature = "tzdb-bundled"))]
     #[test]
     fn zone_offsets() {
         const H: i32 = 3600;

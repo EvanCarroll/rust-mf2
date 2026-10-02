@@ -400,6 +400,18 @@ pub(crate) const SETS: &[Set] = &[
     ),
     mf2(
         Host,
+        "native,fn-datetime",
+        &[Use::Ci(&[Clippy, Test(&["--test", "zone_db"])])],
+        "a native application's zone lookups, which read the machine's IANA database",
+    ),
+    mf2(
+        Host,
+        "native,fn-datetime,tzdb-bundled",
+        &[Use::Ci(&[Clippy, Test(&["--test", "zone_db"])])],
+        "`tzdb-bundled`, where they read jiff's bundled database instead (what `ssr` and `axum` turn on)",
+    ),
+    mf2(
+        Host,
         "leptos,csr,native,compile",
         &[Use::Ci(&[
             Clippy,

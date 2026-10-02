@@ -50,6 +50,13 @@ datetime-icu = [
     "mf2-locale-data?/icu-blob",
 ]
 datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/datetime-intl"]
+# Time zones from jiff's bundled IANA database rather than the machine's
+# (`plan/01` §4.1). A native application follows the system it runs on, so
+# that a zone added or amended since this binary was built is right; a
+# server, where every reply must say the same thing whatever the host holds,
+# turns this on — `ssr` and `axum` do it for you. Nothing without
+# `fn-datetime`, which is what links jiff at all.
+tzdb-bundled = ["mf2-host-std?/tzdb-bundled"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
@@ -85,6 +92,7 @@ ratatui = ["native", "dep:ratatui-core"]
 # for `wasm32`; on the host the two compile together, as `native` does.
 axum = [
     "host-std",
+    "tzdb-bundled",
     "dep:axum",
     "dep:http",
     "dep:tower-layer",
@@ -121,6 +129,7 @@ leptos-0-8 = [
 # same name, beside Leptos's. Each implies its host.
 ssr = [
     "host-std",
+    "tzdb-bundled",
     "dep:oco_ref",
     "dep:js-sys",
     "dep:wasm-bindgen",
@@ -279,6 +288,12 @@ required-features = ["ssr", "mark-fallback-lang"]
 
 # A native application's catalogs, embedded or read from files, and its
 # locale: `compile_str` writes the catalogs.
+# Which IANA database a lookup reads: the bundle with `tzdb-bundled`, the
+# system's without it — against one the test writes itself.
+[[test]]
+name = "zone_db"
+required-features = ["host-std", "fn-datetime"]
+
 [[test]]
 name = "native"
 required-features = ["native", "compile"]
