@@ -17,7 +17,7 @@ exit", then stops: the next phase starts in a fresh session.
 ## State
 
 * **In flight:** nothing of this phase's own. Phase 11's exit is carried out
-  first (`plan/02` State): the `p11` run it asks for is the comparison point
+  first (`plan/02` State): the `p11b` run it asks for is the comparison point
   the exit below needs, and it had never been taken.
 * **Next:** 12.1
 * A worktree made for a task is removed once its work is merged.
@@ -156,7 +156,7 @@ Done when: the command and `cargo xtask ci` are green.
 
 ## Phase exit (coordinator)
 
-1. `bash tools/checks/run.sh p12 --against p11`. Expected: `tui-mf2` smaller;
+1. `bash tools/checks/run.sh p12 --against p11b`. Expected: `tui-mf2` smaller;
    B1 and B5 within their bands (the client is not touched).
 2. Lower `SIZE_LIMIT` in `xtask/src/tui_gate.rs` and the same number in
    `tools/checks/compare.sh` to the measured size of `tui-mf2`. One commit;

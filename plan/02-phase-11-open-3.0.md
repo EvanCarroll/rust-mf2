@@ -17,12 +17,41 @@ stops: the next phase starts in a fresh session.
 ## State
 
 * **In flight:** nothing.
-* **Next:** the Phase exit, steps 1, 2 and 4, on this tree; every task is
-  done. Step 1's comparison point is `target/p10-checks/p11b`
-  (`--against v2`, all 21 green), whose +215 B 11.5 accounted for.
+* **Next:** the Phase exit's step 2, which only the owner can run (it
+  reaches crates.io). Steps 1 and 3 are done; step 4 records them below.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
+
+* **Phase exit, steps 1 and 3** (coordinator, 2026-10-02).
+
+  Step 1: `bash tools/checks/run.sh p11b --against v2` — **all 21 checks
+  pass** on `1560a0c`. Sizes against the baseline: `b1=26938` (+215),
+  `app=42017` (+121), `rlib=46316` (-4), `b5=8.1`, `b5v=10.4`, every `b7.*`
+  identical, `tui=1812352`, `allocs=1329/1329/1329/1328`, `b13=+13573`,
+  `tests=933` (+1, 11.4's), conformance `suite=612 ledger=612 gaps=0`. Frame
+  time 346.9 µs against a 348.8 µs baseline, taken under load and so shown,
+  not judged. The +215 B is 3.0.0's own crate identity, accounted for by
+  11.5; nothing else moved.
+
+  **Later phases compare with `--against p11b`, never `p11`.** A second
+  session, Phase 12's coordinator, read this session as dead and ran its own
+  `run.sh p11` into the same label at the same time: both runs appended to
+  every check log, so figures printed twice and `scenarios`, `api` and both
+  `e2e` read FAIL — a fixture edit racing the other run's restore, a garbled
+  `api.txt`, 6 of 654 browser asserts lost to port contention. None of it was
+  real; the directory is kept as `target/p10-checks/p11-contaminated/`. Two
+  check suites must never run at once.
+
+  Step 3: the owner was told that F1 is a defect in 2.0.0 — with `intl` on,
+  a browser application formats no number at all — and that task 14.0 fixes
+  it.
+
+  Step 2 is **not done**: `cargo xtask release --allow-dirty` reaches
+  crates.io, which this session is not permitted to do. The owner runs it;
+  its `cargo-semver-checks` step must pass for every crate against the
+  published 2.0.0. Record the result here, and until then Phase 11 is not
+  closed.
 
 * **11.5** The phase's +215 B gz on B1 (26723 → 26938; whole app 41896 →
   42017) is 133 B raw in the 1860-site `tr` wasm's code section, and no new
