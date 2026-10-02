@@ -16,8 +16,12 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
-* **Next:** the Phase exit, which the coordinator carries out; every task is done.
+* **In flight:** the Phase exit, step 1. Phase 11's session ended before
+  carrying it out: its `run.sh p11` died inside `ci` and left a stub under
+  `target/p10-checks/p11/`. Phase 12's coordinator takes it on the same tree
+  (`56d02f0`, clean), because a comparison point for `p11` cannot be taken
+  once Phase 12 has changed a size.
+* **Next:** exit steps 2 and 4; every task is done.
 * A worktree made for a task is removed once its work is merged.
 
 ## Done
