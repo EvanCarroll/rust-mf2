@@ -12,7 +12,6 @@ pub fn mf2_host_std::StdHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> core:
 impl core::marker::Copy for mf2_host_std::StdHost
 impl mf2_runtime::host::Host for mf2_host_std::StdHost
 pub fn mf2_host_std::StdHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
-pub fn mf2_host_std::StdHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
 pub struct mf2_host_std::ZonesStdHost
 impl core::clone::Clone for mf2_host_std::ZonesStdHost
 pub fn mf2_host_std::ZonesStdHost::clone(&self) -> Self
@@ -23,7 +22,6 @@ pub fn mf2_host_std::ZonesStdHost::fmt(&self, &mut core::fmt::Formatter<'_>) -> 
 impl core::marker::Copy for mf2_host_std::ZonesStdHost
 impl mf2_runtime::host::Host for mf2_host_std::ZonesStdHost
 pub fn mf2_host_std::ZonesStdHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
-pub fn mf2_host_std::ZonesStdHost::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
 pub fn mf2_host_std::ZonesStdHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
 pub static mf2_host_std::HOST: mf2_host_std::StdHost
 pub static mf2_host_std::ZONES_HOST: mf2_host_std::ZonesStdHost

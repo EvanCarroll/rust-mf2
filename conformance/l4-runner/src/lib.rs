@@ -312,8 +312,8 @@ fn run_in(case: &Case, cx: &FormatContext) -> Result<Record, String> {
         .args
         .iter()
         .map(|(n, _)| {
-            let mut buf = String::new();
-            mf2_host_std::HOST.nfc(n, &mut buf).to_owned()
+            use unicode_normalization::UnicodeNormalization;
+            n.nfc().collect::<String>()
         })
         .collect();
     let positional: Vec<Arg<'_>> = slot_names

@@ -1,12 +1,13 @@
 //! What the runtime asks of its platform (`plans/03-runtime.md` §2.5,
-//! §2.7): NFC normalization (no tables in the wasm, §7), the shortest text
-//! of a float (no float-printing code in the wasm), for dates the UTC
-//! offset of a named time zone and — `datetime-intl` — a date formatter,
-//! and — `intl` — a number formatter with plural rules.
-//! `mf2-host-std` implements it natively and for `wasm32-wasip1`,
-//! `mf2-host-web` in the browser.
-
-use alloc::string::String;
+//! §2.7): the shortest text of a float (no float-printing code in the
+//! wasm), for dates the UTC offset of a named time zone and —
+//! `datetime-intl` — a date formatter, and — `intl` — a number formatter
+//! with plural rules. `mf2-host-std` implements it natively and for
+//! `wasm32-wasip1`, `mf2-host-web` in the browser.
+//!
+//! Canonical equivalence is not among them: the runtime answers it itself,
+//! from the map its catalog carries (`crate::nfc_equivalent`, `plan/01`
+//! §4.3), so no host needs normalization tables.
 
 use crate::datetime::DateTimeRequest;
 use crate::number::{NumberOut, NumberRequest};
@@ -15,10 +16,6 @@ use crate::sink::Sink;
 
 /// The platform services the runtime needs.
 pub trait Host: Sync {
-    /// The NFC form of `s`, which failed the quick check (it has a code point
-    /// at or above U+0300). `buf` is scratch the result may live in.
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str;
-
     /// The shortest decimal text that round-trips the finite `x`, written
     /// into `buf`: any form `number-literal` accepts, with an optional `+` in
     /// the exponent (`ryu`'s `4.2`, `1e21`, `1.5e-7` and JavaScript's

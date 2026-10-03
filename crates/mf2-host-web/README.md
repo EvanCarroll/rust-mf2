@@ -1,8 +1,8 @@
 # mf2-host-web
 
-The browser host of the MF2 runtime: Unicode normalization and float
-text through the browser's own `String` functions, so the wasm carries
-neither; with `datetime-intl`, dates through `Intl.DateTimeFormat`, and
+The browser host of the MF2 runtime: float text through the browser's
+own `String` function, so the wasm carries no float-printing code;
+with `datetime-intl`, dates through `Intl.DateTimeFormat`, and
 with `intl`, numbers through `Intl.NumberFormat` and `Intl.PluralRules`.
 
 Applications do not name this crate: [`mf2`](https://docs.rs/mf2) re-exports it as

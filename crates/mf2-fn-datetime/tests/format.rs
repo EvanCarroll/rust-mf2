@@ -66,10 +66,6 @@ fn nth_sunday(y: i32, m: u8, n: u8) -> u8 {
 struct Zones;
 
 impl Host for Zones {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        mf2::host_std::HOST.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         mf2::host_std::HOST.f64_to_text(x, buf)
     }
@@ -122,10 +118,6 @@ static ZONES: Zones = Zones;
 struct Bare;
 
 impl Host for Bare {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        mf2::host_std::HOST.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         mf2::host_std::HOST.f64_to_text(x, buf)
     }

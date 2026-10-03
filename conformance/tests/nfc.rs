@@ -1,19 +1,17 @@
 //! Both canonical-equivalence paths agree (`plan/01` §4.3): the check the
-//! runtime now makes from the map a catalog carries, and the one it used to
-//! make through `Host::nfc` and the full normalization tables.
+//! runtime makes from the map a catalog carries, and the one the runtime
+//! used to make through a host's NFC and the full normalization tables.
 //!
 //! The values are the suite's own strings — every message source, expected
 //! result and parameter value, which is what a program passes in — and the
 //! key sets are those the gate asks for plus the suite's own non-ASCII
-//! strings. `Host::nfc` is the oracle while it still exists; once it is gone
-//! the fuzz target (`fuzz/fuzz_targets/nfc.rs`) keeps the check honest
-//! against `unicode-normalization` directly.
+//! strings. `Host::nfc` was the oracle until 13.5 removed it; the oracle is
+//! now `unicode-normalization` itself, as it is in the differential fuzz
+//! target (`fuzz/fuzz_targets/nfc.rs`).
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use mf2::Host;
-use mf2::host_std::HOST;
 use mf2_catalog::nfc_map::NfcMap;
 use mf2_catalog::writer::nfc_map::build;
 use mf2_conformance::load_suite;
@@ -27,11 +25,12 @@ fn root() -> PathBuf {
         .to_path_buf()
 }
 
-/// The old path: the host's NFC. A catalog's keys and names are written in
-/// NFC, so the comparison was "the value's NFC form equals the key".
+/// The old path, from the full tables: a catalog's keys and names are
+/// written in NFC, so the comparison was "the value's NFC form equals the
+/// key".
 fn nfc(s: &str) -> String {
-    let mut buf = String::new();
-    HOST.nfc(s, &mut buf).to_string()
+    use unicode_normalization::UnicodeNormalization;
+    s.nfc().collect()
 }
 
 /// Every string in a JSON value, keys included.

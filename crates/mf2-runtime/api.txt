@@ -851,7 +851,6 @@ pub fn mf2_runtime::functions::StringFunction::selectable(&self, &mf2_runtime::V
 pub trait mf2_runtime::Host: core::marker::Sync
 pub fn mf2_runtime::Host::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
 pub fn mf2_runtime::Host::format_date_time(&self, &str, &mf2_runtime::DateTimeRequest<'_>, &mut dyn mf2_runtime::Sink) -> bool
-pub fn mf2_runtime::Host::nfc<'a>(&self, &'a str, &'a mut alloc::string::String) -> &'a str
 pub fn mf2_runtime::Host::numbers(&self) -> core::option::Option<&dyn mf2_runtime::NumberFormatter>
 pub fn mf2_runtime::Host::zone_offset(&self, &str, i64) -> core::option::Option<i32>
 pub trait mf2_runtime::NumberFormatter: core::marker::Sync

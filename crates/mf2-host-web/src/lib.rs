@@ -1,8 +1,8 @@
 //! `mf2-host-web` — the [`Host`] of `mf2-runtime` in the browser
-//! (`wasm32-unknown-unknown`, its only target): NFC through `String.prototype.normalize`
-//! and the shortest round-trip text of a float through `Number.prototype
-//! .toString`, both via `js-sys`, so the wasm carries no normalization
-//! tables and no float-printing code.
+//! (`wasm32-unknown-unknown`, its only target): the shortest round-trip text
+//! of a float through `Number.prototype.toString`, via `js-sys`, so the wasm
+//! carries no float-printing code. Canonical equivalence is the runtime's
+//! own, from the catalog's map, so there is no `normalize` glue either.
 //!
 //! Dates and numbers (`intl`) come as
 //! more hosts, not as more methods of [`HOST`]: a host method is linked
@@ -13,7 +13,7 @@
 //!
 //! | Static | Feature | Adds |
 //! |---|---|---|
-//! | [`HOST`] | — | NFC, float text |
+//! | [`HOST`] | — | float text |
 //! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (`datetime-icu` clients: named zones) |
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
 //! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
@@ -39,9 +39,7 @@ mod dates;
 #[cfg(feature = "intl")]
 mod numbers;
 
-use alloc::string::String;
-
-use js_sys::{JsString, Number};
+use js_sys::Number;
 use mf2_runtime::Host;
 
 #[cfg(feature = "intl")]
@@ -74,18 +72,6 @@ pub struct IntlWebHost;
 pub static INTL_HOST: IntlWebHost = IntlWebHost;
 
 impl Host for WebHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        let normalized = JsString::from(s).normalize("NFC");
-        buf.clear();
-        match normalized.as_string() {
-            Some(text) => {
-                *buf = text;
-                buf
-            }
-            None => s,
-        }
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         if !x.is_finite() {
             return None;
@@ -99,10 +85,6 @@ impl Host for WebHost {
 
 #[cfg(feature = "time-zones")]
 impl Host for ZonesWebHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        WebHost.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         WebHost.f64_to_text(x, buf)
     }
@@ -114,10 +96,6 @@ impl Host for ZonesWebHost {
 
 #[cfg(feature = "datetime-intl")]
 impl Host for IntlWebHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        WebHost.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         WebHost.f64_to_text(x, buf)
     }

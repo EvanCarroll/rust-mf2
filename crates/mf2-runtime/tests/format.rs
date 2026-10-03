@@ -10,17 +10,10 @@ use mf2_runtime::{
     Arg, BidiStrategy, FormatContext, FormatError, Formatter, Function, Host, Part, PartSink,
     Registry, SubPartSink,
 };
-use unicode_normalization::UnicodeNormalization;
 
 struct TestHost;
 
 impl Host for TestHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        buf.clear();
-        buf.extend(s.nfc());
-        buf
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         let mut b = ryu::Buffer::new();
         let s = b.format_finite(x).as_bytes();

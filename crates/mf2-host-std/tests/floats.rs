@@ -13,12 +13,6 @@ use mf2_runtime::{Host, Number, Sink};
 struct RyuHost;
 
 impl Host for RyuHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        buf.clear();
-        buf.push_str(s);
-        buf
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         if !x.is_finite() {
             return None;

@@ -19,7 +19,6 @@
 //! `currency` part and the spacing next to it; digit options equal to
 //! `Intl`'s defaults for the style are left out.
 
-use alloc::string::String;
 use core::sync::atomic::{AtomicU8, Ordering};
 
 use mf2_runtime::{
@@ -46,10 +45,6 @@ pub struct IntlNumbers(pub &'static dyn Host);
 pub static NUMBERS_HOST: IntlNumbers = IntlNumbers(&HOST);
 
 impl Host for IntlNumbers {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        self.0.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         self.0.f64_to_text(x, buf)
     }

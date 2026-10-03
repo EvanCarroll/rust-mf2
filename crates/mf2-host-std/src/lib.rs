@@ -1,14 +1,13 @@
-//! `mf2-host-std` — the [`Host`] of `mf2-runtime` for native code and for the
-//! `wasm32-wasip1`: NFC
-//! through `unicode-normalization` and the shortest round-trip text of a
-//! float through `core`'s own formatting. Never
+//! `mf2-host-std` — the [`Host`] of `mf2-runtime` for native code and for
+//! `wasm32-wasip1`: the shortest round-trip text of a float, through
+//! `core`'s own formatting. Never
 //! linked into the browser client, which uses `mf2-host-web`.
 //!
 //! Two hosts, so that a build without dates carries no time-zone database:
 //!
 //! | static | feature | adds |
 //! |---|---|---|
-//! | [`HOST`] | — | NFC and float text; a named zone is *Bad Option* |
+//! | [`HOST`] | — | float text; a named zone is *Bad Option* |
 //! | [`ZONES_HOST`] | `time-zones` | the UTC offset of a named zone through `jiff`, from the **system's** IANA database (`TZDIR`, else `/usr/share/zoneinfo`, else `jiff`'s own copy where the platform has none) |
 //! | the same | `tzdb-bundled` | `jiff`'s **bundled** database instead, so that every build answers alike whatever the machine holds: what a server (`mf2`'s `ssr` and `axum` turn it on) and the conformance suite want |
 //!
@@ -35,11 +34,9 @@ extern crate alloc;
 #[cfg(feature = "time-zones")]
 extern crate std;
 
-use alloc::string::String;
 use core::fmt::{self, Write as _};
 
 use mf2_runtime::Host;
-use unicode_normalization::UnicodeNormalization;
 
 #[cfg(feature = "time-zones")]
 mod system_zone;
@@ -53,7 +50,7 @@ pub use jiff;
 #[cfg(feature = "time-zones")]
 pub use system_zone::system_time_zone;
 
-/// The native host: NFC and float text.
+/// The native host: float text.
 #[derive(Clone, Copy, Default, Debug)]
 pub struct StdHost;
 
@@ -63,12 +60,6 @@ pub struct StdHost;
 pub static HOST: StdHost = StdHost;
 
 impl Host for StdHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        buf.clear();
-        buf.extend(s.nfc());
-        buf
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         if !x.is_finite() {
             return None;
@@ -120,10 +111,6 @@ pub static ZONES_HOST: ZonesStdHost = ZonesStdHost;
 
 #[cfg(feature = "time-zones")]
 impl Host for ZonesStdHost {
-    fn nfc<'a>(&self, s: &'a str, buf: &'a mut String) -> &'a str {
-        StdHost.nfc(s, buf)
-    }
-
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {
         StdHost.f64_to_text(x, buf)
     }
@@ -153,21 +140,11 @@ impl Host for ZonesStdHost {
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::String;
-
     use mf2_runtime::Host;
 
     use super::HOST;
     #[cfg(feature = "time-zones")]
     use super::ZONES_HOST;
-
-    #[test]
-    fn nfc() {
-        let mut buf = String::new();
-        assert_eq!(HOST.nfc("\u{1E0A}\u{0323}", &mut buf), "\u{1E0C}\u{0307}");
-        let mut buf = String::new();
-        assert_eq!(HOST.nfc("e\u{301}", &mut buf), "\u{e9}");
-    }
 
     #[test]
     fn floats() {

@@ -11,6 +11,14 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`Host::nfc` is gone, and no host carries normalization tables.** The
+  `Host` trait no longer has an `nfc` method: the runtime answers canonical
+  equivalence itself, from the map its catalog carries. A hand-written host
+  deletes its `nfc`; nothing else changes. `mf2-host-std` no longer depends
+  on `unicode-normalization` and `mf2-host-web` no longer calls
+  `String.prototype.normalize`, so a native binary links the normalization
+  tables only with `compile` (a message compiled at run time), and the
+  browser client has one glue function less.
 * **A custom function can ask whether a value matches a key, accents written
   either way.** `FnContext::equivalent(value, key)` makes the comparison MF2
   asks for between a selector value and a variant key, from the catalog's own

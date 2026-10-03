@@ -14,8 +14,6 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-
 use b12_harness::{INPUT_CATALOG, INPUT_KEY, input, param, sink, sink_bytes};
 use mf2_catalog::{Catalog, MsgId};
 use mf2_runtime::{
@@ -23,15 +21,11 @@ use mf2_runtime::{
     Registry, Sink, SubPartSink, Time, TimeZone,
 };
 
-/// A host that normalizes nothing and prints no floats, whose zone offsets
+/// A host that prints no floats, whose zone offsets
 /// are a number from the host: the host's own cost is not the runtime's.
 pub struct StubHost;
 
 impl Host for StubHost {
-    fn nfc<'a>(&self, s: &'a str, _buf: &'a mut String) -> &'a str {
-        s
-    }
-
     fn f64_to_text<'b>(&self, _x: f64, _buf: &'b mut [u8; 32]) -> Option<&'b str> {
         None
     }

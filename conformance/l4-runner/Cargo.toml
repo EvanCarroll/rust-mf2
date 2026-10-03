@@ -17,6 +17,10 @@ mf2-fn-number.workspace = true
 mf2-host-std = { workspace = true, features = ["time-zones", "tzdb-bundled"] }
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true
+# The names the suite passes in are compared under NFC, which the runner
+# normalizes with the full tables: the runtime's own check is what this
+# layer is testing, so it must not also be the oracle.
+unicode-normalization = { workspace = true, features = ["std"] }
 
 [[bin]]
 name = "mf2-l4-wasi"

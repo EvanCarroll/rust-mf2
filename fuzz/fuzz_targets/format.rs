@@ -487,8 +487,8 @@ fn format_one(catalog: &Catalog, f: &Formatter<'_>, id: MsgId, args: &[Arg<'_>],
         _ => Vec::new(),
     };
     let nfc = names.iter().all(|n| {
-        let mut buf = String::new();
-        mf2_host_std::HOST.nfc(n, &mut buf) == *n
+        use unicode_normalization::UnicodeNormalization;
+        n.nfc().eq(n.chars())
     });
     let mut sorted = names.clone();
     sorted.sort_unstable();

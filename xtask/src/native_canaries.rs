@@ -22,9 +22,12 @@
 //!
 //! Phase 12 made jiff conditional (`mf2-host-std`'s feature `time-zones`,
 //! which only `fn-datetime` turns on) and removed `ryu` outright, so every
-//! dateless set forbids both. `unicode-normalization` is still
-//! unconditional — every native binary links it whether it normalizes
-//! anything or not — and Phase 13 adds the row that holds it conditional.
+//! dateless set forbids both. Phase 13 did the same for
+//! `unicode-normalization`: the runtime decides canonical equivalence from
+//! the map its catalog carries (`plan/01` §4.3), so the tables are linked
+//! only by a build that compiles messages at run time — which is why
+//! `native,compile` is a row of its own, requiring them, beside the rows
+//! that forbid them.
 //!
 //! One entry of [`CRATES`] is a module path rather than a crate:
 //! jiff's bundled IANA database is its own `jiff::tz::db::bundled`, not a
@@ -83,19 +86,19 @@ const ROWS: &[Row] = &[
         what: "a native application with no formatting functions",
         features: "native",
         requires: &[],
-        forbids: DATELESS,
+        forbids: LEAN,
     },
     Row {
         what: "a native application formatting numbers",
         features: "native,fn-number",
         requires: &[],
-        forbids: DATELESS,
+        forbids: LEAN,
     },
     Row {
         what: "a terminal UI formatting numbers",
         features: "ratatui,fn-number",
         requires: &[],
-        forbids: DATELESS,
+        forbids: LEAN,
     },
     Row {
         // `axum` turns `tzdb-bundled` on, so that every reply says the same
@@ -105,7 +108,7 @@ const ROWS: &[Row] = &[
         what: "an Axum server with no date in any message",
         features: "axum",
         requires: &[],
-        forbids: DATELESS,
+        forbids: LEAN,
     },
     Row {
         // The positive control, and the one row about which database a
@@ -119,11 +122,27 @@ const ROWS: &[Row] = &[
         requires: &["jiff"],
         forbids: &[BUNDLED_TZDB],
     },
+    Row {
+        // The other positive control: compiling a message at run time parses
+        // it, and the parser normalizes names and keys. Without this row
+        // every row that forbids the tables would pass even if the reader
+        // had stopped seeing them.
+        what: "a native application that compiles a message at run time (the positive control for the normalization tables)",
+        features: "native,compile",
+        requires: &[NFC_TABLES],
+        forbids: &[],
+    },
 ];
 
-/// What a set with no date must not link: the date library, and the float
-/// writer `StdHost::f64_to_text` stopped using in 12.4.
-const DATELESS: &[&str] = &["jiff", BUNDLED_TZDB, "ryu"];
+/// What a native application with prebuilt catalogs and no dates must not
+/// link: the date library and its bundled database, the float writer
+/// `StdHost::f64_to_text` stopped using in 12.4, and the normalization
+/// tables, which 13.5 left to the build side and to `compile` alone.
+const LEAN: &[&str] = &["jiff", BUNDLED_TZDB, "ryu", NFC_TABLES];
+
+/// The normalization tables. A build that compiles a message at run time
+/// parses it, which normalizes names and keys; nothing else links them.
+const NFC_TABLES: &str = "unicode_normalization";
 
 /// The canary application's binary.
 const BIN: &str = "native-canary";

@@ -13,5 +13,11 @@ fn main() {
     if let Some(when) = mf2::DateTimeValue::instant(1_767_225_600_000) {
         out.push_str(&locale.format(&tr!("published", when = when)));
     }
+    // `compile`: a message written at run time, which is the only thing that
+    // puts the normalization tables in a binary (`plan/01` §4.3).
+    #[cfg(feature = "compile")]
+    if let Ok(compiled) = mf2::compile_str("hello", "en") {
+        std::hint::black_box(&compiled.catalog);
+    }
     std::hint::black_box(out.len());
 }
