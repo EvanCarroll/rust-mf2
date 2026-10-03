@@ -134,6 +134,10 @@ pub struct Outcome {
     /// translating it has, which `mf2 stats` reports.
     #[doc(hidden)]
     pub coverage: Vec<crate::check::Coverage>,
+    /// Which gated function families the corpus can use, for the feature
+    /// list `mf2 check` prints.
+    #[doc(hidden)]
+    pub needs: crate::check::Needs,
     /// One catalog per locale, in tag order.
     #[doc(hidden)]
     pub catalogs: Vec<Catalog>,
@@ -445,7 +449,7 @@ impl Build {
             source_index,
             manifest: &built,
         };
-        crate::check::corpus(&checked, config, features, &mut report);
+        let needs = crate::check::corpus(&checked, config, features, &mut report);
         let coverage: Vec<crate::check::Coverage> = (0..tags.len())
             .map(|locale| crate::check::coverage_of(&checked, locale))
             .collect();
@@ -464,6 +468,7 @@ impl Build {
                 defined,
                 report,
                 coverage,
+                needs,
                 catalogs: Vec::new(),
                 locales: Vec::new(),
                 source_locale: config.source_locale.clone(),
@@ -644,6 +649,7 @@ impl Build {
             defined,
             report,
             coverage,
+            needs,
             catalogs,
             locales,
             source_locale: config.source_locale.clone(),

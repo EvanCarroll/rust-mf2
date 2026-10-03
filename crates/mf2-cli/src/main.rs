@@ -32,6 +32,7 @@ mod convert;
 mod dump;
 mod error;
 mod exchange;
+mod feature_list;
 mod fmt;
 mod init;
 #[cfg(test)]

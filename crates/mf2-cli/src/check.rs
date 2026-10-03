@@ -5,8 +5,9 @@ use std::path::Path;
 use clap::Args as ClapArgs;
 use mf2_build::{Build, Config};
 
-use crate::cargo::resolved_features;
+use crate::cargo::resolve;
 use crate::error::{Error, Result};
+use crate::feature_list::{FeatureList, Source};
 use crate::{FeatureArgs, Format};
 
 /// `mf2 check`.
@@ -29,9 +30,9 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
-    let (features, assumed) = features_or_assumed(dir, &args.features);
+    let (features, source) = features_or_assumed(dir, &args.features);
     let mut checked = config.clone();
-    if assumed {
+    if matches!(source, Source::Unknown) {
         // An assumed feature is not on "for this build": nothing to say.
         checked
             .lints
@@ -39,14 +40,16 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     }
     let mut outcome = Build::at(dir, std::env::temp_dir().join("mf2-check"))
         .config(checked)
-        .features(features)
+        .features(features.clone())
         .check()?;
     if !args.src.is_empty() {
         unused_ids(&mut outcome, &config, &args.src)?;
     }
+    let list = FeatureList::new(outcome.needs, &features, &source);
     match args.format {
         Format::Text => {
             print!("{}", outcome.report.to_text());
+            print!("{}", list.to_text());
             let (errors, warnings) = (outcome.report.errors(), outcome.report.warnings());
             if errors == 0 && warnings == 0 {
                 println!(
@@ -58,7 +61,14 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 println!("mf2 check: {errors} error(s), {warnings} warning(s)");
             }
         }
-        Format::Json => println!("{}", outcome.report.to_json()),
+        Format::Json => {
+            let mut value = serde_json::to_value(&outcome.report).unwrap_or_default();
+            value["features"] = list.to_json();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&value).unwrap_or_default()
+            );
+        }
     }
     if outcome.report.errors() > 0 || (args.deny_warnings && outcome.report.warnings() > 0) {
         return Err(Error::Corpus);
@@ -78,13 +88,15 @@ pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     features_or_assumed(dir, args).0
 }
 
-/// [`features`], and whether they were assumed rather than given or resolved.
-fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, bool) {
+/// [`features`], and where they came from: given, resolved (with what the
+/// crate writes on `mf2`), or assumed.
+fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, Source) {
     if let Some(given) = args.given() {
-        return (given, false);
+        return (given, Source::Given);
     }
-    if let Ok((_, resolved)) = resolved_features(dir, true) {
-        return (resolved, false);
+    if let Ok(resolved) = resolve(dir, true) {
+        let written = resolved.written;
+        return (resolved.features, Source::Cargo { written });
     }
     eprintln!(
         "note: cargo could not say which of mf2's features this crate has, so every \
@@ -93,7 +105,7 @@ fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, 
     );
     (
         mf2_build::Features::from_names(["fn-number", "fn-datetime"]),
-        true,
+        Source::Unknown,
     )
 }
 

@@ -11,6 +11,12 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`mf2 check` prints the feature list.** After the diagnostics, a block
+  names the function features the corpus needs, those that are on, those on
+  and unused, and the `features = [...]` to write on `mf2` with the modes
+  kept; the JSON report has it as `features`. It also says which date
+  backend formats when both are on. Without cargo's answer, the list is the
+  corpus's needs only.
 * **New lint `unused-feature` (warn).** The build and `mf2 check` warn when
   the date family (`fn-datetime` or a date backend) is on and no message
   calls `:datetime`, `:date` or `:time`, or when `fn-number` / `number-intl`

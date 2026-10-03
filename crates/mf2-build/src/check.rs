@@ -35,8 +35,26 @@ pub struct Corpus<'a> {
     pub manifest: &'a Built,
 }
 
-/// Runs every lint over the corpus.
-pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report: &mut Report) {
+/// Which gated function families the whole corpus can use: what `mf2 check`
+/// writes the feature list from, and what `unused-feature` holds the
+/// features that are on against.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Needs {
+    /// A message calls `:datetime`, `:date` or `:time`: the date family.
+    pub dates: bool,
+    /// A message formats or selects on a number (a numeric function, a
+    /// plural selection, or a plain placeholder that can receive one): the
+    /// number family.
+    pub numbers: bool,
+}
+
+/// Runs every lint over the corpus, and says what it needs.
+pub fn corpus(
+    corpus: &Corpus<'_>,
+    config: &Config,
+    features: &Features,
+    report: &mut Report,
+) -> Needs {
     let mut used = Used::default();
     for (locale, source) in corpus.sources.iter().enumerate() {
         let mut sink = Sink::new(report, &source.tag);
@@ -69,6 +87,10 @@ pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report:
         coverage(&mut sink, corpus, locale, config);
     }
     unused_features(corpus, config, features, &used, report);
+    Needs {
+        dates: used.dates,
+        numbers: used.numbers(),
+    }
 }
 
 /// One message being checked, with everything a diagnostic needs.

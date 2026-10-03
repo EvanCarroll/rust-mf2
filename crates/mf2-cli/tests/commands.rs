@@ -340,8 +340,17 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
         "{}",
         stderr(&out)
     );
+    // The feature list is then the corpus's needs only, and says so.
+    assert!(
+        stdout(&out).contains("the corpus's needs only")
+            && stdout(&out).contains(r#"features = ["fn-number"]"#),
+        "{}",
+        stdout(&out)
+    );
     let out = run(&dir, &["check", "--format", "json"]);
-    let _: serde_json::Value = serde_json::from_slice(&out.stdout).expect("one JSON document");
+    let value: serde_json::Value = serde_json::from_slice(&out.stdout).expect("one JSON document");
+    assert_eq!(value["features"]["needs"], serde_json::json!(["fn-number"]));
+    assert!(value["features"]["on"].is_null(), "{value}");
 
     // The crate turns `mf2`'s `fn-number` on: a bare check is clean, as the
     // build is, and says nothing about cargo.
@@ -349,6 +358,10 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     let out = run(&dir, &["check"]);
     let text = ok(&out);
     assert!(text.contains("nothing to report"), "{text}");
+    assert!(
+        text.contains("on and unused:    none") && text.contains(r#"features = ["fn-number"]"#),
+        "{text}"
+    );
     assert!(stderr(&out).is_empty(), "{}", stderr(&out));
 
     // `--features` still wins over cargo's.

@@ -10,6 +10,12 @@ and `mf2 check` read the features cargo resolves for the crate, and a
 message that calls a function whose feature is off is the
 [`gated-function`](lints.md#gated-function) error.
 
+`mf2 check` also prints the list for the corpus: the function features its
+messages need, those that are on, those on and unused, and the features to
+write on `mf2` with the modes kept as they are (`--format json` has the same
+under `features`). When both date backends are on, it says that
+`datetime-icu` formats on every target.
+
 ## The Leptos line
 
 ### `leptos`

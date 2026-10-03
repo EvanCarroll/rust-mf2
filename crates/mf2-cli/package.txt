@@ -25,6 +25,7 @@ src/exchange.rs
 src/exchange/xliff.rs
 src/exchange/xliff/variants.rs
 src/exchange/xliff/xml.rs
+src/feature_list.rs
 src/fmt.rs
 src/init.rs
 src/listing.rs

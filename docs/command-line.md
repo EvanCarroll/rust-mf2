@@ -99,6 +99,11 @@ mf2 check --features fn-number
 ```
 
 ```text file=cli/check.txt generated
+mf2 features (as --features names them):
+  the corpus needs: fn-number
+  on:               fn-number
+  on and unused:    none
+  write:            mf2 = { ..., features = ["fn-number"] }
 mf2 check: 9 messages in 2 locales, nothing to report
 ```
 
@@ -111,6 +116,12 @@ machine (it never downloads). `--features` names them instead (as above).
 Where cargo cannot answer — no `Cargo.toml`, or dependencies not fetched
 yet — `check` says so in one line and checks as if every function were on,
 so that it reports none as missing that the build may have.
+
+After what it finds, `check` prints the features of `mf2` the corpus
+needs, those that are on and those on that no message uses, and the
+`features` to write on `mf2`, keeping the modes as they are (`--format
+json` has the same under `features`). When it had to assume the features,
+the list is the corpus's needs only.
 
 * `--deny-warnings` makes a warning fail the command, as it fails a build
   whose lints are raised to errors.

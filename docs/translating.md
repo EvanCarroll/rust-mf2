@@ -340,6 +340,11 @@ mf2 check --features fn-number
 ```text file=translate-pseudo/check.txt generated
 ./locales/ar-XB/main.mf2:9:3: warn: ar-XB has the plural categories zero, two, few, many, which no variant names; they all fall to the catch-all (in visits, locale ar-XB) [missing-plural-category]
 ./locales/de/main.mf2:1:1: warn: 1 of 7 messages are missing here and fall back to en: not-found (locale de) [missing-translation]
+mf2 features (as --features names them):
+  the corpus needs: fn-number
+  on:               fn-number
+  on and unused:    none
+  write:            mf2 = { ..., features = ["fn-number"] }
 mf2 check: 0 error(s), 2 warning(s)
 ```
 
@@ -407,6 +412,11 @@ mf2 check --features fn-number --deny-warnings
 
 ```text file=translate/ci-check.txt generated
 ./locales/de/main.mf2:1:1: warn: 1 of 7 messages are missing here and fall back to en: not-found (locale de) [missing-translation]
+mf2 features (as --features names them):
+  the corpus needs: fn-number
+  on:               fn-number
+  on and unused:    none
+  write:            mf2 = { ..., features = ["fn-number"] }
 mf2 check: 0 error(s), 1 warning(s)
 ```
 

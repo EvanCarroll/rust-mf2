@@ -21,6 +21,22 @@ use crate::error::{Error, Result};
 /// platform's, so a crate that has just built would still fail on a
 /// dependency for Windows it never downloaded.
 pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Features)> {
+    resolve(dir, offline).map(|resolved| (resolved.name, resolved.features))
+}
+
+/// What cargo says of the crate in `dir` and its `mf2`.
+pub(crate) struct Resolved {
+    /// The package name.
+    pub(crate) name: String,
+    /// `mf2`'s features as the build has them (see [`resolved_features`]).
+    pub(crate) features: Features,
+    /// The features the crate itself writes on its `mf2` dependency, in the
+    /// order written: what `mf2 check` keeps of the modes.
+    pub(crate) written: Vec<String>,
+}
+
+/// [`resolved_features`], with the features the crate writes itself.
+pub(crate) fn resolve(dir: &Path, offline: bool) -> Result<Resolved> {
     let fail = |message: String| Error::Cargo {
         dir: dir.to_owned(),
         message,
@@ -67,6 +83,18 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
                 .is_some_and(|path| Path::new(path) == manifest)
         })
         .ok_or_else(|| fail("the crate is not in its own metadata".into()))?;
+    let mut written: Vec<String> = Vec::new();
+    // Every normal `mf2` entry, a platform's included: cargo unifies them.
+    let entries = package["dependencies"].as_array().into_iter().flatten();
+    for dep in entries.filter(|dep| dep["name"] == "mf2" && dep["kind"].is_null()) {
+        for feature in dep["features"].as_array().into_iter().flatten() {
+            if let Some(feature) = feature.as_str()
+                && !written.iter().any(|w| w == feature)
+            {
+                written.push(feature.to_owned());
+            }
+        }
+    }
     let id = &package["id"];
     let name = package["name"].as_str().unwrap_or_default().to_owned();
     let nodes = || {
@@ -107,7 +135,11 @@ pub(crate) fn resolved_features(dir: &Path, offline: bool) -> Result<(String, Fe
         .into_iter()
         .flatten()
         .filter_map(Value::as_str);
-    Ok((name, Features::from_names(features)))
+    Ok(Resolved {
+        name,
+        features: Features::from_names(features),
+        written,
+    })
 }
 
 /// The host's target triple, as `rustc -vV` names it — the platform a native
