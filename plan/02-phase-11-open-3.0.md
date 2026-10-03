@@ -16,9 +16,9 @@ stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing.
-* **Next:** the Phase exit's step 2, which only the owner can run (it
-  reaches crates.io). Steps 1 and 3 are done; step 4 records them below.
+* **In flight:** nothing. The phase is closed: all four exit steps are done
+  and recorded below.
+* **Next:** Phase 12 (`plan/03-phase-12-native-host.md`).
 * A worktree made for a task is removed once its work is merged.
 
 ## Done

@@ -84,6 +84,7 @@ loaded catalogs need the interpreter anyway. The interpreter stays.
 | Decide at build time how much normalization a catalog needs | −121,386 B (118.5 KiB) | §4.3 |
 | **mf2-trip over trip afterwards** | **+106,198 B (103.7 KiB)** | |
 | *Measured for §4.3 at the Phase 13 exit* | *−122,168 B (119.3 KiB)* | §4.3 |
+| *`mf2-trip` with all three, measured (2026-10-03)* | *8,244,072 B on disk, unchanged since Phase 13's exit* | §4 |
 
 What remains is the interpreter (91 KiB), the catalogs net of the TOML they
 replace (+4 KiB) and about 9 KiB of other changes.
@@ -99,6 +100,17 @@ measurement is branch `mf2-jiff` (owner, 2026-10-02), which migrated trippy
 to jiff and so stopped carrying a second zone database. The two zone
 databases §1.2 noted are therefore one, and the remaining gap is the owner's
 migration, not this work.
+
+The last row is measured too (2026-10-03, owner's request): branch `mf2-jiff`
+at `c527775`, rustc 1.98.1, path dependencies on this tree at `f68832e`, the
+release profile, no edit to trippy (it names `fn-number`, not the old
+`intl`). `mf2-trip` is 8,244,072 B, the same to the byte as at Phase 13's
+exit, so Phase 14 changed nothing trippy links; §4.1 and §4.2 had landed in
+Phase 12, before that exit. Against the `trip` above (9,666,608 B, branch
+`master`) it is −1,422,536 B, which is not a like-for-like gap: `master` still
+carries `chrono-tz` and was built on an earlier date. A build before all three
+changes was not made (owner, same day), so of the estimates' sum, 449,962 B,
+only §4.3's share is measured.
 
 ## 2. Owner decisions (2026-10-01)
 
