@@ -17,9 +17,9 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** 14.1. A worktree made for a task is removed once its work
+* **In flight:** 14.2. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.1, then 14.2
+* **Next:** 14.2, then 14.3
 
 ## Done
 
@@ -28,12 +28,18 @@ exit", then stops: the next phase starts in a fresh session.
   named by codegen only when `intl` is on and the corpus reaches a number.
   Browser check `intl-host` (`tools/e2e/intl-host/`, outside the workspace)
   passes 7/7 in Chromium and Firefox (WebKit not installed) and fails 4/7
-  with the arm removed. No refused feature set became valid. Rename the
-  statics in 14.1. Checked and closed (owner,
+  with the arm removed. No refused feature set became valid. Checked and closed (owner,
   2026-10-03): `Intl.PluralRules` gets the same digit options as
   `Intl.NumberFormat`, so `1.0` displays `1` and selects `one`, and with
   `minimumFractionDigits=1` displays `1.0` and selects `other` (node 23),
   as the Rust path does (`mf2-runtime/tests/format.rs`). No defect.
+* **14.1** (73eab6e): `mf2`'s `intl` is `number-intl`; `mf2-fn-number/intl`
+  is gone (its users name `mf2-runtime/intl`); `Features::number_intl()`;
+  the 2.0.0 baseline keeps `intl`. The `mf2-host-web` statics keep their
+  names: they name the date host they wrap, and their gate
+  (`mf2-host-web/intl`) is unchanged. Open for the owner: whether
+  `INTL_NUMBERS_HOST` (number host over the `datetime-intl` date host)
+  reads clearly.
 
 ## Before this phase
 
