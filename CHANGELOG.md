@@ -11,6 +11,11 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`mf2 init --tui` on an existing crate asks for `ratatui, fn-number`.**
+  `mf2 init` now writes one feature list per mode, the same in a new
+  application's manifest and in `cargo add`: an existing crate also gets
+  `fn-number` for `--cli` and `--tui`, and a terminal application names
+  `ratatui` alone, which implies `native`.
 * **`mf2 check` prints the feature list.** After the diagnostics, a block
   names the function features the corpus needs, those that are on, those on
   and unused, and the `features = [...]` to write on `mf2` with the modes

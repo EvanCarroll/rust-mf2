@@ -1027,6 +1027,66 @@ fn init_cli_and_tui_make_a_new_application() {
     );
 }
 
+/// Every mode writes one feature list on `mf2`, in a new application's
+/// manifest and through `cargo add` for an existing crate alike, with the
+/// 3.0 names (`ratatui` implies `native`).
+#[cfg(unix)]
+#[test]
+fn init_writes_each_modes_feature_list_in_both_paths() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let root = fresh("cli-init-lists");
+    std::fs::create_dir_all(&root).expect("mkdir");
+    for (flag, list) in [
+        ("--cli", &["native", "fn-number"][..]),
+        ("--tui", &["ratatui", "fn-number"]),
+        ("--ssr", &["leptos", "fn-number"]),
+        ("--islands", &["leptos", "fn-number", "static-locale"]),
+        ("--csr", &["leptos", "csr", "fn-number"]),
+    ] {
+        let name = &flag[2..];
+        ok(&run(&root, &["init", flag, &format!("new-{name}")]));
+        let manifest =
+            std::fs::read_to_string(root.join(format!("new-{name}/Cargo.toml"))).expect("manifest");
+        let quoted: Vec<String> = list.iter().map(|f| format!("{f:?}")).collect();
+        let line = format!(
+            "mf2 = {{ version = \"3\", features = [{}] }}",
+            quoted.join(", ")
+        );
+        assert!(manifest.contains(&line), "{flag}: {line}\n{manifest}");
+
+        let dir = root.join(format!("old-{name}"));
+        std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+        std::fs::write(
+            dir.join("Cargo.toml"),
+            "[package]\nname = \"app\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+        )
+        .expect("manifest");
+        let log = dir.join("cargo.log");
+        let cargo = dir.join("fake-cargo");
+        std::fs::write(
+            &cargo,
+            format!("#!/bin/sh\necho \"$@\" >> '{}'\n", log.display()),
+        )
+        .expect("fake cargo");
+        std::fs::set_permissions(&cargo, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+        let out = Command::new(mf2())
+            .arg("-C")
+            .arg(&dir)
+            .args(["init", flag])
+            .env("CARGO", &cargo)
+            .output()
+            .expect("the mf2 binary runs");
+        ok(&out);
+        let asked = std::fs::read_to_string(&log).expect("cargo ran");
+        assert_eq!(
+            asked,
+            format!("add mf2@3 -F {}\nadd --build mf2-build@3\n", list.join(",")),
+            "{flag}"
+        );
+    }
+}
+
 #[cfg(unix)]
 #[test]
 fn init_tui_adds_translations_to_an_existing_crate() {
@@ -1065,7 +1125,7 @@ fn init_tui_adds_translations_to_an_existing_crate() {
     assert!(text.contains("use crate::prelude::*;"), "{text}");
     let asked = std::fs::read_to_string(&log).expect("cargo ran");
     assert_eq!(
-        asked, "add mf2@3 -F native,ratatui\nadd --build mf2-build@3\n",
+        asked, "add mf2@3 -F ratatui,fn-number\nadd --build mf2-build@3\n",
         "{asked}"
     );
     assert_eq!(

@@ -83,15 +83,27 @@ impl Mode {
         .find_map(|(on, mode)| on.then_some(mode))
     }
 
-    /// The features of `mf2` the application needs.
-    fn features(self) -> &'static str {
+    /// The features of `mf2` the application needs: the one list both a
+    /// new application's manifest and `cargo add` for an existing crate
+    /// write. `ratatui` implies `native`; the server's and the client's
+    /// modes (`ssr`, `hydrate`) are forwarded by the crate's own features.
+    fn features(self) -> &'static [&'static str] {
         match self {
-            Mode::Cli => "native",
-            Mode::Tui => "native,ratatui",
-            Mode::Ssr => "leptos,fn-number",
-            Mode::Islands => "leptos,fn-number,static-locale",
-            Mode::Csr => "leptos,csr,fn-number",
+            Mode::Cli => &["native", "fn-number"],
+            Mode::Tui => &["ratatui", "fn-number"],
+            Mode::Ssr => &["leptos", "fn-number"],
+            Mode::Islands => &["leptos", "fn-number", "static-locale"],
+            Mode::Csr => &["leptos", "csr", "fn-number"],
         }
+    }
+
+    /// [`Mode::features`] as a manifest writes it: `"a", "b"`.
+    fn features_toml(self) -> String {
+        self.features()
+            .iter()
+            .map(|feature| format!("{feature:?}"))
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 
     fn what(self) -> &'static str {
@@ -301,8 +313,8 @@ fn starter_files(target: &Path, name: &str, mode: Mode) -> Vec<(PathBuf, String)
 fn application_toml(name: &str, mode: Mode) -> String {
     let body = match mode {
         Mode::Cli | Mode::Tui => native_toml(mode),
-        Mode::Ssr | Mode::Islands => leptos_toml(name, mode == Mode::Islands),
-        Mode::Csr => csr_toml(),
+        Mode::Ssr | Mode::Islands => leptos_toml(name, mode),
+        Mode::Csr => csr_toml(mode),
     };
     format!(
         "[package]\n\
@@ -319,9 +331,11 @@ fn application_toml(name: &str, mode: Mode) -> String {
 }
 
 fn native_toml(mode: Mode) -> String {
-    let (mf2, ratatui) = match mode {
-        Mode::Tui => ("\"ratatui\", \"fn-number\"", "ratatui = \"0.30\"\n"),
-        _ => ("\"native\", \"fn-number\"", ""),
+    let mf2 = mode.features_toml();
+    let ratatui = if mode == Mode::Tui {
+        "ratatui = \"0.30\"\n"
+    } else {
+        ""
     };
     format!(
         "[dependencies]\n\
@@ -335,15 +349,13 @@ fn native_toml(mode: Mode) -> String {
 }
 
 /// cargo-leptos's application: the server natively, the client in wasm.
-fn leptos_toml(name: &str, islands: bool) -> String {
-    let (leptos, mf2) = if islands {
-        (
-            ", features = [\"islands\"]",
-            "\"leptos\", \"fn-number\", \"static-locale\"",
-        )
+fn leptos_toml(name: &str, mode: Mode) -> String {
+    let leptos = if mode == Mode::Islands {
+        ", features = [\"islands\"]"
     } else {
-        ("", "\"leptos\", \"fn-number\"")
+        ""
     };
+    let mf2 = mode.features_toml();
     let output = name.replace('-', "_");
     format!(
         "[lib]\n\
@@ -401,13 +413,14 @@ fn leptos_toml(name: &str, islands: bool) -> String {
 }
 
 /// Trunk's application: the client alone, in wasm.
-fn csr_toml() -> String {
+fn csr_toml(mode: Mode) -> String {
+    let mf2 = mode.features_toml();
     format!(
         "[dependencies]\n\
          console_error_panic_hook = \"0.1\"\n\
          leptos = {{ version = \"0.9.0-beta\", features = [\"csr\"] }}\n\
          leptos_meta = \"0.9.0-beta\"\n\
-         mf2 = {{ version = \"{MAJOR}\", features = [\"leptos\", \"csr\", \"fn-number\"] }}\n\
+         mf2 = {{ version = \"{MAJOR}\", features = [{mf2}] }}\n\
          \n\
          [build-dependencies]\n\
          mf2-build = \"{MAJOR}\"\n\
@@ -452,7 +465,12 @@ fn existing_crate(target: &Path, mode: Mode, args: &Args) -> Result<()> {
     }
     cargo_add(
         target,
-        &["add", &format!("mf2@{MAJOR}"), "-F", mode.features()],
+        &[
+            "add",
+            &format!("mf2@{MAJOR}"),
+            "-F",
+            &mode.features().join(","),
+        ],
     )?;
     cargo_add(target, &["add", "--build", &format!("mf2-build@{MAJOR}")])?;
     write_all(&files, args.force)?;
