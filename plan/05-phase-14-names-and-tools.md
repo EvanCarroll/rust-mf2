@@ -29,7 +29,7 @@ not start a task over a dirty tree.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.3, then 14.4, 14.5, Phase exit
+* **Next:** 14.4, then 14.5, Phase exit
 
 ## Done
 
@@ -60,6 +60,11 @@ not start a task over a dirty tree.
   Cold ci after `cargo clean` (bash `time`; no `/usr/bin/time` here): wall
   3589 s, user+sys 6272 s (5880 + 392), `target/` 34 GB after; it stopped at
   `api --check` (listing order), the last step but one. Rerun green.
+* **14.3** (26535b0): `mf2 check` prints needs / on / on and unused / the
+  `features = [...]` to write (modes as the crate writes them on `mf2`) and,
+  with both backends, that `datetime-icu` formats everywhere; JSON `features`.
+  Warm ci (bash `time`): wall 1897 s, user+sys 2771 s (2722 + 50), `target/`
+  42 GB after; it stopped at the docs samples (the new block). Rerun green.
 
 ## Before this phase
 
