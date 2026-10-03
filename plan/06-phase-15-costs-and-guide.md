@@ -17,9 +17,9 @@ fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 15.1. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 15.1
+* **Next:** 15.2
 
 ## Done
 
