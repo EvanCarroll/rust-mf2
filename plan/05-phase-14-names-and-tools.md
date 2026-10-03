@@ -2,8 +2,9 @@
 
 The fourth of six phases (`plan/01-size-and-features.md` §7). After it, the
 feature names are the 3.0 names, the build warns about a feature that is on
-and unused, and `mf2 check` and `mf2 init` write the feature list, which is
-what stands in for a default set (owner decision 2).
+and unused, `mf2 check` and `mf2 init` write the feature list, which is what
+stands in for a default set (owner decision 2), and the equivalence helper a
+custom function calls cannot answer outside its domain (decision 6).
 
 ## How to run this phase
 
@@ -170,6 +171,43 @@ Done when: the `init` tests in `crates/mf2-cli/tests/commands.rs` cover every
 mode's list, `cargo xtask ci` is green, and
 `bash tools/checks/run.sh p14-init --only docs` is green (the guide's
 projects are made with `mf2 init` and built).
+
+### 14.5 The equivalence helper cannot answer outside its domain
+
+Design: `plan/01` §4.3 (the helper bullet) and §2 decision 6.
+
+Phase 13 replaced `Host::nfc` with the map a catalog carries. The map holds
+every code point whose full canonical decomposition stays inside the
+characters of the catalog's keys and names, so the check is exact for any
+string whose NFD characters are in that set — and every key's and name's are,
+by construction. A custom selector comparing against a string of its own may
+hold a character the map does not reach; `nfc::equivalent` then returns
+`false`, which may be wrong. Spotting it needs no new data: the walk already
+reaches `Step::Unmapped` (`crates/mf2-runtime/src/nfc.rs`).
+
+Build:
+
+* `crates/mf2-runtime/src/nfc.rs`: a second entry point that separates "not
+  equivalent" from "this key holds a character the map does not reach".
+  `equivalent` keeps its `bool` signature for the runtime's own two call
+  sites (`functions/string.rs`, `format.rs`), which always pass a key the
+  catalog holds, so the client path grows no branch.
+* `crates/mf2-runtime/src/function.rs`: `FnContext::equivalent` returns
+  `Option<bool>`, `None` for a key outside the map. Its documentation says
+  what a custom selector may do then: byte equality, which is sound but
+  incomplete, or treating the key as unsupported.
+* Tests: a key holding a character the catalog never saw gives `None`, and
+  the same key present in the catalog gives `Some`; 13.1's oracle test and
+  13.4's both-paths test keep passing.
+* `CHANGELOG.md` under `## 3.0.0`, and `cargo xtask api` — the helper's
+  signature is public API.
+
+No new data and no new dependency: no client-path crate gains
+`unicode-normalization` (`cargo xtask native-canaries` stays green), and B1
+must not move.
+
+Done when: `cargo xtask ci` is green, `bash bench/b12/check.sh` is clean, and
+B1 is reported before and after.
 
 ## Phase exit (coordinator)
 

@@ -113,6 +113,21 @@ replace (+4 KiB) and about 9 KiB of other changes.
    would force the savings into a 4.0.0 and make a developer who adopted
    3.0's names upgrade twice.
 
+6. **No general NFC, and the helper says when it cannot answer** (owner,
+   2026-10-02). `mf2` is not a normalization service. The only comparisons
+   the specification asks for are a selector value against a variant key and
+   an argument name against a declared name, and §4.3's map answers both
+   exactly — the WG suite passes at every layer without `Host::nfc`. A
+   general-NFC host behind a feature was considered and rejected: on a native
+   target it would put the tables back to duplicate `unicode-normalization`,
+   which an application that wants full NFC can depend on itself in two
+   lines, and on the web it would be nearly free — a convenience that costs
+   nothing on one target and 118 KiB on another does not belong in the host
+   trait. What does need fixing is narrower: `FnContext::equivalent` answers
+   `false` for a key the map does not cover, which can be wrong. That case is
+   detectable where the check already walks, so task 14.5 makes it
+   non-silent instead.
+
 ## 3. The feature structure
 
 ### 3.1 What was wrong in 2.0
@@ -348,7 +363,10 @@ is never larger.
   `mf2-host-std`. There is no `nfc` feature: the full tables stay only in the
   build-side crates (`mf2-syntax`, the writer, `mf2-macros`, `mf2-build`).
 * **A helper on the function context** gives a custom function the same
-  comparison with a key.
+  comparison with a key. The map is exact for any string whose NFD characters
+  it holds, and every key's and name's are there by construction, so that set
+  is the helper's domain; a key outside it is reported, not answered
+  (decision 6, task 14.5).
 
 Provenance: the method combines standard parts of UAX #15 (canonical
 equivalence as NFD equality, canonical ordering, the quick check) with
