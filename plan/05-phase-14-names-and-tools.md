@@ -17,13 +17,20 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 14.1. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.0, then 14.1
+* **Next:** 14.1, then 14.2
 
 ## Done
 
-(nothing yet)
+* **14.0** (92f621c): `mf2-host-web` has `ZONES_NUMBERS_HOST` and
+  `INTL_NUMBERS_HOST` beside `NUMBERS_HOST`; `__use_host!` takes `numbers`,
+  named by codegen only when `intl` is on and the corpus reaches a number.
+  Browser check `intl-host` (`tools/e2e/intl-host/`, outside the workspace)
+  passes 7/7 in Chromium and Firefox (WebKit not installed) and fails 4/7
+  with the arm removed. No refused feature set became valid. Rename the
+  statics in 14.1. Found, not fixed: the host's `Intl.PluralRules` call
+  passes `+v`, so `1.0` selects `one` instead of `other`; open for the owner.
 
 ## Before this phase
 
