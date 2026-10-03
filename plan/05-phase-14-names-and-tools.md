@@ -29,7 +29,7 @@ not start a task over a dirty tree.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.4, then 14.5, Phase exit
+* **Next:** 14.5, then Phase exit
 
 ## Done
 
@@ -65,6 +65,11 @@ not start a task over a dirty tree.
   with both backends, that `datetime-icu` formats everywhere; JSON `features`.
   Warm ci (bash `time`): wall 1897 s, user+sys 2771 s (2722 + 50), `target/`
   42 GB after; it stopped at the docs samples (the new block). Rerun green.
+* **14.4** (d75dcec): `Mode::features()` is the one list per mode, used by
+  `cargo add` and rendered into every template: cli `native, fn-number`, tui
+  `ratatui, fn-number`, ssr `leptos, fn-number`, islands adds `static-locale`,
+  csr `leptos, csr, fn-number`. New test covers both paths for every mode.
+  ci green (first run stopped at `fmt`), `--only docs` green.
 
 ## Before this phase
 
