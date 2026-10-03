@@ -457,8 +457,10 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
    alone where that is valid. A powerset is not practical: modes exclude each
    other and several sets exist for one target only.
 4. **A measured cost per feature** (`cargo xtask feature-costs`): gzip bytes
-   in the client and bytes in a native binary, published in
-   `docs/features.md`, so the smaller build is chosen with numbers.
+   in the client and bytes in a native binary, written by the command to
+   `docs/feature-costs.md` and included from `docs/features.md`, so the
+   smaller build is chosen with numbers. `static-locale` and
+   `mark-fallback-lang` are not measured; the table says so.
 5. The client gates (B1, B5, B6 canaries, B12) are unchanged and hold.
 
 ## 7. The phases
