@@ -17,7 +17,7 @@ fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 15.2a. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 15.3
 
@@ -115,6 +115,26 @@ Bring into line: the feature table in `crates/mf2/src/lib.rs` (it omits
 
 Done when: `cargo xtask docs`, `cargo xtask docs-rs` and `cargo xtask ci` are
 green.
+
+### 15.2a Both date backends: the browser uses `Intl`
+
+Design: `plan/01` §3.4, "Both date backends on at once" (owner, 2026-10-03).
+
+Found by 15.2: with `datetime-icu` and `datetime-intl` both on, the code
+formats with ICU on every target, and `mf2 check` says so. The owner chose the
+design instead: in the browser (`wasm32`, the `leptos` client modes)
+`datetime-intl` formats and the ICU date data is not linked; native and
+server builds keep `datetime-icu`. Server rendering and hydration may then
+format a date differently; say so where the guide describes the precedence.
+
+* The precedence in the code, `mf2 check`'s wording, and a test for each side.
+* `docs/features.md`, the `mf2` crate's feature docs and anything 15.2 aligned
+  with the old behaviour, back in line.
+* The client's bytes with both on, before and after (`b5`/`feature-costs`
+  workload); the ICU date data should be gone.
+
+Done when: the tests pass, `cargo xtask ci`, `cargo xtask docs-rs` and
+`run.sh <label> --only docs` are green, and the bytes are in the Done entry.
 
 ### 15.3 Upgrading from 2.0, and the promise
 
