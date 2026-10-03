@@ -27,9 +27,9 @@ not start a task over a dirty tree.
 
 ## State
 
-* **In flight:** 14.2. A worktree made for a task is removed once its work
+* **In flight:** 14.1a. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.2, then 14.1a, then 14.3, 14.4, 14.5, Phase exit
+* **Next:** 14.1a, then 14.3, 14.4, 14.5, Phase exit
 
 ## Done
 
@@ -50,6 +50,11 @@ not start a task over a dirty tree.
   (`mf2-host-web/intl`) is unchanged. Owner, 2026-10-03:
   `INTL_NUMBERS_HOST` (number host over the `datetime-intl` date host) is
   renamed `INTL_DATES_NUMBERS_HOST`; task 14.1a does it, after 14.2.
+* **14.2** (0492664): lint `unused-feature` (warn), once per family per
+  corpus: date family on with no `:datetime`/`:date`/`:time`; `fn-number`/
+  `number-intl` on with no numeric function, plural selection or plain
+  placeholder. Silent in `mf2 check` when it assumes the features. Allowed in
+  the i18n fixture's three `mf2.toml` (size gates build every feature set).
 
 ## Before this phase
 
