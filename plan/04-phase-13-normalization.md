@@ -23,7 +23,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 13.5
+* **Next:** the phase exit
 
 ## Done
 
@@ -49,6 +49,11 @@ exit", then stops: the next phase starts in a fresh session.
   is left only in the oracles and the L4 runner (13.5). The differential test
   (`conformance/tests/nfc.rs`) runs both paths over every string of the
   suite and the key sets of 13.1, and they agree. No ledger entry moved.
+* **13.5** `Host::nfc` is gone, from the trait and every host and stub:
+  `mf2-host-std` drops `unicode-normalization`, `mf2-host-web` the `normalize`
+  glue. The L4 runner, `conformance/tests/nfc.rs` and the `format` fuzz target
+  now normalize with `unicode-normalization` themselves. The canaries forbid
+  the tables in the four prebuilt sets and require them in `native,compile`.
 
 ## Before this phase
 
