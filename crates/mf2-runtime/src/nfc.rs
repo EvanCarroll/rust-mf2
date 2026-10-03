@@ -51,6 +51,35 @@ pub fn equivalent(map: NfcMap<'_>, value: &str, key: &str) -> bool {
     }
 }
 
+/// Like [`equivalent`], for a `key` that may lie outside the map's domain:
+/// `None` when `key` holds a character whose decomposition the map does not
+/// reach, so the map cannot decide. An identical `value`, and two strings
+/// below U+0300, still get an answer: neither needs the map. (A catalog
+/// whose keys and names are all below U+0300 carries the empty map, which
+/// reaches nothing.) The runtime's own call sites pass keys
+/// the catalog holds and use [`equivalent`]; this is for a custom selector's
+/// keys (`FnContext::equivalent`).
+pub(crate) fn check(map: NfcMap<'_>, value: &str, key: &str) -> Option<bool> {
+    if value == key {
+        return Some(true);
+    }
+    if nfc_quick(value) && nfc_quick(key) {
+        return Some(false);
+    }
+    // The domain is the strings whose NFD characters the map holds: a
+    // Hangul syllable always decomposes (by arithmetic), so its jamo are
+    // looked up too.
+    let reached = key.chars().all(|ch| {
+        map.decomposition(ch)
+            .is_some_and(|mut d| d.all(|c| map.decomposition(c).is_some()))
+    });
+    if reached {
+        Some(equivalent(map, value, key))
+    } else {
+        None
+    }
+}
+
 /// What is at a cursor.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Step {
@@ -224,7 +253,7 @@ mod tests {
     use mf2_catalog::writer::nfc_map::build;
     use unicode_normalization::UnicodeNormalization;
 
-    use super::equivalent;
+    use super::{check, equivalent};
 
     /// The key sets the gate asks for (`plan/04` 13.1): whether the map must
     /// come out empty, and the keys.
@@ -345,5 +374,52 @@ mod tests {
                 assert!(equivalent(own, &nfd(value), &nfc), "{value:?} both forms");
             }
         }
+    }
+
+    /// The helper's domain (`plan/01` §2 decision 6): a key holding a
+    /// character the catalog never saw gets no answer; the same key in the
+    /// catalog gets the exact one.
+    #[test]
+    fn outside_the_domain() {
+        // "latin": é, e, U+0301, Å and the rest; never ñ, K or a jamo.
+        let latin = build(["caf\u{e9}", "\u{c5}ngstr\u{f6}m"]);
+        let latin = NfcMap::from_bytes(&latin).expect("a whole map");
+        for (value, key) in [
+            ("ni\u{f1}o", "nin\u{303}o"),
+            ("\u{212a}", "K"),
+            ("\u{1100}\u{1161}", "\u{ac00}"),
+            ("x", "\u{ac00}"),
+        ] {
+            assert_eq!(check(latin, value, key), None, "{value:?} against {key:?}");
+            // In a catalog that holds the key, the exact answer.
+            let own = build([key]);
+            let own = NfcMap::from_bytes(&own).expect("a whole map");
+            let want = nfd(value) == nfd(key);
+            assert_eq!(
+                check(own, value, key),
+                Some(want),
+                "{value:?} against {key:?}"
+            );
+            assert_eq!(
+                equivalent(own, value, key),
+                want,
+                "{value:?} against {key:?}"
+            );
+        }
+        // Keys in the domain get the same answer as `equivalent`.
+        for value in ["cafe\u{301}", "cafe", "A\u{30a}ngstr\u{f6}m", "\u{e9}"] {
+            for key in ["caf\u{e9}", "\u{c5}ngstr\u{f6}m"] {
+                assert_eq!(
+                    check(latin, value, key),
+                    Some(nfd(value) == nfd(key)),
+                    "{value:?} against {key:?}"
+                );
+            }
+        }
+        // No map needed: an identical value, or two strings below U+0300.
+        let empty = NfcMap::from_bytes(&[]).expect("the empty map");
+        assert_eq!(check(empty, "\u{f1}", "\u{f1}"), Some(true));
+        assert_eq!(check(empty, "one", "other"), Some(false));
+        assert_eq!(check(empty, "\u{212a}", "K"), None);
     }
 }

@@ -50,7 +50,8 @@ impl Function for StringFunction {
         _errs: &mut dyn ErrorSink,
     ) -> bool {
         match value.as_str() {
-            Some(s) => cx.equivalent(s, key),
+            // A variant key is the catalog's, so inside the map's domain.
+            Some(s) => crate::nfc::equivalent(cx.catalog.nfc_map(), s, key),
             // A number's string form is ASCII, so already NFC.
             None => equals(key, |out| unannotated::format(value, cx.host(), out)),
         }

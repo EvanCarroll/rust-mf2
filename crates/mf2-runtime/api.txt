@@ -593,7 +593,7 @@ pub fn mf2_runtime::ExpressionPart<'_>::fmt(&self, &mut core::fmt::Formatter<'_>
 pub struct mf2_runtime::FnContext<'x>
 impl<'x> mf2_runtime::FnContext<'x>
 pub fn mf2_runtime::FnContext<'x>::dir(&self) -> core::option::Option<mf2_model::id::Dir>
-pub fn mf2_runtime::FnContext<'x>::equivalent(&self, &str, &str) -> bool
+pub fn mf2_runtime::FnContext<'x>::equivalent(&self, &str, &str) -> core::option::Option<bool>
 pub fn mf2_runtime::FnContext<'x>::host(&self) -> &'static dyn mf2_runtime::Host
 pub fn mf2_runtime::FnContext<'x>::locale(&self) -> &'x str
 pub fn mf2_runtime::FnContext<'x>::time_zone(&self) -> &'x mf2_runtime::TimeZone

@@ -126,8 +126,18 @@ impl<'x> FnContext<'x> {
     /// and the one `:string` makes. Decided from the small map the catalog
     /// carries (`plan/01` §4.3), so a custom selector can make it without
     /// the normalization tables and without allocating.
-    pub fn equivalent(&self, value: &str, key: &str) -> bool {
-        crate::nfc::equivalent(self.catalog.nfc_map(), value, key)
+    ///
+    /// The map answers exactly for any `key` whose characters, decomposed,
+    /// it holds, and every key and name of the catalog is such a key.
+    /// `None` means that `key` holds a character the map does not reach, so
+    /// it cannot decide. A custom selector comparing against a string of
+    /// its own may then fall back to byte equality (`value == key`), which
+    /// never matches wrongly but misses equivalent spellings, or treat the
+    /// key as unsupported. An identical `value`, and two strings below
+    /// U+0300, are always answered; a catalog whose keys and names are all
+    /// below U+0300 carries an empty map, so there any other pair is `None`.
+    pub fn equivalent(&self, value: &str, key: &str) -> Option<bool> {
+        crate::nfc::check(self.catalog.nfc_map(), value, key)
     }
 
     /// The formatting context's time zone (the default of `timeZone`).

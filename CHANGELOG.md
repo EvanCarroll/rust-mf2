@@ -11,6 +11,12 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`FnContext::equivalent` returns `Option<bool>`.** It answers from the
+  map of characters the catalog carries, which is exact for the catalog's
+  own keys and names; for a key holding a character the map does not reach
+  it now returns `None` instead of a `false` that could be wrong. A custom
+  selector may then compare bytes (sound, but it misses equivalent
+  spellings) or treat the key as unsupported.
 * **`mf2 init --tui` on an existing crate asks for `ratatui, fn-number`.**
   `mf2 init` now writes one feature list per mode, the same in a new
   application's manifest and in `cargo add`: an existing crate also gets
