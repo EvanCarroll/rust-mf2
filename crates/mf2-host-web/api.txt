@@ -44,8 +44,8 @@ impl mf2_runtime::host::Host for mf2_host_web::ZonesWebHost
 pub fn mf2_host_web::ZonesWebHost::f64_to_text<'b>(&self, f64, &'b mut [u8; 32]) -> core::option::Option<&'b str>
 pub fn mf2_host_web::ZonesWebHost::zone_offset(&self, &str, i64) -> core::option::Option<i32>
 pub static mf2_host_web::HOST: mf2_host_web::WebHost
+pub static mf2_host_web::INTL_DATES_NUMBERS_HOST: mf2_host_web::IntlNumbers
 pub static mf2_host_web::INTL_HOST: mf2_host_web::IntlWebHost
-pub static mf2_host_web::INTL_NUMBERS_HOST: mf2_host_web::IntlNumbers
 pub static mf2_host_web::NUMBERS_HOST: mf2_host_web::IntlNumbers
 pub static mf2_host_web::ZONES_HOST: mf2_host_web::ZonesWebHost
 pub static mf2_host_web::ZONES_NUMBERS_HOST: mf2_host_web::IntlNumbers

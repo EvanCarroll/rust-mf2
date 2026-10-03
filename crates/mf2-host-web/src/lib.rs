@@ -43,7 +43,7 @@ use js_sys::Number;
 use mf2_runtime::Host;
 
 #[cfg(all(feature = "intl", feature = "datetime-intl"))]
-pub use numbers::INTL_NUMBERS_HOST;
+pub use numbers::INTL_DATES_NUMBERS_HOST;
 #[cfg(all(feature = "intl", feature = "time-zones"))]
 pub use numbers::ZONES_NUMBERS_HOST;
 #[cfg(feature = "intl")]

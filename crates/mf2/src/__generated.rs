@@ -109,7 +109,7 @@ macro_rules! __use_host {
         pub use $crate::host_web::INTL_HOST as HOST;
     };
     (dates numbers) => {
-        $crate::__numbers_host!(INTL_HOST, INTL_NUMBERS_HOST);
+        $crate::__numbers_host!(INTL_HOST, INTL_DATES_NUMBERS_HOST);
     };
 }
 /// The browser's, with its zone data for a corpus with dates.

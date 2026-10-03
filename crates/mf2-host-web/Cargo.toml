@@ -31,7 +31,7 @@ datetime-intl = ["time-zones"]
 # another host plus `Host::numbers`: `Intl.NumberFormat` and
 # `Intl.PluralRules` (cached per locale and option set) when the engine has
 # `Intl.NumberFormat` v3 (detected once). One such host over each of the
-# others (`ZONES_NUMBERS_HOST`, `INTL_NUMBERS_HOST`), so that a build that
+# others (`ZONES_NUMBERS_HOST`, `INTL_DATES_NUMBERS_HOST`), so that a build that
 # formats dates and numbers reaches both.
 intl = ["dep:wasm-bindgen", "mf2-runtime/intl"]
 

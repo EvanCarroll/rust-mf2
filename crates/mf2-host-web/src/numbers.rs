@@ -52,7 +52,7 @@ pub static ZONES_NUMBERS_HOST: IntlNumbers = IntlNumbers(&crate::ZONES_HOST);
 /// [`IntlNumbers`] over [`crate::INTL_HOST`]: numbers and dates both
 /// through `Intl`.
 #[cfg(feature = "datetime-intl")]
-pub static INTL_NUMBERS_HOST: IntlNumbers = IntlNumbers(&crate::INTL_HOST);
+pub static INTL_DATES_NUMBERS_HOST: IntlNumbers = IntlNumbers(&crate::INTL_HOST);
 
 impl Host for IntlNumbers {
     fn f64_to_text<'b>(&self, x: f64, buf: &'b mut [u8; 32]) -> Option<&'b str> {

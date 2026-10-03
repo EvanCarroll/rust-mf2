@@ -29,8 +29,10 @@ application sees adds its line here.
   and every plural `.match` fell to `*`. The generated module now names the
   host that answers through `Intl.NumberFormat` and `Intl.PluralRules`
   whenever its corpus can reach a number, with dates or without.
-  `mf2-host-web` gains `ZONES_NUMBERS_HOST` and `INTL_NUMBERS_HOST`, the same
-  host over its two date hosts. Nothing changes off the browser.
+  `mf2-host-web` gains `ZONES_NUMBERS_HOST` and `INTL_DATES_NUMBERS_HOST`,
+  the same host over its two date hosts; the second, over the
+  `datetime-intl` date host, puts both dates and numbers through `Intl`.
+  Nothing changes off the browser.
 * **`Host::nfc` is gone, and no host carries normalization tables.** The
   `Host` trait no longer has an `nfc` method: the runtime answers canonical
   equivalence itself, from the map its catalog carries. A hand-written host
