@@ -51,6 +51,7 @@ exclude = [
     "conformance/l4-web",
     "conformance/l6-web",
     "tools/e2e/datetime",
+    "tools/e2e/intl-host",
     # An application turns on exactly one of `ssr` and `hydrate`, and cargo
     # unifies features across a workspace: each example is its own.
     "examples/demo-ssr",

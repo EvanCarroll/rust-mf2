@@ -11,6 +11,15 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`intl` now formats numbers and selects plurals in a browser.** In 2.0.0
+  a client built with `intl` formatted no number and selected no plural: the
+  host its generated module named had no number formatter, so every numeric
+  placeholder came out as bare digits with an *Unsupported Operation* error
+  and every plural `.match` fell to `*`. The generated module now names the
+  host that answers through `Intl.NumberFormat` and `Intl.PluralRules`
+  whenever its corpus can reach a number, with dates or without.
+  `mf2-host-web` gains `ZONES_NUMBERS_HOST` and `INTL_NUMBERS_HOST`, the same
+  host over its two date hosts. Nothing changes off the browser.
 * **`Host::nfc` is gone, and no host carries normalization tables.** The
   `Host` trait no longer has an `nfc` method: the runtime answers canonical
   equivalence itself, from the map its catalog carries. A hand-written host

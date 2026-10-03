@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>rust-mf2: the intl host</title>
+</head>
+<body>
+<main>
+<h1>The intl host</h1>
+<p id="status">loading…</p>
+</main>
+<script type="module">
+import init, { format, host_type } from '/target/e2e-intl-host/pkg/e2e_intl_host.js';
+
+await init();
+window.mf2ih = {
+  hostType: host_type,
+  format(id, n, when) {
+    const [text, errors] = format(id, n, when).split('\t');
+    return { text, errors: errors ? errors.split(',') : [] };
+  },
+};
+document.getElementById('status').textContent = `ready (${host_type()})`;
+</script>
+</body>
+</html>

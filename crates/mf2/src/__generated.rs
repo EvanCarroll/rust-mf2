@@ -68,15 +68,16 @@ forward!($ __if_ratatui, feature = "ratatui");
 /// The host: the native one wherever there is one (a server, a native
 /// application, a test) — for a corpus a date can reach, the one that
 /// resolves a named time zone, so that nothing else links a time-zone
-/// database.
+/// database. `numbers` (a corpus a number can reach, under `intl`) changes
+/// nothing here: off the browser the Rust path formats numbers.
 #[cfg(all(feature = "host-std", feature = "fn-datetime"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
-    () => {
+    ($(numbers)?) => {
         pub use $crate::host_std::HOST;
     };
-    (dates) => {
+    (dates $(numbers)?) => {
         pub use $crate::host_std::ZONES_HOST as HOST;
     };
 }
@@ -85,7 +86,7 @@ macro_rules! __use_host {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
-    ($($dates:ident)?) => {
+    ($($use:ident)*) => {
         pub use $crate::host_std::HOST;
     };
 }
@@ -101,8 +102,14 @@ macro_rules! __use_host {
     () => {
         pub use $crate::host_web::HOST;
     };
+    (numbers) => {
+        $crate::__numbers_host!(HOST, NUMBERS_HOST);
+    };
     (dates) => {
         pub use $crate::host_web::INTL_HOST as HOST;
+    };
+    (dates numbers) => {
+        $crate::__numbers_host!(INTL_HOST, INTL_NUMBERS_HOST);
     };
 }
 /// The browser's, with its zone data for a corpus with dates.
@@ -118,8 +125,14 @@ macro_rules! __use_host {
     () => {
         pub use $crate::host_web::HOST;
     };
+    (numbers) => {
+        $crate::__numbers_host!(HOST, NUMBERS_HOST);
+    };
     (dates) => {
         pub use $crate::host_web::ZONES_HOST as HOST;
+    };
+    (dates numbers) => {
+        $crate::__numbers_host!(ZONES_HOST, ZONES_NUMBERS_HOST);
     };
 }
 /// The browser's plain host.
@@ -132,8 +145,11 @@ macro_rules! __use_host {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
-    ($($dates:ident)?) => {
+    ($(dates)?) => {
         pub use $crate::host_web::HOST;
+    };
+    ($(dates)? numbers) => {
+        $crate::__numbers_host!(HOST, NUMBERS_HOST);
     };
 }
 /// No host in this build: nothing to name.
@@ -141,7 +157,29 @@ macro_rules! __use_host {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
-    ($($dates:ident)?) => {};
+    ($($use:ident)*) => {};
+}
+
+/// A browser's host for a corpus a number can reach: with `intl`, the
+/// `IntlNumbers` host over the one it would otherwise be (its second name),
+/// so `Host::numbers` answers with `Intl.NumberFormat` and
+/// `Intl.PluralRules` (`plan/01` §8 F1); without, that one (its first).
+#[cfg(feature = "intl")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __numbers_host {
+    ($plain:ident, $numbers:ident) => {
+        pub use $crate::host_web::$numbers as HOST;
+    };
+}
+/// Without `intl`: the host it would otherwise be.
+#[cfg(not(feature = "intl"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __numbers_host {
+    ($plain:ident, $numbers:ident) => {
+        pub use $crate::host_web::$plain as HOST;
+    };
 }
 
 /// `Locale::from_str`: the index in `$locales` of the locale that best

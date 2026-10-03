@@ -1,0 +1,5 @@
+source_locale = "en"
+
+# The check looks messages up by id.
+[catalog]
+strip = []

@@ -1,0 +1,21 @@
+# The intl-host check's corpus: each message has an answer only the
+# browser's `Intl` gives — the Rust number path is not linked under `intl`,
+# and without the host a number is its bare digits and a selector matches
+# only `*`.
+@locale en
+---
+
+# Grouping and a currency symbol: `Intl.NumberFormat`.
+grouped = {$n :number}
+price = {$n :currency currency=EUR}
+
+# `one` without an exact key `1`: only `Intl.PluralRules` selects it.
+items =
+  .input {$n :number}
+  .match $n
+  one {{one item}}
+  *   {{many items}}
+
+# A date, so that the generated module names the host with dates and
+# numbers both.
+day = {$when :date}

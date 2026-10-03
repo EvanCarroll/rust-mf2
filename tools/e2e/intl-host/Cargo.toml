@@ -1,0 +1,45 @@
+# The `intl` host wiring in a browser (tools/e2e/checks/intl-host.mjs): an
+# i18n crate whose generated module chooses the host, built for
+# `wasm32-unknown-unknown` with `intl` and both function families. A
+# standalone workspace (the root excludes it), so that its client features
+# never unify with the root's server ones.
+#
+#   tools/e2e/intl-host/build.sh
+#   cd tools/e2e && node run.mjs intl-host --browser all
+[package]
+name = "e2e-intl-host"
+description = "The intl host wiring in a browser: numbers and plural selection through the host the generated module names."
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+# `mf2-build` reads the corpus's features from this crate's.
+[features]
+default = ["intl", "fn-number", "datetime-intl"]
+intl = ["mf2/intl"]
+fn-number = ["mf2/fn-number"]
+fn-datetime = ["mf2/fn-datetime"]
+datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+
+[dependencies]
+mf2 = { path = "../../../crates/mf2", features = ["host-web"] }
+# Exact: the wasm-bindgen CLI that post-processes the module is 0.2.128.
+wasm-bindgen = { version = "=0.2.128" }
+
+[build-dependencies]
+mf2-build = { path = "../../../crates/mf2-build" }
+
+# Size is not what this measures; small and quick.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

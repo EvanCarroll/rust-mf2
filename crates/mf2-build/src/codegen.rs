@@ -542,12 +542,39 @@ fn reaches_a_date(m: &Module<'_>) -> bool {
                 .any(|f| matches!(f.as_str(), "datetime" | "date" | "time")))
 }
 
+/// Whether `intl` is on and a number can reach this corpus's messages: a
+/// numeric function, or a placeholder with no function. In a browser the
+/// host that answers `Host::numbers` with `Intl` is named only then
+/// (`plan/01` §8 F1).
+fn reaches_a_number(m: &Module<'_>) -> bool {
+    m.features.intl()
+        && (m.unannotated
+            || m.functions.iter().any(|f| {
+                matches!(
+                    f.as_str(),
+                    "number" | "integer" | "offset" | "math" | "percent" | "currency" | "unit"
+                )
+            }))
+}
+
+/// `__use_host!`'s input: `dates` and `numbers`, each when the corpus can
+/// reach one.
+fn host_input(m: &Module<'_>) -> &'static str {
+    match (reaches_a_date(m), reaches_a_number(m)) {
+        (true, true) => "dates numbers",
+        (true, false) => "dates",
+        (false, true) => "numbers",
+        (false, false) => "",
+    }
+}
+
 fn host(s: &mut String, m: &Module<'_>) {
     // Which host depends on how `mf2` was built, which is not the build's
     // to know: `__use_host!` is defined once per combination of `mf2`'s
     // features, and names one static, so the others are never linked
-    // (B1′). A corpus with no date names no date host at all.
-    let dates = if reaches_a_date(m) { "dates" } else { "" };
+    // (B1′). A corpus with no date names no date host at all, and one with
+    // no number no `Intl` number host.
+    let dates = host_input(m);
     let _ = write!(
         s,
         "
@@ -562,7 +589,7 @@ pub mod host {{
 }
 
 fn native_host(s: &mut String, m: &Module<'_>) {
-    let dates = if reaches_a_date(m) { "dates" } else { "" };
+    let dates = host_input(m);
     let _ = write!(
         s,
         "
@@ -1530,6 +1557,39 @@ mod tests {
         // Without the feature, neither names one.
         let code = write(&module(&time, &none, &custom, &locales, true));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+    }
+
+    #[test]
+    fn only_intl_with_a_number_names_the_intl_number_host() {
+        let locales = locales();
+        let custom = BTreeMap::new();
+        let integer = ["integer".to_owned()];
+        // Without `intl`, a number names nothing more.
+        let plain = Features::parse("fn-number");
+        let code = write(&module(&integer, &plain, &custom, &locales, false));
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        // With it: a numeric function, or a plain placeholder.
+        let intl = Features::parse("intl");
+        let code = write(&module(&integer, &intl, &custom, &locales, false));
+        assert!(
+            code.contains("super::__mf2::__use_host!(numbers);"),
+            "{code}"
+        );
+        let code = write(&module(&[], &intl, &custom, &locales, true));
+        assert!(
+            code.contains("super::__mf2::__use_host!(numbers);"),
+            "{code}"
+        );
+        // No number in the corpus: no `Intl` number host.
+        let code = write(&module(&[], &intl, &custom, &locales, false));
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        // Dates and numbers both.
+        let both = Features::parse("intl,fn-datetime,datetime-intl");
+        let code = write(&module(&[], &both, &custom, &locales, true));
+        assert!(
+            code.contains("super::__mf2::__use_host!(dates numbers);"),
+            "{code}"
+        );
     }
 
     #[test]
