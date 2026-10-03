@@ -29,11 +29,11 @@ exit", then stops: the next phase starts in a fresh session.
   Browser check `intl-host` (`tools/e2e/intl-host/`, outside the workspace)
   passes 7/7 in Chromium and Firefox (WebKit not installed) and fails 4/7
   with the arm removed. No refused feature set became valid. Rename the
-  statics in 14.1. Found, not fixed: the host's `Intl.PluralRules` call
-  passes `+v` with no digit options, so `1.0` selects `one`. A defect only if
-  the host displays `1.0` while selecting `one`; after 14.1, an agent checks
-  that display and selection agree, against the Rust path (owner,
-  2026-10-03), before any fix.
+  statics in 14.1. Checked and closed (owner,
+  2026-10-03): `Intl.PluralRules` gets the same digit options as
+  `Intl.NumberFormat`, so `1.0` displays `1` and selects `one`, and with
+  `minimumFractionDigits=1` displays `1.0` and selects `other` (node 23),
+  as the Rust path does (`mf2-runtime/tests/format.rs`). No defect.
 
 ## Before this phase
 
