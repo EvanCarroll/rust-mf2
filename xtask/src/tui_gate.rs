@@ -54,10 +54,12 @@ const BINARIES: &[&str] = &["tui-mf2", "tui-upstream"];
 /// 1.x's allocations per frame (A1, the binaries of `3a296a9`), by locale.
 const ALLOCS_1X: &[(&str, u64)] = &[("en", 1816), ("de", 1815), ("es", 1816), ("fr", 1817)];
 
-/// The stripped `tui-mf2`, in bytes, as Phase 12's exit measured it: a later
+/// The stripped `tui-mf2`, in bytes, as Phase 13's exit measured it: a later
 /// change may not make it larger. It began as 1.x's `1_965_320` B (A1) and came
-/// down when the native host stopped linking a time-zone database and `ryu`.
-const SIZE_LIMIT: u64 = 1_454_264;
+/// down when the native host stopped linking a time-zone database and `ryu`
+/// (Phase 12: `1_454_264`) and again when the normalization tables left the
+/// binary, the catalog's map deciding canonical equivalence instead.
+const SIZE_LIMIT: u64 = 1_328_664;
 
 /// What `cargo xtask tui-gate` was asked to do.
 pub(crate) struct Options {
