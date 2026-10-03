@@ -160,7 +160,7 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
 
 /// The features that decide what a catalog may hold: which functions a
 /// message may call, and which locale data the catalog carries for them.
-/// The wasm and the catalogs must agree on these; the others (`intl`,
+/// The wasm and the catalogs must agree on these; the others (`number-intl`,
 /// `datetime-intl`, `tzdb-bundled`, the host features) change only the code
 /// a build compiles — `tzdb-bundled` only which IANA database a named time
 /// zone is looked up in.
@@ -246,11 +246,11 @@ impl Features {
         self.has("datetime-intl")
     }
 
-    /// Numbers, plural selection and dates through the browser's `Intl` on
-    /// the client (D4). The server keeps the Rust path, so a catalog still
+    /// Numbers and plural selection through the browser's `Intl` on the
+    /// client (`number-intl`, 2.0's `intl`). The server keeps the Rust path, so a catalog still
     /// carries the data unless the build writes a client variant.
-    pub fn intl(&self) -> bool {
-        self.has("intl")
+    pub fn number_intl(&self) -> bool {
+        self.has("number-intl")
     }
 
     /// Whether this build provides the built-in function `identifier` (an
@@ -298,7 +298,8 @@ mod tests {
 
     #[test]
     fn only_some_features_change_a_catalog() {
-        let features = Features::parse("default,ssr,intl,datetime-intl,fn-datetime,fn-number");
+        let features =
+            Features::parse("default,ssr,number-intl,datetime-intl,fn-datetime,fn-number");
         assert_eq!(
             features.for_catalogs().names().collect::<Vec<_>>(),
             ["fn-datetime", "fn-number"]

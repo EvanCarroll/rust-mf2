@@ -286,10 +286,10 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2-runtime", "mf2-fn-number", "mf2-host-web"],
         Wasm,
-        "mf2-fn-number/intl,mf2-host-web/intl",
+        "mf2-runtime/intl,mf2-host-web/intl",
         false,
         &[Use::Ci(&[Clippy])],
-        "the `intl` option's code, which compiles for the browser target only",
+        "the `number-intl` option's code, which compiles for the browser target only",
     ),
     mf2(
         Wasm,
@@ -574,7 +574,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,intl",
+        "hydrate,fn-number,number-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, numbers through the browser's Intl",
@@ -606,7 +606,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,fn-datetime,datetime-intl,intl",
+        "hydrate,fn-number,fn-datetime,datetime-intl,number-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, every function through the browser",
@@ -657,17 +657,17 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2", "mf2-host-web"],
         Wasm,
-        "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/datetime-icu,mf2/intl",
+        "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/datetime-icu,mf2/number-intl",
         false,
         &[Msrv("wasm32, hydrate, ICU4X dates")],
-        "the client with the ICU4X date backend and the `intl` option",
+        "the client with the ICU4X date backend and the `number-intl` option",
     ),
     pkgs(
         MF2,
         Wasm,
-        "mf2/leptos,mf2/csr,mf2/fn-number,mf2/datetime-intl,mf2/intl",
+        "mf2/leptos,mf2/csr,mf2/fn-number,mf2/datetime-intl,mf2/number-intl",
         false,
-        &[Msrv("wasm32, csr, intl, Intl dates")],
+        &[Msrv("wasm32, csr, number-intl, Intl dates")],
         "the client built in the browser, formatting through the browser",
     ),
     pkgs(
@@ -839,8 +839,8 @@ pub(crate) const SETS: &[Set] = &[
     ),
     alone(
         Wasm,
-        "intl",
-        "`intl`: formatting through the browser, which needs the browser target",
+        "number-intl",
+        "`number-intl`: formatting through the browser, which needs the browser target",
     ),
     alone(
         Host,

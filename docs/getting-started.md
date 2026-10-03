@@ -232,7 +232,7 @@ a narrow no-break space, U+202F); dates take `fn-datetime` and one backend:
 | `fn-number` | numbers in each locale's own symbols, `:percent`, `:currency`, `:unit` |
 | `datetime-icu` (with `features = ["icu-blob"]` on `mf2-build`) | `:datetime`, `:date`, `:time` through ICU4X, on the server and in the browser alike; it turns on `fn-datetime` |
 | `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
-| `intl` | numbers and plural rules through the browser's `Intl` too |
+| `number-intl` | numbers and plural rules through the browser's `Intl` too |
 
 A feature that is on but that no message uses adds nothing to the wasm.
 

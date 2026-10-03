@@ -29,7 +29,7 @@ fn-number = ["mf2/fn-number"]
 fn-datetime = ["mf2/fn-datetime"]
 datetime-icu = ["mf2/datetime-icu", "mf2-build/icu-blob"]
 datetime-intl = ["mf2/datetime-intl"]
-intl = ["mf2/intl"]
+number-intl = ["mf2/number-intl"]
 # A native application's module (`Emit::Native`): `CORPUS`, the typed
 # locale functions, and — beside `mf2/ssr` — the catalogs the Leptos
 # layer's server installs, from the same embedded bytes.

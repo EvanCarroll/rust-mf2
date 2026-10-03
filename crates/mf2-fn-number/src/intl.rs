@@ -1,5 +1,5 @@
 //! The `intl` path (`plans/03-runtime.md` §2.7, §5.3; owner decision 4):
-//! with feature `intl` on `wasm32-unknown-unknown`
+//! with `mf2-runtime`'s feature `intl` (`mf2`'s `number-intl`) on `wasm32-unknown-unknown`
 //! ([`mf2_runtime::INTL_NUMBERS`]) the localized numbers, currencies and
 //! units are written by the host's number formatter — the browser's
 //! `Intl.NumberFormat`, with the catalog's locale — instead of from the

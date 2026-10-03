@@ -25,8 +25,8 @@ crate-type = ["cdylib"]
 [dependencies]
 mf2-l4-runner = { path = "../l4-runner" }
 # The intl build: the runtime's numeric functions and mf2-fn-number's through
-# the host's Intl (their `intl` features turn on mf2-runtime's).
-mf2-fn-number = { path = "../../crates/mf2-fn-number", features = ["intl"] }
+# the host's Intl (mf2-runtime's `intl` feature switches both).
+mf2-fn-number = { path = "../../crates/mf2-fn-number" }
 mf2-host-web = { path = "../../crates/mf2-host-web", features = ["intl"] }
 mf2-runtime = { path = "../../crates/mf2-runtime", features = ["intl"] }
 # Exact: the wasm-bindgen CLI that post-processes the module must be the same

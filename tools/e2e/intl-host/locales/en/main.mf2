@@ -1,5 +1,5 @@
 # The intl-host check's corpus: each message has an answer only the
-# browser's `Intl` gives — the Rust number path is not linked under `intl`,
+# browser's `Intl` gives — the Rust number path is not linked under `number-intl`,
 # and without the host a number is its bare digits and a selector matches
 # only `*`.
 @locale en

@@ -11,6 +11,12 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **`mf2`'s `intl` feature is now `number-intl`.** It pairs with
+  `datetime-intl` and says what it hands to the browser. Write
+  `features = ["number-intl"]` where 2.x wrote `"intl"`.
+  `mf2-fn-number`'s `intl` feature, which only switched on
+  `mf2-runtime/intl`, is removed; `mf2-runtime/intl` and `mf2-host-web/intl`
+  keep their names.
 * **`intl` now formats numbers and selects plurals in a browser.** In 2.0.0
   a client built with `intl` formatted no number and selected no plural: the
   host its generated module named had no number formatter, so every numeric

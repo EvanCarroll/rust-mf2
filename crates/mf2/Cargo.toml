@@ -100,12 +100,12 @@ axum = [
 # through the one matcher (`fr_CA.UTF-8` is French) and `--help` lists the
 # tags. std; for a native application's command line.
 clap = ["dep:clap"]
-# The `intl` client option: on wasm32-unknown-unknown the numeric functions
+# `number-intl` (2.0's `intl`): on wasm32-unknown-unknown the numeric functions
 # format and select through the browser's Intl.NumberFormat and
 # Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
 # Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
 # keeps the Rust path.
-intl = ["mf2-runtime/intl", "mf2-fn-number?/intl", "mf2-host-web?/intl"]
+number-intl = ["mf2-runtime/intl", "mf2-host-web?/intl"]
 # The Leptos line the layer renders with. `leptos` is Leptos 0.9, the
 # default line; `leptos-0-8` is Leptos 0.8. Neither is a default feature: an
 # application writes one on its `mf2` dependency, and a mode needs one. Both

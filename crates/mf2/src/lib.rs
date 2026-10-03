@@ -25,14 +25,14 @@
 //! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
 //! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
 //! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
-//! | `intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
+//! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //!
 //! A Leptos mode needs a line, and the modes exclude each other: an
 //! application writes the line on its `mf2` dependency (`features =
 //! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
 //! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
 //! 0.9, and `native` and `ratatui`, which compile beside it; [`leptos`]
-//! lists what the client modes add. `host-web` and `intl` are for
+//! lists what the client modes add. `host-web` and `number-intl` are for
 //! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
 //! is not shown here. A native application turns on `native` (a terminal
 //! UI, `ratatui`), and no Leptos mode.

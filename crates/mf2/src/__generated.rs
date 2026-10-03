@@ -68,7 +68,7 @@ forward!($ __if_ratatui, feature = "ratatui");
 /// The host: the native one wherever there is one (a server, a native
 /// application, a test) — for a corpus a date can reach, the one that
 /// resolves a named time zone, so that nothing else links a time-zone
-/// database. `numbers` (a corpus a number can reach, under `intl`) changes
+/// database. `numbers` (a corpus a number can reach, under `number-intl`) changes
 /// nothing here: off the browser the Rust path formats numbers.
 #[cfg(all(feature = "host-std", feature = "fn-datetime"))]
 #[doc(hidden)]
@@ -160,11 +160,11 @@ macro_rules! __use_host {
     ($($use:ident)*) => {};
 }
 
-/// A browser's host for a corpus a number can reach: with `intl`, the
+/// A browser's host for a corpus a number can reach: with `number-intl`, the
 /// `IntlNumbers` host over the one it would otherwise be (its second name),
 /// so `Host::numbers` answers with `Intl.NumberFormat` and
 /// `Intl.PluralRules` (`plan/01` §8 F1); without, that one (its first).
-#[cfg(feature = "intl")]
+#[cfg(feature = "number-intl")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __numbers_host {
@@ -172,8 +172,8 @@ macro_rules! __numbers_host {
         pub use $crate::host_web::$numbers as HOST;
     };
 }
-/// Without `intl`: the host it would otherwise be.
-#[cfg(not(feature = "intl"))]
+/// Without `number-intl`: the host it would otherwise be.
+#[cfg(not(feature = "number-intl"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __numbers_host {

@@ -36,8 +36,8 @@ rust-cu = ["dep:mf2-fn-number"]
 # §5.3): the runtime's own `intl` feature and mf2-host-web's NUMBERS_HOST,
 # with the registries of `rust`, `rust-loc` and `rust-cu`.
 rt-intl = ["mf2-runtime/intl", "mf2-host-web/intl"]
-rt-intl-loc = ["dep:mf2-fn-number", "mf2-fn-number/intl", "mf2-host-web/intl"]
-rt-intl-cu = ["dep:mf2-fn-number", "mf2-fn-number/intl", "mf2-host-web/intl"]
+rt-intl-loc = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
+rt-intl-cu = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
 
 [dependencies]
 intl-probe-fn = { workspace = true, optional = true }

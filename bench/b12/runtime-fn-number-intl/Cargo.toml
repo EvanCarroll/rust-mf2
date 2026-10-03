@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 b12-runtime-walk.workspace = true
-mf2-fn-number = { workspace = true, features = ["intl"] }
+mf2-fn-number = { workspace = true }
 mf2-runtime = { workspace = true, features = ["intl"] }
 
 [lints]

@@ -300,9 +300,9 @@ pub fn mf2_build::Features::from_env() -> mf2_build::Features
 pub fn mf2_build::Features::from_names<S: core::convert::Into<alloc::string::String>>(impl core::iter::traits::collect::IntoIterator<Item = S>) -> mf2_build::Features
 pub fn mf2_build::Features::from_vars(impl core::iter::traits::collect::IntoIterator<Item = (alloc::string::String, alloc::string::String)>) -> mf2_build::Features
 pub fn mf2_build::Features::has(&self, &str) -> bool
-pub fn mf2_build::Features::intl(&self) -> bool
 pub fn mf2_build::Features::missing_feature(&self, &str) -> core::option::Option<&'static str>
 pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::Iterator<Item = &str>
+pub fn mf2_build::Features::number_intl(&self) -> bool
 pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
 pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>
 impl core::clone::Clone for mf2_build::Features

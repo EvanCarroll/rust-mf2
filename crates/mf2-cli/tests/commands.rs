@@ -255,7 +255,13 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     // is accepted.
     ok(&run(
         &dir,
-        &["compile", "--features", "fn-number,intl", "--site", site],
+        &[
+            "compile",
+            "--features",
+            "fn-number,number-intl",
+            "--site",
+            site,
+        ],
     ));
 
     // One that differs is rejected, naming both lists, and writes nothing.

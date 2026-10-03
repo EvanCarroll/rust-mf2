@@ -125,7 +125,7 @@ each language needs in its catalog (`icu.blob`). Implies `fn-datetime`.
 Dates formatted by the browser's `Intl.DateTimeFormat` in a browser build,
 and by ICU4X with its compiled data everywhere else. Implies `fn-datetime`.
 
-### `intl`
+### `number-intl`
 
 In a browser build, numbers are formatted and plurals chosen by the
 browser's `Intl.NumberFormat` and `Intl.PluralRules` (which needs a browser
