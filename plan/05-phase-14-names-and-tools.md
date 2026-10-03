@@ -149,6 +149,17 @@ Done when: `cargo xtask ci` and `cargo xtask codegen-matrix` are green and
 `rg -n INTL_NUMBERS_HOST crates xtask tools conformance bench examples docs`
 finds nothing.
 
+First, a one-off measurement (owner, 2026-10-03). Warm `cargo xtask ci`
+runs in this phase took about 30–45 min with load below 2, while `target/`
+held 247 GB (178 GB debug, 4256 incremental dirs, 119 copies of `mf2`),
+all under 3 days old. Before editing anything, with no other build running
+(`pgrep -af 'xtask|cargo'`): `cargo clean`, then `cargo xtask spec-sync`
+(and `uts35-sync`/`cldr-sync` if a step asks). Run this task's ci as
+`/usr/bin/time -v cargo xtask ci` (the cold run), and a second ci right
+after it with no edits (the warm run). Report both wall times, user+sys
+CPU and the size of `target/` after each in the Done entry. Do not repeat
+this in later tasks.
+
 ### 14.2 The lint `unused-feature`
 
 Design: `plan/01` §5.
