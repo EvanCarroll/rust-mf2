@@ -78,7 +78,7 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
 /// A selector takes its function from the declaration that binds it; the
 /// `select` option says which rules apply (`plans/03-runtime.md` §4). An
 /// option value that is not a literal could be either, so it is both.
-fn plural_kinds(message: &Message<'_>) -> (bool, bool) {
+pub(crate) fn plural_kinds(message: &Message<'_>) -> (bool, bool) {
     match message {
         Message::Select(select) => selector_kinds(select),
         _ => (false, false),

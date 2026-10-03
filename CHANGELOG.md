@@ -11,6 +11,11 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **New lint `unused-feature` (warn).** The build and `mf2 check` warn when
+  the date family (`fn-datetime` or a date backend) is on and no message
+  calls `:datetime`, `:date` or `:time`, or when `fn-number` / `number-intl`
+  is on and nothing formats or selects on a number. Drop the feature, or set
+  `unused-feature = "allow"` in `mf2.toml`.
 * **`mf2`'s `intl` feature is now `number-intl`.** It pairs with
   `datetime-intl` and says what it hands to the browser. Write
   `features = ["number-intl"]` where 2.x wrote `"intl"`.

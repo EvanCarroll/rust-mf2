@@ -209,6 +209,11 @@ fn drifts() -> Vec<Drift> {
             mutate: |files, _, _| edit(files, "en", "unit=kilometer", "unit=$how"),
         },
         Drift {
+            lint: Lint::UnusedFeature,
+            what: "`fn-datetime` on and no message formats a date",
+            mutate: |_, features, _| *features = Features::parse("fn-number fn-datetime"),
+        },
+        Drift {
             lint: Lint::NeutralNumbers,
             what: "numbers formatted with `fn-number` off",
             mutate: |files, features, _| {
@@ -529,11 +534,98 @@ fn do_not_translate_messages_are_neither_missing_nor_covered() {
                 "@locale fr\n---\n\ngreeting = Bonjour\n".to_owned(),
             ),
         ],
-        &with_fn_number(),
+        // Plain text only: with `fn-number` on, that is `unused-feature`.
+        &Features::default(),
         &config,
     );
     assert!(outcome.report.is_empty(), "{}", outcome.report.to_text());
     assert_eq!(outcome.coverage[1].translatable, 1);
+}
+
+/// The features `unused-feature` reported, in the order it reported them.
+fn unused(files: &[(String, String)], features: &str) -> Vec<String> {
+    let name = format!("unused-feature-{}", features.replace(' ', "-"));
+    let outcome = build_corpus(&name, files, &Features::parse(features), &Config::default());
+    outcome
+        .report
+        .diagnostics
+        .iter()
+        .filter(|d| d.lint == Some(Lint::UnusedFeature))
+        .map(|d| d.message.clone())
+        .collect()
+}
+
+/// A corpus of one locale, `en`, with `body` for its messages.
+fn only_en(body: &str) -> Vec<(String, String)> {
+    vec![("en".to_owned(), format!("@locale en\n---\n\n{body}"))]
+}
+
+#[test]
+fn unused_feature_names_each_family_once() {
+    // Plain text: no placeholder, no function, no selection.
+    let text = only_en("a = Save\nb = Cancel\n");
+    let said = unused(&text, "fn-number number-intl fn-datetime datetime-icu");
+    assert_eq!(said.len(), 2, "{said:#?}");
+    assert!(
+        said[0].contains("`fn-datetime` and `datetime-icu` are on for this build"),
+        "{}",
+        said[0]
+    );
+    assert!(said[0].contains("plain placeholder"), "{}", said[0]);
+    assert!(
+        said[1].contains("`fn-number` and `number-intl` are on for this build"),
+        "{}",
+        said[1]
+    );
+    // The base corpus formats numbers and no dates; across two locales the
+    // date family is still reported once.
+    let said = unused(&files(), "fn-number fn-datetime");
+    assert_eq!(said.len(), 1, "{said:#?}");
+    assert!(
+        said[0].contains("`fn-datetime` is on for this build"),
+        "{}",
+        said[0]
+    );
+}
+
+#[test]
+fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
+    let text = only_en("a = Save\n");
+    assert!(unused(&text, "").is_empty());
+    // Any of the three date functions uses the family.
+    for function in ["datetime", "date", "time"] {
+        let dates = only_en(&format!("when = {{$at :{function}}}\n"));
+        let said = unused(&dates, "fn-datetime datetime-intl");
+        assert!(said.is_empty(), ":{function}: {said:#?}");
+    }
+    // A plain placeholder can receive a number.
+    let plain = only_en("hello = Hello, {$name}!\n");
+    assert!(unused(&plain, "fn-number").is_empty());
+    // So does a numeric function, and a plural selection with no placeholder.
+    for function in ["{$n :integer}", "{$n :percent}", "{$n :unit unit=meter}"] {
+        let numeric = only_en(&format!("n = {function}\n"));
+        let said = unused(&numeric, "fn-number number-intl");
+        assert!(said.is_empty(), "{function}: {said:#?}");
+    }
+    let select =
+        only_en("count =\n  .input {$n :number}\n  .match $n\n  one {{one}}\n  * {{many}}\n");
+    assert!(unused(&select, "fn-number").is_empty());
+    // `allow` silences it.
+    let mut config = Config::default();
+    config.lints.insert(Lint::UnusedFeature, Level::Allow);
+    let outcome = build_corpus(
+        "unused-feature-allow",
+        &text,
+        &Features::parse("fn-number fn-datetime"),
+        &config,
+    );
+    assert!(
+        outcome
+            .report
+            .diagnostics
+            .iter()
+            .all(|d| d.lint != Some(Lint::UnusedFeature))
+    );
 }
 
 #[test]

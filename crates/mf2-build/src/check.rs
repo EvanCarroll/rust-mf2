@@ -6,6 +6,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use mf2_locale_data::number::NumberNeeds;
 use mf2_locale_data::plural::{PluralKind, plural_rules};
 use mf2_model::{
     Attributes, Declaration, FunctionRef, Key, Message, OptionValue, Options, Pattern, PatternPart,
@@ -36,6 +37,7 @@ pub struct Corpus<'a> {
 
 /// Runs every lint over the corpus.
 pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report: &mut Report) {
+    let mut used = Used::default();
     for (locale, source) in corpus.sources.iter().enumerate() {
         let mut sink = Sink::new(report, &source.tag);
         for (record_index, record) in source.loaded.records.iter().enumerate() {
@@ -46,6 +48,7 @@ pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report:
                 continue;
             };
             let analysis = mf2_syntax::analyze(model);
+            used.add(model, &analysis);
             let mut at = At {
                 sink: &mut sink,
                 source,
@@ -65,6 +68,7 @@ pub fn corpus(corpus: &Corpus<'_>, config: &Config, features: &Features, report:
         }
         coverage(&mut sink, corpus, locale, config);
     }
+    unused_features(corpus, config, features, &used, report);
 }
 
 /// One message being checked, with everything a diagnostic needs.
@@ -153,6 +157,104 @@ fn functions(
         }
     }
     let _ = model;
+}
+
+// ───────────────────────────── unused features ───────────────────────────
+
+/// What the whole corpus uses of the gated function families.
+#[derive(Default)]
+struct Used {
+    /// A message calls `:datetime`, `:date` or `:time`.
+    dates: bool,
+    /// A message formats a number (a numeric function, or a placeholder that
+    /// can receive one) or selects by plural rules.
+    numbers: NumberNeeds,
+    plural: bool,
+}
+
+impl Used {
+    fn add(&mut self, model: &Message<'_>, analysis: &Analysis<'_>) {
+        self.dates |= analysis
+            .functions
+            .iter()
+            .any(|name| matches!(name.nfc.as_ref(), "datetime" | "date" | "time"));
+        self.numbers.add_message(model);
+        let (cardinal, ordinal) = crate::slice::plural_kinds(model);
+        self.plural |= cardinal || ordinal;
+    }
+
+    /// Whether anything formats or selects on a number.
+    fn numbers(&self) -> bool {
+        let n = &self.numbers;
+        n.symbols || n.percent || n.currency.is_some() || n.unit.is_some() || self.plural
+    }
+}
+
+/// A function family that is on for this build and that no message can use
+/// (`unused-feature`): once per family, for the whole corpus.
+fn unused_features(
+    corpus: &Corpus<'_>,
+    config: &Config,
+    features: &Features,
+    used: &Used,
+    report: &mut Report,
+) {
+    let level = config.level(Lint::UnusedFeature);
+    let Some(source) = corpus.sources.get(corpus.source_index) else {
+        return;
+    };
+    let on = |names: &[&str]| -> Vec<String> {
+        names
+            .iter()
+            .filter(|name| features.has(name))
+            .map(|name| format!("`{name}`"))
+            .collect()
+    };
+    let mut found = Vec::new();
+    let dates = on(&["fn-datetime", "datetime-icu", "datetime-intl"]);
+    if !dates.is_empty() && !used.dates {
+        found.push(format!(
+            "{} on for this build, and no message uses :datetime, :date or :time. \
+             A date may still be handed to a plain placeholder, but with the \
+             feature on every plain placeholder links the date code and time \
+             zones; if none receives a date, drop it (another crate in the \
+             workspace may have turned it on), or set `unused-feature = \"allow\"` \
+             in mf2.toml",
+            is_on(&dates)
+        ));
+    }
+    let numbers = on(&["fn-number", "number-intl"]);
+    if !numbers.is_empty() && !used.numbers() {
+        found.push(format!(
+            "{} on for this build, and no message formats or selects on a number: \
+             no numeric function, plural selection or plain placeholder that could \
+             receive one, so the number code links for nothing; drop it (another \
+             crate in the workspace may have turned it on), or set \
+             `unused-feature = \"allow\"` in mf2.toml",
+            is_on(&numbers)
+        ));
+    }
+    if found.is_empty() {
+        return;
+    }
+    let file = source
+        .loaded
+        .files
+        .first()
+        .map_or_else(|| source.path.clone(), |f| f.path.clone());
+    let at = mf2_resource::Position { line: 1, column: 1 };
+    let mut sink = Sink::new(report, &source.tag);
+    for message in found {
+        sink.add(level, Some(Lint::UnusedFeature), &file, at, None, message);
+    }
+}
+
+/// "`a` is" or "`a` and `b` are".
+fn is_on(names: &[String]) -> String {
+    match names {
+        [one] => format!("{one} is"),
+        _ => format!("{} are", names.join(" and ")),
+    }
 }
 
 // ───────────────────────────────── options ───────────────────────────────

@@ -29,9 +29,17 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
+    let (features, assumed) = features_or_assumed(dir, &args.features);
+    let mut checked = config.clone();
+    if assumed {
+        // An assumed feature is not on "for this build": nothing to say.
+        checked
+            .lints
+            .insert(mf2_build::Lint::UnusedFeature, mf2_build::Level::Allow);
+    }
     let mut outcome = Build::at(dir, std::env::temp_dir().join("mf2-check"))
-        .config(config.clone())
-        .features(features(dir, &args.features))
+        .config(checked)
+        .features(features)
         .check()?;
     if !args.src.is_empty() {
         unused_ids(&mut outcome, &config, &args.src)?;
@@ -67,18 +75,26 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// import` checks what it would write with the same, and `mf2 stats`
 /// counts what the build ships.
 pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
+    features_or_assumed(dir, args).0
+}
+
+/// [`features`], and whether they were assumed rather than given or resolved.
+fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, bool) {
     if let Some(given) = args.given() {
-        return given;
+        return (given, false);
     }
     if let Ok((_, resolved)) = resolved_features(dir, true) {
-        return resolved;
+        return (resolved, false);
     }
     eprintln!(
         "note: cargo could not say which of mf2's features this crate has, so every \
          function is assumed on; name them with --features (for example \
          --features fn-number)"
     );
-    mf2_build::Features::from_names(["fn-number", "fn-datetime"])
+    (
+        mf2_build::Features::from_names(["fn-number", "fn-datetime"]),
+        true,
+    )
 }
 
 /// The `unused-id` lint needs what the application's sources say, which only

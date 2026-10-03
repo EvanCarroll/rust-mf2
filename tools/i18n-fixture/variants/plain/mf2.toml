@@ -16,3 +16,6 @@ missing-translation = "allow"
 missing-plural-category = "allow"
 # The fixture is built with and without `fn-number` on purpose.
 neutral-numbers = "allow"
+# The size gates build it under every feature set, the date features
+# included, to measure what each costs; it has no date message.
+unused-feature = "allow"

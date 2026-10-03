@@ -139,6 +139,7 @@ pub mf2_build::Lint::UndeclaredVariable
 pub mf2_build::Lint::UnknownFunction
 pub mf2_build::Lint::UnknownOption
 pub mf2_build::Lint::UnpairedMarkup
+pub mf2_build::Lint::UnusedFeature
 pub mf2_build::Lint::UnusedId
 impl mf2_build::Lint
 pub const mf2_build::Lint::ALL: &'static [mf2_build::Lint]

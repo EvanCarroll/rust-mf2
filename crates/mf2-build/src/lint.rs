@@ -126,6 +126,13 @@ lints! {
     /// renders without the locale's symbols. The build cannot see what an
     /// application passes, so a placeholder that only receives text raises it too.
     NeutralNumbers = ("neutral-numbers", Warn, Allow);
+    /// A function family is on for this build and no message can use it:
+    /// the date family (`fn-datetime`, `datetime-icu`, `datetime-intl`) with
+    /// no `:datetime`, `:date` or `:time`, or the number family (`fn-number`,
+    /// `number-intl`) with nothing that formats or selects on a number. Raised
+    /// once per family for the whole corpus. In a workspace another crate may
+    /// have turned the feature on, so the message says "on for this build".
+    UnusedFeature = ("unused-feature", Warn, Allow);
     /// Markup opened and not closed, or closed and not opened.
     UnpairedMarkup = ("unpaired-markup", Warn, Allow);
     /// A plural `.match` that does not mention every category the *target*

@@ -227,6 +227,32 @@ en   files = {$count} files
 Fix: turn on `fn-number`; or, if these placeholders only receive text,
 `neutral-numbers = "allow"` under `[lints]`.
 
+### `unused-feature`
+
+Default `warn`; the lowest `mf2.toml` may set it is `allow`.
+
+A function feature is on for this build and no message can use it. It is
+raised once per family, for the whole corpus:
+
+* the date family (`fn-datetime`, `datetime-icu`, `datetime-intl`) when no
+  message calls `:datetime`, `:date` or `:time`. A date can still be handed
+  to a plain placeholder, which is why the feature costs something here:
+  with it on, every plain placeholder links the date code and time zones;
+* the number family (`fn-number`, `number-intl`) when no message formats or
+  selects on a number: no numeric function, no plural selection and no
+  plain placeholder that could receive one.
+
+The message says "on for this build": in a workspace another crate may have
+turned the feature on, and cargo builds `mf2` once with the union.
+
+```text
+en   (fn-datetime on; no message names a date function)
+```
+
+Fix: drop the feature from `Cargo.toml` (or from the crate that turned it
+on); or, if plain placeholders receive dates on purpose,
+`unused-feature = "allow"` under `[lints]`.
+
 ### `unpaired-markup`
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
