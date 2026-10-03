@@ -11,6 +11,12 @@ minimum Rust version says so here.
 breaking changes that 2.x cannot, and each task that changes what an
 application sees adds its line here.
 
+* **A custom function can ask whether a value matches a key, accents written
+  either way.** `FnContext::equivalent(value, key)` makes the comparison MF2
+  asks for between a selector value and a variant key, from the catalog's own
+  map: no allocation, no normalization tables. `:string` selection and the
+  matching of argument names passed through the dynamic API now go through
+  it, so they behave the same on every host.
 * **A catalog carries its own canonical-equivalence map, and the binary
   format is version 2.** A compiled catalog now holds a small table of the
   code points that can reach its variant keys and argument names after

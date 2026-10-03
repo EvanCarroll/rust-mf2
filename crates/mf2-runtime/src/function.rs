@@ -120,6 +120,16 @@ impl<'x> FnContext<'x> {
         self.catalog
     }
 
+    /// Whether `value`, a string the program passed in, is canonically
+    /// equivalent to `key`, a string this catalog holds in NFC — the
+    /// comparison MF2 asks for between a selector value and a variant key,
+    /// and the one `:string` makes. Decided from the small map the catalog
+    /// carries (`plan/01` §4.3), so a custom selector can make it without
+    /// the normalization tables and without allocating.
+    pub fn equivalent(&self, value: &str, key: &str) -> bool {
+        crate::nfc::equivalent(self.catalog.nfc_map(), value, key)
+    }
+
     /// The formatting context's time zone (the default of `timeZone`).
     pub fn time_zone(&self) -> &'x TimeZone {
         self.time_zone

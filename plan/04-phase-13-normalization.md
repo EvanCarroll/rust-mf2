@@ -23,7 +23,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 13.4
+* **Next:** 13.5
 
 ## Done
 
@@ -44,6 +44,11 @@ exit", then stops: the next phase starts in a fresh session.
   catalog is refused. `mf2 stats` lists the map per locale, `mf2 dump` ahead
   of the messages. B7 holds: the reference corpora's keys are ASCII, so no
   catalog there carries the section at all.
+* **13.4** `:string` matching and `slot_map` ask the catalog's map
+  (`FnContext::equivalent`, the helper a custom function uses); `Host::nfc`
+  is left only in the oracles and the L4 runner (13.5). The differential test
+  (`conformance/tests/nfc.rs`) runs both paths over every string of the
+  suite and the key sets of 13.1, and they agree. No ledger entry moved.
 
 ## Before this phase
 

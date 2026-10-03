@@ -47,10 +47,8 @@ mod format;
 mod function;
 pub mod functions;
 mod host;
-mod number;
-// Task 13.4 is what calls the check from inside the crate; until then only
-// the differential fuzz target (`nfc_equivalent`) does.
 mod nfc;
+mod number;
 mod parts;
 mod plural;
 mod scratch;
@@ -73,8 +71,9 @@ pub use format::{BidiStrategy, FormatContext, Formatter};
 pub use function::{FnContext, Function, OptionValue, Options, Registry};
 pub use host::{Host, NumberFormatter};
 /// Canonical equivalence with a catalog key from the catalog's map, for the
-/// differential fuzz target (`fuzz/fuzz_targets/nfc.rs`), which checks it
-/// against full NFC. Applications use the helper on the function context.
+/// differential fuzz target (`fuzz/fuzz_targets/nfc.rs`) and the
+/// conformance crate's differential test, both of which check it against
+/// full NFC. Applications use [`FnContext::equivalent`].
 #[doc(hidden)]
 pub use nfc::equivalent as nfc_equivalent;
 pub use number::{

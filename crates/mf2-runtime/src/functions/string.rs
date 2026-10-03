@@ -1,14 +1,12 @@
 //! `:string` (`functions/string.md`): formats its operand's string form and
-//! selects by comparing the operand's NFC form with the (NFC) key. No
+//! selects by asking whether the operand is canonically equivalent to the
+//! (NFC) key, which the catalog's own map decides (`plan/01` §4.3). No
 //! options; direction unknown.
-
-use alloc::string::String;
 
 use crate::error::FormatError;
 use crate::function::{FnContext, Function, Options};
 use crate::number::equals;
 use crate::sink::{ErrorSink, Sink};
-use crate::text::nfc_quick;
 use crate::unannotated;
 use crate::value::Value;
 
@@ -52,11 +50,7 @@ impl Function for StringFunction {
         _errs: &mut dyn ErrorSink,
     ) -> bool {
         match value.as_str() {
-            Some(s) if nfc_quick(s) => s == key,
-            Some(s) => {
-                let mut buf = String::new();
-                cx.host().nfc(s, &mut buf) == key
-            }
+            Some(s) => cx.equivalent(s, key),
             // A number's string form is ASCII, so already NFC.
             None => equals(key, |out| unannotated::format(value, cx.host(), out)),
         }

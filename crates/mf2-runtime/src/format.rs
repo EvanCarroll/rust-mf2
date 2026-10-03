@@ -10,7 +10,6 @@ use crate::host::Host;
 use crate::parts::{ExpressionPart, FallbackSource, Isolation, MarkupPart, Part, PartSink};
 use crate::scratch::Scratch;
 use crate::sink::{ErrorSink, Sink};
-use crate::text::nfc_quick;
 use crate::value::Arg;
 
 /// A bidirectional isolation strategy (formatting.md, "Handling
@@ -127,7 +126,7 @@ impl<'c> Formatter<'c> {
     }
 
     /// Formats message `id` with named `args`: each slot takes the argument
-    /// whose NFC name equals the slot's name in NAMES.
+    /// whose name is canonically equivalent to the slot's name in NAMES.
     pub fn write_named(
         &self,
         id: MsgId,
@@ -158,18 +157,15 @@ impl<'c> Formatter<'c> {
             _ => Names::EMPTY,
         };
         let mut map = Scratch::new();
-        let mut buf = alloc::string::String::new();
+        // The names are NFC in the catalog; a name the program passed in is
+        // whatever it wrote, so the comparison is canonical equivalence,
+        // decided from the catalog's own map (`plan/01` §4.3).
+        let nfc = self.catalog.nfc_map();
         for slot in 0..names.external_count() {
             let name = names.external(slot).and_then(|r| self.catalog.text(r));
             let found = name.and_then(|name| {
-                args.iter().position(|(n, _)| {
-                    if nfc_quick(n) {
-                        *n == name
-                    } else {
-                        buf.clear();
-                        self.cx.host.nfc(n, &mut buf) == name
-                    }
-                })
+                args.iter()
+                    .position(|(n, _)| crate::nfc::equivalent(nfc, n, name))
             });
             let i = found
                 .and_then(|i| u32::try_from(i).ok())
