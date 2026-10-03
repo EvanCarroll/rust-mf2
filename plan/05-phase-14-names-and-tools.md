@@ -19,7 +19,7 @@ exit", then stops: the next phase starts in a fresh session.
 
 * **In flight:** 14.2. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.2, then 14.3
+* **Next:** 14.2, then the rename above, then 14.3
 
 ## Done
 
@@ -37,9 +37,10 @@ exit", then stops: the next phase starts in a fresh session.
   is gone (its users name `mf2-runtime/intl`); `Features::number_intl()`;
   the 2.0.0 baseline keeps `intl`. The `mf2-host-web` statics keep their
   names: they name the date host they wrap, and their gate
-  (`mf2-host-web/intl`) is unchanged. Open for the owner: whether
-  `INTL_NUMBERS_HOST` (number host over the `datetime-intl` date host)
-  reads clearly.
+  (`mf2-host-web/intl`) is unchanged. Owner, 2026-10-03:
+  `INTL_NUMBERS_HOST` (number host over the `datetime-intl` date host) is
+  renamed `INTL_DATES_NUMBERS_HOST`; a small task after 14.2 does it, with
+  the API listing and a `## 3.0.0` line.
 
 ## Before this phase
 
