@@ -27,9 +27,9 @@ not start a task over a dirty tree.
 
 ## State
 
-* **In flight:** 14.1a. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.1a, then 14.3, 14.4, 14.5, Phase exit
+* **Next:** 14.3, then 14.4, 14.5, Phase exit
 
 ## Done
 
@@ -55,6 +55,11 @@ not start a task over a dirty tree.
   `number-intl` on with no numeric function, plural selection or plain
   placeholder. Silent in `mf2 check` when it assumes the features. Allowed in
   the i18n fixture's three `mf2.toml` (size gates build every feature set).
+* **14.1a** (df81666): `INTL_NUMBERS_HOST` is `INTL_DATES_NUMBERS_HOST`
+  (static, `__use_host!` arm, API listing; 14.0's changelog line amended).
+  Cold ci after `cargo clean` (bash `time`; no `/usr/bin/time` here): wall
+  3589 s, user+sys 6272 s (5880 + 392), `target/` 34 GB after; it stopped at
+  `api --check` (listing order), the last step but one. Rerun green.
 
 ## Before this phase
 
