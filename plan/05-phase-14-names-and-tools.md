@@ -29,7 +29,7 @@ not start a task over a dirty tree.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.5, then Phase exit
+* **Next:** Phase exit
 
 ## Done
 
@@ -70,6 +70,11 @@ not start a task over a dirty tree.
   `ratatui, fn-number`, ssr `leptos, fn-number`, islands adds `static-locale`,
   csr `leptos, csr, fn-number`. New test covers both paths for every mode.
   ci green (first run stopped at `fmt`), `--only docs` green.
+* **14.5** (c635ba1): `FnContext::equivalent` returns `Option<bool>`, `None`
+  when the key holds a character the catalog's map does not reach
+  (`nfc::check`); the runtime's own sites keep the `bool` `nfc::equivalent`.
+  ci green, docs-rs clean, B12 clean. B1 26,834 (Phase 13) -> 26,876 B gz,
+  inside the 64 B noise band (`run.sh p14-5 --only sizes`).
 
 ## Before this phase
 
