@@ -83,9 +83,22 @@ loaded catalogs need the interpreter anyway. The interpreter stays.
 | Format floats with `core` instead of `ryu` | −13,155 B (12.8 KiB) | §4.2 |
 | Decide at build time how much normalization a catalog needs | −121,386 B (118.5 KiB) | §4.3 |
 | **mf2-trip over trip afterwards** | **+106,198 B (103.7 KiB)** | |
+| *Measured for §4.3 at the Phase 13 exit* | *−122,168 B (119.3 KiB)* | §4.3 |
 
 What remains is the interpreter (91 KiB), the catalogs net of the TOML they
 replace (+4 KiB) and about 9 KiB of other changes.
+
+The §4.3 row is measured, not estimated (Phase 13's exit, 2026-10-02): the
+same trippy branch and toolchain either side, only this tree differing.
+`trip` built against the tree before task 13.1 is 8,366,240 B; against the
+phase's end, 8,244,072 B. The estimate was 121,386 B.
+
+Those absolute bytes are not comparable with the 10,222,768 above. That
+figure is branch `mf2`, whose own clock still used `chrono-tz`; the
+measurement is branch `mf2-jiff` (owner, 2026-10-02), which migrated trippy
+to jiff and so stopped carrying a second zone database. The two zone
+databases §1.2 noted are therefore one, and the remaining gap is the owner's
+migration, not this work.
 
 ## 2. Owner decisions (2026-10-01)
 

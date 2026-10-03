@@ -21,9 +21,9 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
-  is merged.
-* **Next:** the phase exit
+* **In flight:** nothing. The phase is closed.
+* **Next:** Phase 14 (`plan/05-phase-14-names-and-tools.md`), in a fresh
+  session.
 
 ## Done
 
@@ -54,6 +54,17 @@ exit", then stops: the next phase starts in a fresh session.
   glue. The L4 runner, `conformance/tests/nfc.rs` and the `format` fuzz target
   now normalize with `unicode-normalization` themselves. The canaries forbid
   the tables in the four prebuilt sets and require them in `native,compile`.
+* **Exit** (2026-10-02). `bash tools/checks/run.sh p13 --against p12`: all 21
+  checks pass. Stripped `tui-mf2` 1,454,264 → **1,328,664 B** (−125,600);
+  **B1 26,938 → 26,834 B gz** (−104: the check's code is smaller than the
+  `normalize` glue, the vtable slot and the buffer it replaced); B5 8.2 and
+  10.3 B a site; the reference catalogs 6–110 B brotli smaller; allocations
+  per frame unchanged; ledger 612/612, no gaps. The fuzz exit run: 50,270
+  execs in 3,901 s, clean. `SIZE_LIMIT` lowered to 1,328,664 in
+  `xtask/src/tui_gate.rs` and `tools/checks/compare.sh` (`2696155`). trippy
+  measured on `mf2-jiff`: 8,366,240 → 8,244,072 B, −122,168 (119.3 KiB)
+  against 118.5 KiB estimated — `plan/01` §1.4 has the row and the caveat.
+  Decision 6 (no general NFC) and task 14.5 came out of the phase (`099585a`).
 
 ## Before this phase
 
@@ -191,7 +202,8 @@ and §4.3 change in the same commit.
 3. Lower `SIZE_LIMIT` in `xtask/src/tui_gate.rs` and `tools/checks/compare.sh`
    to the measured size. One commit, with the old and new bytes.
 4. Ask the owner, in plain English, whether to measure trippy again now: it
-   means switching the checkout in `vendor/trippy` to its `mf2` branch and
+   means switching the checkout in `vendor/trippy` to its `mf2-jiff` branch
+   (owner, 2026-10-02: `mf2-jiff`, not `mf2`, is the branch to measure) and
    pointing it at this tree. If yes, build `mf2-trip` and add the bytes to
    `plan/01` §1.4 as a new row, beside the 10,222,768 it started from.
 5. Add a Done entry for the exit: the sizes, and the fuzz run's length.
