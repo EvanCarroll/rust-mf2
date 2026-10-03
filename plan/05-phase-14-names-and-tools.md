@@ -30,7 +30,10 @@ exit", then stops: the next phase starts in a fresh session.
   passes 7/7 in Chromium and Firefox (WebKit not installed) and fails 4/7
   with the arm removed. No refused feature set became valid. Rename the
   statics in 14.1. Found, not fixed: the host's `Intl.PluralRules` call
-  passes `+v`, so `1.0` selects `one` instead of `other`; open for the owner.
+  passes `+v` with no digit options, so `1.0` selects `one`. A defect only if
+  the host displays `1.0` while selecting `one`; after 14.1, an agent checks
+  that display and selection agree, against the Rust path (owner,
+  2026-10-03), before any fix.
 
 ## Before this phase
 
