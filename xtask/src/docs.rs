@@ -96,6 +96,8 @@ const INDEX_PAGES: &[&str] = &[
     "docs/configuration.md",
     "docs/lints.md",
     "docs/features.md",
+    // The table `cargo xtask feature-costs` writes, which a page includes.
+    "docs/feature-costs.md",
 ];
 
 /// This repository's crates, as a documented manifest names them.

@@ -63,6 +63,10 @@ pub(crate) enum Error {
     /// requires — or the canary application could not be linked or read.
     #[error("native-canaries: {0}")]
     NativeCanaries(String),
+    /// A fresh measurement of a feature's cost is off from the committed
+    /// table, or a row is missing from it.
+    #[error("feature-costs: {0}")]
+    FeatureCosts(String),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \

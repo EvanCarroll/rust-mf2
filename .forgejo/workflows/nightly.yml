@@ -42,6 +42,9 @@
 #   on leptos-fluent, converted by `mf2 convert --from leptos-fluent`, its
 #   call sites compared byte for byte with `fluent-converted`, finished as
 #   the migration guide says, and built for the client and the server.
+#   Then `cargo xtask feature-costs --check` (plan/01 §6.4): each function
+#   and data feature built with and without, client and native, held to
+#   the figures the guide publishes (docs/feature-costs.md).
 # * `l6-web` (a job of its own; plans/14 A6b): conformance layer L6 in the
 #   browser — every runtime-valid suite message server-rendered, hydrated in
 #   Chromium and Firefox, switched to the twin locale and back
@@ -359,6 +362,12 @@ jobs:
       - name: The reference application migrated from leptos-fluent
         run: cargo xtask fluent-migrate
 
+      # plan/01 §6.4: what each function and data feature adds, in the client
+      # and in a native binary, held to the table the guide includes
+      # (docs/feature-costs.md). Many builds, one at a time.
+      - name: Each feature's measured cost holds
+        run: cargo xtask feature-costs --check | tee -a size.md
+
       - name: Upload the size report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
@@ -367,6 +376,7 @@ jobs:
           path: |
             size.md
             target/size/report.md
+            target/feature-costs/feature-costs.md
           if-no-files-found: ignore
 
   l6-web:

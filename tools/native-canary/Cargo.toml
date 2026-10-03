@@ -33,15 +33,27 @@ fn-datetime = ["mf2/fn-datetime"]
 compile = ["mf2/compile"]
 # A terminal UI and an Axum server: the two other native shapes `mf2` has a
 # module for. Each embeds the catalogs the same way, so each turns `native`
-# on beside its own layer.
-ratatui = ["native", "mf2/ratatui"]
+# on beside its own layer. `ratatui` draws a message as a Ratatui `Line`
+# through `mf2::ratatui`; `tui` is the same application without it, which
+# formats to a `String` and makes the `Line` itself — what
+# `cargo xtask feature-costs` sets `ratatui` against.
+tui = ["dep:ratatui-core"]
+ratatui = ["native", "tui", "mf2/ratatui"]
 axum = ["native", "mf2/axum"]
 # The bundled IANA database rather than the machine's, which a server turns
 # on. Nothing without `fn-datetime`.
 tzdb-bundled = ["mf2/tzdb-bundled"]
+# A command line that takes `--lang`: `cli` parses it as text and looks the
+# language up itself, `clap` lets clap parse it through `mf2`'s value parser.
+# `cargo xtask feature-costs` sets the second against the first.
+cli = ["dep:clap"]
+clap = ["cli", "mf2/clap"]
 
 [dependencies]
 mf2 = { path = "../../crates/mf2" }
+# The versions the root workspace declares.
+clap = { version = "4.6.7", optional = true }
+ratatui-core = { version = "0.1.2", optional = true, default-features = false }
 
 [build-dependencies]
 mf2-build = { path = "../../crates/mf2-build" }

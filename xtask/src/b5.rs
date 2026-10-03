@@ -38,13 +38,13 @@ const BUDGET: f64 = 40.0;
 
 /// One scale of the reference workload: the knobs of `plans/06` §2, at the
 /// ratios P0.1 used.
-struct Scale {
+pub(crate) struct Scale {
     sites: usize,
     messages: usize,
     components: usize,
 }
 
-const SCALES: [Scale; 2] = [
+pub(crate) const SCALES: [Scale; 2] = [
     Scale {
         sites: 1_860,
         messages: 1_600,
@@ -155,20 +155,28 @@ pub(crate) fn measure(
     let mut measured: Vec<(usize, Vec<(&str, Sizes)>)> = Vec::new();
     for scale in &SCALES {
         let workload = out.join(format!("wl-{}{}", mode.tag(), scale.sites));
-        generate(root, &workload, scale, mode)?;
+        generate(root, &workload, scale, mode, &[])?;
         let sites = site_count(&workload)?;
         let mut sizes = Vec::new();
         for template in mode.templates() {
             eprintln!("b5: building app-{template} at {sites} sites");
-            sizes.push((template, build(root, &workload, template)?));
+            sizes.push((template, build(root, &workload, template, "hydrate")?));
         }
         measured.push((sites, sizes));
     }
     Ok(measured)
 }
 
-/// Generates one workload with all three applications.
-fn generate(root: &Path, workload: &Path, scale: &Scale, mode: Mode) -> Result<()> {
+/// Generates one workload with all three applications; `extra` goes to the
+/// generator as it is (`cargo xtask feature-costs` asks for `:number` and
+/// `:datetime` messages through it).
+pub(crate) fn generate(
+    root: &Path,
+    workload: &Path,
+    scale: &Scale,
+    mode: Mode,
+    extra: &[&str],
+) -> Result<()> {
     if workload.join(".workload-gen").is_file() {
         eprintln!("b5: reusing {}", workload.display());
         return Ok(());
@@ -217,6 +225,7 @@ fn generate(root: &Path, workload: &Path, scale: &Scale, mode: Mode) -> Result<(
         OsStr::new("--out"),
         workload.as_os_str(),
     ]);
+    args.extend(extra.iter().map(OsStr::new));
     cmd::run_inherit(&cargo, &args, root)
 }
 
@@ -231,9 +240,9 @@ fn site_count(workload: &Path) -> Result<usize> {
     Ok(text.lines().filter(|l| l.contains("\"site\"")).count())
 }
 
-/// Builds one application's client wasm, exactly as `plans/06` §3 says, and
-/// measures it.
-fn build(root: &Path, workload: &Path, template: &str) -> Result<Sizes> {
+/// Builds one application's client wasm with `features` (B5 builds it with
+/// `hydrate` alone), exactly as `plans/06` §3 says, and measures it.
+pub(crate) fn build(root: &Path, workload: &Path, template: &str, features: &str) -> Result<Sizes> {
     let app = workload.join(format!("app-{template}"));
     // Apps of different workloads share package names, so each workload gets
     // its own target directory (the generator's README says why).
@@ -247,7 +256,7 @@ fn build(root: &Path, workload: &Path, template: &str) -> Result<Sizes> {
         OsStr::new("--lib"),
         OsStr::new("--no-default-features"),
         OsStr::new("--features"),
-        OsStr::new("hydrate"),
+        OsStr::new(features),
         OsStr::new("--target"),
         OsStr::new("wasm32-unknown-unknown"),
         OsStr::new("--profile"),

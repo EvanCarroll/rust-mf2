@@ -17,13 +17,17 @@ fresh session.
 
 ## State
 
-* **In flight:** 15.1. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 15.2
+* **Next:** 15.2 (then 15.3)
 
 ## Done
 
-(nothing yet)
+* **15.1** `cargo xtask feature-costs` writes `docs/feature-costs.md` (12 rows, 2026-10-03); nightly
+  `b5` job runs `--check` (off when > 10 % and > 128 B). Client: workload with 150 `:number`/150
+  `:datetime` messages, functions through the i18n crate. Canary gained `tui`/`cli`. Findings:
+  `compile` adds 8.35 MB native, `datetime-icu` 99.9 KB gz; `number-intl` and `ratatui` save
+  bytes; `tzdb-bundled` unused costs 0. `static-locale`/`mark-fallback-lang` not measured (no Leptos layer).
 
 ## Before this phase
 

@@ -15,6 +15,7 @@ mod codegen_matrix;
 mod docs;
 mod docs_rs;
 mod error;
+mod feature_costs;
 mod feature_sets;
 mod fluent_ab;
 mod fluent_migrate;
@@ -227,6 +228,20 @@ enum Command {
     /// crate it requires; the report says which of jiff,
     /// unicode-normalization, ryu, sha2 and sys-locale each row carries.
     NativeCanaries,
+    /// What each function and data feature of `mf2` adds (`plan/01` §6.4):
+    /// the gzip bytes of the reference workload's client wasm and the
+    /// stripped bytes of `tools/native-canary`, with and without the
+    /// feature, written to `docs/feature-costs.md` for the guide. Many
+    /// builds, one at a time: nightly, not in `ci`.
+    FeatureCosts {
+        /// Hold the measurement to the committed table instead of writing
+        /// it: fail when a figure is off by more than the tolerance.
+        #[arg(long)]
+        check: bool,
+        /// Reuse the workloads and builds already under target/feature-costs.
+        #[arg(long)]
+        keep: bool,
+    },
     /// The conversions under churn (Phase 7, A5): P0.11's churning list on
     /// mf2's Leptos layer, one row shape per variant, built as a client-only
     /// site and run in the browser; no shape may grow the heap
@@ -540,6 +555,7 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::NativeCanaries => native_canaries::run(&root),
+        Command::FeatureCosts { check, keep } => feature_costs::run(&root, check, keep),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
             let engines: Vec<String> = if browser == "all" {
