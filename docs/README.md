@@ -9,7 +9,7 @@ language.
 ## One crate
 
 An application depends on **`mf2`**, and on `mf2-build` for its build
-script. `mf2`'s features choose the rest:
+script. `mf2`'s features choose the rest, and none is on by default:
 
 | Feature | For |
 |---|---|
@@ -17,7 +17,12 @@ script. `mf2`'s features choose the rest:
 | `axum` | the server: each request's language, and the catalogs' routes |
 | `native` | a command-line tool, in the system's language |
 | `ratatui` | a Ratatui terminal UI, with markup as styles |
+| `clap` | a `--lang` option parsed by clap |
+| `host-std` or `host-web` | `mf2` with no framework |
 | `fn-number`, `fn-datetime` and a date backend | numbers and dates in each language's own way |
+| `number-intl`, `datetime-intl`, `tzdb-bundled` | whose locale data: the platform's and a smaller build, or the same answer everywhere |
+
+[Features of `mf2`](features.md) says what each does and what it costs.
 
 The `mf2` command (`cargo install mf2-cli`) makes starters, checks
 translations and exchanges them with translators.

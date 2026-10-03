@@ -10,22 +10,33 @@
 //! [`IntoArg`]) are defined here, once, with every integration added behind
 //! a feature:
 //!
+//! None is on by default, so `default-features = false` is never needed. The
+//! features answer four questions; the user guide's *Features of `mf2`* page
+//! says what each costs.
+//!
 //! | Feature | Adds |
 //! |---|---|
 //! | *(core)* | the descriptions, formatted against a [`Formatter`] the caller builds; [`mf2_runtime`]'s formatter: `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
+//! | **Where does it run?** | |
 //! | `leptos` / `leptos-0-8` | the Leptos line the layer renders with: Leptos 0.9 (the default line) or 0.8 |
-//! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host |
-//! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
-//! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
-//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, installed once for the process, in the system's language and time zone; the descriptions' `Display`, `to_string()` and `to_cow()` read them (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
+//! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host, and `ssr` implies `tzdb-bundled` |
+//! | `axum` | `mf2::axum`: each request's language, the catalogs served from the server binary, the generated `Locale` as an extractor (implies `host-std` and `tzdb-bundled`; refused when compiling for `wasm32` beside `hydrate` or `csr`) |
+//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, installed once for the process, in the system's language (and, with `fn-datetime`, its time zone); the descriptions' `Display`, `to_string()` and `to_cow()` read them (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `ratatui` | [`ratatui`]: a terminal UI's text — a message as Ratatui `Text` or `Line`, its markup as styles (implies `native`; `ratatui-core` alone; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
-//! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
-//! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, localized unannotated numbers |
-//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`) — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
+//! | `clap` | a `clap` value parser on the generated `Locale`: `--lang` matched as the system's language is, and listed in `--help` |
+//! | `host-std` / `host-web` | a [`Host`]: native (servers, tests, `wasm32-wasip1`), or the browser — with no framework, how an application uses `mf2` |
+//! | **What can messages do?** | |
+//! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, `:currency`, `:unit`, localized unannotated numbers |
+//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
+//! | **Who supplies locale data?** | |
+//! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
 //! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
-//! | `host-std` / `host-web` | a [`Host`]: native (and `wasm32-wasip1`), or the browser |
-//! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
+//! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `fn-datetime`) |
+//! | **Behaviour and tools** | |
+//! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
+//! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
+//! | `compile` | [`compile_str`]: an ad-hoc message as a one-message catalog (std; servers and tests) |
 //!
 //! A Leptos mode needs a line, and the modes exclude each other: an
 //! application writes the line on its `mf2` dependency (`features =

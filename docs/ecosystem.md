@@ -4,7 +4,9 @@ Rust MF2 is a family of crates for using Unicode MessageFormat 2 (MF2) from
 Rust, in Leptos web applications and in native command-line and terminal
 applications. An application names one of them, `mf2`, and turns on the
 integration for its kind as `mf2`'s features: `leptos` and `axum` on the
-web, `native` (and `ratatui`) natively. Its build script calls `mf2-build`,
+web, `native` (and `ratatui`, `clap`) natively, and `host-std` or
+`host-web` with no framework. None is on by default
+([Features of `mf2`](features.md)). Its build script calls `mf2-build`,
 which checks the translation resources and writes the generated module the
 call sites use and one binary catalog (`.mf2b`) per language; at run time
 the runtime formats each call site against the catalog of the active
@@ -24,7 +26,7 @@ reference for its exact API and feature flags.
 
 | Crate | Role |
 |---|---|
-| [`mf2`](https://docs.rs/mf2) | Application facade: the call-site API and the MF2 runtime, with features for the host and the formatting functions. With a Leptos line and mode, `mf2::leptos`: rendering, reactive arguments, markup, and switching language live. With `axum`, `mf2::axum`: each request's language and the catalogs' routes. With `native`, `mf2::native`: the catalogs embedded or shipped, and the system's language. With `ratatui`, `mf2::ratatui`: messages as Ratatui text, markup as styles. |
+| [`mf2`](https://docs.rs/mf2) | Application facade: the call-site API and the MF2 runtime, with features for the host and the formatting functions. With a Leptos line and mode, `mf2::leptos`: rendering, reactive arguments, markup, and switching language live. With `axum`, `mf2::axum`: each request's language and the catalogs' routes. With `native`, `mf2::native`: the catalogs embedded or shipped, and the system's language. With `ratatui`, `mf2::ratatui`: messages as Ratatui text, markup as styles. With `clap`, a `--lang` value parser. With no framework, `host-std` or `host-web` alone. |
 | [`mf2-build`](https://docs.rs/mf2-build) | Build-time validation and generation of manifests, catalogs, and the Rust module used by call sites. |
 | [`mf2-cli`](https://crates.io/crates/mf2-cli) | The `mf2` command for making starters, checking resources, compiling catalogs, and converting or exchanging translations. |
 
@@ -63,5 +65,8 @@ crates. Most application code does not need to depend on them directly.
 - For a CLI or Ratatui application, turn on `mf2`'s `native` (or
   `ratatui`, which includes it). See
   [Native CLI and Ratatui apps](native-apps.md).
+- With no framework (a library, a test, a service of your own), turn on
+  `host-std` (or `host-web` in the browser) and the functions your messages
+  call. See [Features of `mf2`](features.md).
 - To understand the public Rust APIs, follow the docs.rs links in the crate
   map above. The book focuses on concepts and end-to-end use.

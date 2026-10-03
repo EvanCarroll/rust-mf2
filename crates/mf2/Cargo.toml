@@ -24,6 +24,15 @@ links = "mf2-v3"
 build = "build.rs"
 
 [features]
+# None is on by default, so `default-features = false` is never needed. A
+# feature exists only where the linker cannot decide: it changes the
+# dependency graph, the behaviour, or who supplies locale data. Everything
+# else is linked because the generated module names it. The features answer
+# four questions: where does it run (the Leptos line and mode, `axum`,
+# `native`, `ratatui`, `clap`, `host-std`, `host-web`); what can messages do
+# (`fn-number`, `fn-datetime`); who supplies locale data (`number-intl`,
+# `datetime-icu`, `datetime-intl`, `tzdb-bundled`); behaviour and tools
+# (`static-locale`, `mark-fallback-lang`, `compile`).
 default = []
 # `compile_str`: parse, validate, analyze and write a one-message catalog
 # (std, server and tests; never in a client).
@@ -32,7 +41,8 @@ compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
 # :currency, :unit) — mf2-fn-number.
 fn-number = ["dep:mf2-fn-number"]
 # Dates and times: :datetime, :date, :time and unannotated date/time values
-# — mf2-fn-datetime. With a Leptos mode, also dates in the reader's time
+# — mf2-fn-datetime — and, natively, named time zones (the machine's IANA
+# database unless `tzdb-bundled`). With a Leptos mode, also dates in the reader's time
 # zone: the client reads the browser's zone, corrects a page rendered in
 # another after hydrating, and writes the `mf2_tz` cookie the server renders
 # the next page in; off, no byte of it is in the client.
@@ -51,13 +61,14 @@ datetime-icu = [
 ]
 datetime-intl = ["fn-datetime", "mf2-fn-datetime/datetime-intl", "mf2-host-web?/datetime-intl"]
 # Time zones from the IANA database bundled into this binary rather than the
-# machine's (`plan/01` §4.1). A native application follows the system it runs
+# machine's. A native application follows the system it runs
 # on, so that a zone added or amended since this binary was built is right; a
 # server, where every reply must say the same thing whatever the host holds,
 # turns this on — `ssr` and `axum` do it for you. Nothing without
 # `fn-datetime`, which is what links a zone database at all.
 tzdb-bundled = ["mf2-host-std?/tzdb-bundled"]
-# A Host: native (servers, tests, wasm32-wasip1) or the browser.
+# A Host: native (servers, tests, wasm32-wasip1) or the browser. A mode
+# implies its host; with no framework, naming one is how `mf2` is used.
 host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
 # A native application, a command-line tool or a terminal UI (`mf2::native`):
