@@ -29,7 +29,8 @@ not start a task over a dirty tree.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** Phase exit
+* **Next:** Phase 15 (`plan/06-phase-15-costs-and-guide.md`), in a fresh
+  session. This phase is closed.
 
 ## Done
 
@@ -75,6 +76,12 @@ not start a task over a dirty tree.
   (`nfc::check`); the runtime's own sites keep the `bool` `nfc::equivalent`.
   ci green, docs-rs clean, B12 clean. B1 26,834 (Phase 13) -> 26,876 B gz,
   inside the 64 B noise band (`run.sh p14-5 --only sizes`).
+* **Exit** (2026-10-03). `run.sh p14` on `f68832e`: all 21 checks pass;
+  run without `--against`, since `target/p10-checks/p13` was gone, so sizes
+  were compared with Phase 13's Done entry: `tui=1328664` unchanged, B1
+  26,876 (14.5's +42), ledger 612/612, no gaps. `cargo xtask release
+  --allow-dirty` (owner's word): passed, 20 semver checks "no semver update
+  required" (each skips all 254 lints, a major bump), `mf2-macros` skipped.
 
 ## Before this phase
 
