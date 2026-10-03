@@ -155,10 +155,10 @@ held 247 GB (178 GB debug, 4256 incremental dirs, 119 copies of `mf2`),
 all under 3 days old. Before editing anything, with no other build running
 (`pgrep -af 'xtask|cargo'`): `cargo clean`, then `cargo xtask spec-sync`
 (and `uts35-sync`/`cldr-sync` if a step asks). Run this task's ci as
-`/usr/bin/time -v cargo xtask ci` (the cold run), and a second ci right
-after it with no edits (the warm run). Report both wall times, user+sys
-CPU and the size of `target/` after each in the Done entry. Do not repeat
-this in later tasks.
+`/usr/bin/time -v cargo xtask ci` (the cold run) and report its wall
+time, user+sys CPU and the size of `target/` after it in the Done entry.
+Task 14.3 runs its first ci the same way (the warm run, at no extra cost)
+and reports the same three figures. No further runs.
 
 ### 14.2 The lint `unused-feature`
 
