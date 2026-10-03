@@ -17,7 +17,7 @@ fresh session.
 
 ## State
 
-* **In flight:** 15.2. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 15.3
 
@@ -28,6 +28,11 @@ fresh session.
   `:datetime` messages, functions through the i18n crate. Canary gained `tui`/`cli`. Findings:
   `compile` adds 8.35 MB native, `datetime-icu` 99.9 KB gz; `number-intl` and `ratatui` save
   bytes; `tzdb-bundled` unused costs 0. `static-locale`/`mark-fallback-lang` not measured (no Leptos layer).
+* **15.2** `docs/features.md` rewritten around the four questions, includes the cost table, adds
+  "Time zones" and "A smaller build"; lib.rs table (+`axum`, `clap`, `tzdb-bundled`), README, ecosystem,
+  native-apps and Cargo comments aligned. Negatives explained: `number-intl` replaces Rust code with `Intl`
+  calls; `ratatui`'s baseline `Line::from(String)` links unicode-width tables (~9 KB, by symbol diff).
+  Code, not §3.4, settles both date backends on: `datetime-icu` formats everywhere.
 
 ## Before this phase
 

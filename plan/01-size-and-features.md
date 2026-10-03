@@ -230,7 +230,7 @@ Kept on purpose:
 * **`fn-datetime` with no backend** stays the neutral, ISO form: dates with no
   locale data.
 * **Both date backends on at once** keeps its fixed precedence
-  (`datetime-intl` in the browser); `mf2 check` says which one wins.
+  (`datetime-icu` on every target, as `mf2 check` says; corrected in 15.2).
 * **`datetime-icu` still needs `mf2-build`'s `icu-blob`** in the build
   dependency. Cargo cannot tie the two; the build error says so.
 
