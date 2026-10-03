@@ -9,17 +9,27 @@ custom function calls cannot answer outside its domain (decision 6).
 ## How to run this phase
 
 The session given this file is the coordinator. It checks "Before this
-phase", then takes the tasks in order: it sets "In flight" to the task,
-starts one `mf2-task` agent with a brief of three lines (the task's number,
-this file, the design section the task names), waits for its report, and
-goes on. It reads no code itself. After the last task it carries out "Phase
-exit", then stops: the next phase starts in a fresh session.
+phase", then runs every task not yet in "Done", and then "Phase exit", as
+**one Workflow** (owner, 2026-10-03): one fresh `mf2-task` agent per task
+(agentType `mf2-task`), strictly one after another, each given a brief of
+three lines (the task's number, this file, the design section the task
+names). Each agent, after its task's commit, adds its Done entry, moves
+"In flight"/"Next" along, and commits this file by path. An agent that must
+stop for the owner returns `blocked` with the question; the workflow then
+stops, runs nothing further, and the coordinator relays the question in
+plain English. The coordinator reads no code and keeps its own context to
+the workflow's final summary. The next phase starts in a fresh session.
+
+If "In flight" names a task whose commit is not on `main` and the working
+tree holds uncommitted changes to its files, a previous session's agent may
+still be running: check `ps` for `xtask`/`cargo` before starting, and do
+not start a task over a dirty tree.
 
 ## State
 
 * **In flight:** 14.2. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 14.2, then the rename above, then 14.3
+* **Next:** 14.2, then 14.1a, then 14.3, 14.4, 14.5, Phase exit
 
 ## Done
 
@@ -39,8 +49,7 @@ exit", then stops: the next phase starts in a fresh session.
   names: they name the date host they wrap, and their gate
   (`mf2-host-web/intl`) is unchanged. Owner, 2026-10-03:
   `INTL_NUMBERS_HOST` (number host over the `datetime-intl` date host) is
-  renamed `INTL_DATES_NUMBERS_HOST`; a small task after 14.2 does it, with
-  the API listing and a `## 3.0.0` line.
+  renamed `INTL_DATES_NUMBERS_HOST`; task 14.1a does it, after 14.2.
 
 ## Before this phase
 
@@ -125,6 +134,20 @@ Build:
 
 Done when: `cargo xtask ci`, `cargo xtask refusals` and
 `cargo xtask codegen-matrix` are green.
+
+### 14.1a `INTL_NUMBERS_HOST` becomes `INTL_DATES_NUMBERS_HOST`
+
+Owner, 2026-10-03 (14.1's Done entry): the `INTL` in the static's name meant
+the `datetime-intl` date host it wraps, but read as "the `Intl` number host".
+Rename the static in `crates/mf2-host-web` and every place that names it
+(the `__use_host!` arms in `crates/mf2/src/__generated.rs` and whatever
+writes them, tests, docs). `NUMBERS_HOST` and `ZONES_NUMBERS_HOST` keep
+their names. Regenerate the API listings (`cargo xtask api`) and add a
+`## 3.0.0` line in `CHANGELOG.md`.
+
+Done when: `cargo xtask ci` and `cargo xtask codegen-matrix` are green and
+`rg -n INTL_NUMBERS_HOST crates xtask tools conformance bench examples docs`
+finds nothing.
 
 ### 14.2 The lint `unused-feature`
 
