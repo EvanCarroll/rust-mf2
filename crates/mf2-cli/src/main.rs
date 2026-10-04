@@ -10,7 +10,7 @@
 //! | `check` | every lint, with `--format json` for CI |
 //! | `compile` | the manifest, the catalogs and the generated module, without cargo |
 //! | `fmt` | canonical `.mf2` resources (`--check` to only say which differ) |
-//! | `stats` | coverage, catalog sizes raw/gz/br, the locale data entry by entry, the pins |
+//! | `stats` | coverage, catalog sizes raw/gz/br, what ships where bundle by bundle, the pins |
 //! | `dump` | a catalog back to MF2 source or data-model JSON |
 //! | `pseudo` | `en-XA` and `ar-XB` from the source locale |
 //! | `export` / `import` | flat JSON, which every translation-management system speaks, and XLIFF 2 |

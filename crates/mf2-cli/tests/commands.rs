@@ -653,6 +653,108 @@ fn stats_takes_the_i18n_crates_features_from_cargo() {
     assert!(ok(&out).contains("number.symbols"));
 }
 
+/// `mf2 stats` says what ships where: under each feature set, every bundle
+/// with its bytes, its readers and its place, and no byte a browser
+/// downloads and never reads.
+#[test]
+fn stats_says_what_ships_where() {
+    const BODY: &str = "plain = Save\nwhen = {$d :date}\nitems = {$n :integer}\n";
+    let dir = small_corpus("cli-stats-ships", &[("en", BODY), ("fr", BODY)]);
+    let stats = |features: &str| -> serde_json::Value {
+        let out = run(&dir, &["stats", "--features", features, "--format", "json"]);
+        serde_json::from_str(&ok(&out)).expect("json")
+    };
+    // One locale's bundle called `name`, if it has one.
+    let bundle = |locale: &serde_json::Value, name: &str| -> Option<serde_json::Value> {
+        locale["bundles"]
+            .as_array()
+            .expect("an array")
+            .iter()
+            .find(|b| b["bundle"] == name)
+            .cloned()
+    };
+    let check = |value: &serde_json::Value, features: &str| {
+        assert_eq!(value["browser_downloads"], true, "{features}: {value}");
+        assert_eq!(value["unread_by_browser"], 0, "{features}: {value}");
+        for locale in value["locales"].as_array().expect("an array") {
+            let bundles = locale["bundles"].as_array().expect("an array");
+            // The catalog's bundles add up to its raw bytes.
+            let in_catalog: u64 = bundles
+                .iter()
+                .filter(|b| b["ships"] == "catalog")
+                .map(|b| b["bytes"].as_u64().expect("a number"))
+                .sum();
+            assert_eq!(in_catalog, locale["raw"].as_u64().expect("a number"));
+            let messages = bundle(locale, "messages").expect("the messages");
+            assert_eq!(messages["browser"], true, "{features}: {messages}");
+            assert_eq!(locale["unread_by_browser"], 0, "{features}: {locale}");
+        }
+    };
+
+    // `intl` in the browser: no ICU4X slice anywhere, the number entries
+    // in the catalog, read on both sides.
+    let features = "hydrate,fn-number,leptos-client-datetime-intl";
+    let intl = stats(features);
+    check(&intl, features);
+    for locale in intl["locales"].as_array().expect("an array") {
+        assert!(bundle(locale, "icu.blob").is_none(), "{locale}");
+        let symbols = bundle(locale, "number.symbols").expect("number.symbols");
+        assert_eq!(symbols["ships"], "catalog", "{symbols}");
+        assert_eq!(
+            (&symbols["browser"], &symbols["native"]),
+            (&true.into(), &true.into())
+        );
+    }
+
+    // `number-intl`: the browser takes numbers from `Intl`, so the number
+    // entries ship in the server-only table, read by native code alone.
+    let features = "hydrate,fn-number,number-intl,leptos-client-datetime-intl";
+    let number_intl = stats(features);
+    check(&number_intl, features);
+    for locale in number_intl["locales"].as_array().expect("an array") {
+        let symbols = bundle(locale, "number.symbols").expect("number.symbols");
+        assert_eq!(symbols["ships"], "server-only table", "{symbols}");
+        assert_eq!(
+            (&symbols["browser"], &symbols["native"]),
+            (&false.into(), &true.into())
+        );
+    }
+
+    // `icu` in the browser: ICU4X's date slice ships in the catalog, read
+    // by the browser; the server formats ISO and reads none of it.
+    #[cfg(feature = "icu-blob")]
+    {
+        let features = "ssr,fn-number,leptos-client-datetime-icu,leptos-server-datetime-iso";
+        let icu = stats(features);
+        check(&icu, features);
+        for locale in icu["locales"].as_array().expect("an array") {
+            let slice = bundle(locale, "icu.blob").expect("icu.blob");
+            assert_eq!(slice["ships"], "catalog", "{slice}");
+            assert_eq!(
+                (&slice["browser"], &slice["native"]),
+                (&true.into(), &false.into())
+            );
+            assert!(slice["bytes"].as_u64().expect("a number") > 0);
+        }
+    }
+
+    // The text says the same, and closes with the unread bytes.
+    let text = ok(&run(
+        &dir,
+        &[
+            "stats",
+            "--features",
+            "hydrate,fn-number,number-intl,leptos-client-datetime-intl",
+        ],
+    ));
+    assert!(text.contains("what ships where"), "{text}");
+    assert!(text.contains("server-only table"), "{text}");
+    assert!(
+        text.contains("bytes a browser downloads and never reads: 0 B"),
+        "{text}"
+    );
+}
+
 #[test]
 fn fmt_leaves_the_generated_corpus_alone() {
     // The layout `mf2 fmt` writes is the one `bench/workload-gen` writes, so

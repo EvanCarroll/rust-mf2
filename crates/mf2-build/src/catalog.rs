@@ -495,7 +495,8 @@ impl Readers {
         }
     }
 
-    fn name(self) -> &'static str {
+    /// Who they are, in words: what `unread-data` and `mf2 stats` say.
+    pub fn name(self) -> &'static str {
         match (self.browser, self.native) {
             (true, true) => "the browser and native code",
             (true, false) => "the browser alone",
@@ -539,6 +540,126 @@ pub fn check_read(
         }
     }
     Ok(())
+}
+
+/// One bundle of a locale's data, as `mf2 stats` lists it (`plan/08` §7):
+/// its bytes, who reads it, and where it ships.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Bundle {
+    /// `messages`, a section's name (`cold`, `ids`, `fallback`, `nfc`) or
+    /// a LOCALE entry's (`plural.cardinal`, `icu.blob`, ...).
+    pub name: String,
+    /// Raw bytes.
+    pub bytes: usize,
+    /// Who reads it.
+    pub readers: Readers,
+    /// Where it ships: [`Place::Catalog`] or [`Place::Server`], the
+    /// server-only table.
+    pub place: Place,
+}
+
+impl Bundle {
+    /// Whether a browser downloads it and never reads it: in the catalog a
+    /// browser downloads, with no browser among its readers.
+    pub fn unread_by_browser(&self, downloaded: bool) -> bool {
+        downloaded && self.place == Place::Catalog && !self.readers.browser
+    }
+}
+
+/// The sections a catalog leaves out when nothing needs them: `cold` and
+/// `ids` under `[catalog] strip`, `fallback` when no message falls back,
+/// `nfc` when only an identical string matches a key.
+const OPTIONAL_SECTIONS: [u16; 4] = [
+    mf2_catalog::format::section::COLD,
+    mf2_catalog::format::section::IDS,
+    mf2_catalog::format::section::FALLBACK,
+    mf2_catalog::format::section::NFC,
+];
+
+impl Catalog {
+    /// What ships where for this locale (`plan/08` §7): the messages, each
+    /// section the catalog could leave out that it carries, each LOCALE
+    /// entry of the catalog, then each entry of the server-only table.
+    /// `downloaded` is whether a browser downloads the catalog, as for
+    /// [`check_read`].
+    ///
+    /// The catalog's bundles add up to its raw bytes: `messages` is what is
+    /// left after the optional sections and the LOCALE entries' payloads,
+    /// so it holds the header, the section table and the LOCALE section's
+    /// own framing. The sections are read through the one reader both
+    /// sides share, so their readers are the messages' own.
+    pub fn bundles(&self, features: &Features, downloaded: bool) -> Vec<Bundle> {
+        let sections = sections(&self.bytes);
+        // The messages: a browser reads them when it downloads the catalog,
+        // native code always — as `Readers::of` counts native code.
+        let shared = Readers {
+            browser: downloaded,
+            native: true,
+        };
+        let mut optional = Vec::new();
+        for kind in OPTIONAL_SECTIONS {
+            let bytes: usize = sections
+                .iter()
+                .filter(|(k, _)| *k == kind)
+                .map(|(_, n)| *n)
+                .sum();
+            if bytes > 0 {
+                optional.push(Bundle {
+                    name: mf2_catalog::format::section::name(kind)
+                        .unwrap_or("section")
+                        .to_ascii_lowercase(),
+                    bytes,
+                    readers: shared,
+                    place: Place::Catalog,
+                });
+            }
+        }
+        let entry = |(key, bytes): &(u32, usize), place| Bundle {
+            name: entry_name(*key),
+            bytes: *bytes,
+            readers: Readers::of(*key, features),
+            place,
+        };
+        let entries: Vec<Bundle> = self
+            .locale_entries
+            .iter()
+            .map(|e| entry(e, Place::Catalog))
+            .collect();
+        let taken: usize = optional
+            .iter()
+            .chain(&entries)
+            .map(|bundle| bundle.bytes)
+            .sum();
+        let mut bundles = vec![Bundle {
+            name: "messages".to_owned(),
+            bytes: self.bytes.len().saturating_sub(taken),
+            readers: shared,
+            place: Place::Catalog,
+        }];
+        bundles.extend(optional);
+        bundles.extend(entries);
+        bundles.extend(self.server_entries.iter().map(|e| entry(e, Place::Server)));
+        bundles
+    }
+}
+
+/// A catalog's section table: `(kind, length)` for each section, read
+/// from the header without validating the rest.
+fn sections(bytes: &[u8]) -> Vec<(u16, usize)> {
+    use mf2_catalog::format::{HEADER_LEN, SECTION_ENTRY_LEN, header};
+    let count = bytes
+        .get(header::SECTION_COUNT..header::SECTION_COUNT + 2)
+        .and_then(|b| <[u8; 2]>::try_from(b).ok())
+        .map_or(0, |b| usize::from(u16::from_le_bytes(b)));
+    (0..count)
+        .map_while(|i| {
+            let at = HEADER_LEN + i * SECTION_ENTRY_LEN;
+            let entry = bytes.get(at..at + SECTION_ENTRY_LEN)?;
+            let kind = u16::from_le_bytes([*entry.first()?, *entry.get(1)?]);
+            let len = u32::from_le_bytes(<[u8; 4]>::try_from(entry.get(6..10)?).ok()?);
+            Some((kind, usize::try_from(len).ok()?))
+        })
+        .collect()
 }
 
 /// The name of the LOCALE entry `key`, or the key itself.

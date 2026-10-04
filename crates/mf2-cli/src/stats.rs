@@ -1,9 +1,11 @@
-//! `mf2 stats`: what the corpus costs, locale by locale and entry by entry.
+//! `mf2 stats`: what the corpus costs, locale by locale, and what ships
+//! where, bundle by bundle.
 
 use std::path::Path;
 
 use clap::Args as ClapArgs;
-use mf2_build::{Build, Config};
+use mf2_build::catalog::Bundle;
+use mf2_build::{Build, Config, Place};
 use mf2_catalog::format::{HEADER_LEN, SECTION_ENTRY_LEN, header, locale_key, section};
 use mf2_catalog::nfc_map::NfcMap;
 
@@ -31,10 +33,29 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
+    let features = crate::check::features(dir, &args.features);
+    // `Build::check` emits for a web build: a browser downloads the
+    // catalogs when a browser side is on (`plan/08` §4.1).
+    let downloaded = features.has_browser_side();
     let outcome = Build::at(dir, std::env::temp_dir().join("mf2-stats"))
         .config(config)
-        .features(crate::check::features(dir, &args.features))
+        .features(features.clone())
         .check()?;
+    // What ships where (`plan/08` §7), locale by locale, and the bytes a
+    // browser downloads and never reads.
+    let bundles: Vec<Vec<Bundle>> = outcome
+        .catalogs
+        .iter()
+        .map(|catalog| catalog.bundles(&features, downloaded))
+        .collect();
+    let unread = |bundles: &[Bundle]| -> usize {
+        bundles
+            .iter()
+            .filter(|b| b.unread_by_browser(downloaded))
+            .map(|b| b.bytes)
+            .sum()
+    };
+    let unread_total: usize = bundles.iter().map(|b| unread(b)).sum();
     // The pseudo-locales' names are the build's, not the corpus's.
     let total = outcome.manifest.ids.len() - outcome.added.len();
     // Coverage counts only the messages that need translating: one marked
@@ -84,19 +105,26 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                     catalog.file_name()
                 );
             }
-            println!("\nlocale data, entry by entry (raw bytes in the catalog):");
-            for catalog in &outcome.catalogs {
-                println!("  {}", entry_line(&catalog.tag, &entries(catalog)));
-            }
-            // The server-only table (`plan/08` §4.2): what the browser's
-            // catalog leaves out and only the server reads.
-            if outcome.catalogs.iter().any(|c| !c.server.is_empty()) {
-                println!(
-                    "\nlocale data only the server reads (raw bytes in the server-only table):"
-                );
-                for catalog in &outcome.catalogs {
-                    println!("  {}", entry_line(&catalog.tag, &server_entries(catalog)));
+            println!("\nwhat ships where (raw bytes, who reads it, where it ships):");
+            for (catalog, bundles) in outcome.catalogs.iter().zip(&bundles) {
+                println!("  {}", catalog.tag);
+                for bundle in bundles {
+                    println!(
+                        "    {:<18} {:>7} B  {:<27}  {}",
+                        bundle.name,
+                        bundle.bytes,
+                        bundle.readers.name(),
+                        place_name(bundle.place)
+                    );
                 }
+            }
+            if downloaded {
+                println!("bytes a browser downloads and never reads: {unread_total} B");
+            } else {
+                println!(
+                    "bytes a browser downloads and never reads: {unread_total} B \
+                     (no browser side: native code alone reads these catalogs)"
+                );
             }
             println!("\ncanonical equivalence, the keys a decomposed value can reach:");
             for catalog in &outcome.catalogs {
@@ -118,7 +146,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
             let locales: Vec<serde_json::Value> = outcome
                 .catalogs
                 .iter()
-                .map(|catalog| {
+                .zip(&bundles)
+                .map(|(catalog, bundles)| {
                     let entries = entries(catalog);
                     let server = server_entries(catalog);
                     let (translated, missing) = coverage(&catalog.tag)
@@ -146,6 +175,19 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                             .iter()
                             .map(|(name, n)| serde_json::json!({ "entry": name, "bytes": n }))
                             .collect::<Vec<_>>(),
+                        "bundles": bundles
+                            .iter()
+                            .map(|b| {
+                                serde_json::json!({
+                                    "bundle": b.name,
+                                    "bytes": b.bytes,
+                                    "browser": b.readers.browser,
+                                    "native": b.readers.native,
+                                    "ships": place_name(b.place),
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                        "unread_by_browser": unread(bundles),
                     })
                 })
                 .collect();
@@ -157,7 +199,9 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 "cldr": format!("{}.{}.{}", CLDR.major, CLDR.minor, CLDR.patch),
                 "spec": SPEC_COMMIT,
                 "catalog_format": mf2_catalog::format::VERSION_MAJOR,
+                "browser_downloads": downloaded,
                 "locales": locales,
+                "unread_by_browser": unread_total,
                 "errors": outcome.report.errors(),
                 "warnings": outcome.report.warnings(),
             });
@@ -227,19 +271,13 @@ fn named(entries: &[(u32, usize)]) -> Vec<(&'static str, usize)> {
         .collect()
 }
 
-/// One locale's entries as a line: the tag, the total, each entry.
-fn entry_line(tag: &str, entries: &[(&'static str, usize)]) -> String {
-    let total_bytes: usize = entries.iter().map(|(_, n)| n).sum();
-    let list = if entries.is_empty() {
-        "(none)".to_owned()
-    } else {
-        entries
-            .iter()
-            .map(|(name, n)| format!("{name} {n} B"))
-            .collect::<Vec<_>>()
-            .join(", ")
-    };
-    format!("{tag:<8} {total_bytes:>6} B  {list}")
+/// Where a bundle ships, in words.
+fn place_name(place: Place) -> &'static str {
+    match place {
+        Place::Catalog => "catalog",
+        Place::Server => "server-only table",
+        Place::Nowhere => "nowhere",
+    }
 }
 
 /// What a LOCALE key is called (the catalog-format design §4).
