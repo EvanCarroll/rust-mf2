@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** 17.2. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.2
+* **Next:** 17.3
 
 ## Done
 
@@ -34,6 +34,10 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
   catalog or a `<file>.mf2b.server` table; `CATALOGS` is `(tag, file, bytes, table)`,
   `CatalogFile::with_server_data` feeds `CORPUS` (axum, `Locale::format`, native); `mf2
   stats` lists the table. Tests in `slicing.rs`, `features.rs`, `codegen.rs`.
+* 17.2: the browser under `number-intl` reads no LOCALE entry (confirmed by reading).
+  `Features::number_place` sends `plural.*`, `number.*`, `currency.data`, `unit.data` to the
+  table when a browser side exists; `number-intl` joins `CATALOG_FEATURES`. Both builds must
+  now see `number-intl` (the guide, Phase 19). Tests in `slicing.rs`, `features.rs`.
 
 ## Before this phase
 
@@ -180,6 +184,7 @@ One line per task, only for what could not be confirmed by reading.
   passes three-field rows to `install_catalogs` (E0308, its lines 269, 285, 298, 351,
   373): stale out dirs, or a codegen path still writing three fields. It also flagged
   `mf2/tests/time_zone.rs:50`, which reads as four fields (likely stale).
+* 17.2: `api.txt` of `mf2-build` moves (`CATALOG_FEATURES` is `[&str; 4]`, `number_place`).
 
 ## Phase exit (coordinator)
 
