@@ -17,7 +17,7 @@ fresh session.
 
 ## State
 
-* **In flight:** 15.2a. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 15.3
 
@@ -33,6 +33,11 @@ fresh session.
   native-apps and Cargo comments aligned. Negatives explained: `number-intl` replaces Rust code with `Intl`
   calls; `ratatui`'s baseline `Line::from(String)` links unicode-width tables (~9 KB, by symbol diff).
   Code, not §3.4, settles both date backends on: `datetime-icu` formats everywhere.
+* **15.2a** Both date backends on: `mf2-fn-datetime`'s default backend is `Intl` in the browser,
+  ICU4X over `icu.blob` elsewhere (compile-time checks; a wasm clippy set in `ci`). `mf2 check`
+  text/JSON, `docs/features.md` (hydration may differ), `mf2` docs and Cargo comments aligned.
+  Client wasm, dates workload, both on: 803,783 → 703,921 B gzip (`datetime-intl` alone 704,131).
+  Catalogs still carry `icu.blob` for the server; the browser downloads it unused.
 
 ## Before this phase
 

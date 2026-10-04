@@ -233,7 +233,7 @@ Kept on purpose:
   (`datetime-intl` in the browser, `datetime-icu` elsewhere); `mf2 check` says
   which one wins. The code had ICU win everywhere; the owner kept this
   design (2026-10-03), so a browser build with both on carries no ICU date
-  data. Task 15.2a fixes the code.
+  data. Task 15.2a fixed the code.
 * **`datetime-icu` still needs `mf2-build`'s `icu-blob`** in the build
   dependency. Cargo cannot tie the two; the build error says so.
 
