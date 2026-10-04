@@ -388,6 +388,13 @@ feature of `mf2-fn-datetime` that the native host turns on. Whether a browser
 build with ICU4X gets it is decided by its measured size. The baseline is
 §1.2's speed.
 
+The cache knows a catalog by a number the catalog is given when it is loaded
+(a process-wide counter, never reused), not by its bytes or its address: a
+lookup is one integer comparison, the cache keeps no copy of a blob, and a
+catalog loaded after another is dropped never gets the other's formatters
+(owner, 2026-10-04, after 18.2 compared the whole blob on every lookup and
+kept about two copies of it per thread).
+
 ## 6. Numbers: the split, measured first
 
 `Intl.NumberFormat` writes currency and unit names in the browser; digits,

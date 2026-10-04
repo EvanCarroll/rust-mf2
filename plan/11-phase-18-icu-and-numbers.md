@@ -183,6 +183,28 @@ Done when: the code, the tests and the script are committed. The task makes
 no default and adds no feature to `mf2`. Phase 22 runs the script and asks
 the owner.
 
+### 18.2a The cache knows a catalog by a number (after 18.4)
+
+Design: `plan/08` §5.2, its last paragraph (owner, 2026-10-04).
+
+18.2's `CachedBlob` knows a catalog by its blob's bytes: each lookup
+compares the whole blob, and each thread keeps about two copies of every
+blob. Build: each catalog gets a number when it is loaded, from a
+process-wide counter that never reuses one, and the cache keys its
+providers and formatters on that number. No copy of a blob is kept. The
+cache stays panic-free, and `Blob` (uncached, `uncached-dates`) stays the
+switch Phase 22 measures against.
+
+Starts at: `crates/mf2-fn-datetime/src/icu/cache.rs`, and the path by which
+a catalog's date slice reaches it (`rg -n CachedBlob crates`).
+
+Tests (written here, run in Phase 21): `cache_two_catalogs_in_turn` still
+holds; two catalogs with byte-identical slices loaded separately, and a
+catalog loaded after another is dropped, each format as the uncached
+backend does.
+
+Phase 22 measures: `date_cost` with the cache against `uncached-dates`.
+
 ## For Phase 20
 
 One line per task, only for what could not be confirmed by reading.
