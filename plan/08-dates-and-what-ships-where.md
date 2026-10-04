@@ -315,6 +315,8 @@ server's build script knows what the browser reads. `CATALOG_FEATURES`
   content hash cover what the browser downloads.
 * **The generated module** embeds the table for a server beside `CATALOGS`,
   under the gate that already keeps the catalogs out of a client.
+  As built (17.1): each `CATALOGS` row is `(tag, file, bytes, table)`, and `CORPUS`
+  gets the same table through `CatalogFile::with_server_data`.
 * **The reader** gets a feature, `server-data`, that only the native host
   turns on: a catalog may carry a second source that `locale_entry` falls
   back to, and the plural spans are read from it too. Off, the field does

@@ -23,13 +23,17 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** 17.1. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.1
+* **Next:** 17.2
 
 ## Done
 
-(nothing yet)
+* 17.1: `mf2-catalog/server-data` (`Catalog::with_server_data`, plural spans too; `host-std`
+  turns it on); `Features::date_slice_place`; `catalog::write` puts `icu.blob` in the
+  catalog or a `<file>.mf2b.server` table; `CATALOGS` is `(tag, file, bytes, table)`,
+  `CatalogFile::with_server_data` feeds `CORPUS` (axum, `Locale::format`, native); `mf2
+  stats` lists the table. Tests in `slicing.rs`, `features.rs`, `codegen.rs`.
 
 ## Before this phase
 
@@ -170,7 +174,8 @@ deliberately wrong placement, which must fail it.
 
 One line per task, only for what could not be confirmed by reading.
 
-(nothing yet)
+* 17.1: `api.txt` of `mf2`, `mf2-build`, `mf2-catalog` moves (`CATALOGS`'s fourth field,
+  `with_server_data`, `Place`, `LocaleInfo::server_file_name`); regenerate it.
 
 ## Phase exit (coordinator)
 
