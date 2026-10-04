@@ -11,7 +11,7 @@ The session given this file is the coordinator. It checks "Before this
 phase", then takes the tasks in order: it sets "In flight" to the task,
 starts one `mf2-task` agent with a brief of three lines (the task's number,
 this file, the design section the task names), waits for its report, and
-goes on. It reads no code itself. Task 15.5 it runs itself. After the last
+goes on. It reads no code itself. After the last
 task it carries out "Phase exit", then stops: the next phase starts in a
 fresh session.
 
@@ -19,7 +19,10 @@ fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 15.4
+* **Next:** the phase exit. 15.4 and 15.5 moved to Phase 19 (owner,
+  2026-10-03): the date features are being replaced
+  (`plan/08-dates-and-what-ships-where.md`), and both tasks depend on them.
+  After the exit, Phase 16 (`plan/09-phase-16-date-features.md`).
 
 ## Done
 
@@ -166,40 +169,20 @@ Done when: the checks of the standing rules are green.
 
 ### 15.4 Samples and examples on 3.0
 
-Build:
-
-* The dependency samples that say `version = "2"`: `docs/native-apps.md`,
-  `docs/mf2-for-developers.md`, `docs/getting-started.md`,
-  `docs/delivery-modes.md`, `docs/call-sites.md`, `docs/upgrading.md`,
-  `docs/accessibility.md`. Find them with `rg -n 'version = "2"|mf2@2' docs
-  README.md`. The sentence in `docs/getting-started.md` that says 2.0.0 is on
-  crates.io is Phase 16's.
-* The feature lists in those samples, in `examples/*/Cargo.toml`,
-  `examples/*/i18n/Cargo.toml` and `bench/`, checked against what
-  `mf2 check` prints for each corpus.
-* `[package.metadata.docs.rs]` in `crates/mf2/Cargo.toml`: the feature set
-  docs.rs builds.
-
-Done when: `bash tools/checks/run.sh p15-samples --only docs,demos` and
-`cargo xtask ci` are green.
+Moved to Phase 19, as 19.5 (`plan/12-phase-19-report-and-guide.md`). The
+samples name date features, and Phase 16 renames those
+(`plan/08-dates-and-what-ships-where.md`, owner, 2026-10-03).
 
 ### 15.5 A cold start
 
-The coordinator, not a task agent, starts one `mf2-user` agent
-(`.claude/agents/mf2-user.md`): a developer who has only the guide. Ask it to
-build, from the guide alone, a terminal application with a date in a message
-and a Leptos application with numbers, choosing features as the guide tells
-it, and to run `mf2 check`. 3.0.0 is not on crates.io yet, so its projects
-point at this tree's crates; say so in its instructions.
-
-Each stumble it reports about features, time zones or the upgrade page
-becomes a small task in this phase (15.6, 15.7, …), added under Tasks before
-it is started. Stumbles about other things go to the owner as a list.
+Moved to Phase 19, as 19.6: the trial reads the guide, and Phase 19 rewrites
+its date pages.
 
 ## Phase exit (coordinator)
 
 1. `bash tools/checks/run.sh p15 --against p14`. Nothing should move in
-   size.
-2. Read `docs/features.md` and `docs/upgrading.md` once as a user would, and
-   confirm that every figure in them comes from 15.1's table.
+   size. This is also the baseline Phase 16 compares with.
+2. Read `docs/features.md` once as a user would, and confirm that every
+   figure in it comes from 15.1's table. Its date sections describe features
+   that Phase 16 replaces; Phase 19 rewrites them.
 3. Add a Done entry for the exit.

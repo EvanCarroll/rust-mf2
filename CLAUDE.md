@@ -8,6 +8,9 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 
 1. Read the documents in `plan/` (not its `archive/`). `plan/01-size-and-features.md` is the
    current proposal: native binary size, the feature structure, and three optimizations.
+   `plan/08-dates-and-what-ships-where.md` replaces its date features (owner, 2026-10-03):
+   who formats a date on each side, and what data ships where. Phases 16 to 19 build it;
+   Phase 20 is the release.
 2. **Never read, search, list or reference `plan/archive/`.** It holds the plans of phases
    0–10 (the former `plans/` directory) and is kept as history only. Paths such as
    `plans/03-runtime.md` in code comments point into it; do not follow them. If something
@@ -55,6 +58,15 @@ This section is the canonical statement of the rule; other documents point here.
   plural rules or symbols. CI greps for canaries.
 * **Budgets are requirements.** A size or speed
   claim comes with a measurement and the command that produced it.
+* **Every deviation is the owner's to see** (owner, 2026-10-03). A regression, or a known
+  departure from the smallest or fastest option — in a Leptos server or client, a
+  command-line tool, a terminal UI — is reported to the owner in plain English, with its
+  measurement and the command, when it is found: never only in a plan entry or a results
+  file. A cost that was not measured is reported as not measured.
+* **Data goes only where it is read, and every bundle has a setting.** A catalog section, a
+  locale entry, a date slice, a time-zone database: each can be left out or placed, and
+  none is shipped to a side that does not read it. `Intl` formats what it can in the
+  browser whenever that is smaller or faster, and server rendering stays supported.
 * **Client-path crates** (`mf2-catalog` reader, `mf2-runtime`, `mf2-fn-*`,
   `mf2-host-web`, `mf2`'s call-site types and `mf2::leptos`, `mf2-leptos-ui-0-8` /
   `-0-9`) are `no_std` where stated, `forbid(unsafe_code)`,

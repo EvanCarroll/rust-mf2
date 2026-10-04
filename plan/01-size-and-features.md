@@ -6,6 +6,11 @@ Nothing here is built yet. The work is six phases, 11 to 16, one file each
 estimate made by subtracting measured component sizes, not a rebuilt binary;
 each change lands with the binary measured again.
 
+**The date features are replaced** (owner, 2026-10-03):
+`plan/08-dates-and-what-ships-where.md` supersedes what §3.3 and §3.4 say
+about `fn-datetime`, `datetime-icu`, `datetime-intl` and both date backends
+on at once. It adds Phases 16 to 19, and the release is now Phase 20 (§7).
+
 ## 1. The case study: trippy
 
 `vendor/trippy` (untracked, the owner's port) has two release builds:
@@ -228,12 +233,13 @@ Kept on purpose:
 * **`host-std` and `host-web` stay public.** They are the only way to use
   `mf2` without Leptos or Axum, and the benchmark workload does so.
 * **`fn-datetime` with no backend** stays the neutral, ISO form: dates with no
-  locale data.
+  locale data. *(Replaced by `plan/08` §3: the `iso` feature of a family.)*
 * **Both date backends on at once** keeps its fixed precedence
   (`datetime-intl` in the browser, `datetime-icu` elsewhere); `mf2 check` says
   which one wins. The code had ICU win everywhere; the owner kept this
   design (2026-10-03), so a browser build with both on carries no ICU date
-  data. Task 15.2a fixed the code.
+  data. Task 15.2a fixed the code. *(Replaced by `plan/08` §3.2: one
+  formatter per build, the strongest of those that are on.)*
 * **`datetime-icu` still needs `mf2-build`'s `icu-blob`** in the build
   dependency. Cargo cannot tie the two; the build error says so.
 
@@ -475,7 +481,11 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
 | 13 | `plan/04-phase-13-normalization.md` | Normalization (§4.3) |
 | 14 | `plan/05-phase-14-names-and-tools.md` | `number-intl`, the lint, `mf2 check`, `mf2 init` (§3.4, §5) |
 | 15 | `plan/06-phase-15-costs-and-guide.md` | Costs per feature, the guide, the upgrade page |
-| 16 | `plan/07-phase-16-release.md` | Release 3.0.0 |
+| 16 | `plan/09-phase-16-date-features.md` | The date families, one formatter per build, the errors, the tools (`plan/08`) |
+| 17 | `plan/10-phase-17-data-where-read.md` | The server-only table, `number-intl`'s data, ISO on the server (`plan/08`) |
+| 18 | `plan/11-phase-18-icu-and-numbers.md` | The narrowest ICU4X, the cache, date speed in a browser, the number split (`plan/08`) |
+| 19 | `plan/12-phase-19-report-and-guide.md` | The report of what ships where, the costs, the guide, the samples, a cold start (`plan/08`) |
+| 20 | `plan/13-phase-20-release.md` | Release 3.0.0 |
 
 They run in that order; each starts when the one before it is done.
 

@@ -1,18 +1,21 @@
-# Phase 16 — release 3.0.0
+# Phase 20 — release 3.0.0
 
-The last of six phases (`plan/01-size-and-features.md` §7). It publishes the
-sixteen crates at 3.0.0 to crates.io, tags the release, and makes the
-documents say so.
+The last phase (`plan/01-size-and-features.md` §7,
+`plan/08-dates-and-what-ships-where.md` §8). It publishes the crates at
+3.0.0 to crates.io, tags the release, and makes the documents say so. There
+are sixteen, or seventeen if task 16.1 gave the ICU4X date backend a crate of
+its own; where this file says sixteen, read the count `cargo xtask release`
+prints.
 
 Publishing cannot be undone, so this phase has one stop for the owner's word
-(16.2). Everything before it is a rehearsal that changes nothing outside the
+(20.2). Everything before it is a rehearsal that changes nothing outside the
 machine.
 
 ## State
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.0, then 16.1
+* **Next:** 20.0, then 20.1
 
 ## Done
 
@@ -20,7 +23,7 @@ machine.
 
 ## Before this phase
 
-* Phases 11 to 15 are done, each with its exit recorded.
+* Phases 11 to 19 are done, each with its exit recorded.
 * The owner's crates.io credentials are set up on this machine
   (`cargo login`), as they were for 2.0.0.
 
@@ -28,14 +31,14 @@ machine.
 
 * Never read, search or list `plan/archive/`.
 * This phase is run by the coordinator itself, step by step; it starts a
-  task agent only for a fix that 16.1 turns up.
+  task agent only for a fix that 20.1 turns up.
 * Network: crates.io only. No push, no force, no rewritten history unless
   the owner says so (`CLAUDE.md`).
 * One build at a time, `CARGO_BUILD_JOBS=3`.
 
 ## Tasks
 
-### 16.0 Plan pointers in the code — audit, then repair
+### 20.0 Plan pointers in the code — audit, then repair
 
 The tree cites the planning documents by path, and the old `plans/`
 directory is now `plan/archive/`: every one of those citations names a path
@@ -64,10 +67,10 @@ hand never: `crates/mf2-locale-data/data/*.txt`, `conformance/REPORT.md`,
 `bench/`, and the `package.txt` header (11.0 changed that generator
 already).
 
-Citations of `plan/01` to `plan/07` are a different thing and stay: those
-documents still exist, and 16.4's second question decides whether they move
+Citations of `plan/01` to `plan/13` are a different thing and stay: those
+documents still exist, and 20.4's second question decides whether they move
 to the archive. If the answer moves them, the same rule applies to them, in
-16.3's commit.
+20.3's commit.
 
 If a citation carries a fact found nowhere else in the tree, or the pass
 cannot be made mechanical, stop at a safe point and report: dropping the
@@ -80,13 +83,13 @@ Done when: `rg -n "plans/" crates xtask tools conformance bench examples
 fuzz docs .forgejo .github` is empty, `cargo xtask ci` is green, and the
 audit's counts are in the Done entry.
 
-### 16.1 Pre-flight
+### 20.1 Pre-flight
 
 1. The tree is clean: `git status --porcelain --untracked-files=all` prints
    nothing (`vendor/` and `comparison.md` are excluded locally).
 2. `CHANGELOG.md` has a complete `## 3.0.0` entry, breaking changes first,
    and no "not yet published" line.
-3. `bash tools/checks/run.sh p16 --against p15`: every check passes, nothing
+3. `bash tools/checks/run.sh p20 --against p19`: every check passes, nothing
    moved in size.
 4. `cargo xtask native-canaries` and `cargo xtask tui-gate --gate` pass.
 5. `cargo xtask release` (no flag: the dry run). It checks the tree, the
@@ -95,12 +98,13 @@ audit's counts are in the Done entry.
    package tests, `docs-rs`, `msrv` and `cargo publish --workspace --dry-run`.
 6. `plan/01-size-and-features.md`: the status line says the design is built,
    and §1.4 has the measured sizes (from the exits of Phases 12 and 13)
-   beside the estimates.
+   beside the estimates. `plan/08-dates-and-what-ships-where.md`: the status
+   line says the same, and nothing in its §9 is still unverified.
 
 A failure here is fixed by a task agent, with a new task written under this
 heading, and the pre-flight is run again from step 1.
 
-### 16.2 Publish — the owner's word first
+### 20.2 Publish — the owner's word first
 
 Stop and ask the owner, in plain English, in one message:
 
@@ -108,8 +112,11 @@ Stop and ask the owner, in plain English, in one message:
 * that the dry run passed, with the date and the commit;
 * the measured sizes: `tui-mf2` before and after, the client's fixed cost
   (B1) before and after, and trippy if it was measured;
+* the figures of Phase 19's exit: the client with dates, a browser catalog,
+  a server binary, a command-line tool with and without dates, and anything
+  that is still larger or slower than the best known option, by how much;
 * that a published version cannot be removed, only yanked;
-* the two open questions of 16.4.
+* the two open questions of 20.4.
 
 On yes:
 
@@ -122,7 +129,7 @@ On yes:
 On no, or on any answer that is not a clear yes: stop here and record the
 answer under Done.
 
-### 16.3 The documents say so
+### 20.3 The documents say so
 
 One commit, after the publish:
 
@@ -131,7 +138,7 @@ One commit, after the publish:
 * `docs/getting-started.md`: the note under the first dependency sample.
 * `docs/versioning.md`: which `mf2` goes with which `mf2-build`.
 * `CLAUDE.md`, "Start here": 3.0.0 is on crates.io, with the date and the
-  tag, and phases 11 to 16 are done.
+  tag, and phases 11 to 20 are done.
 * `plan/01-size-and-features.md`: the status line.
 
 Find the rest with `rg -n "2\.0\.0|2\.x" README.md CLAUDE.md docs`.
@@ -140,18 +147,18 @@ Find the rest with `rg -n "2\.0\.0|2\.x" README.md CLAUDE.md docs`.
 Then tell the owner the commit and the tag exist locally and are not pushed.
 Push, and the push of the tag, only on the owner's word.
 
-### 16.4 Questions for the owner
+### 20.4 Questions for the owner
 
-Asked with 16.2, answered before this phase closes:
+Asked with 20.2, answered before this phase closes:
 
 * **The two pointer crates** (`pointers/`: `leptos-mf2` and `mf2-axum`, at
   2.0.0, outside the workspace): should they get a 3.0.0 that points at
   `mf2` 3.0, or stay as they are?
-* **The plan files:** `plan/01` to `plan/07` are finished work once this
+* **The plan files:** `plan/01` to `plan/13` are finished work once this
   phase is done. Move them to `plan/archive/` now, or leave them until the
   next plan is written?
 
 ## Phase exit
 
 A Done entry: the publish date, the commit, the tag, whether it was pushed,
-and the owner's answers to 16.4.
+and the owner's answers to 20.4.

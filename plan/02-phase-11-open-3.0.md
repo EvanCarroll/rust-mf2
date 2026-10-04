@@ -61,7 +61,8 @@ stops: the next phase starts in a fresh session.
   flight, and `--allow-dirty` reads the working tree, so it is not a snapshot
   of one commit. It is good evidence that 3.0.0 is publishable and that the
   version bump did what 11.1 intended; the record that counts for the release
-  is Phase 16's pre-flight, which runs the same command on a quiet tree.
+  is the release phase's pre-flight (now Phase 20), which runs the same command
+  on a quiet tree.
 
   **Phase 11 is closed.**
 
@@ -200,8 +201,9 @@ Change:
 * Regenerate what records the version: `cargo xtask api`, and the package
   listings that `cargo xtask package --check` compares.
 
-Do not touch: `pointers/` (the two pointer crates; Phase 16 asks the owner),
-the documents that say 2.0.0 is the current release (Phase 16), the
+Do not touch: `pointers/` (the two pointer crates; the release phase asks the
+owner), the documents that say 2.0.0 is the current release (the release
+phase), the
 `version = "2"` samples in `docs/` (Phase 15). Departure: `cargo xtask ci`'s
 docs check compares `mf2 init`'s output with the generated blocks of
 `docs/native-apps.md`, so those four lines had to say `"3"`; the page's other
