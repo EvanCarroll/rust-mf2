@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** 17.4. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.4
+* **Next:** phase exit, then Phase 18 (`plan/11`)
 
 ## Done
 
@@ -42,6 +42,10 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
   gains a field); when it is not the client's (ICU4X under `Intl` excepted) the correction's
   queue rewrites every hydrated text, rich nodes via an empty rebuild first. Tests:
   `time_zone.rs`; `checks/dates-formatter.mjs`, run by `l7-web` on new `dates-iso`/`-icu` pages.
+* 17.4: `catalog::check_read` (`Readers::of` from the §4.1 table, `Readers::look_in`) runs after
+  each `catalog::write`; `Error::UnreadData` (an error, not a `[lints]` entry: nothing to locate in
+  a source). Tests: wrong placements in `catalog.rs`; every buildable set of `feature_sets.rs` ×
+  the fixture's three corpora, web and native, in `xtask` (dev-dep `mf2-build/icu-blob`).
 
 ## Before this phase
 
@@ -191,6 +195,8 @@ One line per task, only for what could not be confirmed by reading.
 * 17.2: `api.txt` of `mf2-build` moves (`CATALOG_FEATURES` is `[&str; 4]`, `number_place`).
 * 17.3: the `dates-iso`/`dates-icu` builds of `conformance/l7-web` (en-US set whole, `Intl`
   client) are new; and whether `ui.rs`'s `#[allow(clippy::type_complexity)]` is needed.
+* 17.4: `api.txt` of `mf2-build` moves (`catalog::Readers`, `check_read`, `Error::UnreadData`);
+  `xtask`'s test assumes every buildable set's corpora build without error (`feature_sets.rs`).
 
 ## Phase exit (coordinator)
 
