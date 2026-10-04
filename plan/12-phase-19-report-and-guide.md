@@ -28,9 +28,9 @@ question.
 
 ## State
 
-* **In flight:** 19.5. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.5
+* **Next:** 19.6
 
 ## Done
 
@@ -56,6 +56,10 @@ question.
   reference test), the 3.0.0 changelog. Old names remain only in the
   changelog (table, 2.0 history, the Fixed entry), the 2.0.0 api baseline and
   the generated `feature-costs.md` / `api.txt`.
+* 19.5: b9155d0: the guide's samples name `mf2`/`mf2-build` 3 (feature lists
+  unchanged: only the dates sample has dates); `demo-ssr` is `intl` client +
+  `icu` server; docs.rs set already 3.0. 6100b16: `unused-feature`, lints.md,
+  features.md say a plain placeholder never formats a date (drift test too).
 
 ## Before this phase
 
