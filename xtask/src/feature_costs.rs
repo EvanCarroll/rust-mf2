@@ -478,7 +478,7 @@ fn slices(root: &Path, out: &Path) -> Result<Vec<SliceCost>> {
 /// workload's i18n crate configures its build (`bench/workload-gen`).
 fn catalogs(workload: &Path, out: &Path, build: Build) -> Result<BTreeMap<String, i64>> {
     let mut config = mf2_build::Config::default();
-    config.source_locale = "en".to_owned();
+    "en".clone_into(&mut config.source_locale);
     for &lint in mf2_build::Lint::ALL {
         let floor = lint.floor();
         if floor != mf2_build::Level::Error {

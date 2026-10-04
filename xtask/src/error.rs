@@ -69,9 +69,10 @@ pub(crate) enum Error {
     FeatureCosts(String),
 
     /// An `mf2-build` run inside a command (the catalogs `feature-costs`
-    /// measures the date slice in) failed.
+    /// measures the date slice in) failed. Boxed: `mf2_build::Error` is
+    /// large, and every xtask `Result` would carry its size.
     #[error("mf2-build: {0}")]
-    Mf2Build(#[from] mf2_build::Error),
+    Mf2Build(#[source] Box<mf2_build::Error>),
 
     #[error(
         "wasmtime {0} is not installed in target/tools; run \
@@ -192,6 +193,12 @@ pub(crate) enum Error {
 
     #[error("{0} already exists; pass --force to overwrite it")]
     LedgerExists(PathBuf),
+}
+
+impl From<mf2_build::Error> for Error {
+    fn from(error: mf2_build::Error) -> Self {
+        Self::Mf2Build(Box::new(error))
+    }
 }
 
 pub(crate) type Result<T, E = Error> = std::result::Result<T, E>;
