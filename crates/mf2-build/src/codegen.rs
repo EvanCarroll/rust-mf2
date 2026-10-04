@@ -1489,7 +1489,7 @@ mod tests {
         );
         assert!(
             block(&code, "__if_ssr")
-                .contains("    (\"ar\", \"ar.fedcba9876543210.mf2b\", MF2_CATALOG_BYTES[1]),"),
+                .contains("    (\"ar\", \"ar.fedcba9876543210.mf2b\", MF2_CATALOG_BYTES[1], &[]),"),
             "{code}"
         );
         // The corpus carries the cut its locales are matched with, and the
@@ -1739,9 +1739,11 @@ mod tests {
         // No number in the corpus: no `Intl` number host.
         let code = write(&module(&[], &intl, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
-        // Dates and numbers both.
+        // Dates and numbers both: a date reaches only through a date
+        // function.
         let both = Features::parse("number-intl,datetime,host-web-datetime-intl");
-        let code = write(&module(&[], &both, &custom, &locales, true));
+        let datetime = ["datetime".to_owned()];
+        let code = write(&module(&datetime, &both, &custom, &locales, true));
         assert!(
             code.contains("super::__mf2::__use_host!(dates numbers);"),
             "{code}"

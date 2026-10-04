@@ -482,13 +482,14 @@ impl Readers {
     /// Whether one of them looks in `place`. `downloaded` is whether a
     /// browser downloads the catalog: then an entry belongs in it only if
     /// the browser reads it, and in the server-only table only if native
-    /// code does; without one, native code is the catalog's one reader and
-    /// there is no table.
+    /// code does and the browser, which never sees the table, does not;
+    /// without one, native code is the catalog's one reader and there is no
+    /// table.
     pub fn look_in(self, place: Place, downloaded: bool) -> bool {
         match place {
             Place::Catalog if downloaded => self.browser,
             Place::Catalog => self.native,
-            Place::Server => downloaded && self.native,
+            Place::Server => downloaded && self.native && !self.browser,
             // Nothing is written there.
             Place::Nowhere => true,
         }
