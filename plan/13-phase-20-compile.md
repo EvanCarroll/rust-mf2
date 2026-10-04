@@ -20,9 +20,9 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
 
 ## State
 
-* **In flight:** step 4. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** step 4
+* **Next:** nothing; Phase 21 (`plan/14`) follows.
 
 ## Done
 
@@ -40,6 +40,16 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
   error boxed, 19.2) — found by running its clippy step alone with `--keep-going`. Then
   `cargo xtask ci --compile --keep-going` passed in 21 min 33 s
   (`target/p20/3-ci-compile-r2.log`).
+* Step 4, the three checks that only build: passed at once, 7 min 36 s — docs-rs (16 crates:
+  the baseline's 15 and `mf2-fn-datetime-web-icu`), codegen-matrix, msrv
+  (`target/p10-checks/p20/`).
+* Phase 20 (2026-10-04): all four steps pass on c735860 (steps 1 and 2 re-run there:
+  `target/p20/{1-fmt,2-check}-final.log`), tree clean. Six fix commits, all small: the
+  borrow in `mf2-build`, two warnings, and clippy in `mf2-runtime`, `mf2-fn-datetime`,
+  `mf2-conformance`/`mf2-build`'s test, `xtask`. Builds ran about 37 min in all (step 3's
+  full run 21.5 min). Another project's `cargo leptos watch` and another Claude session's
+  rust-analyzer (in another project) were running; this session's rust-analyzer, which
+  the harness restarts after edits, was stopped before each step.
 
 ## Before this phase
 

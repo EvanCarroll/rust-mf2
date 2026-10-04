@@ -69,7 +69,9 @@ question.
   `conformance/{REPORT,COVERAGE}.md`, `ledger.toml`'s header, `bench/catalog-bench/{SIZE,READER}-P2.md`,
   `bench/parser-gate/GATE-P1.md`, `bench/fluent-ab/SNAPSHOT.md`, `third_party/cldr-json/PIN`.
   Hand-written records with no generator, 8 lines: `bench/intl-probe/RESULTS.md`,
-  `bench/parser-gate/BASELINE.md`, `bench/runtime-bench/NUMBER-AB-P3.md` (owner asked).
+  `bench/parser-gate/BASELINE.md`, `bench/runtime-bench/NUMBER-AB-P3.md`: left as they are,
+  as are about 140–290 bare section marks the removed citations orphaned (owner, 2026-10-04:
+  no upside worth a rebuild). No page on the catalog's byte format: internal (owner).
   Shared scratch names let one agent's script touch another's files; each agent repaired
   its own, every commit stays in its directories, and the added lines show no broken text.
 * Phase 19 (2026-10-04): 19.1–19.5 and 19.7 committed (19.6 is Phase 21's 21.6), nothing
