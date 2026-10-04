@@ -118,6 +118,20 @@ pub struct Catalog {
     /// code reads, which `locale_entry` falls back to.
     #[cfg(feature = "server-data")]
     server: Option<ServerData>,
+    /// The number this catalog was given when it was loaded (`load-id`).
+    #[cfg(feature = "load-id")]
+    load: u64,
+}
+
+/// The next load number (`load-id`, `plan/08` §5.2): process-wide, from 1,
+/// never handed out twice (a `u64` does not wrap in a process's life).
+#[cfg(feature = "load-id")]
+static LOADS: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(1);
+
+/// A load number not given before.
+#[cfg(feature = "load-id")]
+fn next_load() -> u64 {
+    LOADS.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
 }
 
 /// The server-only table (`plan/08` §4.2): LOCALE entries in the LOCALE
@@ -338,6 +352,8 @@ impl Catalog {
             bytes,
             #[cfg(feature = "server-data")]
             server: None,
+            #[cfg(feature = "load-id")]
+            load: next_load(),
         })
     }
 
@@ -360,7 +376,22 @@ impl Catalog {
             bytes: table,
             plural,
         });
+        // Its LOCALE entries changed: to a cache it is another catalog.
+        #[cfg(feature = "load-id")]
+        {
+            self.load = next_load();
+        }
         Ok(self)
+    }
+
+    /// The number this catalog was given when it was loaded (feature
+    /// `load-id`, `plan/08` §5.2): process-wide, never given to another
+    /// catalog, and new again when [`Catalog::with_server_data`] adds a
+    /// table. A cache keys what it builds from the catalog on it.
+    #[cfg(feature = "load-id")]
+    #[doc(hidden)]
+    pub fn load_id(&self) -> u64 {
+        self.load
     }
 
     /// `format_version`: `major << 8 | minor`.

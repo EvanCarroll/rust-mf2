@@ -54,8 +54,9 @@ web-intl = []
 # catalog and its formatter per language and shape, per thread (so it needs
 # `std`), and the default data of `icu::Icu`. With no ICU4X feature it does
 # nothing. The native host turns it on (`mf2`'s `host-std-datetime-icu`); no
-# browser build does until its gzip cost is measured under 1 KB.
-cache = []
+# browser build does until its gzip cost is measured under 1 KB. It keys the
+# cache on the catalog's load number (`mf2-catalog`'s `load-id`).
+cache = ["mf2-catalog?/load-id"]
 # `compiled-data`: `icu::Compiled`, ICU4X's compiled-in data off the browser,
 # for a registry written by hand. No feature of `mf2` turns it on: the
 # backends `mf2` builds read the catalog's blob only.

@@ -591,3 +591,48 @@ fn cache_two_catalogs_in_turn() {
         assert_eq!(run(&CACHED_REGISTRY, &b), want_b);
     }
 }
+
+/// The cache knows a catalog by its load number (plan/08 §5.2): two
+/// catalogs with byte-identical slices, loaded separately, each format as
+/// the uncached backend does, and so does one loaded after another with the
+/// same slice is dropped — whatever the cache kept for the dropped one.
+#[test]
+fn cache_keys_on_the_load_number() {
+    let utc = cx(TimeZone::UTC);
+    let instant = DateTime::from_epoch_ms(1_136_214_246_000).unwrap();
+    let args = [("d", Arg::DateTime(&instant))];
+    let run = |registry: &Registry, m: &mf2::Compiled| {
+        let f = Formatter::new(&m.catalog, registry, &utc);
+        let mut out = String::new();
+        let mut errors = Vec::new();
+        f.write_named(mf2::Compiled::ID, &args, &mut out, &mut errors);
+        assert!(errors.is_empty(), "{errors:?} ({out:?})");
+        out
+    };
+    let src = "{$d :datetime dateLength=long timeZone=|Europe/Warsaw| timeZoneStyle=long}";
+    let compile = || mf2::compile_str(src, "pl").unwrap_or_else(|e| panic!("{src}: {e}"));
+    let blob = |m: &mf2::Compiled| {
+        m.catalog
+            .locale_entry(mf2_catalog::format::locale_key::ICU_BLOB)
+            .map(<[u8]>::to_vec)
+    };
+    let (a, b) = (compile(), compile());
+    assert!(blob(&a).is_some());
+    assert_eq!(blob(&a), blob(&b));
+    assert_ne!(a.catalog.load_id(), b.catalog.load_id());
+    let want = run(&UNCACHED_REGISTRY, &a);
+    assert_eq!(run(&UNCACHED_REGISTRY, &b), want);
+    for _ in 0..3 {
+        assert_eq!(run(&CACHED_REGISTRY, &a), want);
+        assert_eq!(run(&CACHED_REGISTRY, &b), want);
+    }
+    let gone = a.catalog.load_id();
+    drop(a);
+    let c = compile();
+    assert_ne!(c.catalog.load_id(), gone);
+    assert_ne!(c.catalog.load_id(), b.catalog.load_id());
+    for _ in 0..3 {
+        assert_eq!(run(&CACHED_REGISTRY, &c), want);
+        assert_eq!(run(&CACHED_REGISTRY, &b), want);
+    }
+}

@@ -2,16 +2,18 @@
 //!
 //! Without it every date placeholder copies the catalog's `icu.blob` into a
 //! provider and builds its formatter, once for `supports` and once for
-//! `format`. With it each thread keeps, per blob, the provider, the IANA
+//! `format`. With it each thread keeps, per catalog, the provider, the IANA
 //! parser (built on the first zone style) and the formatters it built, one
 //! per language, shape and variant; `supports` and `format` share them.
 //!
-//! A catalog is known by its blob's bytes, never by their address: a
-//! catalog dropped and another loaded at the same address with other bytes
-//! gets its own provider. Two catalogs with the same blob share one, which
-//! formats the same text. Per thread because ICU4X's data is neither `Send`
-//! nor `Sync` here; hence `std`. Both lists are bounded, the oldest entry
-//! going first.
+//! A catalog is known by the number it was given when it was loaded
+//! (`Catalog::load_id`, a process-wide counter that never reuses one), never
+//! by its bytes or its address: a lookup is one integer comparison, the cache
+//! keeps no copy of the blob beyond the provider's own, and a catalog loaded
+//! after another is dropped — at the same address or not — gets its own
+//! provider. Two catalogs loaded separately each get one, even with the same
+//! blob. Per thread because ICU4X's data is neither `Send` nor `Sync` here;
+//! hence `std`. Both lists are bounded, the oldest entry going first.
 //!
 //! Panic-free: a thread-local already destroyed, or a call made while the
 //! cache is borrowed (a sink that formats a date), formats as [`Blob`] does.
@@ -35,11 +37,11 @@ use mf2_runtime::{
 use super::{Blob, Data, Source, Variant, blob, iana, provider};
 use crate::plan::Plan;
 
-/// The blobs a thread keeps (a server loads one catalog per language; a
-/// reload replaces one).
+/// The catalogs a thread keeps (a server loads one per language; a reload
+/// replaces one, whose entry then ages out).
 const CATALOGS: usize = 16;
 
-/// The formatters kept per blob (the shapes of a corpus, in its language).
+/// The formatters kept per catalog (the shapes of a corpus, in its language).
 const FORMATTERS: usize = 64;
 
 std::thread_local! {
@@ -54,10 +56,11 @@ pub(super) fn run<V: Variant>(
     mut out: Option<&mut dyn Sink>,
 ) -> Result<(), FormatError> {
     let bytes = blob(cx)?;
+    let load = cx.catalog().load_id();
     let cached = CACHE.try_with(|cache| {
         let mut cache = cache.try_borrow_mut().ok()?;
         Some(
-            Catalog::find(&mut cache, bytes)
+            Catalog::find(&mut cache, load, bytes)
                 .and_then(|catalog| catalog.run::<V>(cx.locale(), plan, reborrow(&mut out))),
         )
     });
@@ -78,10 +81,10 @@ fn reborrow<'r>(out: &'r mut Option<&mut dyn Sink>) -> Option<&'r mut dyn Sink> 
     }
 }
 
-/// One blob's provider and what was built from it.
+/// One catalog's provider and what was built from it.
 struct Catalog {
-    /// The bytes the provider was built from: the key.
-    blob: Box<[u8]>,
+    /// The catalog's load number: the key.
+    load: u64,
     provider: BlobDataProvider,
     /// Built on the first plan with a zone style.
     zones: Option<IanaParser>,
@@ -89,13 +92,14 @@ struct Catalog {
 }
 
 impl Catalog {
-    /// The entry of `bytes` in `cache`, made (and the oldest dropped) if
-    /// there is none.
+    /// The entry of the catalog loaded as `load` in `cache`, made from its
+    /// blob `bytes` (and the oldest dropped) if there is none.
     fn find<'c>(
         cache: &'c mut VecDeque<Catalog>,
+        load: u64,
         bytes: &[u8],
     ) -> Result<&'c mut Catalog, FormatError> {
-        if let Some(i) = cache.iter().position(|c| *c.blob == *bytes) {
+        if let Some(i) = cache.iter().position(|c| c.load == load) {
             return cache.get_mut(i).ok_or(FormatError::UnsupportedOperation);
         }
         let provider = provider(bytes)?;
@@ -103,7 +107,7 @@ impl Catalog {
             cache.pop_front();
         }
         cache.push_back(Catalog {
-            blob: Box::from(bytes),
+            load,
             provider,
             zones: None,
             formatters: VecDeque::new(),

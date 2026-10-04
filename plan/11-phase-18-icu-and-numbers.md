@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 ## State
 
-* **In flight:** 18.2a. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 18.2a, then Phase 17's 17.5, then Phase 18's exit and Phase 19 (`plan/12`)
+* **Next:** 17.5 (in `plan/10`), then Phase 18's exit and Phase 19 (`plan/12`)
 
 ## Done
 
@@ -47,6 +47,10 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
   Rust's digits; `mf2_runtime::currency_digits_by_host` (hidden). Probe variant `rt-names-cu`;
   `bench/intl-probe/scripts/7-names.sh` writes `NAMES-RESULTS.md`. Tests in `names.rs`,
   `features.rs`, `catalog.rs`. Nothing run.
+* 18.2a: `mf2-catalog`'s `load-id` (on with `mf2-fn-datetime`'s `cache`): `Catalog::load_id` (hidden),
+  a process-wide `AtomicU64` from 1, given at load and again by `with_server_data`; `cache.rs` keys
+  on it and keeps no blob copy (the provider still owns one: the catalog's bytes are not `'static`).
+  Test: `cache_keys_on_the_load_number`. Nothing run.
 
 ## Before this phase
 
@@ -221,6 +225,7 @@ One line per task, only for what could not be confirmed by reading.
 * 18.4: `mf2-build`'s `api.txt` (`intl_names`, `names_place`, `CATALOG_FEATURES: [_; 5]`); `Merge`'s one
   lifetime over `Symbols`/`Digits` in `mf2-fn-number/src/names.rs` (covariance); its tests compile
   `{|JPY| :digits}` (a custom function) with `mf2::compile_str`; the probe's lock gains `brotli`.
+* 18.2a: `mf2-catalog`'s `api.txt` (`load_id`, if hidden items are listed); `AtomicU64` on every target the cache builds for.
 * 18.3: `mf2-fn-datetime`'s `cache` on `wasm32-unknown-unknown` (the `icu-cached` build of `tools/e2e/datetime/speed`) must compile; ICU4X's native text must equal the browser ICU4X builds' (asserted).
 
 ## Phase exit (coordinator)
