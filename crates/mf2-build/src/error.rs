@@ -172,6 +172,28 @@ pub enum Error {
         /// The `icu` features that are on, quoted: `` `native-datetime-icu` ``.
         features: String,
     },
+
+    /// `unread-data` (`plan/08` §7): after slicing, a LOCALE entry was
+    /// placed where none of its readers looks — in the catalog a browser
+    /// downloads when only native code reads it, in the server-only table
+    /// when native code does not read it, or anywhere when nothing does.
+    /// The placement is the build's own, so this is a fault of `mf2-build`,
+    /// never of the corpus.
+    #[error(
+        "unread-data: catalog for {locale}: the `{entry}` entry would go {place}, where none \
+         of its readers ({readers}) looks. This is a fault of mf2-build's placement, not of \
+         the corpus: please report it with the features this build was given"
+    )]
+    UnreadData {
+        /// The BCP 47 tag of the catalog.
+        locale: String,
+        /// The entry's name (`icu.blob`), or its key when it has none.
+        entry: String,
+        /// Where it would go.
+        place: &'static str,
+        /// Who reads it: the browser, native code, both, or nothing.
+        readers: &'static str,
+    },
 }
 
 fn plural(n: usize) -> &'static str {

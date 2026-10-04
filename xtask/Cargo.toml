@@ -31,5 +31,11 @@ tar.workspace = true
 toml.workspace = true
 thiserror = { workspace = true, features = ["std"] }
 
+[dev-dependencies]
+# The `unread-data` check over every feature set of the table and every
+# corpus of the i18n fixture (`plan/08` §7); `icu-blob` for the sets whose
+# date formatter is ICU4X.
+mf2-build = { workspace = true, features = ["icu-blob"] }
+
 [lints]
 workspace = true

@@ -12,7 +12,7 @@ use mf2_model::{Message, Pattern, PatternMessage};
 
 use crate::config::{Config, Missing, Strip};
 use crate::error::{Error, Result};
-use crate::features::Place;
+use crate::features::{DateFormatter, Features, Place, Side};
 use crate::slice::Slice;
 
 /// Brotli as `plans/06-size-and-perf.md` §3 measures B7: quality 11, window
@@ -410,4 +410,250 @@ pub fn dir_of(tag: &str) -> Result<Dir> {
         locale: tag.to_owned(),
         source,
     })
+}
+
+/// Who reads a LOCALE entry (`plan/08` §4.1). The browser looks only in the
+/// catalog it downloads; native code looks in the catalog and, beside a
+/// catalog a browser downloads, in the server-only table.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Readers {
+    /// The browser's client reads it, when a browser downloads the catalog.
+    pub browser: bool,
+    /// Native code reads it: a server, or a native application.
+    pub native: bool,
+}
+
+impl Readers {
+    /// The readers of the entry `key` under `features`, from the table of
+    /// `plan/08` §4.1 and not from [`Features::number_place`] or
+    /// [`Features::date_slice_place`], so that [`check_read`] holds the
+    /// placement to the readers rather than to itself. A key the table does
+    /// not name has no reader.
+    pub fn of(key: u32, features: &Features) -> Readers {
+        use mf2_catalog::format::locale_key;
+        match key {
+            locale_key::ICU_BLOB => {
+                let icu = |side| features.date_formatter(side) == Some(DateFormatter::Icu);
+                Readers {
+                    browser: icu(Side::Browser),
+                    native: icu(Side::Native),
+                }
+            }
+            // A browser formats and selects through `Intl` under
+            // `number-intl` and reads none of them; native code reads them
+            // on every build whose corpus needs them.
+            locale_key::PLURAL_CARDINAL
+            | locale_key::PLURAL_ORDINAL
+            | locale_key::NUMBER_SYMBOLS
+            | locale_key::NUMBER_PATTERNS
+            | locale_key::CURRENCY_DATA
+            | locale_key::UNIT_DATA => Readers {
+                browser: !features.number_intl(),
+                native: true,
+            },
+            _ => Readers {
+                browser: false,
+                native: false,
+            },
+        }
+    }
+
+    /// Whether one of them looks in `place`. `downloaded` is whether a
+    /// browser downloads the catalog: then an entry belongs in it only if
+    /// the browser reads it, and in the server-only table only if native
+    /// code does; without one, native code is the catalog's one reader and
+    /// there is no table.
+    pub fn look_in(self, place: Place, downloaded: bool) -> bool {
+        match place {
+            Place::Catalog if downloaded => self.browser,
+            Place::Catalog => self.native,
+            Place::Server => downloaded && self.native,
+            // Nothing is written there.
+            Place::Nowhere => true,
+        }
+    }
+
+    fn name(self) -> &'static str {
+        match (self.browser, self.native) {
+            (true, true) => "the browser and native code",
+            (true, false) => "the browser alone",
+            (false, true) => "native code alone",
+            (false, false) => "none at all",
+        }
+    }
+}
+
+/// `unread-data` (`plan/08` §7), checked after slicing: fails if one of
+/// the entries [`write`] put in the catalog (`catalog`, as
+/// [`Catalog::locale_entries`]) or in the server-only table (`table`, as
+/// [`Catalog::server_entries`]) went where none of its [`Readers`] looks.
+/// `downloaded` is whether a browser downloads the catalog: a browser side
+/// is on and the build is not a native application's.
+pub fn check_read(
+    tag: &str,
+    catalog: &[(u32, usize)],
+    table: &[(u32, usize)],
+    features: &Features,
+    downloaded: bool,
+) -> Result<()> {
+    let placed = catalog
+        .iter()
+        .map(|(key, _)| (*key, Place::Catalog))
+        .chain(table.iter().map(|(key, _)| (*key, Place::Server)));
+    for (key, place) in placed {
+        let readers = Readers::of(key, features);
+        if !readers.look_in(place, downloaded) {
+            return Err(Error::UnreadData {
+                locale: tag.to_owned(),
+                entry: entry_name(key),
+                place: match place {
+                    Place::Catalog if downloaded => "into the catalog a browser downloads",
+                    Place::Catalog => "into the catalog",
+                    Place::Server => "into the server-only table",
+                    Place::Nowhere => "nowhere",
+                },
+                readers: readers.name(),
+            });
+        }
+    }
+    Ok(())
+}
+
+/// The name of the LOCALE entry `key`, or the key itself.
+fn entry_name(key: u32) -> String {
+    use mf2_catalog::format::locale_key;
+    match key {
+        locale_key::PLURAL_CARDINAL => "plural.cardinal".to_owned(),
+        locale_key::PLURAL_ORDINAL => "plural.ordinal".to_owned(),
+        locale_key::NUMBER_SYMBOLS => "number.symbols".to_owned(),
+        locale_key::NUMBER_PATTERNS => "number.patterns".to_owned(),
+        locale_key::CURRENCY_DATA => "currency.data".to_owned(),
+        locale_key::UNIT_DATA => "unit.data".to_owned(),
+        locale_key::ICU_BLOB => "icu.blob".to_owned(),
+        other => format!("key {other}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use mf2_catalog::format::locale_key;
+
+    use super::check_read;
+    use crate::error::Error;
+    use crate::features::Features;
+
+    const NUMBERS: [u32; 6] = [
+        locale_key::PLURAL_CARDINAL,
+        locale_key::PLURAL_ORDINAL,
+        locale_key::NUMBER_SYMBOLS,
+        locale_key::NUMBER_PATTERNS,
+        locale_key::CURRENCY_DATA,
+        locale_key::UNIT_DATA,
+    ];
+
+    fn entries(keys: &[u32]) -> Vec<(u32, usize)> {
+        keys.iter().map(|key| (*key, 8)).collect()
+    }
+
+    /// The check on `features`, with the catalog downloaded when a browser
+    /// side is on, as `Build` calls it outside a native application.
+    fn check(features: &str, catalog: &[u32], table: &[u32]) -> crate::Result<()> {
+        let features = Features::parse(features);
+        let downloaded = features.has_browser_side();
+        check_read(
+            "en",
+            &entries(catalog),
+            &entries(table),
+            &features,
+            downloaded,
+        )
+    }
+
+    fn unread(result: crate::Result<()>, entry: &str) {
+        match result {
+            Err(Error::UnreadData { entry: found, .. }) => assert_eq!(found, entry),
+            other => panic!("expected unread-data for {entry}, got {other:?}"),
+        }
+    }
+
+    // The placements `catalog::write` makes pass.
+
+    #[test]
+    fn every_entry_where_its_readers_look_passes() {
+        check("hydrate,fn-number", &NUMBERS, &[]).expect("the browser reads them");
+        check("hydrate,fn-number,number-intl", &[], &NUMBERS).expect("the server reads them");
+        check("native,fn-number,number-intl", &NUMBERS, &[]).expect("one reader, one file");
+        check(
+            "ssr,leptos-client-datetime-intl,leptos-server-datetime-icu",
+            &[],
+            &[locale_key::ICU_BLOB],
+        )
+        .expect("only the server formats with ICU4X");
+        check(
+            "ssr,leptos-client-datetime-icu,leptos-server-datetime-iso",
+            &[locale_key::ICU_BLOB],
+            &[],
+        )
+        .expect("the browser formats with ICU4X");
+        check("native,native-datetime-icu", &[locale_key::ICU_BLOB], &[])
+            .expect("one reader, one file");
+    }
+
+    // Deliberately wrong placements: each must fail.
+
+    #[test]
+    fn number_entries_in_a_catalog_the_browser_never_reads_fail() {
+        unread(
+            check("hydrate,fn-number,number-intl", &NUMBERS, &[]),
+            "plural.cardinal",
+        );
+    }
+
+    #[test]
+    fn number_entries_in_the_table_while_the_browser_reads_them_fail() {
+        unread(
+            check("hydrate,fn-number", &[], &[locale_key::NUMBER_SYMBOLS]),
+            "number.symbols",
+        );
+    }
+
+    #[test]
+    fn a_table_with_no_browser_side_fails() {
+        unread(
+            check("native,fn-number", &[], &[locale_key::UNIT_DATA]),
+            "unit.data",
+        );
+    }
+
+    #[test]
+    fn the_date_slice_where_its_one_reader_does_not_look_fails() {
+        // Only the server formats with ICU4X: not in the browser's catalog.
+        unread(
+            check(
+                "ssr,leptos-client-datetime-intl,leptos-server-datetime-icu",
+                &[locale_key::ICU_BLOB],
+                &[],
+            ),
+            "icu.blob",
+        );
+        // Only the browser does: not in the server's table.
+        unread(
+            check(
+                "ssr,leptos-client-datetime-icu,leptos-server-datetime-iso",
+                &[],
+                &[locale_key::ICU_BLOB],
+            ),
+            "icu.blob",
+        );
+        // Neither does: nowhere at all.
+        unread(
+            check("native,native-datetime-iso", &[locale_key::ICU_BLOB], &[]),
+            "icu.blob",
+        );
+    }
+
+    #[test]
+    fn an_entry_no_one_knows_fails() {
+        unread(check("native,fn-number", &[5], &[]), "key 5");
+    }
 }

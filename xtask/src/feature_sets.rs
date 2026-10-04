@@ -967,3 +967,110 @@ pub(crate) fn list() {
     }
     println!("{} sets", SETS.len());
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+    use std::path::{Path, PathBuf};
+
+    use mf2_build::{Build, Emit, Features, catalog};
+
+    use super::{FIXTURE, Outcome, SETS, Set};
+
+    /// The i18n fixture's corpora: its own, and its two size variants.
+    fn corpora() -> [PathBuf; 3] {
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tools/i18n-fixture");
+        [
+            fixture.clone(),
+            fixture.join("variants/plain"),
+            fixture.join("variants/measures"),
+        ]
+    }
+
+    /// The `mf2` features a set turns on, as `mf2-build` reads them: `mf2`'s
+    /// own names, `mf2/<name>` from any package, and the fixture's features
+    /// through its `[features]` table (`ssr` is `mf2/host-std`, `hydrate`
+    /// `mf2/host-web`, the rest `mf2`'s of the same name). Other packages'
+    /// features change no catalog.
+    fn mf2_features(set: &Set) -> Vec<String> {
+        let fixture = set.packages.contains(&FIXTURE);
+        let mf2 = set.packages.contains(&"mf2");
+        let mut names = Vec::new();
+        for name in set.features.split(',').map(str::trim) {
+            if let Some(feature) = name.strip_prefix("mf2/") {
+                names.push(feature.to_owned());
+            } else if name.is_empty() || name.contains('/') {
+            } else if fixture {
+                match name {
+                    "ssr" => names.push("host-std".to_owned()),
+                    "hydrate" => names.push("host-web".to_owned()),
+                    // The corpus and where the catalogs go: every corpus
+                    // and both kinds of build are checked anyway.
+                    "split-catalogs" | "corpus-plain" | "corpus-measures" => {}
+                    other => names.push(other.to_owned()),
+                }
+            } else if mf2 {
+                names.push(name.to_owned());
+            }
+        }
+        names.sort();
+        names.dedup();
+        names
+    }
+
+    /// `unread-data` (`plan/08` §7) over every feature set of the table that
+    /// must build and every corpus of the fixture, as a web build and as a
+    /// native application's (the check reads the emit only for that): the
+    /// build makes the check itself, and each catalog is checked again here.
+    #[test]
+    fn nothing_is_written_unread_in_any_feature_set() {
+        let out = Path::new(env!("CARGO_MANIFEST_DIR")).join("../target/tmp/unread-data");
+        std::fs::create_dir_all(&out).expect("mkdir");
+        let mut seen = BTreeSet::new();
+        let mut checked = 0usize;
+        let mut tabled = 0usize;
+        for set in SETS
+            .iter()
+            .filter(|set| matches!(set.outcome, Outcome::Builds))
+        {
+            let names = mf2_features(set);
+            for (emit, native) in [(Emit::Both, false), (Emit::Native, true)] {
+                if !seen.insert((names.join(","), native)) {
+                    continue;
+                }
+                let features = Features::from_names(names.iter().cloned());
+                let downloaded = !native && features.has_browser_side();
+                for corpus in corpora() {
+                    let outcome = Build::at(&corpus, &out)
+                        .features(features.clone())
+                        .emit(emit)
+                        .check()
+                        .unwrap_or_else(|e| {
+                            panic!(
+                                "{} ({}), {}: {e}",
+                                set.what,
+                                names.join(","),
+                                corpus.display()
+                            )
+                        });
+                    for built in &outcome.catalogs {
+                        catalog::check_read(
+                            &built.tag,
+                            &built.locale_entries,
+                            &built.server_entries,
+                            &features,
+                            downloaded,
+                        )
+                        .unwrap_or_else(|e| panic!("{} ({}): {e}", set.what, names.join(",")));
+                        checked += 1;
+                        if !built.server_entries.is_empty() {
+                            tabled += 1;
+                        }
+                    }
+                }
+            }
+        }
+        assert!(checked > 0, "no feature set wrote a catalog");
+        assert!(tabled > 0, "no feature set wrote a server-only table");
+    }
+}

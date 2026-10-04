@@ -533,6 +533,8 @@ impl Build {
         } else {
             (features.number_place(), features.date_slice_place())
         };
+        // Whether a browser downloads these catalogs, for `unread-data`.
+        let downloaded = !codegen::is_native(self.emit) && features.has_browser_side();
         let mut catalogs = Vec::with_capacity(tags.len());
         let mut locales = Vec::with_capacity(tags.len());
         for (i, tag) in tags.iter().enumerate() {
@@ -571,6 +573,15 @@ impl Build {
                 },
                 numbers,
                 date_slice,
+            )?;
+            // `unread-data` (`plan/08` §7): nothing is written where none of
+            // its readers looks.
+            catalog::check_read(
+                &catalog.tag,
+                &catalog.locale_entries,
+                &catalog.server_entries,
+                features,
+                downloaded,
             )?;
             locales.push(LocaleInfo {
                 tag: tag.clone(),
