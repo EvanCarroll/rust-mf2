@@ -353,7 +353,7 @@ rewrites a hydrated message, and the zone correction re-renders one, only
 when that message formats a date. The catalog already says which, at no cost
 in bytes: FUNCS lists the functions its messages call and each expression or
 declaration marks a call, so a message that calls `:date`, `:time`,
-`:datetime`, or a function the application registered as a date function,
+`:datetime`, or a function of the application's whose parts are of the `datetime` kind,
 is a date message, and a catalog whose FUNCS names none of them has none. A
 marker stored per message, written only into catalogs that have dates, is
 the fallback if Phase 22 finds this walk slow. The page's text is never
@@ -375,8 +375,9 @@ generated module offers `install_with(setup)`, which does all that `install()` d
 with the setup it is given: `install_with(setup().with_time_zone(zone))` on each side.
 Nothing installs twice, so `installed_twice()` stays a true alarm.
 (17.5: `with_dates` left the runtime too, so a hand-written registry cannot format a bare date
-either; `date-mismatch` counts only `:datetime`, `:date`, `:time`, as the build cannot see
-`Function::formats_dates`; the call-site compile error is left — it needs a per-argument date
+either; `date-mismatch` counts only `:datetime`, `:date`, `:time`, as the build cannot see an
+application's functions; 22.13 marks a date function by its `datetime` part kind, not a
+method of its own, which cost every function a vtable entry; the call-site compile error is left — it needs a per-argument date
 flag in the manifest that `mf2-macros` reads, and a dispatch for signals of dates.)
 
 ## 5. A smaller and faster ICU4X

@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.12. A worktree made for a task is removed once its work
+* **In flight:** 22.14. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.13, 22.14, then 22.3–22.11
+* **Next:** 22.3–22.11
 
 ## Done
 
@@ -49,6 +49,11 @@ starts in a fresh session.
   `node tools/checks/measure-demo.mjs`): 0 B in `b1`/`app` (no dates there); demo-ssr +466 B gz
   (wasm +451), though its pair — ICU4X server, `Intl` browser — is never rewritten; +21 B raw a
   page (`data-mf2-dates`). Calls for 22.14.
+* 22.12 (326061e): `server-data` only with `ssr`/`axum`; the TUI 1,331,976 → 1,330,408 B (−1,568).
+  22.13 (b4bdd8d): `formats_dates` gone, a date function is one whose parts are `datetime`; the
+  TUI → 1,327,528 B (−2,880; much of it clap's layout, which another change can move), the
+  fixture rlib 46,520 → 46,280 B. The TUI is now 1,136 B under `p14`. (`STRIP=symbols cargo build
+  --release --bins --manifest-path examples/tui/Cargo.toml`.)
 
 ## Before this phase
 
