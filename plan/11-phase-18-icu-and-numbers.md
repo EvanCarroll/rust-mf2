@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 ## State
 
-* **In flight:** 18.2. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 18.2
+* **Next:** 18.3
 
 ## Done
 
@@ -34,6 +34,10 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
   is cut for it; `[dates]` overrides (`all` + `true` = old behaviour); `mf2 check`
   prints it. An argument's calendar (`DateTimeValue::with_calendar`) is run-time
   only, so §5.1's fallback stands. Tests in `slicing.rs`, `icu_blob.rs`, `date_forms.rs`.
+* 18.2: `icu::CachedBlob` (feature `cache`, on in `host-std-datetime-icu`) keeps, per thread,
+  the provider per blob (keyed by its bytes, so a reload never gets another's) and the
+  formatter per language, shape and variant; `Icu`'s default data is `DefaultData`; `Blob` is
+  the old path. `date_cost --features uncached-dates` runs it. Test: `cache_two_catalogs_in_turn`.
 
 ## Before this phase
 
@@ -182,6 +186,7 @@ One line per task, only for what could not be confirmed by reading.
 * 18.1: the `api.txt` of `mf2-build`, `mf2-locale-data`, `mf2-fn-datetime` (new public items) need regenerating; `AnyCalendarKind::try_new_unstable(&Src, …)` in `icu_blob.rs` must resolve against the baked `Src`.
 * Coordinator, from the session's rust-analyzer after 18.1: `conformance/tests/date_forms.rs`
   lines 28–37 trip `unreachable_pub` (a `pub` item in a test file; ci denies warnings).
+* 18.2: `mf2-fn-datetime`'s `api.txt`/`package.txt` hand-edited (regenerate); `reborrow` and the disjoint field borrows in `src/icu/cache.rs` (`Catalog::run`) must pass the borrow checker.
 
 ## Phase exit (coordinator)
 
