@@ -248,6 +248,8 @@ One line per task, only for what could not be confirmed by reading.
   a `date-mismatch` section (Phase 19; `reference.rs` fails without it); the regenerated dates
   goldens (`cargo xtask goldens`) must equal the hand-trimmed `dates.tsv`; one-line `.input`
   messages in `drift.rs`'s new test assume the resource format accepts them.
+* Coordinator, from the session's rust-analyzer after 17.5: `mf2-build/src/check.rs` 880–900
+  borrows `out.dated` mutably twice (E0499: the closure at 885 and the call at 896).
 
 ## Phase exit (coordinator)
 

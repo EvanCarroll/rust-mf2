@@ -28,7 +28,7 @@ question.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 19.3. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 19.3
 
@@ -39,6 +39,8 @@ question.
   readers and place; `mf2 stats` prints them and the unread bytes, text and
   JSON; test `stats_says_what_ships_where`; `docs/command-line.md`. Choice:
   the optional sections take the messages' readers (one shared reader).
+  Then 9b14037: COLD and IDS count as read by native code alone (stripped by default; a
+  browser reads FALLBACK and NFC), so turning `strip` off shows in the unread line.
 * 19.2: `feature-costs` rows under `leptos-client-datetime-*` and
   `native-datetime-{iso,icu}`, a no-date row per side (`unused`), a per-language
   slice table (brotli, `icu`/`intl`) built in-process (`mf2-build` now a normal
