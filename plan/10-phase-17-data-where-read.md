@@ -23,7 +23,7 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 17.4. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 17.4
 
