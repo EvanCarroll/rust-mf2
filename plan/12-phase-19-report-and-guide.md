@@ -160,6 +160,9 @@ Rewrite, for an application developer:
   to readers without JavaScript always; that a server's ICU4X text and a
   browser's `Intl` text can differ, with the known cases; what ships where.
 * `docs/configuration.md`: `[dates]`.
+* `number-intl` (17.2): both builds must turn it on, on the `mf2` dependency line and
+  not under the application's `hydrate` feature, or the two builds write different
+  catalogs and the browser asks for a file the server does not serve.
 * `docs/lints.md`: `several-date-formatters`, `unread-data`, the new text of
   `gated-function` and `unused-feature`.
 * `docs/getting-started.md`, `docs/call-sites.md`, `docs/native-apps.md`,
