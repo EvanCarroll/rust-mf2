@@ -12,6 +12,7 @@
 //! * `__if_native!` — `mf2::native`: `CORPUS`'s typed forms;
 //! * `__if_ssr!`, `__if_client!` (`hydrate` or `csr`), `__if_csr!`,
 //!   `__if_leptos!` (any of the three) — the Leptos layer;
+//! * `__if_no_leptos!` — none of them: `install()` without `install_with`;
 //! * `__if_mode!` — `native` or a Leptos mode: `install()` and the locale
 //!   functions;
 //! * `__if_clap!`, `__if_ratatui!` — `Locale`'s value parser, `markup::*`;
@@ -58,6 +59,9 @@ forward!($ __if_ssr, all(feature = "ssr", any(feature = "leptos", feature = "lep
 forward!($ __if_client, all(any(feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8")));
 forward!($ __if_csr, all(feature = "csr", any(feature = "leptos", feature = "leptos-0-8")));
 forward!($ __if_leptos, all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8")));
+// `install()` without a Leptos layer: what it does when it has no setup to
+// pass to `install_with`.
+forward!($ __if_no_leptos, not(all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8"))));
 forward!($ __if_mode, any(feature = "native", all(any(feature = "ssr", feature = "hydrate", feature = "csr"), any(feature = "leptos", feature = "leptos-0-8"))));
 forward!($ __if_clap, feature = "clap");
 forward!($ __if_axum, feature = "axum");

@@ -189,14 +189,17 @@ struct Runtime {
 }
 
 static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-/// Whether a second, different [`install`] was refused — reported once by
+/// Whether a second [`install`] was ignored — reported once by
 /// [`installed`] rather than by a panic on a path a call site can reach.
 static RE_INSTALLED: AtomicBool = AtomicBool::new(false);
 
-/// Installs the application's registry, host and manifest hash. Call it once,
-/// before anything renders: `main` on the server, `hydrate` on the client.
+/// Installs the application's registry, host and manifest hash. The
+/// generated `install()` and `install_with(setup)` call it; an application
+/// calls one of those, once on each side, before anything renders: `main`
+/// on the server, `hydrate` on the client.
 ///
-/// A second call is ignored — the first wins, and nothing panics.
+/// A second call is ignored: the first setup is kept, nothing panics, and
+/// [`installed_twice`] reports it.
 pub fn install(setup: Setup) {
     if RUNTIME.set(Runtime { setup }).is_err() {
         RE_INSTALLED.store(true, Ordering::Relaxed);
@@ -209,7 +212,9 @@ pub fn installed() -> bool {
     RUNTIME.get().is_some()
 }
 
-/// Whether a second [`install`] was refused: a build error the application
+/// Whether [`install`] was called a second time, and that call ignored. The
+/// generated code never installs twice (`install()` is
+/// `install_with(setup())`), so it means the application did: a mistake it
 /// can assert on, never a panic in a render.
 #[must_use]
 pub fn installed_twice() -> bool {

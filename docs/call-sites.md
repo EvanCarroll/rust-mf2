@@ -275,18 +275,20 @@ application:
   first frame, and writes no cookie.
 
 **Choosing the first visit's zone.** UTC is the default. To render first
-visits in another zone, install the Leptos setup yourself, with the zone
-added, just before the generated `install()`:
+visits in another zone, call the generated `install_with` in place of
+`install()`, with the zone added to the setup:
 
 * `setup()` is generated next to `install()` (by `mf2::include_generated!()`):
   it returns the `mf2::leptos::Setup` that `install()` hands to the Leptos
   layer. `.with_time_zone(zone)` returns a copy with that default zone.
-* Call `mf2::leptos::install(setup().with_time_zone(zone))`, then
-  `install()`, on **both sides**: in the server's `main`, before the router
-  is built, and in the browser's entry point (the `hydrate` function),
-  before hydrating. The first Leptos setup installed is the one kept, so
-  `install()` still loads the catalogs and does the rest of its work, and
-  leaves your zone in place.
+* `install_with(setup().with_time_zone(zone))` does everything `install()`
+  does (it loads the catalogs and does the rest of its work) with that setup
+  instead: `install()` is `install_with(setup())`. Call it on **both
+  sides**, in place of `install()`: in the server's `main`, before the
+  router is built, and in the browser's entry point (the `hydrate`
+  function), before hydrating. Call one or the other, once on each side:
+  a second install is ignored, and `mf2::leptos::installed_twice()` reports
+  it.
 * Use the same zone on both sides. A page rendered in the default zone does
   not say so; the browser assumes its own setup's zone while it hydrates, so
   a different one there would make the dates disagree with the served page.

@@ -32,8 +32,9 @@
 //!   `dir()`, `best_match()`, `FromStr` through the one matcher and
 //!   `Display`; `format()` with `native`; `name()` when every locale has a
 //!   `language.<tag>` message; a clap value parser with `clap`;
-//! * `setup()`, `install()`, `install_from_directory()`, `set_locale()`,
-//!   `preload_locale()`, `current_locale()` and `with_locale()`, each where
+//! * `setup()`, `install()`, `install_with()`, `install_from_directory()`,
+//!   `set_locale()`, `preload_locale()`, `current_locale()` and
+//!   `with_locale()`, each where
 //!   the build has what it needs (19 §10's table), one item per
 //!   combination of modes;
 //! * `markup::*` with `ratatui`, and a `prelude`;
@@ -909,8 +910,8 @@ fn functions(s: &mut String, m: &Module<'_>) {
         &"/// What the Leptos layer is given, from what this build generated: the
 /// registry, the host, the manifest hash and the locales, and a client-only
 /// application's language-matching data. `install()` installs it; an
-/// application that adds to it (`setup().with_time_zone(…)`) installs it
-/// itself, once on each side.
+/// application that adds to it calls
+/// `install_with(setup().with_time_zone(…))` instead, once on each side.
 #[must_use]
 #[allow(clippy::let_and_return)]
 pub fn setup() -> __mf2::leptos::Setup {
@@ -937,22 +938,26 @@ pub fn setup() -> __mf2::leptos::Setup {
         ),
     );
 
-    // `install()`.
-    let mut body = String::new();
+    // `install_with(setup)`, and `install()`, which is
+    // `install_with(setup())` wherever there is a Leptos layer.
+    let mut rest = String::new();
     if embeds(m.emit) {
-        body.push_str(
+        rest.push_str(
             "    __mf2::__if_native! {\n        __mf2::native::install(&CORPUS);\n    }\n",
         );
-        body.push_str(
-            "    __mf2::__if_ssr! {\n        __mf2::__generated::install_server(setup(), CATALOGS);\n    }\n",
-        );
-        body.push_str(
+        rest.push_str(
             "    __mf2::__if_axum! {\n        __mf2::__generated::install_axum(&CORPUS);\n    }\n",
         );
-    } else {
-        body.push_str("    __mf2::__if_ssr! {\n        __mf2::leptos::install(setup());\n    }\n");
     }
-    body.push_str("    __mf2::__if_client! {\n        __mf2::leptos::install(setup());\n    }\n");
+    let mut with = rest.clone();
+    if embeds(m.emit) {
+        with.push_str(
+            "    __mf2::__if_ssr! {\n        __mf2::__generated::install_server(setup, CATALOGS);\n    }\n",
+        );
+        with.push_str("    __mf2::__if_client! {\n        __mf2::leptos::install(setup);\n    }\n");
+    } else {
+        with.push_str("    __mf2::leptos::install(setup);\n");
+    }
     let doc = match m.emit {
         Emit::Native => {
             "/// Installs the catalogs the executable embeds as the process's, and makes
@@ -960,23 +965,26 @@ pub fn setup() -> __mf2::leptos::Setup {
 /// app-wide one, else the source language. Call it once, at start-up. It
 /// returns nothing: embedded catalogs from the same build cannot fail to
 /// load. Beside a Leptos mode it also gives the Leptos layer this build's
-/// setup, and on the server the same catalogs."
+/// setup, and on the server the same catalogs: it is
+/// `install_with(setup())`."
         }
         Emit::NativeFiles => {
             "/// Gives the Leptos layer this build's setup (its catalogs are files:
-/// `install_from_directory` installs them)."
+/// `install_from_directory` installs them): `install_with(setup())`."
         }
         Emit::Module => {
-            "/// Gives the Leptos layer what this build generated, `setup()`. Call it
-/// once on each side, before rendering or hydrating. This module names no
-/// catalog: the server installs them from the crate that embeds them."
+            "/// Gives the Leptos layer what this build generated, `setup()`:
+/// `install_with(setup())`. Call it once on each side, before rendering or
+/// hydrating. This module names no catalog: the server installs them from
+/// the crate that embeds them."
         }
         _ => {
             "/// Gives the Leptos layer what this build generated, `setup()`, and, on
 /// the server, the embedded catalogs, each checked against the manifest
-/// hash. Call it once on each side, before rendering or hydrating. With
-/// `native`, it also installs the catalogs as the process's (`mf2::native`);
-/// with `axum`, as the ones `mf2::axum` negotiates among and serves.
+/// hash: `install_with(setup())`. Call it once on each side, before
+/// rendering or hydrating. With `native`, it also installs the catalogs as
+/// the process's (`mf2::native`); with `axum`, as the ones `mf2::axum`
+/// negotiates among and serves.
 ///
 /// # Panics
 ///
@@ -984,6 +992,31 @@ pub fn setup() -> __mf2::leptos::Setup {
 /// executable."
         }
     };
+    let install_with = format!(
+        "/// Does everything `install()` does, with `setup` given to the Leptos
+/// layer in place of `setup()`: for an application that adds to it, such as
+/// `install_with(setup().with_time_zone(zone))`. Call it instead of
+/// `install()`, once on each side, before rendering or hydrating, with the
+/// same setup on both: nothing installs twice.{panics}
+pub fn install_with(setup: __mf2::leptos::Setup) {{\n{with}}}\n",
+        panics = if matches!(m.emit, Emit::Both) {
+            "\n///\n/// # Panics\n///\n/// As `install()`'s."
+        } else {
+            ""
+        },
+    );
+    s.push('\n');
+    gate(s, "__if_leptos", &install_with);
+    let mut body = String::new();
+    if embeds(m.emit) {
+        body.push_str(
+            "    __mf2::__if_leptos! {\n        install_with(setup());\n    }\n    __mf2::__if_no_leptos! {\n",
+        );
+        indent(&mut body, &rest, "    ");
+        body.push_str("    }\n");
+    } else {
+        body.push_str("    install_with(setup());\n");
+    }
     let install = format!("{doc}\npub fn install() {{\n{body}}}\n");
     s.push('\n');
     gate(
@@ -1554,6 +1587,7 @@ mod tests {
             for item in [
                 "pub fn setup()",
                 "pub fn install()",
+                "pub fn install_with(setup: __mf2::leptos::Setup)",
                 "pub fn set_locale(",
                 "pub fn current_locale(",
                 "pub fn preload_locale(",
@@ -1573,6 +1607,43 @@ mod tests {
                     usize::from(native),
                     "{emit:?} {item}"
                 );
+            }
+        }
+    }
+
+    #[test]
+    fn install_is_install_with_the_generated_setup() {
+        let locales = locales();
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        for emit in [Emit::Both, Emit::Module, Emit::Native, Emit::NativeFiles] {
+            let mut m = module(&[], &features, &custom, &locales, false);
+            m.emit = emit;
+            let code = write(&m);
+            // `install_with` is the Leptos layer's, and the only place the
+            // generated code hands it a setup: `install()` passes `setup()`.
+            assert!(
+                code.contains("\n__mf2::__if_leptos! {\n    /// Does everything `install()` does"),
+                "{emit:?}:\n{code}"
+            );
+            let start = code.find("pub fn install() {").unwrap_or(code.len());
+            let install = &code[start..];
+            let install = &install[..install.find("\n    }\n").unwrap_or(0)];
+            assert!(
+                install.contains("install_with(setup());"),
+                "{emit:?}:\n{code}"
+            );
+            assert!(!code.contains("leptos::install(setup())"), "{emit:?}");
+            assert!(!code.contains("install_server(setup(),"), "{emit:?}");
+            if super::embeds(emit) {
+                // Without a Leptos layer, `install()` still installs the
+                // native and Axum catalogs itself.
+                let alone = install
+                    .find("__mf2::__if_no_leptos! {")
+                    .map_or("", |at| &install[at..]);
+                assert!(alone.contains("native::install(&CORPUS)"), "{code}");
+                assert!(alone.contains("install_axum(&CORPUS)"), "{code}");
+                assert!(!alone.contains("install_with"), "{code}");
             }
         }
     }
