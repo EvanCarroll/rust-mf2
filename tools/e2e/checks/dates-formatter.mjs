@@ -19,7 +19,7 @@
 //   * both: hydration completes, and the console stays silent.
 //
 // Only date messages (owner, 2026-10-04): with ISO on the server, the client
-// writes only the date cases — a MutationObserver sees no write to any other
+// writes only the cases whose message calls a date function — a MutationObserver sees no write to any other
 // case — and a served page whose number text was changed before hydration
 // (a number the server wrote otherwise than the browser would) hydrates
 // without an error and keeps that text.
@@ -166,6 +166,13 @@ export async function run(ctx) {
   const icuText = Object.fromEntries(icu.cases.map((c) => [c.id, c.text]));
   const dates = new Set(iso.cases.filter((c) => norm(c.text) !== norm(icuText[c.id])).map((c) => c.id));
   assert('date-cases', dates.size > 0, { dates: dates.size, cases: iso.cases.length });
+  // The cases whose message calls a date function, which the client may
+  // write (plan/08 §4.3) even where its text is a fallback both servers
+  // agree on. In the WG suite only functions/{date,datetime,time}.json call
+  // one.
+  const dateCalls = (id) => /^suite\.functions\.(date|datetime|time)\./.test(id);
+  const strays = [...dates].filter((id) => !dateCalls(id));
+  assert('date-cases-call-a-date-function', strays.length === 0, strays.slice(0, 3));
 
   // ISO on the server, `Intl` in the browser: every date is rewritten, and
   // nothing else is written.
@@ -192,7 +199,7 @@ export async function run(ctx) {
   assert('iso/rewritten-to-a-localized-date', localized > 0, { localized, dates: dates.size });
   assert('iso/nothing-else-changed', changed.length === 0, changed.slice(0, 3));
   assert('iso/console-silent', a.console.length === 0, a.console.slice(0, 3));
-  const others = a.written.filter((id) => !dates.has(id));
+  const others = a.written.filter((id) => !dateCalls(id));
   assert('iso/only-dates-written', others.length === 0, { written: others.slice(0, 5) });
   data.iso = { dates: dates.size, localized, written: a.written.length };
 

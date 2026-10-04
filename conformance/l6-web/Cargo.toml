@@ -35,6 +35,9 @@ fn-number = ["mf2/fn-number"]
 # `shared.rs`'s date parameter.
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu"]
+# Declared for `shared.rs`'s `date_time` cfg (any date formatter); unused here.
+host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 # Every function feature is on in both: the corpus is the suite's, and a
 # message may not add formatting code to the wasm by itself — so a build
 # without them would be *refused*, not merely different.

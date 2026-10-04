@@ -6,11 +6,19 @@ edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[features]
+# ICU4X for the date functions (on for every layer's own runs). Conformance
+# L7's date-formatter sets turn it off: they take only `:test:*` from here,
+# and their server's formatter (ISO or ICU4X) must be the one `mf2` picks.
+default = ["std-icu"]
+std-icu = ["mf2-fn-datetime/std-icu"]
+
 [dependencies]
 mf2-catalog.workspace = true
 # :datetime, :date, :time and unannotated dates (Phase 4, A5), formatting with
-# ICU4X from the catalogs' `icu.blob` (the all-features configuration, A6).
-mf2-fn-datetime = { workspace = true, features = ["std-icu"] }
+# ICU4X from the catalogs' `icu.blob` (the all-features configuration, A6)
+# under `std-icu` below.
+mf2-fn-datetime.workspace = true
 # The localized numeric functions and :percent (Phase 4, A3).
 mf2-fn-number.workspace = true
 # The suite's dates name IANA zones, so the host that resolves them.

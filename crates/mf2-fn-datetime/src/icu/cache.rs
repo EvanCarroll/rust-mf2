@@ -28,6 +28,11 @@ use alloc::collections::VecDeque;
 use core::any::Any;
 use core::cell::RefCell;
 
+// In the browser ICU4X comes through `mf2-fn-datetime-web-icu`, as in
+// `super` (the parent's import does not reach this module).
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+use mf2_fn_datetime_web_icu::{icu_provider_blob, icu_time};
+
 use icu_provider_blob::BlobDataProvider;
 use icu_time::zone::iana::IanaParser;
 use mf2_runtime::{

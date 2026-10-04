@@ -22,6 +22,9 @@ fn-number = ["mf2/fn-number"]
 # Dates over ICU4X, natively and in the browser (plan/08 §3.1).
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu"]
+# Declared for `shared.rs`'s `date_time` cfg (any date formatter); unused here.
+host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 
 [dependencies]
 mf2.workspace = true
