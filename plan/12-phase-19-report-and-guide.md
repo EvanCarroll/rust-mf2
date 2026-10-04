@@ -60,6 +60,7 @@ question.
   unchanged: only the dates sample has dates); `demo-ssr` is `intl` client +
   `icu` server; docs.rs set already 3.0. 6100b16: `unused-feature`, lints.md,
   features.md say a plain placeholder never formats a date (drift test too).
+  8614ca8: `reaches_a_date` ignores plain placeholders: no date host without a date function.
 
 ## Before this phase
 
