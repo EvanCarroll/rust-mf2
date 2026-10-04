@@ -28,7 +28,7 @@ vendored = 42 files (3700535 bytes) by `cargo xtask cldr-sync` (Phase 0 task A4;
            cldr-core/scriptMetadata.json;
            cldr-numbers-full/main/<loc>/{numbers,currencies}.json and
            cldr-units-full/main/<loc>/units.json for the probe locale panel only;
-           LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are in crates/mf2-locale-data/data/
+           LICENSE. The all-locales compact tables are in crates/mf2-locale-data/data/
            (`cargo xtask locale-data`).
 cache    = 2301 files (142891999 bytes) materialised by `cargo xtask cldr-sync` in
            target/xtask-cache/cldr-json/cldr-json/ (the cache; never vendored), each checked

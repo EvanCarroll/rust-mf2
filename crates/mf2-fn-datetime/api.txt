@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: datetime-icu,datetime-intl
+# nightly-2026-09-24; features: std-icu,web-intl,compiled-data,cache
 pub mod mf2_fn_datetime
 pub mod mf2_fn_datetime::icu
 pub struct mf2_fn_datetime::icu::AnyCalendar
@@ -64,7 +64,6 @@ pub const fn mf2_fn_datetime::DateTimeFunction<B>::backend(&self) -> &B
 pub const fn mf2_fn_datetime::DateTimeFunction<B>::date(B) -> Self
 pub const fn mf2_fn_datetime::DateTimeFunction<B>::datetime(B) -> Self
 pub const fn mf2_fn_datetime::DateTimeFunction<B>::time(B) -> Self
-pub const fn mf2_fn_datetime::DateTimeFunction<B>::unannotated(B) -> Self
 impl<B: core::clone::Clone> core::clone::Clone for mf2_fn_datetime::DateTimeFunction<B>
 pub fn mf2_fn_datetime::DateTimeFunction<B>::clone(&self) -> Self
 impl<B: core::fmt::Debug> core::fmt::Debug for mf2_fn_datetime::DateTimeFunction<B>
@@ -74,6 +73,7 @@ impl<B: mf2_fn_datetime::Backend> mf2_runtime::function::Function for mf2_fn_dat
 pub fn mf2_fn_datetime::DateTimeFunction<B>::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_fn_datetime::DateTimeFunction<B>::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
 pub fn mf2_fn_datetime::DateTimeFunction<B>::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
+pub fn mf2_fn_datetime::DateTimeFunction<B>::formats_dates(&self) -> bool
 pub fn mf2_fn_datetime::DateTimeFunction<B>::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
 pub fn mf2_fn_datetime::DateTimeFunction<B>::part_kind(&self) -> &'static str
 pub fn mf2_fn_datetime::DateTimeFunction<B>::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>
@@ -124,7 +124,6 @@ pub fn mf2_fn_datetime::Plan<'p>::fmt(&self, &mut core::fmt::Formatter<'_>) -> c
 impl<'p> core::marker::Copy for mf2_fn_datetime::Plan<'p>
 impl<'p> core::marker::StructuralPartialEq for mf2_fn_datetime::Plan<'p>
 pub static mf2_fn_datetime::DATE: mf2_fn_datetime::DateTimeFunction
-pub static mf2_fn_datetime::DATES: mf2_fn_datetime::DateTimeFunction
 pub static mf2_fn_datetime::DATETIME: mf2_fn_datetime::DateTimeFunction
 pub static mf2_fn_datetime::TIME: mf2_fn_datetime::DateTimeFunction
 pub trait mf2_fn_datetime::Backend: core::marker::Sync

@@ -17,6 +17,7 @@ pub fn mf2_runtime::functions::NumberFunction::better_than(&self, &mf2_runtime::
 pub fn mf2_runtime::functions::NumberFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_runtime::functions::NumberFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
 pub fn mf2_runtime::functions::NumberFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::NumberFunction::formats_dates(&self) -> bool
 pub fn mf2_runtime::functions::NumberFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
 pub fn mf2_runtime::functions::NumberFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
 pub fn mf2_runtime::functions::NumberFunction::part_kind(&self) -> &'static str
@@ -35,6 +36,7 @@ pub fn mf2_runtime::functions::StringFunction::better_than(&self, &mf2_runtime::
 pub fn mf2_runtime::functions::StringFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_runtime::functions::StringFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
 pub fn mf2_runtime::functions::StringFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::StringFunction::formats_dates(&self) -> bool
 pub fn mf2_runtime::functions::StringFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
 pub fn mf2_runtime::functions::StringFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
 pub fn mf2_runtime::functions::StringFunction::part_kind(&self) -> &'static str
@@ -753,8 +755,8 @@ pub struct mf2_runtime::Registry
 impl mf2_runtime::Registry
 pub const mf2_runtime::Registry::EMPTY: mf2_runtime::Registry
 pub fn mf2_runtime::Registry::get(&self, &str) -> core::option::Option<&'static dyn mf2_runtime::Function>
+pub fn mf2_runtime::Registry::is_date_function(&self, &str) -> bool
 pub const fn mf2_runtime::Registry::new(&'static [(&'static str, &'static dyn mf2_runtime::Function)]) -> mf2_runtime::Registry
-pub const fn mf2_runtime::Registry::with_dates(self, &'static dyn mf2_runtime::Function) -> mf2_runtime::Registry
 pub const fn mf2_runtime::Registry::with_numbers(self, &'static dyn mf2_runtime::Function) -> mf2_runtime::Registry
 impl core::clone::Clone for mf2_runtime::Registry
 pub fn mf2_runtime::Registry::clone(&self) -> Self
@@ -823,6 +825,7 @@ pub fn mf2_runtime::Function::better_than(&self, &mf2_runtime::FnContext<'_>, &m
 pub fn mf2_runtime::Function::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_runtime::Function::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
 pub fn mf2_runtime::Function::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::Function::formats_dates(&self) -> bool
 pub fn mf2_runtime::Function::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
 pub fn mf2_runtime::Function::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
 pub fn mf2_runtime::Function::part_kind(&self) -> &'static str
@@ -833,6 +836,7 @@ pub fn mf2_runtime::functions::NumberFunction::better_than(&self, &mf2_runtime::
 pub fn mf2_runtime::functions::NumberFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_runtime::functions::NumberFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
 pub fn mf2_runtime::functions::NumberFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::NumberFunction::formats_dates(&self) -> bool
 pub fn mf2_runtime::functions::NumberFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
 pub fn mf2_runtime::functions::NumberFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
 pub fn mf2_runtime::functions::NumberFunction::part_kind(&self) -> &'static str
@@ -843,6 +847,7 @@ pub fn mf2_runtime::functions::StringFunction::better_than(&self, &mf2_runtime::
 pub fn mf2_runtime::functions::StringFunction::dir(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_runtime::functions::StringFunction::format(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::Sink)
 pub fn mf2_runtime::functions::StringFunction::format_parts(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &mut dyn mf2_runtime::SubPartSink)
+pub fn mf2_runtime::functions::StringFunction::formats_dates(&self) -> bool
 pub fn mf2_runtime::functions::StringFunction::formattable(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>) -> core::result::Result<(), mf2_runtime::FormatError>
 pub fn mf2_runtime::functions::StringFunction::matches(&self, &mf2_runtime::FnContext<'_>, &mf2_runtime::Value<'_>, &str, &mut dyn mf2_runtime::ErrorSink) -> bool
 pub fn mf2_runtime::functions::StringFunction::part_kind(&self) -> &'static str

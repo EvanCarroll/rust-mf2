@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: manifest,writer,decode,static-bytes,content-hash
+# nightly-2026-09-24; features: manifest,writer,decode,static-bytes,server-data,content-hash
 pub mod mf2_catalog
 pub use mf2_catalog::Dir
 pub use mf2_catalog::MsgId
@@ -84,6 +84,7 @@ impl core::marker::StructuralPartialEq for mf2_catalog::WriteError
 pub struct mf2_catalog::Catalog
 impl mf2_catalog::Catalog
 pub fn mf2_catalog::Catalog::as_bytes(&self) -> &[u8]
+pub fn mf2_catalog::Catalog::calls(&self, mf2_model::id::MsgId, impl core::ops::function::Fn(&str) -> bool) -> bool
 pub fn mf2_catalog::Catalog::cldr_version(&self) -> core::option::Option<mf2_catalog::CldrVersion>
 pub fn mf2_catalog::Catalog::dir(&self) -> mf2_model::id::Dir
 pub fn mf2_catalog::Catalog::from_static(&'static [u8], u64) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
@@ -92,8 +93,10 @@ pub fn mf2_catalog::Catalog::locale(&self) -> &str
 pub fn mf2_catalog::Catalog::lookup(&self, &str) -> core::option::Option<mf2_model::id::MsgId>
 pub fn mf2_catalog::Catalog::manifest_hash(&self) -> u64
 pub fn mf2_catalog::Catalog::message_count(&self) -> u32
+pub fn mf2_catalog::Catalog::names_function(&self, impl core::ops::function::Fn(&str) -> bool) -> bool
 pub fn mf2_catalog::Catalog::new(alloc::vec::Vec<u8>, u64) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
 pub fn mf2_catalog::Catalog::nfc_map(&self) -> NfcMap<'_>
+pub fn mf2_catalog::Catalog::with_server_data(self, &'static [u8]) -> core::result::Result<mf2_catalog::Catalog, mf2_catalog::CatalogError>
 impl core::fmt::Debug for mf2_catalog::Catalog
 pub fn mf2_catalog::Catalog::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct mf2_catalog::CldrVersion

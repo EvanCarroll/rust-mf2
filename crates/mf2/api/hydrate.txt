@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; mode: hydrate; features: compile,fn-number,datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
+# nightly-2026-09-24; mode: hydrate; features: compile,fn-number,leptos-client-datetime-icu,host-std-datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy
@@ -329,6 +329,7 @@ pub struct mf2::CatalogFile
 impl mf2::CatalogFile
 pub const fn mf2::CatalogFile::bytes(&self) -> core::option::Option<&'static [u8]>
 pub const fn mf2::CatalogFile::file_name(&self) -> &'static str
+pub const fn mf2::CatalogFile::server_data(&self) -> &'static [u8]
 pub const fn mf2::CatalogFile::tag(&self) -> &'static str
 impl core::clone::Clone for mf2::CatalogFile
 pub fn mf2::CatalogFile::clone(&self) -> Self

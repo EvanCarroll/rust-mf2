@@ -1,0 +1,10 @@
+# The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
+# nightly-2026-09-24; features: (default)
+pub mod mf2_fn_datetime_web_icu
+pub use mf2_fn_datetime_web_icu::icu_calendar
+pub use mf2_fn_datetime_web_icu::icu_datetime
+pub use mf2_fn_datetime_web_icu::icu_locale_core
+pub use mf2_fn_datetime_web_icu::icu_provider
+pub use mf2_fn_datetime_web_icu::icu_provider_blob
+pub use mf2_fn_datetime_web_icu::icu_time
+pub use mf2_fn_datetime_web_icu::writeable
