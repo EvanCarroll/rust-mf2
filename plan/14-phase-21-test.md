@@ -25,9 +25,9 @@ in the same session or a fresh one.
 
 ## State
 
-* **In flight:** 21.6. A worktree made for a task is removed once its work
+* **In flight:** 21.9. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 21.6, then the phase exit
+* **Next:** 21.9, then 21.7/21.8/21.10, 21.11, the phase exit
 
 ## Done
 
@@ -60,6 +60,8 @@ in the same session or a fresh one.
   their forbidden features; `mf2 stats`' page corrected (e91b7db); `mf2 check` recommends
   every manifest's features. 49618f0 (21.5a): `intl_links_no_icu` gets a corpus with a date,
   so its symbol search can fail.
+* 21.6: the cold start built and ran both applications from the guide; five stumbles
+  became 21.7–21.11, one goes to the owner (`getting-started.md`'s 2.0.0 line).
 
 ## Before this phase
 
@@ -181,6 +183,35 @@ Each stumble it reports about features, dates, time zones or what ships
 where becomes a small task in this phase (21.7, 21.8, …), added under Steps
 before it is started; each names the narrow check that confirms it.
 Stumbles about other things go to the owner as a list.
+### 21.7 to 21.11 What the cold start found (2026-10-04)
+
+Both applications of 21.6 built and ran from the guide (a terminal UI with a date, and a
+server-rendered Leptos application with numbers and a date: the server's ICU4X text, the
+browser's rewrite into the reader's zone, one 585 B catalog downloaded). Its stumbles about
+features, dates, zones and what ships where:
+
+* **21.7** `mf2 check` passes with an ICU4X formatter on and no `icu-blob` on `mf2-build`;
+  the build then fails. Check must report what the build reports (16.3's `IcuBlob`).
+  Confirmed by a `mf2 check` test over such a manifest.
+* **21.8** `mf2 check` prints no line for the ICU4X form the build chose and why (18.1), in
+  either application, though `features.md` and `command-line.md` say it does. Confirmed by
+  the `mf2 check` test of that output and the docs check.
+* **21.9** `mf2 stats` leaves out the ICU4X date slice: in the terminal UI it reports
+  catalogs of 697/785 B under other names than the 1,243/1,257 B files the build wrote; in
+  the Leptos application no server-only table row shows the server's date data. Stats must
+  list every bundle where it ships, matching the build's files (19.1, `plan/08` §7). If the
+  fix costs the `mf2` binary bytes (e.g. `icu-blob` in the command-line tool), stop: that is
+  the owner's call. Confirmed by `stats_says_what_ships_where` with an ICU4X formatter.
+* **21.10** before a formatter is chosen, `mf2 check` in a Leptos application lists the date
+  line of every kind of application, not of the frameworks that are on (16.3). Confirmed by
+  a `mf2 check` test.
+* **21.11** `call-sites.md` names `setup().with_time_zone(…)` for the first visit's zone
+  without saying what `setup()` is, where it is called and on which side. Confirmed by the
+  docs check.
+
+For the owner, not a task here: `getting-started.md` says its manifests name 2.0.0 while
+they say 3 (the release phase's sentence, 23.3).
+
 
 ## Fixing a failure
 
