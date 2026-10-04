@@ -82,6 +82,8 @@ Build, in `cargo xtask feature-costs`:
 * a native row for `native-datetime-icu` in an application with no date and
   one plain placeholder, so that what a date feature costs when nothing
   shows a date stays visible;
+* the same for the browser: `leptos-client-datetime-intl` in a client with
+  no date and one plain placeholder. It has never been measured;
 * per language, the brotli bytes the date slice adds to a browser catalog
   with `icu`, and with `intl` (0);
 * the number split's row, if the owner chose it.

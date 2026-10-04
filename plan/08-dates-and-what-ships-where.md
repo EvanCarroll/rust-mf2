@@ -438,6 +438,9 @@ They run in that order, as `plan/01` §7 describes. Phase 15's tasks 15.4 and
   September probe says so; task 17.2 reads the code before it moves them.
 * **What the narrow ICU4X forms save natively.** Only the browser's figures
   exist.
+* **What a date feature costs a browser client that shows no date** and has
+  a plain placeholder (F10 in the browser). The native figure exists; task
+  19.2 measures this one.
 * **How a date argument carries a calendar**, and whether the build can see
   it. Task 18.1 finds out; until then §5.1's fallback stands.
 * **Cargo accepting one package under two dependency names, one per
