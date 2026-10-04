@@ -27,9 +27,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
 
 ## State
 
-* **In flight:** 16.3. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.3
+* **Next:** the phase exit (coordinator)
 
 ## Done
 
@@ -48,6 +48,11 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
   Leptos ones). `Features`: `datetime` gates the date functions under any formatter's name;
   `for_catalogs` compares `fn-number`/`datetime`/`icu-blob`. Left for 21.2: the ledger,
   `api*.txt`; kept: `mf2-host-web`'s own `datetime-intl`, the 2.0.0 baseline.
+* 16.3 (2026-10-03, 92b3528): a date function needs a formatter on each side the frameworks
+  build (`ssr` native, `hydrate`/`csr` browser; none named: any side); `Features::date_families`,
+  `no_date_formatter`; `several-date-formatters`; `unused-feature` names formatters and
+  framework-less families; `IcuBlob { features }` prints the line. `mf2 check` per side; the
+  converter lists `DATE_LINES` (with a "no framework" line: a small choice). `lints.md`: 2 entries.
 
 ## Before this phase
 
@@ -237,6 +242,8 @@ One line per task, only for what could not be confirmed by reading.
 
 * 16.1: `use mf2_fn_datetime_web_icu::{icu_calendar, …}` then `use icu_calendar::…` in
   `mf2-fn-datetime/src/icu.rs` on wasm; `api.txt` of the new crate (Phase 21 generates it).
+* 16.3: `feature_costs.rs`' `hydrate` sets on the workload crate must drop its default `ssr`
+  (host-std), or a dated corpus is now gated; `mf2-build/api.txt` gains `DateFamily`, `DATE_LINES`.
 * 16.2: `unexpected_cfgs` for the `host-*-datetime-icu` `cfg` of `conformance/l5/shared.rs`
   in every crate that includes it (l5 sets, l5-generated, l6-web, l7 sets declare both).
 
