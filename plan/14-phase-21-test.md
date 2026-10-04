@@ -25,9 +25,9 @@ in the same session or a fresh one.
 
 ## State
 
-* **In flight:** the phase exit (`p21b`). A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** the phase exit
+* **Next:** nothing; Phase 22 (`plan/15`) follows.
 
 ## Done
 
@@ -70,6 +70,15 @@ in the same session or a fresh one.
   Exit: the fixes after the suite touch crates nearly every check builds, so the whole
   suite runs once more under a fresh label, `p21b` (a second run into `p21` would append
   to its logs), with the affected checks of 21.5.
+* Phase 21 (2026-10-04): every check passes on c63af17, tree clean — the suite `p21b`
+  against `p14` (21 checks, 40 min 52 s, `ci` 8.3 min, 1,027 tests) and the 21.5 checks
+  whose inputs changed (`target/p21/extra-exit/`). The WG suite passes at every layer
+  (612/612, no gaps). Fix commits by task — 16.0: acb5840-adjacent none; 16.1: c26c617,
+  cf7eec5, 70092b8; 17.x: 8277d8e, 3d5d1ac, 936c404; 18.1: 877c8ee; 18.4: 3f637f8; 19.x:
+  936c404, e91b7db, 49618f0; tests of replaced behaviour: acb5840; cold start: 643aa46,
+  92af0d4, e31192d, 5cbb1cd, 26da8ce, 548eca5; owner: 892a345. Tests took 182.5 s at 21.1,
+  against 1,721 s at `p14`. Runs: `ci` 11 min, the suite 54 min and 41 min, the 21.5
+  checks about 20 min; WebKit is not installed on this machine (l4-web ran two engines).
 
 ## Before this phase
 
