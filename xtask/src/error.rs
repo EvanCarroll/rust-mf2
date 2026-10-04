@@ -176,6 +176,9 @@ pub(crate) enum Error {
     #[error("ci step failed: {0}")]
     CiStepFailed(String),
 
+    #[error("{} ci step(s) failed: {}", .0.len(), .0.join("; "))]
+    CiStepsFailed(Vec<String>),
+
     #[error("the conformance ledger has {0} violation(s)")]
     LedgerViolations(usize),
 

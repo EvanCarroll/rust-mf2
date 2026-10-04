@@ -389,6 +389,10 @@ enum Command {
         /// `--no-run`; none of the closing checks.
         #[arg(long)]
         compile: bool,
+        /// Run every step even after one fails, `cargo test` with
+        /// `--no-fail-fast`, and list the failed steps at the end (exit 1).
+        #[arg(long)]
+        keep_going: bool,
     },
     /// Compile every code sample in the user documentation (`docs/`): the
     /// samples of each application are assembled under
@@ -494,7 +498,16 @@ fn run(command: Command) -> Result<()> {
                 report::check(&root, ledger.as_deref(), report.as_deref())
             }
         }
-        Command::Ci { compile } => ci::run(&root, ci::Mode { compile }),
+        Command::Ci {
+            compile,
+            keep_going,
+        } => ci::run(
+            &root,
+            ci::Mode {
+                compile,
+                keep_going,
+            },
+        ),
         Command::Docs { no_build } => docs::run(&root, !no_build),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
