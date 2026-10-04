@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.2 (`tui`). A worktree made for a task is removed once its work
+* **In flight:** 22.2 (`rlib`). A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.2 (`rlib`, then 17.3's client cost), 22.3
+* **Next:** 22.2 (17.3's client cost), 22.12, 22.13, then 22.3–22.11
 
 ## Done
 
@@ -36,6 +36,11 @@ starts in a fresh session.
   +13,573 → +13,581; **`tui` 1,328,664 → 1,331,976 (+3,312)**, frame time unchanged against the
   baseline binary (367.2 vs 369.2 µs); **`rlib` 46,316 → 46,520 (+204)**; the second `rlib`,
   603,534, is 21.5a's new dated corpus. Tests 956 → 1,027. To 22.2: `tui`, `rlib`, and 17.3.
+* 22.2 `tui` (+3,312 B; `CARGO_PROFILE_RELEASE_STRIP=symbols cargo build --release --bins
+  --manifest-path examples/tui/Cargo.toml`, bisect and cherry-picks, `target/attr-sizes.txt`):
+  3014fd9 (17.1, `server-data` through `host-std`) +496 B, code for a table a terminal UI never
+  has; 23a80ce (17.5, the date walk and `with_dates` gone) +2,816 B, the part not isolated;
+  548eca5 0 B. Calls for 22.12 and 22.13.
 
 ## Before this phase
 
@@ -216,6 +221,21 @@ Then stop. Write the answer into `plan/08` §2.7. If it needs code — a
 feature of `mf2`, the cost table's row, the guide's paragraph — that is a
 task here, with its narrow checks, and `cargo xtask feature-costs` is run
 again for its row.
+### 22.12 No server-only table in a native build (from 22.2)
+
+A native build never writes the server-only table (17.1), yet `host-std` turns on
+`server-data`, so a terminal UI links its reader (+496 B). Turn it on only where a build can
+have the table: a server whose browser side reads a different catalog. Confirmed by the
+TUI's stripped size (−496 B against c63af17) and 17.1's slicing tests.
+
+### 22.13 What 17.5 added to a terminal UI (from 22.2)
+
+17.5 added 2,816 B to the TUI, which formats no date. Find which part a native build links
+(the date walk over FUNCS has only a Leptos caller; the bare-placeholder path changed for
+every placeholder) and remove what a build without dates never runs, keeping 17.5's
+behaviour. Confirmed by the TUI's stripped size and 17.5's tests; what cannot go is said,
+with its bytes.
+
 
 ## Phase exit (coordinator)
 
