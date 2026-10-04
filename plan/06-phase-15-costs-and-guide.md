@@ -17,7 +17,7 @@ fresh session.
 
 ## State
 
-* **In flight:** 15.3. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 15.4
 
@@ -38,6 +38,10 @@ fresh session.
   text/JSON, `docs/features.md` (hydration may differ), `mf2` docs and Cargo comments aligned.
   Client wasm, dates workload, both on: 803,783 → 703,921 B gzip (`datetime-intl` alone 704,131).
   Catalogs still carry `icu.blob` for the server; the browser downloads it unused.
+* **15.3** `CHANGELOG.md` 3.0.0 entry ordered Breaking / Changed / Added / Fixed (the two
+  `FnContext::equivalent` lines merged; new lines for `links = "mf2-v3"` and both date backends).
+  `docs/versioning.md`: `mf2`'s feature names promised; sub-crate features and the `links`
+  metadata not; 2.0.0 on crates.io, 3.0.0 next. No upgrade section (owner, 2026-10-03).
 
 ## Before this phase
 
@@ -142,6 +146,8 @@ Done when: the tests pass, `cargo xtask ci`, `cargo xtask docs-rs` and
 `run.sh <label> --only docs` are green, and the bytes are in the Done entry.
 
 ### 15.3 Upgrading from 2.0, and the promise
+
+The owner dropped the `docs/upgrading.md` section (2026-10-03); the rest stands.
 
 Build:
 
