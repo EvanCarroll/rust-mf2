@@ -29,7 +29,6 @@ use FormatError::{BadOperand, BadOption, BadSelector, UnresolvedVariable};
 static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
 static DATE: DateTimeFunction<Neutral> = DateTimeFunction::date(Neutral);
 static TIME: DateTimeFunction<Neutral> = DateTimeFunction::time(Neutral);
-static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
 
 static FUNCTIONS: [(&str, &dyn Function); 5] = [
     ("date", &DATE),
@@ -38,9 +37,7 @@ static FUNCTIONS: [(&str, &dyn Function); 5] = [
     ("string", &mf2::functions::STRING),
     ("time", &TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
-/// No unannotated date handler.
-static BARE: Registry = Registry::new(&FUNCTIONS);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 const HOUR: i32 = 3600;
 const DAY_MS: i64 = 86_400_000;
@@ -1243,7 +1240,7 @@ fn the_context_zone() {
         ok_in(&paris, "{$i :time timeZoneStyle=short}", &args),
         "16:04 +01:00"
     );
-    assert_eq!(ok_in(&paris, "{$i}", &args), "2006-01-02 16:04");
+    assert_eq!(ok_in(&paris, "{$i :datetime}", &args), "2006-01-02 16:04");
     assert_eq!(ok_in(&paris, "{$i :time timeZone=UTC}", &args), "15:04");
     assert_eq!(
         ok_in(
@@ -1335,7 +1332,7 @@ fn without_zone_data() {
     let named = context(&BARE_HOST, TimeZone::named("Europe/Paris").unwrap());
     let (s, e) = run(&named, "{$i :time}", &args);
     assert_eq!((s.as_str(), e.as_slice()), ("{$i}", &[BadOption][..]));
-    let (s, e) = run(&named, "{$i}", &args);
+    let (s, e) = run(&named, "{$i :datetime}", &args);
     assert_eq!((s.as_str(), e.as_slice()), ("{$i}", &[BadOption][..]));
     assert_eq!(ok_in(&named, "{$i :time timeZone=UTC}", &args), "15:04");
     // … floating values can, and stay there.
@@ -1375,30 +1372,32 @@ fn without_zone_data() {
 
 // ──────────────────────────────────────────────────────── unannotated ──
 
+/// A date/time argument formats only through a date function (`plan/08`
+/// §4.3): `{$d :datetime}` with no options; bare, it is a Bad Operand.
 #[test]
 fn unannotated() {
     let cx = std_utc();
     let floating = mf2_fn_datetime::parse_literal("2006-01-02T15:04:06").unwrap();
     assert_eq!(
-        ok_in(&cx, "{$d}", &[("d", Arg::DateTime(&floating))]),
+        ok_in(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&floating))]),
         "2006-01-02 15:04"
     );
     let plus = mf2_fn_datetime::parse_literal("2006-01-02T15:04:06+01:00").unwrap();
     assert_eq!(
-        ok_in(&cx, "{$d}", &[("d", Arg::DateTime(&plus))]),
+        ok_in(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&plus))]),
         "2006-01-02 14:04"
     );
     // The value's own override options apply.
     let mut own = floating;
     own.options.hour12 = Some(true);
     assert_eq!(
-        ok_in(&cx, "{$d}", &[("d", Arg::DateTime(&own))]),
+        ok_in(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&own))]),
         "2006-01-02 03:04 PM"
     );
     assert_eq!(
         ok_in(
             &cx,
-            "{$d}",
+            "{$d :datetime}",
             &[(
                 "d",
                 Arg::DateTime(&plus_opts(plus, ZoneOption::Offset(-HOUR)))
@@ -1409,7 +1408,7 @@ fn unannotated() {
     // … and an error in them makes it a fallback value.
     let mut input = floating;
     input.options.time_zone = Some(ZoneOption::Input);
-    let (s, e) = run(&cx, "{$d}", &[("d", Arg::DateTime(&input))]);
+    let (s, e) = run(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&input))]);
     assert_eq!((s.as_str(), e.as_slice()), ("{$d}", &[BadOperand][..]));
     // Its non-override options are ignored.
     let mut styled = floating;
@@ -1419,11 +1418,11 @@ fn unannotated() {
     });
     styled.options.time = Some(TimePrecision::Second);
     assert_eq!(
-        ok_in(&cx, "{$d}", &[("d", Arg::DateTime(&styled))]),
+        ok_in(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&styled))]),
         "2006-01-02 15:04"
     );
     // Parts: the value as given, kind `datetime`, ltr.
-    let p = parts(&cx, "{$d}", &[("d", Arg::DateTime(&floating))]);
+    let p = parts(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&floating))]);
     assert_eq!(
         (p[0].kind.as_str(), p[0].dir, p[0].text.as_str()),
         ("datetime", Some(Dir::Ltr), "2006-01-02 15:04")
@@ -1431,8 +1430,8 @@ fn unannotated() {
     // `:string` has no string form of it.
     let (s, e) = run(&cx, "{$d :string}", &[("d", Arg::DateTime(&floating))]);
     assert_eq!((s.as_str(), e.as_slice()), ("{$d}", &[BadOperand][..]));
-    // Without the hook, an unannotated date/time is a Bad Operand.
-    let (s, e) = run_in(&BARE, &cx, "{$d}", &[("d", Arg::DateTime(&floating))]);
+    // Bare, a date/time is a Bad Operand, with the placeholder's fallback.
+    let (s, e) = run(&cx, "{$d}", &[("d", Arg::DateTime(&floating))]);
     assert_eq!((s.as_str(), e.as_slice()), ("{$d}", &[BadOperand][..]));
     // A date string argument is a string, unannotated.
     assert_eq!(

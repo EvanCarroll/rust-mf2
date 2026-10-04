@@ -433,29 +433,16 @@ impl DateNeeds {
     /// Adds what `message` formats: each `:datetime`, `:date` and `:time`
     /// expression's shape from its literal options (a variable or invalid
     /// value takes the default, as at run time), its `hour12` (a variable:
-    /// both values) and its literal `calendar`; and `:datetime`'s defaults
-    /// for a placeholder or declaration whose variable has no function and
-    /// is not declared with one — it can receive a date/time argument,
-    /// which `Registry::with_dates` formats (as `number.symbols` for a
-    /// number, `syntax.json` #90). `hour12` and the calendars apply to every
-    /// shape of the message, so what an expression inherits from its
-    /// operand is covered.
+    /// both values) and its literal `calendar`. A bare placeholder adds
+    /// nothing: an unannotated date/time is a Bad Operand (`plan/08` §4.3).
+    /// `hour12` and the calendars apply to every shape of the message, so
+    /// what an expression inherits from its operand is covered.
     pub fn add_message(&mut self, message: &Message<'_>) {
-        let mut declared_with_function = BTreeSet::new();
         let mut expressions: Vec<&Expression<'_>> = Vec::new();
         for d in message.declarations() {
             match d {
-                Declaration::Input(i) => {
-                    if i.value.function.is_some() {
-                        declared_with_function.insert(i.value.arg.name.as_ref());
-                    }
-                }
-                Declaration::Local(l) => {
-                    if l.value.function().is_some() {
-                        declared_with_function.insert(l.name.as_ref());
-                    }
-                    expressions.push(&l.value);
-                }
+                Declaration::Input(i) => self.add_function(i.value.function.as_ref()),
+                Declaration::Local(l) => expressions.push(&l.value),
                 _ => {}
             }
         }
@@ -471,23 +458,8 @@ impl DateNeeds {
                 }
             }
         }
-        for d in message.declarations() {
-            if let Declaration::Input(i) = d {
-                self.add_function(i.value.function.as_ref());
-            }
-        }
         for e in expressions {
-            match (e.function(), e) {
-                (Some(f), _) => self.add_function(Some(f)),
-                (None, Expression::Variable(v))
-                    if !declared_with_function.contains(v.arg.name.as_ref()) =>
-                {
-                    if let Some(o) = literal_options(None, &|_| None) {
-                        self.shapes.insert(Shape::of(&o));
-                    }
-                }
-                _ => {}
-            }
+            self.add_function(e.function());
         }
     }
 
@@ -499,7 +471,7 @@ impl DateNeeds {
             Some(OptionValue::Literal(l)) => Some(l.value.as_ref()),
             _ => None,
         };
-        let Some(o) = literal_options(Some(f.name.as_ref()), &literal) else {
+        let Some(o) = literal_options(f.name.as_ref(), &literal) else {
             return;
         };
         self.shapes.insert(Shape::of(&o));

@@ -408,18 +408,25 @@ fn unannotated_numbers_through_the_hook() {
     assert_eq!(kinds.0, ["localized", "string"]);
 }
 
-/// A date handler for unannotated dates: the ISO text.
+/// A date function, `:iso`: a date/time operand resolves to itself and
+/// formats as its ISO text.
 struct Iso;
 
 impl Function for Iso {
     fn resolve<'a>(
         &self,
         _cx: &FnContext<'_>,
-        _operand: Option<&Value<'a>>,
+        operand: Option<&Value<'a>>,
         _options: &Options<'_, 'a>,
-        _errs: &mut dyn ErrorSink,
+        errs: &mut dyn ErrorSink,
     ) -> Option<Value<'a>> {
-        None
+        match operand {
+            Some(Value::DateTime(d)) => Some(Value::DateTime(*d)),
+            _ => {
+                errs.error(FormatError::BadOperand);
+                None
+            }
+        }
     }
 
     fn format(&self, _cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
@@ -435,9 +442,15 @@ impl Function for Iso {
     fn dir(&self, _cx: &FnContext<'_>, _value: &Value<'_>) -> mf2_runtime::Dir {
         mf2_runtime::Dir::Ltr
     }
+
+    fn formats_dates(&self) -> bool {
+        true
+    }
 }
 
-static DATED: Registry = Registry::new(&FUNCTIONS).with_dates(&Iso);
+static DATED_FUNCTIONS: [(&str, &dyn Function); 3] =
+    [("iso", &Iso), ("number", &NUMBER), ("string", &STRING)];
+static DATED: Registry = Registry::new(&DATED_FUNCTIONS).with_numbers(&Plain);
 
 #[test]
 fn date_time_arguments() {
@@ -452,13 +465,16 @@ fn date_time_arguments() {
         ("b", Arg::from(&floating)),
         ("c", Arg::DateTime(&zoned)),
     ];
-    // Without a date handler: Bad Operand, no date code.
-    let (s, e) = run(&REGISTRY, &cx(), "{$a} | {$b}", &args);
-    assert_eq!(s, "{$a} | {$b}");
-    assert_eq!(e, [FormatError::BadOperand, FormatError::BadOperand]);
-    // With one (datetime's place).
+    // Unannotated: a Bad Operand, whatever the registry holds — only a date
+    // function formats a date (`plan/08` §4.3).
+    for registry in [&REGISTRY, &LOCALIZED, &DATED] {
+        let (s, e) = run(registry, &cx(), "{$a} | {$b}", &args);
+        assert_eq!(s, "{$a} | {$b}");
+        assert_eq!(e, [FormatError::BadOperand, FormatError::BadOperand]);
+    }
+    // Through a date function.
     assert_eq!(
-        ok(&DATED, "{$a} | {$b} | {$c}", &args),
+        ok(&DATED, "{$a :iso} | {$b :iso} | {$c :iso}", &args),
         "2006-01-02T15:04:06Z | 2006-01-02T15:04:06.250 | 2006-01-02T15:04:06+01:00[Europe/Paris]"
     );
     // Neither a string (`:string`) nor a numeric operand.
@@ -466,8 +482,8 @@ fn date_time_arguments() {
         let (_, e) = run(&DATED, &cx(), src, &args);
         assert_eq!(e, [FormatError::BadOperand], "{src}");
     }
-    // Not selectable, even with a handler.
-    let (s, e) = run(&DATED, &cx(), ".match $a * {{any}}", &args);
+    // Not selectable, even through a date function.
+    let (s, e) = run(&DATED, &cx(), ".input {$a :iso} .match $a * {{any}}", &args);
     assert_eq!(
         (s.as_str(), e.as_slice()),
         ("any", &[FormatError::BadSelector][..])
@@ -481,12 +497,23 @@ fn date_time_arguments() {
             }
         }
     }
-    let cat = catalog("{$a}");
+    let cat = catalog("{$a :iso}");
     let cx = cx();
     let f = Formatter::new(&cat, &DATED, &cx);
     let mut k = Kind(Vec::new());
     f.parts_named(MsgId::from_raw(0), &args, &mut k, &mut Vec::new());
     assert_eq!(k.0, [("datetime".to_owned(), mf2_runtime::Dir::Ltr)]);
+}
+
+/// A registry says which of its functions format dates: the handler's own
+/// mark, nothing else.
+#[test]
+fn date_functions_are_marked() {
+    assert!(DATED.is_date_function("iso"));
+    assert!(!DATED.is_date_function("number"));
+    assert!(!DATED.is_date_function("string"));
+    assert!(!DATED.is_date_function("datetime"));
+    assert!(!REGISTRY.is_date_function("zone"));
 }
 
 #[test]

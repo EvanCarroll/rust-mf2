@@ -326,9 +326,9 @@ fn b8_bytes(catalog: &catalog::Catalog) -> usize {
         .sum()
 }
 
-/// The unannotated hooks (`with_numbers` / `with_dates`, #90) belong in the
-/// registry only when a placeholder can actually receive a raw number or
-/// date. A declaration annotates the variable before the pattern sees it, so
+/// The unannotated number hook (`with_numbers`, #90) belongs in the
+/// registry only when a placeholder can actually receive a raw number (a
+/// raw date has no hook: it is a Bad Operand, `plan/08` §4.3). A declaration annotates the variable before the pattern sees it, so
 /// `{$n}` under `.input {$n :integer}` never reaches them — and a corpus that
 /// annotates everything through declarations should pay nothing for them
 /// (B1′).

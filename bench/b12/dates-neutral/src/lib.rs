@@ -1,6 +1,6 @@
 //! B12 and B4 (`plans/06-size-and-perf.md` §3): the date semantics every
-//! backend needs — `:datetime`, `:date`, `:time` and unannotated date/time
-//! values over the neutral stub backend. Semantics = this − `b12-dates-base`
+//! backend needs — `:datetime`, `:date` and `:time` over the neutral stub
+//! backend. Semantics = this − `b12-dates-base`
 //! (≤ 3.5 KB gz of B4).
 #![no_std]
 
@@ -13,7 +13,6 @@ type Backend = Neutral;
 static DATE: DateTimeFunction<Backend> = DateTimeFunction::date(Neutral);
 static DATETIME: DateTimeFunction<Backend> = DateTimeFunction::datetime(Neutral);
 static TIME: DateTimeFunction<Backend> = DateTimeFunction::time(Neutral);
-static DATES: DateTimeFunction<Backend> = DateTimeFunction::unannotated(Neutral);
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("date", &DATE),
     ("datetime", &DATETIME),
@@ -23,7 +22,7 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("string", &STRING),
     ("time", &TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// Formats every message of the host's catalog.
 #[unsafe(no_mangle)]

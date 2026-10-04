@@ -86,6 +86,16 @@ pub trait Function: Sync {
         let _ = (cx, value, key1, key2);
         false
     }
+
+    /// Whether this handler formats dates (false by default). `:datetime`,
+    /// `:date` and `:time` say yes, and so may an application's own: a
+    /// message that calls one is a *date message*, which a Leptos client
+    /// rewrites after hydration when the server's date formatter or zone
+    /// was not its own (`plan/08` §4.3). Only a date function formats a
+    /// date: an unannotated date/time is a Bad Operand.
+    fn formats_dates(&self) -> bool {
+        false
+    }
 }
 
 /// What a handler may see of the formatting context: read-only and minimal
@@ -249,7 +259,6 @@ impl core::fmt::Debug for Options<'_, '_> {
 pub struct Registry {
     functions: &'static [(&'static str, &'static dyn Function)],
     numbers: Option<&'static dyn Function>,
-    dates: Option<&'static dyn Function>,
 }
 
 impl Registry {
@@ -257,7 +266,6 @@ impl Registry {
     pub const EMPTY: Registry = Registry {
         functions: &[],
         numbers: None,
-        dates: None,
     };
 
     /// The registry of `functions`: `(identifier, handler)`, the identifier
@@ -267,7 +275,6 @@ impl Registry {
         Registry {
             functions,
             numbers: None,
-            dates: None,
         }
     }
 
@@ -286,27 +293,12 @@ impl Registry {
         }
     }
 
-    /// This registry, with `f` formatting unannotated date/time values
-    /// (`Arg::DateTime`, `CustomValue` has no say): `mf2-fn-datetime`, as
-    /// `:datetime` with its defaults (`plans/03-runtime.md` §2.7). The
-    /// evaluator asks `f` whether such a value formats, its direction, text,
-    /// sub-parts and part kind; it does not select. Without it an
-    /// unannotated date/time is a Bad Operand, so no date code is linked.
-    #[must_use]
-    pub const fn with_dates(self, f: &'static dyn Function) -> Registry {
-        Registry {
-            dates: Some(f),
-            ..self
-        }
-    }
-
-    /// The handler for an unannotated value `v` — a number or a date/time —
-    /// if the registry has one.
+    /// The handler for an unannotated value `v`, if the registry has one:
+    /// only a number has one. An unannotated date/time is a Bad Operand —
+    /// only a date function formats a date (`plan/08` §4.3).
     pub(crate) fn unannotated(&self, v: &Value<'_>) -> Option<&'static dyn Function> {
         if unannotated::is_numeric(v) {
             self.numbers
-        } else if unannotated::is_date_time(v) {
-            self.dates
         } else {
             None
         }
@@ -318,6 +310,12 @@ impl Registry {
             .iter()
             .find(|(n, _)| *n == name)
             .map(|&(_, f)| f)
+    }
+
+    /// Whether `name` (a FUNCS identifier) is a handler here that formats
+    /// dates ([`Function::formats_dates`]).
+    pub fn is_date_function(&self, name: &str) -> bool {
+        self.get(name).is_some_and(|f| f.formats_dates())
     }
 }
 

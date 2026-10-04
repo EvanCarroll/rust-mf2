@@ -101,15 +101,12 @@ fn slicing_rule() {
             [false, false],
             vec![],
         ),
-        // A placeholder that can receive a date/time argument: :datetime's
-        // defaults. Not a variable declared with a function.
-        ("{$x}", vec![datetime], [false, false], vec![]),
-        (
-            ".local $y = {$x} {{{$y}}}",
-            vec![datetime],
-            [false, false],
-            vec![],
-        ),
+        // `:datetime` with no options: its defaults. A bare placeholder adds
+        // nothing — an unannotated date/time is a Bad Operand (`plan/08`
+        // §4.3).
+        ("{$x :datetime}", vec![datetime], [false, false], vec![]),
+        ("{$x}", vec![], [false, false], vec![]),
+        (".local $y = {$x} {{{$y}}}", vec![], [false, false], vec![]),
         (
             ".input {$x :number} {{{$x}}}",
             vec![],
@@ -202,7 +199,7 @@ fn spec(any_calendar: bool, zones: bool, n: &DateNeeds) -> IcuBlobSpec {
 
 #[test]
 fn sizes() {
-    let default = needs("{$x}");
+    let default = needs("{$x :datetime}");
     let all = DateNeeds::all();
     eprintln!(
         "icu.blob, raw / gzip -9 B: `:datetime` defaults only (Gregorian); every shape: Gregorian, \
@@ -275,7 +272,13 @@ fn deterministic_and_nested() {
 #[test]
 fn vectors() {
     for (src, any_calendar, zones, len, hash) in [
-        ("{$x}", false, false, 499usize, 0xc726_446f_5289_ecf2_u64),
+        (
+            "{$x :datetime}",
+            false,
+            false,
+            499usize,
+            0xc726_446f_5289_ecf2_u64,
+        ),
         (
             "{$d :date length=long}",
             false,

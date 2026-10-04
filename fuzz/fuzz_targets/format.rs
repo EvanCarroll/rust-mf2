@@ -174,7 +174,6 @@ fn run(flags: u8, arg_bytes: &[u8], payload: &[u8], compiled: Option<Catalog>, w
 static N_DATE: DateTimeFunction<Neutral> = DateTimeFunction::date(Neutral);
 static N_DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
 static N_TIME: DateTimeFunction<Neutral> = DateTimeFunction::time(Neutral);
-static N_DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
 
 /// The L4 registry with the date functions over the neutral backend, for
 /// catalog mode: ICU4X does not promise to survive a damaged `icu.blob` —
@@ -198,9 +197,8 @@ static CATALOG_FUNCTIONS: [(&str, &dyn Function); 13] = [
     ("time", &N_TIME),
     ("unit", &mf2_fn_number::UNIT),
 ];
-static CATALOG_REGISTRY: Registry = Registry::new(&CATALOG_FUNCTIONS)
-    .with_numbers(&mf2_fn_number::NUMBERS)
-    .with_dates(&N_DATES);
+static CATALOG_REGISTRY: Registry =
+    Registry::new(&CATALOG_FUNCTIONS).with_numbers(&mf2_fn_number::NUMBERS);
 
 // ── arguments ────────────────────────────────────────────────────────────────
 

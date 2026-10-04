@@ -27,7 +27,7 @@
 //! | `host-std` / `host-web` | a [`Host`]: native (servers, tests, `wasm32-wasip1`), or the browser — with no framework, how an application uses `mf2` |
 //! | **What can messages do?** | |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, `:currency`, `:unit`, localized unannotated numbers |
-//! | `datetime` | turned on by every date formatter below: [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
+//! | `datetime` | turned on by every date formatter below: [`fn_datetime`]: `:datetime` / `:date` / `:time` (an unannotated date/time is a Bad Operand: a message writes `{$when :datetime}`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
 //! | **Who supplies locale data?** | |
 //! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //! | `<family>-datetime-<formatter>` | the date formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `icu`, `intl`, `iso`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `icu`, `iso`). `icu` is ICU4X over the catalog's `icu.blob` (and [`compile_str`] emits it), `intl` the browser's `Intl.DateTimeFormat`, `iso` the ISO stand-in. A build formats with the strongest of its own side's: ICU4X, then `Intl`, then ISO; each turns on `datetime` |
@@ -76,8 +76,9 @@
 //! ```
 //!
 //! With [`fn_datetime`], a date: a handler over a chosen backend (here the
-//! neutral stub; `DATETIME` and `DATES` are these over the default one) and
-//! the registry that formats unannotated date/time values with it.
+//! neutral stub; `DATETIME` is this over the default one) and the registry
+//! that names it. Only a date function formats a date: an unannotated
+//! date/time is a Bad Operand.
 //!
 //! ```
 //! # #[cfg(all(feature = "compile", feature = "host-std", feature = "datetime"))] {
@@ -85,9 +86,8 @@
 //! use mf2::{FormatContext, Formatter, Registry};
 //!
 //! static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
-//! static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
 //! static FUNCTIONS: [(&str, &dyn mf2::Function); 1] = [("datetime", &DATETIME)];
-//! static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+//! static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 //! static CX: FormatContext = FormatContext::new(&mf2::host_std::HOST);
 //!
 //! let m = mf2::compile_str("{|2006-01-02T15:04:06| :datetime timePrecision=second}", "en").unwrap();

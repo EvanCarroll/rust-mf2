@@ -15,7 +15,6 @@ type Backend = Icu<AnyCalendar, NoZones>;
 static DATE: DateTimeFunction<Backend> = DateTimeFunction::date(Icu::NEW);
 static DATETIME: DateTimeFunction<Backend> = DateTimeFunction::datetime(Icu::NEW);
 static TIME: DateTimeFunction<Backend> = DateTimeFunction::time(Icu::NEW);
-static DATES: DateTimeFunction<Backend> = DateTimeFunction::unannotated(Icu::NEW);
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("date", &DATE),
     ("datetime", &DATETIME),
@@ -25,7 +24,7 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("string", &STRING),
     ("time", &TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// Formats every message of the host's catalog.
 #[unsafe(no_mangle)]

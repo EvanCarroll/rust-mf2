@@ -42,8 +42,8 @@ pub struct Slice {
     /// `neutral-numbers` warning; with it, the reason for `number.symbols`.
     pub formats_numbers: bool,
     /// The corpus has a placeholder with no function at all, which can
-    /// therefore receive a number or a date at run time. Only then do the
-    /// unannotated hooks belong in the registry (#90).
+    /// therefore receive a number at run time. Only then does the number
+    /// hook belong in the registry (#90); a date there is a Bad Operand.
     pub unannotated: bool,
 }
 

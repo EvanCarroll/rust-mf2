@@ -23,10 +23,9 @@ type Full = Icu;
 static DATETIME: DateTimeFunction<Full> = DateTimeFunction::datetime(Icu::NEW);
 static DATE: DateTimeFunction<Full> = DateTimeFunction::date(Icu::NEW);
 static TIME: DateTimeFunction<Full> = DateTimeFunction::time(Icu::NEW);
-static DATES: DateTimeFunction<Full> = DateTimeFunction::unannotated(Icu::NEW);
 static FULL: [(&str, &dyn Function); 3] =
     [("date", &DATE), ("datetime", &DATETIME), ("time", &TIME)];
-static REGISTRY: Registry = Registry::new(&FULL).with_dates(&DATES);
+static REGISTRY: Registry = Registry::new(&FULL);
 
 /// The same over ICU4X's compiled data (this crate's `compiled-data`, a set
 /// of `cargo xtask ci`).
@@ -303,12 +302,12 @@ fn zones() {
         (s.as_str(), e.as_slice()),
         ("16:04 Mitteleuropäische Normalzeit", &[][..])
     );
-    // Unannotated, in the context's zone.
+    // `:datetime`'s defaults, in the context's zone.
     let (s, e) = run_with(
         &REGISTRY,
         &paris,
         "en",
-        "{$i} {|2006-01-02| :date}",
+        "{$i :datetime} {|2006-01-02| :date}",
         &[("i", Arg::DateTime(&instant))],
     );
     assert_eq!(
@@ -440,11 +439,17 @@ fn errors() {
         ),
         ("{$d}".into(), vec![UnsupportedOperation])
     );
-    // An unannotated date/time: `compile_str` carries `:datetime`'s
-    // defaults for a placeholder that can receive one (02 §4.4).
+    // `:datetime` with no options: `compile_str` carries its defaults
+    // (02 §4.4).
     let d = mf2_fn_datetime::parse_literal("2006-01-02T15:04:06").unwrap();
     assert_eq!(
-        run_with(&REGISTRY, &utc, "en", "{$d}", &[("d", Arg::DateTime(&d))]),
+        run_with(
+            &REGISTRY,
+            &utc,
+            "en",
+            "{$d :datetime}",
+            &[("d", Arg::DateTime(&d))]
+        ),
         ("Jan 2, 2006, 3:04\u{202f}PM".into(), vec![])
     );
     // A catalog without its blob.

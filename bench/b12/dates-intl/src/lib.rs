@@ -13,7 +13,6 @@ use mf2_runtime::{Function, Registry};
 static DATE: DateTimeFunction<Intl> = DateTimeFunction::date(Intl);
 static DATETIME: DateTimeFunction<Intl> = DateTimeFunction::datetime(Intl);
 static TIME: DateTimeFunction<Intl> = DateTimeFunction::time(Intl);
-static DATES: DateTimeFunction<Intl> = DateTimeFunction::unannotated(Intl);
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("date", &DATE),
     ("datetime", &DATETIME),
@@ -23,7 +22,7 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("string", &STRING),
     ("time", &TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// Formats every message of the host's catalog.
 #[unsafe(no_mangle)]

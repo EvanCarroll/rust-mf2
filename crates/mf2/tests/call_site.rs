@@ -11,16 +11,16 @@ use mf2::{
     functions, markup, tr, tr_args_n, tr_args1, tr_args2, tr_dyn, tr_rich,
 };
 
-static FUNCTIONS: [(&str, &dyn Function); 4] = [
+static FUNCTIONS: [(&str, &dyn Function); 5] = [
+    ("datetime", &mf2::fn_datetime::DATETIME),
     ("integer", &functions::INTEGER),
     ("number", &functions::NUMBER),
     ("offset", &functions::OFFSET),
     ("string", &functions::STRING),
 ];
-/// Unannotated date/time values need the hook the closed-world registry
-/// gets when `datetime` is on — without it they are a Bad Operand, which
-/// is the documented default-configuration degradation (L4d).
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2::fn_datetime::DATES);
+/// A date/time formats only through a date function (`plan/08` §4.3): a
+/// bare one is a Bad Operand.
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 static CX: FormatContext = FormatContext::new(&mf2::host_std::ZONES_HOST);
 
 /// A message compiled for `en`, and the slot order its manifest fixed.
@@ -139,7 +139,7 @@ fn a_source_that_returns_a_source_cannot_loop() {
 
 #[test]
 fn a_date_argument_is_borrowed_into_the_runtime() {
-    let c = compiled("{$when}");
+    let c = compiled("{$when :datetime}");
     let date = Date::new(2026, 9, 23).expect("a real date");
     let time = Time::new(14, 5, 0, 0).expect("a real time");
     let value = DateTimeValue::floating(date, time);

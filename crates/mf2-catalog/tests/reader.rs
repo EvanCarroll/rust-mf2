@@ -468,3 +468,51 @@ fn unknown_sections_are_skipped() {
         );
     }
 }
+
+/// Whether a message calls a date function is read from its tags and FUNCS,
+/// without formatting it (`plan/08` §4.3): a call in a placeholder, in a
+/// declaration, in one variant, or of a function the application marked as
+/// a date function counts; a bare placeholder does not.
+#[test]
+fn a_date_message_is_read_from_its_tags() {
+    let is_date = |name: &str| matches!(name, "datetime" | "date" | "time" | "app:when");
+    let check = |src: &str| -> (bool, bool) {
+        let model = parse(src);
+        let a = mf2_syntax::analyze(&model);
+        let slots: Vec<&str> = a.externals.iter().map(|n| &*n.nfc).collect();
+        let (bytes, manifest) =
+            mf2_catalog::writer::single(&model, &slots, &Options::new("en", Dir::Ltr)).unwrap();
+        let cat = Catalog::new(bytes, manifest.hash()).unwrap();
+        let id = MsgId::new(0, 0).unwrap();
+        (cat.names_function(is_date), cat.calls(id, is_date))
+    };
+    // A call in a placeholder.
+    assert_eq!(check("Due {$d :datetime}"), (true, true));
+    // A call in a declaration only: the placeholder itself is bare.
+    assert_eq!(check(".input {$d :date} {{Due {$d}}}"), (true, true));
+    assert_eq!(check(".local $t = {$d :time} {{At {$t}}}"), (true, true));
+    // A call in one variant of a select.
+    assert_eq!(
+        check(".input {$n :integer} .match $n 1 {{one}} * {{{$d :date}}}"),
+        (true, true)
+    );
+    // A function the application registered as a date function.
+    assert_eq!(check("Due {$d :app:when}"), (true, true));
+    // None: a number, a string, markup, a bare placeholder, plain text.
+    assert_eq!(
+        check("{$n :integer} {$s :string} {#b}x{/b} {$d}"),
+        (false, false)
+    );
+    assert_eq!(check("Hello"), (false, false));
+
+    // Per message, in a catalog of several.
+    let (bytes, hash) = rich();
+    let cat = Catalog::new(bytes, hash).unwrap();
+    assert!(!cat.names_function(is_date));
+    let integer = |name: &str| name == "integer";
+    assert!(cat.names_function(integer));
+    let calls: Vec<bool> = (0..6)
+        .map(|i| cat.calls(MsgId::new(0, i).unwrap(), integer))
+        .collect();
+    assert_eq!(calls, [false, false, true, true, false, false]);
+}

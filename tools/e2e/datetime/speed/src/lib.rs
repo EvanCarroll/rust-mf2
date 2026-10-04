@@ -30,7 +30,7 @@ static FUNCTIONS: [(&str, &dyn Function); 3] = [
     ("datetime", &mf2_fn_datetime::DATETIME),
     ("time", &mf2_fn_datetime::TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// The host: the zone offsets (and, for `Intl`, the formatting) from the
 /// browser's own data.

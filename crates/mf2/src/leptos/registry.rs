@@ -112,7 +112,8 @@ impl Target {
     /// correction (`crate::leptos::zone`). A node whose text does not depend on the
     /// zone is not written at all, unless `always`: the server's date
     /// formatter was not the client's, so the node holds text the client
-    /// would not write, and it is written whatever the zone.
+    /// would not write, and it is written whatever the zone. The correction
+    /// calls it only for a message that formats a date.
     #[cfg(all(feature = "hydrate", feature = "datetime"))]
     pub(crate) fn correct_zone(
         &self,
@@ -162,6 +163,11 @@ pub(crate) trait Relocalize {
     /// text and the page the server's (`crate::leptos::zone`).
     #[cfg(all(feature = "hydrate", feature = "datetime"))]
     fn rewrite(&mut self, catalog: &Catalog);
+
+    /// The message it renders: the correction rewrites it only when that
+    /// message formats a date (`crate::leptos::zone`).
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    fn msg_id(&self) -> mf2_runtime::MsgId;
 }
 
 enum Slot {

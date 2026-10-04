@@ -1,6 +1,6 @@
 //! The `intl` date formatter's browser comparison, browser side (plans/11 A6): a
 //! case's catalog, with its params, formatted with `:date`, `:time`,
-//! `:datetime` and unannotated dates over the
+//! `:datetime` over the
 //! `Intl` backend — `Intl.DateTimeFormat` through `mf2-host-web`, whose
 //! zone offsets come from the browser's own data — in UTC, no bidi
 //! isolation, as the native side formats it with ICU4X.
@@ -16,7 +16,7 @@ static FUNCTIONS: [(&str, &dyn Function); 3] = [
     ("datetime", &mf2_fn_datetime::DATETIME),
     ("time", &mf2_fn_datetime::TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// An error's suite name (`BadOperand` → `bad-operand`).
 fn suite_name(e: FormatError) -> String {

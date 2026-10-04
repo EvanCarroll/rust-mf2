@@ -16,16 +16,24 @@
 //! **The correction** (client, with a server): hydration runs in the page's
 //! zone, so everything formatted while hydrating agrees with the served
 //! HTML. After it, the zone becomes the reader's, and exactly the nodes whose
-//! text changes are rewritten — found by formatting each in both zones.
+//! text changes are rewritten — found by formatting each date message in
+//! both zones.
 //!
 //! **The formatter** (client, with a server): the page also states the
 //! server's date formatter (`data-mf2-dates`). When it is not the client's —
 //! ISO on the server and `Intl` in the browser, the smallest server — the
 //! served dates are the server's text, which the client never produces, so
-//! the same queue rewrites **every** text it hydrated, whatever the zone.
-//! ICU4X on the server and `Intl` in the browser is the one difference that
-//! is left alone: the server's text is a localized date already, and stays
-//! until its node next updates (`plan/08` §4.3).
+//! the same queue rewrites **every date message** it hydrated, whatever the
+//! zone. ICU4X on the server and `Intl` in the browser is the one difference
+//! that is left alone: the server's text is a localized date already, and
+//! stays until its node next updates (`plan/08` §4.3).
+//!
+//! **Only date messages** (owner, 2026-10-04): both act only on a message
+//! that calls a date function — `:datetime`, `:date`, `:time`, or one the
+//! application's registry marks (`Function::formats_dates`) — read from the
+//! catalog's FUNCS and the message's tags, never from the page's text. Any
+//! other node keeps the server's text, a number the server wrote otherwise
+//! included, and is not formatted again.
 
 use mf2_runtime::TimeZone;
 
@@ -129,6 +137,7 @@ mod correction {
     use crate::leptos::registry::{Relocalize, Target};
     use crate::leptos::text::Stored;
     use crate::line::reactive_graph;
+    use mf2_runtime::MsgId;
 
     /// Where the correction is.
     #[derive(Clone, Copy)]
@@ -163,6 +172,26 @@ mod correction {
 
     fn rewrite() -> bool {
         REWRITE.with(Cell::get)
+    }
+
+    /// Whether message `id` formats a date: it calls a function the
+    /// registry marks as a date function (`plan/08` §4.3). A catalog whose
+    /// FUNCS names none has none. Without a registry nothing is known, so
+    /// every message counts.
+    fn formats_date(catalog: &mf2_catalog::Catalog, id: MsgId) -> bool {
+        let Some(registry) = crate::leptos::state::registry() else {
+            return true;
+        };
+        let is_date = |name: &str| registry.is_date_function(name);
+        catalog.names_function(is_date) && catalog.calls(id, is_date)
+    }
+
+    /// Corrects one hydrated text, attribute or property node, if its
+    /// message formats a date.
+    fn correct(target: &Target, desc: &Stored, catalog: &mf2_catalog::Catalog, page: TimeZone) {
+        if formats_date(catalog, desc.msg_id()) {
+            target.correct_zone(desc, catalog, page, rewrite());
+        }
     }
 
     /// The page's preload link, which carries what the server states.
@@ -254,17 +283,16 @@ mod correction {
             return;
         };
         let page = super::current().unwrap_or_else(|| page_zone(preload_link().as_ref()).1);
-        let all = rewrite();
         set(Some(reader));
         PHASE.with(|p| p.set(Phase::Corrected { page }));
         let queued = QUEUE.with(|q| core::mem::take(&mut *q.borrow_mut()));
         if let Some(catalog) = catalog::active() {
             for node in &queued {
                 match node {
-                    Queued::Value(target, desc) => target.correct_zone(desc, &catalog, page, all),
+                    Queued::Value(target, desc) => correct(target, desc, &catalog, page),
                     Queued::Rich(node) => {
                         if let Ok(mut node) = node.try_borrow_mut() {
-                            relocalize(&mut *node, &catalog, all);
+                            relocalize(&mut *node, &catalog);
                         }
                     }
                 }
@@ -277,10 +305,15 @@ mod correction {
         }
     }
 
-    /// Brings a markup message up to date: rebuilt, or, when the server's
-    /// formatter is not the client's, rewritten whole (`Relocalize::rewrite`).
-    fn relocalize(node: &mut dyn Relocalize, catalog: &mf2_catalog::Catalog, all: bool) {
-        if all {
+    /// Brings a markup message up to date, if it formats a date: rebuilt,
+    /// or, when the server's formatter is not the client's, rewritten whole
+    /// (`Relocalize::rewrite`). Any other markup message is left as it
+    /// hydrated: no empty-then-full rebuild.
+    fn relocalize(node: &mut dyn Relocalize, catalog: &mf2_catalog::Catalog) {
+        if !formats_date(catalog, node.msg_id()) {
+            return;
+        }
+        if rewrite() {
             node.rewrite(catalog);
         } else {
             node.relocalize(catalog);
@@ -307,7 +340,7 @@ mod correction {
             }
             Phase::Corrected { page } => {
                 if let Some(catalog) = catalog::active() {
-                    target.correct_zone(desc, &catalog, page, rewrite());
+                    correct(target, desc, &catalog, page);
                 }
             }
         }
@@ -333,7 +366,7 @@ mod correction {
             }
             Phase::Corrected { .. } => {
                 if let (Some(catalog), Ok(mut node)) = (catalog::active(), node.try_borrow_mut()) {
-                    relocalize(&mut *node, &catalog, rewrite());
+                    relocalize(&mut *node, &catalog);
                 }
             }
         }

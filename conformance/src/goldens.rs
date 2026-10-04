@@ -164,9 +164,8 @@ pub const FAMILIES: &[Family] = &[
         about: "the date/time family (host-std-datetime-icu: ICU4X from the catalog's \
                 icu.blob): :datetime, :date, :time with every length, the field sets, \
                 precisions, hour12, zone styles in UTC, a named zone and an offset, two other \
-                calendars; unannotated values; instants and floating values, in UTC",
+                calendars; instants and floating values, in UTC",
         messages: &[
-            "{$n}",
             "{$n :datetime}",
             "{$n :datetime dateLength=long timePrecision=second}",
             "{$n :datetime dateLength=short timePrecision=hour}",

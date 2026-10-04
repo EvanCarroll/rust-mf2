@@ -247,6 +247,41 @@ impl<'a> MsgView<'a> {
     pub fn body(&self) -> Result<Body<'a>, Malformed> {
         self.declarations().body()
     }
+
+    /// Whether this message calls a function whose FUNCS index `pick`
+    /// chooses: in a declaration, a placeholder of its pattern, or a
+    /// placeholder of any variant. Markup options cannot call a function,
+    /// so markup is skipped. A malformed record counts as a call
+    /// ([`Catalog::calls`]). One linear walk; nothing is allocated.
+    pub fn calls(&self, pick: &dyn Fn(u32) -> bool) -> bool {
+        let expr = |e: &ExprView<'_>| e.function().is_some_and(|f| pick(f.index()));
+        let pattern = |p: PatternView<'_>| {
+            p.parts().any(|part| match part {
+                Ok(PartView::Expression(e)) => expr(&e),
+                Ok(PartView::Text(_) | PartView::Markup(_)) => false,
+                Err(Malformed) => true,
+            })
+        };
+        let mut decls = self.declarations();
+        for d in decls.by_ref() {
+            match d {
+                Ok(DeclView::Input(e) | DeclView::Local { expr: e, .. }) => {
+                    if expr(&e) {
+                        return true;
+                    }
+                }
+                Err(Malformed) => return true,
+            }
+        }
+        match decls.body() {
+            Ok(Body::Pattern(p)) => pattern(p),
+            Ok(Body::Select(s)) => s.variants().any(|v| match v {
+                Ok(v) => pattern(v.pattern()),
+                Err(Malformed) => true,
+            }),
+            Err(Malformed) => true,
+        }
+    }
 }
 
 /// A message body.

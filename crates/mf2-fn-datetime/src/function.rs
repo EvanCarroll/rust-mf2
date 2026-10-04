@@ -1,5 +1,5 @@
-//! The handlers: `:datetime`, `:date`, `:time` (datetime.md), and the
-//! handler of unannotated date/time values (`Registry::with_dates`).
+//! The handlers: `:datetime`, `:date`, `:time` (datetime.md). An
+//! unannotated date/time has none: it is a Bad Operand (`plan/08` §4.3).
 
 use mf2_runtime::{
     DateFields, DateLength, DateStyle, DateTime, DateTimeOptions, Dir, ErrorSink, FnContext,
@@ -11,23 +11,13 @@ use crate::options::{self, Kind, Own};
 use crate::plan::{Backend, Plan};
 use crate::zone;
 
-/// What a handler is.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-enum Role {
-    /// A function: `:datetime`, `:date` or `:time`.
-    Function(Kind),
-    /// Unannotated date/time values: formatted as `:datetime` with its
-    /// defaults.
-    Unannotated,
-}
-
-/// A date/time handler over the backend `B`: `:datetime`, `:date`,
-/// `:time`, or the unannotated one — the statics [`crate::DATETIME`],
-/// [`crate::DATE`], [`crate::TIME`], [`crate::DATES`] over the default
-/// backend, or one built with the constructors over another.
+/// A date/time handler over the backend `B`: `:datetime`, `:date` or
+/// `:time` — the statics [`crate::DATETIME`], [`crate::DATE`],
+/// [`crate::TIME`] over the default backend, or one built with the
+/// constructors over another.
 #[derive(Clone, Copy, Debug)]
 pub struct DateTimeFunction<B = crate::DefaultBackend> {
-    role: Role,
+    kind: Kind,
     backend: B,
 }
 
@@ -35,7 +25,7 @@ impl<B> DateTimeFunction<B> {
     /// `:datetime`.
     pub const fn datetime(backend: B) -> Self {
         DateTimeFunction {
-            role: Role::Function(Kind::DateTime),
+            kind: Kind::DateTime,
             backend,
         }
     }
@@ -43,7 +33,7 @@ impl<B> DateTimeFunction<B> {
     /// `:date`.
     pub const fn date(backend: B) -> Self {
         DateTimeFunction {
-            role: Role::Function(Kind::Date),
+            kind: Kind::Date,
             backend,
         }
     }
@@ -51,19 +41,7 @@ impl<B> DateTimeFunction<B> {
     /// `:time`.
     pub const fn time(backend: B) -> Self {
         DateTimeFunction {
-            role: Role::Function(Kind::Time),
-            backend,
-        }
-    }
-
-    /// The handler of unannotated date/time values, for
-    /// `Registry::with_dates`: a value is formatted as `:datetime` with no
-    /// options would format it — its own override options apply — and if
-    /// that resolution reports an error, it is a fallback value with that
-    /// error. Named in a registry, it is `:datetime`.
-    pub const fn unannotated(backend: B) -> Self {
-        DateTimeFunction {
-            role: Role::Unannotated,
+            kind: Kind::Time,
             backend,
         }
     }
@@ -74,10 +52,7 @@ impl<B> DateTimeFunction<B> {
     }
 
     const fn kind(&self) -> Kind {
-        match self.role {
-            Role::Function(k) => k,
-            Role::Unannotated => Kind::DateTime,
-        }
+        self.kind
     }
 }
 
@@ -124,9 +99,8 @@ fn parts<'a>(kind: Kind, own: &Own<'a>) -> DateTimeOptions<'a> {
 }
 
 /// Build side (`mf2-locale-data`'s `icu.blob` slicing, `plans/02-catalog-format.md`
-/// §4.4): what an expression of `function` — `datetime`, `date` or `time`,
-/// or `None` for an unannotated date/time value, formatted as `:datetime`
-/// with no options — shows, from its literal options: `literal(name)` is
+/// §4.4): what an expression of `function` — `datetime`, `date` or `time`
+/// — shows, from its literal options: `literal(name)` is
 /// the literal value of the option `name`, `None` when the expression has
 /// none or sets it by a variable. The result has the date and time parts
 /// with their defaults, the zone style, and `hour12` and `calendar` when a
@@ -135,17 +109,11 @@ fn parts<'a>(kind: Kind, own: &Own<'a>) -> DateTimeOptions<'a> {
 /// and takes its default. Not the zone, nor what a date/time operand passes
 /// on. Another function name: `None`.
 pub fn literal_options<'s>(
-    function: Option<&str>,
+    function: &str,
     literal: &dyn Fn(&str) -> Option<&'s str>,
 ) -> Option<DateTimeOptions<'s>> {
-    let kind = match function {
-        None => Kind::DateTime,
-        Some(name) => options::kind(name)?,
-    };
-    let own = match function {
-        None => Own::default(),
-        Some(_) => options::read_literals(kind, literal),
-    };
+    let kind = options::kind(function)?;
+    let own = options::read_literals(kind, literal);
     let mut o = parts(kind, &own);
     o.hour12 = own.hour12;
     o.calendar = own.calendar;
@@ -184,35 +152,16 @@ fn resolve<'a>(
     Some(d)
 }
 
-/// Keeps the first error.
-struct First(Option<FormatError>);
-
-impl ErrorSink for First {
-    fn error(&mut self, e: FormatError) {
-        if self.0.is_none() {
-            self.0 = Some(e);
-        }
-    }
-}
-
 impl<B> DateTimeFunction<B> {
-    /// The resolved value to format: `value` itself, or — unannotated — the
-    /// argument resolved now.
+    /// The resolved value to format: a date/time function's value.
     fn value<'v>(
         &self,
-        cx: &FnContext<'_>,
+        _cx: &FnContext<'_>,
         value: &Value<'v>,
     ) -> Result<DateTime<'v>, FormatError> {
-        match (self.role, value) {
-            (Role::Unannotated, v) => {
-                let mut first = First(None);
-                match resolve(Kind::DateTime, cx, Some(v), &Own::default(), &mut first) {
-                    Some(d) if first.0.is_none() => Ok(d),
-                    _ => Err(first.0.unwrap_or(FormatError::BadOperand)),
-                }
-            }
-            (Role::Function(_), Value::DateTime(d)) => Ok(*d),
-            (Role::Function(_), _) => Err(FormatError::MessageFunctionError),
+        match value {
+            Value::DateTime(d) => Ok(*d),
+            _ => Err(FormatError::MessageFunctionError),
         }
     }
 }
@@ -249,6 +198,11 @@ impl<B: Backend> Function for DateTimeFunction<B> {
 
     fn part_kind(&self) -> &'static str {
         "datetime"
+    }
+
+    /// Every one of them: a message that calls one is a date message.
+    fn formats_dates(&self) -> bool {
+        true
     }
 
     fn dir(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Dir {

@@ -33,7 +33,7 @@ static FUNCTIONS: [(&str, &dyn Function); 3] = [
     ("datetime", &mf2_fn_datetime::DATETIME),
     ("time", &mf2_fn_datetime::TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2_fn_datetime::DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// The locale panel (plans/01-conformance.md §5).
 const PANEL: [&str; 11] = [

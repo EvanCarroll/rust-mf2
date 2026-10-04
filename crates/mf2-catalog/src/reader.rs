@@ -560,6 +560,31 @@ impl Catalog {
         u32::try_from(self.funcs.len / 4).unwrap_or(u32::MAX)
     }
 
+    /// Whether FUNCS names a function `pick` chooses, given each identifier
+    /// as FUNCS has it (`ns:name`, NFC). A catalog that names none has no
+    /// message that calls one, so a caller asking [`Catalog::calls`] of many
+    /// messages asks this first (`plan/08` §4.3: whether a catalog has date
+    /// messages at all).
+    pub fn names_function(&self, pick: impl Fn(&str) -> bool) -> bool {
+        (0..self.function_count()).any(|i| self.function(i).is_some_and(&pick))
+    }
+
+    /// Whether message `id` calls a function `pick` chooses — in a
+    /// declaration, a placeholder, or any variant's pattern — read from its
+    /// expression and declaration tags and FUNCS, without formatting it
+    /// (`plan/08` §4.3: whether it is a date message). A simple or absent
+    /// message calls none. A malformed record counts as a call: the caller
+    /// that acts on `true` then acts on it too, which is harmless where
+    /// acting means formatting it again.
+    pub fn calls(&self, id: MsgId, pick: impl Fn(&str) -> bool) -> bool {
+        match self.get(id) {
+            Entry::Pattern(m) | Entry::Select(m) => {
+                m.calls(&|index| self.function(index).is_some_and(&pick))
+            }
+            Entry::Simple(_) | Entry::Absent => false,
+        }
+    }
+
     /// The payload of the LOCALE entry with `key` (opaque; §2.7, §4).
     #[cfg(not(feature = "server-data"))]
     #[doc(hidden)]

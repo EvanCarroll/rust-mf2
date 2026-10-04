@@ -12,7 +12,7 @@ use crate::literal::{is_uvalue, offset};
 /// Which function resolves.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub(crate) enum Kind {
-    /// `:datetime`, and an unannotated date/time (`Registry::with_dates`).
+    /// `:datetime`.
     DateTime,
     /// `:date`.
     Date,

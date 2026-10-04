@@ -1,6 +1,6 @@
 //! `mf2-fn-datetime` — the MessageFormat 2 date/time functions of Rust MF2:
-//! `:datetime`, `:date`, `:time`, and the handler that formats unannotated
-//! date/time values. The semantics — operands, options, errors, time zones
+//! `:datetime`, `:date` and `:time`. An unannotated date/time value is a
+//! Bad Operand: only a date function formats a date. The semantics — operands, options, errors, time zones
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into
 //! text:
 //!
@@ -21,11 +21,10 @@
 //! use mf2_fn_datetime::{DateTimeFunction, Neutral};
 //! use mf2_runtime::{Function, Registry};
 //!
-//! // `DATETIME`, `DATE`, `TIME`, `DATES` are these over the default backend.
+//! // `DATETIME`, `DATE`, `TIME` are these over the default backend.
 //! static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
-//! static DATES: DateTimeFunction<Neutral> = DateTimeFunction::unannotated(Neutral);
 //! static FUNCTIONS: [(&str, &dyn Function); 1] = [("datetime", &DATETIME)];
-//! static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+//! static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 //! ```
 //!
 //! A message formatted with that registry: the `mf2` facade's front page,
@@ -38,7 +37,6 @@
 //! | [`DATETIME`] | `datetime` | date and time; `dateFields` (`year-month-day`), `dateLength` (`medium`), `timePrecision` (`minute`), `timeZoneStyle` |
 //! | [`DATE`] | `date` | the date; `fields` (`year-month-day`), `length` (`medium`) |
 //! | [`TIME`] | `time` | the time; `precision` (`minute`), `timeZoneStyle` |
-//! | [`DATES`] | — (`Registry::with_dates`) | an unannotated date/time, as `:datetime` with its defaults |
 //!
 //! All three functions take the override options `timeZone` and `calendar`;
 //! `:datetime` and `:time` also `hour12`. Closed world: a registry
@@ -115,10 +113,10 @@
 //!   the zone's offset stays unknown (the neutral backend then names the
 //!   zone for `timeZoneStyle`). A converted value past `Date`'s year limit
 //!   is *Bad Operand*.
-//! * **Unannotated** date/time values ([`DATES`], `Registry::with_dates`):
-//!   formatted as `:datetime` with no options (its own override options
-//!   apply); if that resolution reports an error, the placeholder is a
-//!   fallback value with that error.
+//! * **Unannotated** date/time values are a Bad Operand, with the
+//!   placeholder's fallback: a message writes `{$when :datetime}`
+//!   (`plan/08` §4.3). Every handler here says it formats dates
+//!   (`Function::formats_dates`).
 //!
 //! Client-path code: `no_std`, `forbid(unsafe_code)`, no `core::fmt` use,
 //! no panicking operation, no allocation —
@@ -318,14 +316,10 @@ pub static DATE: DateTimeFunction = DateTimeFunction::date(DEFAULT_BACKEND);
 /// `:time`.
 pub static TIME: DateTimeFunction = DateTimeFunction::time(DEFAULT_BACKEND);
 
-/// Unannotated date/time values, for `Registry::with_dates`: as
-/// `:datetime` with its defaults.
-pub static DATES: DateTimeFunction = DateTimeFunction::unannotated(DEFAULT_BACKEND);
-
 /// The date handlers of a generated module (`mf2-build`, `plan/08` §5.1),
 /// for the ICU4X form the build chose for its corpus: `gregorian` or `any`
 /// calendar, `zones` or `no_zones`. In a build that formats with ICU4X they
-/// are `DATETIME`, `DATE`, `TIME` and `DATES` over `icu::Icu` of that form,
+/// are `DATETIME`, `DATE` and `TIME` over `icu::Icu` of that form,
 /// so only that variant is linked, and it reads a slice cut for it alone.
 /// The form names types only: what it leaves out (a calendar, a zone style)
 /// is an *Unsupported Operation* at run time, reported with a fallback.
@@ -362,9 +356,6 @@ macro_rules! __date_statics {
         /// `:time`.
         pub static TIME: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
             $crate::DateTimeFunction::time($crate::icu::Icu::NEW);
-        /// Unannotated date/time values.
-        pub static DATES: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
-            $crate::DateTimeFunction::unannotated($crate::icu::Icu::NEW);
     };
 }
 
@@ -382,6 +373,6 @@ macro_rules! __date_statics {
 #[macro_export]
 macro_rules! __date_statics {
     ($calendars:ident $zones:ident) => {
-        pub use $crate::{DATE, DATES, DATETIME, TIME};
+        pub use $crate::{DATE, DATETIME, TIME};
     };
 }

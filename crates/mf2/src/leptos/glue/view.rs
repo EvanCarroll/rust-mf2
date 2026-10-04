@@ -702,6 +702,11 @@ impl Relocalize for RichNode {
         Vec::<tachys::view::any_view::AnyView>::new().rebuild(&mut self.state);
         rich::fragment(&self.desc, catalog).rebuild(&mut self.state);
     }
+
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    fn msg_id(&self) -> mf2_runtime::MsgId {
+        self.desc.id()
+    }
 }
 
 /// The retained state of a rendered rich message.

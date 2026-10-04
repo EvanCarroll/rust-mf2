@@ -20,8 +20,9 @@
 //!   module that embeds catalogs embeds each once, in one table that
 //!   `CATALOGS` and `CORPUS` share (a server beside `native`);
 //! * `registry()` — the closed world (B13): the handlers this corpus uses
-//!   and no others, with `with_numbers` / `with_dates` only where a
-//!   placeholder can actually receive one (#90);
+//!   and no others, with `with_numbers` only where a placeholder can
+//!   actually receive a number (#90). There is no date hook: an unannotated
+//!   date/time is a Bad Operand (`plan/08` §4.3);
 //! * `host` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
 //! * `CORPUS` — for `mf2::native`: under [`Emit::Native`] /
@@ -552,9 +553,6 @@ static FUNCTIONS: [(&str, &dyn __mf2::Function); {n}] = [
     // placeholder can reach them (#90).
     if m.unannotated && m.features.fn_number() {
         let _ = write!(s, "\n    .with_numbers(&__mf2::fn_number::NUMBERS)");
-    }
-    if m.unannotated && m.features.fn_datetime() {
-        let _ = write!(s, "\n    .with_dates(&__dates::DATES)");
     }
     let _ = write!(
         s,
@@ -1648,7 +1646,8 @@ mod tests {
             code.contains(".with_numbers(&__mf2::fn_number::NUMBERS)"),
             "{code}"
         );
-        assert!(code.contains(".with_dates(&__dates::DATES)"), "{code}");
+        // No date hook: a date is formatted only through a date function.
+        assert!(!code.contains("with_dates"), "{code}");
     }
 
     #[test]

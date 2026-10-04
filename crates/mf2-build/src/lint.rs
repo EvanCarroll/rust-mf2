@@ -84,6 +84,13 @@ lints! {
     UndeclaredVariable = ("undeclared-variable", Error, Error);
     /// A translation uses a markup name the source message does not.
     UndeclaredMarkup = ("undeclared-markup", Error, Error);
+    /// One language's message formats a variable with a date function and
+    /// another's shows it bare. Only a date function formats a date — a bare
+    /// date/time is a Bad Operand with its fallback (`plan/08` §4.3) — so
+    /// one of the two languages would show `{$when}` where the other shows
+    /// a date. The variable is compared between each translation and the
+    /// source; the date functions are `:datetime`, `:date` and `:time`.
+    DateMismatch = ("date-mismatch", Error, Error);
     /// A translation leaves out markup the source message has: a
     /// `{#link}terms{/link}` gone from the French sentence takes the link
     /// away from French readers, and nothing at run time says so. An error by

@@ -1,8 +1,7 @@
 //! B12 and B4 (`plans/06-size-and-perf.md` §3): the date semantics every
 //! backend needs — operands and literals, options and inheritance, zones
 //! (the host's offsets, the gap/overlap search), the resolved value and its
-//! plan — under `:datetime`, `:date`, `:time` and unannotated date/time
-//! values, over a backend that writes one byte folded from everything the
+//! plan — under `:datetime`, `:date` and `:time`, over a backend that writes one byte folded from everything the
 //! plan holds (so no decision is dead code, and no formatting is measured).
 //! Semantics = this − `b12-dates-base` (≤ 3.5 KB gz of B4).
 #![no_std]
@@ -39,7 +38,6 @@ impl Backend for OneByte {
 static DATE: DateTimeFunction<OneByte> = DateTimeFunction::date(OneByte);
 static DATETIME: DateTimeFunction<OneByte> = DateTimeFunction::datetime(OneByte);
 static TIME: DateTimeFunction<OneByte> = DateTimeFunction::time(OneByte);
-static DATES: DateTimeFunction<OneByte> = DateTimeFunction::unannotated(OneByte);
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("date", &DATE),
     ("datetime", &DATETIME),
@@ -49,7 +47,7 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("string", &STRING),
     ("time", &TIME),
 ];
-static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&DATES);
+static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
 /// Formats every message of the host's catalog.
 #[unsafe(no_mangle)]

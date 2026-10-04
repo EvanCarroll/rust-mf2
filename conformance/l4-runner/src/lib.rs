@@ -45,10 +45,9 @@ pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
 ];
 
 /// The registry over [`FUNCTIONS`], formatting unannotated numbers with the
-/// locale's symbols and unannotated date/time values as `:datetime`.
-pub static REGISTRY: Registry = Registry::new(&FUNCTIONS)
-    .with_numbers(&mf2_fn_number::NUMBERS)
-    .with_dates(&mf2_fn_datetime::DATES);
+/// locale's symbols. An unannotated date/time is a Bad Operand, as in a
+/// generated registry (`plan/08` §4.3).
+pub static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_numbers(&mf2_fn_number::NUMBERS);
 
 /// The handlers of the **default** configuration (L4d, `plans/01-conformance.md`
 /// §3): what an application's generated registry holds with `fn-number` and

@@ -9,7 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use mf2_locale_data::number::NumberNeeds;
 use mf2_locale_data::plural::{PluralKind, plural_rules};
 use mf2_model::{
-    Attributes, Declaration, FunctionRef, Key, Message, OptionValue, Options, Pattern, PatternPart,
+    Attributes, Declaration, Expression, FunctionRef, Key, Message, OptionValue, Options, Pattern,
+    PatternPart,
 };
 use mf2_syntax::Analysis;
 
@@ -806,6 +807,7 @@ fn against_source(
             ),
         );
     }
+    dates_against_source(at, &source_locale.tag, model, source_model);
     let source_record = &source_locale.loaded.records[record];
     if source_record.do_not_translate() && source_record.source != at.record.source {
         at.say(
@@ -818,6 +820,132 @@ fn against_source(
         );
     }
     let _ = model;
+}
+
+/// `date-mismatch`: a variable this translation formats with a date
+/// function and the source shows bare, or the other way round (`plan/08`
+/// §4.3).
+fn dates_against_source(
+    at: &mut At<'_, '_>,
+    source_tag: &str,
+    model: &Message<'_>,
+    source_model: &Message<'_>,
+) {
+    let here = DateUse::of(model);
+    let source = DateUse::of(source_model);
+    for name in here.dated.intersection(&source.bare) {
+        at.say(
+            Lint::DateMismatch,
+            0,
+            format!(
+                "${name} is formatted as a date here, but the source message ({source_tag}) \
+                 shows it bare, where a date is a Bad Operand and shows {{${name}}}: write \
+                 {{${name} :datetime}} there too"
+            ),
+        );
+    }
+    for name in here.bare.intersection(&source.dated) {
+        at.say(
+            Lint::DateMismatch,
+            0,
+            format!(
+                "${name} is formatted as a date in the source message ({source_tag}), but \
+                 shown bare here, where a date is a Bad Operand and shows {{${name}}}: write \
+                 {{${name} :datetime}}"
+            ),
+        );
+    }
+}
+
+/// The built-in date functions: what `date-mismatch` counts as formatting a
+/// date.
+fn is_date_function(name: &str) -> bool {
+    matches!(name, "datetime" | "date" | "time")
+}
+
+/// How one message shows its variables as dates, by NFC name: those an
+/// expression formats with a date function (in a placeholder or a
+/// declaration), and those a placeholder shows bare — with no function, and
+/// none declared on the way, so that a date there is a Bad Operand.
+#[derive(Debug, Default)]
+struct DateUse {
+    dated: BTreeSet<String>,
+    bare: BTreeSet<String>,
+}
+
+impl DateUse {
+    fn of(message: &Message<'_>) -> DateUse {
+        let declarations = message.declarations();
+        let mut out = DateUse::default();
+        let mut date_call = |e: &Expression<'_>| {
+            if let (Some(f), Expression::Variable(v)) = (e.function(), e)
+                && is_date_function(f.name.as_ref())
+                && let Some(root) = root_variable(declarations, v.arg.name.as_ref(), 0)
+            {
+                out.dated.insert(nfc(root).into_owned());
+            }
+        };
+        for d in declarations {
+            match d {
+                Declaration::Input(i) => {
+                    if i.value
+                        .function
+                        .as_ref()
+                        .is_some_and(|f| is_date_function(f.name.as_ref()))
+                    {
+                        out.dated
+                            .insert(nfc(i.value.arg.name.as_ref()).into_owned());
+                    }
+                }
+                Declaration::Local(l) => date_call(&l.value),
+                _ => {}
+            }
+        }
+        let mut bare = Vec::new();
+        for pattern in patterns(message) {
+            for part in pattern {
+                if let PatternPart::Expression(e) = part {
+                    date_call(e);
+                    if let (None, Expression::Variable(v)) = (e.function(), e) {
+                        let name = v.arg.name.as_ref();
+                        if crate::slice::declared_function(declarations, name, 0).is_none()
+                            && let Some(root) = root_variable(declarations, name, 0)
+                        {
+                            bare.push(nfc(root).into_owned());
+                        }
+                    }
+                }
+            }
+        }
+        out.bare.extend(bare);
+        out
+    }
+}
+
+/// The variable `$name` stands for: itself when it is an input or an
+/// argument, the variable a `.local $name = {$other}` binds (followed), or
+/// `None` when a `.local` binds a literal or a function's result.
+fn root_variable<'a>(
+    declarations: &'a [Declaration<'_>],
+    name: &'a str,
+    depth: u32,
+) -> Option<&'a str> {
+    if depth > 16 {
+        return None;
+    }
+    let local = declarations.iter().rev().find_map(|d| match d {
+        Declaration::Local(l) if l.name == name => Some(l),
+        _ => None,
+    });
+    match local {
+        None => Some(name),
+        Some(l) => match &l.value {
+            Expression::Variable(v) if v.function.is_none() => {
+                root_variable(declarations, v.arg.name.as_ref(), depth + 1)
+            }
+            _ => None,
+        },
+    }
 }
 
 // ───────────────────────────────── coverage ──────────────────────────────

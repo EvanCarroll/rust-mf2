@@ -119,6 +119,15 @@ fn drifts() -> Vec<Drift> {
             mutate: |files, _, _| edit(files, "pl", "{#kbd}Esc{/kbd}", "{#kbd}{#b}Esc{/b}{/kbd}"),
         },
         Drift {
+            lint: Lint::DateMismatch,
+            what: "one language formats a variable as a date and another shows it bare",
+            mutate: |files, features, _| {
+                *features = Features::parse("fn-number datetime host-std-datetime-iso");
+                append(files, "en", "\ndue = Due {$when :datetime}\n");
+                append(files, "pl", "\ndue = Termin {$when}\n");
+            },
+        },
+        Drift {
             lint: Lint::DroppedPlaceholder,
             what: "a translation drops a placeholder the source shows",
             mutate: |files, _, _| edit(files, "pl", "Czesc, {$name}!", "Czesc!"),
@@ -757,6 +766,76 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
             .diagnostics
             .iter()
             .all(|d| d.lint != Some(Lint::UnusedFeature))
+    );
+}
+
+/// `date-mismatch` (`plan/08` §4.3): a variable one language formats with a
+/// date function and another shows bare refuses the build, whichever of the
+/// two is the source, and through a declaration too; a variable both format
+/// as a date, or both show bare, is no mismatch.
+#[test]
+fn date_mismatch_compares_each_translation_with_the_source() {
+    let corpus = |en: &str, pl: &str| -> Vec<(String, String)> {
+        vec![
+            ("en".to_owned(), format!("@locale en\n---\n\n{en}\n")),
+            ("pl".to_owned(), format!("@locale pl\n---\n\n{pl}\n")),
+        ]
+    };
+    let features = Features::parse("fn-number datetime host-std-datetime-iso");
+    let mismatches = |name: &str, en: &str, pl: &str| -> usize {
+        let outcome = build_corpus(name, &corpus(en, pl), &features, &Config::default());
+        outcome
+            .report
+            .diagnostics
+            .iter()
+            .filter(|d| d.lint == Some(Lint::DateMismatch) && d.level == Level::Error)
+            .count()
+    };
+    // The source formats it as a date, the translation shows it bare.
+    assert_eq!(
+        mismatches(
+            "date-mismatch-source",
+            "due = Due {$when :datetime}",
+            "due = Termin {$when}"
+        ),
+        1
+    );
+    // The other way round.
+    assert_eq!(
+        mismatches(
+            "date-mismatch-translation",
+            "due = Due {$when}",
+            "due = Termin {$when :date}"
+        ),
+        1
+    );
+    // Through a declaration: `.input {$when :time}` formats it before the
+    // pattern, so its bare placeholder is a date.
+    assert_eq!(
+        mismatches(
+            "date-mismatch-declared",
+            "due = .input {$when :time} {{Due {$when}}}",
+            "due = Termin {$when}"
+        ),
+        1
+    );
+    // Both as dates, through different functions and a `.local`: none.
+    assert_eq!(
+        mismatches(
+            "date-mismatch-none",
+            "due = Due {$when :datetime}",
+            "due = .local $d = {$when :date} {{Termin {$d}}}"
+        ),
+        0
+    );
+    // Both bare: none (a date there is a Bad Operand in both, alike).
+    assert_eq!(
+        mismatches(
+            "date-mismatch-bare",
+            "due = Due {$when}",
+            "due = Termin {$when}"
+        ),
+        0
     );
 }
 
