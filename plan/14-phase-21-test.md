@@ -25,9 +25,9 @@ in the same session or a fresh one.
 
 ## State
 
-* **In flight:** 21.4. A worktree made for a task is removed once its work
+* **In flight:** 21.6. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 21.4
+* **Next:** 21.6, then the phase exit
 
 ## Done
 
@@ -47,6 +47,19 @@ in the same session or a fresh one.
   assertion), acb5840 (release test counts the published list, 16.1), 936c404 (`mf2 check`
   and `mf2 stats` samples; 19.1's `bundles` named the browser in a corpus without one).
   The coverage and locale-data table tests pass on the new records.
+* 21.4 (2026-10-04): the suite in 53 min 55 s (`target/p10-checks/p21/`): 19 pass; `l6-web`
+  and `l7-web` failed, then passed after cf7eec5 (16.1's browser ICU4X imports in
+  `icu/cache.rs`; the L5 gate's four formatters; `mf2-l4-runner`'s `std-icu` off for the L7
+  sets, so the ISO page's server is ISO; `dates-formatter.mjs` judged by date function, the
+  owner's rule): `l6-web` 20/20, `l7-web` 70/70. `e2e-0-8` took 21.3 min (11 at `p14`):
+  Phase 22's. 892a345 hides the 19 `mf2-build` helpers (owner, 2026-10-04).
+* 21.5: `feature-sets`, `msrv --below`, the parser gate, `islands-zero`, the demos' debug
+  builds and `fmt-check` pass; `l4-wasi` passes once `wasmtime` 49.0.0 is in `target/tools`
+  (47,600 records identical); `l4-web` (chromium, firefox — no WebKit on this machine) passes
+  after 70092b8 (16.1 left the browser L4 on the ISO stub). Owed: the canaries fail with
+  their forbidden features; `mf2 stats`' page corrected (e91b7db); `mf2 check` recommends
+  every manifest's features. 49618f0 (21.5a): `intl_links_no_icu` gets a corpus with a date,
+  so its symbol search can fail.
 
 ## Before this phase
 
