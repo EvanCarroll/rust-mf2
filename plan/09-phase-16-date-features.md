@@ -27,9 +27,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
 
 ## State
 
-* **In flight:** 16.1. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.1
+* **Next:** 16.2
 
 ## Done
 
@@ -38,6 +38,11 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
   (f566b3b). `cargo xtask ci --compile` (badfb66) and `--keep-going`
   (1a81c34, `Error::CiStepsFailed`). Unit tests for both modes and the
   splitter; nothing compiled.
+* 16.1 (2026-10-03): `mf2-fn-datetime` `std-icu`/`web-icu`/`web-intl`, strongest wins per
+  side; `Compiled` behind `compiled-data` (a ci set). Browser ICU4X via the new published
+  `mf2-fn-datetime-web-icu` (renames refused by Cargo; §3.4). `mf2` `datetime` + 14 family
+  features, 2.0 names as aliases; `mf2-build` `Side`/`DateFormatter`, `cuts_date_slice`.
+  `cargo tree` on wasm: no `icu_*` with `host-web-datetime-intl,host-std-datetime-icu`.
 
 ## Before this phase
 
@@ -225,7 +230,8 @@ the starters of `mf2 init` to naming no date feature.
 
 One line per task, only for what could not be confirmed by reading.
 
-(nothing yet)
+* 16.1: `use mf2_fn_datetime_web_icu::{icu_calendar, …}` then `use icu_calendar::…` in
+  `mf2-fn-datetime/src/icu.rs` on wasm; `api.txt` of the new crate (Phase 21 generates it).
 
 ## Phase exit (coordinator)
 

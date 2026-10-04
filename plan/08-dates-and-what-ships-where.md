@@ -255,6 +255,9 @@ crates only with `web-icu`, and a native build only with `std-icu` (F11).
 Cargo cannot scope one optional dependency by feature and target at once, so
 the task chooses between a renamed dependency entry per target and a crate of
 its own for the ICU4X backend, and says why.
+16.1: Cargo refuses one package under two names, even in two target tables, and a
+backend crate alone would still be one package on both sides; so the browser reaches
+ICU4X through `mf2-fn-datetime-web-icu`, a published re-export crate (wasm table only).
 
 **ICU4X's compiled-in data** (`Icu<_, _, Compiled>`) stays in
 `mf2-fn-datetime` behind that crate's own feature, for a registry written by
