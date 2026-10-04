@@ -1,4 +1,4 @@
-//! The churn harness (`plans/15-phase-7-work-order.md` A5): P0.11's
+//! The churn harness: P0.11's
 //! churning list, on `mf2::leptos` itself rather than the probe's glue.
 //!
 //! P0.11 settled D7 on the node registry because an effect per node leaks

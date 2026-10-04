@@ -1,6 +1,5 @@
 # Template `fluent-converted`: what `mf2 convert --from leptos-fluent` must
-# make of `fluent-view` (plans/16-phase-8-work-order.md A4; the rules are
-# plans/05-tooling.md §6.2).
+# make of `fluent-view`, by the converter's documented rules.
 #
 # It is `tr-view` — the reference application on mf2 — with each difference
 # the conversion is documented to leave written as its own row, so that the
@@ -30,7 +29,7 @@
 # Format: see bench/workload-gen/README.md.
 
 name = "fluent-converted"
-description = "fluent-view as mf2 convert --from leptos-fluent rewrites it: tr-view with the documented differences (plans/16 A4)."
+description = "fluent-view as mf2 convert --from leptos-fluent rewrites it: tr-view with the documented differences."
 support = "support.rs"
 dependencies = [
     'mf2 = { path = "{{template_dir}}/../../../../crates/mf2", features = ["leptos-0-8"] }',

@@ -473,7 +473,7 @@ impl SizeReport {
         }
         let _ = writeln!(
             o,
-            "\n**{}** — B7 (plans/06 §3), on brotli 11: `en` ≤ 0.91 × 25 KB (23,296 B); every \
+            "\n**{}** — B7, on brotli 11: `en` ≤ 0.91 × 25 KB (23,296 B); every \
              locale ≤ 0.91 × (0.5 × source + 1 KB), and raw ≤ 1.25 × source + 8 B/message; every \
              catalog decodes back to the parsed model. The factor 0.91 is the worst brotli/gzip \
              ratio measured (en-XA, 0.909 in P0.7 and in Phase 2), rounded up: no locale is \
@@ -566,7 +566,7 @@ impl SizeReport {
         let pg = self.p07_gz();
         let _ = writeln!(
             o,
-            "\n## Against P0.7's recommended layout\n\nP0.7 (plans/phase-0-results.md §P0.7) \
+            "\n## Against P0.7's recommended layout\n\nP0.7 \
              measured the prototype of this format on the same four locales with GNU gzip and \
              brotli 11; gz deltas below use **{}**. A brotli delta (the B7 metric) beyond {} B \
              or {} % of P0.7's figure is flagged.\n",
@@ -677,8 +677,8 @@ impl SizeReport {
         }
         let _ = writeln!(
             o,
-            "\nThe grammar differences behind these deltas (format v1, plans/02 §2, against \
-             P0.7's prototype, phase-0-results §P0.7): the fixed header is 32 B (+2: a 4-byte \
+            "\nThe grammar differences behind these deltas (format v1, against \
+             P0.7's prototype): the fixed header is 32 B (+2: a 4-byte \
              `cldr_version` in place of the 2-byte `locale_len`); NAMES and FUNCS hold `str32` string \
              references instead of varints (O(1) access); a MESSAGES record starts `varint names \
              · varint (decl_count << 1 | c)` (the COLD bit rides on the small count) and the \

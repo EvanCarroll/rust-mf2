@@ -1,6 +1,5 @@
 //! Phase 0's figures that Phase 2 re-measures and must not lose
-//! (`plans/09-phase-2-work-order.md`, "State at the start";
-//! `plans/phase-0-results.md` §P0.7, §P0.8). The per-locale P0.7 section and
+//! (P0.7, P0.8). The per-locale P0.7 section and
 //! structure/pool figures are from P0.7's `out/tables.md`
 //! (`probes/p0-07-catalog-encoding`, deleted at the end of Phase 2; the `en`
 //! row is also in phase-0-results), all for P0.7's recommended layout

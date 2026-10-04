@@ -106,8 +106,7 @@ impl SiteTable {
     }
 }
 
-/// The Leptos line a template's app is built on (`plans/04-leptos-integration.md`
-/// §10): 0.9, the default, or 0.8 — for a template whose own library has no
+/// The Leptos line a template's app is built on: 0.9, the default, or 0.8 — for a template whose own library has no
 /// 0.9 release yet (`leptos-fluent`), and for what is converted from it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 pub enum LeptosLine {
@@ -183,8 +182,7 @@ pub struct Template {
 pub struct ArgCtx {
     /// MF2 variable name (= Rust argument name).
     pub name: &'static str,
-    /// Positional slot: rank of the name in ascending bytewise order
-    /// (plans/05 §3). Arguments are listed in slot order.
+    /// Positional slot: rank of the name in ascending bytewise order. Arguments are listed in slot order.
     pub slot: usize,
     /// Value kind.
     pub kind: VarKind,

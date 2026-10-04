@@ -1,7 +1,6 @@
 # workload-gen — the reference workload
 
-Deterministic generator of the synthetic reference workload of
-[`plans/06-size-and-perf.md`](../../plans/06-size-and-perf.md) §2 (Phase 0
+Deterministic generator of the synthetic reference workload (Phase 0
 task A7). **Same knobs and seed ⇒ byte-identical output**: the PRNG
 (`SplitMix64`, `src/rng.rs`), the length distributions (integer quantile
 tables, `src/shape.rs`), the word lists (`src/vocab.rs`) and the JSON writer
@@ -19,7 +18,7 @@ cargo xtask gen-workload <COMMAND> [OPTIONS]        # = cargo run --release -p w
 | `all [-t TEMPLATE]… [--out DIR] [--format mf2,ftl]` | locales, flat JSON, `sites.json`, one app crate per template (default `-t literal -t closure`; default `--out target/workload`) |
 | `locales [--out DIR] [--format mf2,ftl]` | locales and flat JSON only |
 | `corpora [--check] [--out DIR] [--suite DIR]` | writes `bench/corpora/workload-<N>.json` and `bench/corpora/suite.json`; `--check` compares instead and exits 1 if stale |
-| `stats [--json FILE \| --format ftl \| --ftl DIR]` | prints the shape table; exits 1 if a checked row is outside plans/06 §2's tolerances. `--json` measures an existing flat corpus; `--format ftl` measures the Fluent files instead of the `.mf2` ones, `--ftl DIR` Fluent files on disk (`DIR/<tag>/*.ftl`) |
+| `stats [--json FILE \| --format ftl \| --ftl DIR]` | prints the shape table; exits 1 if a checked row is outside the shape's tolerances (`src/shape.rs`). `--json` measures an existing flat corpus; `--format ftl` measures the Fluent files instead of the `.mf2` ones, `--ftl DIR` Fluent files on disk (`DIR/<tag>/*.ftl`) |
 | `canaries [--grep]` | prints the B6 canaries (`--grep`: just the three patterns) |
 | `templates [--dump NAME --out DIR]` | lists built-in templates, or copies one as a starting point |
 
@@ -64,7 +63,7 @@ app's `src/` and `style/`, and keeps each app's `target/`.
 * **`en-XA`**: `[` + accented text + padding words (≈ +30 %) + `]`, per pattern.
 * **`ar-XB`**: every text run wrapped in U+202E RLO … U+202C PDF.
 
-All files follow the working grammar of plans/05-tooling.md §2: comments and
+All files follow the working `.mf2` grammar: comments and
 `@locale <tag>` before `---`; `[section]` heads giving dotted ids (the first
 block of `common.mf2` has no head, so its ids are bare); `# comments` directly
 above the section head or entry they attach to; one `@param $name - …`
@@ -100,7 +99,7 @@ way:
 * **Plural selects**: `{ $count -> [one] … *[other] … }`, the locale's own
   categories as keys (`pl`: `[one] [few] [many] *[other]`); no `NUMBER`, as
   the model has no annotation on a count.
-* **Markup** (plans/16 A5's like-with-like rule): Fluent has none, so a
+* **Markup** (compared like with like): Fluent has none, so a
   sentence with an element is split around it, as an application without
   markup must write it — a message with no value and three attributes,
   `.before`, `.<element>` (its text) and `.after`, always all three, an
@@ -111,8 +110,7 @@ way:
 * **Functions** (`--number`, `--datetime`): `:number` → `NUMBER` with the
   same options; `:datetime` → the nearest `DATETIME`
   (`dateStyle`/`timeStyle`, or `month`/`day`/`hour`), which
-  `mf2 convert` reports as approximate — there is no identity (plans/05
-  §6.1).
+  `mf2 convert` reports as approximate — there is no identity.
 * **Comments** are sized to 60 % of the `en` bytes as Fluent writes them
   (its `# Variables:` and `##` lines count), so their text differs from
   the `.mf2` files'.
@@ -127,7 +125,7 @@ tolerance (text mean 27.77 B, comments 60.04 % of `en`). Converted by
 finding; every message but the 22 selects and split sentences exports as
 the same MF2 source as the `.mf2` workload (`crates/mf2-cli/tests/convert.rs`).
 
-## Shape (plans/06 §2) and how it is measured
+## Shape and how it is measured
 
 `stats` measures the generated sources, not the plan. Definitions:
 
@@ -265,7 +263,7 @@ attribute value for `attr`; `Into<TextProp>`, `Into<Signal<String>>`,
 | `{{text}}` | site | source text escaped for a `"…"` literal (a `.match`'s catch-all variant) |
 | `{{args}}` | site | the `[args]` items, joined by `sep`, in slot order |
 | `{{nargs}}` `{{site}}` `{{markup}}` | site | argument count, global site number, markup names |
-| `{{name}}` `{{slot}}` `{{kind}}` | arg | variable name, positional slot (ascending bytewise name order, plans/05 §3), `num`/`str`/`date` |
+| `{{name}}` `{{slot}}` `{{kind}}` | arg | variable name, positional slot (ascending bytewise name order), `num`/`str`/`date` |
 | `{{value}}` | arg | `plain`: `n`/`who`/`when`; `get`: `count.get()`/`name.get()`/`stamp.get()`; `signal`: `count`/`name`/`stamp` |
 | `{{signal}}` | arg | the signal in scope for the variable's kind |
 | `{{label}}` | deferred | the label expression (`row.label`) |
@@ -281,14 +279,14 @@ ssr = ["workload-i18n/ssr"]
 ```
 
 The built-ins: **`literal`** — every site is the source text as a string
-literal and arguments are dropped (the "no i18n" baseline of plans/06 §3);
+literal and arguments are dropped (the "no i18n" size baseline);
 **`closure`** — `move || lookup("id")` per child/attribute,
 `Signal::derive(move || …)` per reactive prop, `|| lookup("id")` entries in a
 `fn() -> String` registry, `lookup_args("id", &[("name", v.to_string())])` for
 arguments, with one shared `lookup` in the support module (opaque to the
 optimiser: `boot()` fills its map from `<html data-catalog>`).
 
-Two more built-ins serve budget **B5** (`cargo xtask b5`, plans/06 §3):
+Two more built-ins serve budget **B5** (`cargo xtask b5`):
 **`idlit`** — every site is a `String` from a short per-site literal (the
 message's `MsgId` as text), in the same positions as the `tr` template's, so
 the delta against it is the call site's own cost and nothing of the app
@@ -303,7 +301,7 @@ depends on (`i18n/`, pointed at the generated workload through
 `MF2_WORKLOAD_LOCALES`) and names it with `{{template_dir}}`. Use it as
 `-t bench/workload-gen/templates/tr`, which is what `cargo xtask b5` does.
 
-Two directories serve the `leptos-fluent` migration (plans/16 A4, A5):
+Two directories serve the `leptos-fluent` migration:
 **`fluent-view`** — the reference application on `leptos-fluent` 0.3.1, each
 shape in its own idiom (`tr!` where a `String` is wanted, `move_tr!` where
 reactive text is, `|| tr!(…)` in a `fn() -> String` table, a sentence with an

@@ -1,5 +1,4 @@
-# Template `fluent-view`: the reference application on `leptos-fluent`
-# (plans/16-phase-8-work-order.md A4, A5; plans/06-size-and-perf.md §6).
+# Template `fluent-view`: the reference application on `leptos-fluent`.
 #
 # Each call-site shape is written in `leptos-fluent`'s own idiom for it, as
 # its documentation on docs.rs shows (0.3.1): `tr!` where a `String` is
@@ -19,11 +18,11 @@
 # Format: see bench/workload-gen/README.md.
 
 name = "fluent-view"
-description = "leptos-fluent in its own idiom: tr! where a String is wanted, move_tr! where reactive text is (the A/B of plans/16 A5)."
+description = "leptos-fluent in its own idiom: tr! where a String is wanted, move_tr! where reactive text is (one side of the `leptos-fluent` A/B)."
 support = "support.rs"
 dependencies = ['leptos-fluent = "0.3.1"']
 # `leptos-fluent` 0.3.1, its newest release, requires Leptos < 0.9, so this
-# application is on 0.8 (plans/04-leptos-integration.md §10), and so is its
+# application is on 0.8, and so is its
 # converted twin.
 leptos = "0.8"
 prelude = "use leptos_fluent::{move_tr, tr};"

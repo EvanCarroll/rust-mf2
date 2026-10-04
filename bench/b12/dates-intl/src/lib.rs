@@ -1,4 +1,4 @@
-//! B12 and B4 (`plans/06-size-and-perf.md` §3), `intl`: the date
+//! B12 and B4, `intl`: the date
 //! functions over the `Intl` backend on `mf2_host_web::INTL_HOST` —
 //! `Intl.DateTimeFormat` for the text, the browser's zone data for
 //! `zone_offset` — built through `wasm-bindgen`. B4 = this −

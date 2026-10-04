@@ -1,8 +1,7 @@
 # B12 — the catalog reader has no panic path and no `core::fmt`
 
-Task A9 of Phase 2 (`plans/09-phase-2-work-order.md`), budget B12 and the
-reader's share of B1 (`plans/06-size-and-perf.md` §3), and the client-path
-rules of `plans/05-tooling.md` §8.
+Task A9 of Phase 2: budget B12, the reader's share of B1, and the
+client-path rules (panic-free and fmt-free).
 
 A standalone workspace (the root workspace excludes `bench/b12`) of three
 `#![no_std]` `cdylib`s for `wasm32-unknown-unknown`:
@@ -93,8 +92,8 @@ Gates: B12 for all three; `b12-runtime-intl` links none of the Rust
 rounding, digit display or plural evaluator (`number::display::`,
 `Decimal>::round`, `plural::select`, `OperandsBuilder`; `b12-runtime` shows
 them, so the grep can fail); B1′ for `intl`: `b12-runtime-intl-unused` ≤
-`b12-runtime-nonum` in raw bytes. Measured 2026-09-22 (the tree of
-`plans/06-size-and-perf.md` §3's `intl` rows): B12 clean in all three; B1′
+`b12-runtime-nonum` in raw bytes. Measured 2026-09-22, on the tree that set
+the `intl` budgets: B12 clean in all three; B1′
 **−34 B raw / −69 B gz** (a resolved number keeps its digit plan instead of
 its rounded digits, so every `Value` is smaller); with the stub formatter
 the core is +368 B raw / +110 B gz over `b12-runtime` and the whole family

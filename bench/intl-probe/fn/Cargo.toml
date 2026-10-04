@@ -1,6 +1,6 @@
 [package]
 name = "intl-probe-fn"
-description = "Phase 4 A0: :number, :integer, :offset, :percent, :currency, :unit over the browser's Intl — MF2 semantics in Rust, rounding, digits and plural categories from Intl.NumberFormat / Intl.PluralRules (plans/03-runtime.md §5.3)."
+description = "Phase 4 A0: :number, :integer, :offset, :percent, :currency, :unit over the browser's Intl — MF2 semantics in Rust, rounding, digits and plural categories from Intl.NumberFormat / Intl.PluralRules."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

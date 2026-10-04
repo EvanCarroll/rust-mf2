@@ -1,4 +1,4 @@
-//! B12 and B4 (`plans/06-size-and-perf.md` §3): the date semantics every
+//! B12 and B4: the date semantics every
 //! backend needs — `:datetime`, `:date` and `:time` over the neutral stub
 //! backend. Semantics = this − `b12-dates-base`
 //! (≤ 3.5 KB gz of B4).

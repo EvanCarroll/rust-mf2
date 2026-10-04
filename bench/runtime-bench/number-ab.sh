@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The D15 A/B (plans/10-phase-3-work-order.md A5b): the core numeric
+# The D15 A/B: the core numeric
 # semantics over the own digit buffer (the default) against the same code
 # over fixed_decimal (feature `fixed-decimal`), on P0.5's random corpus.
 #

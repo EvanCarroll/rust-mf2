@@ -1,4 +1,4 @@
-//! The call-site plan: M sites in the seven positions of plans/06 §2, spread
+//! The call-site plan: M sites in the seven positions, spread
 //! over K components and R + 1 routes, 21 % of them passing arguments.
 
 use crate::error::Error;
@@ -13,7 +13,7 @@ pub const ARG_SITES: u64 = 210_000;
 pub const MAX_ROUTES: usize = 24;
 
 /// Call-site position. `TextProp` and `SignalProp` together are the 8 %
-/// "reactive-text prop" shape of plans/06 §2, split evenly between the two
+/// "reactive-text prop" shape, split evenly between the two
 /// prop types Leptos offers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Shape {
@@ -64,7 +64,7 @@ impl Shape {
         }
     }
 
-    /// Share of all sites (ppm), from plans/06 §2.
+    /// Share of all sites (ppm), of the reference shape.
     pub fn share(self) -> u64 {
         match self {
             Self::String => 450_000,

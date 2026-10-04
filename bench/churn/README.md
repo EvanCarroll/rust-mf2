@@ -1,6 +1,6 @@
 # bench/churn — the conversions under churn
 
-Phase 7 A5 (`plans/15-phase-7-work-order.md`): P0.11's churning list, built
+Phase 7 A5: P0.11's churning list, built
 on `mf2`'s Leptos layer (`mf2::leptos`) itself. One row shape per variant — a
 text, a text and an attribute, a signal-valued argument, a `TextProp` prop, a
 `Signal<String>` prop, `to_string()` in a closure, an `Oco` prop — each

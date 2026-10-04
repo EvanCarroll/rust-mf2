@@ -1,6 +1,6 @@
 //! The baseline: `ox_mf2_parser` =0.14.0-alpha.12 behind [`Adapter`].
 //!
-//! Rows (plans/05-tooling.md §1):
+//! Rows:
 //!
 //! | Row | Fresh (per message) | Reused (per pass) |
 //! |---|---|---|

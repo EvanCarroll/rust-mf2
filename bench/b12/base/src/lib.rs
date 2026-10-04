@@ -1,6 +1,6 @@
 //! B12 size base: the `b12-harness` scaffolding with the same host inputs and
 //! sinks as `b12-reader`, without the reader. The reader's size is the delta
-//! `b12-reader` − `b12-base` (`plans/06-size-and-perf.md` §3); the input
+//! `b12-reader` − `b12-base`; the input
 //! buffer is a real allocation that escapes to the host, so the allocator is
 //! in the base, not in the delta.
 #![no_std]

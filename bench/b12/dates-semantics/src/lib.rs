@@ -1,4 +1,4 @@
-//! B12 and B4 (`plans/06-size-and-perf.md` §3): the date semantics every
+//! B12 and B4: the date semantics every
 //! backend needs — operands and literals, options and inheritance, zones
 //! (the host's offsets, the gap/overlap search), the resolved value and its
 //! plan — under `:datetime`, `:date` and `:time`, over a backend that writes one byte folded from everything the

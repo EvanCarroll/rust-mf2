@@ -17,8 +17,7 @@ use workload_gen::{Knobs, Workload, locale};
 use crate::error::{Error, Result};
 use crate::plural;
 
-/// The reference `manifest_hash` of the default workload (P0.7; plans/09
-/// "State at the start").
+/// The reference `manifest_hash` of the default workload (P0.7).
 pub const MANIFEST_HASH: u64 = 0x43e0_dc12_eeb0_5ef1;
 
 /// The committed source-locale corpus, relative to the repository root.
@@ -37,7 +36,7 @@ pub struct LocaleSource {
 
 impl LocaleSource {
     /// MF2 source bytes: the UTF-8 length of every message source, summed
-    /// (plans/06 §2's "text length"; P0.7's "MF2 source bytes").
+    /// (the shape's "text length"; P0.7's "MF2 source bytes").
     pub fn source_bytes(&self) -> usize {
         self.messages.iter().map(|(_, s)| s.len()).sum()
     }

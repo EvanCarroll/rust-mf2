@@ -1,5 +1,5 @@
 //! `intl-probe-native` — the build side of Phase 4 task A0: everything the
-//! page needs, compiled natively (`plans/11-phase-4-work-order.md` A0).
+//! page needs, compiled natively.
 //!
 //! | Command | Writes (under `--out`, default `target/intl-probe/data`) |
 //! |---|---|

@@ -1,6 +1,6 @@
 //! The contender: this workspace's `mf2-syntax` behind [`Adapter`].
 //!
-//! Rows (plans/05-tooling.md §1, "like for like"):
+//! Rows ("like for like"):
 //!
 //! | Row | Fresh (per message) | Reused (per pass) |
 //! |---|---|---|

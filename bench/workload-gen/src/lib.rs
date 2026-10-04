@@ -1,6 +1,5 @@
-//! Deterministic generator of the reference workload
-//! (plans/06-size-and-perf.md §2): locales in the working `.mf2` grammar of
-//! plans/05-tooling.md §2, the same messages as flat JSON, a cargo-leptos app
+//! Deterministic generator of the reference workload: locales in the working `.mf2` grammar,
+//! the same messages as flat JSON, a cargo-leptos app
 //! with call sites in the seven measured positions behind a pluggable
 //! template, and the committed corpora under `bench/corpora/`; the same
 //! locales as Fluent `.ftl` files on request.

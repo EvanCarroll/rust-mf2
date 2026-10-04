@@ -1,12 +1,12 @@
 # Template `direct`: the `tr` template with the macro taken out — every call
 # site is the construction `tr!` would have expanded to, written by the
-# generator instead. It exists for one measurement (plans/13 A7): the
+# generator instead. It exists for one measurement: the
 # difference between checking this app and checking `app-tr` is what the
 # proc-macro costs a build, with the type-checking of the expansion, the
 # support module, the i18n crate and everything else held equal.
 #
 # `{{index}}` is the rank of the id in bytewise sorted order, which is what
-# the build assigns as its `MsgId` (plans/05 §3), and `{{nargs}}` picks the
+# the build assigns as its `MsgId`, and `{{nargs}}` picks the
 # arity-specific constructor the macro would have picked.
 #
 # Format: see bench/workload-gen/README.md.

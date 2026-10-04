@@ -1,4 +1,4 @@
-//! The committed corpora (plans/05-tooling.md §1): `bench/corpora/suite.json`,
+//! The committed corpora: `bench/corpora/suite.json`,
 //! `bench/corpora/workload-1600.json`, and the placeholder-free subset of the
 //! latter. Nothing is generated at bench time.
 

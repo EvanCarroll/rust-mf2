@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# B12 check for the catalog reader (plans/09-phase-2-work-order.md, A9) and
-# the runtime (plans/10-phase-3-work-order.md, A11), with B13 and the size of
-# B1's runtime part (plans/06-size-and-perf.md §3 "How B6, B12, B13 are
-# checked"; 05 §8).
+# B12 check for the catalog reader and
+# the runtime, with B13 and the size of
+# B1's runtime part.
 #
 # Builds the no_std harnesses of this workspace for
 # wasm32-unknown-unknown, twice: profile `wasm-release` (the 06 §3 size
@@ -29,19 +28,18 @@
 #  5. B13. b12-runtime-nonum links no numeric handler: none of their symbols
 #     (resolution, digit options, rounding, the plural evaluator) — and
 #     b12-runtime, which uses them, shows them (the grep can fail).
-#  6. The D15 A/B (plans/10 A5b): b12-runtime-fixed, the runtime with the
+#  6. The D15 A/B: b12-runtime-fixed, the runtime with the
 #     numeric code over fixed_decimal, built in its own cargo invocation (so
 #     its feature does not reach the others) and reported only: its panic
 #     paths are why the own buffer exists.
-#  7. Phase 4 (plans/11 A11): B2 = b12-runtime-fn-number − b12-runtime
+#  7. Phase 4: B2 = b12-runtime-fn-number − b12-runtime
 #     (mf2-fn-number on and used: the localized :number, :integer, :offset,
 #     :percent and unannotated numbers) ≤ 3 KB gz; B1′ = b12-runtime-fn-number-
 #     unused − b12-runtime (the crate linked, the registry the core's) = +0 B.
 #     B3 = b12-runtime-fn-number-measure − b12-runtime-fn-number (:currency
 #     and :unit too) ≤ 5.5 KB gz (restated by the owner, 2026-09-22). All are
 #     B12-checked like the runtime.
-#  8. The `intl` client option (owner decision 4; plans/03-runtime.md §2.7,
-#     §5.3), built in their own cargo invocation (their `intl` features must
+#  8. The `intl` client option (owner decision 4), built in their own cargo invocation (their `intl` features must
 #     not reach the others): b12-runtime-intl (the core's numeric functions
 #     over a stub number formatter) and b12-runtime-fn-number-intl (the whole
 #     localized family) are B12-checked, and b12-runtime-intl must link none
@@ -53,7 +51,7 @@
 #     other sizes are reported, not gated: the
 #     formatter is a stub here, and the browser's (mf2-host-web's `Intl` glue
 #     and its JavaScript) is measured by bench/intl-probe.
-#  9. Dates (plans/11 A6, A11), over b12-dates-walk (the runtime walk with
+#  9. Dates, over b12-dates-walk (the runtime walk with
 #     date/time arguments and the context's zone from the host), against
 #     b12-dates-base (that walk, the core registry):
 #     * b12-dates-semantics: the date semantics every backend needs (a
@@ -339,7 +337,7 @@ fi
   printf "B1': intl on, unused (runtime-intl-unused - runtime-nonum)\t-\t-\t%d\t%d\n" \
     $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((GZ[runtime-intl-unused] - GZ[runtime-nonum]))
 } > "$OUT/size.tsv"
-# B4 (plans/06-size-and-perf.md §3): intl ≤ 6 KB gz wasm + ≤ 1 KB gz
+# B4: intl ≤ 6 KB gz wasm + ≤ 1 KB gz
 # JS; icu ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar (with zone
 # styles, the widest of each); B1′ = +0 B for datetime on but unused.
 b4_intl=$((GZ[dates-intl] - GZ[dates-web-base]))
@@ -352,10 +350,10 @@ b4_any=$((GZ[dates-icu-any-zones] - GZ[dates-base]))
 [ "$b4_any" -le 107520 ] || bad "B4: icu, any calendar, costs $b4_any B gz (> 107,520)"
 [ "${RAW[dates-unused]}" -eq "${RAW[runtime]}" ] \
   || bad "B1': datetime on but unused is not +0 B (raw ${RAW[dates-unused]} vs ${RAW[runtime]})"
-# B3 ≤ 5.5 KB gz more (plans/06-size-and-perf.md §3; restated 2026-09-22).
+# B3 ≤ 5.5 KB gz more (restated 2026-09-22).
 b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
 [ "$b3" -le 5632 ] || bad "B3: :currency + :unit cost $b3 B gz (> 5,632)"
-# B2 ≤ 3 KB gz; B1′ = +0 B (plans/06-size-and-perf.md §3).
+# B2 ≤ 3 KB gz; B1′ = +0 B.
 b2=$((GZ[runtime-fn-number] - GZ[runtime]))
 [ "$b2" -le 3072 ] || bad "B2: fn-number on and used costs $b2 B gz (> 3,072)"
 [ "${RAW[runtime-intl-unused]}" -le "${RAW[runtime-nonum]}" ] \

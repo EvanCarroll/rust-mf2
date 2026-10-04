@@ -1,5 +1,5 @@
 //! Correctness on the WG suite — the baseline of the "strictly more correct"
-//! criterion (plans/05-tooling.md §1, rule 2).
+//! criterion (rule 2).
 //!
 //! As in `probes/audit/ox-conformance`: for every suite test, the expected
 //! errors are its `expErrors` types restricted to `syntax-error` and the six

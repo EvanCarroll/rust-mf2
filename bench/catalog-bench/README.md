@@ -1,10 +1,9 @@
 # catalog-bench — catalog size (B7) and reader cost
 
-Phase 2's measurements of the `.mf2b` catalog
-([`plans/09-phase-2-work-order.md`](../../plans/09-phase-2-work-order.md)):
+Phase 2's measurements of the `.mf2b` catalog:
 
-* **`size`** — task A8, budget **B7** ([`plans/06-size-and-perf.md`](../../plans/06-size-and-perf.md)
-  §3). Every locale of the reference workload as a production (COLD and IDS
+* **`size`** — task A8, budget **B7**. Every locale of the
+  reference workload as a production (COLD and IDS
   stripped) and an unstripped catalog: raw, gzip, brotli; structure vs pool;
   section by section. It also checks the B7 thresholds, compares with P0.7,
   compares the gzip implementations and estimates varint NAMES.
@@ -83,7 +82,7 @@ parsed with `mf2_syntax::parse_model` and must have no diagnostic.
 
 ## Size method
 
-* **MF2 source bytes** follow plans/06 §2 and P0.7: the UTF-8 length of every
+* **MF2 source bytes** follow P0.7: the UTF-8 length of every
   message source of the locale, summed.
 * **Compressors**:
   * GNU `gzip -9 -n -c`, run as a subprocess. This is what P0.7 measured.
@@ -111,8 +110,7 @@ parsed with `mf2_syntax::parse_model` and must have no diagnostic.
   measured on the four locales (en-XA, 0.909 in P0.7 and in Phase 2), rounded
   up, so no locale is held tighter than under gzip.
 * **Against P0.7**: the P0.7 figures for the recommended layout are in
-  `src/baseline.rs`. They come from P0.7's `out/tables.md`; the `en` row is
-  also in plans/phase-0-results.md §P0.7. A brotli delta (the B7 metric)
+  `src/baseline.rs`. They come from P0.7's `out/tables.md`. A brotli delta (the B7 metric)
   beyond 100 B or 1 % of P0.7's figure is flagged "beyond noise". The report then shows where the
   bytes went, section by section.
 * **NAMES estimate**: format v1 writes NAMES string references as fixed

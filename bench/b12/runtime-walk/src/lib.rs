@@ -35,7 +35,7 @@ impl Host for StubHost {
 static HOST: StubHost = StubHost;
 static CX: FormatContext = FormatContext::new(&HOST);
 
-/// The `intl` harnesses' host (`plans/03-runtime.md` §2.7): the stub host
+/// The `intl` harnesses' host: the stub host
 /// with a number formatter whose answers the host chooses and which hands
 /// every field of each request to the host, so the runtime's and
 /// `mf2-fn-number`'s `intl` code is all live. Linked only by

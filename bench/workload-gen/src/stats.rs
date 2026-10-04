@@ -1,5 +1,5 @@
 //! Shape statistics, measured on the generated output (not on the plan), and
-//! the tolerance check of plans/06 §2: every percentage within ± 1 percentage
+//! the tolerance check: every percentage within ± 1 percentage
 //! point, mean text length within ± 5 %.
 
 use std::collections::BTreeSet;

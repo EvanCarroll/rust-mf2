@@ -1,4 +1,4 @@
-//! The base of the date harnesses (B4, `plans/06-size-and-perf.md` §3):
+//! The base of the date harnesses (B4):
 //! `b12-dates-walk` over `b12-runtime`'s registry — every core function, no
 //! date function (an unannotated date/time is then a *Bad Operand*). Each
 //! date harness is this plus its date handlers.

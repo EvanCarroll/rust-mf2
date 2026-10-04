@@ -11,7 +11,7 @@ use serde_json::{Map, Value, json};
 use crate::catalogs::{Blob, multi};
 use crate::error::{Error, Result, io, json as json_err};
 
-/// The locale panel (plans/11 A0, 06 §5 P0.5).
+/// The locale panel (P0.5).
 pub(crate) const PANEL: [&str; 11] = [
     "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
 ];

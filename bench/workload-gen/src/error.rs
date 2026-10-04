@@ -56,7 +56,7 @@ pub enum Error {
         message: String,
     },
 
-    /// `stats` found the shape outside the tolerances of plans/06 §2.
+    /// `stats` found the shape outside the tolerances.
     #[error("shape outside tolerance: {0}")]
     Shape(String),
 }

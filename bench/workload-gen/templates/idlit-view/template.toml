@@ -1,5 +1,5 @@
 # Template `idlit-view`: the baseline for `tr-view`, and P0.1's own
-# (plans/06-size-and-perf.md §3, "Baselines").
+# "Baselines".
 #
 # The same shapes as `idlit` — a short per-site literal, distinct per site,
 # so that sites stay as distinct as they are in a real application — but the

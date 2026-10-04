@@ -1,5 +1,5 @@
 //! Parse `locales/`, write the manifest, and generate the module `src/lib.rs`
-//! includes (`plans/05-tooling.md` §4).
+//! includes.
 //!
 //! `Emit::Module`, as in `examples/demo-csr`: the harness is a client-only
 //! page, and `cargo xtask churn` publishes the catalogs beside it with

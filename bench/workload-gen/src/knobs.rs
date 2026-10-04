@@ -1,4 +1,4 @@
-//! The generator's knobs (plans/06-size-and-perf.md §2: N, M, L, R, K, seed).
+//! The generator's knobs (N, M, L, R, K, seed).
 
 use crate::shape::target;
 
@@ -12,7 +12,7 @@ pub const DEFAULT_COMPONENTS: usize = 60;
 pub const DEFAULT_ROUTES: usize = 3;
 
 /// Every size knob of the workload. The defaults reproduce the reference
-/// workload of plans/06 §2.
+/// workload.
 #[derive(Debug, Clone, PartialEq, Eq, clap::Args)]
 pub struct Knobs {
     /// Random seed; the same seed and knobs give byte-identical output.

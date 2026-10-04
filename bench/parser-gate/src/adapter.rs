@@ -1,7 +1,7 @@
 //! The adapter boundary: what a parser must provide to be measured.
 //!
 //! This is **not** the product `Frontend` trait of `mf2-model` (frozen in
-//! Phase 1, plans/05-tooling.md §1). It is the bench's own, finer-grained
+//! Phase 1). It is the bench's own, finer-grained
 //! boundary: two stages × two state modes, one message per call, so that the
 //! rows of the D1 gate compare like with like.
 //!

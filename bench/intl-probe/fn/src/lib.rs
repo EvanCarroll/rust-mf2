@@ -1,6 +1,5 @@
-//! `intl-probe-fn` — Phase 4 task A0 (`plans/11-phase-4-work-order.md`,
-//! "The `intl` client option"): the numeric functions over the browser's
-//! `Intl`, as `plans/03-runtime.md` §5.3 designs them. **Rust keeps MF2's
+//! `intl-probe-fn` — Phase 4 task A0, the `intl` client option: the numeric functions over the browser's
+//! `Intl`. **Rust keeps MF2's
 //! semantics** — option validation and MF2's errors (`Intl` throws where
 //! MF2 reports *Bad Option* and continues), the operand rules, exact-match
 //! keys, `select`'s literal-only rule and option inheritance, `:offset`'s

@@ -1,4 +1,4 @@
-//! The measured shape of plans/06-size-and-perf.md §2, as integer tables.
+//! The measured shape of the reference workload, as integer tables.
 //!
 //! Percentages are parts per million so that quotas can be computed exactly
 //! with integer arithmetic (largest-remainder apportionment), which keeps the
@@ -52,7 +52,7 @@ pub const ID_KNOTS: &[(u64, u64)] = &[
     (1_000_000, 42),
 ];
 
-/// Targets and tolerances quoted from plans/06 §2.
+/// Targets and tolerances of the reference workload's shape.
 pub mod target {
     /// Messages per locale.
     pub const MESSAGES: usize = 1_600;

@@ -1,4 +1,4 @@
-//! B1′ (`plans/06-size-and-perf.md` §3) for `mf2-host-web`'s date features
+//! B1′ for `mf2-host-web`'s date features
 //! (`time-zones`, `datetime-intl`): `b12-dates-web-base`'s source, built in
 //! its own cargo invocation without them. `b12-dates-web-base` (built with
 //! them on) must be the same size, wasm and JS: an application that names

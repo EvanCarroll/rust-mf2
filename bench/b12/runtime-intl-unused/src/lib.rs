@@ -1,4 +1,4 @@
-//! B1′ for the `intl` client option (`plans/06-size-and-perf.md` §3): the
+//! B1′ for the `intl` client option: the
 //! `intl` features on — `mf2-runtime`'s and `mf2-fn-number`'s, the crate
 //! linked — but a corpus that formats no number, so the registry is
 //! `b12-runtime-nonum`'s (`:string` alone) and the host the application

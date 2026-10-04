@@ -1,4 +1,4 @@
-//! B1′ (`plans/06-size-and-perf.md` §3): `fn-number` on but unused. The
+//! B1′: `fn-number` on but unused. The
 //! crate is a dependency and named here, but the registry is `b12-runtime`'s
 //! — what an application's generated registry is when its corpus formats no
 //! localized number — so the module must be byte-identical in size to

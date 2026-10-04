@@ -1,7 +1,6 @@
 # bench/fluent-ab — the `leptos-fluent` A/B
 
-Phase 8 A5 (`plans/16-phase-8-work-order.md`; `plans/06-size-and-perf.md`
-§6; master plan §9 P8): the question a Fluent user asks first — how does
+Phase 8 A5: the question a Fluent user asks first — how does
 this compare with `leptos-fluent`? — answered **once**, at migration, on the
 reference application, and committed as a snapshot: "at this commit, this is
 what we had". It is not in CI and is not re-run per commit; a later commit is

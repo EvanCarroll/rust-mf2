@@ -1,4 +1,4 @@
-//! B12 and B3 (`plans/06-size-and-perf.md` §3): the registry of an
+//! B12 and B3: the registry of an
 //! application whose corpus uses the whole localized numeric family —
 //! `b12-runtime-fn-number`'s handlers plus `:currency` and `:unit`. B3 =
 //! this − `b12-runtime-fn-number`.

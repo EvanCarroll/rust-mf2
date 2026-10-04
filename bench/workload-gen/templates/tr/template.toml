@@ -1,6 +1,6 @@
 # Built-in template `tr`: rust-mf2 as an application uses it — `tr!` at every
 # call site, against the corpus of the same generated workload
-# (plans/06-size-and-perf.md §3, budget B5; plans/13-phase-5b-work-order.md A6).
+# (budget B5).
 #
 # Phase 5b has no `leptos-mf2`, so a description does not render itself yet:
 # every site formats to a `String` through one shared helper, which is the

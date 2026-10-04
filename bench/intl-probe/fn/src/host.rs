@@ -1,5 +1,4 @@
-//! **The `Host` methods the `intl` option would add** (`plans/03-runtime.md`
-//! §5.3), kept in this probe-local module: the probe does not change
+//! **The `Host` methods the `intl` option would add**, kept in this probe-local module: the probe does not change
 //! `mf2_runtime::Host`. In the option they would be `Host` methods with
 //! default bodies (the Rust path, what `mf2-host-std` keeps on the server)
 //! that `mf2-host-web` implements with this JavaScript:

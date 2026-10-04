@@ -424,7 +424,7 @@ ssr = [
     "leptos_router/ssr"{ssr}
 ]
 
-# Size-optimised client wasm (plans/06-size-and-perf.md §3); measure after
+# Size-optimised client wasm; measure after
 # `wasm-opt -Oz`.
 [profile.wasm-release]
 inherits = "release"

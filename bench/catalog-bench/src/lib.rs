@@ -1,5 +1,5 @@
 //! `catalog-bench` — Phase 2's measurements of the `.mf2b` catalog
-//! (`plans/09-phase-2-work-order.md`, tasks A8 and A9's native half):
+//! (tasks A8 and A9's native half):
 //!
 //! * **size** (A8, budget B7): every locale of the reference workload as a
 //!   stripped (production) and an unstripped catalog — raw, gzip (GNU

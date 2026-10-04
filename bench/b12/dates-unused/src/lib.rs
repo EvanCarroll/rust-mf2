@@ -1,4 +1,4 @@
-//! B1′ and B13 (`plans/06-size-and-perf.md` §3): `datetime` on — with
+//! B1′ and B13: `datetime` on — with
 //! both backends' features — but unused by the corpus. The crate is a
 //! dependency and named here, but the registry and the walk are
 //! `b12-runtime`'s, so the module must be byte-identical in size to it

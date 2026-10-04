@@ -8,8 +8,7 @@ use clap::{Args, Parser, Subcommand};
 use workload_gen::model::canary;
 use workload_gen::{Error, Format, Knobs, Template, Workload, locale, repo_root, stats, suite};
 
-/// Deterministic generator of the rust-mf2 reference workload
-/// (plans/06-size-and-perf.md §2).
+/// Deterministic generator of the rust-mf2 reference workload.
 #[derive(Debug, Parser)]
 #[command(name = "workload-gen", version)]
 struct Cli {
@@ -25,7 +24,7 @@ enum Command {
     Locales(OutArgs),
     /// Write bench/corpora/workload-<N>.json and bench/corpora/suite.json.
     Corpora(CorporaArgs),
-    /// Print the shape table; exit 1 if outside the tolerances of plans/06 §2.
+    /// Print the shape table; exit 1 if outside the tolerances.
     Stats(StatsArgs),
     /// Print the canary strings CI greps the client wasm for (B6).
     Canaries(CanaryArgs),

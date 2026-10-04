@@ -1,5 +1,5 @@
 //! `parser-gate`: runs the D1 parser benchmark and, with `--gate`, applies the
-//! gate (plans/05-tooling.md §1). Run it in the release profile:
+//! gate. Run it in the release profile:
 //!
 //! ```sh
 //! cargo run --release -p parser-gate -- [--gate] [--runs 31] …

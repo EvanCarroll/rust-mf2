@@ -1,5 +1,5 @@
-//! The compressors behind B7 (plans/06 §3; P0.7's method), and the
-//! alternatives the owner chooses between for CI (plans/09, A8):
+//! The compressors behind B7 (P0.7's method), and the
+//! alternatives the owner chooses between for CI:
 //!
 //! * **GNU gzip** — `gzip -9 -n -c` as a subprocess, what P0.7 measured. Its
 //!   availability and version depend on the machine.

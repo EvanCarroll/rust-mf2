@@ -1,4 +1,4 @@
-//! `.mf2` source files in the working grammar of plans/05-tooling.md §2.
+//! `.mf2` source files in the working grammar.
 //!
 //! Layout of a file:
 //!
@@ -26,11 +26,10 @@
 //! after = A blank line closes a message laid out as a block.
 //! ```
 //!
-//! This is `mf2 fmt`'s canonical layout (plans/05-tooling.md §6), so `mf2 fmt
+//! This is `mf2 fmt`'s canonical layout, so `mf2 fmt
 //! --check` finds nothing to change in a generated corpus.
 //!
-//! Comments are sized so that they make up 60 % of the source locale's bytes
-//! (plans/06 §2); every locale carries the same (English) comments.
+//! Comments are sized so that they make up 60 % of the source locale's bytes; every locale carries the same (English) comments.
 
 use crate::model::{Message, VarKind, Workload};
 use crate::rng::Rng;
@@ -178,7 +177,7 @@ pub fn write_file(
             let message = &wl.messages[j];
             let block = sources[j].contains('\n');
             // A blank line before a comment and on both sides of a block —
-            // `mf2 fmt`'s layout (plans/05-tooling.md §6).
+            // `mf2 fmt`'s layout.
             if (after_block || block || comments.entries[j].is_some()) && !out.ends_with("\n\n") {
                 out.push('\n');
             }
@@ -258,7 +257,7 @@ pub(crate) fn plan(
     for (si, section) in file.sections.iter().enumerate() {
         let is_canary = section.messages.iter().any(|&j| wl.messages[j].canary);
         if is_canary {
-            let s = vec!["Build canary (plans/06-size-and-perf.md §3, B6).".to_owned()];
+            let s = vec!["Build canary (B6).".to_owned()];
             let e = vec![
                 "CI greps the client wasm for this id, its variable name and its text;".to_owned(),
                 "any hit fails the build. Every locale has its own canary text.".to_owned(),

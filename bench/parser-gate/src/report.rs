@@ -1,4 +1,4 @@
-//! The run's report: a Markdown table in the shape of plans/05-tooling.md §1's
+//! The run's report: a Markdown table in the shape of the D1
 //! baseline table (plus the state-mode column), and the same data as JSON.
 
 use std::fmt::Write as _;
@@ -222,7 +222,7 @@ impl Report {
             }
         }
 
-        let _ = writeln!(out, "\n## Gate (plans/05-tooling.md §1)\n");
+        let _ = writeln!(out, "\n## Gate\n");
         match self.gate.status {
             Status::BaselineOnly => {
                 let _ = writeln!(

@@ -1,5 +1,4 @@
-//! B12 for the `intl` client option with `mf2-fn-number`
-//! (`plans/03-runtime.md` §5.3): `b12-runtime-fn-number-measure`'s registry
+//! B12 for the `intl` client option with `mf2-fn-number`: `b12-runtime-fn-number-measure`'s registry
 //! — `:number`, `:integer`, `:offset`, `:percent`, `:currency`, `:unit` and
 //! unannotated numbers, localized — with the `intl` features, walked over
 //! the stub number formatter. Built in its own cargo invocation.

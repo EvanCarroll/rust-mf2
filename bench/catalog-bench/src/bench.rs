@@ -637,8 +637,7 @@ pub fn run(
     })
 }
 
-/// The reference locale: B10 is stated for the reference workload (plans/06
-/// §2–3), so its simple-lookup check decides the gate for `en` only; the
+/// The reference locale: B10 is stated for the reference workload, so its simple-lookup check decides the gate for `en` only; the
 /// other locales' are reported.
 pub const REFERENCE: &str = "en";
 
@@ -831,7 +830,7 @@ impl BenchReport {
         }
         let _ = writeln!(
             o,
-            "\nP0.8 (plans/phase-0-results.md §P0.8): P0.3's reader over P0.7's catalogs, \
+            "\nP0.8: P0.3's reader over P0.7's catalogs, \
              per-access UTF-8, criterion, taken under load 2–5; its simple lookup is \
              `Formatter::simple` (= `get` + `text`), measured for `en` and `ar-XB` only."
         );

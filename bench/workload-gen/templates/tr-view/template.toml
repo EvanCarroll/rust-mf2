@@ -1,6 +1,5 @@
 # Template `tr-view`: rust-mf2 with the **real leaf** — a description renders
-# itself (plans/06-size-and-perf.md §3, budget B5;
-# plans/14-phase-6-work-order.md A7).
+# itself (budget B5).
 #
 # The difference from `tr` is the view positions. `tr` formats every site to
 # a `String` through one helper, because Phase 5b had no renderer; here a
@@ -23,7 +22,7 @@ support = "support.rs"
 # `ssr` on, the generated module's `host::HOST` is the *server's* host — jiff's
 # bundled time-zone database and Unicode normalisation, ≈ 170 KB gz that the
 # client of every real application leaves out. Phase 6 measured it that way
-# and read the difference as tachys' (plans/15-phase-7-work-order.md A8).
+# and read the difference as tachys'.
 dependencies = [
     'mf2 = { path = "{{template_dir}}/../../../../crates/mf2", features = ["leptos"] }',
     'workload-i18n = { path = "{{template_dir}}/../tr/i18n", default-features = false }',

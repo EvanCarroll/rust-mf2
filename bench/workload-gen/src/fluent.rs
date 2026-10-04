@@ -1,4 +1,4 @@
-//! The same workload as Fluent `.ftl` files (plans/16 A2): one file per
+//! The same workload as Fluent `.ftl` files: one file per
 //! source file per locale, from the same bodies the `.mf2` files render, so
 //! messages, argument names and plural selections are the same.
 //!
@@ -34,7 +34,7 @@
 //!   `-` for `.` (`chat.input.send` → `chat-input-send`); a section becomes a
 //!   group comment naming it (`## chat.input`), which does not touch ids.
 //!   Generation fails if two ids would meet.
-//! * **Markup** (plans/16 A5's like-with-like rule; 04 §11 item 1). Fluent
+//! * **Markup** (compared like with like). Fluent
 //!   has none, so a sentence with an element is split around it, the way an
 //!   application without markup must: attributes `.before`, `.<element>`
 //!   (the element's text) and `.after`, always all three, the view putting
@@ -43,8 +43,7 @@
 //!   entry's comment in the usual `# Variables:` block.
 //! * **Functions** (`--number`, `--datetime`): `:number` → `NUMBER` with the
 //!   same options; `:datetime` → the nearest `DATETIME` (Fluent's options
-//!   are `Intl.DateTimeFormat`'s, so there is no identity; see plans/05
-//!   §6.1).
+//!   are `Intl.DateTimeFormat`'s, so there is no identity).
 
 use std::collections::BTreeMap;
 

@@ -1,4 +1,4 @@
-//! The A/B baseline of D15 (plans/10 A5b): `b12-runtime` with the numeric
+//! The A/B baseline of D15: `b12-runtime` with the numeric
 //! code over `fixed_decimal` (feature `fixed-decimal`). Reported, not
 //! required to be clean: its panic paths are why the own buffer exists.
 #![no_std]

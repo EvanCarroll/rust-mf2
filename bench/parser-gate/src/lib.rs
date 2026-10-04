@@ -1,4 +1,4 @@
-//! `parser-gate` — the D1 gate of plans/05-tooling.md §1.
+//! `parser-gate` — the D1 gate: `mf2-syntax` against the `ox_mf2_parser` baseline.
 //!
 //! Measures parsers on the committed corpora (`bench/corpora/`) in the same
 //! process, interleaved: ns/msg and MB/s (median of the samples), allocations

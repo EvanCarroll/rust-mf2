@@ -1,6 +1,6 @@
 [package]
 name = "workload-gen"
-description = "Deterministic generator of the reference workload (plans/06-size-and-perf.md §2)."
+description = "Deterministic generator of the reference workload."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

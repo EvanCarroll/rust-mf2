@@ -120,7 +120,7 @@ fn function_knobs_add_number_and_datetime() {
     assert!(report.passed(), "{:?}", report.failures());
 }
 
-/// A reader for the working grammar of plans/05-tooling.md §2, as far as the
+/// A reader for the working grammar, as far as the
 /// generator uses it. Returns the locale and `(full id, value)` pairs.
 fn parse_mf2(src: &str) -> (String, Vec<(String, String)>) {
     let lines: Vec<&str> = src.split('\n').collect();
@@ -478,7 +478,7 @@ plain = "tr_args({{index}}, [{{args}}])"
     assert!(Template::resolve(bad.to_str().unwrap()).is_err());
 }
 
-// ---- Fluent (`--format ftl`, plans/16 A2) ----
+// ---- Fluent (`--format ftl`) ----
 
 fn ftl_files(knobs: &Knobs) -> workload_gen::Files {
     workload_gen::generate_as(knobs, &[Format::Ftl], &[]).unwrap()

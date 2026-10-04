@@ -1,5 +1,4 @@
-//! The `plural.cardinal` LOCALE entries (key 1, encoding v1,
-//! `plans/02-catalog-format.md` §4.1) the four workload locales carry, from
+//! The `plural.cardinal` LOCALE entries (key 1, encoding v1) the four workload locales carry, from
 //! `mf2-locale-data` (Phase 3, A6) — until then P0.4's bytes were hard-coded
 //! here; the test below holds the two to be identical.
 

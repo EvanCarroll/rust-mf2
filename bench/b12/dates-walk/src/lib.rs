@@ -1,5 +1,4 @@
-//! The walk of the date harnesses (B4, B12, B13 for `mf2-fn-datetime`;
-//! `plans/06-size-and-perf.md` §3): `b12-runtime-walk`'s client path —
+//! The walk of the date harnesses (B4, B12, B13 for `mf2-fn-datetime`): `b12-runtime-walk`'s client path —
 //! `Catalog::new` on bytes from the host, every message formatted with
 //! `Formatter::simple`, `write` and `parts` — with date/time arguments (an
 //! instant, a floating value, an offset: host-chosen) beside the others, and

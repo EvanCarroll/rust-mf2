@@ -9,8 +9,7 @@
 //!   imported sink, so nothing is dead-code-eliminated.
 //! * A bump `#[global_allocator]`; the input buffer is a real allocation whose
 //!   pointer escapes to the host, so the allocator stays in the base (a size
-//!   delta is only fair against a base that keeps an allocation alive,
-//!   `plans/06-size-and-perf.md` §3).
+//!   delta is only fair against a base that keeps an allocation alive).
 //! * Panic-free itself: no indexing, no `unwrap`, no infallible growth, so a
 //!   surviving panic import can only come from the code under test.
 #![no_std]

@@ -1,6 +1,6 @@
 [package]
 name = "build-cost"
-description = "What the build costs: the time and the peak memory of one mf2-build pass over a corpus (plans/12-phase-5a-work-order.md, A11)."
+description = "What the build costs: the time and the peak memory of one mf2-build pass over a corpus."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

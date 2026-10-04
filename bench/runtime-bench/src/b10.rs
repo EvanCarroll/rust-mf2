@@ -1,4 +1,4 @@
-//! B10 (plans/10-phase-3-work-order.md A11): formatting speed natively, in
+//! B10: formatting speed natively, in
 //! the parser gate's style — one process, rows interleaved round by round,
 //! medians, the counting allocator — on the four production catalogs of the
 //! reference workload (stripped; `catalog_bench::corpus`), with the default

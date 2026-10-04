@@ -1,7 +1,6 @@
 # parser-gate — the D1 gate
 
-The permanent benchmark behind decision D1 ([`plans/05-tooling.md`](../../plans/05-tooling.md)
-§1): `mf2-syntax` must be at least as fast, allocate no more, and be strictly
+The permanent benchmark behind decision D1: `mf2-syntax` must be at least as fast, allocate no more, and be strictly
 more correct than `ox_mf2_parser`, on every row. Phase 0 (task P0.12) built the
 harness and measured the baseline, ox alone ([BASELINE.md](BASELINE.md)).
 Phase 1 added `mf2-syntax` as the second adapter; `--gate` is a real
@@ -122,7 +121,7 @@ The baseline is **ox 460/462**. Both misses over-report
 
 ## The gate (`--gate`)
 
-It applies the rules of plans/05 §1 to every contender after the baseline:
+It applies these rules to every contender after the baseline:
 
 1. on every row, median ns/msg ≤ **1.05 ×** ox's median;
 2. on every row, allocation calls per pass ≤ ox's, and bytes per pass ≤ ox's,

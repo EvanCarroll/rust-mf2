@@ -1,4 +1,4 @@
-//! The numeric A/B (plans/10-phase-3-work-order.md A5b, decision D15) and
+//! The numeric A/B (decision D15) and
 //! P0.5's ECMA-402 differential, re-run on the runtime (A5).
 //!
 //! The corpus is P0.5's (`probes/p0-05-numbers/suite/src/bin/ecma_cases.rs`
@@ -29,7 +29,7 @@ static LOCALIZED_FUNCTIONS: [(&str, &dyn Function); 2] = [
 ];
 static LOCALIZED: Registry = Registry::new(&LOCALIZED_FUNCTIONS);
 
-/// The locale panel of plans/01-conformance.md §5, and two tags with a
+/// The conformance locale panel, and two tags with a
 /// non-Latin numbering system.
 const PANEL: [&str; 13] = [
     "en",

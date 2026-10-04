@@ -1,4 +1,4 @@
-//! B12 and B2 (`fn-number` on and used, `plans/06-size-and-perf.md` §3):
+//! B12 and B2 (`fn-number` on and used):
 //! `b12-runtime-walk` over the registry an application whose corpus uses
 //! every function of the localized decimal family would generate —
 //! `mf2-fn-number`'s `:number`, `:integer`, `:offset`, `:percent`, and its

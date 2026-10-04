@@ -1,5 +1,4 @@
-//! The base of the `intl` harness (B4, `plans/06-size-and-perf.md`
-//! §3): `b12-dates-walk` over the core registry on the browser host
+//! The base of the `intl` harness (B4): `b12-dates-walk` over the core registry on the browser host
 //! `mf2_host_web::HOST`, built through `wasm-bindgen`. `mf2-host-web`'s date
 //! features are on, and `HOST` must link none of their glue (B1′): its
 //! module imports no date function.

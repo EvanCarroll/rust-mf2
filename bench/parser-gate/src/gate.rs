@@ -1,4 +1,4 @@
-//! The D1 gate's rules (plans/05-tooling.md §1), applied to a finished run.
+//! The D1 gate's rules, applied to a finished run.
 //!
 //! For every contender other than the baseline, on **every** row:
 //!

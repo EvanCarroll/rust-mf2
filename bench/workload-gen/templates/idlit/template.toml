@@ -1,5 +1,5 @@
-# Built-in template `idlit`: the B5 baseline (plans/06-size-and-perf.md §3,
-# P0.1's "Baselines"). Every call site is the same *shape* as the `tr`
+# Built-in template `idlit`: the B5 baseline (P0.1's "Baselines").
+# Every call site is the same *shape* as the `tr`
 # template's — a `String` produced in the same position — but the string comes
 # from a short per-site literal (the message's `MsgId` as text) instead of
 # from a catalog. Sites therefore stay distinct, as they are in a real

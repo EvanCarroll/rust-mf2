@@ -1,7 +1,7 @@
 # intl-probe — Phase 4 task A0, the `intl` client option
 
-`plans/11-phase-4-work-order.md` §"The `intl` client option" and row A0;
-the design it follows is `plans/03-runtime.md` §5.3. Results:
+The numeric functions over the browser's `Intl` instead of Rust's own
+formatting, measured against the Rust path. Results:
 [`RESULTS.md`](RESULTS.md).
 
 The question: should the client wasm leave rounding, digit output and plural
@@ -37,7 +37,7 @@ A standalone cargo workspace (the root workspace excludes
 | `intl-codes` | `intl` with design A of the key (below) |
 | `rust-loc` | `mf2-fn-number`'s localized `:number` / `:integer` / `:offset` and `:percent` (built when the tree has `mf2-fn-number`, Phase 4 A3, commit d56e089 on) |
 | `rust-cu` | `rust-loc` + `mf2-fn-number`'s `:currency` and `:unit` (Phase 4 A4): the Rust path of the whole family |
-| `rt-intl`, `rt-intl-loc`, `rt-intl-cu` | **the option as built** (Phase 4, owner decision 4; `plans/03-runtime.md` §2.7, §5.3): the registries of `rust`, `rust-loc` and `rust-cu` with the runtime's own `intl` feature (and `mf2-fn-number`'s), over `mf2-host-web`'s `NUMBERS_HOST` — built when the tree has `INTL_NUMBERS`; the speed item alternates `rt-intl` with `rust` and `intl`, `rt-intl-loc` with `rust-loc` and `intl-loc` |
+| `rt-intl`, `rt-intl-loc`, `rt-intl-cu` | **the option as built** (Phase 4, owner decision 4): the registries of `rust`, `rust-loc` and `rust-cu` with the runtime's own `intl` feature (and `mf2-fn-number`'s), over `mf2-host-web`'s `NUMBERS_HOST` — built when the tree has `INTL_NUMBERS`; the speed item alternates `rt-intl` with `rust` and `intl`, `rt-intl-loc` with `rust-loc` and `intl-loc` |
 
 ### Design points
 

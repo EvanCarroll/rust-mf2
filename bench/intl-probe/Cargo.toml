@@ -1,4 +1,4 @@
-# Phase 4 task A0 (plans/11-phase-4-work-order.md): the `intl` client-option
+# Phase 4 task A0: the `intl` client-option
 # probe. A standalone workspace (the root workspace excludes
 # `bench/intl-probe`): the wasm harness is a cdylib for
 # wasm32-unknown-unknown built once per variant (cargo features), and the

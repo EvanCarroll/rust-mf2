@@ -1,6 +1,7 @@
 # runtime-bench — the runtime measurements (Phases 3 and 4)
 
-`plans/10-phase-3-work-order.md` tasks A5, A5b and A11 (native half).
+The runtime's numeric A/B (decision D15) and its formatting speed
+natively (budget B10).
 
 | Command | What |
 |---|---|

@@ -1,5 +1,4 @@
-# B12 check for the catalog reader (plans/09-phase-2-work-order.md, A9;
-# plans/06-size-and-perf.md §3, "How B6, B12, B13 are checked").
+# B12 check for the catalog reader.
 #
 # A standalone workspace (the root workspace excludes `bench/b12`): the
 # harnesses are `no_std` cdylibs for wasm32-unknown-unknown with their own
@@ -49,7 +48,7 @@ mf2-catalog = { path = "../../crates/mf2-catalog", default-features = false }
 b12-runtime-walk = { path = "runtime-walk" }
 mf2-runtime = { path = "../../crates/mf2-runtime", default-features = false }
 mf2-fn-number = { path = "../../crates/mf2-fn-number", default-features = false }
-# The date harnesses (plans/11 A11: B4, B12, B13, B1′ for dates); the
+# The date harnesses (B4, B12, B13, B1′ for dates); the
 # backends are features of each harness.
 b12-dates-walk = { path = "dates-walk" }
 mf2-fn-datetime = { path = "../../crates/mf2-fn-datetime", default-features = false }

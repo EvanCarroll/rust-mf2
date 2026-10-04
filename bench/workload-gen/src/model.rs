@@ -13,7 +13,7 @@ use crate::shape::{self, apportion, quantile_pool, share};
 use crate::text::{Lexicon, capitalize};
 use crate::vocab;
 
-/// The build canary (plans/06 §3, B6): an id, a variable name and a text that
+/// The build canary (B6): an id, a variable name and a text that
 /// must never appear in a client wasm. CI greps the final wasm for all three.
 pub mod canary {
     /// Namespace (file) of the canary message.
@@ -175,7 +175,7 @@ pub struct Workload {
     /// Message indices sorted bytewise by id.
     pub order: Vec<usize>,
     /// `MsgId` of each message: its rank in `order` (the manifest's dense
-    /// numbering, plans/05 §3).
+    /// numbering).
     pub index: Vec<u32>,
 }
 

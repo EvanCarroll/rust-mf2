@@ -1,4 +1,4 @@
-# Built-in template `literal`: the size baseline of plans/06-size-and-perf.md §3.
+# Built-in template `literal`: the size baseline.
 # Every call site becomes a string literal holding the source-locale text
 # (for a `.match`, its catch-all variant). Arguments are not passed, and there
 # is no i18n code at all: this is "the same app without i18n".
@@ -8,7 +8,7 @@
 # everything here.
 
 name = "literal"
-description = "Every call site is a string literal of the source-locale text (size baseline, plans/06 §3)."
+description = "Every call site is a string literal of the source-locale text (size baseline)."
 support = "support.rs"
 
 [deferred]
