@@ -90,9 +90,11 @@ native-datetime-icu = ["host-std-datetime-icu"]
 tzdb-bundled = ["mf2-host-std?/tzdb-bundled"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser. A mode
 # implies its host; with no framework, naming one is how `mf2` is used.
-# The native host also reads the server-only table beside each catalog
-# (`mf2-catalog/server-data`, plan/08 §4.2), which no browser build links.
-host-std = ["dep:mf2-host-std", "mf2-catalog/server-data"]
+# The server-only table beside each catalog (`mf2-catalog/server-data`,
+# plan/08 §4.2) is read only where a server's browser side reads a different
+# catalog: `ssr` and `axum` turn it on. A native application or terminal UI
+# keeps every entry in its catalog and links no reader for the table.
+host-std = ["dep:mf2-host-std"]
 host-web = ["dep:mf2-host-web"]
 # A native application, a command-line tool or a terminal UI (`mf2::native`):
 # one generated corpus's catalogs, embedded in the executable (read in place,
@@ -122,6 +124,7 @@ ratatui = ["native", "dep:ratatui-core"]
 # for `wasm32`; on the host the two compile together, as `native` does.
 axum = [
     "host-std",
+    "mf2-catalog/server-data",
     "tzdb-bundled",
     "dep:axum",
     "dep:http",
@@ -159,6 +162,7 @@ leptos-0-8 = [
 # same name, beside Leptos's. Each implies its host.
 ssr = [
     "host-std",
+    "mf2-catalog/server-data",
     "tzdb-bundled",
     "dep:oco_ref",
     "dep:js-sys",

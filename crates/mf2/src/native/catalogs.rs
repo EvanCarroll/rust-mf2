@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 use core::fmt;
 use std::path::Path;
 
-use mf2_catalog::{Catalog, Dir};
+use mf2_catalog::{Catalog, CatalogError, Dir};
 use mf2_runtime::{
     BidiStrategy, ErrorSink, FormatContext, FormatError, Formatter, NoErrors, Sink, TimeZone,
 };
@@ -66,6 +66,22 @@ impl<M: Message + ?Sized> Writes for M {
     }
 }
 
+/// Adds the server-only table the build embedded beside a catalog
+/// (`plan/08` §4.2). Only a build that serves a browser can have one (`ssr`,
+/// `axum`); a native build keeps every entry in its catalog and links no
+/// reader for the table.
+#[cfg(any(feature = "ssr", feature = "axum"))]
+fn with_table(catalog: Catalog, file: &CatalogFile) -> Result<Catalog, CatalogError> {
+    catalog.with_server_data(file.server_data())
+}
+
+/// Without a Leptos server or Axum, there is no server-only table.
+#[cfg(not(any(feature = "ssr", feature = "axum")))]
+#[inline(always)]
+fn with_table(catalog: Catalog, _file: &CatalogFile) -> Result<Catalog, CatalogError> {
+    Ok(catalog)
+}
+
 impl Catalogs {
     /// Loads the catalogs the build embedded (`mf2_build::Emit::Native`).
     /// Nothing is copied: each catalog reads the executable's own bytes.
@@ -76,7 +92,7 @@ impl Catalogs {
                 .bytes()
                 .ok_or_else(|| Error::NotEmbedded(tag.to_owned()))?;
             Catalog::from_static(bytes, corpus.manifest_hash())
-                .and_then(|catalog| catalog.with_server_data(file.server_data()))
+                .and_then(|catalog| with_table(catalog, file))
                 .map(Some)
                 .map_err(|source| Error::Catalog {
                     locale: tag.to_owned(),
@@ -127,7 +143,7 @@ impl Catalogs {
                 return Err(Error::ContentMismatch { path, actual });
             }
             Catalog::new(bytes, corpus.manifest_hash())
-                .and_then(|catalog| catalog.with_server_data(file.server_data()))
+                .and_then(|catalog| with_table(catalog, file))
                 .map(Some)
                 .map_err(|source| Error::Catalog {
                     locale: tag.to_owned(),
