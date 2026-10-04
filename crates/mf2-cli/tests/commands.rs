@@ -499,6 +499,14 @@ fn check_asks_for_icu_blob_where_the_build_does() {
     );
     let text = ok(&run(&dir, &["check"]));
     assert!(!text.contains("icu-blob"), "{text}");
+    // And it prints the form of ICU4X the build chose, and why (task 21.8).
+    assert!(
+        text.contains(
+            "ICU4X dates: the Gregorian calendar only (every language prefers it and no \
+             message names another); no zone names (no message has `timeZoneStyle`)"
+        ),
+        "{text}"
+    );
     // Without an ICU4X formatter `icu-blob` is not needed; without an
     // `mf2-build` there is no build script to refuse; and `--features`
     // says nothing of `mf2-build`.
