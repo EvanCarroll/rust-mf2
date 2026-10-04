@@ -160,6 +160,10 @@ Rewrite, for an application developer:
   to readers without JavaScript always; that a server's ICU4X text and a
   browser's `Intl` text can differ, with the known cases; what ships where.
 * `docs/configuration.md`: `[dates]`.
+* A date needs `:date`, `:time` or `:datetime` in the message: a bare
+  placeholder given a date is an error (17.5), with the build's check of a
+  variable that is a date in one language and bare in another, and how an
+  application marks its own date function.
 * `number-intl` (17.2): both builds must turn it on, on the `mf2` dependency line and
   not under the application's `hydrate` feature, or the two builds write different
   catalogs and the browser asks for a file the server does not serve.

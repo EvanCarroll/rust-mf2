@@ -348,6 +348,28 @@ correction already keeps. With ICU4X on the server and `Intl` in the
 browser nothing is rewritten: the server's text stays until its node next
 updates, as today.
 
+**Only the messages that format a date** (owner, 2026-10-04). The browser
+rewrites a hydrated message, and the zone correction re-renders one, only
+when that message formats a date. The catalog already says which, at no cost
+in bytes: FUNCS lists the functions its messages call and each expression or
+declaration marks a call, so a message that calls `:date`, `:time`,
+`:datetime`, or a function the application registered as a date function,
+is a date message, and a catalog whose FUNCS names none of them has none. A
+marker stored per message, written only into catalogs that have dates, is
+the fallback if Phase 22 finds this walk slow. The page's text is never
+compared.
+
+**A date is formatted only through a date function** (owner, 2026-10-04: the
+framework is typed, so the message says it). The generated registry no
+longer formats an unannotated date/time (`Registry::with_dates`): a date
+value in a bare placeholder is a Bad Operand with its fallback, and the
+message writes `{$when :datetime}`. The build fails when one language's
+message formats a variable with a date function and another's leaves it
+bare. Where the call-site macro can know which arguments a message formats
+as dates, a date value passed to any other argument is a compile error.
+Unannotated numbers still format by type. A server's number text that
+differs from the browser's is not rewritten, and must not break hydration.
+
 ## 5. A smaller and faster ICU4X
 
 ### 5.1 The narrowest form per corpus

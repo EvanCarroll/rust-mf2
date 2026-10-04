@@ -25,7 +25,7 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** nothing; Phase 18 (`plan/11`) follows. Open owner question: a 17.5.
+* **Next:** 17.5, after Phase 18's 18.2a.
 
 ## Done
 
@@ -184,6 +184,46 @@ Starts at: `crates/mf2-build/src/catalog.rs`, `lint.rs`;
 Tests (written here, run in Phase 21): the check over every feature set of
 `xtask/src/feature_sets.rs` and every corpus of the fixtures; and a
 deliberately wrong placement, which must fail it.
+
+### 17.5 Only the messages that format a date (after 18.2a)
+
+Design: `plan/08` §4.3, its last two paragraphs (owner, 2026-10-04).
+
+Build:
+
+* `mf2-catalog`: whether a message formats a date, read from FUNCS and the
+  expression and declaration tags without formatting it, and whether a
+  catalog's FUNCS names a date function at all. Panic-free and `no_std`, as
+  the reader is.
+* `mf2::leptos`: 17.3's rewrite and the zone correction act only on date
+  messages, markup messages included (no empty-then-full rebuild of the
+  others).
+* A registered function can be marked as one that formats dates; the check
+  above counts it.
+* The generated registry drops `with_dates`: an unannotated date/time is a
+  Bad Operand. The build (and `mf2 check`) refuses a variable that one
+  language's message formats with a date function and another's leaves
+  bare. Where the call-site macro can know which arguments a message formats
+  as dates, a date value passed to another argument is a compile error; if
+  that is not cheap, the report says so and it is left.
+* Every test, bench and sample that passes a date to a bare placeholder
+  writes `:datetime` and keeps its expectation. If a WG test or ledger entry
+  needs an unannotated date to format, stop and report.
+
+Starts at: `crates/mf2-catalog/src/format.rs` (`tag`, `section::FUNCS`),
+`reader.rs`; `crates/mf2/src/leptos/registry.rs` (`correct_zone`),
+`zone.rs`; `crates/mf2-build/src/codegen.rs`; `crates/mf2/src/tr.rs`;
+`rg -l with_dates crates conformance tools bench`.
+
+Tests (written here, run in Phase 21): the date check on a call, a
+declaration, a registered date function, and a message with none; in a
+browser, with ISO on the server and `Intl` in the browser, a page with a date
+message and a plain one rewrites only the first; a served page whose number
+text was changed before hydration hydrates without an error and keeps that
+text; a bare date value is a Bad Operand; the build refuses a variable that
+is a date in one language and bare in another.
+
+Phase 22 measures: what the check adds to the client.
 
 ## For Phase 20
 
