@@ -158,13 +158,20 @@ pub enum Error {
     /// A date formatter of `mf2` is `icu` on one side or both, and this
     /// `mf2-build` was built without
     /// `icu-blob`, which writes ICU4X's date data into the catalogs. A
-    /// build-dependency's features cannot come through `links`.
+    /// build-dependency's features cannot come through `links`, so the
+    /// message names the line to write (`plan/08` §3.5).
     #[error(
-        "mf2-build: a date formatter of `mf2` is `icu`, whose catalogs carry ICU4X's date \
-         data: add `features = [\"icu-blob\"]` to this crate's `mf2-build` \
-         build-dependency"
+        "mf2-build: the date formatter of {features} is ICU4X, whose catalogs carry ICU4X's \
+         date data, which this `mf2-build` cannot write. In this crate's Cargo.toml, \
+         under [build-dependencies], write: mf2-build = {{ version = \"{version}\", \
+         features = [\"icu-blob\"] }}. It is off by default because it adds about \
+         16 s to a cold build",
+        version = env!("CARGO_PKG_VERSION")
     )]
-    IcuBlob,
+    IcuBlob {
+        /// The `icu` features that are on, quoted: `` `native-datetime-icu` ``.
+        features: String,
+    },
 }
 
 fn plural(n: usize) -> &'static str {

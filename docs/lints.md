@@ -119,8 +119,18 @@ Default `error`; the lowest `mf2.toml` may set it is `error`.
 
 A message calls a function whose feature of `mf2` is off: `:percent`,
 `:currency` and `:unit` need `fn-number`; `:datetime`, `:date` and `:time`
-need `fn-datetime`. A translation can never add formatting code to the
-application by itself.
+need a date formatter for each side the build formats on (`datetime` alone
+is none). A translation can never add formatting code to the application
+by itself.
+
+For a date function the message names the features to write, the date
+families of the frameworks that are on and what each formatter costs. A
+server-rendered Leptos application that names only the browser's formatter
+gets it, with `leptos-server-datetime-icu` as the feature to add. The
+recommended formatters are `intl` in the browser and `icu` in native code:
+`leptos-client-datetime-intl` and `leptos-server-datetime-icu` for a
+server-rendered Leptos application, `native-datetime-icu` for a
+command-line tool or a terminal UI, `axum-datetime-icu` for an Axum server.
 
 ```text
 en   price = It costs {$amount :currency currency=EUR}
@@ -252,6 +262,25 @@ en   (fn-datetime on; no message names a date function)
 Fix: drop the feature from `Cargo.toml` (or from the crate that turned it
 on); or, if plain placeholders receive dates on purpose,
 `unused-feature = "allow"` under `[lints]`.
+
+### `several-date-formatters`
+
+Default `warn`; the lowest `mf2.toml` may set it is `allow`.
+
+More than one date formatter of one side is on: two features of one family,
+or two frameworks' families that disagree. A build formats dates with one,
+the strongest (`icu`, then `intl`, then `iso`), and the message names it.
+The browser and native code are two builds, so `leptos-client-datetime-intl`
+with `leptos-server-datetime-icu` is one formatter on each side and raises
+nothing.
+
+```text
+en   (native-datetime-iso and native-datetime-icu on)
+```
+
+Fix: drop the formatters that do not format; or, if another crate of the
+workspace turns one on, `several-date-formatters = "allow"` under
+`[lints]`.
 
 ### `unpaired-markup`
 

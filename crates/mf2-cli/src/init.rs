@@ -611,3 +611,41 @@ fn locale_files(dir: &Path, args: &Args) -> Vec<(PathBuf, String)> {
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::{Mode, starter_files};
+
+    const MODES: [Mode; 5] = [Mode::Cli, Mode::Tui, Mode::Ssr, Mode::Islands, Mode::Csr];
+
+    /// `plan/08` §3.5: the starters have no date in a message and name no
+    /// date feature, so a new application links no date code.
+    #[test]
+    fn the_starters_name_no_date_feature() {
+        for mode in MODES {
+            for feature in mode.features() {
+                assert!(!feature.contains("datetime"), "{}: {feature}", mode.what());
+            }
+            for (path, body) in starter_files(Path::new("app"), "app", mode) {
+                assert!(
+                    !body.contains("datetime"),
+                    "{}: {} names a date feature",
+                    mode.what(),
+                    path.display()
+                );
+                if path.extension().is_some_and(|e| e == "mf2") {
+                    for function in [":date", ":time"] {
+                        assert!(
+                            !body.contains(function),
+                            "{}: {} formats a date",
+                            mode.what(),
+                            path.display()
+                        );
+                    }
+                }
+            }
+        }
+    }
+}

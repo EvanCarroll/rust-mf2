@@ -103,8 +103,11 @@ lints! {
     BadOptionValue = ("bad-option-value", Error, Allow);
     /// A function whose client feature is off — `:percent`, `:currency` and
     /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
-    /// a date formatter (`datetime`). A translation can never silently add formatting code to
-    /// the wasm (`plans/03-runtime.md` §5.1).
+    /// a date formatter on every side the build formats on (`plan/08` §3.3;
+    /// `datetime` alone is none). A translation can never silently add
+    /// formatting code to the wasm (`plans/03-runtime.md` §5.1). For a date
+    /// function the message names the features to write, the date families
+    /// of the frameworks that are on, and what each formatter costs.
     GatedFunction = ("gated-function", Error, Error);
     /// An entry marked `@do-not-translate` differs from the source's.
     DoNotTranslate = ("do-not-translate", Error, Allow);
@@ -127,12 +130,19 @@ lints! {
     /// application passes, so a placeholder that only receives text raises it too.
     NeutralNumbers = ("neutral-numbers", Warn, Allow);
     /// A function family is on for this build and no message can use it:
-    /// the date functions (`datetime`, which every date formatter turns on)
-    /// with no `:datetime`, `:date` or `:time`, or the number family (`fn-number`,
-    /// `number-intl`) with nothing that formats or selects on a number. Raised
-    /// once per family for the whole corpus. In a workspace another crate may
-    /// have turned the feature on, so the message says "on for this build".
+    /// a date formatter (or `datetime` alone) with no `:datetime`, `:date`
+    /// or `:time`, or the number family (`fn-number`, `number-intl`) with
+    /// nothing that formats or selects on a number. Raised once per family
+    /// for the whole corpus. In a workspace another crate may have turned the
+    /// feature on, so the message says "on for this build". A date family's
+    /// feature on without its framework (`axum-datetime-icu` without `axum`)
+    /// raises it too.
     UnusedFeature = ("unused-feature", Warn, Allow);
+    /// More than one date formatter of one side is on: a build formats with
+    /// one, the strongest (ICU4X, then `Intl`, then ISO), and the others
+    /// format nothing (`plan/08` §3.2). Raised once per side for the whole
+    /// corpus, naming the one that formats.
+    SeveralDateFormatters = ("several-date-formatters", Warn, Allow);
     /// Markup opened and not closed, or closed and not opened.
     UnpairedMarkup = ("unpaired-markup", Warn, Allow);
     /// A plural `.match` that does not mention every category the *target*

@@ -43,10 +43,22 @@ pub(crate) enum Source {
     Unknown,
 }
 
+/// One side's date formatter (`plan/08` §3.2): the one in force, and the
+/// features of the side that are on.
+#[derive(Debug, PartialEq, Eq)]
+struct SideDates {
+    side: Side,
+    /// The formatter the side's build formats with; `None` with none on.
+    formatter: Option<DateFormatter>,
+    /// The side's date features as the crate writes them.
+    features: Vec<String>,
+}
+
 /// The list, worked out.
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct FeatureList {
-    /// The families the corpus needs, as their formatter features.
+    /// The families the corpus needs: `fn-number`, and `dates` for a date
+    /// formatter.
     needs: Vec<&'static str>,
     /// The function and data features that are on; `None` when unknown.
     on: Option<Vec<&'static str>>,
@@ -54,9 +66,12 @@ pub(crate) struct FeatureList {
     unused: Option<Vec<&'static str>>,
     /// The features to write on the `mf2` dependency.
     line: Vec<String>,
-    /// The browser formats dates with `Intl` and native code with ICU4X, so
-    /// a server-rendered date can read differently once hydrated.
-    both_backends: bool,
+    /// Per side, the formatter in force; `None` when unknown.
+    dates: Option<Vec<SideDates>>,
+    /// The corpus formats dates and the line names no formatter, because
+    /// nothing says which builds the crate has: the lines to choose from
+    /// ([`mf2_build::DATE_LINES`]).
+    date_choices: bool,
     /// Where `on` came from.
     source: &'static str,
 }
@@ -75,7 +90,7 @@ impl FeatureList {
             needed.push("fn-number");
         }
         if needs.dates {
-            needed.push("datetime");
+            needed.push("dates");
         }
         let known = !matches!(source, Source::Unknown);
         let on: Vec<&'static str> = NUMBERS
@@ -102,27 +117,44 @@ impl FeatureList {
                 line.push("number-intl".to_owned());
             }
         }
+        let mut date_choices = false;
         if needs.dates {
             // The formatters as the crate writes them, not every name they
-            // imply.
-            let formatters: Vec<String> = written
+            // imply; then, for each framework's side with none, its
+            // recommended one (`plan/08` §3.5). `datetime` alone is never
+            // written: it formats nothing.
+            let mut formatters: Vec<String> = written
                 .iter()
                 .filter(|name| DATES[1..].contains(&name.as_str()))
                 .cloned()
                 .collect();
-            if formatters.is_empty() {
-                line.push("datetime".to_owned());
+            if known {
+                for feature in features.missing_date_features() {
+                    if !formatters.contains(&feature) {
+                        formatters.push(feature);
+                    }
+                }
             }
+            date_choices = formatters.is_empty();
             line.extend(formatters);
         }
+        let dates = known.then(|| {
+            Side::ALL
+                .into_iter()
+                .map(|side| SideDates {
+                    side,
+                    formatter: features.date_formatter(side),
+                    features: features.date_features_on(side),
+                })
+                .collect()
+        });
         FeatureList {
             needs: needed,
             on: known.then_some(on),
             unused: known.then_some(unused),
             line,
-            both_backends: known
-                && features.date_formatter(Side::Browser) == Some(DateFormatter::Intl)
-                && features.date_formatter(Side::Native) == Some(DateFormatter::Icu),
+            dates,
+            date_choices,
             source: match source {
                 Source::Given => "given",
                 Source::Cargo { .. } => "cargo",
@@ -152,37 +184,64 @@ impl FeatureList {
             let _ = writeln!(out, "  on:               {}", list(on));
             let _ = writeln!(out, "  on and unused:    {}", list(unused));
         }
+        for side in self.dates.iter().flatten() {
+            let label = format!("{}:", side.side.name());
+            let what = match side.formatter {
+                Some(formatter) => format!(
+                    "`{}` formats dates ({}; {})",
+                    formatter.name(),
+                    side.features.join(", "),
+                    formatter.cost(side.side)
+                ),
+                None => "no date formatter".to_owned(),
+            };
+            let _ = writeln!(out, "  {label:<17} {what}");
+        }
         let quoted: Vec<String> = self.line.iter().map(|f| format!("\"{f}\"")).collect();
         let _ = writeln!(
             out,
             "  write:            mf2 = {{ ..., features = [{}] }}",
             quoted.join(", ")
         );
-        if self.both_backends {
-            let _ = writeln!(
-                out,
-                "  dates:            in the browser `intl` formats \
-                 (Intl.DateTimeFormat, no ICU4X date code or data in the client), \
-                 and on the server and natively `icu` does (ICU4X over the \
-                 catalog's icu.blob), so a server-rendered date can read \
-                 differently once hydrated"
-            );
+        if self.date_choices {
+            let _ = writeln!(out, "  and for dates, the line of the application's kind:");
+            for (what, features) in mf2_build::DATE_LINES {
+                let quoted: Vec<String> = features.iter().map(|f| format!("\"{f}\"")).collect();
+                let _ = writeln!(out, "    {what}: {}", quoted.join(", "));
+            }
         }
         out
     }
 
     /// The `features` field of the JSON report.
     pub(crate) fn to_json(&self) -> Value {
-        let backends = self
-            .both_backends
-            .then(|| json!({ "wasm32-unknown-unknown": "intl", "other": "icu" }));
+        let dates = self.dates.as_ref().map(|sides| {
+            let mut by_side = serde_json::Map::new();
+            for side in sides {
+                by_side.insert(
+                    side.side.key().to_owned(),
+                    json!({
+                        "formatter": side.formatter.map(DateFormatter::name),
+                        "features": side.features,
+                    }),
+                );
+            }
+            Value::Object(by_side)
+        });
+        let choices = self.date_choices.then(|| {
+            mf2_build::DATE_LINES
+                .iter()
+                .map(|(what, features)| json!({ "for": what, "features": features }))
+                .collect::<Vec<_>>()
+        });
         json!({
             "source": self.source,
             "needs": self.needs,
             "on": self.on,
             "unused": self.unused,
             "line": self.line,
-            "date_backend": backends,
+            "dates": dates,
+            "date_choices": choices,
         })
     }
 }
@@ -190,7 +249,7 @@ impl FeatureList {
 #[cfg(test)]
 mod tests {
     use super::{FeatureList, Needs, Source};
-    use mf2_build::{DateFormatter, Features, Side};
+    use mf2_build::Features;
 
     fn list(needs: (bool, bool), on: &[&str], source: &Source) -> FeatureList {
         let needs = Needs {
@@ -236,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn a_needed_family_keeps_its_backend_and_names_the_one_that_wins() {
+    fn a_needed_family_keeps_its_formatters_and_names_each_side() {
         let on = [
             "fn-number",
             "datetime",
@@ -258,19 +317,95 @@ mod tests {
                 "leptos-server-datetime-icu"
             ]
         );
-        assert!(list.to_text().contains("in the browser `intl` formats"));
-        assert_eq!(
-            list.to_json()["date_backend"]["wasm32-unknown-unknown"],
-            "intl"
+        let text = list.to_text();
+        assert!(
+            text.contains("the browser:      `intl` formats dates (leptos-client-datetime-intl;"),
+            "{text}"
         );
-        assert_eq!(list.to_json()["date_backend"]["other"], "icu");
+        assert!(
+            text.contains("native code:      `icu` formats dates (leptos-server-datetime-icu;"),
+            "{text}"
+        );
+        // The "both backends" lines are gone.
+        assert!(!text.contains("once hydrated"), "{text}");
+        let json = list.to_json();
+        assert!(json.get("date_backend").is_none(), "{json}");
+        assert_eq!(json["dates"]["browser"]["formatter"], "intl");
+        assert_eq!(json["dates"]["native"]["formatter"], "icu");
+        assert_eq!(
+            json["dates"]["native"]["features"],
+            serde_json::json!(["leptos-server-datetime-icu"])
+        );
+        assert!(json["date_choices"].is_null());
     }
 
     #[test]
-    fn a_missing_family_is_added_and_number_intl_stays_with_numbers() {
+    fn a_missing_formatter_is_the_recommended_one_and_number_intl_stays_with_numbers() {
         let list = list((true, true), &["number-intl", "csr"], &Source::Given);
-        assert_eq!(list.needs, ["fn-number", "datetime"]);
-        assert_eq!(list.line, ["csr", "fn-number", "number-intl", "datetime"]);
+        assert_eq!(list.needs, ["fn-number", "dates"]);
+        assert_eq!(
+            list.line,
+            [
+                "csr",
+                "fn-number",
+                "number-intl",
+                "leptos-client-datetime-intl"
+            ]
+        );
+        assert!(
+            list.to_text()
+                .contains("the browser:      no date formatter")
+        );
+    }
+
+    #[test]
+    fn a_server_rendered_crate_with_only_a_client_formatter_is_told_the_server_one() {
+        let on = ["leptos", "ssr", "datetime", "leptos-client-datetime-intl"];
+        let written = cargo(&["leptos", "leptos-client-datetime-intl"]);
+        let list = list((false, true), &on, &written);
+        assert_eq!(
+            list.line,
+            [
+                "leptos",
+                "leptos-client-datetime-intl",
+                "leptos-server-datetime-icu"
+            ]
+        );
+        assert!(
+            list.to_text()
+                .contains("native code:      no date formatter"),
+            "{}",
+            list.to_text()
+        );
+        assert!(list.to_json()["dates"]["native"]["formatter"].is_null());
+    }
+
+    #[test]
+    fn datetime_alone_is_never_written() {
+        // A command-line tool: its family's recommended formatter instead.
+        let list = list(
+            (false, true),
+            &["native", "datetime"],
+            &cargo(&["native", "datetime"]),
+        );
+        assert_eq!(list.line, ["native", "native-datetime-icu"]);
+        // No framework: the lines to choose from.
+        let list = list_given((false, true), &["datetime"]);
+        assert!(list.line.is_empty(), "{:?}", list.line);
+        let text = list.to_text();
+        for (_, features) in mf2_build::DATE_LINES {
+            for feature in features {
+                assert!(text.contains(&format!("\"{feature}\"")), "{text}");
+            }
+        }
+        assert_eq!(
+            list.to_json()["date_choices"].as_array().map(Vec::len),
+            Some(mf2_build::DATE_LINES.len())
+        );
+    }
+
+    fn list_given(needs: (bool, bool), on: &[&str]) -> FeatureList {
+        list(needs, on, &Source::Given)
     }
 
     #[test]
@@ -278,9 +413,12 @@ mod tests {
         let on = ["fn-number", "datetime"];
         let list = list((false, true), &on, &Source::Unknown);
         assert_eq!(list.on, None);
-        assert_eq!(list.line, ["datetime"]);
+        assert_eq!(list.dates, None);
+        assert!(list.line.is_empty(), "{:?}", list.line);
         let text = list.to_text();
         assert!(text.contains("the corpus's needs only") && !text.contains("on and unused"));
+        assert!(text.contains("\"native-datetime-icu\""), "{text}");
         assert!(list.to_json()["on"].is_null());
+        assert!(list.to_json()["dates"].is_null());
     }
 }

@@ -101,7 +101,7 @@ pub use config::{CatalogConfig, Config, DataSet, LocaleDataConfig, Missing, Stri
 pub use error::{Error, Result};
 #[doc(hidden)]
 pub use features::{BUILTINS, CATALOG_FEATURES, OPTIONS, defines_option};
-pub use features::{DateFormatter, Features, Side};
+pub use features::{DATE_LINES, DateFamily, DateFormatter, Features, Side};
 pub use lint::{Level, Lint};
 #[doc(hidden)]
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};

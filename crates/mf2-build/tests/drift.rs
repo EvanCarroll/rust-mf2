@@ -216,6 +216,14 @@ fn drifts() -> Vec<Drift> {
             },
         },
         Drift {
+            lint: Lint::SeveralDateFormatters,
+            what: "two date formatters of one side",
+            mutate: |_, features, _| {
+                *features =
+                    Features::parse("fn-number host-web-datetime-iso host-web-datetime-intl")
+            },
+        },
+        Drift {
             lint: Lint::NeutralNumbers,
             what: "numbers formatted with `fn-number` off",
             mutate: |files, features, _| {
@@ -572,7 +580,7 @@ fn unused_feature_names_each_family_once() {
     );
     assert_eq!(said.len(), 2, "{said:#?}");
     assert!(
-        said[0].contains("`datetime` is on for this build"),
+        said[0].contains("`host-std-datetime-iso` is on for this build"),
         "{}",
         said[0]
     );
@@ -584,12 +592,131 @@ fn unused_feature_names_each_family_once() {
     );
     // The base corpus formats numbers and no dates; across two locales the
     // date family is still reported once.
-    let said = unused(&files(), "fn-number native-datetime-iso");
+    let said = unused(&files(), "fn-number native native-datetime-iso");
+    assert_eq!(said.len(), 1, "{said:#?}");
+    assert!(
+        said[0].contains("`native-datetime-iso` is on for this build"),
+        "{}",
+        said[0]
+    );
+    // `datetime` alone is named as itself.
+    let said = unused(&text, "datetime");
     assert_eq!(said.len(), 1, "{said:#?}");
     assert!(
         said[0].contains("`datetime` is on for this build"),
         "{}",
         said[0]
+    );
+}
+
+#[test]
+fn unused_feature_names_a_family_without_its_framework() {
+    // The base corpus formats no date, so the formatter is unused too; the
+    // framework's line is the second.
+    let said = unused(&files(), "fn-number host-std axum-datetime-iso");
+    assert_eq!(said.len(), 2, "{said:#?}");
+    assert!(
+        said[1].contains("`axum-datetime-iso` is on for this build and its framework is not"),
+        "{}",
+        said[1]
+    );
+    // With its framework on, only the unused formatter is said.
+    let said = unused(&files(), "fn-number axum axum-datetime-iso");
+    assert_eq!(said.len(), 1, "{said:#?}");
+    // A host family needs no framework.
+    let dates = only_en("when = {$at :date}\n");
+    assert!(unused(&dates, "host-std host-std-datetime-iso").is_empty());
+}
+
+/// The messages `lint` gave for `body` under `features`.
+fn said(lint: Lint, name: &str, body: &str, features: &str) -> Vec<String> {
+    let outcome = build_corpus(
+        name,
+        &only_en(body),
+        &Features::parse(features),
+        &Config::default(),
+    );
+    outcome
+        .report
+        .diagnostics
+        .iter()
+        .filter(|d| d.lint == Some(lint))
+        .map(|d| d.message.clone())
+        .collect()
+}
+
+#[test]
+fn a_date_function_with_no_formatter_names_the_features_to_write() {
+    let body = "when = {$at :date}\n";
+    // `datetime` alone is no formatter (`plan/08` §3.3).
+    let alone = said(
+        Lint::GatedFunction,
+        "gated-datetime-alone",
+        body,
+        "datetime",
+    );
+    assert_eq!(alone.len(), 1, "{alone:#?}");
+    assert!(alone[0].contains("`native-datetime-icu`"), "{}", alone[0]);
+    // A server-rendered build that names only the browser's formatter.
+    let ssr = said(
+        Lint::GatedFunction,
+        "gated-ssr-client-only",
+        body,
+        "leptos ssr leptos-client-datetime-intl",
+    );
+    assert_eq!(ssr.len(), 1, "{ssr:#?}");
+    assert!(
+        ssr[0].contains("Write `leptos-server-datetime-icu`"),
+        "{}",
+        ssr[0]
+    );
+    assert!(ssr[0].contains("+298 KB"), "{}", ssr[0]);
+    // With the server's formatter too, it builds.
+    assert!(
+        said(
+            Lint::GatedFunction,
+            "gated-ssr-both",
+            body,
+            "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
+        )
+        .is_empty()
+    );
+    // A command-line tool and an Axum server get their own family's line.
+    let cli = said(Lint::GatedFunction, "gated-native", body, "native");
+    assert!(cli[0].contains("Write `native-datetime-icu`"), "{}", cli[0]);
+    let axum = said(Lint::GatedFunction, "gated-axum", body, "axum");
+    assert!(axum[0].contains("Write `axum-datetime-icu`"), "{}", axum[0]);
+}
+
+#[test]
+fn several_date_formatters_names_the_one_that_formats() {
+    let body = "when = {$at :date}\n";
+    let both = said(
+        Lint::SeveralDateFormatters,
+        "several-native",
+        body,
+        "native native-datetime-iso native-datetime-icu",
+    );
+    assert_eq!(both.len(), 1, "{both:#?}");
+    assert!(both[0].contains("for native code"), "{}", both[0]);
+    assert!(both[0].contains("that is `icu` (ICU4X)"), "{}", both[0]);
+    let browser = said(
+        Lint::SeveralDateFormatters,
+        "several-browser",
+        body,
+        "leptos csr leptos-client-datetime-iso leptos-client-datetime-intl",
+    );
+    assert!(browser[0].contains("for the browser"), "{}", browser[0]);
+    assert!(browser[0].contains("that is `intl`"), "{}", browser[0]);
+    // One formatter on each side is not several.
+    assert!(
+        said(
+            Lint::SeveralDateFormatters,
+            "several-split",
+            body,
+            "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
+        )
+        .is_empty()
     );
 }
 

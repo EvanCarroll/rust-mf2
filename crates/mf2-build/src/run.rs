@@ -73,7 +73,14 @@ fn mf2_features(features: Option<&str>, version: Option<&str>, icu_blob: bool) -
         });
     }
     if features.cuts_date_slice() && !icu_blob {
-        return Err(Error::IcuBlob);
+        let named: Vec<String> = features
+            .icu_date_features()
+            .iter()
+            .map(|name| format!("`{name}`"))
+            .collect();
+        return Err(Error::IcuBlob {
+            features: named.join(" and "),
+        });
     }
     Ok(features)
 }
@@ -137,9 +144,19 @@ mod tests {
     fn datetime_icu_needs_icu_blob_here() {
         let list = Some("datetime,host-std-datetime-icu,native-datetime-icu");
         let e = mf2_features(list, OURS, false).expect_err("refused without icu-blob");
-        assert!(e.to_string().contains(
-            "add `features = [\"icu-blob\"]` to this crate's `mf2-build` build-dependency"
-        ));
+        let message = e.to_string();
+        assert!(
+            message.contains(&format!(
+                "under [build-dependencies], write: mf2-build = {{ version = \"{}\", \
+                 features = [\"icu-blob\"] }}",
+                env!("CARGO_PKG_VERSION")
+            )),
+            "{message}"
+        );
+        assert!(
+            message.starts_with("mf2-build: the date formatter of `native-datetime-icu` is ICU4X"),
+            "{message}"
+        );
         assert!(mf2_features(list, OURS, true).is_ok());
     }
 
@@ -152,7 +169,7 @@ mod tests {
             "datetime,host-web-datetime-intl,host-web-datetime-icu",
         ] {
             let e = mf2_features(Some(list), OURS, false).expect_err(list);
-            assert!(matches!(e, Error::IcuBlob), "{list}");
+            assert!(matches!(e, Error::IcuBlob { .. }), "{list}");
             assert!(mf2_features(Some(list), OURS, true).is_ok(), "{list}");
         }
         for list in [

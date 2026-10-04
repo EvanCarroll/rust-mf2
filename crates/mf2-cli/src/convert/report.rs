@@ -260,14 +260,44 @@ impl Report {
             );
         }
         let features = self.features();
-        if !features.is_empty() {
+        let functions: Vec<&str> = features
+            .iter()
+            .copied()
+            .filter(|feature| *feature != "datetime")
+            .collect();
+        if !functions.is_empty() {
             let _ = writeln!(
                 out,
                 "note: the output needs the client feature(s) {}",
-                features.into_iter().collect::<Vec<_>>().join(", ")
+                functions.join(", ")
+            );
+        }
+        if features.contains("datetime") {
+            // `datetime` alone formats no date (`plan/08` §3.3): the line
+            // names a formatter for each build, by the application's kind.
+            let lines: Vec<String> = mf2_build::DATE_LINES
+                .iter()
+                .map(|(what, names)| format!("for {what}, {}", names.join(" and ")))
+                .collect();
+            let _ = writeln!(
+                out,
+                "note: the output formats dates, so each build needs a date formatter: {}; \
+                 `mf2 check` names the line for this crate",
+                lines.join("; ")
             );
         }
         out
+    }
+
+    /// The date features to choose from when the output formats dates
+    /// (`plan/08` §3.5), for the JSON report; `None` when it formats none.
+    fn date_lines(&self) -> Option<serde_json::Value> {
+        self.features().contains("datetime").then(|| {
+            mf2_build::DATE_LINES
+                .iter()
+                .map(|(what, names)| serde_json::json!({ "for": what, "features": names }))
+                .collect()
+        })
     }
 
     /// `--format json`: `mf2 check`'s shape, plus what was inlined and the
@@ -293,6 +323,7 @@ impl Report {
             "diagnostics": diagnostics,
             "inlined": self.inlined,
             "features": self.features(),
+            "date_features": self.date_lines(),
             "entries": self.entries,
         });
         serde_json::to_string_pretty(&value).unwrap_or_else(|_| "{}".to_owned())

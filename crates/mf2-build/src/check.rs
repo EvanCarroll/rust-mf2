@@ -15,7 +15,7 @@ use mf2_syntax::Analysis;
 
 use crate::config::{Config, Missing};
 use crate::corpus::LocaleSource;
-use crate::features::{Features, defines_option};
+use crate::features::{Features, Side, defines_option};
 use crate::lint::{Level, Lint};
 use crate::loader::Record;
 use crate::manifest::Built;
@@ -87,6 +87,7 @@ pub fn corpus(
         coverage(&mut sink, corpus, locale, config);
     }
     unused_features(corpus, config, features, &used, report);
+    several_date_formatters(corpus, config, features, report);
     Needs {
         dates: used.dates,
         numbers: used.numbers(),
@@ -152,16 +153,19 @@ fn functions(
                 let feature = features
                     .missing_feature(&name.nfc)
                     .unwrap_or("the right feature");
-                at.say(
-                    Lint::GatedFunction,
-                    offset,
+                // A date function's message names the formatters to write
+                // (`plan/08` §3.3): `datetime` alone formats nothing.
+                let message = if feature == "datetime" {
+                    features.no_date_formatter(&name.nfc)
+                } else {
                     format!(
                         ":{} needs the `{feature}` feature, which this build does \
                          not have; a message may never add formatting code to the \
                          wasm by itself",
                         name.nfc
-                    ),
-                );
+                    )
+                };
+                at.say(Lint::GatedFunction, offset, message);
             }
             None => {
                 if !at.config.functions.contains_key(name.nfc.as_ref()) {
@@ -222,9 +226,6 @@ fn unused_features(
     report: &mut Report,
 ) {
     let level = config.level(Lint::UnusedFeature);
-    let Some(source) = corpus.sources.get(corpus.source_index) else {
-        return;
-    };
     let on = |names: &[&str]| -> Vec<String> {
         names
             .iter()
@@ -233,12 +234,15 @@ fn unused_features(
             .collect()
     };
     let mut found = Vec::new();
-    // `datetime` under any of its names: every date formatter turns it on.
-    let dates = if features.fn_datetime() {
-        vec!["`datetime`".to_owned()]
-    } else {
-        Vec::new()
-    };
+    // The date formatters as a crate writes them, or `datetime` alone.
+    let mut dates: Vec<String> = Side::ALL
+        .into_iter()
+        .flat_map(|side| features.date_features_on(side))
+        .map(|name| format!("`{name}`"))
+        .collect();
+    if dates.is_empty() && features.fn_datetime() {
+        dates.push("`datetime`".to_owned());
+    }
     if !dates.is_empty() && !used.dates {
         found.push(format!(
             "{} on for this build, and no message uses :datetime, :date or :time. \
@@ -261,9 +265,78 @@ fn unused_features(
             is_on(&numbers)
         ));
     }
+    // A family's feature with its framework off (`plan/08` §3.5): it
+    // still turns its side's formatter on, under a name that says nothing
+    // about this build.
+    for feature in features.date_features_without_framework() {
+        found.push(format!(
+            "`{feature}` is on for this build and its framework is not: it is the \
+             date formatter of a framework this crate does not use; write the \
+             family of the framework that formats here (`mf2 check` names it), \
+             or set `unused-feature = \"allow\"` in mf2.toml"
+        ));
+    }
+    if level == Level::Allow {
+        return;
+    }
+    report_once(corpus, report, level, Lint::UnusedFeature, found);
+}
+
+/// Several date formatters of one side (`several-date-formatters`): once
+/// per side, for the whole corpus, naming the one that formats.
+fn several_date_formatters(
+    corpus: &Corpus<'_>,
+    config: &Config,
+    features: &Features,
+    report: &mut Report,
+) {
+    let level = config.level(Lint::SeveralDateFormatters);
+    if level == Level::Allow {
+        return;
+    }
+    let mut found = Vec::new();
+    for side in Side::ALL {
+        let formatters = features.date_formatters(side);
+        let Some(&strongest) = formatters.first() else {
+            continue;
+        };
+        if formatters.len() < 2 {
+            continue;
+        }
+        let on: Vec<String> = features
+            .date_features_on(side)
+            .iter()
+            .map(|name| format!("`{name}`"))
+            .collect();
+        found.push(format!(
+            "{} are on for this build, {} date formatters for {}: a build formats \
+             with one, the strongest, and here that is `{}` ({}); drop the others, \
+             or set `several-date-formatters = \"allow\"` in mf2.toml",
+            on.join(" and "),
+            formatters.len(),
+            side.name(),
+            strongest.name(),
+            strongest.what()
+        ));
+    }
+    report_once(corpus, report, level, Lint::SeveralDateFormatters, found);
+}
+
+/// Reports each of `found` once for the whole corpus, at the top of the
+/// source locale's first file.
+fn report_once(
+    corpus: &Corpus<'_>,
+    report: &mut Report,
+    level: Level,
+    lint: Lint,
+    found: Vec<String>,
+) {
     if found.is_empty() {
         return;
     }
+    let Some(source) = corpus.sources.get(corpus.source_index) else {
+        return;
+    };
     let file = source
         .loaded
         .files
@@ -272,7 +345,7 @@ fn unused_features(
     let at = mf2_resource::Position { line: 1, column: 1 };
     let mut sink = Sink::new(report, &source.tag);
     for message in found {
-        sink.add(level, Some(Lint::UnusedFeature), &file, at, None, message);
+        sink.add(level, Some(lint), &file, at, None, message);
     }
 }
 

@@ -103,8 +103,11 @@ fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, 
          function is assumed on; name them with --features (for example \
          --features fn-number)"
     );
+    // A formatter's feature, not `datetime`, which alone formats no date
+    // (`plan/08` §3.3); with no framework named, one formatter covers both
+    // sides.
     (
-        mf2_build::Features::from_names(["fn-number", "datetime"]),
+        mf2_build::Features::from_names(["fn-number", "host-std-datetime-iso"]),
         Source::Unknown,
     )
 }

@@ -1164,7 +1164,7 @@ fn run(report: &mut Report, corpus: &str, ftl: &Path, out: &Path) {
         let names: &[&str] = if features == "core" {
             &[]
         } else {
-            &["fn-number", "datetime"]
+            &["fn-number", "host-std-datetime-iso"]
         };
         let Some(built) = build(out, names) else {
             continue;
