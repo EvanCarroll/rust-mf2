@@ -126,20 +126,19 @@ impl Catalog {
         let o = plan.options;
         let src = Source::Buffer(&self.provider);
         let found = self.formatters.iter().position(|f| f.is::<V>(locale, o));
-        let entry = match found {
-            Some(i) => self.formatters.get(i),
-            None => {
-                let built = V::build(&src, locale, o)?;
-                if self.formatters.len() >= FORMATTERS {
-                    self.formatters.pop_front();
-                }
-                self.formatters
-                    .push_back(Formatter::new(locale, o, Box::new(built)));
-                self.formatters.back()
+        let entry = if let Some(i) = found {
+            self.formatters.get(i)
+        } else {
+            let built = V::build(&src, locale, o)?;
+            if self.formatters.len() >= FORMATTERS {
+                self.formatters.pop_front();
             }
+            self.formatters
+                .push_back(Formatter::new(locale, o, Box::new(built)));
+            self.formatters.back()
         };
         let f = entry
-            .and_then(|e| e.formatter.downcast_ref::<V::Formatter>())
+            .and_then(|e| e.built.downcast_ref::<V::Formatter>())
             .ok_or(FormatError::UnsupportedOperation)?;
         let zones = match o.time_zone_style {
             Some(_) => {
@@ -164,11 +163,11 @@ struct Formatter {
     hour12: Option<bool>,
     calendar: Option<Box<str>>,
     /// A variant's [`Variant::Formatter`].
-    formatter: Box<dyn Any>,
+    built: Box<dyn Any>,
 }
 
 impl Formatter {
-    fn new(locale: &str, o: &DateTimeOptions<'_>, formatter: Box<dyn Any>) -> Formatter {
+    fn new(locale: &str, o: &DateTimeOptions<'_>, built: Box<dyn Any>) -> Formatter {
         Formatter {
             locale: Box::from(locale),
             date: o.date,
@@ -176,14 +175,14 @@ impl Formatter {
             time_zone_style: o.time_zone_style,
             hour12: o.hour12,
             calendar: o.calendar.map(Box::from),
-            formatter,
+            built,
         }
     }
 
     /// Whether this is variant `V`'s formatter of `locale` and the shape of
     /// `o`.
     fn is<V: Variant>(&self, locale: &str, o: &DateTimeOptions<'_>) -> bool {
-        self.formatter.is::<V::Formatter>()
+        self.built.is::<V::Formatter>()
             && *self.locale == *locale
             && self.date == o.date
             && self.time == o.time

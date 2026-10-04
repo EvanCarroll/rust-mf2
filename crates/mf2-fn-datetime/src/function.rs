@@ -154,11 +154,7 @@ fn resolve<'a>(
 
 impl<B> DateTimeFunction<B> {
     /// The resolved value to format: a date/time function's value.
-    fn value<'v>(
-        &self,
-        _cx: &FnContext<'_>,
-        value: &Value<'v>,
-    ) -> Result<DateTime<'v>, FormatError> {
+    fn value<'v>(value: &Value<'v>) -> Result<DateTime<'v>, FormatError> {
         match value {
             Value::DateTime(d) => Ok(*d),
             _ => Err(FormatError::MessageFunctionError),
@@ -180,18 +176,18 @@ impl<B: Backend> Function for DateTimeFunction<B> {
     }
 
     fn formattable(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {
-        let d = self.value(cx, value)?;
+        let d = Self::value(value)?;
         self.backend.supports(cx, &Plan::new(cx, &d))
     }
 
     fn format(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn Sink) {
-        if let Ok(d) = self.value(cx, value) {
+        if let Ok(d) = Self::value(value) {
             self.backend.format(cx, &Plan::new(cx, &d), out);
         }
     }
 
     fn format_parts(&self, cx: &FnContext<'_>, value: &Value<'_>, out: &mut dyn SubPartSink) {
-        if let Ok(d) = self.value(cx, value) {
+        if let Ok(d) = Self::value(value) {
             self.backend.format_parts(cx, &Plan::new(cx, &d), out);
         }
     }
@@ -206,7 +202,7 @@ impl<B: Backend> Function for DateTimeFunction<B> {
     }
 
     fn dir(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Dir {
-        match self.value(cx, value) {
+        match Self::value(value) {
             Ok(d) => self.backend.dir(cx, &Plan::new(cx, &d)),
             Err(_) => Dir::Auto,
         }
