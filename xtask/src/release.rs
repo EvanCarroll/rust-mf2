@@ -177,7 +177,7 @@ pub(crate) fn run(root: &Path, options: &Options) -> Result<()> {
     )?;
 
     eprintln!("==> cargo xtask ci");
-    crate::ci::run(root)?;
+    crate::ci::run(root, crate::ci::Mode::default())?;
     eprintln!("==> cargo xtask package --check --test");
     crate::package::run(root, true, true)?;
     eprintln!("==> cargo xtask docs-rs");

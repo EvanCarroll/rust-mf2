@@ -14,6 +14,11 @@
 //! `parser-gate`, and `tui-gate` (`cargo xtask tui-gate --gate`: the terminal
 //! UI's allocations per frame and stripped size on every push; its time
 //! against the 1.x binary nightly).
+//!
+//! `cargo xtask ci --compile` runs the cargo steps with nothing run: `fmt
+//! --check` and every `clippy` step as they are, every `test` step with
+//! `--no-run`, and none of the closing checks (`plan/09`, 16.0; the compile
+//! phase runs it). Plain `cargo xtask ci` is what CI runs.
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -61,6 +66,24 @@ fn test(set: &'static Set, targets: &'static [&'static str]) -> Vec<&'static str
     args
 }
 
+/// How `cargo xtask ci` runs; the default is what CI runs.
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct Mode {
+    /// Compile only: every `cargo test` gets `--no-run`, and the closing
+    /// checks (`refusals`, `docs`, `conformance-report`, `api`, `package`)
+    /// are left out.
+    pub(crate) compile: bool,
+}
+
+/// `step` as `mode` runs it: a `cargo test` step gets its flags straight
+/// after `test`, before the selection and the targets.
+fn adjust(mut step: Vec<&'static str>, mode: Mode) -> Vec<&'static str> {
+    if step.first() == Some(&"test") && mode.compile {
+        step.insert(1, "--no-run");
+    }
+    step
+}
+
 /// The cargo invocations, in order: the workspace's fmt and lint, then every
 /// browser set, then the workspace's tests, then every host set.
 fn steps() -> Vec<Vec<&'static str>> {
@@ -82,16 +105,21 @@ fn steps() -> Vec<Vec<&'static str>> {
     steps
 }
 
-pub(crate) fn run(root: &Path) -> Result<()> {
+pub(crate) fn run(root: &Path, mode: Mode) -> Result<()> {
     // The spec text is not vendored (upstream #1112): without the cache the
     // first build script to read it would stop the run minutes in. Say so now.
     mf2_conformance::spec::spec_dir(root)?;
     let cargo = cargo();
     for step in steps() {
+        let step = adjust(step, mode);
         let shown = format!("cargo {}", step.join(" "));
         eprintln!("==> {shown}");
         let args: Vec<&OsStr> = step.iter().map(OsStr::new).collect();
         run_inherit(&cargo, &args, root).map_err(|_| Error::CiStepFailed(shown))?;
+    }
+    if mode.compile {
+        eprintln!("==> ci --compile: every step compiled");
+        return Ok(());
     }
     // What `mf2` refuses: each misuse of its features is `mf2`'s
     // one sentence, whichever crate cargo compiles first; and what it
@@ -115,4 +143,29 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     crate::package::run(root, true, false)?;
     eprintln!("==> ci: all steps passed");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Mode, adjust, steps};
+
+    #[test]
+    fn compile_mode_runs_no_test() {
+        let mode = Mode { compile: true };
+        let all: Vec<_> = steps().into_iter().map(|s| adjust(s, mode)).collect();
+        assert!(all.iter().any(|s| s.first() == Some(&"clippy")));
+        for step in all.iter().filter(|s| s.first() == Some(&"test")) {
+            assert_eq!(step.get(1), Some(&"--no-run"), "{step:?}");
+        }
+        assert_eq!(all.first(), steps().first(), "fmt --check is unchanged");
+    }
+
+    #[test]
+    fn plain_ci_is_unchanged() {
+        let plain: Vec<_> = steps()
+            .into_iter()
+            .map(|s| adjust(s, Mode::default()))
+            .collect();
+        assert_eq!(plain, steps());
+    }
 }

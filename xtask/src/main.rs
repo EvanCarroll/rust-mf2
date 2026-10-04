@@ -384,7 +384,12 @@ enum Command {
     /// fresh render; review the diff before committing.
     Goldens,
     /// Run locally exactly what CI runs: fmt, clippy, tests, conformance report.
-    Ci,
+    Ci {
+        /// Compile only: fmt, every clippy step, every test step with
+        /// `--no-run`; none of the closing checks.
+        #[arg(long)]
+        compile: bool,
+    },
     /// Compile every code sample in the user documentation (`docs/`): the
     /// samples of each application are assembled under
     /// `target/docs/projects` and checked for the targets it runs on.
@@ -489,7 +494,7 @@ fn run(command: Command) -> Result<()> {
                 report::check(&root, ledger.as_deref(), report.as_deref())
             }
         }
-        Command::Ci => ci::run(&root),
+        Command::Ci { compile } => ci::run(&root, ci::Mode { compile }),
         Command::Docs { no_build } => docs::run(&root, !no_build),
         Command::Size { out, keep } => size::run(&root, out, keep),
         Command::IslandsZero => islands_zero::run(&root),
