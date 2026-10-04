@@ -28,9 +28,9 @@ question.
 
 ## State
 
-* **In flight:** 19.4. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.4
+* **Next:** 19.5
 
 ## Done
 
@@ -51,6 +51,11 @@ question.
   requires ICU4X, ceiling 2,000,000 B stripped (`strip -o`). The client check
   is in `codegen_matrix.rs` (the B6 grep; `size.rs` greps nothing): `cargo tree`
   and the wasm's names for `hydrate,host-web-datetime-intl`.
+* 19.4: the guide, `[dates]`, `date-mismatch` and `unread-data` (a non-lint
+  section of `lints.md`), a heading per date feature in `features.md` (its
+  reference test), the 3.0.0 changelog. Old names remain only in the
+  changelog (table, 2.0 history, the Fixed entry), the 2.0.0 api baseline and
+  the generated `feature-costs.md` / `api.txt`.
 
 ## Before this phase
 
@@ -291,6 +296,10 @@ One line per task, only for what could not be confirmed by reading.
 * 19.3: that the ICU ceiling sits between the two real stripped sizes, and that
   `mf2-i18n-client` built with `CARGO_PROFILE_RELEASE_STRIP=none` keeps names
   and links the date formatter through `registry()` (`xtask/src/codegen_matrix.rs`).
+* 19.4: `unused-feature`'s date text (`crates/mf2-build/src/check.rs`) still says a date may
+  reach a plain placeholder, and the guide's "a formatter links the date code for every plain
+  placeholder" (F10) is unconfirmed since bare dates are Bad Operands; `translating.md`'s stats
+  figures are from the code, not a run.
 
 ## Phase exit (coordinator)
 
