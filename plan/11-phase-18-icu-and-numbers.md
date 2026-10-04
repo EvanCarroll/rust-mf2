@@ -23,13 +23,17 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 ## State
 
-* **In flight:** 18.1. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 18.1
+* **Next:** 18.2
 
 ## Done
 
-(nothing yet)
+* 18.1 (`7109036`): the build picks the ICU4X form per corpus (`slice::date_form`),
+  the module calls `mf2::__date_statics!(<any|gregorian> <zones|no_zones>)`, the slice
+  is cut for it; `[dates]` overrides (`all` + `true` = old behaviour); `mf2 check`
+  prints it. An argument's calendar (`DateTimeValue::with_calendar`) is run-time
+  only, so §5.1's fallback stands. Tests in `slicing.rs`, `icu_blob.rs`, `date_forms.rs`.
 
 ## Before this phase
 
@@ -175,7 +179,7 @@ the owner.
 
 One line per task, only for what could not be confirmed by reading.
 
-(nothing yet)
+* 18.1: the `api.txt` of `mf2-build`, `mf2-locale-data`, `mf2-fn-datetime` (new public items) need regenerating; `AnyCalendarKind::try_new_unstable(&Src, …)` in `icu_blob.rs` must resolve against the baked `Src`.
 
 ## Phase exit (coordinator)
 
