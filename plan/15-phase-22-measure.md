@@ -25,13 +25,17 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.1. A worktree made for a task is removed once its work
+* **In flight:** 22.2 (`tui`). A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.1
+* **Next:** 22.2 (`rlib`, then 17.3's client cost), 22.3
 
 ## Done
 
-(nothing yet)
+* 22.1 (2026-10-04, `bash tools/checks/compare.sh p14 p21b`, the exit run of Phase 21): `b1`
+  26,876 → 26,842 (−34), `app` 42,080 → 42,028 (−52), `b5`/`b5v`/`b7` unchanged, `b13` avoided
+  +13,573 → +13,581; **`tui` 1,328,664 → 1,331,976 (+3,312)**, frame time unchanged against the
+  baseline binary (367.2 vs 369.2 µs); **`rlib` 46,316 → 46,520 (+204)**; the second `rlib`,
+  603,534, is 21.5a's new dated corpus. Tests 956 → 1,027. To 22.2: `tui`, `rlib`, and 17.3.
 
 ## Before this phase
 
