@@ -176,6 +176,10 @@ One line per task, only for what could not be confirmed by reading.
 
 * 17.1: `api.txt` of `mf2`, `mf2-build`, `mf2-catalog` moves (`CATALOGS`'s fourth field,
   `with_server_data`, `Place`, `LocaleInfo::server_file_name`); regenerate it.
+* Coordinator, from the session's rust-analyzer after 17.1: a generated `mf2_generated.rs`
+  passes three-field rows to `install_catalogs` (E0308, its lines 269, 285, 298, 351,
+  373): stale out dirs, or a codegen path still writing three fields. It also flagged
+  `mf2/tests/time_zone.rs:50`, which reads as four fields (likely stale).
 
 ## Phase exit (coordinator)
 
