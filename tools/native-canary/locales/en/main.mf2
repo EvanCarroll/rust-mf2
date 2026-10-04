@@ -1,8 +1,12 @@
-# The base corpus: text and a number — what every row links.
+# The base corpus: text, a plain placeholder and a number — what every row
+# links. A plain placeholder is where a date feature links its code even
+# when no message has a date.
 @locale en
 ---
 
 plain = Save
+
+greeting = Hello, {$name}
 
 items =
   .input {$count :integer}

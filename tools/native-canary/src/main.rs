@@ -9,7 +9,11 @@ fn main() {
     let mut out = String::new();
     out.push_str(&locale.format(&tr!("plain")));
     out.push_str(&locale.format(&tr!("items", count = 3)));
-    #[cfg(any(feature = "native-datetime-iso", feature = "native-datetime-icu"))]
+    out.push_str(&locale.format(&tr!("greeting", name = "Ada")));
+    #[cfg(all(
+        any(feature = "native-datetime-iso", feature = "native-datetime-icu"),
+        not(feature = "no-date-message")
+    ))]
     if let Some(when) = mf2::DateTimeValue::instant(1_767_225_600_000) {
         out.push_str(&locale.format(&tr!("published", when = when)));
     }

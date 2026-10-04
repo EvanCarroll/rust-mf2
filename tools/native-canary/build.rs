@@ -3,7 +3,8 @@
 //!
 //! A `:datetime` message is refused by a build without a date formatter (a
 //! message may not pull formatting code in by itself), so the rows that have
-//! the feature read `variants/dates/`, which is the base corpus and a date.
+//! the feature read `variants/dates/`, which is the base corpus and a date —
+//! unless `no-date-message` keeps the base corpus with the feature on.
 
 fn main() {
     let fail = |e: mf2_build::Error| -> ! {
@@ -15,7 +16,8 @@ fn main() {
         "CARGO_FEATURE_NATIVE_DATETIME_ICU",
     ]
     .into_iter()
-    .any(|name| std::env::var_os(name).is_some());
+    .any(|name| std::env::var_os(name).is_some())
+        && std::env::var_os("CARGO_FEATURE_NO_DATE_MESSAGE").is_none();
     let made = if dates {
         let root = std::path::PathBuf::from(
             std::env::var_os("CARGO_MANIFEST_DIR").expect("cargo sets CARGO_MANIFEST_DIR"),

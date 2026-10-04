@@ -68,6 +68,11 @@ pub(crate) enum Error {
     #[error("feature-costs: {0}")]
     FeatureCosts(String),
 
+    /// An `mf2-build` run inside a command (the catalogs `feature-costs`
+    /// measures the date slice in) failed.
+    #[error("mf2-build: {0}")]
+    Mf2Build(#[from] mf2_build::Error),
+
     #[error(
         "wasmtime {0} is not installed in target/tools; run \
          `cargo install --root target/tools wasmtime-cli --version {0} --locked`"

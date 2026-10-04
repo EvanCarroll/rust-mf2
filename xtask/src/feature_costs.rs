@@ -11,7 +11,15 @@
 //! * **in a native binary**, the stripped bytes of `tools/native-canary`, the
 //!   application `cargo xtask native-canaries` links, in its release profile.
 //!
-//! The table is written to [`TABLE`], which the user guide includes. With
+//! The date features are measured under the family names an application
+//! turns on (`plan/08` §7): `leptos-client-datetime-*` in the browser,
+//! `native-datetime-*` natively. A date feature that is on in an application
+//! with no date and plain placeholders has a row of its own on each side, so
+//! what it costs when nothing shows a date stays visible. A second table
+//! gives, per language, the brotli bytes the date slice adds to a browser
+//! catalog with `icu`, and with `intl` (which should be 0).
+//!
+//! The tables are written to [`TABLE`], which the user guide includes. With
 //! `--check` (the nightly run) nothing is written there: each fresh figure is
 //! held to the committed one, and the run fails when one is off by more than
 //! [`off`] allows — the figures are the guide's, so they must stay true.
@@ -105,33 +113,49 @@ struct Cost {
     without: Build,
     with: Build,
     corpus: &'static str,
-    /// The feature is on and nothing uses it, so the row should be 0.
+    /// The feature is on and nothing uses it: the smallest build would add
+    /// 0, so a run reports anything more as a finding.
     unused: bool,
 }
 
 const C_NUMBERS: Build = client(Corpus::Numbers, "hydrate");
 const C_NUMBER: Build = client(Corpus::Numbers, "hydrate,workload-i18n/fn-number");
 const C_NUMBER_INTL: Build = client(Corpus::Numbers, "hydrate,workload-i18n/number-intl");
-const C_DATE: Build = client(
+const C_DATE_ISO: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-iso",
+    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-iso",
 );
 const C_DATE_ICU: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-icu",
+    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-icu",
 );
 const C_DATE_INTL: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-intl",
+    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-intl",
+);
+/// `intl` on, over the corpus with no date: what the feature costs when
+/// nothing shows a date. It had never been measured.
+const C_INTL_NO_DATE: Build = client(
+    Corpus::Numbers,
+    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-intl",
 );
 const N_BASE: Build = native("native");
-const N_DATE: Build = native("native,native-datetime-iso");
+const N_ISO: Build = native("native,native-datetime-iso");
+const N_ICU: Build = native("native,native-datetime-icu");
+/// `icu` on, and the canary keeps its corpus with no date
+/// (`no-date-message`, a feature of the canary alone).
+const N_ICU_NO_DATE: Build = native("native,native-datetime-icu,no-date-message");
 
 const WORKLOAD_NUMBERS: &str = "the reference workload, 150 messages with `:number`";
 const WORKLOAD_DATES: &str =
     "the reference workload, 150 messages with `:number` and 150 with `:datetime`";
-const CANARY: &str = "a plain message and a plural";
-const CANARY_DATES: &str = "a plain message, a plural and a date in a named zone";
+const WORKLOAD_NO_DATE: &str = "the reference workload, 150 messages with `:number` and plain \
+     placeholders, no date: the feature is on and nothing shows a date";
+const CANARY: &str = "a plain message, a plain placeholder and a plural";
+const CANARY_DATES: &str =
+    "a plain message, a plain placeholder, a plural and a date in a named zone";
+const CANARY_NO_DATE: &str = "a plain message, a plain placeholder and a plural, no date: the \
+     feature is on and nothing shows a date";
 
 /// Every row, in the order the table shows them.
 const COSTS: &[Cost] = &[
@@ -152,25 +176,32 @@ const COSTS: &[Cost] = &[
     Cost {
         // A build without a date formatter refuses a `:datetime` message, so the
         // build without it reads the numbers corpus.
-        feature: "host-web-datetime-iso",
+        feature: "leptos-client-datetime-iso",
         without: C_NUMBER,
-        with: C_DATE,
+        with: C_DATE_ISO,
         corpus: WORKLOAD_DATES,
         unused: false,
     },
     Cost {
-        feature: "host-web-datetime-icu",
-        without: C_DATE,
+        feature: "leptos-client-datetime-icu",
+        without: C_DATE_ISO,
         with: C_DATE_ICU,
         corpus: WORKLOAD_DATES,
         unused: false,
     },
     Cost {
-        feature: "host-web-datetime-intl",
-        without: C_DATE,
+        feature: "leptos-client-datetime-intl",
+        without: C_DATE_ISO,
         with: C_DATE_INTL,
         corpus: WORKLOAD_DATES,
         unused: false,
+    },
+    Cost {
+        feature: "leptos-client-datetime-intl",
+        without: C_NUMBER,
+        with: C_INTL_NO_DATE,
+        corpus: WORKLOAD_NO_DATE,
+        unused: true,
     },
     Cost {
         feature: "fn-number",
@@ -182,13 +213,27 @@ const COSTS: &[Cost] = &[
     Cost {
         feature: "native-datetime-iso",
         without: N_BASE,
-        with: N_DATE,
+        with: N_ISO,
         corpus: CANARY_DATES,
         unused: false,
     },
     Cost {
+        feature: "native-datetime-icu",
+        without: N_BASE,
+        with: N_ICU,
+        corpus: CANARY_DATES,
+        unused: false,
+    },
+    Cost {
+        feature: "native-datetime-icu",
+        without: N_BASE,
+        with: N_ICU_NO_DATE,
+        corpus: CANARY_NO_DATE,
+        unused: true,
+    },
+    Cost {
         feature: "tzdb-bundled",
-        without: N_DATE,
+        without: N_ISO,
         with: native("native,native-datetime-iso,tzdb-bundled"),
         corpus: CANARY_DATES,
         unused: false,
@@ -254,8 +299,15 @@ pub(crate) fn run(root: &Path, check: bool, keep: bool) -> Result<()> {
         );
         figures.push(figure);
     }
+    let slices = slices(root, &out)?;
+    for slice in &slices {
+        eprintln!(
+            "feature-costs: the date slice adds {} B brotli to `{}`'s catalog with `icu`, {} with `intl`",
+            slice.icu, slice.tag, slice.intl
+        );
+    }
 
-    let table = table(&figures, &today(), &rustc(root)?);
+    let table = table(&figures, &slices, &today(), &rustc(root)?);
     fsx::write(&out.join("feature-costs.md"), table.as_bytes())?;
     print!("{table}");
 
@@ -268,6 +320,15 @@ pub(crate) fn run(root: &Path, check: bool, keep: bool) -> Result<()> {
             );
         }
     }
+    for slice in &slices {
+        if off(0, slice.intl) {
+            eprintln!(
+                "feature-costs: finding: with `intl` the date slice still adds {} B brotli to \
+                 `{}`'s catalog, which no side of that build reads",
+                slice.intl, slice.tag
+            );
+        }
+    }
 
     if !check {
         fsx::write(&root.join(TABLE), table.as_bytes())?;
@@ -276,14 +337,23 @@ pub(crate) fn run(root: &Path, check: bool, keep: bool) -> Result<()> {
     }
     let committed = committed(&fsx::read_to_string(&root.join(TABLE))?);
     let mut failures = Vec::new();
-    for (cost, figure) in COSTS.iter().zip(&figures) {
-        let key = key(cost);
-        match committed.get(&key) {
-            Some(old) if off(*old, *figure) => {
-                failures.push(format!("{key}: {figure} measured, {old} committed"));
+    let fresh = COSTS
+        .iter()
+        .zip(&figures)
+        .map(|(cost, figure)| (id(cost), *figure))
+        .chain(slices.iter().flat_map(|slice| {
+            [
+                (slice_id(&slice.tag, "icu"), slice.icu),
+                (slice_id(&slice.tag, "intl"), slice.intl),
+            ]
+        }));
+    for (id, figure) in fresh {
+        match committed.get(&id) {
+            Some(old) if off(*old, figure) => {
+                failures.push(format!("{id}: {figure} measured, {old} committed"));
             }
             Some(_) => {}
-            None => failures.push(format!("{key}: not in {TABLE}")),
+            None => failures.push(format!("{id}: not in {TABLE}")),
         }
     }
     if failures.is_empty() {
@@ -320,9 +390,10 @@ fn size(
     Ok(size)
 }
 
-/// The client wasm of the workload's `tr` app, shipped and gzipped.
-fn client_size(root: &Path, out: &Path, build: Build) -> Result<u64> {
-    let (name, extra): (&str, &[&str]) = match build.corpus {
+/// The reference workload of `corpus` at the small scale, generated under
+/// `out`.
+fn workload(root: &Path, out: &Path, corpus: Corpus) -> Result<std::path::PathBuf> {
+    let (name, extra): (&str, &[&str]) = match corpus {
         Corpus::Numbers => ("wl-numbers", &["--number", NUMBERS]),
         Corpus::Dates => ("wl-dates", &["--number", NUMBERS, "--datetime", DATES]),
     };
@@ -332,6 +403,12 @@ fn client_size(root: &Path, out: &Path, build: Build) -> Result<u64> {
     })?;
     let [scale, _] = &b5::SCALES;
     b5::generate(root, &workload, scale, b5::Mode::String, extra)?;
+    Ok(workload)
+}
+
+/// The client wasm of the workload's `tr` app, shipped and gzipped.
+fn client_size(root: &Path, out: &Path, build: Build) -> Result<u64> {
+    let workload = workload(root, out, build.corpus)?;
     eprintln!(
         "feature-costs: building the client with `{}`",
         build.features
@@ -366,6 +443,69 @@ fn native_size(root: &Path, out: &Path, features: &str) -> Result<u64> {
         .map_err(|source| Error::IoAt { path: bin, source })
 }
 
+/// One language's date slice in a browser catalog: the brotli bytes it adds
+/// with `icu`, and with `intl`, where no side reads it and it should be 0.
+struct SliceCost {
+    tag: String,
+    icu: i64,
+    intl: i64,
+}
+
+/// The brotli bytes the date slice adds to each language's browser catalog:
+/// the dates corpus's catalogs with `icu` and with `intl`, less the same with
+/// `iso`, which has no slice. `mf2-build` builds them from the features the
+/// workload's i18n crate sees in each client build, and writes nothing.
+fn slices(root: &Path, out: &Path) -> Result<Vec<SliceCost>> {
+    let workload = workload(root, out, Corpus::Dates)?;
+    let iso = catalogs(&workload, out, C_DATE_ISO)?;
+    let icu = catalogs(&workload, out, C_DATE_ICU)?;
+    let intl = catalogs(&workload, out, C_DATE_INTL)?;
+    let added = |with: &BTreeMap<String, i64>, tag: &str, base: i64| {
+        with.get(tag).map_or(0, |bytes| bytes - base)
+    };
+    Ok(iso
+        .iter()
+        .map(|(tag, base)| SliceCost {
+            tag: tag.clone(),
+            icu: added(&icu, tag, *base),
+            intl: added(&intl, tag, *base),
+        })
+        .collect())
+}
+
+/// Each language's catalog as a browser downloads it, brotli bytes by tag:
+/// the workload's corpus under `build`'s features, configured as the
+/// workload's i18n crate configures its build (`bench/workload-gen`).
+fn catalogs(workload: &Path, out: &Path, build: Build) -> Result<BTreeMap<String, i64>> {
+    let mut config = mf2_build::Config::default();
+    config.source_locale = "en".to_owned();
+    for &lint in mf2_build::Lint::ALL {
+        let floor = lint.floor();
+        if floor != mf2_build::Level::Error {
+            config.lints.insert(lint, floor);
+        }
+    }
+    eprintln!(
+        "feature-costs: building the catalogs with `{}`",
+        build.features
+    );
+    let outcome = mf2_build::Build::at(workload, out.join("slice-catalogs"))
+        .config(config)
+        .features(mf2_build::Features::parse(build.features))
+        .check()?
+        .into_result()?;
+    Ok(outcome
+        .catalogs
+        .iter()
+        .map(|catalog| {
+            (
+                catalog.tag.clone(),
+                i64::try_from(catalog.br.len()).unwrap_or(i64::MAX),
+            )
+        })
+        .collect())
+}
+
 /// How a row is known in the table: feature, side and what it is set against.
 fn key(cost: &Cost) -> String {
     format!(
@@ -374,6 +514,17 @@ fn key(cost: &Cost) -> String {
         cost.with.side.name(),
         shown(cost.without)
     )
+}
+
+/// How `--check` knows a row: its key and its corpus, since one feature can
+/// be set against the same build over two corpora.
+fn id(cost: &Cost) -> String {
+    format!("{} | {}", key(cost), cost.corpus)
+}
+
+/// How `--check` knows one language's slice figure for one formatter.
+fn slice_id(tag: &str, formatter: &str) -> String {
+    format!("slice `{tag}` | {formatter}")
 }
 
 /// A build's features as the table shows them: `mf2`'s names, without the
@@ -395,8 +546,8 @@ fn shown(build: Build) -> String {
     }
 }
 
-/// The table, as the guide includes it.
-fn table(figures: &[i64], date: &str, rustc: &str) -> String {
+/// The tables, as the guide includes them.
+fn table(figures: &[i64], slices: &[SliceCost], date: &str, rustc: &str) -> String {
     let mut s = String::from(
         "<!-- Written by `cargo xtask feature-costs`, and held to a fresh \
          measurement every night: do not edit by hand. -->\n\n\
@@ -411,6 +562,25 @@ fn table(figures: &[i64], date: &str, rustc: &str) -> String {
             thousands(*figure),
             cost.with.side.unit(),
             cost.corpus
+        );
+    }
+    s.push_str(
+        "\n**The date slice, per language.** The brotli bytes the date data adds \
+         to each language's catalog, which a browser downloads: the reference \
+         workload with `:datetime` messages, built for `hydrate` with each \
+         browser formatter, less the same with `leptos-client-datetime-iso`. \
+         With `intl` the browser formats dates itself and no date data is \
+         downloaded, so that column should be 0.\n\n\
+         | Language | With `leptos-client-datetime-icu` | With `leptos-client-datetime-intl` |\n\
+         |---|---:|---:|\n",
+    );
+    for slice in slices {
+        let _ = writeln!(
+            s,
+            "| `{}` | {} B brotli | {} B brotli |",
+            slice.tag,
+            thousands(slice.icu),
+            thousands(slice.intl)
         );
     }
     let _ = write!(
@@ -428,30 +598,43 @@ fn table(figures: &[i64], date: &str, rustc: &str) -> String {
     s
 }
 
-/// The committed figures, by row key.
+/// The committed figures, by [`id`] and [`slice_id`].
 fn committed(text: &str) -> BTreeMap<String, i64> {
     let mut figures = BTreeMap::new();
     for line in text.lines() {
         let cells: Vec<&str> = line.split('|').map(str::trim).collect();
-        // `| feature | where | against | adds | corpus |` splits into seven.
-        let [_, feature, side, against, adds, _, _] = cells.as_slice() else {
-            continue;
-        };
-        if !feature.starts_with('`') {
-            continue;
-        }
-        let digits: String = adds
-            .split(' ')
-            .next()
-            .unwrap_or("")
-            .chars()
-            .filter(|c| *c != ',')
-            .collect();
-        if let Ok(figure) = digits.parse() {
-            figures.insert(format!("{feature} | {side} | {against}"), figure);
+        match cells.as_slice() {
+            // `| feature | where | against | adds | corpus |` splits into seven.
+            [_, feature, side, against, adds, corpus, _] if feature.starts_with('`') => {
+                if let Some(figure) = figure(adds) {
+                    figures.insert(format!("{feature} | {side} | {against} | {corpus}"), figure);
+                }
+            }
+            // `| language | icu | intl |` into five.
+            [_, tag, icu, intl, _] if tag.starts_with('`') => {
+                let tag = tag.trim_matches('`');
+                for (formatter, cell) in [("icu", icu), ("intl", intl)] {
+                    if let Some(figure) = figure(cell) {
+                        figures.insert(slice_id(tag, formatter), figure);
+                    }
+                }
+            }
+            _ => {}
         }
     }
     figures
+}
+
+/// A cell's figure: `12,345 B gzip` as `12345`.
+fn figure(cell: &str) -> Option<i64> {
+    let digits: String = cell
+        .split(' ')
+        .next()
+        .unwrap_or("")
+        .chars()
+        .filter(|c| *c != ',')
+        .collect();
+    digits.parse().ok()
 }
 
 /// `12345` as `12,345`.
@@ -501,17 +684,55 @@ fn rustc(root: &Path) -> Result<String> {
 mod tests {
     use super::*;
 
-    /// What the table writes, `--check` reads back: every row, by its key.
+    /// What the tables write, `--check` reads back: every row, by its id,
+    /// and every language's two slice figures. No two rows share an id.
     #[test]
     fn the_table_reads_back() {
         let figures: Vec<i64> = (0..COSTS.len())
             .map(|i| i64::try_from(i).unwrap_or(0) * 1_234 - 600)
             .collect();
-        let read = committed(&table(&figures, "2026-10-03", "`rustc 1.0.0`"));
-        assert_eq!(read.len(), COSTS.len());
+        let slices = [
+            SliceCost {
+                tag: "ar".to_owned(),
+                icu: 1_435,
+                intl: 0,
+            },
+            SliceCost {
+                tag: "en-XA".to_owned(),
+                icu: 349,
+                intl: -3,
+            },
+        ];
+        let read = committed(&table(&figures, &slices, "2026-10-03", "`rustc 1.0.0`"));
+        assert_eq!(read.len(), COSTS.len() + 2 * slices.len());
         for (cost, figure) in COSTS.iter().zip(&figures) {
-            assert_eq!(read.get(&key(cost)), Some(figure), "{}", key(cost));
+            assert_eq!(read.get(&id(cost)), Some(figure), "{}", id(cost));
         }
+        for slice in &slices {
+            assert_eq!(read.get(&slice_id(&slice.tag, "icu")), Some(&slice.icu));
+            assert_eq!(read.get(&slice_id(&slice.tag, "intl")), Some(&slice.intl));
+        }
+    }
+
+    /// The rows `plan/08` §7 asks for: the browser's date families by name,
+    /// both native formatters against no date feature, and a date feature
+    /// that is on with nothing to show on each side.
+    #[test]
+    fn the_date_rows_are_there() {
+        let row = |feature: &str, side: Side, unused: bool| {
+            COSTS
+                .iter()
+                .any(|c| c.feature == feature && c.with.side == side && c.unused == unused)
+        };
+        for formatter in ["iso", "icu", "intl"] {
+            let feature = format!("leptos-client-datetime-{formatter}");
+            assert!(row(&feature, Side::Client, false), "{feature}");
+        }
+        assert!(row("leptos-client-datetime-intl", Side::Client, true));
+        assert!(row("native-datetime-iso", Side::Native, false));
+        assert!(row("native-datetime-icu", Side::Native, false));
+        assert!(row("native-datetime-icu", Side::Native, true));
+        assert!(!COSTS.iter().any(|c| c.feature.starts_with("host-web-")));
     }
 
     #[test]

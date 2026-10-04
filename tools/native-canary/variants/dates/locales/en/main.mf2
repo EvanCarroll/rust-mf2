@@ -5,6 +5,8 @@
 
 plain = Save
 
+greeting = Hello, {$name}
+
 items =
   .input {$count :integer}
   .match $count

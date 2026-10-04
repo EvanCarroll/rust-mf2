@@ -12,6 +12,11 @@ flate2.workspace = true
 # Brotli 11 / 22 for `cargo xtask fluent-ab`'s sizes: what `mf2::axum` serves.
 brotli.workspace = true
 clap.workspace = true
+# `cargo xtask feature-costs`: the catalogs it measures the date slice in;
+# and in tests, the `unread-data` check over every feature set of the table
+# and every corpus of the i18n fixture (`plan/08` §7). `icu-blob` for the
+# sets whose date formatter is ICU4X.
+mf2-build = { workspace = true, features = ["icu-blob"] }
 mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-conformance.workspace = true
 mf2-l4-runner.workspace = true
@@ -30,12 +35,6 @@ tar.workspace = true
 # `cargo xtask docs` points a documented manifest at the working tree.
 toml.workspace = true
 thiserror = { workspace = true, features = ["std"] }
-
-[dev-dependencies]
-# The `unread-data` check over every feature set of the table and every
-# corpus of the i18n fixture (`plan/08` §7); `icu-blob` for the sets whose
-# date formatter is ICU4X.
-mf2-build = { workspace = true, features = ["icu-blob"] }
 
 [lints]
 workspace = true

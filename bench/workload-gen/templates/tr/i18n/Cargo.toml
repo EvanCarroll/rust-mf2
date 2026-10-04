@@ -18,12 +18,13 @@ ssr = ["mf2/host-std"]
 hydrate = ["mf2/host-web"]
 fn-number = ["mf2/fn-number"]
 number-intl = ["fn-number", "mf2/number-intl"]
-# The browser's date formatters (`cargo xtask feature-costs` builds each).
-# `icu` reads the `icu.blob` the build writes, which needs `mf2-build`'s
+# The browser's date formatters, under the family name a Leptos client
+# turns on (`cargo xtask feature-costs` builds each). `icu` reads the date
+# slice the build cuts into each catalog, which needs `mf2-build`'s
 # `icu-blob`.
-host-web-datetime-iso = ["mf2/host-web-datetime-iso"]
-host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
-host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
+leptos-client-datetime-iso = ["mf2/leptos-client-datetime-iso"]
+leptos-client-datetime-intl = ["mf2/leptos-client-datetime-intl"]
+leptos-client-datetime-icu = ["mf2/leptos-client-datetime-icu", "mf2-build/icu-blob"]
 
 [dependencies]
 mf2 = { path = "../../../../../crates/mf2" }

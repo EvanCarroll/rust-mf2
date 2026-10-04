@@ -33,6 +33,10 @@ fn-number = ["mf2/fn-number"]
 # date slice, which needs `mf2-build`'s `icu-blob`.
 native-datetime-iso = ["mf2/native-datetime-iso"]
 native-datetime-icu = ["mf2/native-datetime-icu", "mf2-build/icu-blob"]
+# Keeps the base corpus, which has no date, with a date formatter on: what
+# a date feature costs an application whose messages show no date and have
+# a plain placeholder (`cargo xtask feature-costs`). Nothing on its own.
+no-date-message = []
 compile = ["mf2/compile"]
 # A terminal UI and an Axum server: the two other native shapes `mf2` has a
 # module for. Each embeds the catalogs the same way, so each turns `native`
