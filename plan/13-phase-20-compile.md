@@ -20,13 +20,16 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** step 2. A worktree made for a task is removed once its work
   is merged.
-* **Next:** "Before this phase", then step 1
+* **Next:** step 2
 
 ## Done
 
-(nothing yet)
+* Before this phase (2026-10-04): Phases 16–19 committed; 246 GB free; another project's
+  `cargo leptos watch` was running (outside this tree); the session's rust-analyzer was
+  stopped.
+* Step 1, formatting: passed at once (`target/p20/1-fmt.log`).
 
 ## Before this phase
 
