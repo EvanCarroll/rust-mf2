@@ -29,6 +29,11 @@ neither breaks a program that 2.0 built. Anything that would is 3.0.
   are the MF2 data model's alternatives (a later MF2 may add structures),
   error types, the functions' option values, `mf2.toml`'s `Config`, and
   what a build or a negotiation returns.
+* **`mf2`'s feature names**, as [Features](features.md) lists them, and
+  what each turns on. A feature an application names keeps its name and
+  its meaning across the major version; a minor release may add one. A
+  rename or a removal waits for the next major, as `intl` waited for 3.0
+  to become `number-intl`.
 * **The forms of `tr!`**: in text, attributes, props and strings, with
   arguments, signals and markup, as [Call sites](call-sites.md) shows them.
   A call site that compiles under 2.0 compiles under every 2.x, and a
@@ -113,6 +118,13 @@ neither breaks a program that 2.0 built. Anything that would is 3.0.
   server and a client built together agree; the manifest's hash is how
   each checks that. After an upgrade, rebuild both: a catalog from one
   version is not guaranteed to load in another.
+* **The features of the crates `mf2` is built on.** `mf2-runtime`,
+  `mf2-host-std`, `mf2-fn-number` and the rest have features of their own,
+  which `mf2`'s turn on; they may be renamed, split or removed in a minor
+  release. Name features on `mf2`, never on those crates.
+* **`mf2`'s `links` metadata** (`DEP_MF2_V3_*`), through which `mf2-build`
+  learns `mf2`'s features. Its name carries the major version; call
+  `mf2_build::run()` rather than reading it.
 * **The wording of reports** — `mf2 check`'s messages, compile errors,
   statistics. They get clearer; match on exit status, not text.
 * **Exact figures**: sizes, timings and the like, which the project
@@ -157,8 +169,9 @@ changelog says so.
 **1.0.0 is on crates.io**: all sixteen crates of the 1.0 family, on
 26 September 2026. **1.1.0 was never published**, and will not be: it was
 prepared as a minor release after 1.0.0, and its fixes and its native
-support are part of 2.0.0. **2.0.0 is the next release**, not yet
-published: one crate, `mf2`, where 1.x had `leptos-mf2` and `mf2-axum`
-beside it; how to move a 1.x application is in
-[Upgrading from 1.x](upgrading.md). See the
+support are part of 2.0.0. **2.0.0 is on crates.io**, since
+30 September 2026: one crate, `mf2`, where 1.x had `leptos-mf2` and
+`mf2-axum` beside it. **3.0.0 is the next release**, not yet published.
+How to move a 1.x application is in [Upgrading from 1.x](upgrading.md).
+See the
 [changelog](https://github.com/EvanCarroll/rust-mf2/blob/main/CHANGELOG.md).

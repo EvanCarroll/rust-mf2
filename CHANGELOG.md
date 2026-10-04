@@ -7,74 +7,39 @@ minimum Rust version says so here.
 
 ## 3.0.0
 
-**Not yet published.** A major release, prepared by Phase 11: it carries
-breaking changes that 2.x cannot, and each task that changes what an
-application sees adds its line here.
+**Not yet published.** A major release: it makes the changes 2.x could not.
+Time zones and normalization tables come only with the builds that use
+them, a catalog answers canonical equivalence itself, and `mf2`'s features
+are renamed where 2.0 named them badly. The breaking changes come first.
+What a version number promises, `mf2`'s feature names among it, is in
+[`docs/versioning.md`](docs/versioning.md).
 
-* **`FnContext::equivalent` returns `Option<bool>`.** It answers from the
-  map of characters the catalog carries, which is exact for the catalog's
-  own keys and names; for a key holding a character the map does not reach
-  it now returns `None` instead of a `false` that could be wrong. A custom
-  selector may then compare bytes (sound, but it misses equivalent
-  spellings) or treat the key as unsupported.
-* **`mf2 init --tui` on an existing crate asks for `ratatui, fn-number`.**
-  `mf2 init` now writes one feature list per mode, the same in a new
-  application's manifest and in `cargo add`: an existing crate also gets
-  `fn-number` for `--cli` and `--tui`, and a terminal application names
-  `ratatui` alone, which implies `native`.
-* **`mf2 check` prints the feature list.** After the diagnostics, a block
-  names the function features the corpus needs, those that are on, those on
-  and unused, and the `features = [...]` to write on `mf2` with the modes
-  kept; the JSON report has it as `features`. It also says which date
-  backend formats when both are on. Without cargo's answer, the list is the
-  corpus's needs only.
-* **New lint `unused-feature` (warn).** The build and `mf2 check` warn when
-  the date family (`fn-datetime` or a date backend) is on and no message
-  calls `:datetime`, `:date` or `:time`, or when `fn-number` / `number-intl`
-  is on and nothing formats or selects on a number. Drop the feature, or set
-  `unused-feature = "allow"` in `mf2.toml`.
-* **`mf2`'s `intl` feature is now `number-intl`.** It pairs with
+* **Breaking: `mf2`'s `intl` feature is now `number-intl`.** It pairs with
   `datetime-intl` and says what it hands to the browser. Write
   `features = ["number-intl"]` where 2.x wrote `"intl"`.
   `mf2-fn-number`'s `intl` feature, which only switched on
   `mf2-runtime/intl`, is removed; `mf2-runtime/intl` and `mf2-host-web/intl`
   keep their names.
-* **`intl` now formats numbers and selects plurals in a browser.** In 2.0.0
-  a client built with `intl` formatted no number and selected no plural: the
-  host its generated module named had no number formatter, so every numeric
-  placeholder came out as bare digits with an *Unsupported Operation* error
-  and every plural `.match` fell to `*`. The generated module now names the
-  host that answers through `Intl.NumberFormat` and `Intl.PluralRules`
-  whenever its corpus can reach a number, with dates or without.
-  `mf2-host-web` gains `ZONES_NUMBERS_HOST` and `INTL_DATES_NUMBERS_HOST`,
-  the same host over its two date hosts; the second, over the
-  `datetime-intl` date host, puts both dates and numbers through `Intl`.
-  Nothing changes off the browser.
-* **`Host::nfc` is gone, and no host carries normalization tables.** The
-  `Host` trait no longer has an `nfc` method: the runtime answers canonical
-  equivalence itself, from the map its catalog carries. A hand-written host
-  deletes its `nfc`; nothing else changes. `mf2-host-std` no longer depends
-  on `unicode-normalization` and `mf2-host-web` no longer calls
-  `String.prototype.normalize`, so a native binary links the normalization
-  tables only with `compile` (a message compiled at run time), and the
-  browser client has one glue function less.
-* **A custom function can ask whether a value matches a key, accents written
-  either way.** `FnContext::equivalent(value, key)` makes the comparison MF2
-  asks for between a selector value and a variant key, from the catalog's own
-  map: no allocation, no normalization tables. `:string` selection and the
-  matching of argument names passed through the dynamic API now go through
-  it, so they behave the same on every host.
-* **A catalog carries its own canonical-equivalence map, and the binary
-  format is version 2.** A compiled catalog now holds a small table of the
-  code points that can reach its variant keys and argument names after
-  decomposition, so the runtime can answer "is this value the same string as
-  that key, allowing for accents written either way?" without any
+* **Breaking: a catalog carries its own canonical-equivalence map, and the
+  binary format is version 2.** A compiled catalog now holds a small table
+  of the code points that can reach its variant keys and argument names
+  after decomposition, so the runtime can answer "is this value the same
+  string as that key, allowing for accents written either way?" without any
   normalization tables. The format's major version moved with it: a 3.0
   reader refuses a catalog written by 1.x or 2.x (`not an .mf2b catalog` ·
   `unsupported .mf2b format version`), so rebuild your catalogs when you
-  upgrade — a `mf2 build` does it. The table is catalog data: nothing of it
+  upgrade: `cargo build` rebuilds the embedded ones, `mf2 compile` the
+  catalog files a server or an application loads. The table is catalog data: nothing of it
   reaches the client wasm. `mf2 stats` and `mf2 dump` report it.
-* **The native host has a time-zone database only with dates.**
+* **Breaking: `Host::nfc` is gone, and no host carries normalization
+  tables.** The `Host` trait no longer has an `nfc` method: the runtime
+  answers canonical equivalence itself, from the map its catalog carries. A
+  hand-written host deletes its `nfc`; nothing else changes.
+  `mf2-host-std` no longer depends on `unicode-normalization` and
+  `mf2-host-web` no longer calls `String.prototype.normalize`, so a native
+  binary links the normalization tables only with `compile` (a message
+  compiled at run time), and the browser client has one glue function less.
+* **Breaking: the native host has a time-zone database only with dates.**
   `mf2-host-std` gained a feature `time-zones`, which `mf2`'s `fn-datetime`
   turns on, and a second static, `mf2::host_std::ZONES_HOST`: it resolves a
   named time zone, as `HOST` used to. Without dates `HOST` has no zone data,
@@ -84,37 +49,86 @@ application sees adds its line here.
   `mf2::host_std::HOST` itself and shows dates in a named zone writes
   `ZONES_HOST`. Native code reads the system's zone only with
   `fn-datetime`; without it the default zone is UTC.
-* **A named time zone is read from the system's IANA database, unless the
-  bundle is asked for.** 2.0 always answered from jiff's bundled copy. A
-  native application now follows the machine it runs on (`TZDIR`, else
-  `/usr/share/zoneinfo`, else jiff's copy on a platform that has none), so a
-  zone amended since the binary was built is right. A server, where every
-  reply must say the same thing whatever the host holds, keeps the bundle:
-  the new feature `mf2/tzdb-bundled`, which `ssr` and `axum` turn on. Turn it
-  on by hand to carry the bundle in any other build; a zone no database holds
-  is *Bad Option*, as before.
-* **`mf2` no longer depends on jiff.** The date library is the native host's
-  alone: `mf2::host_std::jiff` re-exports it (feature `host-std` with
-  `fn-datetime`), and `mf2::host_std::system_time_zone()` reads the zone the
-  machine is set to. A program that hands `mf2` a jiff value and wants no
-  jiff dependency of its own uses that re-export. The `IntoArg` impls for
-  jiff's `Timestamp`, `Zoned`, `civil::Date` and `civil::DateTime` now come
-  with `host-std` and `fn-datetime` rather than with `native`, so a server
-  has them too.
-* **A build links a time-zone database only where a date can reach a
-  message.** The generated `host::HOST` names the zone-resolving host when
-  `fn-datetime` is on *and* some message uses `:datetime`, `:date` or
-  `:time` or has a placeholder with no function; otherwise it names the
-  plain host, and `Catalogs` and `Locale::format` take the host from the
-  corpus. An application that formats through the generated module needs no
-  change.
-* **`mf2-host-std` no longer depends on `ryu`.** Float text is `core`'s own
-  shortest round-trip formatting; `ryu` is now only the test oracle. A native
-  binary carries one dependency and about 13 KiB less, and nothing a program
-  writes changes. Where the shortest text that round-trips a float is an
-  exact tie between two decimals (about one `f64` in 4,000, such as
-  `1731590483420272.25`), the last digit shown may differ from 2.x: both
-  answers are the same length and the same distance from the value.
+* **Breaking: `mf2` no longer depends on jiff.** The date library is the
+  native host's alone: `mf2::host_std::jiff` re-exports it (feature
+  `host-std` with `fn-datetime`), and `mf2::host_std::system_time_zone()`
+  reads the zone the machine is set to. A program that hands `mf2` a jiff
+  value and wants no jiff dependency of its own uses that re-export. The
+  `IntoArg` impls for jiff's `Timestamp`, `Zoned`, `civil::Date` and
+  `civil::DateTime` now come with `host-std` and `fn-datetime` rather than
+  with `native`, so a server has them too.
+* **Breaking: `mf2`'s `links` name is `mf2-v3`.** A build script that reads
+  `mf2`'s metadata itself reads `DEP_MF2_V3_FEATURES` and
+  `DEP_MF2_V3_VERSION` where 2.x had `DEP_MF2_V2_*`; `mf2_build::run()`
+  does so already. The major version is in the name so that two majors in
+  one build cannot be mistaken for each other.
+* **Changed: a named time zone is read from the system's IANA database,
+  unless the bundle is asked for.** 2.0 always answered from jiff's bundled
+  copy. A native application now follows the machine it runs on (`TZDIR`,
+  else `/usr/share/zoneinfo`, else jiff's copy on a platform that has
+  none), so a zone amended since the binary was built is right. A server,
+  where every reply must say the same thing whatever the host holds, keeps
+  the bundle: the new feature `mf2/tzdb-bundled`, which `ssr` and `axum`
+  turn on. Turn it on by hand to carry the bundle in any other build; a
+  zone no database holds is *Bad Option*, as before.
+* **Changed: with both date backends on, the browser formats with `Intl`.**
+  2.0 let `datetime-icu` win everywhere when `datetime-intl` was on too. In
+  3.0 the browser formats through `Intl.DateTimeFormat` and the server and
+  native code through the catalog's ICU data, so a browser build carries no
+  ICU date data; the text after hydration may differ from the server's
+  where the two disagree. `mf2 check` says which backend formats.
+* **Changed: `mf2 init --tui` on an existing crate asks for `ratatui,
+  fn-number`.** `mf2 init` now writes one feature list per mode, the same in
+  a new application's manifest and in `cargo add`: an existing crate also
+  gets `fn-number` for `--cli` and `--tui`, and a terminal application
+  names `ratatui` alone, which implies `native`.
+* **Changed: `mf2-host-std` no longer depends on `ryu`.** Float text is
+  `core`'s own shortest round-trip formatting; `ryu` is now only the test
+  oracle. A native binary carries one dependency and about 13 KiB less, and
+  nothing a program writes changes. Where the shortest text that round-trips
+  a float is an exact tie between two decimals (about one `f64` in 4,000,
+  such as `1731590483420272.25`), the last digit shown may differ from 2.x:
+  both answers are the same length and the same distance from the value.
+* **Changed: a build links a time-zone database only where a date can
+  reach a message.** The generated `host::HOST` names the zone-resolving
+  host when `fn-datetime` is on *and* some message uses `:datetime`,
+  `:date` or `:time` or has a placeholder with no function; otherwise it
+  names the plain host, and `Catalogs` and `Locale::format` take the host
+  from the corpus. An application that formats through the generated module
+  needs no change.
+* **Added: a custom function can ask whether a value matches a key,
+  accents written either way.** `FnContext::equivalent(value, key)` makes
+  the comparison MF2 asks for between a selector value and a variant key,
+  from the catalog's own map: no allocation, no normalization tables. It
+  returns `Option<bool>`: the answer is exact for the catalog's own keys and
+  names, and for a key holding a character the map does not reach it is
+  `None` rather than a `false` that could be wrong; a custom selector may
+  then compare bytes (sound, but it misses equivalent spellings) or treat
+  the key as unsupported. `:string` selection and the matching of argument
+  names passed through the dynamic API go through it, so they behave the
+  same on every host.
+* **Added: `mf2 check` prints the feature list.** After the diagnostics, a
+  block names the function features the corpus needs, those that are on,
+  those on and unused, and the `features = [...]` to write on `mf2` with
+  the modes kept; the JSON report has it as `features`. It also says which
+  date backend formats when both are on. Without cargo's answer, the list
+  is the corpus's needs only.
+* **Added: the lint `unused-feature` (warn).** The build and `mf2 check`
+  warn when the date family (`fn-datetime` or a date backend) is on and no
+  message calls `:datetime`, `:date` or `:time`, or when `fn-number` /
+  `number-intl` is on and nothing formats or selects on a number. Drop the
+  feature, or set `unused-feature = "allow"` in `mf2.toml`.
+* **Fixed: `intl` now formats numbers and selects plurals in a browser.**
+  In 2.0.0 a client built with `intl` formatted no number and selected no
+  plural: the host its generated module named had no number formatter, so
+  every numeric placeholder came out as bare digits with an *Unsupported
+  Operation* error and every plural `.match` fell to `*`. The generated
+  module now names the host that answers through `Intl.NumberFormat` and
+  `Intl.PluralRules` whenever its corpus can reach a number, with dates or
+  without. `mf2-host-web` gains `ZONES_NUMBERS_HOST` and
+  `INTL_DATES_NUMBERS_HOST`, the same host over its two date hosts; the
+  second, over the `datetime-intl` date host, puts both dates and numbers
+  through `Intl`. Nothing changes off the browser.
 
 ## 2.0.0
 
