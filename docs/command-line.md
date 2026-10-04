@@ -207,12 +207,10 @@ formats numbers with `Intl` (`number-intl`) shows it like this:
 ```text
 what ships where (raw bytes, who reads it, where it ships):
   en
-    messages               371 B  the browser and native code  catalog
-    plural.cardinal          5 B  native code alone            server-only table
+    messages               164 B  the browser and native code  catalog
     number.symbols          12 B  native code alone            server-only table
   fr
-    messages               380 B  the browser and native code  catalog
-    plural.cardinal         16 B  native code alone            server-only table
+    messages               164 B  the browser and native code  catalog
     number.symbols          14 B  native code alone            server-only table
 bytes a browser downloads and never reads: 0 B
 ```
