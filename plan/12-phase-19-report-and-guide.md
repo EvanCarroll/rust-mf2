@@ -28,9 +28,9 @@ question.
 
 ## State
 
-* **In flight:** 19.2. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.2
+* **Next:** 19.3
 
 ## Done
 
@@ -39,6 +39,11 @@ question.
   readers and place; `mf2 stats` prints them and the unread bytes, text and
   JSON; test `stats_says_what_ships_where`; `docs/command-line.md`. Choice:
   the optional sections take the messages' readers (one shared reader).
+* 19.2: `feature-costs` rows under `leptos-client-datetime-*` and
+  `native-datetime-{iso,icu}`, a no-date row per side (`unused`), a per-language
+  slice table (brotli, `icu`/`intl`) built in-process (`mf2-build` now a normal
+  xtask dependency); row ids include the corpus. Canary: plain placeholder in
+  the base corpus, canary-only `no-date-message`.
 
 ## Before this phase
 
@@ -273,6 +278,9 @@ One line per task, only for what could not be confirmed by reading.
 * 19.1: the byte figures in `docs/command-line.md`'s stats sample are
   written from the code, not a run; `docs/translating.md`'s generated stats
   sample still shows the old "entry by entry" lines and needs regenerating.
+* 19.2: that `Build::check` fills `Catalog::br` and cuts the `icu` slice
+  in-process as the i18n build script does (`xtask/src/feature_costs.rs`
+  `catalogs`); xtask's first build now compiles `mf2-build` with `icu-blob`.
 
 ## Phase exit (coordinator)
 
