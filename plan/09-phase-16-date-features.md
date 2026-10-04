@@ -27,9 +27,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
 
 ## State
 
-* **In flight:** 16.2. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.2
+* **Next:** 16.3
 
 ## Done
 
@@ -43,6 +43,11 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
   `mf2-fn-datetime-web-icu` (renames refused by Cargo; §3.4). `mf2` `datetime` + 14 family
   features, 2.0 names as aliases; `mf2-build` `Side`/`DateFormatter`, `cuts_date_slice`.
   `cargo tree` on wasm: no `icu_*` with `host-web-datetime-intl,host-std-datetime-icu`.
+* 16.2 (2026-10-03): `fn-datetime`, `datetime-icu`, `datetime-intl` gone from `mf2`; every
+  user moved per §3.6 (test and bench crates forward the `host-*` families, the demos the
+  Leptos ones). `Features`: `datetime` gates the date functions under any formatter's name;
+  `for_catalogs` compares `fn-number`/`datetime`/`icu-blob`. Left for 21.2: the ledger,
+  `api*.txt`; kept: `mf2-host-web`'s own `datetime-intl`, the 2.0.0 baseline.
 
 ## Before this phase
 
@@ -232,6 +237,8 @@ One line per task, only for what could not be confirmed by reading.
 
 * 16.1: `use mf2_fn_datetime_web_icu::{icu_calendar, …}` then `use icu_calendar::…` in
   `mf2-fn-datetime/src/icu.rs` on wasm; `api.txt` of the new crate (Phase 21 generates it).
+* 16.2: `unexpected_cfgs` for the `host-*-datetime-icu` `cfg` of `conformance/l5/shared.rs`
+  in every crate that includes it (l5 sets, l5-generated, l6-web, l7 sets declare both).
 
 ## Phase exit (coordinator)
 
