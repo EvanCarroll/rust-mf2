@@ -49,7 +49,7 @@ mod tests {
     #[test]
     fn every_case_runs_once_in_order() {
         for n in [0u64, 1, 7, 100] {
-            let ranges = cases(n, |range| range.collect::<Vec<_>>());
+            let ranges = cases(n, Iterator::collect::<Vec<_>>);
             let all: Vec<u64> = ranges.into_iter().flatten().collect();
             assert_eq!(all, (0..n).collect::<Vec<_>>(), "n = {n}");
         }

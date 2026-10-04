@@ -221,7 +221,7 @@ fn drifts() -> Vec<Drift> {
             lint: Lint::UnusedFeature,
             what: "`datetime` on and no message formats a date",
             mutate: |_, features, _| {
-                *features = Features::parse("fn-number datetime host-std-datetime-iso")
+                *features = Features::parse("fn-number datetime host-std-datetime-iso");
             },
         },
         Drift {
@@ -229,7 +229,7 @@ fn drifts() -> Vec<Drift> {
             what: "two date formatters of one side",
             mutate: |_, features, _| {
                 *features =
-                    Features::parse("fn-number host-web-datetime-iso host-web-datetime-intl")
+                    Features::parse("fn-number host-web-datetime-iso host-web-datetime-intl");
             },
         },
         Drift {
