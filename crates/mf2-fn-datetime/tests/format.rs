@@ -1405,11 +1405,16 @@ fn unannotated() {
         ),
         "2006-01-02 13:04"
     );
-    // … and an error in them makes it a fallback value.
+    // … and an error in them is the function's: `input` on a floating value
+    // is a Bad Operand, and the value formats in the context's zone (as an
+    // expression's own `timeZone=input` does, `time_zone_input`).
     let mut input = floating;
     input.options.time_zone = Some(ZoneOption::Input);
     let (s, e) = run(&cx, "{$d :datetime}", &[("d", Arg::DateTime(&input))]);
-    assert_eq!((s.as_str(), e.as_slice()), ("{$d}", &[BadOperand][..]));
+    assert_eq!(
+        (s.as_str(), e.as_slice()),
+        ("2006-01-02 15:04", &[BadOperand][..])
+    );
     // Its non-override options are ignored.
     let mut styled = floating;
     styled.options.date = Some(DateStyle {
