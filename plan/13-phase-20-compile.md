@@ -20,9 +20,9 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
 
 ## State
 
-* **In flight:** step 2. A worktree made for a task is removed once its work
+* **In flight:** the two warnings, then step 3. A worktree made for a task is removed once its work
   is merged.
-* **Next:** step 2
+* **Next:** step 3
 
 ## Done
 
@@ -30,6 +30,10 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
   `cargo leptos watch` was running (outside this tree); the session's rust-analyzer was
   stopped.
 * Step 1, formatting: passed at once (`target/p20/1-fmt.log`).
+* Step 2, the workspace type-checks: one fix commit (9f36701, 17.5's borrow in `mf2-build`),
+  then passed in 24 s (`target/p20/2-check-r2.log`); the session's rust-analyzer had already
+  checked most of it. Its two warnings (18.1's `date_forms.rs`, 16.1's `tests/icu.rs`) are
+  fixed before step 3, which denies warnings.
 
 ## Before this phase
 
