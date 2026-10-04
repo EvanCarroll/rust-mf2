@@ -73,7 +73,7 @@ pub(crate) fn format_unannotated(cx: &FnContext<'_>, value: &Value<'_>, out: Num
 }
 
 /// How a `:currency` or `:unit` value shows: the style its options say.
-fn style<'m>(m: &'m Measure<'_>) -> NumberStyle<'m> {
+pub(crate) fn style<'m>(m: &'m Measure<'_>) -> NumberStyle<'m> {
     match m.unit {
         MeasureUnit::Currency(_) => NumberStyle::Currency {
             code: m.unit.as_str(),

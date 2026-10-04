@@ -17,6 +17,7 @@
 //! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (clients of the `icu` date formatter: named zones) |
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
 //! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
+//! | the same | `intl-names` | the same hosts without `mf2-runtime`'s `intl`: for `mf2-fn-number`'s number split (`plan/08` §6), which asks them only for currency and unit names |
 //!
 //! # The user guide
 //!
@@ -36,17 +37,17 @@ extern crate alloc;
 
 #[cfg(feature = "time-zones")]
 mod dates;
-#[cfg(feature = "intl")]
+#[cfg(feature = "intl-names")]
 mod numbers;
 
 use js_sys::Number;
 use mf2_runtime::Host;
 
-#[cfg(all(feature = "intl", feature = "datetime-intl"))]
+#[cfg(all(feature = "intl-names", feature = "datetime-intl"))]
 pub use numbers::INTL_DATES_NUMBERS_HOST;
-#[cfg(all(feature = "intl", feature = "time-zones"))]
+#[cfg(all(feature = "intl-names", feature = "time-zones"))]
 pub use numbers::ZONES_NUMBERS_HOST;
-#[cfg(feature = "intl")]
+#[cfg(feature = "intl-names")]
 pub use numbers::{IntlNumbers, NUMBERS_HOST};
 
 /// The browser host.

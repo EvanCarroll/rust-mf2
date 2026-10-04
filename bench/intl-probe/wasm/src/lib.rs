@@ -10,6 +10,7 @@
 //! | `format`, `parts`, `errors` | one message to string / to parts (JSON), and the errors of that call (suite names, sorted) |
 //! | `format_all` | every message of a catalog, no arguments: `text U+001F errors U+001E …` |
 //! | `bench_int`, `bench_float` | `iters` formats of one message in a loop inside wasm (no JS ↔ wasm crossing of the harness per format), `NoErrors`, a reused `String` |
+//! | `bench_none` | the same for a message with no argument (the locale-symbol cases) |
 //!
 //! The harness is std (as a Leptos client is): the allocator, the panic
 //! runtime and wasm-bindgen's own glue are in `base` and cancel in the
@@ -35,7 +36,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
     feature = "rust-cu",
     feature = "rt-intl",
     feature = "rt-intl-loc",
-    feature = "rt-intl-cu"
+    feature = "rt-intl-cu",
+    feature = "rt-names-cu"
 )))]
 compile_error!("build intl-probe-wasm with exactly one variant feature (scripts/build.sh)");
 
@@ -110,7 +112,7 @@ static FUNCTIONS: [(&str, &dyn Function); 5] = [
 #[cfg(feature = "rust-loc")]
 const VARIANT: &str = "rust-loc";
 
-#[cfg(any(feature = "rust-cu", feature = "rt-intl-cu"))]
+#[cfg(any(feature = "rust-cu", feature = "rt-intl-cu", feature = "rt-names-cu"))]
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("currency", &mf2_fn_number::CURRENCY),
     ("integer", &mf2_fn_number::INTEGER),
@@ -124,6 +126,8 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
 const VARIANT: &str = "rust-cu";
 #[cfg(feature = "rt-intl-cu")]
 const VARIANT: &str = "rt-intl-cu";
+#[cfg(feature = "rt-names-cu")]
+const VARIANT: &str = "rt-names-cu";
 
 #[cfg(feature = "rt-intl")]
 static FUNCTIONS: [(&str, &dyn Function); 4] = [
@@ -148,11 +152,22 @@ const VARIANT: &str = "rt-intl-loc";
 
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
-/// The host: the browser's, and for the option as built (`rt-intl*`) the
-/// same with its number formatter (`Intl`).
-#[cfg(not(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu")))]
+/// The host: the browser's, and for the option as built (`rt-intl*`) and
+/// the number split (`rt-names-cu`) the same with its number formatter
+/// (`Intl`).
+#[cfg(not(any(
+    feature = "rt-intl",
+    feature = "rt-intl-loc",
+    feature = "rt-intl-cu",
+    feature = "rt-names-cu"
+)))]
 const HOST: &dyn mf2_runtime::Host = &mf2_host_web::HOST;
-#[cfg(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu"))]
+#[cfg(any(
+    feature = "rt-intl",
+    feature = "rt-intl-loc",
+    feature = "rt-intl-cu",
+    feature = "rt-names-cu"
+))]
 const HOST: &dyn mf2_runtime::Host = &mf2_host_web::NUMBERS_HOST;
 
 static CX_DEFAULT: FormatContext = FormatContext::new(HOST);
@@ -349,6 +364,23 @@ impl Probe {
             let n = i64::from(start) + i64::from(i % m);
             out.clear();
             f.write(MsgId::from_raw(id), &[Arg::Int(n)], &mut out, &mut NoErrors);
+            total = total.wrapping_add(u32::try_from(out.len()).unwrap_or(0));
+        }
+        total
+    }
+
+    /// `iters` formats of message `id` with no argument (the locale-symbol
+    /// cases' literal operands); the total output length.
+    pub fn bench_none(&mut self, cat: u32, id: u32, iters: u32) -> u32 {
+        let Some(c) = self.catalogs.get(cat as usize) else {
+            return 0;
+        };
+        let f = Formatter::new(c, &REGISTRY, &CX_DEFAULT);
+        let mut out = String::with_capacity(256);
+        let mut total = 0u32;
+        for _ in 0..iters {
+            out.clear();
+            f.write(MsgId::from_raw(id), &[], &mut out, &mut NoErrors);
             total = total.wrapping_add(u32::try_from(out.len()).unwrap_or(0));
         }
         total

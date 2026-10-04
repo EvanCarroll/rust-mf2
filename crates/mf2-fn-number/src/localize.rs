@@ -238,7 +238,7 @@ pub(crate) fn starts_with_currency(a: Affix<'_>) -> bool {
 
 /// Writes the digits: integer digits grouped, the decimal separator, the
 /// fraction digits, in the catalog's numbering system.
-fn digits(
+pub(crate) fn digits(
     sym: &Symbols<'_>,
     seps: Seps<'_>,
     sizes: Sizes,

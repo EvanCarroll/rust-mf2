@@ -233,6 +233,56 @@ impl DigitPlan {
     }
 }
 
+/// The fraction digits the host's number formatter gives the currency `code`
+/// when none are asked for (its own minor-unit digits), read from the
+/// fraction part of a neutral `0` in that currency; `None` when the host has
+/// no number formatter or it refuses the code. The number split of
+/// `mf2-fn-number` (feature `intl-names`, `plan/08` §6) asks this where the
+/// Rust path reads the catalog's `currency.data`, which such a client does
+/// not download. On any build it only asks the host.
+#[doc(hidden)]
+pub fn currency_digits_by_host(cx: &FnContext<'_>, code: &str) -> Option<u8> {
+    let formatter = cx.host().numbers()?;
+    let request = NumberRequest {
+        value: "0",
+        style: NumberStyle::Currency {
+            code,
+            display: CurrencyDisplay::Code,
+            accounting: false,
+            own_digits: true,
+        },
+        neutral: true,
+        digits: DigitOptions {
+            minimum_integer: 1,
+            fraction: None,
+            significant: None,
+            priority: RoundingPriority::Auto,
+            increment: 1,
+            mode: RoundingMode::HalfExpand,
+            strip_if_integer: false,
+        },
+        sign: SignDisplay::Auto,
+        grouping: Grouping::Never,
+        ordinal: false,
+    };
+    let mut count = FractionDigits(0);
+    formatter
+        .format(cx.locale(), &request, NumberOut::Parts(&mut count))
+        .then_some(count.0)
+}
+
+/// Counts the characters of the `fraction` sub-parts.
+struct FractionDigits(u8);
+
+impl SubPartSink for FractionDigits {
+    fn sub_part(&mut self, kind: &str, text: &str) {
+        if kind == "fraction" {
+            let n = u8::try_from(text.chars().count()).unwrap_or(u8::MAX);
+            self.0 = self.0.saturating_add(n);
+        }
+    }
+}
+
 /// The digit options that show `d` exactly: all its fraction digits (up to
 /// `Intl`'s 100), no rounding before them.
 fn exact_options(d: &Decimal) -> DigitOptions {

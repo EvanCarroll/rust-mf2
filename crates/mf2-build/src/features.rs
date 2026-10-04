@@ -319,14 +319,24 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
 /// date slice (`icu-blob`, [`Features::date_slice_place`] being
 /// [`Place::Catalog`]), and whether the browser formats numbers through
 /// `Intl` and so reads none of the number entries (`number-intl`,
-/// [`Features::number_place`] being [`Place::Server`]). These are the
+/// [`Features::number_place`] being [`Place::Server`]), or only the
+/// currency and unit names (`intl-names`, the number split of `plan/08` §6,
+/// [`Features::names_place`] being [`Place::Server`]; a feature of
+/// `mf2-fn-number` and `mf2-host-web`, which the i18n crate or
+/// `mf2 compile --features` names). These are the
 /// browser-side choices, in the one list both builds see, so that a
 /// server's build script knows what the browser reads (`plan/08` §4.1). The
 /// wasm and the catalogs must agree on them; the other features (the `intl`
 /// and `iso` formatters, `tzdb-bundled`, the host features) change only the
 /// code a build compiles — `tzdb-bundled` only which IANA database a named
 /// time zone is looked up in.
-pub const CATALOG_FEATURES: [&str; 4] = ["fn-number", "datetime", "icu-blob", "number-intl"];
+pub const CATALOG_FEATURES: [&str; 5] = [
+    "fn-number",
+    "datetime",
+    "icu-blob",
+    "number-intl",
+    "intl-names",
+];
 
 /// Where the build writes a LOCALE entry (`plan/08` §4.1).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -387,18 +397,23 @@ impl Features {
     /// names: `fn-number`, `datetime` when the date functions are on under
     /// any of their names, `icu-blob` when the catalog carries the date
     /// slice (not when only the server-only table does), `number-intl` when
-    /// the number entries go to the server-only table. What
+    /// the number entries go to the server-only table, `intl-names` when
+    /// only the currency and unit entries do. What
     /// `mf2 compile --site` compares with the i18n crate's, so that two
     /// spellings of one build (a framework's family or the host's, with or
     /// without the `datetime` they imply) compare equal.
     #[must_use]
     pub fn for_catalogs(&self) -> Features {
-        let [numbers, dates, slice, intl] = CATALOG_FEATURES;
+        let [numbers, dates, slice, intl, names] = CATALOG_FEATURES;
         let on = [
             (numbers, self.fn_number()),
             (dates, self.fn_datetime()),
             (slice, self.date_slice_place() == Place::Catalog),
             (intl, self.number_place() == Place::Server),
+            (
+                names,
+                self.number_place() == Place::Catalog && self.names_place() == Place::Server,
+            ),
         ];
         Features::from_names(on.into_iter().filter(|(_, on)| *on).map(|(name, _)| name))
     }
@@ -504,6 +519,19 @@ impl Features {
             Place::Server
         } else {
             Place::Catalog
+        }
+    }
+
+    /// Where `currency.data` and `unit.data` go (`plan/08` §6): with the
+    /// number split (`intl-names`) the browser takes the currency and unit
+    /// names from `Intl` and reads neither, so when a browser downloads the
+    /// catalog they go to the server-only table; otherwise where the other
+    /// number entries go ([`Features::number_place`]).
+    pub fn names_place(&self) -> Place {
+        if self.intl_names() && self.has_browser_side() {
+            Place::Server
+        } else {
+            self.number_place()
         }
     }
 
@@ -757,6 +785,16 @@ impl Features {
     /// ([`Features::number_place`]).
     pub fn number_intl(&self) -> bool {
         self.has("number-intl")
+    }
+
+    /// The number split (`plan/08` §6): `:currency` and `:unit` take their
+    /// names from the browser's `Intl` on the client, the digits and plural
+    /// selection staying in Rust (`mf2-fn-number`'s and `mf2-host-web`'s
+    /// `intl-names`, which the i18n crate forwards under the same name). The
+    /// currency and unit entries move to the server-only table
+    /// ([`Features::names_place`]).
+    pub fn intl_names(&self) -> bool {
+        self.has("intl-names")
     }
 
     /// Whether this build provides the built-in function `identifier` (an
@@ -1047,6 +1085,45 @@ mod tests {
         );
         assert_eq!(
             Features::parse("native,fn-number,number-intl").for_catalogs(),
+            Features::parse("native,fn-number").for_catalogs()
+        );
+    }
+
+    // `plan/08` §6: the number split moves the currency and unit entries alone.
+
+    #[test]
+    fn the_names_go_where_they_are_read() {
+        let place = |list: &str| {
+            let f = Features::parse(list);
+            (f.number_place(), f.names_place())
+        };
+        for list in [
+            "ssr,fn-number,intl-names",
+            "hydrate,fn-number,intl-names",
+            "csr,fn-number,intl-names",
+            "host-web,fn-number,intl-names",
+        ] {
+            assert_eq!(place(list), (Place::Catalog, Place::Server), "{list}");
+        }
+        // The whole option already moves them with the rest.
+        assert_eq!(
+            place("csr,fn-number,number-intl,intl-names"),
+            (Place::Server, Place::Server)
+        );
+        // Without it, or with no browser side, they stay with the rest.
+        for list in [
+            "csr,fn-number",
+            "native,fn-number,intl-names",
+            "axum,fn-number,intl-names",
+        ] {
+            assert_eq!(place(list), (Place::Catalog, Place::Catalog), "{list}");
+        }
+        assert_ne!(
+            Features::parse("csr,fn-number,intl-names").for_catalogs(),
+            Features::parse("csr,fn-number").for_catalogs()
+        );
+        assert_eq!(
+            Features::parse("native,fn-number,intl-names").for_catalogs(),
             Features::parse("native,fn-number").for_catalogs()
         );
     }

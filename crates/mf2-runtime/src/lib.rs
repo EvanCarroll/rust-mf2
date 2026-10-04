@@ -79,7 +79,7 @@ pub use nfc::equivalent as nfc_equivalent;
 pub use number::{
     CurrencyDisplay, DigitOptions, Digits, Grouping, Measure, MeasureUnit, Number, NumberOut,
     NumberRequest, NumberSpec, NumberStyle, RoundingMode, RoundingPriority, Sign, SignDisplay,
-    UnitDisplay,
+    UnitDisplay, currency_digits_by_host,
 };
 pub use parts::{
     ExpressionPart, FallbackSource, Isolation, MarkupOptions, MarkupPart, Part, PartSink,

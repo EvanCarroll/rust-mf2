@@ -33,7 +33,12 @@ datetime-intl = ["time-zones"]
 # `Intl.NumberFormat` v3 (detected once). One such host over each of the
 # others (`ZONES_NUMBERS_HOST`, `INTL_DATES_NUMBERS_HOST`), so that a build that
 # formats dates and numbers reaches both.
-intl = ["dep:wasm-bindgen", "mf2-runtime/intl"]
+intl = ["intl-names", "mf2-runtime/intl"]
+# `intl-names`: the same hosts and glue without `mf2-runtime`'s `intl`, for
+# the number split (plan/08 §6; `mf2-fn-number/intl-names`): the numeric
+# core stays in Rust and asks `Host::numbers` only for `:currency` and
+# `:unit`'s names and a currency's own fraction digits.
+intl-names = ["dep:wasm-bindgen"]
 
 [dependencies]
 js-sys = { workspace = true }

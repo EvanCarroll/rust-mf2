@@ -534,10 +534,14 @@ impl Build {
         let filler = Filler::new(&built.manifest.ids, config.catalog.missing);
         // A native application keeps every entry in its catalog (`plan/08`
         // §4.2): no browser downloads it.
-        let (numbers, date_slice) = if codegen::is_native(self.emit) {
-            (Place::Catalog, Place::Catalog)
+        let (numbers, names, date_slice) = if codegen::is_native(self.emit) {
+            (Place::Catalog, Place::Catalog, Place::Catalog)
         } else {
-            (features.number_place(), features.date_slice_place())
+            (
+                features.number_place(),
+                features.names_place(),
+                features.date_slice_place(),
+            )
         };
         // Whether a browser downloads these catalogs, for `unread-data`.
         let downloaded = !codegen::is_native(self.emit) && features.has_browser_side();
@@ -601,6 +605,7 @@ impl Build {
                     _ => catalog::Compress::No,
                 },
                 numbers,
+                names,
                 date_slice,
             )?;
             // `unread-data` (`plan/08` §7): nothing is written where none of

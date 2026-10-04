@@ -9,6 +9,7 @@ import { floor } from './lib/floor.mjs';
 import { l4 } from './lib/l4.mjs';
 import { engine } from './lib/load.mjs';
 import { loc } from './lib/loc.mjs';
+import { names } from './lib/names.mjs';
 import { plural } from './lib/plural.mjs';
 import { speed } from './lib/speed.mjs';
 
@@ -35,5 +36,6 @@ window.mf2probe = {
   edge: async () => edge(env),
   loc: async () => loc(env),
   speed: async (o) => speed(env, o),
+  names: async (o) => names(env, o),
 };
 document.getElementById('status').textContent = `ready: ${engine()}`;

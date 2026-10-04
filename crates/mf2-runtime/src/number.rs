@@ -46,6 +46,7 @@ pub use measure::{Measure, MeasureUnit};
 pub use options::{Grouping, RoundingPriority, SignDisplay};
 pub use request::{
     CurrencyDisplay, DigitOptions, NumberOut, NumberRequest, NumberStyle, UnitDisplay,
+    currency_digits_by_host,
 };
 
 /// An exact decimal and, once a numeric handler resolved it, its resolved

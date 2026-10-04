@@ -29,11 +29,13 @@ use mf2_catalog::number::{Patterns, Style, Symbols, Template, TemplatePart};
 use mf2_catalog::unit::{Unit, Units, Width};
 use mf2_runtime::{
     Category, Digits, Dir, ErrorSink, FnContext, FormatError, Function, INTL_NUMBERS, Measure,
-    MeasureUnit, Number, NumberOut, NumberSpec, Options, Sink, SubPartSink, Value, plural_category,
+    MeasureUnit, Number, NumberOut, NumberSpec, Options, Sink, SubPartSink, Value,
+    currency_digits_by_host, plural_category,
 };
 
 use crate::intl;
 use crate::localize::{self, Out, Seps, Symbol, ends_with_currency, starts_with_currency};
+use crate::names::{self, INTL_NAMES};
 
 // ─────────────────────────────────────────────────────── the flags ──
 //
@@ -250,6 +252,9 @@ fn resolve_measure<'a>(
             // (`NumberStyle::Currency::own_digits`); the catalog's currency
             // data is not read.
             _ if INTL_NUMBERS => 2,
+            // The split: the formatter's digits for the currency, the
+            // catalog's `currency.data` not being downloaded.
+            _ if INTL_NAMES => currency_digits_by_host(cx, what.as_str()).unwrap_or(2),
             _ => auto_digits(cx.catalog(), code),
         }),
         MeasureUnit::Unit(_) => NumberSpec::UNIT,
@@ -290,6 +295,9 @@ impl Function for CurrencyFunction {
             if INTL_NUMBERS {
                 return intl::measure(cx, m, NumberOut::Text(out));
             }
+            if INTL_NAMES {
+                return names::measure(cx, m, &mut Out::Text(out));
+            }
             write_currency(cx.catalog(), m, &mut Out::Text(out));
         }
     }
@@ -298,6 +306,9 @@ impl Function for CurrencyFunction {
         if let Value::Measure(m) = value {
             if INTL_NUMBERS {
                 return intl::measure(cx, m, NumberOut::Parts(out));
+            }
+            if INTL_NAMES {
+                return names::measure(cx, m, &mut Out::Parts(out));
             }
             write_currency(cx.catalog(), m, &mut Out::Parts(out));
         }
@@ -521,7 +532,9 @@ impl Function for UnitFunction {
     fn formattable(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Result<(), FormatError> {
         match value {
             Value::Measure(m) => match m.unit {
-                MeasureUnit::Unit(_) if INTL_NUMBERS => intl::unit_formattable(cx, m),
+                // The split too: the unit is the formatter's to name (`Intl`
+                // sanctions 45 units and their `-per-` compounds).
+                MeasureUnit::Unit(_) if INTL_NUMBERS || INTL_NAMES => intl::unit_formattable(cx, m),
                 MeasureUnit::Unit(id) => {
                     let units = Units::of(cx.catalog());
                     if Symbols::of(cx.catalog()).is_none()
@@ -543,6 +556,9 @@ impl Function for UnitFunction {
             if INTL_NUMBERS {
                 return intl::measure(cx, m, NumberOut::Text(out));
             }
+            if INTL_NAMES {
+                return names::measure(cx, m, &mut Out::Text(out));
+            }
             write_unit(cx.catalog(), m, &mut Out::Text(out));
         }
     }
@@ -551,6 +567,9 @@ impl Function for UnitFunction {
         if let Value::Measure(m) = value {
             if INTL_NUMBERS {
                 return intl::measure(cx, m, NumberOut::Parts(out));
+            }
+            if INTL_NAMES {
+                return names::measure(cx, m, &mut Out::Parts(out));
             }
             write_unit(cx.catalog(), m, &mut Out::Parts(out));
         }
