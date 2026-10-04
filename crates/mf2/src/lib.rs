@@ -31,7 +31,7 @@
 //! | **Who supplies locale data?** | |
 //! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
-//! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere |
+//! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere. With `datetime-icu` too, the browser keeps `Intl` and every other target ICU4X over the `icu.blob` |
 //! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `fn-datetime`) |
 //! | **Behaviour and tools** | |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |

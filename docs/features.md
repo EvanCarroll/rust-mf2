@@ -28,8 +28,9 @@ message that calls a function whose feature is off is the
 `mf2 check` also prints the list for the corpus: the function features its
 messages need, those that are on, those on and unused, and the features to
 write on `mf2` with the modes kept as they are (`--format json` has the same
-under `features`). When both date backends are on, it says that
-`datetime-icu` formats on every target.
+under `features`). When both date backends are on, it says which one
+formats where: `datetime-intl` in the browser, `datetime-icu` everywhere
+else.
 
 ## Where does it run?
 
@@ -155,8 +156,12 @@ so.
 
 Dates formatted by the browser's `Intl.DateTimeFormat` in a browser build,
 and by ICU4X with its compiled data everywhere else. Implies `fn-datetime`.
-With both date backends on, `datetime-icu` formats on every target, and
-`mf2 check` says so.
+With both date backends on, the browser build formats with `datetime-intl`
+and carries no ICU4X date code or data, while the server and native builds
+format with `datetime-icu`, and `mf2 check` says so. A page rendered on the
+server can then show a date one way and, once the browser hydrates it,
+another: the server's text comes from your catalog's data, the browser's
+from its own `Intl`.
 
 ### `tzdb-bundled`
 

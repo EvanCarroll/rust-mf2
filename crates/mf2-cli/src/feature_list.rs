@@ -37,8 +37,8 @@ pub(crate) struct FeatureList {
     unused: Option<Vec<&'static str>>,
     /// The features to write on the `mf2` dependency.
     line: Vec<String>,
-    /// Both date backends on: the one that formats, in the browser and
-    /// elsewhere — `datetime-icu` on every target.
+    /// Both date backends on: the one that formats, in the browser
+    /// (`datetime-intl`) and elsewhere (`datetime-icu`).
     both_backends: bool,
     /// Where `on` came from.
     source: &'static str,
@@ -140,9 +140,10 @@ impl FeatureList {
             let _ = writeln!(
                 out,
                 "  dates:            datetime-icu and datetime-intl are both on; \
-                 datetime-icu formats on every target (ICU4X over the catalog's \
-                 icu.blob, in the browser and on the server), and datetime-intl's \
-                 Intl path formats nothing"
+                 in the browser datetime-intl formats (Intl.DateTimeFormat, no \
+                 ICU4X date code or data in the client), and on the server and \
+                 natively datetime-icu does (ICU4X over the catalog's icu.blob), \
+                 so a server-rendered date can read differently once hydrated"
             );
         }
         out
@@ -152,7 +153,7 @@ impl FeatureList {
     pub(crate) fn to_json(&self) -> Value {
         let backends = self
             .both_backends
-            .then(|| json!({ "wasm32-unknown-unknown": "datetime-icu", "other": "datetime-icu" }));
+            .then(|| json!({ "wasm32-unknown-unknown": "datetime-intl", "other": "datetime-icu" }));
         json!({
             "source": self.source,
             "needs": self.needs,
@@ -207,12 +208,13 @@ mod tests {
         assert_eq!(list.line, ["fn-number", "datetime-icu", "datetime-intl"]);
         assert!(
             list.to_text()
-                .contains("datetime-icu formats on every target")
+                .contains("in the browser datetime-intl formats")
         );
         assert_eq!(
             list.to_json()["date_backend"]["wasm32-unknown-unknown"],
-            "datetime-icu"
+            "datetime-intl"
         );
+        assert_eq!(list.to_json()["date_backend"]["other"], "datetime-icu");
     }
 
     #[test]

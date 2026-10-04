@@ -45,7 +45,8 @@ datetime-icu = [
 # `datetime-intl`: on wasm32-unknown-unknown the browser's
 # `Intl.DateTimeFormat` through `Host::format_date_time` (no ICU4X code, no
 # date data in the catalog); elsewhere — servers, wasm32-wasip1 — ICU4X with
-# its compiled data (the target table below).
+# its compiled data (the target table below). With `datetime-icu` too, the
+# browser keeps `Intl` and every other target uses `datetime-icu`.
 datetime-intl = [
     "dep:icu_calendar",
     "dep:icu_datetime",

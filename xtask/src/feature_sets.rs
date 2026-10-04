@@ -291,6 +291,14 @@ pub(crate) const SETS: &[Set] = &[
         &[Use::Ci(&[Clippy])],
         "the `number-intl` option's code, which compiles for the browser target only",
     ),
+    pkgs(
+        &["mf2-fn-datetime"],
+        Wasm,
+        "mf2-fn-datetime/datetime-icu,mf2-fn-datetime/datetime-intl",
+        false,
+        &[Use::Ci(&[Clippy])],
+        "both date backends in the browser, where `Intl` must win (a compile-time check)",
+    ),
     mf2(
         Wasm,
         "leptos,hydrate",

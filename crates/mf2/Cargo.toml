@@ -50,7 +50,9 @@ fn-datetime = ["dep:mf2-fn-datetime", "mf2-host-std?/time-zones"]
 # The date backends, each implying `fn-datetime`: `datetime-icu` — ICU4X on
 # client and server, data from the catalog's `icu.blob` (which `compile_str`
 # then emits); `datetime-intl` — the browser's `Intl.DateTimeFormat` on
-# wasm32-unknown-unknown, ICU4X with compiled data elsewhere.
+# wasm32-unknown-unknown, ICU4X with compiled data elsewhere. Both on: the
+# browser formats with `datetime-intl` (no ICU4X date code or data in the
+# client), every other target with `datetime-icu`.
 # With `host-web`, each also gives the browser host its date methods: named
 # zones from the browser's data (both), `Intl.DateTimeFormat` (`datetime-intl`).
 datetime-icu = [
