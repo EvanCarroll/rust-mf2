@@ -22,13 +22,14 @@ exclude = [
 ]
 
 [features]
-# The backends (plans/03-runtime.md §5.1–§5.2; plans/11 A6). With none on, the
-# handlers format through the neutral stub backend.
+# One feature per side and formatter (plan/08 §3.4). A build formats with the
+# strongest of its own side's — ICU4X, then `Intl`, then the neutral stub —
+# and the other side's features change nothing in it. `mf2`'s date families
+# turn these on; with none, the handlers format through the stub.
 #
-# `datetime-icu`: ICU4X in the client and on the server, its data from the
-# catalog's `icu.blob` LOCALE entry (plans/02 §4), so both produce the same
-# bytes.
-datetime-icu = [
+# `std-icu`: natively, ICU4X over the catalog's `icu.blob` LOCALE entry
+# (plans/02 §4). ICU4X is compiled into a native build only with this.
+std-icu = [
     "dep:mf2-catalog",
     "dep:icu_calendar",
     "dep:icu_datetime",
@@ -42,45 +43,51 @@ datetime-icu = [
     "icu_provider_blob/alloc",
     "icu_time/serde",
 ]
-# `datetime-intl`: on wasm32-unknown-unknown the browser's
-# `Intl.DateTimeFormat` through `Host::format_date_time` (no ICU4X code, no
-# date data in the catalog); elsewhere — servers, wasm32-wasip1 — ICU4X with
-# its compiled data (the target table below). With `datetime-icu` too, the
-# browser keeps `Intl` and every other target uses `datetime-icu`.
-datetime-intl = [
-    "dep:icu_calendar",
-    "dep:icu_datetime",
-    "dep:icu_locale_core",
-    "dep:icu_provider",
-    "dep:icu_time",
-    "dep:writeable",
+# `web-icu`: in the browser (`wasm32-unknown-unknown`), ICU4X over the same
+# blob, so the browser writes the server's bytes. ICU4X is compiled into a
+# browser build only with this.
+web-icu = ["dep:mf2-catalog", "dep:mf2-fn-datetime-web-icu"]
+# `web-intl`: in the browser, the browser's `Intl.DateTimeFormat` through
+# `Host::format_date_time` (no ICU4X code, no date data in the catalog).
+web-intl = []
+# `compiled-data`: `icu::Compiled`, ICU4X's compiled-in data off the browser,
+# for a registry written by hand. No feature of `mf2` turns it on: the
+# backends `mf2` builds read the catalog's blob only.
+compiled-data = [
+    "std-icu",
+    "icu_calendar/compiled_data",
+    "icu_datetime/compiled_data",
+    "icu_time/compiled_data",
 ]
 
 [dependencies]
+# The `icu.blob` LOCALE key.
+mf2-catalog = { workspace = true, optional = true }
+mf2-runtime.workspace = true
+
+# ICU4X is a dependency of one side (plan/08 §3.4). Cargo scopes an optional
+# dependency by target but not by feature, and refuses one package under two
+# names, so each side reaches ICU4X through a different package: natively
+# these crates directly (`std-icu`), in the browser
+# `mf2-fn-datetime-web-icu`, which re-exports the same crates (`web-icu`).
+# Neither feature names a dependency the other side's target has.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+mf2-fn-datetime-web-icu = { workspace = true, optional = true }
+
+[target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
 icu_calendar = { workspace = true, optional = true }
 icu_datetime = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 icu_provider = { workspace = true, optional = true }
 icu_provider_blob = { workspace = true, optional = true }
 icu_time = { workspace = true, optional = true }
-# The `icu.blob` LOCALE key.
-mf2-catalog = { workspace = true, optional = true }
-mf2-runtime.workspace = true
 writeable = { workspace = true, optional = true }
-
-# Off the browser, ICU4X comes with its compiled data: the server side of
-# `datetime-intl` (no `icu.blob` in the catalog). Features only — the crates
-# are the ones above, active when a backend feature is on. The `datetime-icu`
-# backend never falls back to it (a catalog without its blob is an
-# *Unsupported Operation*), so an unused compiled-data path is never linked.
-[target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
-icu_calendar = { workspace = true, optional = true, features = ["compiled_data"] }
-icu_datetime = { workspace = true, optional = true, features = ["compiled_data"] }
-icu_time = { workspace = true, optional = true, features = ["compiled_data"] }
 
 [dev-dependencies]
 # `datetime-icu`: catalogs with their `icu.blob` (so the tests of this crate
-# always have the ICU4X backend on; they name their backends explicitly).
+# always have the ICU4X backend on, `std-icu`; they name their backends
+# explicitly). `tests/icu.rs` compares the blob with ICU4X's compiled data
+# under this crate's `compiled-data` (a set of `cargo xtask ci`).
 # Path-only, not the workspace's `=3.0.0`: `mf2` depends on this crate, so
 # a versioned dev-dependency on it is a cycle `cargo package` cannot
 # resolve. Cargo strips a path-only dev-dependency from the package, and
@@ -94,8 +101,8 @@ mf2-syntax.workspace = true
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-# Both backends: they build together, and each adds its own items.
-features = ["datetime-icu", "datetime-intl"]
+# Every backend's items: ICU4X with both its data sources, and `Intl`.
+features = ["std-icu", "web-intl", "compiled-data"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lints]

@@ -1,5 +1,5 @@
-//! The ICU4X backend (`datetime-icu`, and the server side of
-//! `datetime-intl`; `plans/03-runtime.md` §5.1–§5.2): a [`Plan`] becomes an
+//! The ICU4X backend (`std-icu` natively, `web-icu` in the browser;
+//! `plans/03-runtime.md` §5.1–§5.2): a [`Plan`] becomes an
 //! ICU4X semantic skeleton built at runtime (`FieldSetBuilder`), formatted
 //! by `icu_datetime` with the plan's wall time and zone.
 //!
@@ -10,7 +10,7 @@
 //! |---|---|---|
 //! | calendar `C` | [`AnyCalendar`] (default) · [`GregorianOnly`] | `DateTimeFormatter` (every calendar; a locale's default, e.g. `th`'s Buddhist, and `calendar=`) · `FixedCalendarDateTimeFormatter<Gregorian>` (B4: ≤ 95 KB gz against ≤ 105) |
 //! | zones `Z` | [`WithZones`] (default) · [`NoZones`] | the composite field set with time-zone styles · the date/time-only one — `timeZoneStyle` is then an *Unsupported Operation* (03 §5.2(1): −29 KB gz of code, ≈ −85 % of `icu.blob`) |
-//! | data `D` | [`Blob`] (default) · [`Compiled`] | the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes) · ICU4X's compiled data (off the browser: the server side of `datetime-intl`) |
+//! | data `D` | [`Blob`] (default) · [`Compiled`] | the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes) · ICU4X's compiled data (off the browser, with this crate's `compiled-data` feature, for a registry written by hand: no feature of `mf2` turns it on) |
 //!
 //! [`Blob`] never falls back to compiled data: a catalog without its blob
 //! is an *Unsupported Operation*. The blob is built by `mf2-locale-data`'s
@@ -32,9 +32,16 @@
 //! and panic paths: B12 covers Rust MF2's crates, and this code is the
 //! feature's documented cost (06 B4).
 
-#[cfg(feature = "datetime-icu")]
 use alloc::boxed::Box;
 use core::marker::PhantomData;
+
+// In the browser ICU4X comes through `mf2-fn-datetime-web-icu` (`web-icu`),
+// natively it is this crate's own (`std-icu`): see the manifest.
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+use mf2_fn_datetime_web_icu::{
+    icu_calendar, icu_datetime, icu_locale_core, icu_provider, icu_provider_blob, icu_time,
+    writeable,
+};
 
 use icu_calendar::Date as IcuDate;
 use icu_datetime::fieldsets::builder::{DateFields as F, FieldSetBuilder, ZoneStyle as Zs};
@@ -47,7 +54,6 @@ use icu_datetime::{
 use icu_locale_core::Locale;
 use icu_locale_core::extensions::unicode::Value;
 use icu_locale_core::preferences::extensions::unicode::keywords::{CalendarAlgorithm, HourCycle};
-#[cfg(feature = "datetime-icu")]
 use icu_provider::buf::BufferProvider;
 use icu_time::zone::iana::IanaParser;
 use icu_time::zone::{UtcOffset, ZoneNameTimestamp};
@@ -77,12 +83,14 @@ pub struct WithZones;
 pub struct NoZones;
 
 /// Data: the catalog's `icu.blob` LOCALE entry (the default).
-#[cfg(feature = "datetime-icu")]
 #[derive(Clone, Copy, Debug)]
 pub struct Blob;
 
-/// Data: ICU4X's compiled data (never in the browser).
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+/// Data: ICU4X's compiled data (never in the browser; `compiled-data`).
+#[cfg(all(
+    feature = "compiled-data",
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
 #[derive(Clone, Copy, Debug)]
 pub struct Compiled;
 
@@ -90,10 +98,12 @@ pub struct Compiled;
 #[doc(hidden)]
 pub enum Source<'p> {
     /// A buffer provider: the catalog's blob, or a build-side recorder.
-    #[cfg(feature = "datetime-icu")]
     Buffer(&'p dyn BufferProvider),
     /// ICU4X's compiled data.
-    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+    #[cfg(all(
+        feature = "compiled-data",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    ))]
     Compiled(PhantomData<&'p ()>),
 }
 
@@ -107,7 +117,6 @@ pub trait Data: Sync + 'static {
     ) -> Result<R, FormatError>;
 }
 
-#[cfg(feature = "datetime-icu")]
 impl Data for Blob {
     fn with<R>(
         cx: &FnContext<'_>,
@@ -125,7 +134,10 @@ impl Data for Blob {
     }
 }
 
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+#[cfg(all(
+    feature = "compiled-data",
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
 impl Data for Compiled {
     fn with<R>(
         _cx: &FnContext<'_>,
@@ -141,13 +153,7 @@ type Params<C, Z, D> = PhantomData<fn() -> (C, Z, D)>;
 
 /// The ICU4X backend over calendar support `C`, zone support `Z` and data
 /// `D` (see the module docs). `Icu::NEW` builds one.
-#[cfg(feature = "datetime-icu")]
 pub struct Icu<C = AnyCalendar, Z = WithZones, D = Blob>(Params<C, Z, D>);
-
-/// The ICU4X backend over calendar support `C`, zone support `Z` and data
-/// `D` (see the module docs). `Icu::NEW` builds one.
-#[cfg(not(feature = "datetime-icu"))]
-pub struct Icu<C = AnyCalendar, Z = WithZones, D = Compiled>(Params<C, Z, D>);
 
 impl<C, Z, D> Icu<C, Z, D> {
     /// The backend (it has no state).
@@ -289,10 +295,12 @@ fn time(plan: &Plan<'_>) -> Result<Time, FormatError> {
 /// The IANA parser over `src`.
 fn iana(src: &Source<'_>) -> Result<IanaParser, FormatError> {
     match src {
-        #[cfg(feature = "datetime-icu")]
         Source::Buffer(p) => IanaParser::try_new_with_buffer_provider(*p)
             .map_err(|_| FormatError::UnsupportedOperation),
-        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+        #[cfg(all(
+            feature = "compiled-data",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        ))]
         Source::Compiled(_) => Ok(IanaParser::new().static_to_owned()),
     }
 }
@@ -356,9 +364,11 @@ macro_rules! variant {
                 let fs = b.$build().map_err(|_| FormatError::UnsupportedOperation)?;
                 let prefs = prefs(locale, o, $gregorian)?;
                 let f = match src {
-                    #[cfg(feature = "datetime-icu")]
                     Source::Buffer(p) => <$fmt>::try_new_with_buffer_provider(*p, prefs, fs),
-                    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+                    #[cfg(all(
+                        feature = "compiled-data",
+                        not(all(target_arch = "wasm32", target_os = "unknown"))
+                    ))]
                     Source::Compiled(_) => <$fmt>::try_new(prefs, fs),
                 }
                 .map_err(|_| FormatError::UnsupportedOperation)?;
@@ -442,7 +452,6 @@ variant!(
     gregorian
 );
 
-#[cfg(feature = "datetime-icu")]
 /// Build side (`mf2-locale-data`'s `icu-blob`): constructs, through
 /// `provider`, the formatter `Icu<C, Z, _>` builds for `locale` under each
 /// of `shapes` — the options a plan can carry: the date and time parts, the

@@ -4,12 +4,17 @@
 //! — are here, once; a [`Backend`] only turns the result, a [`Plan`], into
 //! text:
 //!
-//! | Feature | [`DefaultBackend`] (the statics') |
-//! |---|---|
-//! | none | [`Neutral`], a deterministic locale-independent stub (ISO 8601 pieces) |
-//! | `datetime-icu` | `icu::Icu`: ICU4X over the catalog's `icu.blob` LOCALE entry, on client and server alike (narrower variants: `Icu<GregorianOnly, NoZones>` …) |
-//! | `datetime-intl` | `Intl` on `wasm32-unknown-unknown`: `Host::format_date_time` (the browser's `Intl.DateTimeFormat` through `mf2-host-web`'s `INTL_HOST`); elsewhere `Icu` over ICU4X's compiled data |
-//! | both | `Intl` on `wasm32-unknown-unknown`, `icu::Icu` over the `icu.blob` elsewhere |
+//! One feature per side and formatter; a build formats with the strongest
+//! of its own side's (ICU4X, then `Intl`, then the stub), and the other
+//! side's features change nothing in it:
+//!
+//! | Feature | Side | [`DefaultBackend`] (the statics') |
+//! |---|---|---|
+//! | none | both | [`Neutral`], a deterministic locale-independent stub (ISO 8601 pieces) |
+//! | `std-icu` | native | `icu::Icu`: ICU4X over the catalog's `icu.blob` LOCALE entry (narrower variants: `Icu<GregorianOnly, NoZones>` …) |
+//! | `web-icu` | `wasm32-unknown-unknown` | `icu::Icu`, the same, so the browser writes the server's bytes |
+//! | `web-intl` | `wasm32-unknown-unknown` | `Intl`: `Host::format_date_time` (the browser's `Intl.DateTimeFormat` through `mf2-host-web`'s `INTL_HOST`), unless `web-icu` is on |
+//! | `compiled-data` | native | no default: `icu::Compiled`, ICU4X's compiled data, for a registry written by hand (implies `std-icu`) |
 //!
 //! ```
 //! use mf2_fn_datetime::{DateTimeFunction, Neutral};
@@ -118,7 +123,7 @@
 //! no panicking operation, no allocation —
 //! the semantics, the neutral and the `Intl` backends. The ICU4X backend
 //! allocates (the blob's provider) and links ICU4X's own `core::fmt` and
-//! panic paths: that is `datetime-icu`'s cost in client size.
+//! panic paths: that is `web-icu`'s cost in client size.
 //!
 //!
 //! # The user guide
@@ -127,7 +132,8 @@
 //! guide: how the crates fit together, web and native applications, the
 //! command line, and what 2.x promises.
 //! An application reaches this crate through
-//! [`mf2`](https://docs.rs/mf2), as `mf2::fn_datetime` (feature `fn-datetime`).
+//! [`mf2`](https://docs.rs/mf2), as `mf2::fn_datetime` (feature `datetime`, which every date formatter of
+//! `mf2` turns on).
 //!
 //! [`Arg::DateTime`]: mf2_runtime::Arg::DateTime
 //! [`Value::DateTime`]: mf2_runtime::Value::DateTime
@@ -146,19 +152,25 @@
     clippy::panic
 )]
 
-#[cfg(any(feature = "datetime-icu", feature = "datetime-intl"))]
+#[cfg(any(
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+    all(
+        feature = "std-icu",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
+))]
 extern crate alloc;
 
 mod function;
 #[cfg(any(
-    feature = "datetime-icu",
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
     all(
-        feature = "datetime-intl",
+        feature = "std-icu",
         not(all(target_arch = "wasm32", target_os = "unknown"))
     )
 ))]
 pub mod icu;
-#[cfg(feature = "datetime-intl")]
+#[cfg(feature = "web-intl")]
 mod intl;
 mod literal;
 mod neutral;
@@ -170,82 +182,131 @@ pub use function::{DateTimeFunction, operand};
 // The build's reading of a literal's options (`mf2-locale-data`'s `icu.blob`).
 #[doc(hidden)]
 pub use function::literal_options;
-#[cfg(feature = "datetime-intl")]
+#[cfg(feature = "web-intl")]
 pub use intl::Intl;
 pub use literal::parse_literal;
 pub use neutral::Neutral;
 pub use plan::{Backend, Plan};
 
-/// The backend the statics format with. In the browser
-/// (`wasm32-unknown-unknown`) with `datetime-intl` on, [`Intl`], even when
-/// `datetime-icu` is on too: the browser build then links no ICU4X date code
-/// or data. Otherwise [`icu::Icu`] with `datetime-icu` (every calendar, zone
-/// styles, the catalog's `icu.blob`); `Icu` over ICU4X's compiled data with
-/// `datetime-intl` alone; [`Neutral`] with neither.
-#[cfg(all(
-    feature = "datetime-icu",
-    not(all(
-        feature = "datetime-intl",
-        target_arch = "wasm32",
-        target_os = "unknown"
-    ))
+// One formatter per build, the strongest of its side's (plan/08 §3.2):
+// ICU4X, then `Intl`, then the neutral stub. In the browser
+// (`wasm32-unknown-unknown`) the side's features are `web-icu` and
+// `web-intl`; everywhere else `std-icu`. The other side's features change
+// nothing in this build.
+
+/// The backend the statics format with: the strongest of this build's side.
+/// In the browser [`icu::Icu`] with `web-icu`, else [`Intl`] with `web-intl`,
+/// else [`Neutral`]; elsewhere [`icu::Icu`] with `std-icu`, else [`Neutral`].
+/// [`icu::Icu`] reads the catalog's `icu.blob`.
+#[cfg(any(
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+    all(
+        feature = "std-icu",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
 ))]
 pub type DefaultBackend = icu::Icu;
 
-/// The backend the statics format with (see the `datetime-icu` build).
+/// The backend the statics format with (see the ICU4X build).
 #[cfg(all(
-    feature = "datetime-intl",
+    not(any(
+        all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+        all(
+            feature = "std-icu",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        )
+    )),
+    feature = "web-intl",
     all(target_arch = "wasm32", target_os = "unknown")
 ))]
 pub type DefaultBackend = Intl;
 
-/// The backend the statics format with (see the `datetime-icu` build).
+/// The backend the statics format with (see the ICU4X build).
 #[cfg(all(
-    not(feature = "datetime-icu"),
-    feature = "datetime-intl",
-    not(all(target_arch = "wasm32", target_os = "unknown"))
+    not(any(
+        all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+        all(
+            feature = "std-icu",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        )
+    )),
+    not(all(
+        feature = "web-intl",
+        all(target_arch = "wasm32", target_os = "unknown")
+    ))
 ))]
-pub type DefaultBackend = icu::Icu<icu::AnyCalendar, icu::WithZones, icu::Compiled>;
-
-/// The backend the statics format with (see the `datetime-icu` build).
-#[cfg(not(any(feature = "datetime-icu", feature = "datetime-intl")))]
 pub type DefaultBackend = Neutral;
 
-#[cfg(all(
-    any(feature = "datetime-icu", feature = "datetime-intl"),
-    not(all(
-        feature = "datetime-intl",
-        target_arch = "wasm32",
-        target_os = "unknown"
-    ))
+#[cfg(any(
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+    all(
+        feature = "std-icu",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
 ))]
 const DEFAULT_BACKEND: DefaultBackend = icu::Icu::NEW;
 
 #[cfg(all(
-    feature = "datetime-intl",
+    not(any(
+        all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+        all(
+            feature = "std-icu",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        )
+    )),
+    feature = "web-intl",
     all(target_arch = "wasm32", target_os = "unknown")
 ))]
 const DEFAULT_BACKEND: DefaultBackend = Intl;
 
-#[cfg(not(any(feature = "datetime-icu", feature = "datetime-intl")))]
+#[cfg(all(
+    not(any(
+        all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+        all(
+            feature = "std-icu",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        )
+    )),
+    not(all(
+        feature = "web-intl",
+        all(target_arch = "wasm32", target_os = "unknown")
+    ))
+))]
 const DEFAULT_BACKEND: DefaultBackend = Neutral;
 
-// The precedence with both backends on, checked wherever such a build
-// compiles: `Intl` in the browser, ICU4X over the catalog's `icu.blob`
-// everywhere else.
+// The strongest-wins rule, checked wherever such a build compiles, written
+// from the features alone. In the browser: both formatters, ICU4X formats;
+// `Intl` alone formats; none, the stub, whatever `std-icu` says.
 #[cfg(all(
-    feature = "datetime-icu",
-    feature = "datetime-intl",
-    target_arch = "wasm32",
-    target_os = "unknown"
+    feature = "web-icu",
+    feature = "web-intl",
+    all(target_arch = "wasm32", target_os = "unknown")
+))]
+const _: fn(DefaultBackend) -> icu::Icu = |backend| backend;
+#[cfg(all(
+    not(feature = "web-icu"),
+    feature = "web-intl",
+    all(target_arch = "wasm32", target_os = "unknown")
 ))]
 const _: fn(DefaultBackend) -> Intl = |backend| backend;
 #[cfg(all(
-    feature = "datetime-icu",
-    feature = "datetime-intl",
+    not(feature = "web-icu"),
+    not(feature = "web-intl"),
+    all(target_arch = "wasm32", target_os = "unknown")
+))]
+const _: fn(DefaultBackend) -> Neutral = |backend| backend;
+// Natively: `std-icu` formats with ICU4X whatever the browser's features
+// say, and without it the stub formats, even with both of theirs on.
+#[cfg(all(
+    feature = "std-icu",
     not(all(target_arch = "wasm32", target_os = "unknown"))
 ))]
 const _: fn(DefaultBackend) -> icu::Icu = |backend| backend;
+#[cfg(all(
+    not(feature = "std-icu"),
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
+const _: fn(DefaultBackend) -> Neutral = |backend| backend;
 
 /// `:datetime`.
 pub static DATETIME: DateTimeFunction = DateTimeFunction::datetime(DEFAULT_BACKEND);

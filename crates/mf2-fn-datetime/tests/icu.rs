@@ -1,4 +1,4 @@
-//! The ICU4X backend (`datetime-icu`, plans/11 A6): text from catalogs
+//! The ICU4X backend (`std-icu`, plans/11 A6): text from catalogs
 //! `mf2::compile_str` built with their `icu.blob`, in every variant (any or
 //! Gregorian-only calendar, with or without zone styles); the blob against
 //! ICU4X's compiled data, which must agree byte for byte (the blob holds
@@ -11,7 +11,9 @@ use mf2::{
     PartSink, Registry, Time, TimeZone,
 };
 use mf2_fn_datetime::DateTimeFunction;
-use mf2_fn_datetime::icu::{AnyCalendar, Compiled, GregorianOnly, Icu, NoZones, WithZones};
+#[cfg(feature = "compiled-data")]
+use mf2_fn_datetime::icu::Compiled;
+use mf2_fn_datetime::icu::{AnyCalendar, GregorianOnly, Icu, NoZones, WithZones};
 
 use FormatError::UnsupportedOperation;
 
@@ -26,16 +28,23 @@ static FULL: [(&str, &dyn Function); 3] =
     [("date", &DATE), ("datetime", &DATETIME), ("time", &TIME)];
 static REGISTRY: Registry = Registry::new(&FULL).with_dates(&DATES);
 
-/// The same over ICU4X's compiled data.
+/// The same over ICU4X's compiled data (this crate's `compiled-data`, a set
+/// of `cargo xtask ci`).
+#[cfg(feature = "compiled-data")]
 type FromCompiled = Icu<AnyCalendar, WithZones, Compiled>;
+#[cfg(feature = "compiled-data")]
 static C_DATETIME: DateTimeFunction<FromCompiled> = DateTimeFunction::datetime(Icu::NEW);
+#[cfg(feature = "compiled-data")]
 static C_DATE: DateTimeFunction<FromCompiled> = DateTimeFunction::date(Icu::NEW);
+#[cfg(feature = "compiled-data")]
 static C_TIME: DateTimeFunction<FromCompiled> = DateTimeFunction::time(Icu::NEW);
+#[cfg(feature = "compiled-data")]
 static COMPILED: [(&str, &dyn Function); 3] = [
     ("date", &C_DATE),
     ("datetime", &C_DATETIME),
     ("time", &C_TIME),
 ];
+#[cfg(feature = "compiled-data")]
 static COMPILED_REGISTRY: Registry = Registry::new(&COMPILED);
 
 /// The narrowest: Gregorian only, no zone styles.
@@ -472,6 +481,7 @@ fn parts_and_direction() {
 
 /// Every option shape, formatted from each panel locale's blob and from
 /// ICU4X's compiled data: the same bytes.
+#[cfg(feature = "compiled-data")]
 #[test]
 fn blob_equals_compiled_data() {
     let mut messages = Vec::new();

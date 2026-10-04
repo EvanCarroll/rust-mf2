@@ -23,15 +23,17 @@ use crate::cmd::{cargo, run_capture};
 use crate::error::{Error, Result};
 
 /// The crates published to crates.io (D12), and nothing else: the 14 of
-/// 2.x and the two helper crates of the Leptos components (D20); 1.x's
+/// 2.x, the two helper crates of the Leptos components (D20), and 3.0's
+/// browser-side ICU4X of the date functions (plan/08 §3.4); 1.x's
 /// `leptos-mf2`, `mf2-axum`, `mf2-native` and `mf2-ratatui` are features
 /// of `mf2` since 2.0.0 (plans/00-master-plan.md §4.1).
-pub(crate) const PUBLISHED: [&str; 16] = [
+pub(crate) const PUBLISHED: [&str; 17] = [
     "mf2",
     "mf2-build",
     "mf2-catalog",
     "mf2-cli",
     "mf2-fn-datetime",
+    "mf2-fn-datetime-web-icu",
     "mf2-fn-number",
     "mf2-host-std",
     "mf2-host-web",
@@ -93,7 +95,7 @@ pub(crate) fn problems(metadata: &Value) -> Vec<String> {
     }
     for name in &publishable {
         if !PUBLISHED.contains(name) {
-            out.push(format!("{name}: publishable, but not one of the 16"));
+            out.push(format!("{name}: publishable, but not one of the 17"));
         }
     }
     let msrv = packages
@@ -229,7 +231,7 @@ mod tests {
     fn a_published_tool_is_caught() {
         let mut m = metadata();
         package(&mut m, "xtask")["publish"] = Value::Null;
-        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 16"]);
+        assert_eq!(problems(&m), ["xtask: publishable, but not one of the 17"]);
     }
 
     #[test]

@@ -90,11 +90,14 @@ macro_rules! __use_host {
         pub use $crate::host_std::HOST;
     };
 }
-/// The browser's, with `Intl.DateTimeFormat` for a corpus with dates.
+/// The browser's, with `Intl.DateTimeFormat` for a corpus with dates: the
+/// browser formats with `Intl` when it is the strongest of its side's
+/// formatters (plan/08 §3.2).
 #[cfg(all(
     not(feature = "host-std"),
     feature = "host-web",
-    feature = "datetime-intl"
+    feature = "host-web-datetime-intl",
+    not(feature = "host-web-datetime-icu")
 ))]
 #[doc(hidden)]
 #[macro_export]
@@ -112,12 +115,12 @@ macro_rules! __use_host {
         $crate::__numbers_host!(INTL_HOST, INTL_DATES_NUMBERS_HOST);
     };
 }
-/// The browser's, with its zone data for a corpus with dates.
+/// The browser's, with its zone data for a corpus with dates: ICU4X formats
+/// in the browser, the strongest, even with `intl` on too.
 #[cfg(all(
     not(feature = "host-std"),
     feature = "host-web",
-    not(feature = "datetime-intl"),
-    feature = "datetime-icu"
+    feature = "host-web-datetime-icu"
 ))]
 #[doc(hidden)]
 #[macro_export]
@@ -135,12 +138,12 @@ macro_rules! __use_host {
         $crate::__numbers_host!(ZONES_HOST, ZONES_NUMBERS_HOST);
     };
 }
-/// The browser's plain host.
+/// The browser's plain host: `iso`, or no formatter.
 #[cfg(all(
     not(feature = "host-std"),
     feature = "host-web",
-    not(feature = "datetime-intl"),
-    not(feature = "datetime-icu")
+    not(feature = "host-web-datetime-intl"),
+    not(feature = "host-web-datetime-icu")
 ))]
 #[doc(hidden)]
 #[macro_export]

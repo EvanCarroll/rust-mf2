@@ -34,7 +34,7 @@ impl Compiled {
 /// which `fn-number` localizes — and what the message's numeric functions
 /// need by the slicing rule of `plans/02-catalog-format.md` §4.4: the
 /// patterns, and the currencies and units its literal options name (a
-/// variable option value: all of them). With `datetime-icu`, also the
+/// variable option value: all of them). With `host-std-datetime-icu`, also the
 /// `icu.blob` of what the message formats with the date functions, or can
 /// receive as a date/time argument (a placeholder whose variable has no
 /// function), by the same rule, for every variant of the ICU4X backend.
@@ -66,10 +66,11 @@ fn compile(source: &str, locale: &str, strip: bool) -> Result<Compiled, CompileE
     needs.ordinal = true;
     needs.numbers = numbers;
     options.locale_entries = locale_entries(locale, &needs)?;
-    // `datetime-icu`: the date data of what the message formats with the
+    // `icu` natively (`host-std-datetime-icu`, which every native family's
+    // `icu` turns on): the date data of what the message formats with the
     // date functions, or can receive as a date/time argument (02 §4.4), for
     // every backend variant.
-    #[cfg(feature = "datetime-icu")]
+    #[cfg(feature = "host-std-datetime-icu")]
     {
         use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, icu_blob};
         let mut dates = DateNeeds::default();

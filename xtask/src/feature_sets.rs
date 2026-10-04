@@ -294,10 +294,10 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2-fn-datetime"],
         Wasm,
-        "mf2-fn-datetime/datetime-icu,mf2-fn-datetime/datetime-intl",
+        "mf2-fn-datetime/web-icu,mf2-fn-datetime/web-intl",
         false,
         &[Use::Ci(&[Clippy])],
-        "both date backends in the browser, where `Intl` must win (a compile-time check)",
+        "both browser date formatters, where ICU4X must win (a compile-time check)",
     ),
     mf2(
         Wasm,
@@ -361,6 +361,14 @@ pub(crate) const SETS: &[Set] = &[
     ),
     // The host sets. Each is one a plain `--workspace` build does not
     // compile, because cargo unifies `ssr` into `mf2` across the workspace.
+    pkgs(
+        &["mf2-fn-datetime"],
+        Host,
+        "mf2-fn-datetime/compiled-data",
+        false,
+        &[Use::Ci(&[Clippy, Test(&["--test", "icu"])])],
+        "ICU4X's compiled-in data, which no feature of `mf2` turns on: the blob must equal it byte for byte",
+    ),
     mf2(
         Host,
         "leptos,csr,compile,host-std",

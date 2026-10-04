@@ -155,11 +155,12 @@ pub enum Error {
         build: String,
     },
 
-    /// `mf2` has `datetime-icu`, and this `mf2-build` was built without
+    /// A date formatter of `mf2` is `icu` on one side or both, and this
+    /// `mf2-build` was built without
     /// `icu-blob`, which writes ICU4X's date data into the catalogs. A
     /// build-dependency's features cannot come through `links`.
     #[error(
-        "mf2-build: `mf2` has `datetime-icu`, whose catalogs carry ICU4X's date \
+        "mf2-build: a date formatter of `mf2` is `icu`, whose catalogs carry ICU4X's date \
          data: add `features = [\"icu-blob\"]` to this crate's `mf2-build` \
          build-dependency"
     )]

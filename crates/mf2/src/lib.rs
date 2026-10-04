@@ -27,11 +27,11 @@
 //! | `host-std` / `host-web` | a [`Host`]: native (servers, tests, `wasm32-wasip1`), or the browser — with no framework, how an application uses `mf2` |
 //! | **What can messages do?** | |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, `:currency`, `:unit`, localized unannotated numbers |
-//! | `fn-datetime` | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a backend is on; with a Leptos mode, also dates in the reader's time zone |
+//! | `datetime` (2.0's `fn-datetime`) | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
 //! | **Who supplies locale data?** | |
 //! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
-//! | `datetime-icu` | ICU4X on client and server, data from the catalog's `icu.blob` (and [`compile_str`] emits it) |
-//! | `datetime-intl` | the browser's `Intl.DateTimeFormat` on `wasm32-unknown-unknown`; ICU4X with compiled data elsewhere. With `datetime-icu` too, the browser keeps `Intl` and every other target ICU4X over the `icu.blob` |
+//! | `<family>-datetime-<formatter>` | the date formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `icu`, `intl`, `iso`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `icu`, `iso`). `icu` is ICU4X over the catalog's `icu.blob` (and [`compile_str`] emits it), `intl` the browser's `Intl.DateTimeFormat`, `iso` the ISO stand-in. A build formats with the strongest of its own side's: ICU4X, then `Intl`, then ISO; each turns on `datetime` |
+//! | `datetime-icu`, `datetime-intl` | the 2.0 names: `icu` on both sides; `intl` in the browser and `icu` natively |
 //! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `fn-datetime`) |
 //! | **Behaviour and tools** | |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |

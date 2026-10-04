@@ -20,7 +20,8 @@ use crate::features::Features;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Default)]
 pub struct Slice {
-    /// What the date functions need of ICU4X, when `datetime-icu` is on.
+    /// What the date functions need of ICU4X, when either side's date
+    /// formatter is `icu`.
     #[cfg(feature = "icu-blob")]
     pub dates: mf2_locale_data::icu_blob::DateNeeds,
     /// The entries to ask `mf2_locale_data::locale_entries` for.
@@ -44,6 +45,10 @@ pub struct Slice {
 pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Features) -> Slice {
     let mut slice = Slice::default();
     let mut numbers = NumberNeeds::default();
+    // Cut when either side formats with ICU4X: the catalogs are the same
+    // files for the server and the browser.
+    #[cfg(feature = "icu-blob")]
+    let cuts_date_slice = features.cuts_date_slice();
     for message in messages {
         numbers.add_message(message);
         let (cardinal, ordinal) = plural_kinds(message);
@@ -51,7 +56,7 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
         slice.needs.ordinal |= ordinal;
         scan_dynamic(message, &mut slice);
         #[cfg(feature = "icu-blob")]
-        if features.datetime_icu() {
+        if cuts_date_slice {
             slice.dates.add_message(message);
         }
     }
@@ -222,7 +227,7 @@ pub fn is_all(selection: &Selection) -> bool {
     matches!(selection, Selection::All)
 }
 
-/// The `icu.blob` entry a locale needs, when `datetime-icu` is on and the
+/// The `icu.blob` entry a locale needs, when a side's formatter is `icu` and the
 /// corpus formats — or can receive — a date.
 ///
 /// `mf2::compile_str` builds the same entry for one message; every variant of

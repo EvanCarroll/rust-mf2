@@ -99,9 +99,9 @@ pub use config::FILE_NAME as CONFIG_FILE;
 pub use config::Layout;
 pub use config::{CatalogConfig, Config, DataSet, LocaleDataConfig, Missing, Strip};
 pub use error::{Error, Result};
-pub use features::Features;
 #[doc(hidden)]
 pub use features::{BUILTINS, CATALOG_FEATURES, OPTIONS, defines_option};
+pub use features::{DateFormatter, Features, Side};
 pub use lint::{Level, Lint};
 #[doc(hidden)]
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};

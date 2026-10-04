@@ -59,7 +59,8 @@ fn build() -> Result<()> {
 }
 
 /// `mf2`'s features from its `links` metadata, checked against this crate:
-/// the same version, and `icu-blob` when `mf2` has `datetime-icu`.
+/// the same version, and `icu-blob` when either side's date formatter is
+/// `icu` (the build cuts the date slice for both builds).
 fn mf2_features(features: Option<&str>, version: Option<&str>, icu_blob: bool) -> Result<Features> {
     // An empty value is `mf2` with no features; an absent one, a crate that
     // does not name it (or names it only as a build-dependency).
@@ -71,7 +72,7 @@ fn mf2_features(features: Option<&str>, version: Option<&str>, icu_blob: bool) -
             build: ours.to_owned(),
         });
     }
-    if features.datetime_icu() && !icu_blob {
+    if features.cuts_date_slice() && !icu_blob {
         return Err(Error::IcuBlob);
     }
     Ok(features)
@@ -140,5 +141,26 @@ mod tests {
             "add `features = [\"icu-blob\"]` to this crate's `mf2-build` build-dependency"
         ));
         assert!(mf2_features(list, OURS, true).is_ok());
+    }
+
+    #[test]
+    fn an_icu_formatter_on_either_side_needs_icu_blob_here() {
+        for list in [
+            "datetime,host-std-datetime-icu,native-datetime-icu",
+            "datetime,host-web-datetime-icu,leptos-client-datetime-icu",
+            "datetime,host-web-datetime-intl,host-std-datetime-icu",
+            "datetime,host-web-datetime-intl,host-web-datetime-icu",
+        ] {
+            let e = mf2_features(Some(list), OURS, false).expect_err(list);
+            assert!(matches!(e, Error::IcuBlob), "{list}");
+            assert!(mf2_features(Some(list), OURS, true).is_ok(), "{list}");
+        }
+        for list in [
+            "datetime,host-web-datetime-intl,host-std-datetime-iso",
+            "datetime,host-web-datetime-iso,host-std-datetime-iso",
+            "datetime",
+        ] {
+            assert!(mf2_features(Some(list), OURS, false).is_ok(), "{list}");
+        }
     }
 }

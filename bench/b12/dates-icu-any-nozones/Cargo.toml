@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 b12-dates-walk.workspace = true
-mf2-fn-datetime = { workspace = true, features = ["datetime-icu"] }
+mf2-fn-datetime = { workspace = true, features = ["std-icu", "web-icu"] }
 mf2-runtime = { workspace = true }
 
 [lints]

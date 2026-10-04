@@ -65,7 +65,7 @@ impl<'p> Plan<'p> {
     }
 
     /// The request for a host's date formatter (`Host::format_date_time`,
-    /// `datetime-intl`): the instant in [`Plan::zone`]; without a known
+    /// `web-intl`): the instant in [`Plan::zone`]; without a known
     /// offset, the wall time read as UTC, shown in UTC (the same wall
     /// time, but the zone is lost).
     pub fn request(&self) -> DateTimeRequest<'p> {
@@ -78,8 +78,8 @@ impl<'p> Plan<'p> {
 
 /// A date/time backend: turns a [`Plan`] into text. The semantics —
 /// operands, options, errors, zones — are done; a backend only formats.
-/// Implemented by [`crate::Neutral`] (the stub), and by the `datetime-icu`
-/// and `datetime-intl` backends behind features (`plans/11` A6).
+/// Implemented by [`crate::Neutral`] (the stub), and by the ICU4X
+/// (`std-icu`, `web-icu`) and `Intl` (`web-intl`) backends behind features (`plans/11` A6).
 ///
 /// Client-path code: no `core::fmt`, no panics, no allocation.
 pub trait Backend: Sync {

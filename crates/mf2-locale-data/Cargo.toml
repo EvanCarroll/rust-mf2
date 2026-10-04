@@ -55,7 +55,7 @@ icu-blob = [
     "icu_provider/export",
     "icu_provider_export/blob_exporter",
     "icu_time/datagen",
-    "mf2-fn-datetime/datetime-icu",
+    "mf2-fn-datetime/std-icu",
     "postcard/alloc",
 ]
 

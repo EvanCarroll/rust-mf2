@@ -1,0 +1,38 @@
+[package]
+name = "mf2-fn-datetime-web-icu"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "ICU4X for the browser build of Rust MF2's date functions: the crates mf2-fn-datetime's `web-icu` feature formats with, re-exported, so that a native build never compiles them for the browser's sake; no_std."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = true
+readme = "README.md"
+documentation = "https://docs.rs/mf2-fn-datetime-web-icu"
+keywords = ["messageformat", "mf2", "i18n", "datetime", "icu4x"]
+categories = ["internationalization", "date-and-time", "no-std", "wasm"]
+exclude = [
+    # Its own file list (`cargo xtask package`).
+    "package.txt",
+]
+
+# No features: `mf2-fn-datetime` names this crate only for
+# `wasm32-unknown-unknown` and only with `web-icu` (plan/08 §3.4), and then
+# needs all of it. The features are what its ICU4X backend reads the
+# catalog's `icu.blob` with; no compiled data.
+[dependencies]
+icu_calendar.workspace = true
+icu_datetime = { workspace = true, features = ["serde"] }
+icu_locale_core.workspace = true
+icu_provider = { workspace = true, features = ["deserialize_postcard_1"] }
+icu_provider_blob = { workspace = true, features = ["alloc"] }
+icu_time = { workspace = true, features = ["serde"] }
+writeable.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["wasm32-unknown-unknown"]
+
+[lints]
+workspace = true

@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 b12-dates-walk.workspace = true
-mf2-fn-datetime = { workspace = true, features = ["datetime-intl"] }
+mf2-fn-datetime = { workspace = true, features = ["web-intl"] }
 mf2-host-web = { workspace = true, features = ["datetime-intl"] }
 mf2-runtime = { workspace = true }
 
