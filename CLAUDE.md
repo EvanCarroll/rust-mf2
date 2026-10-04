@@ -9,8 +9,10 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 1. Read the documents in `plan/` (not its `archive/`). `plan/01-size-and-features.md` is the
    current proposal: native binary size, the feature structure, and three optimizations.
    `plan/08-dates-and-what-ships-where.md` replaces its date features (owner, 2026-10-03):
-   who formats a date on each side, and what data ships where. Phases 16 to 19 build it;
-   Phase 20 is the release.
+   who formats a date on each side, and what data ships where. **All the code first, then
+   compile, test and measure** (owner, 2026-10-03; `plan/08` §8): Phases 16 to 19 write the
+   code and compile nothing, Phase 20 compiles it, Phase 21 tests it, Phase 22 measures it,
+   each once; Phase 23 is the release.
 2. **Never read, search, list or reference `plan/archive/`.** It holds the plans of phases
    0–10 (the former `plans/` directory) and is kept as history only. Paths such as
    `plans/03-runtime.md` in code comments point into it; do not follow them. If something
@@ -95,7 +97,9 @@ This section is the canonical statement of the rule; other documents point here.
 * `third_party/` is read-only and changes only through `cargo xtask *-sync`.
 * **Agents may stage and commit** as the work needs (owner, 2026-09-21): on
   the current branch, one coherent change per commit, with a message that says
-  why — and, when it moves a budget or a ledger status, why that moved. Never commit with `cargo xtask ci` red. Do **not** push, force,
+  why — and, when it moves a budget or a ledger status, why that moved. Never commit with `cargo xtask ci` red;
+  the one exception is Phases 16 to 21 (owner, 2026-10-03), where code is committed before it
+  is compiled and `ci` first runs in Phase 21: there the phase file says what a commit needs. Do **not** push, force,
   rewrite published history or change git configuration unless the owner says
   so.
 

@@ -9,7 +9,7 @@ each change lands with the binary measured again.
 **The date features are replaced** (owner, 2026-10-03):
 `plan/08-dates-and-what-ships-where.md` supersedes what §3.3 and §3.4 say
 about `fn-datetime`, `datetime-icu`, `datetime-intl` and both date backends
-on at once. It adds Phases 16 to 19, and the release is now Phase 20 (§7).
+on at once. It adds Phases 16 to 22, and the release is now Phase 23 (§7).
 
 ## 1. The case study: trippy
 
@@ -483,11 +483,20 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
 | 15 | `plan/06-phase-15-costs-and-guide.md` | Costs per feature, the guide, the upgrade page |
 | 16 | `plan/09-phase-16-date-features.md` | The date families, one formatter per build, the errors, the tools (`plan/08`) |
 | 17 | `plan/10-phase-17-data-where-read.md` | The server-only table, `number-intl`'s data, ISO on the server (`plan/08`) |
-| 18 | `plan/11-phase-18-icu-and-numbers.md` | The narrowest ICU4X, the cache, date speed in a browser, the number split (`plan/08`) |
-| 19 | `plan/12-phase-19-report-and-guide.md` | The report of what ships where, the costs, the guide, the samples, a cold start (`plan/08`) |
-| 20 | `plan/13-phase-20-release.md` | Release 3.0.0 |
+| 18 | `plan/11-phase-18-icu-and-numbers.md` | The narrowest ICU4X, the cache, the number split, the harness for date speed in a browser (`plan/08`) |
+| 19 | `plan/12-phase-19-report-and-guide.md` | The report of what ships where, the cost table's rows, the guide, the samples, the plan pointers in the code (`plan/08`) |
+| 20 | `plan/13-phase-20-compile.md` | Everything Phases 16 to 19 wrote compiles |
+| 21 | `plan/14-phase-21-test.md` | `ci` and the suite pass, once; a cold start |
+| 22 | `plan/15-phase-22-measure.md` | Every figure, the owner's report, the number split asked |
+| 23 | `plan/16-phase-23-release.md` | Release 3.0.0 |
 
 They run in that order; each starts when the one before it is done.
+
+**Phases 16 to 22 are run differently** (owner, 2026-10-03; `plan/08` §8):
+Phases 16 to 19 write all the code and compile nothing, and Phases 20 to 22
+then compile, test and measure it, once. What "How a phase is run" says
+below about `cargo xtask ci` after each task and a "Phase exit" run holds
+for Phases 11 to 15 and for the release.
 
 **How a phase is run.** A coordinator keeps a small session and reads the
 phase file only. For each task, in order, it starts one `mf2-task` agent with

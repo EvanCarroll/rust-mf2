@@ -3,8 +3,9 @@
 Status: **proposal, 2026-10-03, with the owner's decisions of that day (§2).**
 It replaces what `plan/01-size-and-features.md` says about the date features
 (its §3.3 and §3.4: `fn-datetime`, `datetime-icu`, `datetime-intl`, "both date
-backends on at once"). The rest of `plan/01` stands. Phases 16 to 19 build
-this; Phase 20 is the release (§8).
+backends on at once"). The rest of `plan/01` stands. Phases 16 to 19 write
+this, Phases 20 to 22 compile, test and measure it, and Phase 23 is the
+release (§8).
 
 ## 1. What was found
 
@@ -140,6 +141,8 @@ Arabic short one in Chromium; narrow no-break space against space.
 8. **In 3.0:** the narrowest ICU4X per corpus, the formatter cache, and the
    report of what ships where. **Not in 3.0:** a date formatter of our own in
    place of ICU4X.
+9. **All the code first; then it is compiled, then tested, then measured**
+   (§8). No test run and no measurement after each task or each phase.
 
 ## 3. The date features
 
@@ -419,29 +422,68 @@ browser.
 
 ## 8. The phases
 
-| Phase | File | What |
-|---|---|---|
-| 16 | `plan/09-phase-16-date-features.md` | The families, one formatter per build, the errors, the tools |
-| 17 | `plan/10-phase-17-data-where-read.md` | The server-only table, `number-intl`'s data, ISO on the server |
-| 18 | `plan/11-phase-18-icu-and-numbers.md` | The narrowest ICU4X, the cache, date speed in a browser, the number split |
-| 19 | `plan/12-phase-19-report-and-guide.md` | The report, the costs, the canaries, the guide, the samples, a cold start |
-| 20 | `plan/13-phase-20-release.md` | Release 3.0.0 |
+**All the code first; then it is compiled, then tested, then measured**
+(owner, 2026-10-03). A full run of the check suite takes over an hour on the
+owner's machine (73 minutes at Phase 14's exit), and the first order of
+these phases had one `cargo xtask ci` after every task and one full suite
+after every phase: seventeen of the one and six of the other. Now the long
+runs happen once, after all the code is in.
 
-They run in that order, as `plan/01` §7 describes. Phase 15's tasks 15.4 and
-15.5 are Phase 19's 19.5 and 19.6.
+| Phase | File | What | What runs |
+|---|---|---|---|
+| 16 | `plan/09-phase-16-date-features.md` | The tools of this order; the families, one formatter per build, the errors, the tools | nothing: code only |
+| 17 | `plan/10-phase-17-data-where-read.md` | The server-only table, `number-intl`'s data, ISO on the server | nothing: code only |
+| 18 | `plan/11-phase-18-icu-and-numbers.md` | The narrowest ICU4X, the cache, the number split, the harness for date speed in a browser | nothing: code only |
+| 19 | `plan/12-phase-19-report-and-guide.md` | The report, the cost table's rows, the canaries, the guide, the samples, the plan pointers in the code | nothing: code only |
+| 20 | `plan/13-phase-20-compile.md` | Everything compiles | builds; no test |
+| 21 | `plan/14-phase-21-test.md` | Everything passes; a cold start | `ci` and the suite, once |
+| 22 | `plan/15-phase-22-measure.md` | Every figure; the owner's report; the number split is asked | the measurements, once |
+| 23 | `plan/16-phase-23-release.md` | Release 3.0.0 | the pre-flight, then the owner's word |
+
+They run in that order. Phase 15's task 15.4 is 19.5, and its 15.5, the cold
+start, is 21.6. Phase 15's exit took no run of its own.
+
+**What this order changes.**
+
+* **Phases 16 to 19:** a task is done when its code and its tests are
+  written and committed. It compiles nothing, runs nothing and measures
+  nothing. `cargo fmt`, `cargo metadata` and `cargo tree` are allowed: they
+  compile nothing, and they catch a syntax error or a manifest that does not
+  resolve. One coordinating session can run all four files in a row.
+* **Phase 20** gets every compile error of the four phases at once, and
+  fixes them crate by crate.
+* **Phase 21** runs `ci` and the suite once each, finds every failure in
+  that run, and confirms each fix with the narrowest command that shows it.
+* **Phase 22** takes every figure once. There is **no figure per task**: a
+  change is measured against a switch that turns it off in the same tree,
+  or against a figure recorded before the code went in (§1.2, the suite's
+  table `p14`, the cost table). When a figure moves and nothing explains it,
+  finding the change that moved it is extra work there, and may fail; the
+  figure is then reported as not attributed.
+* **Decision 1 stands:** every figure that moved the wrong way reaches the
+  owner, in Phase 22's one report, not task by task.
+* **The owner is stopped for three things only:** a choice the design does
+  not settle, Phase 22's report and its question, and the word to publish.
+* Between Phase 16's first commit and Phase 21's exit, `main` holds commits
+  that have not been through `ci` (`CLAUDE.md`, Conventions).
 
 ## 9. Not verified
 
 * **The speed of `Intl` against ICU4X for a date in a browser.** No
-  measurement exists. Task 18.3 makes it.
+  measurement exists. Task 18.3 writes the harness and Phase 22 runs it
+  (22.8).
 * **That a browser build under `number-intl` reads no number entry.** The
   September probe says so; task 17.2 reads the code before it moves them.
 * **What the narrow ICU4X forms save natively.** Only the browser's figures
   exist.
 * **What a date feature costs a browser client that shows no date** and has
   a plain placeholder (F10 in the browser). The native figure exists; task
-  19.2 measures this one.
+  19.2 writes the row and Phase 22 measures this one (22.3).
 * **How a date argument carries a calendar**, and whether the build can see
   it. Task 18.1 finds out; until then §5.1's fallback stands.
 * **Cargo accepting one package under two dependency names, one per
-  target.** Task 16.1 tries it and falls back to a crate of its own.
+  target.** Task 16.1 tries it with `cargo tree`, which compiles nothing,
+  and falls back to a crate of its own.
+* **What `[profile.dev] opt-level = 1` does to the whole workspace's test
+  time.** Measured on the conformance crate only (task 16.0). Phase 21
+  measures the rest (21.1).

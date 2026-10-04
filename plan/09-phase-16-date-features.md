@@ -1,7 +1,8 @@
-# Phase 16 — the date features
+# Phase 16 — the date features (code)
 
-The first of the four phases of `plan/08-dates-and-what-ships-where.md`.
-After it, a date formatter is chosen per side, under the framework's name;
+The first of the four code phases of
+`plan/08-dates-and-what-ships-where.md`. After it, the code is written by
+which a date formatter is chosen per side, under the framework's name;
 `fn-datetime`, `datetime-icu` and `datetime-intl` are gone; no build links
 ICU4X's compiled-in data; and a build with dates and no formatter says what
 to write.
@@ -9,20 +10,26 @@ to write.
 The date slice still goes into every catalog in this phase. Phase 17 moves
 it.
 
+**Code only** (`plan/08` §8; owner, 2026-10-03). Nothing is compiled, tested
+or measured here. Phase 20 compiles it, Phase 21 tests it, Phase 22 measures
+it. Its first task, 16.0, is the tooling those three phases use.
+
 ## How to run this phase
 
 The session given this file is the coordinator. It checks "Before this
 phase", then takes the tasks in order: it sets "In flight" to the task,
-starts one `mf2-task` agent with a brief of three lines (the task's number,
-this file, the design section the task names), waits for its report, and
-goes on. It reads no code itself. After the last task it carries out "Phase
-exit", then stops: the next phase starts in a fresh session.
+starts one `mf2-task` agent with a brief of four lines (the task's number,
+this file, the design section the task names, and "nothing is compiled in
+this phase: the file's standing rules replace `cargo xtask ci`"), waits for
+its report, and goes on. It reads no code itself and runs no build. After the
+last task it adds a Done line for the phase and goes straight on to Phase 17
+(`plan/10`) in the same session. It stops only for an owner question.
 
 ## State
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.1
+* **Next:** 16.0
 
 ## Done
 
@@ -30,25 +37,98 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## Before this phase
 
-* Phase 15's tasks 15.1 to 15.3 are done, and its exit is recorded
-  (`plan/06`): the label `p15` exists for `tools/checks/run.sh`.
+* Phase 15's tasks 15.1 to 15.3 are done (`plan/06`). Its exit took no run:
+  the baseline is the label `p14` of `tools/checks/run.sh`, with the figures
+  of `plan/08` §1.2 (`plan/15`, "The baseline").
+* No tracked file has an uncommitted change (`git status --short`).
 
 ## Standing rules
 
 * Never read, search or list `plan/archive/`. Restrict every `rg` to named
   directories.
-* One task, one `mf2-task` agent, one coherent commit by path, with
-  `cargo xtask ci` green. One build at a time, `CARGO_BUILD_JOBS=3`.
-* **A figure that moves the wrong way is the owner's to see**
-  (`plan/08` §2.1). The agent puts it in its report with the command; the
-  coordinator tells the owner in plain English before the next task starts.
-  A figure that was not measured is reported as not measured.
+* **Nothing is compiled.** No `cargo build`, `check`, `clippy`, `test`,
+  `run`, `doc` or `bench`, no `cargo xtask`, no `cargo leptos`, nothing under
+  `tools/checks/`, no browser run. Three commands are allowed, because they
+  compile nothing: `cargo fmt` (it also finds syntax errors),
+  `cargo metadata` and `cargo tree` (they show that the manifests resolve).
+* One task, one `mf2-task` agent, one coherent commit by path. The commit is
+  made when the task's code and tests are written, `cargo fmt --all --check`
+  passes and `cargo metadata --format-version 1` resolves. A file outside
+  the workspace is formatted with `rustfmt --edition 2024 <file>`.
+* **Write for a compiler that runs later.** Read the definition of everything
+  the task calls or changes, and every caller of what it changes (`rg -n`).
+  A caller left as it was is Phase 20's compile error.
+* **Tests are written, not run.** Each task's "Tests" are written in the
+  task and first run in Phase 21. No task weakens or removes a test.
+* **Figures are Phase 22's.** A task takes no baseline and measures nothing.
+  Its report says in one line what it expects to move, and which way.
+* What a task could not confirm by reading goes under "For Phase 20", one
+  line: what, and where.
 * The guide (`docs/`) is Phase 19's. A task here changes a page only where a
   check would otherwise fail, and says so in its report.
-* If the design does not settle a choice, or a budget or gate would break,
-  stop at a safe point and report to the coordinator. The owner decides.
+* If the design does not settle a choice, stop at a safe point and report to
+  the coordinator. The owner decides.
 
 ## Tasks
+
+### 16.0 The tools of the new order
+
+Design: `plan/08` §8.
+
+Three commits, in this order.
+
+**1. Tests that take minutes.** A full run of the check suite took 73
+minutes at `p14` (2026-10-03), and `cargo xtask ci` was 31 of them. On that
+warm tree cargo reported 4 seconds of compiling, and the tests ran for 1,721
+of `ci`'s 1,878 seconds: the time is the tests themselves, built without
+optimization (`bash tools/checks/test-times.sh target/p10-checks/p14/ci.log`).
+Seven test binaries are 1,559 s of it:
+
+| Test binary | s |
+|---|---:|
+| `conformance/tests/generated_l4.rs` (3,000 generated messages, one thread) | 594 |
+| `conformance/tests/generated_l3.rs` (the same) | 491 |
+| the conformance crate's unit tests | 137 |
+| `conformance/tests/layers.rs` | 135 |
+| `crates/mf2-catalog/tests/roundtrip.rs` | 76 |
+| `conformance/tests/goldens.rs` | 73 |
+| `conformance/tests/build_differential.rs` | 54 |
+
+Build:
+
+* `[profile.dev] opt-level = 1` in the workspace's `Cargo.toml`, with a
+  comment that says why. Debug assertions and overflow checks stay on.
+  Measured on 2026-10-03 on the conformance crate alone, beside another
+  project's build: its tests ran in 297 s against 1,369 s (`generated_l4`
+  75 s, `generated_l3` 74 s, the unit tests 67 s, `layers` 58 s), all
+  passing; building them from nothing took 287 s
+  (`CARGO_PROFILE_DEV_OPT_LEVEL=1 cargo test -p mf2-conformance`).
+* `generated_l3` and `generated_l4` run their cases on scoped threads, one
+  per `std::thread::available_parallelism`: the same cases from the same
+  seed, the counts merged before the closing assertions, a failing case
+  still named with its number and its message.
+
+The workspace's total has not been measured. Phase 21 measures it (21.1)
+against 1,721 s, and names any binary that still takes two minutes.
+
+**2. `cargo xtask ci --compile`.** The cargo steps of `ci` with nothing run:
+`fmt --check`, every `clippy` step as it is, every `test` step with
+`--no-run`; none of the closing checks (`refusals`, `docs`,
+`conformance-report`, `api`, `package`). Phase 20 runs it.
+
+**3. `cargo xtask ci --keep-going`.** Every step runs, a failed one does not
+stop the rest, `cargo test` gets `--no-fail-fast`, and the failed steps are
+listed at the end with exit 1. Phase 21 runs it, so that one run finds every
+failure.
+
+Plain `cargo xtask ci`, which `.forgejo/workflows/ci.yml` runs, does what it
+does today.
+
+Starts at: `Cargo.toml` (`[profile.release]`);
+`conformance/tests/generated_l3.rs`, `generated_l4.rs`; `xtask/src/ci.rs`
+(`steps`, `run`), `xtask/src/main.rs` (`Command::Ci`), `xtask/src/error.rs`.
+
+Done when: the three commits are made.
 
 ### 16.1 One formatter per side
 
@@ -61,11 +141,13 @@ Build:
   "both on" become checks of the strongest-wins rule. `Icu<_, _, Compiled>`
   moves behind a feature of this crate that nothing in `mf2` turns on.
 * ICU4X as a dependency of one side: a browser build compiles `icu_*` only
-  with `web-icu`, a native build only with `std-icu`.
+  with `web-icu`, a native build only with `std-icu`. Try §3.4's first way
+  (one package under two dependency names, one per target) with
+  `cargo tree`, which compiles nothing; if Cargo refuses it, the ICU4X
+  backend gets a crate of its own.
 * `mf2`: the feature `datetime` and the fourteen family features of §3.4.
   `fn-datetime`, `datetime-icu` and `datetime-intl` stay for this task, as
-  the 3.0 lines of §3.6 write them, so that the tree keeps building; 16.2
-  removes them.
+  the 3.0 lines of §3.6 write them; 16.2 removes them.
 * `mf2-build`: `Features` answers "which formatter, on which side". The
   slice is cut when either side's formatter is `icu`, and `icu-blob` is
   required then (`run.rs`, `slice.rs`). It still goes into the catalog.
@@ -74,11 +156,15 @@ Starts at: `crates/mf2-fn-datetime/Cargo.toml`, `src/lib.rs`, `src/icu.rs`;
 `crates/mf2/Cargo.toml`, `src/__generated.rs` (`__use_host!`);
 `crates/mf2-build/src/features.rs`, `run.rs`, `slice.rs`.
 
-Done when: a test for each rule of §3.2 on each side;
+Tests (written here, run in Phase 21): one for each rule of §3.2 on each
+side.
+
+Done when: the code and the tests are committed, and
 `cargo tree -p mf2 --target wasm32-unknown-unknown -e normal` lists no
-`icu_*` crate with `host-web-datetime-intl` and `host-std-datetime-icu` on;
-the native canary with `native-datetime-icu` is within 1 % of 893,136 B and
-nowhere near 5 MB; `cargo xtask ci` is green. The report gives both figures.
+`icu_*` crate with `host-web-datetime-intl` and `host-std-datetime-icu` on.
+
+Phase 22 measures: the native canary with `native-datetime-icu`, which must
+be within 1 % of 893,136 B and nowhere near 5 MB.
 
 ### 16.2 The old names go
 
@@ -102,8 +188,7 @@ tools conformance bench examples fuzz .forgejo .github`. About forty files
 name each. `docs/` and `README.md` are Phase 19's.
 
 Done when: that `rg` finds only generated records that their generator
-rewrites; `cargo xtask ci`, `cargo xtask docs-rs` and `cargo xtask api` are
-green.
+rewrites, and the report lists them. Phase 21 runs the generators (21.2).
 
 ### 16.3 The build says what to write
 
@@ -123,18 +208,26 @@ Build:
   line to add.
 * `mf2 check`: per side, the formatter in force, and the features to write.
   `--format json` has the same. The "both backends" lines go.
-* `mf2 init`: the starters name no date feature; a test holds that.
+* `mf2 init`: the starters name no date feature.
 
 Starts at: `crates/mf2-build/src/lint.rs`, `error.rs`;
 `crates/mf2-cli/src/feature_list.rs`, `init.rs`; `docs/lints.md` for the two
 lint entries only.
 
-Done when: a test per message; `cargo xtask ci` green.
+Tests (written here, run in Phase 21): one per message; and one that holds
+the starters of `mf2 init` to naming no date feature.
+
+## For Phase 20
+
+One line per task, only for what could not be confirmed by reading.
+
+(nothing yet)
 
 ## Phase exit (coordinator)
 
-1. `bash tools/checks/run.sh p16 --against p15`.
-2. Tell the owner, in plain English, what moved: the client's bytes with
-   `intl` against 15.2a's 703,921 B; the native canary with `icu` and with
-   `iso`; that the browser still downloads the slice until Phase 17.
-3. Add a Done entry for the exit.
+No run. The suite against the baseline is Phase 21's, and what the owner is
+told — the client's bytes with `intl` against 15.2a's 703,921 B, the native
+canary with `icu` and with `iso` — is in Phase 22's report.
+
+1. Add a Done line for the phase.
+2. Go on to Phase 17 (`plan/10-phase-17-data-where-read.md`).

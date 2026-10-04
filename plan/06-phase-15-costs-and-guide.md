@@ -19,10 +19,10 @@ fresh session.
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** the phase exit. 15.4 and 15.5 moved to Phase 19 (owner,
+* **Next:** nothing; the phase is closed. Phase 16 is next
+  (`plan/09-phase-16-date-features.md`). 15.4 and 15.5 moved (owner,
   2026-10-03): the date features are being replaced
   (`plan/08-dates-and-what-ships-where.md`), and both tasks depend on them.
-  After the exit, Phase 16 (`plan/09-phase-16-date-features.md`).
 
 ## Done
 
@@ -45,6 +45,9 @@ fresh session.
   `FnContext::equivalent` lines merged; new lines for `links = "mf2-v3"` and both date backends).
   `docs/versioning.md`: `mf2`'s feature names promised; sub-crate features and the `links`
   metadata not; 2.0.0 on crates.io, 3.0.0 next. No upgrade section (owner, 2026-10-03).
+* **Exit** Not run on its own (owner, 2026-10-03: all the code first, then compile, test and
+  measure; `plan/08` §8). The baseline is `p14`'s table, the exit of Phase 14 (`plan/15`, "The
+  baseline"): Phase 21 runs the suite against it, and Phase 22 checks the guide's figures.
 
 ## Before this phase
 
@@ -175,14 +178,18 @@ samples name date features, and Phase 16 renames those
 
 ### 15.5 A cold start
 
-Moved to Phase 19, as 19.6: the trial reads the guide, and Phase 19 rewrites
-its date pages.
+Moved to Phase 21, as 21.6 (`plan/14-phase-21-test.md`): the trial reads the
+guide, whose date pages Phase 19 rewrites, and builds from it, so it needs a
+tree that compiles and passes.
 
 ## Phase exit (coordinator)
 
-1. `bash tools/checks/run.sh p15 --against p14`. Nothing should move in
-   size. This is also the baseline Phase 16 compares with.
-2. Read `docs/features.md` once as a user would, and confirm that every
-   figure in it comes from 15.1's table. Its date sections describe features
-   that Phase 16 replaces; Phase 19 rewrites them.
-3. Add a Done entry for the exit.
+Not run on its own (owner, 2026-10-03; see Done). Its three steps went to
+the phases that follow the code:
+
+1. The suite's run, `bash tools/checks/run.sh p15 --against p14`, is Phase
+   21's `p21 --against p14` (21.4).
+2. Reading `docs/features.md` once as a user would, and confirming that
+   every figure in it comes from the cost table, is Phase 22's (22.10), after
+   Phase 19 has rewritten its date sections and the table is new.
+3. The Done entry is above.

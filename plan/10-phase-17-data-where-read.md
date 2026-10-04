@@ -1,19 +1,25 @@
-# Phase 17 — data goes only where it is read
+# Phase 17 — data goes only where it is read (code)
 
-The second phase of `plan/08-dates-and-what-ships-where.md`. After it, a
-browser that formats dates with `Intl` downloads no date data, a browser
-under `number-intl` downloads no number data, the build cannot write an
-entry where nothing reads it, and a server that writes ISO dates has them
-localized once the page hydrates.
+The second phase of `plan/08-dates-and-what-ships-where.md`. After it, the
+code is written by which a browser that formats dates with `Intl` downloads
+no date data, a browser under `number-intl` downloads no number data, the
+build cannot write an entry where nothing reads it, and a server that writes
+ISO dates has them localized once the page hydrates.
+
+**Code only** (`plan/08` §8; owner, 2026-10-03). Nothing is compiled, tested
+or measured here. Phase 20 compiles it, Phase 21 tests it, Phase 22 measures
+it.
 
 ## How to run this phase
 
 The session given this file is the coordinator. It checks "Before this
 phase", then takes the tasks in order: it sets "In flight" to the task,
-starts one `mf2-task` agent with a brief of three lines (the task's number,
-this file, the design section the task names), waits for its report, and
-goes on. It reads no code itself. After the last task it carries out "Phase
-exit", then stops: the next phase starts in a fresh session.
+starts one `mf2-task` agent with a brief of four lines (the task's number,
+this file, the design section the task names, and "nothing is compiled in
+this phase: the file's standing rules replace `cargo xtask ci`"), waits for
+its report, and goes on. It reads no code itself and runs no build. After the
+last task it adds a Done line for the phase and goes straight on to Phase 18
+(`plan/11`) in the same session. It stops only for an owner question.
 
 ## State
 
@@ -27,22 +33,37 @@ exit", then stops: the next phase starts in a fresh session.
 
 ## Before this phase
 
-* Phase 16 is done: the family features exist and the old names are gone.
+* Phase 16's tasks are committed: the family features exist in the code and
+  the old names are gone from it.
 
 ## Standing rules
 
 * Never read, search or list `plan/archive/`. Restrict every `rg` to named
   directories.
-* One task, one `mf2-task` agent, one coherent commit by path, with
-  `cargo xtask ci` green. One build at a time, `CARGO_BUILD_JOBS=3`.
-* **A figure that moves the wrong way is the owner's to see**
-  (`plan/08` §2.1). The agent puts it in its report with the command; the
-  coordinator tells the owner in plain English before the next task starts.
-* **The client's bytes do not move** in 17.1, 17.2 and 17.4. `cargo xtask
-  size` before and after is in each report.
+* **Nothing is compiled.** No `cargo build`, `check`, `clippy`, `test`,
+  `run`, `doc` or `bench`, no `cargo xtask`, no `cargo leptos`, nothing under
+  `tools/checks/`, no browser run. Three commands are allowed, because they
+  compile nothing: `cargo fmt` (it also finds syntax errors),
+  `cargo metadata` and `cargo tree` (they show that the manifests resolve).
+* One task, one `mf2-task` agent, one coherent commit by path. The commit is
+  made when the task's code and tests are written, `cargo fmt --all --check`
+  passes and `cargo metadata --format-version 1` resolves. A file outside
+  the workspace is formatted with `rustfmt --edition 2024 <file>`.
+* **Write for a compiler that runs later.** Read the definition of everything
+  the task calls or changes, and every caller of what it changes (`rg -n`).
+  A caller left as it was is Phase 20's compile error.
+* **Tests are written, not run.** Each task's "Tests" are written in the
+  task and first run in Phase 21. No task weakens or removes a test.
+* **Figures are Phase 22's.** A task takes no baseline and measures nothing.
+  Its report says in one line what it expects to move, and which way.
+* **The client's bytes must not move** in 17.1, 17.2 and 17.4: `server-data`
+  is off in a client build, and nothing these tasks add may be reachable
+  from one. Phase 22 measures it once, for all of them.
+* What a task could not confirm by reading goes under "For Phase 20", one
+  line: what, and where.
 * The guide (`docs/`) is Phase 19's.
-* If the design does not settle a choice, or a budget or gate would break,
-  stop at a safe point and report to the coordinator. The owner decides.
+* If the design does not settle a choice, stop at a safe point and report to
+  the coordinator. The owner decides.
 
 ## Tasks
 
@@ -72,20 +93,19 @@ Starts at: `crates/mf2-catalog/src/reader.rs` (`locale_entry`, `Bytes`),
 (`CATALOG_FEATURES`); `crates/mf2/src/leptos/catalog.rs`,
 `crates/mf2/src/axum/serve.rs`; `crates/mf2-cli/src/stats.rs`.
 
-Done when:
+Tests (written here, run in Phase 21):
 
 * with `leptos-client-datetime-intl` and `leptos-server-datetime-icu`, a
   catalog has no entry 48 and is byte for byte the catalog of the same
   corpus built with no date formatter in native code;
-* the server formats the date goldens as before
-  (`conformance/goldens/dates.tsv`);
 * with `leptos-client-datetime-icu`, the slice is in the catalog and no
   table is written;
-* the client's bytes are unchanged; `cargo xtask ci` is green.
+* the server formats the date goldens as before
+  (`conformance/goldens/dates.tsv`): the existing test, unchanged.
 
-The report gives a catalog's brotli bytes before and after for a corpus
-with a zone name. `plan/08` §1.2 measured 15,607 to 17,781 B of slice per
-language.
+Phase 22 measures: the client's bytes (unchanged); a catalog's brotli bytes
+with the slice in it and with the slice in the table, for a corpus with a
+zone name. `plan/08` §1.2 measured 15,607 to 17,781 B of slice per language.
 
 ### 17.2 `number-intl` sends no number data
 
@@ -102,9 +122,12 @@ holds them.
 Starts at: `crates/mf2-runtime/src/number.rs`, `number/intl.rs`,
 `plural.rs`; `crates/mf2-fn-number/src/`; `crates/mf2-build/src/slice.rs`.
 
-Done when: a test of the placement for each entry; `cargo xtask l4-web`
-passes with the `intl` entries; `cargo xtask ci` green. The report gives the
-catalog's bytes before and after for a corpus with a variable currency code.
+Tests (written here, run in Phase 21): the placement of each entry, with
+`number-intl` on and off. Phase 21 also runs `cargo xtask l4-web` with the
+`intl` entries.
+
+Phase 22 measures: a catalog's bytes with `number-intl` on and off, for a
+corpus with a variable currency code.
 
 ### 17.3 ISO on the server, another formatter in the browser
 
@@ -119,11 +142,14 @@ sides, or ICU4X on the server and `Intl` in the browser, nothing changes.
 Starts at: `crates/mf2/src/leptos/zone.rs` (`correction`), `links.rs`
 (`ZONE_ATTR`), `registry.rs`; the browser harness of `cargo xtask l7-web`.
 
-Done when: a browser test in the three engines: a page rendered with
-`leptos-server-datetime-iso` shows the browser's localized date after
-hydration, and one rendered with `leptos-server-datetime-icu` is not
-rewritten. The report gives the client's bytes before and after; this task
-may move them, and the coordinator tells the owner by how much.
+Tests (written here, run in Phase 21): a browser test in the three engines:
+a page rendered with `leptos-server-datetime-iso` shows the browser's
+localized date after hydration, and one rendered with
+`leptos-server-datetime-icu` is not rewritten.
+
+Phase 22 measures: what this task adds to the client. It is the one task of
+this phase that may move the client's bytes, and the owner is told by how
+much.
 
 ### 17.4 Nothing is written unread
 
@@ -131,19 +157,26 @@ Design: `plan/08` §7, `unread-data`.
 
 Build: after slicing, `mf2-build` checks each entry's place against its
 readers and fails with `unread-data` if an entry would go where none of them
-looks. A test runs the check over every feature set of
-`xtask/src/feature_sets.rs` and every corpus of the fixtures.
+looks.
 
 Starts at: `crates/mf2-build/src/catalog.rs`, `lint.rs`;
 `xtask/src/feature_sets.rs`.
 
-Done when: the test passes, a deliberately wrong placement fails it, and
-`cargo xtask ci` is green.
+Tests (written here, run in Phase 21): the check over every feature set of
+`xtask/src/feature_sets.rs` and every corpus of the fixtures; and a
+deliberately wrong placement, which must fail it.
+
+## For Phase 20
+
+One line per task, only for what could not be confirmed by reading.
+
+(nothing yet)
 
 ## Phase exit (coordinator)
 
-1. `bash tools/checks/run.sh p17 --against p16`.
-2. Tell the owner, in plain English: a browser catalog's bytes before and
-   after, with and without a zone name; the server binary's bytes; what 17.3
-   added to the client.
-3. Add a Done entry for the exit.
+No run. The suite against the baseline is Phase 21's, and what the owner is
+told — a browser catalog's bytes with and without a zone name, the server
+binary's bytes, what 17.3 added to the client — is in Phase 22's report.
+
+1. Add a Done line for the phase.
+2. Go on to Phase 18 (`plan/11-phase-18-icu-and-numbers.md`).

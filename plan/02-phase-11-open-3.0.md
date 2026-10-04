@@ -61,7 +61,7 @@ stops: the next phase starts in a fresh session.
   flight, and `--allow-dirty` reads the working tree, so it is not a snapshot
   of one commit. It is good evidence that 3.0.0 is publishable and that the
   version bump did what 11.1 intended; the record that counts for the release
-  is the release phase's pre-flight (now Phase 20), which runs the same command
+  is the release phase's pre-flight (now Phase 23), which runs the same command
   on a quiet tree.
 
   **Phase 11 is closed.**
