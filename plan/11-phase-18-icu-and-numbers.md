@@ -23,7 +23,7 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 18.2. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 18.2
 
@@ -180,6 +180,8 @@ the owner.
 One line per task, only for what could not be confirmed by reading.
 
 * 18.1: the `api.txt` of `mf2-build`, `mf2-locale-data`, `mf2-fn-datetime` (new public items) need regenerating; `AnyCalendarKind::try_new_unstable(&Src, …)` in `icu_blob.rs` must resolve against the baked `Src`.
+* Coordinator, from the session's rust-analyzer after 18.1: `conformance/tests/date_forms.rs`
+  lines 28–37 trip `unreachable_pub` (a `pub` item in a test file; ci denies warnings).
 
 ## Phase exit (coordinator)
 
