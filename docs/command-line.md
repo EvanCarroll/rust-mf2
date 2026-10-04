@@ -196,19 +196,19 @@ server embeds beside it). The bundles are the messages; each part of a
 catalog that can be left out (`cold` and `ids`, which `[catalog] strip`
 removes, `fallback` and `nfc`); each piece of locale data in the catalog;
 and each piece in the server-only table. A closing line gives the bytes a
-browser downloads and never reads, which is 0. A hydrated application that
+browser downloads and never reads, which is 0 unless `strip` is turned
+off: the browser reads neither `cold` nor `ids`, so a browser's catalog that
+carries them counts their bytes there. A hydrated application that
 formats numbers with `Intl` (`number-intl`) shows it like this:
 
 ```text
 what ships where (raw bytes, who reads it, where it ships):
   en
     messages               371 B  the browser and native code  catalog
-    ids                     19 B  the browser and native code  catalog
     plural.cardinal          5 B  native code alone            server-only table
     number.symbols          12 B  native code alone            server-only table
   fr
     messages               380 B  the browser and native code  catalog
-    ids                     19 B  the browser and native code  catalog
     plural.cardinal         16 B  native code alone            server-only table
     number.symbols          14 B  native code alone            server-only table
 bytes a browser downloads and never reads: 0 B

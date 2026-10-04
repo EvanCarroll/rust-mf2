@@ -738,6 +738,36 @@ fn stats_says_what_ships_where() {
         }
     }
 
+    // With `[catalog] strip` turned off, the browser's catalog carries the
+    // cold data and the id table, which only native code reads: their bytes
+    // are the ones a browser downloads and never reads.
+    std::fs::write(
+        dir.join("mf2.toml"),
+        "source_locale = \"en\"\n\n[catalog]\nstrip = []\n",
+    )
+    .expect("write");
+    let features = "hydrate,fn-number,leptos-client-datetime-intl";
+    let kept = stats(features);
+    let mut unread_total = 0;
+    for locale in kept["locales"].as_array().expect("an array") {
+        let ids = bundle(locale, "ids").expect("the id table");
+        assert_eq!(ids["ships"], "catalog", "{ids}");
+        assert_eq!(
+            (&ids["browser"], &ids["native"]),
+            (&false.into(), &true.into())
+        );
+        let bytes = ids["bytes"].as_u64().expect("a number");
+        assert!(bytes > 0, "{ids}");
+        let cold = bundle(locale, "cold").map_or(0, |c| {
+            assert_eq!(c["browser"], false, "{c}");
+            c["bytes"].as_u64().expect("a number")
+        });
+        assert_eq!(locale["unread_by_browser"], bytes + cold, "{locale}");
+        unread_total += bytes + cold;
+    }
+    assert_eq!(kept["unread_by_browser"], unread_total, "{kept}");
+    std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
+
     // The text says the same, and closes with the unread bytes.
     let text = ok(&run(
         &dir,

@@ -586,8 +586,12 @@ impl Catalog {
     /// The catalog's bundles add up to its raw bytes: `messages` is what is
     /// left after the optional sections and the LOCALE entries' payloads,
     /// so it holds the header, the section table and the LOCALE section's
-    /// own framing. The sections are read through the one reader both
-    /// sides share, so their readers are the messages' own.
+    /// own framing. `fallback` and `nfc` are read on both sides, as the
+    /// messages are: the client asks which language lent a message its
+    /// text, and matches keys through the canonical-equivalence map. `cold`
+    /// (only `mf2 dump` decodes it) and `ids` (the client formats by
+    /// message number) are read by native code alone, so a browser catalog
+    /// built with `[catalog] strip` turned off counts them as unread.
     pub fn bundles(&self, features: &Features, downloaded: bool) -> Vec<Bundle> {
         let sections = sections(&self.bytes);
         // The messages: a browser reads them when it downloads the catalog,
@@ -609,7 +613,16 @@ impl Catalog {
                         .unwrap_or("section")
                         .to_ascii_lowercase(),
                     bytes,
-                    readers: shared,
+                    readers: if kind == mf2_catalog::format::section::COLD
+                        || kind == mf2_catalog::format::section::IDS
+                    {
+                        Readers {
+                            browser: false,
+                            native: true,
+                        }
+                    } else {
+                        shared
+                    },
                     place: Place::Catalog,
                 });
             }
