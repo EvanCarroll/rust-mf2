@@ -1,10 +1,10 @@
 //! What an application's i18n crate writes: parse `locales/`, write the
 //! manifest and the catalogs to `OUT_DIR`, generate the module `src/lib.rs`
-//! includes (plans/05-tooling.md §4).
+//! includes.
 //!
 //! Two features swap the corpus for a smaller one, so that B1′ and B13 can be
-//! *gated* rather than measured by hand (`cargo xtask b12-generated`,
-//! plans/13 A10): `corpus-plain` has nothing a function crate could serve,
+//! *gated* rather than measured by hand (`cargo xtask b12-generated`):
+//! `corpus-plain` has nothing a function crate could serve,
 //! and `corpus-measures` is this crate's corpus plus the three measure
 //! functions.
 

@@ -1,4 +1,4 @@
-// Phase 7 A2 (plans/15-phase-7-work-order.md) against `examples/demo-csr`:
+// Phase 7 A2 against `examples/demo-csr`:
 // a client-only application, built by `trunk build` into
 // examples/demo-csr/dist/, which this check serves itself — as any static
 // host would, with no server logic at all (--base-url is not used).
@@ -213,7 +213,7 @@ async function negotiation(ctx, base) {
     ['fr-CA', 'fr'],
     ['ar-EG', 'ar'],
     ['de-DE', 'en'],
-    // CLDR's data in the client (plans/19-native-and-terminal.md §9): a
+    // CLDR's data in the client: a
     // reader of Breton is served French (a one-way rule, 20), which no
     // truncation gives. The boot matches with the build's cut of the table.
     ['br-FR', 'fr'],

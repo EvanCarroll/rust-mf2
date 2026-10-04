@@ -1,11 +1,10 @@
 //! `cargo xtask spec-sync [--rev <sha>] [--check]`: vendor
 //! `unicode-org/message-format-wg` `test/` and `LICENSE` verbatim into
 //! `third_party/message-format-wg/`, and fetch `spec/` into the git-ignored
-//! cache the conformance crate reads (plans/01-conformance.md §1).
+//! cache the conformance crate reads.
 //!
 //! The specification text is not vendored: since upstream #1112 it may not be
-//! distributed publicly without Unicode's permission (D13;
-//! plans/17-phase-9-work-order.md A0). It is written to
+//! distributed publicly without Unicode's permission (D13). It is written to
 //! [`mf2_conformance::spec::SPEC_DIR`] only after every file matches the
 //! SHA-256 the PIN's `digests` records, and [`SPEC_STAMP`] names the commit.
 //!

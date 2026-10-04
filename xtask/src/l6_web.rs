@@ -1,5 +1,4 @@
-//! `cargo xtask l6-web`: conformance layer L6 in the browser
-//! (`plans/01-conformance.md` §3; `plans/14-phase-6-work-order.md` A6b).
+//! `cargo xtask l6-web`: conformance layer L6 in the browser.
 //!
 //! Three steps, and the second is the point of the first:
 //!

@@ -1,4 +1,4 @@
-//! The `tr!` compile-fail set (`plans/13-phase-5b-work-order.md` A5).
+//! The `tr!` compile-fail set.
 //!
 //! It lives in the fixture because the fixture is an i18n crate exactly as
 //! an application writes one: these files are compiled against *its*

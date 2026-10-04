@@ -1,4 +1,4 @@
-//! The published packages' metadata (plans/17-phase-9-work-order.md, A1):
+//! The published packages' metadata:
 //! exactly the 17 library crates are publishable, at one version, each with
 //! what crates.io shows, and every dependency between two of them is an
 //! exact requirement — the generated module, the macro and the runtime share
@@ -26,7 +26,7 @@ use crate::error::{Error, Result};
 /// 2.x, the two helper crates of the Leptos components (D20), and 3.0's
 /// browser-side ICU4X of the date functions (plan/08 §3.4); 1.x's
 /// `leptos-mf2`, `mf2-axum`, `mf2-native` and `mf2-ratatui` are features
-/// of `mf2` since 2.0.0 (plans/00-master-plan.md §4.1).
+/// of `mf2` since 2.0.0.
 pub(crate) const PUBLISHED: [&str; 17] = [
     "mf2",
     "mf2-build",

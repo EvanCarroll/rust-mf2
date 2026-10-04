@@ -1,5 +1,5 @@
 //! `cargo xtask docs-rs`: the 17 published crates' documentation built as
-//! docs.rs builds it (`plans/17-phase-9-work-order.md` A5).
+//! docs.rs builds it.
 //!
 //! Each library crate's `[package.metadata.docs.rs]` is the one statement
 //! of how it is documented: its features (`features`, `all-features`,

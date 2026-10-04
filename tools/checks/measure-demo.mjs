@@ -1,5 +1,5 @@
-// Phase 10 A7: the shipped client of a demo, measured as plans/phase-7-results.md
-// measured demo-ssr's (gzip -9 and brotli q11 through Node's zlib).
+// Phase 10 A7: the shipped client of a demo, measured with
+// gzip -9 and brotli q11 through Node's zlib.
 // Usage: node measure.mjs <pkg-or-dist dir> [label]
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';

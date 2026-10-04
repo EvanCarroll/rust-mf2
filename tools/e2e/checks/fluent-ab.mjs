@@ -1,4 +1,4 @@
-// Phase 8 A5 (plans/16-phase-8-work-order.md): the `leptos-fluent` A/B in
+// Phase 8 A5: the `leptos-fluent` A/B in
 // the browser — the reference application on `leptos-fluent` and the same
 // application migrated to mf2 (bench/fluent-ab/README.md).
 //

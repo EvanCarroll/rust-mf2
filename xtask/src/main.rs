@@ -178,7 +178,7 @@ enum Command {
         #[arg(long)]
         promote: bool,
     },
-    /// The whole-app size gate (plans/06-size-and-perf.md §3): B1 fixed, B5
+    /// The whole-app size gate: B1 fixed, B5
     /// per call site, and their sum at the reference scale, all measured end
     /// to end on the reference workload.
     Size {
@@ -297,8 +297,8 @@ enum Command {
         check: bool,
     },
     /// The 17 published crates' packages (Phase 9, A4): each `.crate` audited
-    /// (every file from its own crate, none a copy of `third_party/`,
-    /// `plans/` or the specification cache, under 10 MB) and its file list
+    /// (every file from its own crate, none a copy of `third_party/`, `plan/`
+    /// or the specification cache, under 10 MB) and its file list
     /// written as `crates/<name>/package.txt`.
     Package {
         /// Compare with the committed lists instead of writing them.
@@ -439,7 +439,7 @@ enum Command {
         keep: bool,
         /// Measure the **whole mix** instead of the `String` path: `tr-view`
         /// against `idlit-view`, with a description rendering itself in the
-        /// view positions (plans/14-phase-6-work-order.md A7).
+        /// view positions.
         #[arg(long)]
         view: bool,
     },

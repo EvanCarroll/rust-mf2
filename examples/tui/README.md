@@ -47,7 +47,7 @@ cargo xtask tui-gate --gate --baseline-rev 3a296a920952239a8c62399f2e8d51aad46f8
                                           # the nightly gate: and time, against 1.x
 ```
 
-The gate (plans/19-native-and-terminal.md §8 and §14): the MF2 frame
+The gate: the MF2 frame
 allocates no more than 1.x's did and no more than the baseline renderer, in
 every language; stripped `tui-mf2` is no larger than 1.x's; and, with a
 baseline in the rotation, its median time per frame is no more than the

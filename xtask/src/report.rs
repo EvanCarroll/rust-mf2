@@ -141,7 +141,7 @@ pub(crate) fn check(root: &Path, ledger: Option<&Path>, report_path: Option<&Pat
     }
 }
 
-/// The spec coverage matrix (plans/01-conformance.md §5): check
+/// The spec coverage matrix: check
 /// `conformance/coverage.toml` against the spec and the tree, and write
 /// `COVERAGE.md` beside the report. Returns the number of gaps.
 fn write_coverage(

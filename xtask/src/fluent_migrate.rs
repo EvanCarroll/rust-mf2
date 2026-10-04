@@ -1,5 +1,5 @@
 //! `cargo xtask fluent-migrate`: the reference application migrated from
-//! `leptos-fluent` and built (`plans/16-phase-8-work-order.md` A4).
+//! `leptos-fluent` and built.
 //!
 //! 1. The reference workload, with the `fluent-view` application (its call
 //!    sites in `leptos-fluent`'s idiom, its messages the workload's `.ftl`

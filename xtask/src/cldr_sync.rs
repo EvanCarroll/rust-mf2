@@ -1,7 +1,7 @@
 //! `cargo xtask cldr-sync`: vendor the CLDR JSON subset named in
 //! `third_party/cldr-json/PIN` (Phase 0 task A4), and materialise every
 //! locale's number, currency and unit files in the cache for the all-locale
-//! tables of `mf2-locale-data` (Phase 4 task A2; `plans/05-tooling.md` §7).
+//! tables of `mf2-locale-data` (Phase 4 task A2).
 //!
 //! Upstream is very large, so the pinned commit is fetched as a shallow,
 //! blobless partial clone and only the needed blobs are materialised (sparse
@@ -18,7 +18,7 @@ use crate::fsx;
 use crate::git::{Repo, is_full_sha};
 use crate::pin::Pin;
 
-/// The probe locale panel (plans/01-conformance.md §5, plans/07 A4).
+/// The probe locale panel.
 pub(crate) const LOCALES: &[&str] = &[
     "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
 ];
@@ -212,7 +212,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
          cldr-core/scriptMetadata.json;\n\
          cldr-numbers-full/main/<loc>/{{numbers,currencies}}.json and\n\
          cldr-units-full/main/<loc>/units.json for the probe locale panel only;\n\
-         LICENSE. The all-locales compact tables (plans/05-tooling.md §7) are in crates/mf2-locale-data/data/\n\
+         LICENSE. The all-locales compact tables are in crates/mf2-locale-data/data/\n\
          (`cargo xtask locale-data`).",
         blobs.len(),
     );

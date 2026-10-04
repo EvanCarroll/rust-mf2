@@ -1,4 +1,4 @@
-// Phase 7 A3 (plans/15-phase-7-work-order.md) against `examples/demo-ssr`
+// Phase 7 A3 against `examples/demo-ssr`
 // built with `cargo leptos build --split` and running at --base-url.
 //
 // P0.2's lazy-route assertions, against `mf2::leptos` rather than the
@@ -16,8 +16,8 @@
 //   * a page that *is* the lazy route hydrates through `hydrate_lazy` —
 //     chunk loaded, no text changed — and switches live;
 //   * the chunk's own event handler and reactive text work, whether the
-//     route was reached by a link or loaded directly (B1 of
-//     plans/17-phase-9-work-order.md: after client navigation they did not);
+//     route was reached by a link or loaded directly (a Phase 9
+//     fix: after client navigation they did not);
 //   * none of it logs anything.
 
 import { captureSsrSnapshot, chooseLocale, sleep, until, watchConsole, watchNetwork } from '../lib/browser.mjs';

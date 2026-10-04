@@ -1,32 +1,32 @@
-# CI for rust-mf2 (plans/07-phase-0-work-order.md, task A6; plans/08, A9).
+# CI for rust-mf2.
 #
 # Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
 # job checks (cargo fmt --check, clippy -D warnings — natively, and for
 # wasm32-unknown-unknown with the `intl` client option, whose code compiles
 # only there — cargo test for the workspace and again for `mf2-resource`'s
 # optional `serde` feature, which nothing in the workspace turns on, the
-# combinations of mf2's features that plans/19 §3 refuses, each failing with
+# combinations of mf2's features that mf2 refuses, each failing with
 # mf2's one sentence — `cargo xtask refusals` — the
 # documentation's samples assembled (job `docs` compiles them), the
 # conformance report, which runs layers L1-L5
 # over the suite, and the published crates' public API held against each
 # crate's committed api.txt — `cargo xtask api --check`, which installs the
-# pinned nightly whose rustdoc JSON it reads through rustup, plans/17 A2 — and
+# pinned nightly whose rustdoc JSON it reads through rustup — and
 # each package as crates.io would receive it, audited and held against its
-# committed package.txt — `cargo xtask package --check`, plans/17 A4), so "green
+# committed package.txt — `cargo xtask package --check`), so "green
 # locally" and "green in CI" mean the same thing. The other steps fetch the
 # sources, install the toolchain, fetch the MF2 specification text into its
-# cache (it is not vendored — upstream #1112; every job does this first,
-# plans/17-phase-9-work-order.md A0) and publish conformance/REPORT.md.
+# cache (it is not vendored — upstream #1112; every job does this first) and
+# publish conformance/REPORT.md.
 #
-# Job `parser-gate`: the D1 gate (plans/05-tooling.md §1) — mf2-syntax against
+# Job `parser-gate`: the D1 gate — mf2-syntax against
 # ox_mf2_parser, same process, release build — so a later regression is
 # visible. Its cost (a fat-LTO release build plus ≈ 15 s of measurement) is
 # why it is a job of its own rather than a step of `cargo xtask ci`; whether it
-# runs on every push is the owner's call (plans/08, A9).
+# runs on every push is the owner's call.
 #
-# Job `tui-gate`: the terminal UI's gate (plans/19-native-and-terminal.md
-# §8 and §14; `cargo xtask tui-gate --gate`): examples/tui's frame, drawn
+# Job `tui-gate`: the terminal UI's gate (`cargo xtask tui-gate --gate`):
+# examples/tui's frame, drawn
 # with MF2, allocates no more than 1.x's did and no more than the in-house
 # re-implementation of trippy's approach, in every language — counts that
 # are the same in every run, so they are held on every push — and stripped
@@ -40,8 +40,7 @@
 # unicode-normalization, ryu, sha2 and sys-locale each set links. A job of
 # its own, beside `tui-gate`: it is two release builds.
 #
-# Job `b12`: budget B12 for the catalog reader (plans/09-phase-2-work-order.md,
-# A9; plans/06-size-and-perf.md §3): bench/b12/check.sh builds no_std wasm
+# Job `b12`: budget B12 for the catalog reader: bench/b12/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
 # survives in the reader; it also records the reader's size delta (part of
 # B1). It needs binaryen (wasm-opt, wasm-dis) and twiggy, installed at pinned
@@ -49,13 +48,13 @@
 # sha256), twiggy with `cargo install --locked`.
 #
 # Job `catalog-size`: budget B7 on the committed reference corpus and the
-# four generated locales (plans/09-phase-2-work-order.md, A8;
-# bench/catalog-bench). Deterministic, ≈ 30 s of release build and 4 s of
-# work. B7 is stated on brotli 11 (plans/06 §3); the gzip figures are
+# four generated locales (bench/catalog-bench). Deterministic, ≈ 30 s of release
+# build and 4 s of
+# work. B7 is stated on brotli 11; the gzip figures are
 # reported, not gated, with GNU gzip when the runner has it (else flate2).
 #
-# Job `build-pipeline`: Phase 5a's two whole-pipeline checks (plans/12, A5 and
-# A9): `cargo xtask codegen-matrix` compiles the generated module in the 23
+# Job `build-pipeline`: Phase 5a's two whole-pipeline checks: `cargo xtask
+# codegen-matrix` compiles the generated module in the 23
 # feature combinations of the facade the feature-set table holds
 # (`xtask/src/feature_sets.rs`: 8 server, 5 native, 10 client on
 # wasm32-unknown-unknown) and
@@ -74,8 +73,7 @@
 # separately builds and deploys the rendered book once the repository is on
 # GitHub. `cargo xtask ci` assembles examples without building them.
 #
-# Job `l4-wasi`: conformance layer L4 on wasm32-wasip1 (plans/01-conformance.md
-# §3; plans/10-phase-3-work-order.md, A9): `cargo xtask l4-wasi` compiles
+# Job `l4-wasi`: conformance layer L4 on wasm32-wasip1: `cargo xtask l4-wasi` compiles
 # every L4 case natively, formats it natively and with the same runner built
 # for wasm32-wasip1 under wasmtime, and fails unless every record is
 # identical byte for byte — and the same for 20,000 generated cases
@@ -84,22 +82,22 @@
 # and installed into target/tools with `cargo install --locked`, as locally.
 #
 # Job `msrv`: the 18 published crates on the Rust they state as
-# `rust-version` (plans/17-phase-9-work-order.md, A3; docs/versioning.md).
+# `rust-version` (docs/versioning.md).
 # `cargo xtask msrv` installs that toolchain with rustup and checks the
 # library targets natively and for wasm32-unknown-unknown, on both Leptos
 # lines; `--below` must see the release before it fail, so a lower MSRV
 # that would do is noticed.
 #
 # Job `docs-rs`: the published crates' documentation built as docs.rs builds
-# it (plans/17-phase-9-work-order.md, A5). `cargo xtask docs-rs` reads each
+# it. `cargo xtask docs-rs` reads each
 # library crate's `[package.metadata.docs.rs]` — its features and targets —
 # and runs `cargo rustdoc` on the nightly `cargo xtask api` pins (installed
 # with rustup), with `--cfg docsrs`, every rustdoc warning an error (a
 # broken intra-doc link among them), and each front page pointing to the
 # user guide.
 #
-# Job `release`: the release's dry run (plans/17-phase-9-work-order.md, A7;
-# owner question 4): `cargo xtask release` without `--publish` — the tree
+# Job `release`: the release's dry run (owner question 4): `cargo xtask release`
+# without `--publish` — the tree
 # clean, the changelog entry, the metadata, the 18 names on crates.io (its
 # API, a second apart), the public API against the published version with
 # cargo-semver-checks (pinned, installed into target/tools; nothing to
@@ -124,11 +122,11 @@ on:
 
 jobs:
   ci:
-    # PLACEHOLDER: the remote host is not decided yet (plans/07, "The owner's
-    # part"). Replace this label with one the chosen host's runner offers. The
+    # PLACEHOLDER: the remote host is not decided yet. Replace this label with
+    # one the chosen host's runner offers. The
     # runner needs git, curl, a C linker (cc), node (for upload-artifact) and
     # xmllint (libxml2; `mf2-cli`'s tests validate every XLIFF export against
-    # the vendored schema, plans/05-tooling.md §6.3, and fail without it).
+    # the vendored schema, and fail without it).
     runs-on: PLACEHOLDER-runner-label
     env:
       CARGO_TERM_COLOR: always
@@ -498,7 +496,7 @@ jobs:
   build-pipeline:
     # PLACEHOLDER: see the `ci` job.
     #
-    # Phase 5a (plans/12-phase-5a-work-order.md): the module `mf2-build`
+    # Phase 5a: the module `mf2-build`
     # generates, compiled in every feature combination of the facade — for the
     # server and for wasm32-unknown-unknown — with budget B6 grepped for in the
     # client artifact; then the incremental-rebuild scenarios of P0.9 on the

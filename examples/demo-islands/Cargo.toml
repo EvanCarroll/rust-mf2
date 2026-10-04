@@ -47,8 +47,7 @@ ssr = [
 ]
 # One more server-only component, full of call sites. It exists to be
 # measured: `cargo xtask islands-zero` builds the client with and without it
-# and requires the two to be the same size (plans/15-phase-7-work-order.md
-# A1).
+# and requires the two to be the same size.
 more-server = []
 
 [package.metadata.leptos]

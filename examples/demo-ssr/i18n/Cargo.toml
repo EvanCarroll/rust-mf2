@@ -1,4 +1,4 @@
-# The application's i18n crate, exactly as `plans/05-tooling.md` §4 describes
+# The application's i18n crate, exactly as an application writes
 # one: `locales/`, an `mf2.toml`, a build script, and a `src/lib.rs` that is
 # one line. Everything else — the manifest, the catalogs, the closed-world
 # registry, `tr!` — is generated into `OUT_DIR`.

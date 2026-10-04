@@ -1,4 +1,4 @@
-// Phase 7 A5 (plans/15-phase-7-work-order.md): P0.11's churning list on
+// Phase 7 A5: P0.11's churning list on
 // mf2's Leptos layer itself — what each row shape costs the heap when rows
 // are created and dropped by the hundred thousand between two locale
 // switches.

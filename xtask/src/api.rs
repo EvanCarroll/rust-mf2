@@ -1,9 +1,8 @@
 //! `cargo xtask api [--check]`: the public API of the 17 published crates,
-//! listed and committed (`plans/17-phase-9-work-order.md` A2;
-//! `docs/versioning.md`): as `crates/<name>/api.txt`, or, for a crate whose
+//! listed and committed (`docs/versioning.md`): as `crates/<name>/api.txt`, or,
+//! for a crate whose
 //! features select what it offers, once per mode, as
-//! `crates/<name>/api/<mode>.txt` (`mf2`; `plans/18-phase-10-work-order.md`
-//! B5).
+//! `crates/<name>/api/<mode>.txt` (`mf2`).
 //!
 //! A library crate's listing is `cargo public-api -ss`'s (no blanket or
 //! auto-trait impls; derived ones stay, since removing a derive breaks a

@@ -1,4 +1,4 @@
-# The `intl` date formatter's browser comparison (plans/11 A6; tools/e2e/checks/
+# The `intl` date formatter's browser comparison (tools/e2e/checks/
 # datetime.mjs): a standalone workspace (the root excludes it), so the
 # browser module's features (`host-web-datetime-intl`, `host-web`) never unify with
 # the native side's (`host-std-datetime-icu`, `host-std`).

@@ -1,4 +1,4 @@
-//! The changelog (plans/17-phase-9-work-order.md, A6): one `CHANGELOG.md`
+//! The changelog: one `CHANGELOG.md`
 //! for the workspace, since every crate is released at one version, with
 //! the newest entry first. A version is released only with its entry: a
 //! `## <version>` heading, once, at the top, with something under it.

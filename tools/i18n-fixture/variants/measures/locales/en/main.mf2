@@ -1,4 +1,4 @@
-# B13 (plans/06-size-and-perf.md §3): the fixture's own corpus plus the three
+# B13: the fixture's own corpus plus the three
 # measure functions. What it costs over the fixture's is what a corpus that
 # does not use them does not pay.
 @locale en

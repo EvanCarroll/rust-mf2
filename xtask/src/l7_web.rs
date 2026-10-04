@@ -1,5 +1,4 @@
-//! `cargo xtask l7-web`: conformance layer L7 in the browser
-//! (`plans/01-conformance.md` §3; `plans/15-phase-7-work-order.md` A4).
+//! `cargo xtask l7-web`: conformance layer L7 in the browser.
 //!
 //! L7 is L6(b)'s page and twin switch delivered two other ways — as islands
 //! (columns `L7`, `L7d`) and client-only (`L7c`, `L7cd`) — and only an engine

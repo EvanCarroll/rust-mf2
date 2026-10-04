@@ -1,6 +1,6 @@
 //! `cargo xtask tui-gate`: what translating a terminal UI costs, measured on
 //! the trippy-shaped frame of `examples/tui`
-//! (`plans/18-phase-10-work-order.md`, A1; a gate from C8).
+//! (a gate from C8).
 //!
 //! Builds the example's two benchmark binaries in release, stripped —
 //! `tui-mf2` (MF2) and `tui-upstream` (the in-house re-implementation of
@@ -24,7 +24,7 @@
 //! builds A1's 1.x binaries so). `--book` adds the sizes of the user guide's
 //! native projects, as `cargo xtask docs` assembles them, stripped.
 //!
-//! **The gate** (`--gate`; `plans/19-native-and-terminal.md` §8 and §14):
+//! **The gate** (`--gate`):
 //! - `tui-mf2`'s allocations per frame, in each language, are at most
 //!   1.x's ([`ALLOCS_1X`]) and `tui-upstream`'s in the same build. The counts
 //!   are deterministic, so CI holds them on every push;

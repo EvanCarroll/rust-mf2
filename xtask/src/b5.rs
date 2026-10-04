@@ -1,5 +1,4 @@
-//! `cargo xtask b5`: budget **B5**, the marginal wasm per call site
-//! (`plans/06-size-and-perf.md` §3; `plans/13-phase-5b-work-order.md` A6).
+//! `cargo xtask b5`: budget **B5**, the marginal wasm per call site.
 //!
 //! P0.1's method, on the real crates. Two generated applications of the same
 //! shape at two scales are built for the client, and the per-site cost is the
@@ -15,7 +14,7 @@
 //! bound: the same literal everywhere, which lets the optimiser merge sites a
 //! real application keeps apart).
 //!
-//! The pipeline is `plans/06` §3's, exactly as P0.1 ran it:
+//! The pipeline is the one P0.1 ran:
 //! `wasm32-unknown-unknown`, profile `wasm-release`, `wasm-bindgen`,
 //! `wasm-opt -Oz`, `gzip -9`.
 //!
@@ -36,8 +35,8 @@ use crate::error::{Error, Result};
 /// The budget: B5 ≤ 40 B gz per call site, against the `idlit` baseline.
 const BUDGET: f64 = 40.0;
 
-/// One scale of the reference workload: the knobs of `plans/06` §2, at the
-/// ratios P0.1 used.
+/// One scale of the reference workload: its three knobs, at
+/// the ratios P0.1 used.
 pub(crate) struct Scale {
     sites: usize,
     messages: usize,
@@ -63,7 +62,7 @@ pub(crate) const SCALES: [Scale; 2] = [
 /// formatted to a `String`, so the view positions cost the same on both
 /// sides of the delta and cancelled. Phase 6's `--view` measures them, with
 /// the baseline P0.1 used — a `&'static str` leaf where `tr-view` puts a
-/// description (`plans/14-phase-6-work-order.md` A7).
+/// description.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Mode {
     /// `tr` against `idlit`: the description and the `String` path.
@@ -241,7 +240,7 @@ fn site_count(workload: &Path) -> Result<usize> {
 }
 
 /// Builds one application's client wasm with `features` (B5 builds it with
-/// `hydrate` alone), exactly as `plans/06` §3 says, and measures it.
+/// `hydrate` alone), by the pipeline above, and measures it.
 pub(crate) fn build(root: &Path, workload: &Path, template: &str, features: &str) -> Result<Sizes> {
     let app = workload.join(format!("app-{template}"));
     // Apps of different workloads share package names, so each workload gets
@@ -282,8 +281,8 @@ pub(crate) fn build(root: &Path, workload: &Path, template: &str, features: &str
     ship(root, &wasm, &pkg, &lib)
 }
 
-/// `wasm-bindgen`, then `wasm-opt -Oz`, then measure — the part of `plans/06`
-/// §3's method after cargo, for any crate's `wasm-release` build of `lib`.
+/// `wasm-bindgen`, then `wasm-opt -Oz`, then measure — the part of the
+/// pipeline after cargo, for any crate's `wasm-release` build of `lib`.
 pub(crate) fn ship(root: &Path, wasm: &Path, pkg: &Path, lib: &str) -> Result<Sizes> {
     let _ = std::fs::remove_dir_all(pkg);
     std::fs::create_dir_all(pkg).map_err(|source| Error::IoAt {
@@ -339,7 +338,7 @@ fn len(path: &Path) -> Result<u64> {
         })
 }
 
-/// The file through `gzip -9`, in bytes — what `plans/06` §3 measures.
+/// The file through `gzip -9`, in bytes — the figure B5 is stated in.
 fn gzipped(path: &Path) -> Result<u64> {
     let bytes = std::fs::read(path).map_err(|source| Error::IoAt {
         path: path.to_path_buf(),

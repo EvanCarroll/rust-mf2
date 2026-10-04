@@ -1,4 +1,4 @@
-// Phase 6 (plans/14-phase-6-work-order.md A2–A5, A8) against
+// Phase 6 against
 // `examples/demo-ssr`, which must already be running at --base-url.
 //
 // The successor to `p002`, which ran against the Phase 0 probe. What it

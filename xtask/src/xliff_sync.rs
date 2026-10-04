@@ -1,6 +1,6 @@
 //! `cargo xtask xliff-sync [--list] [--check]`: vendor the XLIFF 2 core — the
 //! OASIS Standard's specification and its XML schemas — into
-//! `third_party/xliff/` (D13; plans/16-phase-8-work-order.md A6).
+//! `third_party/xliff/` (D13).
 //!
 //! OASIS publishes over HTTPS, not git: `{upstream}{product}/v{version}/{stage}/`
 //! is an Apache index. The release's package (its ZIP) is fetched with `curl`

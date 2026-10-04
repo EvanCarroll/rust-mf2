@@ -1,6 +1,4 @@
-//! `cargo xtask leptos-0-8`: the Leptos 0.8 opt-in, built and tested
-//! (`plans/16-phase-8-work-order.md` A0; `plans/04-leptos-integration.md`
-//! §10).
+//! `cargo xtask leptos-0-8`: the Leptos 0.8 opt-in, built and tested.
 //!
 //! Leptos 0.9 is the default line: `mf2`'s `leptos` feature. 0.8 is `mf2`'s
 //! `leptos-0-8`, which depends on the 0.8 crates under renamed names. Both lines are in the one

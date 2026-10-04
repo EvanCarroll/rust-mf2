@@ -1,6 +1,5 @@
-// Conformance layer L4 in the browser for the `intl` client option
-// (plans/01-conformance.md §3, "The intl build"; plans/11-phase-4-work-order.md,
-// owner decision 4). Driven by `cargo xtask l4-web`, which compiles the cases
+// Conformance layer L4 in the browser for the `intl` client option. Driven by
+// `cargo xtask l4-web`, which compiles the cases
 // natively into target/l4-web/cases.bin, builds conformance/l4-web for
 // wasm32-unknown-unknown with the `intl` features into target/l4-web/pkg/,
 // runs this check, and judges what it writes.

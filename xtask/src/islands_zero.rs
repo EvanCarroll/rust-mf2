@@ -1,10 +1,10 @@
 //! `cargo xtask islands-zero`: a server-only component costs the client
-//! **zero** bytes (`plans/15-phase-7-work-order.md` A1).
+//! **zero** bytes.
 //!
 //! `examples/demo-islands` is built for the client twice — as it is, and with
 //! `more-server`, which adds one more server-only component holding a call
 //! site in every position (text, attribute, argument, markup) — each by
-//! `plans/06` §3's method (`wasm32-unknown-unknown` / `wasm-release` /
+//! the size method (`wasm32-unknown-unknown` / `wasm-release` /
 //! `wasm-bindgen` / `wasm-opt -Oz` / `gzip -9`).
 //!
 //! **What "zero" means, measured.** The first run (2026-09-23) found the two

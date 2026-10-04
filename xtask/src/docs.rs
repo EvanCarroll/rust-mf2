@@ -1,5 +1,5 @@
 //! `cargo xtask docs`: every checked application example in the mdBook user
-//! guide, compiled (`plans/15-phase-7-work-order.md` A13).
+//! guide, compiled.
 //!
 //! The Markdown under `docs/` is both the mdBook source and the source for
 //! examples. A sample that is code — a `rust`,
@@ -163,7 +163,7 @@ const PROJECTS: &[Project] = &[
         test: false,
     },
     // getting-started.md: the same application kept on Leptos 0.8, the
-    // opt-in line (`plans/16-phase-8-work-order.md` A0).
+    // opt-in line.
     Project {
         name: "hello-0-8",
         base: Some("hello"),
@@ -256,7 +256,7 @@ const PROJECTS: &[Project] = &[
     },
     // command-line.md: the applications `mf2 init --cli` and `--tui` make,
     // as they make them; native-apps.md shows their files, held to what
-    // `init` wrote (plans/19 §1.1 and §1.2).
+    // `init` wrote.
     Project {
         name: "count",
         base: None,
@@ -293,7 +293,7 @@ const PROJECTS: &[Project] = &[
         test: false,
     },
     // command-line.md: the web applications `mf2 init --ssr`, `--islands`
-    // and `--csr` make, as they make them (plans/05 §6.4).
+    // and `--csr` make, as they make them.
     Project {
         name: "hello-ssr",
         base: None,
@@ -335,7 +335,7 @@ const PROJECTS: &[Project] = &[
         test: false,
     },
     // native-apps.md's workspace: a library that owns the messages and a
-    // terminal UI that draws them (plans/19 §1.3).
+    // terminal UI that draws them.
     Project {
         name: "trace",
         base: None,
@@ -729,8 +729,8 @@ fn validate(blocks: &[Block]) -> Result<()> {
     Ok(())
 }
 
-/// Every `mf2` block is in `mf2 fmt`'s form (owner, 2026-09-27;
-/// `plans/17-phase-9-work-order.md` B9): what a reader copies from the book
+/// Every `mf2` block is in `mf2 fmt`'s form (owner, 2026-09-27): what a reader
+/// copies from the book
 /// is what `mf2 fmt --check` accepts. Each block is checked as a file of its
 /// own — a block that continues a file shown earlier is read without what
 /// came before it, which is how a reader meets it.

@@ -1,5 +1,5 @@
 //! One of the message's two markup names handled, the other not: handlers
-//! are all or none (`plans/04-leptos-integration.md` §2.1). Handling none is
+//! are all or none. Handling none is
 //! legal — the markup then formats to parts, as the spec says — but handling
 //! `#kbd` and forgetting `#b` is an oversight, not a choice.
 struct Handler;

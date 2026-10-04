@@ -1,6 +1,5 @@
 //! `cargo xtask l4-web`: conformance layer L4 in the browser for the `intl`
-//! client option (plans/01-conformance.md §3, "The `intl` build";
-//! plans/11-phase-4-work-order.md, owner decision 4).
+//! client option.
 //!
 //! Every L4 case `cargo xtask l4-wasi` runs — the suite in the all-features
 //! and the default configuration, unstripped and stripped, and the
@@ -46,7 +45,7 @@ enum Origin<'s> {
         config: Config,
         stripped: bool,
     },
-    /// A locale-output golden (plans/11 A8): the Rust backends' output.
+    /// A locale-output golden: the Rust backends' output.
     Golden,
 }
 
@@ -136,7 +135,7 @@ pub(crate) fn run(root: &Path, engines: &[String], build: bool) -> Result<()> {
     let mut report = String::from("# L4 in the browser, the `intl` build\n\n");
     let _ = writeln!(
         report,
-        "`cargo xtask l4-web` (plans/01-conformance.md §3). {} cases: the suite's runtime tests in \
+        "`cargo xtask l4-web`. {} cases: the suite's runtime tests in \
          both configurations, unstripped and stripped, and the locale-output goldens.\n",
         cases.len()
     );

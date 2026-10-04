@@ -1,6 +1,5 @@
 //! `cargo xtask fluent-ab`: the `leptos-fluent` A/B, measured once as a
-//! snapshot (`plans/16-phase-8-work-order.md` A5; `plans/06-size-and-perf.md`
-//! §6; `bench/fluent-ab/README.md`).
+//! snapshot (`bench/fluent-ab/README.md`).
 //!
 //! 1. The reference workload (default knobs, seed 1) with the `fluent-view`
 //!    application — the reference application on `leptos-fluent`, in its
@@ -844,8 +843,7 @@ fn report(
     let _ = writeln!(md, "# `leptos-fluent` A/B — snapshot\n");
     let _ = writeln!(
         md,
-        "Measured once, at migration (`plans/16-phase-8-work-order.md` A5; \
-         `plans/06-size-and-perf.md` §6). Not re-run per commit; re-run only \
+        "Measured once, at migration. Not re-run per commit; re-run only \
          when the owner asks, with the command below at that commit.\n"
     );
     let _ = writeln!(md, "| | |\n|---|---|");

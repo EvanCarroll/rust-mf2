@@ -1,6 +1,4 @@
-//! `cargo xtask size`: the **whole-app** size gate
-//! (`plans/06-size-and-perf.md` §3, "Whole-app ambition";
-//! `plans/14-phase-6-work-order.md` A9).
+//! `cargo xtask size`: the **whole-app** size gate.
 //!
 //! B5 gates one number — what a call site costs at the margin. This gates the
 //! thing the ambition is actually about: what an application pays for i18n in

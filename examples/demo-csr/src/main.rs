@@ -1,4 +1,4 @@
-//! The Phase 7 client-only example (`plans/15-phase-7-work-order.md` A2).
+//! The Phase 7 client-only example.
 //!
 //! There is no server: trunk builds the wasm, `mf2 compile --site` publishes
 //! the catalogs beside it, and any static host serves the lot. The locale is

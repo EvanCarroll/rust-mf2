@@ -1,6 +1,6 @@
 # A trippy-shaped terminal UI, drawn into a Ratatui buffer: the Phase 10
-# sample and the `cargo xtask tui-gate` workload (plans/18-phase-10-work-order.md,
-# A1 and C8). It is written against 2.0 as the user guide's native page
+# sample and the `cargo xtask tui-gate` workload. It is written against 2.0 as
+# the user guide's native page
 # writes an application — `mf2` with `ratatui`, `mf2-build` in the build
 # script, the messages in `locales/` — and it carries `upstream.rs`, an
 # in-house re-implementation of trippy's own translation approach, as the

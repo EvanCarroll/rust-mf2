@@ -3,7 +3,7 @@
 A page whose interactive parts are **islands**: most of it renders on the
 server and ships no code, and two parts hydrate. It is what
 `tools/e2e/checks/islands.mjs` drives and what `cargo xtask islands-zero`
-measures (`plans/15-phase-7-work-order.md` A1).
+measures.
 
 ## Build and run
 

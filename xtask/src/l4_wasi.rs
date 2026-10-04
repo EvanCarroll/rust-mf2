@@ -1,13 +1,12 @@
-//! `cargo xtask l4-wasi`: conformance layer L4 on `wasm32-wasip1`
-//! (plans/01-conformance.md §3; plans/10-phase-3-work-order.md A9). Every
+//! `cargo xtask l4-wasi`: conformance layer L4 on `wasm32-wasip1`. Every
 //! L4 case of the suite — each test that is not a syntax or data-model
 //! error, compiled natively for its locale, unstripped and stripped, in the
 //! all-features and in the default configuration (L4d) — is formatted by
 //! `mf2-l4-runner` natively and by its `mf2-l4-wasi` binary under wasmtime;
 //! the two outputs must be identical byte for byte.
 //!
-//! `--generated N` adds N generated cases (plans/10-phase-3-work-order.md
-//! A10; `mf2_conformance::l4gen`), unstripped and stripped: the seeds of
+//! `--generated N` adds N generated cases (`mf2_conformance::l4gen`),
+//! unstripped and stripped: the seeds of
 //! `generated_l4`'s nightly million, evenly spaced — the sampled
 //! native = wasip1 run over generated input.
 //!
@@ -68,7 +67,7 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         cases.push(stripped);
     }
     let suite_cases = cases.len();
-    // The locale-output goldens (plans/11 A8): the Rust backends' output,
+    // The locale-output goldens: the Rust backends' output,
     // identical on both targets.
     for family in mf2_conformance::goldens::FAMILIES {
         for g in mf2_conformance::goldens::cases(family).map_err(Error::L4)? {

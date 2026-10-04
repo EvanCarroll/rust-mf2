@@ -3,8 +3,8 @@
 //! matcher follows (master plan D21) — from the CLDR repository into the
 //! git-ignored cache, at the release that goes with the vendored CLDR data.
 //!
-//! Nothing is vendored (owner, 2026-09-28; plans/18-phase-10-work-order.md
-//! question 16; D13): as `spec-sync` does for the MF2 specification, the
+//! Nothing is vendored (owner, 2026-09-28; D13): as `spec-sync` does for the
+//! MF2 specification, the
 //! text is written to [`TEXT_DIR`] only after every file matches the SHA-256
 //! the PIN's `digests` records, with the commit in a `COMMIT` stamp written
 //! last. Plans, code and tests paraphrase it and cite the section; nothing

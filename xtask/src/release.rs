@@ -1,5 +1,5 @@
 //! `cargo xtask release [--publish]`: everything a release needs, checked in
-//! one command (`plans/17-phase-9-work-order.md` A7; owner question 4).
+//! one command (owner question 4).
 //!
 //! Without `--publish` it is the dry run CI runs on every change:
 //!

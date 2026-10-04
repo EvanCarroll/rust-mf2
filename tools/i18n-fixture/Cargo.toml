@@ -1,5 +1,5 @@
-# An i18n crate exactly as an application would write one (plans/05-tooling.md
-# §4), so that the module `mf2-build` generates is compiled — for the server
+# An i18n crate exactly as an application would write one, so that the module
+# `mf2-build` generates is compiled — for the server
 # and for the client, in every feature combination of the facade — by an
 # ordinary `cargo check` of the workspace. `cargo xtask codegen-matrix` runs
 # the combinations, including `wasm32-unknown-unknown`.
@@ -41,12 +41,12 @@ native = ["mf2/native"]
 # A plain Axum server's module, with no Leptos: `Locale` as an extractor,
 # `Locale::format`, and `install()` giving `mf2::axum` the catalogs.
 axum = ["mf2/axum"]
-# The B1′ and B13 corpora (plans/13 A10, `cargo xtask b12-generated`): a
+# The B1′ and B13 corpora (`cargo xtask b12-generated`): a
 # corpus with nothing a function crate could serve, and this crate's corpus
 # plus the three measure functions. Exactly one at a time.
 corpus-plain = []
 corpus-measures = []
-# Owner question 1 of plans/12: the catalogs emitted apart, so that the i18n
+# An owner decision of Phase 5a: the catalogs emitted apart, so that the i18n
 # crate's generated module carries no catalog name and a translation edit
 # leaves it — and everything that depends on it — untouched.
 split-catalogs = []

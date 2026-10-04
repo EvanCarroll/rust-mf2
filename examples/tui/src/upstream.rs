@@ -1,6 +1,6 @@
 //! The baseline: the frame translated the way upstream trippy translates its
-//! terminal UI, re-implemented here from a description of that approach
-//! (`plans/18-phase-10-work-order.md`, A1), not from its code.
+//! terminal UI, re-implemented here from a description of that approach, not
+//! from its code.
 //!
 //! - One TOML table per message, one value per locale, parsed once.
 //! - The current locale is a thread-local `String`, and every lookup clones

@@ -37,7 +37,7 @@ use mf2_runtime::BidiStrategy;
 
 use crate::error::{Error, Result};
 
-/// `en`'s `plural.cardinal` entry (`plans/02-catalog-format.md` §4.1).
+/// `en`'s `plural.cardinal` entry.
 const EN_CARDINAL: [u8; 5] = [0x21, 0x01, 0x05, 0x82, 0x01];
 
 pub(crate) fn run(root: &Path) -> Result<()> {

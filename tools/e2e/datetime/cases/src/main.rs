@@ -1,4 +1,4 @@
-//! The `intl` date formatter's browser comparison, native side (plans/11 A6): for
+//! The `intl` date formatter's browser comparison, native side: for
 //! the suite's date files (functions/{date,time,datetime}.json, with their
 //! params and expected errors) and every panel locale × message, the
 //! one-message catalog (`compile_str`, with its `icu.blob`) and the text
@@ -35,7 +35,7 @@ static FUNCTIONS: [(&str, &dyn Function); 3] = [
 ];
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
-/// The locale panel (plans/01-conformance.md §5).
+/// The locale panel.
 const PANEL: [&str; 11] = [
     "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
 ];

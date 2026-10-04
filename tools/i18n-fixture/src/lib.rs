@@ -137,8 +137,8 @@ mod tests {
         assert_eq!(tr!("help").format(&f), "Press Esc to close");
     }
 
-    /// Each argument through the step of the macro's dispatch its type allows
-    /// (`plans/19-native-and-terminal.md` §7): `IntoArg` (a `u64` past
+    /// Each argument through the step of the macro's dispatch its type allows:
+    /// `IntoArg` (a `u64` past
     /// `i64`, a `bool`, a path, a variable's `&str`), 1.x's `From` (`&String`),
     /// and any other type's `Display` text.
     #[cfg(all(

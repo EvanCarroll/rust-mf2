@@ -1,4 +1,4 @@
-//! The server (`plans/04-leptos-integration.md` §12.5).
+//! The server.
 //!
 //! The generated `install()`, the `Negotiator` as a layer, and the catalog
 //! routes. The routes and the file/error handler are Leptos's plain forms:

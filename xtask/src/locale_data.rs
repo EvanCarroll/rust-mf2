@@ -53,7 +53,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         "directions.txt",
         &mf2_locale_data::extract::directions_table(&likely, &scripts, &tag)?,
     )?;
-    // Language matching (plans/19-native-and-terminal.md §9): the table the
+    // Language matching: the table the
     // build cuts per corpus, and the whole of it as `mf2` carries it.
     let matching = mf2_locale_data::extract::matching_table(
         &likely,

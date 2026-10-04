@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Does a client build link a `Display` or `Debug` impl of one of our types,
-# the blanket `ToString` over one, or the `Debug` writers? (plans/19 §6,
-# plans/04 §12.6; A9's check, as B1 moved it to the merged crate.)
+# the blanket `ToString` over one, or the `Debug` writers? (A9's check, as B1
+# moved it to the merged crate.)
 #
 #   tools/fmt-check.sh WASM...   (names kept: a debug-profile client build)
 #

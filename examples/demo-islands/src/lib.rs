@@ -1,4 +1,4 @@
-//! The Phase 7 islands example (`plans/15-phase-7-work-order.md` A1).
+//! The Phase 7 islands example.
 //!
 //! Most of this page is **server-only**: it renders on the server and ships
 //! no code, so its call sites cost the wasm nothing — `cargo xtask

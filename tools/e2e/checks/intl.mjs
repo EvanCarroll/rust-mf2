@@ -1,5 +1,5 @@
 // Phase 4 task A0 — the `intl` client-option probe in real browsers
-// (plans/11-phase-4-work-order.md; bench/intl-probe/README.md).
+// (bench/intl-probe/README.md).
 //
 // Serves the repository itself (its own static server on 127.0.0.1, with
 // COOP/COEP so the page is cross-origin isolated and performance.now() is

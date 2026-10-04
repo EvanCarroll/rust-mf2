@@ -1,6 +1,6 @@
 // A static host for a client-only site (`examples/demo-csr/dist/`, served by
-// the `csr` and `a11y` checks): files, their types, and the cache policy
-// plans/04-leptos-integration.md §6 asks for — a catalog is named by its
+// the `csr` and `a11y` checks): files, their types, and their cache
+// policy — a catalog is named by its
 // content and immutable; everything else, the index included, is revalidated.
 
 import { createServer } from 'node:http';

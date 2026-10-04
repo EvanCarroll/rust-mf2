@@ -1,5 +1,4 @@
-//! `cargo xtask churn`: the conversions under churn
-//! (`plans/15-phase-7-work-order.md` A5).
+//! `cargo xtask churn`: the conversions under churn.
 //!
 //! Builds `bench/churn` — P0.11's churning list on `mf2::leptos`, one row
 //! shape per variant — into `target/churn/site/` as a client-only site (the

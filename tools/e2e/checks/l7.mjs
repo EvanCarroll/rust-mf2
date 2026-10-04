@@ -1,5 +1,4 @@
-// Conformance layer L7 in the browser (plans/01-conformance.md §3;
-// plans/15-phase-7-work-order.md A4). Driven by `cargo xtask l7-web`, which
+// Conformance layer L7 in the browser. Driven by `cargo xtask l7-web`, which
 // renders each set's pages with `conformance/l7-web`'s `l7-page` binary into
 // target/l7-web/<configuration>/, builds the islands and the client-only
 // wasm, runs this, and judges the ledger's L7 columns from what it records.

@@ -1,4 +1,4 @@
-//! The server (`plans/04-leptos-integration.md` §6) — the same wiring as
+//! The server — the same wiring as
 //! `examples/demo-ssr`'s. Islands change the client, not the server.
 //!
 //! The generated `install()`, the `Negotiator` as a layer, and the catalog

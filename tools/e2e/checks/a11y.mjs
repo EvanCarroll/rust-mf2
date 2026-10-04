@@ -1,4 +1,4 @@
-// Phase 7 A11 (plans/15-phase-7-work-order.md): the WCAG 2.2 AA audit's
+// Phase 7 A11: the WCAG 2.2 AA audit's
 // automated part, over every example page. `examples/demo-ssr` (built with
 // `--split`) must be running at --base-url (default port 3702) and
 // `examples/demo-islands` at $MF2_ISLANDS_URL (default port 3704);

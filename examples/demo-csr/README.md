@@ -3,7 +3,7 @@
 An application with **no server**: trunk builds the wasm, `mf2 compile
 --site` publishes the catalogs beside it, and any static host serves the
 result. The browser chooses the locale, and remembers it. This is what
-`tools/e2e/checks/csr.mjs` drives (`plans/15-phase-7-work-order.md` A2).
+`tools/e2e/checks/csr.mjs` drives.
 
 ## Build and run
 

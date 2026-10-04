@@ -1,5 +1,4 @@
-// Conformance layer L6 in the browser (plans/01-conformance.md §3;
-// plans/14-phase-6-work-order.md A6b). Driven by `cargo xtask l6-web`, which
+// Conformance layer L6 in the browser. Driven by `cargo xtask l6-web`, which
 // renders the page with `conformance/l6-web`'s `l6-page` binary, builds the
 // same crate for wasm32-unknown-unknown with `hydrate`, and runs this.
 //

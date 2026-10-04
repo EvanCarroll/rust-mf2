@@ -1,6 +1,6 @@
 //! A value that is neither a number, a string, a date, a path nor a type with
 //! `Display`: the error is `IntoArg`'s, at the argument, and names what an
-//! argument may be (plans/19-native-and-terminal.md §7).
+//! argument may be.
 struct Opaque;
 
 fn main() {

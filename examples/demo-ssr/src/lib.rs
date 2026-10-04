@@ -1,5 +1,5 @@
-//! The Phase 6 example (`plans/14-phase-6-work-order.md` A10), with the
-//! Phase 7 lazy route (`plans/15-phase-7-work-order.md` A3).
+//! The Phase 6 example, with the
+//! Phase 7 lazy route.
 //!
 //! One page that uses every position the integration supports, so that what
 //! breaks is visible rather than theoretical:

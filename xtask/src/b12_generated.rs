@@ -1,8 +1,8 @@
 //! `cargo xtask b12-generated`: budgets **B1′** and **B13** on the module
-//! `mf2-build` generates (`plans/13-phase-5b-work-order.md` A10).
+//! `mf2-build` generates.
 //!
 //! Phase 5a measured both by editing the fixture's corpus by hand and putting
-//! it back ([phase-5a-results](../../plans/phase-5a-results.md) §A10): B1′ =
+//! it back: B1′ =
 //! +0 B, B13 = 13,599 B avoided. This turns them into a gate — the corpora
 //! are two cargo features of the fixture, so a regression fails a command
 //! instead of waiting to be re-measured.
@@ -14,7 +14,7 @@
 //! | A | the fixture's own | `hydrate,fn-number` | a corpus that uses `:integer` |
 //! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | **B13** = B − A: what a corpus that does not use them does not pay |
 //!
-//! The size method is `plans/06` §3's: `wasm32-unknown-unknown`, profile
+//! The size method: `wasm32-unknown-unknown`, profile
 //! `wasm-release`, raw bytes of the client binary — the same figures Phase 5a
 //! reported, so the two are comparable.
 

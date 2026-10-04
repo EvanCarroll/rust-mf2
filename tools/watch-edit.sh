@@ -1,7 +1,7 @@
 #!/bin/sh
 # tools/watch-edit.sh EXAMPLE PORT [expect-ignored]
 #
-# The dev loop's check (plans/15-phase-7-work-order.md A6): starts
+# The dev loop's check: starts
 # `cargo leptos watch` in examples/EXAMPLE (demo-ssr: 3702, demo-islands:
 # 3704), edits fr's `reset` text, and requires the restarted server to serve
 # the edit, then the revert. With `expect-ignored` it requires instead that

@@ -1,4 +1,4 @@
-// Phase 7 A1 (plans/15-phase-7-work-order.md) against `examples/demo-islands`,
+// Phase 7 A1 against `examples/demo-islands`,
 // which must already be running at --base-url (default port 3704).
 //
 // What it asserts, and why each one is here:
@@ -11,7 +11,8 @@
 //     hydrates as an element;
 //   * the gate holds: with the catalog delayed, no island hydrates until it
 //     has arrived — and, as the control, the same page with the gate removed
-//     fails the way plans/04 §7 says it must;
+//     fails: the markup message's island hydrates against no
+//     catalog, so with no structure;
 //   * a signal-valued argument re-formats under `static-locale` (it did not
 //     before Phase 7);
 //   * a switch is the form's `GET ?lang=`, which the server answers with the

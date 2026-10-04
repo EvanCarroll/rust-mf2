@@ -1,5 +1,4 @@
-// Phase 8 A7 (plans/16-phase-8-work-order.md; plans/03-runtime.md §6.1,
-// plans/04-leptos-integration.md §6): dates in the reader's time zone.
+// Phase 8 A7: dates in the reader's time zone.
 //
 // Against `examples/demo-ssr`, running at --base-url, whose home page shows
 // one instant (2026-01-01T00:00Z) through `:datetime`; and
