@@ -20,9 +20,9 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
 
 ## State
 
-* **In flight:** the two warnings, then step 3. A worktree made for a task is removed once its work
+* **In flight:** step 4. A worktree made for a task is removed once its work
   is merged.
-* **Next:** step 3
+* **Next:** step 4
 
 ## Done
 
@@ -34,6 +34,12 @@ goes on to Phase 21 (`plan/14`), in the same session or a fresh one.
   then passed in 24 s (`target/p20/2-check-r2.log`); the session's rust-analyzer had already
   checked most of it. Its two warnings (18.1's `date_forms.rs`, 16.1's `tests/icu.rs`) are
   fixed before step 3, which denies warnings.
+* Step 3, everything `ci` builds: the first run (6 min) stopped at clippy; a41e74a (the two
+  warnings) and four fix commits — a42ed5a (`mf2-runtime`, 17.5), 5723c29 (`mf2-fn-datetime`,
+  17.5/18.2a), e6b0425 (`mf2-conformance` 16.0, `mf2-build` test 17.5), a2f72b8 (`xtask`'s
+  error boxed, 19.2) — found by running its clippy step alone with `--keep-going`. Then
+  `cargo xtask ci --compile --keep-going` passed in 21 min 33 s
+  (`target/p20/3-ci-compile-r2.log`).
 
 ## Before this phase
 
