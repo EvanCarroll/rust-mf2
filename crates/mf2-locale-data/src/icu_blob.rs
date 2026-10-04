@@ -19,7 +19,10 @@
 //! **Backend variants** ([`IcuBlobSpec`]): any calendar or Gregorian only,
 //! with or without zone styles (`Icu<AnyCalendar | GregorianOnly, WithZones
 //! | NoZones>`); a wider variant's blob also carries the narrower ones'
-//! requests, so one blob serves each of them.
+//! requests, so one blob serves each of them. A build links one variant, the
+//! narrowest its corpus needs (`plan/08` §5.1: [`DateNeeds::zone_names`],
+//! [`DateNeeds::other_calendars`], [`prefers_gregorian`]), and cuts the blob
+//! for that variant alone.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
@@ -513,6 +516,22 @@ impl DateNeeds {
         }
     }
 
+    /// Whether some shape has a zone style: only then does the corpus need
+    /// zone names (`Icu<_, WithZones>`). A zone style is always a literal.
+    pub fn zone_names(&self) -> bool {
+        self.shapes.iter().any(|s| s.zone.is_some())
+    }
+
+    /// Whether a message names a calendar other than `gregory`, or takes
+    /// `calendar` from a variable: then the corpus needs every calendar
+    /// (`Icu<AnyCalendar, _>`), whatever its languages prefer.
+    pub fn other_calendars(&self) -> bool {
+        match &self.calendars {
+            Selection::Listed(set) => !set.is_empty(),
+            Selection::All => true,
+        }
+    }
+
     /// The calendars besides the locale's default and `gregory`.
     fn extra_calendars(&self) -> Vec<&str> {
         match &self.calendars {
@@ -553,6 +572,19 @@ impl DateNeeds {
     }
 }
 
+/// Whether `locale`'s own calendar is the Gregorian one, as ICU4X resolves
+/// it from the tag (a `-u-ca-` keyword) and CLDR's calendar preferences
+/// (`th` prefers the Buddhist calendar, `fa` the Persian one). A corpus with
+/// a language that does not needs every calendar (`plan/08` §5.1): the
+/// Gregorian-only formatter would show that language Gregorian dates.
+pub fn prefers_gregorian(locale: &str) -> Result<bool, Error> {
+    let loc = icu::locale::Locale::try_from_str(locale)
+        .map_err(|_| DataError::custom("an invalid locale tag"))?;
+    let prefs = icu_calendar::preferences::CalendarPreferences::from(&loc);
+    let kind = icu_calendar::AnyCalendarKind::try_new_unstable(&Src, prefs)?;
+    Ok(matches!(kind, icu_calendar::AnyCalendarKind::Gregorian))
+}
+
 /// What an `icu.blob` is built for: the `icu` date formatter variants it
 /// serves, and what the corpus formats.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -583,7 +615,8 @@ impl IcuBlobSpec {
 
     /// Every variant (any calendar, with zones) for `needs` — what
     /// `mf2::compile_str` and the conformance harness use, whose registry
-    /// is the widest.
+    /// is the widest, and what a build cuts under `mf2.toml`'s widest form
+    /// (`[dates] calendars = "all"`, `zone-names = true`).
     pub fn every_variant(needs: DateNeeds) -> IcuBlobSpec {
         IcuBlobSpec::new(true, true, needs)
     }

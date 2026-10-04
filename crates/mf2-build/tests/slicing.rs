@@ -596,6 +596,153 @@ fn icu4x_in_the_browser_keeps_the_slice_in_the_catalog() {
     }
 }
 
+// `plan/08` §5.1: the narrowest ICU4X form per corpus.
+
+/// The size of `catalog`'s date slice, and the size of the slice cut for
+/// `any_calendar` × `zones` from what the catalog's messages format.
+#[cfg(feature = "icu-blob")]
+fn slice_sizes(catalog: &catalog::Catalog, any_calendar: bool, zones: bool) -> (usize, usize) {
+    use mf2_locale_data::icu_blob::{IcuBlobSpec, icu_blob};
+    let carried = catalog
+        .locale_entries
+        .iter()
+        .find(|(key, _)| *key == locale_key::ICU_BLOB)
+        .map_or(0, |(_, n)| *n);
+    let spec = IcuBlobSpec::new(any_calendar, zones, catalog.slice.dates.clone());
+    let cut = icu_blob(&catalog.tag, &spec)
+        .expect("the slice builds")
+        .len();
+    (carried, cut)
+}
+
+#[cfg(feature = "icu-blob")]
+#[test]
+fn the_build_links_the_narrowest_icu4x_form_and_cuts_the_slice_for_it() {
+    let features = Features::parse("ssr,leptos-client-datetime-icu,leptos-server-datetime-icu");
+    for (name, body, tags, words) in [
+        // Gregorian languages, no zone style: the narrowest form.
+        (
+            "form-gregorian-no-zones",
+            "when = {$d :date}\n",
+            &["en", "fr"][..],
+            "gregorian no_zones",
+        ),
+        // A zone style.
+        (
+            "form-gregorian-zones",
+            "when = {$d :time timeZoneStyle=long}\n",
+            &["en", "fr"][..],
+            "gregorian zones",
+        ),
+        // A language whose own calendar is not the Gregorian one.
+        (
+            "form-any-no-zones",
+            "when = {$d :date}\n",
+            &["en", "th"][..],
+            "any no_zones",
+        ),
+        // A message that names another calendar, and a zone style.
+        (
+            "form-any-zones",
+            "when = {$d :date calendar=hebrew}\nat = {$d :time timeZoneStyle=short}\n",
+            &["en", "fr"][..],
+            "any zones",
+        ),
+    ] {
+        let outcome = build_panel(name, body, tags, &features);
+        let form = outcome.dates.as_ref().expect("ICU4X formats a date here");
+        assert_eq!(
+            format!("{} {}", form.calendars_word(), form.zones_word()),
+            words,
+            "{name}: {}",
+            form.describe()
+        );
+        assert!(
+            outcome
+                .generated
+                .contains(&format!("__date_statics!({words});")),
+            "{name}: {}",
+            outcome.generated
+        );
+        for catalog in &outcome.catalogs {
+            let (carried, cut) = slice_sizes(catalog, form.any_calendar, form.zone_names);
+            assert!(carried > 0, "{name} {}: no date slice", catalog.tag);
+            assert_eq!(carried, cut, "{name} {}: not cut for its form", catalog.tag);
+        }
+    }
+    // A variable `calendar` needs every calendar.
+    let outcome = build_panel(
+        "form-variable-calendar",
+        "when = {$d :date calendar=$c}\n",
+        &["en"],
+        &features,
+    );
+    let form = outcome.dates.as_ref().expect("a form");
+    assert!(form.any_calendar, "{}", form.describe());
+    assert!(!form.zone_names, "{}", form.describe());
+}
+
+#[cfg(feature = "icu-blob")]
+#[test]
+fn mf2_toml_overrides_the_icu4x_form() {
+    use mf2_build::{DateCalendars, ZoneNames};
+    let features = Features::parse("ssr,leptos-client-datetime-icu,leptos-server-datetime-icu");
+    // The widest form, what every build had before: every calendar and zone
+    // names, whatever the corpus asks for, and the slice of every variant.
+    let mut widest = Config::default();
+    widest.dates.calendars = DateCalendars::All;
+    widest.dates.zone_names = ZoneNames::Yes;
+    let outcome = build_panel_with(
+        "form-widest",
+        "when = {$d :date}\n",
+        &["en", "fr"],
+        &features,
+        widest,
+    );
+    let form = outcome.dates.as_ref().expect("a form");
+    assert!(form.any_calendar && form.zone_names, "{}", form.describe());
+    assert!(
+        form.describe().contains("set by mf2.toml"),
+        "{}",
+        form.describe()
+    );
+    assert!(outcome.generated.contains("__date_statics!(any zones);"));
+    for catalog in &outcome.catalogs {
+        let (carried, cut) = slice_sizes(catalog, true, true);
+        assert_eq!(carried, cut, "{}", catalog.tag);
+    }
+    // Gregorian only, even for a language that prefers another calendar.
+    let mut gregorian = Config::default();
+    gregorian.dates.calendars = DateCalendars::Gregorian;
+    gregorian.dates.zone_names = ZoneNames::No;
+    let outcome = build_panel_with(
+        "form-forced-gregorian",
+        "when = {$d :time timeZoneStyle=long}\n",
+        &["en", "th"],
+        &features,
+        gregorian,
+    );
+    let form = outcome.dates.as_ref().expect("a form");
+    assert!(
+        !form.any_calendar && !form.zone_names,
+        "{}",
+        form.describe()
+    );
+    assert!(
+        outcome
+            .generated
+            .contains("__date_statics!(gregorian no_zones);")
+    );
+    // No side formats with ICU4X: no form at all.
+    let outcome = build_panel(
+        "form-none",
+        "when = {$d :date}\n",
+        &["en"],
+        &Features::parse("hydrate,leptos-client-datetime-intl"),
+    );
+    assert!(outcome.dates.is_none());
+}
+
 // `plan/08` §4.1: the number entries go where they are read.
 
 /// The plural and number entries: every LOCALE key below the date range.

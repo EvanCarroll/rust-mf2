@@ -18,6 +18,9 @@
 //! * `__if_clap!`, `__if_ratatui!` — `Locale`'s value parser, `markup::*`;
 //! * `__use_host!` — the host, as one `pub use`, so that the others are
 //!   never linked (B1′);
+//! * `__date_statics!` — the date handlers of the corpus's ICU4X form
+//!   (`mf2_fn_datetime`'s, re-exported at the crate root: its own features
+//!   say whether it formats with ICU4X);
 //! * `__best_locale!` — `Locale::from_str`: the one matcher, but in a
 //!   hydrated page, which never matches (the server chose), an exact tag,
 //!   so that its client links none of the matcher.

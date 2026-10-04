@@ -473,6 +473,13 @@ pub use mf2_fn_number as fn_number;
 #[cfg(feature = "datetime")]
 pub use mf2_fn_datetime as fn_datetime;
 
+/// The generated module's date handlers, of the ICU4X form its build chose
+/// (`plan/08` §5.1): over `fn_datetime::icu::Icu` of that form when this
+/// build formats with ICU4X, else `fn_datetime`'s own statics.
+#[cfg(feature = "datetime")]
+#[doc(hidden)]
+pub use mf2_fn_datetime::__date_statics;
+
 /// The native host (`mf2-host-std`).
 #[cfg(feature = "host-std")]
 pub use mf2_host_std as host_std;

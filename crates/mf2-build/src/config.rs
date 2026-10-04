@@ -16,6 +16,10 @@
 //! currencies = "used"        # "used" | "all" | ["USD", "EUR"]
 //! units = "used"
 //!
+//! [dates]                    # the ICU4X date formatter's form (plan/08 §5.1)
+//! calendars = "auto"         # "auto" | "gregorian" | "all"
+//! zone-names = "auto"        # "auto" | true | false
+//!
 //! [lints]
 //! neutral-numbers = "warn"
 //!
@@ -54,6 +58,9 @@ pub struct Config {
     pub catalog: CatalogConfig,
     /// How much CLDR data a catalog carries.
     pub locale_data: LocaleDataConfig,
+    /// The form of the ICU4X date formatter: which calendars and whether
+    /// zone names.
+    pub dates: DatesConfig,
     /// Lint levels, by lint name.
     pub lints: BTreeMap<Lint, Level>,
     /// Custom functions for the generated registry: MF2 identifier → the
@@ -68,6 +75,7 @@ impl Default for Config {
             fallback: BTreeMap::new(),
             catalog: CatalogConfig::default(),
             locale_data: LocaleDataConfig::default(),
+            dates: DatesConfig::default(),
             lints: BTreeMap::new(),
             functions: BTreeMap::new(),
         }
@@ -129,6 +137,69 @@ pub struct LocaleDataConfig {
     pub currencies: DataSet,
     /// Which units a catalog carries.
     pub units: DataSet,
+}
+
+/// `[dates]`: the form of the ICU4X date formatter the build links and cuts
+/// the date slice for (`plan/08` §5.1). By default the build works both
+/// halves out from the corpus; `calendars = "all"` with `zone-names = true`
+/// is the widest form, which formats whatever any message can ask for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Deserialize)]
+#[serde(deny_unknown_fields, default, rename_all = "kebab-case")]
+#[non_exhaustive]
+pub struct DatesConfig {
+    /// Which calendars the formatter shows.
+    pub calendars: DateCalendars,
+    /// Whether it shows zone names (`timeZoneStyle`).
+    pub zone_names: ZoneNames,
+}
+
+/// `[dates] calendars`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
+pub enum DateCalendars {
+    /// Gregorian only, unless a language prefers another calendar or a
+    /// message names one, or takes `calendar` from a variable (`"auto"`).
+    #[default]
+    Auto,
+    /// Gregorian only (`"gregorian"`): a date in another calendar is an
+    /// *Unsupported Operation*, and a language that prefers another one is
+    /// shown Gregorian dates.
+    Gregorian,
+    /// Every calendar ICU4X formats (`"all"`).
+    All,
+}
+
+/// `[dates] zone-names`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub enum ZoneNames {
+    /// Only if a message has `timeZoneStyle` (`"auto"`).
+    #[default]
+    Auto,
+    /// Always (`true`).
+    Yes,
+    /// Never (`false`): `timeZoneStyle` is an *Unsupported Operation*.
+    No,
+}
+
+impl<'de> Deserialize<'de> for ZoneNames {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Raw {
+            Flag(bool),
+            Word(String),
+        }
+        match Raw::deserialize(d)? {
+            Raw::Flag(true) => Ok(ZoneNames::Yes),
+            Raw::Flag(false) => Ok(ZoneNames::No),
+            Raw::Word(w) if w == "auto" => Ok(ZoneNames::Auto),
+            Raw::Word(w) => Err(serde::de::Error::custom(format!(
+                "expected \"auto\", true or false, not {w:?}"
+            ))),
+        }
+    }
 }
 
 /// How much of one CLDR table a catalog carries.
@@ -302,7 +373,10 @@ fn config_error(text: &str, path: &Path, e: &toml::de::Error) -> Error {
 
 /// `Serialize` for `mf2 init`, which writes a file that reads back as itself.
 mod serialize {
-    use super::{CatalogConfig, Config, DataSet, LocaleDataConfig, Missing, Strip};
+    use super::{
+        CatalogConfig, Config, DataSet, DateCalendars, DatesConfig, LocaleDataConfig, Missing,
+        Strip, ZoneNames,
+    };
     use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 
     impl Serialize for Config {
@@ -314,6 +388,9 @@ mod serialize {
             }
             m.serialize_entry("catalog", &self.catalog)?;
             m.serialize_entry("locale_data", &self.locale_data)?;
+            if self.dates != DatesConfig::default() {
+                m.serialize_entry("dates", &self.dates)?;
+            }
             if !self.lints.is_empty() {
                 let named: std::collections::BTreeMap<&str, String> = self
                     .lints
@@ -344,6 +421,35 @@ mod serialize {
             m.serialize_entry("currencies", &self.currencies)?;
             m.serialize_entry("units", &self.units)?;
             m.end()
+        }
+    }
+
+    impl Serialize for DatesConfig {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            let mut m = s.serialize_map(Some(2))?;
+            m.serialize_entry("calendars", &self.calendars)?;
+            m.serialize_entry("zone-names", &self.zone_names)?;
+            m.end()
+        }
+    }
+
+    impl Serialize for DateCalendars {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            s.serialize_str(match self {
+                DateCalendars::Auto => "auto",
+                DateCalendars::Gregorian => "gregorian",
+                DateCalendars::All => "all",
+            })
+        }
+    }
+
+    impl Serialize for ZoneNames {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            match self {
+                ZoneNames::Auto => s.serialize_str("auto"),
+                ZoneNames::Yes => s.serialize_bool(true),
+                ZoneNames::No => s.serialize_bool(false),
+            }
         }
     }
 
@@ -479,5 +585,34 @@ mod tests {
             DataSet::All.with_used(&Selection::Listed(set(&["JPY"]))),
             Selection::All
         );
+    }
+
+    #[test]
+    fn dates_reads_the_form_and_writes_it_back() {
+        let path = Path::new("mf2.toml");
+        let auto = Config::parse("", path).expect("no [dates]");
+        assert_eq!(auto.dates, DatesConfig::default());
+        assert_eq!(auto.dates.calendars, DateCalendars::Auto);
+        assert_eq!(auto.dates.zone_names, ZoneNames::Auto);
+        let widest = Config::parse("[dates]\ncalendars = \"all\"\nzone-names = true\n", path)
+            .expect("the widest form");
+        assert_eq!(widest.dates.calendars, DateCalendars::All);
+        assert_eq!(widest.dates.zone_names, ZoneNames::Yes);
+        let narrow = Config::parse(
+            "[dates]\ncalendars = \"gregorian\"\nzone-names = false\n",
+            path,
+        )
+        .expect("the narrowest form");
+        assert_eq!(narrow.dates.calendars, DateCalendars::Gregorian);
+        assert_eq!(narrow.dates.zone_names, ZoneNames::No);
+        let words = Config::parse("[dates]\nzone-names = \"auto\"\n", path).expect("auto");
+        assert_eq!(words.dates.zone_names, ZoneNames::Auto);
+        assert!(Config::parse("[dates]\ncalendars = \"buddhist\"\n", path).is_err());
+        assert!(Config::parse("[dates]\nzone-names = \"yes\"\n", path).is_err());
+        // What `mf2 init` writes reads back as itself.
+        let written = widest.to_toml();
+        assert_eq!(Config::parse(&written, path).expect("reads back"), widest);
+        let plain = auto.to_toml();
+        assert!(!plain.contains("[dates]"), "{plain}");
     }
 }

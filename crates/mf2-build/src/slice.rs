@@ -12,6 +12,8 @@ use mf2_locale_data::number::{NumberNeeds, Selection};
 use mf2_model::{Declaration, Expression, FunctionRef, Message, OptionValue, SelectMessage};
 
 use crate::config::LocaleDataConfig;
+#[cfg(feature = "icu-blob")]
+use crate::config::{DateCalendars, DatesConfig, ZoneNames};
 use crate::features::Features;
 
 /// What one locale's catalog must carry, and what `check` noticed on the way.
@@ -24,6 +26,10 @@ pub struct Slice {
     /// formatter is `icu`.
     #[cfg(feature = "icu-blob")]
     pub dates: mf2_locale_data::icu_blob::DateNeeds,
+    /// The corpus's ICU4X form, which the slice is cut for alone: the same
+    /// for every locale, so set once they are all sliced ([`date_form`]).
+    #[cfg(feature = "icu-blob")]
+    pub form: DateForm,
     /// The entries to ask `mf2_locale_data::locale_entries` for.
     pub needs: LocaleNeeds,
     /// `:currency` was used with a non-literal `currency` option, so every
@@ -39,6 +45,124 @@ pub struct Slice {
     /// therefore receive a number or a date at run time. Only then do the
     /// unannotated hooks belong in the registry (#90).
     pub unannotated: bool,
+}
+
+/// The form of the ICU4X date formatter a corpus links (`plan/08` §5.1):
+/// Gregorian only or every calendar, with or without zone names. The
+/// generated module states it, `mf2`'s `__date_statics!` turns it into the
+/// date handlers of that type, and the date slice is cut for it alone.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DateForm {
+    /// Every calendar (`Icu<AnyCalendar, _>`), not only the Gregorian one.
+    pub any_calendar: bool,
+    /// Zone names (`Icu<_, WithZones>`).
+    pub zone_names: bool,
+    /// Why the calendars are what they are, for `mf2 check`.
+    pub calendar_reason: String,
+    /// Why the zone names are what they are, for `mf2 check`.
+    pub zone_reason: String,
+}
+
+impl Default for DateForm {
+    /// The widest form, which every build had before the form was chosen.
+    fn default() -> DateForm {
+        DateForm {
+            any_calendar: true,
+            zone_names: true,
+            calendar_reason: "the widest form".to_owned(),
+            zone_reason: "the widest form".to_owned(),
+        }
+    }
+}
+
+impl DateForm {
+    /// `__date_statics!`'s first word: `any` or `gregorian`.
+    pub fn calendars_word(&self) -> &'static str {
+        if self.any_calendar {
+            "any"
+        } else {
+            "gregorian"
+        }
+    }
+
+    /// `__date_statics!`'s second word: `zones` or `no_zones`.
+    pub fn zones_word(&self) -> &'static str {
+        if self.zone_names { "zones" } else { "no_zones" }
+    }
+
+    /// The form in words, with the reasons: what `mf2 check` prints.
+    pub fn describe(&self) -> String {
+        format!(
+            "ICU4X dates: {} ({}); {} ({})",
+            if self.any_calendar {
+                "every calendar"
+            } else {
+                "the Gregorian calendar only"
+            },
+            self.calendar_reason,
+            if self.zone_names {
+                "zone names"
+            } else {
+                "no zone names"
+            },
+            self.zone_reason,
+        )
+    }
+}
+
+/// The corpus's form, from every locale's slice (`(tag, slice)`) and
+/// `mf2.toml`'s `[dates]`: the calendars are Gregorian only unless a
+/// language prefers another calendar or a message names one (or takes
+/// `calendar` from a variable); zone names only if a message has
+/// `timeZoneStyle`. A calendar only an argument carries is not seen here
+/// (`mf2::DateTimeValue::with_calendar` is a run-time value): formatting it
+/// with the Gregorian form is an *Unsupported Operation*, reported, with a
+/// fallback value.
+#[cfg(feature = "icu-blob")]
+pub fn date_form(
+    slices: &[(&str, &Slice)],
+    config: &DatesConfig,
+) -> Result<DateForm, mf2_locale_data::Error> {
+    let (any_calendar, calendar_reason) = match config.calendars {
+        DateCalendars::Gregorian => (false, "set by mf2.toml".to_owned()),
+        DateCalendars::All => (true, "set by mf2.toml".to_owned()),
+        DateCalendars::Auto => {
+            let mut found = None;
+            for (tag, _) in slices {
+                if !mf2_locale_data::icu_blob::prefers_gregorian(tag)? {
+                    found = Some(format!("`{tag}` prefers another calendar"));
+                    break;
+                }
+            }
+            if found.is_none() && slices.iter().any(|(_, s)| s.dates.other_calendars()) {
+                found = Some(
+                    "a message names another calendar, or takes `calendar` from a variable"
+                        .to_owned(),
+                );
+            }
+            match found {
+                Some(reason) => (true, reason),
+                None => (
+                    false,
+                    "every language prefers it and no message names another".to_owned(),
+                ),
+            }
+        }
+    };
+    let (zone_names, zone_reason) = match config.zone_names {
+        ZoneNames::Yes => (true, "set by mf2.toml".to_owned()),
+        ZoneNames::No => (false, "set by mf2.toml".to_owned()),
+        ZoneNames::Auto if slices.iter().any(|(_, s)| s.dates.zone_names()) => {
+            (true, "a message has `timeZoneStyle`".to_owned())
+        }
+        ZoneNames::Auto => (false, "no message has `timeZoneStyle`".to_owned()),
+    };
+    Ok(DateForm {
+        any_calendar,
+        zone_names,
+        calendar_reason,
+        zone_reason,
+    })
 }
 
 /// What `messages` need of `locale`'s data.
@@ -230,9 +354,9 @@ pub fn is_all(selection: &Selection) -> bool {
 /// The `icu.blob` entry a locale needs, when a side's formatter is `icu` and the
 /// corpus formats — or can receive — a date.
 ///
-/// `mf2::compile_str` builds the same entry for one message; every variant of
-/// the ICU4X backend is covered, since the build cannot know which the
-/// application links.
+/// It is cut for the corpus's form alone (`slice.form`, `plan/08` §5.1): the
+/// generated module links that variant of the ICU4X backend and no other.
+/// (`mf2::compile_str`, whose registry is the widest, covers every variant.)
 #[cfg(feature = "icu-blob")]
 pub fn icu_entry(
     locale: &str,
@@ -242,6 +366,11 @@ pub fn icu_entry(
     if slice.dates.is_empty() {
         return Ok(None);
     }
-    let blob = icu_blob(locale, &IcuBlobSpec::every_variant(slice.dates.clone()))?;
+    let spec = IcuBlobSpec::new(
+        slice.form.any_calendar,
+        slice.form.zone_names,
+        slice.dates.clone(),
+    );
+    let blob = icu_blob(locale, &spec)?;
     Ok(Some((mf2_catalog::format::locale_key::ICU_BLOB, blob)))
 }

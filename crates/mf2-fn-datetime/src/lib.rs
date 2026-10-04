@@ -320,3 +320,67 @@ pub static TIME: DateTimeFunction = DateTimeFunction::time(DEFAULT_BACKEND);
 /// Unannotated date/time values, for `Registry::with_dates`: as
 /// `:datetime` with its defaults.
 pub static DATES: DateTimeFunction = DateTimeFunction::unannotated(DEFAULT_BACKEND);
+
+/// The date handlers of a generated module (`mf2-build`, `plan/08` §5.1),
+/// for the ICU4X form the build chose for its corpus: `gregorian` or `any`
+/// calendar, `zones` or `no_zones`. In a build that formats with ICU4X they
+/// are `DATETIME`, `DATE`, `TIME` and `DATES` over `icu::Icu` of that form,
+/// so only that variant is linked, and it reads a slice cut for it alone.
+/// The form names types only: what it leaves out (a calendar, a zone style)
+/// is an *Unsupported Operation* at run time, reported with a fallback.
+/// Reached as `mf2::__date_statics!`; never written by hand.
+#[cfg(any(
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+    all(
+        feature = "std-icu",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
+))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __date_statics {
+    (gregorian no_zones) => {
+        $crate::__date_statics!(@ $crate::icu::GregorianOnly, $crate::icu::NoZones);
+    };
+    (gregorian zones) => {
+        $crate::__date_statics!(@ $crate::icu::GregorianOnly, $crate::icu::WithZones);
+    };
+    (any no_zones) => {
+        $crate::__date_statics!(@ $crate::icu::AnyCalendar, $crate::icu::NoZones);
+    };
+    (any zones) => {
+        $crate::__date_statics!(@ $crate::icu::AnyCalendar, $crate::icu::WithZones);
+    };
+    (@ $cal:ty, $zones:ty) => {
+        /// `:datetime`.
+        pub static DATETIME: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
+            $crate::DateTimeFunction::datetime($crate::icu::Icu::NEW);
+        /// `:date`.
+        pub static DATE: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
+            $crate::DateTimeFunction::date($crate::icu::Icu::NEW);
+        /// `:time`.
+        pub static TIME: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
+            $crate::DateTimeFunction::time($crate::icu::Icu::NEW);
+        /// Unannotated date/time values.
+        pub static DATES: $crate::DateTimeFunction<$crate::icu::Icu<$cal, $zones>> =
+            $crate::DateTimeFunction::unannotated($crate::icu::Icu::NEW);
+    };
+}
+
+/// The date handlers of a generated module, in a build that does not format
+/// with ICU4X: the form is ICU4X's alone, so these are the crate's own
+/// statics over its formatter.
+#[cfg(not(any(
+    all(feature = "web-icu", target_arch = "wasm32", target_os = "unknown"),
+    all(
+        feature = "std-icu",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    )
+)))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __date_statics {
+    ($calendars:ident $zones:ident) => {
+        pub use $crate::{DATE, DATES, DATETIME, TIME};
+    };
+}

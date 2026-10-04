@@ -83,6 +83,10 @@ pub struct Module<'a> {
     /// The corpus has a placeholder with no function, which can receive a
     /// number or a date at run time.
     pub unannotated: bool,
+    /// The ICU4X date formatter's form (`plan/08` §5.1), when a side
+    /// formats with ICU4X; `None` states the widest, which a build with no
+    /// ICU4X formatter ignores.
+    pub dates: Option<&'a crate::slice::DateForm>,
     /// How many messages, for the header comment.
     pub messages: usize,
     /// What this build writes: with [`Emit::Module`] the catalogs are
@@ -504,9 +508,10 @@ fn builtin_path(name: &str, features: &Features) -> Option<&'static str> {
         ("percent", _) => "__mf2::fn_number::PERCENT",
         ("currency", _) => "__mf2::fn_number::CURRENCY",
         ("unit", _) => "__mf2::fn_number::UNIT",
-        ("datetime", _) => "__mf2::fn_datetime::DATETIME",
-        ("date", _) => "__mf2::fn_datetime::DATE",
-        ("time", _) => "__mf2::fn_datetime::TIME",
+        // The corpus's own, of its ICU4X form (`date_statics`).
+        ("datetime", _) => "__dates::DATETIME",
+        ("date", _) => "__dates::DATE",
+        ("time", _) => "__dates::TIME",
         _ => return None,
     })
 }
@@ -549,7 +554,7 @@ static FUNCTIONS: [(&str, &dyn __mf2::Function); {n}] = [
         let _ = write!(s, "\n    .with_numbers(&__mf2::fn_number::NUMBERS)");
     }
     if m.unannotated && m.features.fn_datetime() {
-        let _ = write!(s, "\n    .with_dates(&__mf2::fn_datetime::DATES)");
+        let _ = write!(s, "\n    .with_dates(&__dates::DATES)");
     }
     let _ = write!(
         s,
@@ -560,6 +565,42 @@ pub fn registry() -> &'static __mf2::Registry {{
     &REGISTRY
 }}
 "
+    );
+    date_statics(s, m);
+}
+
+/// The date handlers, for a corpus a date can reach: the module states the
+/// ICU4X form (`plan/08` §5.1), and `__date_statics!` makes them of that
+/// type when this build formats with ICU4X — or names `mf2`'s own, over
+/// the build's formatter, when it does not.
+fn date_statics(s: &mut String, m: &Module<'_>) {
+    if !reaches_a_date(m) {
+        return;
+    }
+    let widest = crate::slice::DateForm::default();
+    let form = m.dates.unwrap_or(&widest);
+    let _ = write!(
+        s,
+        "
+/// The date handlers, of the ICU4X form this corpus needs ({calendars},
+/// {zones}; `mf2 check` says why).
+#[allow(dead_code, unused_imports)]
+mod __dates {{
+    super::__mf2::__date_statics!({cw} {zw});
+}}
+",
+        calendars = if form.any_calendar {
+            "every calendar"
+        } else {
+            "the Gregorian calendar only"
+        },
+        zones = if form.zone_names {
+            "zone names"
+        } else {
+            "no zone names"
+        },
+        cw = form.calendars_word(),
+        zw = form.zones_word(),
     );
 }
 
@@ -1324,6 +1365,7 @@ mod tests {
             custom,
             features,
             unannotated,
+            dates: None,
             messages: 3,
             emit: Emit::Both,
             manifest_bytes: None,
@@ -1606,10 +1648,46 @@ mod tests {
             code.contains(".with_numbers(&__mf2::fn_number::NUMBERS)"),
             "{code}"
         );
+        assert!(code.contains(".with_dates(&__dates::DATES)"), "{code}");
+    }
+
+    #[test]
+    fn the_module_states_the_icu4x_form() {
+        use crate::slice::DateForm;
+        let locales = locales();
+        let custom = BTreeMap::new();
+        let features = Features::parse("datetime");
+        let date = vec!["date".to_owned()];
+        // No form chosen: the widest.
+        let code = write(&module(&date, &features, &custom, &locales, false));
         assert!(
-            code.contains(".with_dates(&__mf2::fn_datetime::DATES)"),
+            code.contains("super::__mf2::__date_statics!(any zones);"),
             "{code}"
         );
+        assert!(code.contains("(\"date\", &__dates::DATE),"), "{code}");
+        // Each of the four forms.
+        for (any_calendar, zone_names, words) in [
+            (false, false, "gregorian no_zones"),
+            (false, true, "gregorian zones"),
+            (true, false, "any no_zones"),
+            (true, true, "any zones"),
+        ] {
+            let form = DateForm {
+                any_calendar,
+                zone_names,
+                ..DateForm::default()
+            };
+            let mut m = module(&date, &features, &custom, &locales, false);
+            m.dates = Some(&form);
+            let code = write(&m);
+            assert!(
+                code.contains(&format!("super::__mf2::__date_statics!({words});")),
+                "{words}: {code}"
+            );
+        }
+        // Nothing a date can reach: no date handlers at all.
+        let code = write(&module(&[], &features, &custom, &locales, false));
+        assert!(!code.contains("__date_statics"), "{code}");
     }
 
     #[test]

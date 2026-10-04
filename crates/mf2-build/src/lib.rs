@@ -97,7 +97,10 @@ pub use build::{Build, Emit, LocaleInfo, Outcome, Published};
 pub use config::FILE_NAME as CONFIG_FILE;
 #[doc(hidden)]
 pub use config::Layout;
-pub use config::{CatalogConfig, Config, DataSet, LocaleDataConfig, Missing, Strip};
+pub use config::{
+    CatalogConfig, Config, DataSet, DateCalendars, DatesConfig, LocaleDataConfig, Missing, Strip,
+    ZoneNames,
+};
 pub use error::{Error, Result};
 #[doc(hidden)]
 pub use features::{BUILTINS, CATALOG_FEATURES, OPTIONS, defines_option};

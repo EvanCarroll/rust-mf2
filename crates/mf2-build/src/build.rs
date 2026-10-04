@@ -157,6 +157,11 @@ pub struct Outcome {
     /// The catalog table's source, when the build emits it apart
     /// ([`Emit::Catalogs`]); empty otherwise.
     pub catalogs_module: String,
+    /// The ICU4X date formatter's form (`plan/08` §5.1), which `mf2 check`
+    /// prints: `None` when no side formats with ICU4X or no date reaches
+    /// the corpus.
+    #[doc(hidden)]
+    pub dates: Option<slice::DateForm>,
     /// Where the outputs went.
     pub out_dir: PathBuf,
 }
@@ -490,6 +495,7 @@ impl Build {
                 removed: Vec::new(),
                 generated: String::new(),
                 catalogs_module: String::new(),
+                dates: None,
                 out_dir: self.out_dir.clone(),
             });
         }
@@ -535,8 +541,10 @@ impl Build {
         };
         // Whether a browser downloads these catalogs, for `unread-data`.
         let downloaded = !codegen::is_native(self.emit) && features.has_browser_side();
-        let mut catalogs = Vec::with_capacity(tags.len());
-        let mut locales = Vec::with_capacity(tags.len());
+        // Every locale is sliced before any catalog is written: the ICU4X
+        // form is the corpus's, and each locale's date slice is cut for it
+        // (`plan/08` §5.1).
+        let mut sliced = Vec::with_capacity(tags.len());
         for (i, tag) in tags.iter().enumerate() {
             let chain_tags = config.chain(tag);
             let chain: Vec<&[Option<&Message<'_>>]> = chain_tags
@@ -559,6 +567,27 @@ impl Build {
                 resolved.messages.iter().flatten().copied().collect();
             let slice = slice::of(&flattened, &config.locale_data, features);
             report_slicing(tag, &slice, features, config, &sources[i], &mut report);
+            sliced.push((tag, chain_tags, resolved, slice));
+        }
+        // The form, when a side formats with ICU4X and a date can reach the
+        // corpus; otherwise there is no slice to cut, and `None`.
+        #[cfg(feature = "icu-blob")]
+        let dates = if features.cuts_date_slice() && sliced.iter().any(|s| !s.3.dates.is_empty()) {
+            let all: Vec<(&str, &slice::Slice)> =
+                sliced.iter().map(|s| (s.0.as_str(), &s.3)).collect();
+            let form = slice::date_form(&all, &config.dates)?;
+            for s in &mut sliced {
+                s.3.form = form.clone();
+            }
+            Some(form)
+        } else {
+            None
+        };
+        #[cfg(not(feature = "icu-blob"))]
+        let dates: Option<slice::DateForm> = None;
+        let mut catalogs = Vec::with_capacity(tags.len());
+        let mut locales = Vec::with_capacity(tags.len());
+        for (tag, chain_tags, resolved, slice) in sliced {
             let catalog = catalog::write(
                 tag,
                 &built.manifest,
@@ -659,6 +688,7 @@ impl Build {
             custom: &config.functions,
             features,
             unannotated,
+            dates: dates.as_ref(),
             messages: built.manifest.ids.len(),
             emit: self.emit,
             manifest_bytes: if self.inline_manifest {
@@ -692,6 +722,7 @@ impl Build {
             removed: Vec::new(),
             generated,
             catalogs_module,
+            dates,
             out_dir: self.out_dir.clone(),
         };
         // A corpus with errors comes back with its report, not as an

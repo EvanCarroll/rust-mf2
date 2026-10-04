@@ -136,7 +136,9 @@ impl ArgSpec {
         mf2_fn_datetime::parse_literal(value).map_or(ArgSpec::Other, ArgSpec::DateTime)
     }
 
-    fn arg(&self) -> Arg<'_> {
+    /// The argument it stands for. Public so that a test can format a case
+    /// through a registry of its own (`conformance/tests/date_forms.rs`).
+    pub fn arg(&self) -> Arg<'_> {
         match self {
             ArgSpec::Str(s) => Arg::Str(s),
             ArgSpec::Int(n) => Arg::Int(*n),

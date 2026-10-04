@@ -50,6 +50,10 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         Format::Text => {
             print!("{}", outcome.report.to_text());
             print!("{}", list.to_text());
+            // The ICU4X date formatter's form, and why (`plan/08` §5.1).
+            if let Some(form) = &outcome.dates {
+                println!("{}", form.describe());
+            }
             let (errors, warnings) = (outcome.report.errors(), outcome.report.warnings());
             if errors == 0 && warnings == 0 {
                 println!(
@@ -64,6 +68,14 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         Format::Json => {
             let mut value = serde_json::to_value(&outcome.report).unwrap_or_default();
             value["features"] = list.to_json();
+            if let Some(form) = &outcome.dates {
+                value["dates"] = serde_json::json!({
+                    "calendars": form.calendars_word(),
+                    "calendars_reason": form.calendar_reason,
+                    "zone_names": form.zone_names,
+                    "zone_names_reason": form.zone_reason,
+                });
+            }
             println!(
                 "{}",
                 serde_json::to_string_pretty(&value).unwrap_or_default()

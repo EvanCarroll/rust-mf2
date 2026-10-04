@@ -11,7 +11,7 @@
 use std::io::Write;
 
 use mf2_locale_data::Selection;
-use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, Shape, icu_blob};
+use mf2_locale_data::icu_blob::{DateNeeds, IcuBlobSpec, Shape, icu_blob, prefers_gregorian};
 use mf2_runtime::{DateFields, DateLength, DateStyle, DateTimeOptions, TimePrecision, ZoneStyle};
 
 const LOCALES: [&str; 12] = [
@@ -170,6 +170,29 @@ fn slicing_rule() {
     // A shape's round trip.
     for s in Shape::all() {
         assert_eq!(Shape::of(&s.options()), s);
+    }
+}
+
+/// What picks the corpus's ICU4X form (plan/08 §5.1): zone names only for
+/// a zone style; every calendar for a calendar a message names or takes
+/// from a variable, or for a language whose own calendar is another.
+#[test]
+fn what_picks_the_form() {
+    let plain = needs("{$d :datetime}");
+    assert!(!plain.zone_names() && !plain.other_calendars());
+    assert!(needs("{$d :time timeZoneStyle=long}").zone_names());
+    // A zone style without a time shows no zone.
+    assert!(!needs("{$d :date}").zone_names());
+    assert!(needs("{$d :date calendar=japanese}").other_calendars());
+    assert!(needs("{$d :date calendar=$c}").other_calendars());
+    assert!(!needs("{$d :date calendar=gregory}").other_calendars());
+    for locale in [
+        "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
+    ] {
+        assert!(prefers_gregorian(locale).unwrap(), "{locale}");
+    }
+    for locale in ["th", "fa", "en-u-ca-hebrew"] {
+        assert!(!prefers_gregorian(locale).unwrap(), "{locale}");
     }
 }
 
