@@ -1,0 +1,17 @@
+# A corpus with a date, for `cargo xtask codegen-matrix`'s check that a
+# client formatting dates through the browser's `Intl` links no ICU4X: with
+# no date message the date formatter is linked out whatever it is, and the
+# check could never fail. `plain` and `items` are the call sites
+# `src/main.rs` keeps.
+@locale en
+---
+
+plain = Save
+
+items =
+  .input {$count :integer}
+  .match $count
+  one {{{$count} item}}
+  *   {{{$count} items}}
+
+saved = Saved on {$when :datetime}

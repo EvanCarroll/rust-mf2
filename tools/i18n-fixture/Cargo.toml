@@ -32,6 +32,9 @@ host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
 host-std-datetime-icu = ["mf2/host-std-datetime-icu", "mf2-build/icu-blob"]
 host-web-datetime-iso = ["mf2/host-web-datetime-iso"]
 host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
+# The same under the framework's name, which `cargo xtask codegen-matrix`
+# builds: the build script reads it as this crate's own feature.
+leptos-client-datetime-intl = ["mf2/leptos-client-datetime-intl"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
 number-intl = ["mf2/number-intl"]
 # A native application's module (`Emit::Native`): `CORPUS`, the typed
@@ -43,9 +46,13 @@ native = ["mf2/native"]
 axum = ["mf2/axum"]
 # The B1′ and B13 corpora (`cargo xtask b12-generated`): a
 # corpus with nothing a function crate could serve, and this crate's corpus
-# plus the three measure functions. Exactly one at a time.
+# plus the three measure functions. Exactly one corpus feature at a time.
 corpus-plain = []
 corpus-measures = []
+# A corpus with a `:datetime` message, for `cargo xtask codegen-matrix`'s
+# check that a client formatting dates through `Intl` links no ICU4X: the
+# fixture's own corpus has no date, so any date formatter is linked out.
+corpus-dates = []
 # An owner decision of Phase 5a: the catalogs emitted apart, so that the i18n
 # crate's generated module carries no catalog name and a translation edit
 # leaves it — and everything that depends on it — untouched.

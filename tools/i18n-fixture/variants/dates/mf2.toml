@@ -1,0 +1,9 @@
+source_locale = "en"
+
+[catalog]
+strip = ["cold", "ids"]
+missing = "fallback"
+
+[lints]
+# Built with and without `fn-number`, as the fixture is.
+neutral-numbers = "allow"

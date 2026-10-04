@@ -50,9 +50,12 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
     Ok(())
 }
 
-/// A client whose dates go through the browser's `Intl`: `host-web-datetime-intl`,
-/// which `leptos-client-datetime-intl` is under the framework's name.
-const CLIENT_INTL: &str = "hydrate,host-web-datetime-intl";
+/// A client whose dates go through the browser's `Intl`
+/// (`leptos-client-datetime-intl`, the framework's name for
+/// `host-web-datetime-intl`), over the fixture's corpus with a `:datetime`
+/// message: with no date message, any date formatter is linked out and the
+/// search below could never fail.
+const CLIENT_INTL: &str = "hydrate,leptos-client-datetime-intl,corpus-dates";
 
 /// The fixture's client binary, the one linked wasm it makes.
 const CLIENT_BIN: &str = "mf2-i18n-client";

@@ -6,7 +6,8 @@
 //! *gated* rather than measured by hand (`cargo xtask b12-generated`):
 //! `corpus-plain` has nothing a function crate could serve,
 //! and `corpus-measures` is this crate's corpus plus the three measure
-//! functions.
+//! functions. A third, `corpus-dates`, has a `:datetime` message, for
+//! `cargo xtask codegen-matrix`'s check that an `Intl` client links no ICU4X.
 
 fn main() {
     // With `split-catalogs`, this crate emits only the module: the catalogs
@@ -19,20 +20,23 @@ fn main() {
     } else {
         mf2_build::Emit::Both
     };
-    // The corpus: this crate's, or one of the two size variants.
-    let plain = std::env::var_os("CARGO_FEATURE_CORPUS_PLAIN").is_some();
-    let measures = std::env::var_os("CARGO_FEATURE_CORPUS_MEASURES").is_some();
-    if plain && measures {
-        println!("cargo::error=corpus-plain and corpus-measures are one corpus each: turn on one");
+    // The corpus: this crate's, or one of its variants.
+    let variants: Vec<&str> = [
+        ("CARGO_FEATURE_CORPUS_PLAIN", "plain"),
+        ("CARGO_FEATURE_CORPUS_MEASURES", "measures"),
+        ("CARGO_FEATURE_CORPUS_DATES", "dates"),
+    ]
+    .into_iter()
+    .filter(|(feature, _)| std::env::var_os(feature).is_some())
+    .map(|(_, variant)| variant)
+    .collect();
+    if variants.len() > 1 {
+        println!(
+            "cargo::error=corpus-plain, corpus-measures and corpus-dates are one corpus each: turn on one"
+        );
         std::process::exit(1);
     }
-    let variant = if std::env::var_os("CARGO_FEATURE_CORPUS_PLAIN").is_some() {
-        Some("plain")
-    } else if std::env::var_os("CARGO_FEATURE_CORPUS_MEASURES").is_some() {
-        Some("measures")
-    } else {
-        None
-    };
+    let variant = variants.first().copied();
     let build = match (mf2_build::Build::new(), variant) {
         (Ok(build), None) => build.emit_cargo(true).emit(emit),
         (Ok(_), Some(variant)) => {

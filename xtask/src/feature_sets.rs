@@ -1006,7 +1006,7 @@ mod tests {
                     "hydrate" => names.push("host-web".to_owned()),
                     // The corpus and where the catalogs go: every corpus
                     // and both kinds of build are checked anyway.
-                    "split-catalogs" | "corpus-plain" | "corpus-measures" => {}
+                    "split-catalogs" | "corpus-plain" | "corpus-measures" | "corpus-dates" => {}
                     other => names.push(other.to_owned()),
                 }
             } else if mf2 {
