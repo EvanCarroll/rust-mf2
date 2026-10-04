@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** 17.5. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.5, after Phase 18's 18.2a.
+* **Next:** nothing; Phase 18's exit and Phase 19 follow.
 
 ## Done
 
@@ -49,6 +49,11 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 * Phase 17 (2026-10-04): 17.1–17.4 committed, nothing compiled. Open with the owner: a
   17.5 in which the browser writes a hydrated message again only when its text differs
   from the page's (17.3 rewrites every one when the date formatters differ).
+* 17.5: `Catalog::names_function`/`calls` (`MsgView::calls`); `Function::formats_dates`,
+  `Registry::is_date_function`; the correction acts only on date messages (`zone.rs`,
+  `Relocalize::msg_id`). `with_dates`, `unannotated()` and `DATES` removed everywhere; lint
+  `date-mismatch` (error, floor error) in `check.rs`. Tests: `mf2-catalog/tests/reader.rs`,
+  `additions.rs`, `drift.rs`, `dates-formatter.mjs` (only-dates-written, tampered number).
 
 ## Before this phase
 
@@ -240,6 +245,10 @@ One line per task, only for what could not be confirmed by reading.
   client) are new; and whether `ui.rs`'s `#[allow(clippy::type_complexity)]` is needed.
 * 17.4: `api.txt` of `mf2-build` moves (`catalog::Readers`, `check_read`, `Error::UnreadData`);
   `xtask`'s test assumes every buildable set's corpora build without error (`feature_sets.rs`).
+* 17.5: `api.txt` of `mf2-runtime`, `mf2-fn-datetime`, `mf2-catalog` moves; `docs/lints.md` needs
+  a `date-mismatch` section (Phase 19; `reference.rs` fails without it); the regenerated dates
+  goldens (`cargo xtask goldens`) must equal the hand-trimmed `dates.tsv`; one-line `.input`
+  messages in `drift.rs`'s new test assume the resource format accepts them.
 
 ## Phase exit (coordinator)
 

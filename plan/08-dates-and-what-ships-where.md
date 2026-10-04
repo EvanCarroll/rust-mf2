@@ -369,6 +369,10 @@ bare. Where the call-site macro can know which arguments a message formats
 as dates, a date value passed to any other argument is a compile error.
 Unannotated numbers still format by type. A server's number text that
 differs from the browser's is not rewritten, and must not break hydration.
+(17.5: `with_dates` left the runtime too, so a hand-written registry cannot format a bare date
+either; `date-mismatch` counts only `:datetime`, `:date`, `:time`, as the build cannot see
+`Function::formats_dates`; the call-site compile error is left — it needs a per-argument date
+flag in the manifest that `mf2-macros` reads, and a dispatch for signals of dates.)
 
 ## 5. A smaller and faster ICU4X
 
