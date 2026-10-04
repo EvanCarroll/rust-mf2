@@ -420,12 +420,11 @@ impl Function for Iso {
         _options: &Options<'_, 'a>,
         errs: &mut dyn ErrorSink,
     ) -> Option<Value<'a>> {
-        match operand {
-            Some(Value::DateTime(d)) => Some(Value::DateTime(*d)),
-            _ => {
-                errs.error(FormatError::BadOperand);
-                None
-            }
+        if let Some(Value::DateTime(d)) = operand {
+            Some(Value::DateTime(*d))
+        } else {
+            errs.error(FormatError::BadOperand);
+            None
         }
     }
 

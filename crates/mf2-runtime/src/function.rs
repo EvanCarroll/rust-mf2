@@ -315,7 +315,7 @@ impl Registry {
     /// Whether `name` (a FUNCS identifier) is a handler here that formats
     /// dates ([`Function::formats_dates`]).
     pub fn is_date_function(&self, name: &str) -> bool {
-        self.get(name).is_some_and(|f| f.formats_dates())
+        self.get(name).is_some_and(Function::formats_dates)
     }
 }
 
