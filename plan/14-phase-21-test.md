@@ -25,13 +25,28 @@ in the same session or a fresh one.
 
 ## State
 
-* **In flight:** 21.1. A worktree made for a task is removed once its work
+* **In flight:** 21.4. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 21.1
+* **Next:** 21.4
 
 ## Done
 
-(nothing yet)
+* 21.1 (2026-10-04): `ci --keep-going` in 10 min 57 s (`target/p21/ci.log`). Tests: 182.5 s
+  over 166 binaries, against 1,721 s at `p14`; none over two minutes (largest
+  `generated_l4` 32.9 s). Failed: the workspace's tests (8), `docs --no-build`,
+  `api --check`, `package --check`.
+* 21.2: `conformance-report`, `cldr-sync` + `locale-data` (the CLDR cache was absent), and
+  `api` after 3f637f8 (18.4's helper hidden at its re-export) and `package` after c26c617
+  (16.1's LICENSE a symlink). A review traced every changed API item to a task but 17
+  `mf2-build` helpers (16.1, 16.3, 18.4), put to the owner. Records: bcc73f7 and the
+  listing commit after it. `rg plans/` finds only the bench records (left by the owner, or
+  rewritten when their benchmarks next run) and nothing else.
+* 21.3: 8277d8e (`mf2-build`: 17.4's `look_in` let a browser-read entry into the
+  server-only table — a real bug; two tests of 17.1's and 8614ca8's replaced behaviour),
+  877c8ee (build differential asks the widest date form, 18.1), 3d5d1ac (17.5's bare-date
+  assertion), acb5840 (release test counts the published list, 16.1), 936c404 (`mf2 check`
+  and `mf2 stats` samples; 19.1's `bundles` named the browser in a corpus without one).
+  The coverage and locale-data table tests pass on the new records.
 
 ## Before this phase
 
