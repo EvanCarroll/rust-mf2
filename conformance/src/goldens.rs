@@ -1,4 +1,4 @@
-//! Locale-output goldens (plans/01-conformance.md §5; plans/11 A8). The
+//! Locale-output goldens. The
 //! suite leaves number and date output implementation-defined; the goldens
 //! pin ours for the locale panel — a fixed message × argument set per
 //! function family, per locale — formatted from `mf2::compile_str` catalogs
@@ -18,7 +18,7 @@ use std::fmt::Write as _;
 use mf2_l4_runner::{ArgSpec, Case, Config};
 use mf2_runtime::{BidiStrategy, Date, DateTime, Time};
 
-/// The locale panel of plans/01-conformance.md §5, and two tags with a
+/// The locale panel the goldens render, and two tags with a
 /// non-Latin numbering system.
 pub const PANEL: [&str; 13] = [
     "en",

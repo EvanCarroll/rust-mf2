@@ -70,12 +70,12 @@ fuzz_target!(|data: &[u8]| {
     // Keep COLD and IDS. The decode assertion below is F1 — a catalog holds
     // the whole message — and that is a property of an *unstripped* catalog:
     // stripping deliberately drops attributes, catch-all values and the
-    // original spelling of a name whose written form is not its NFC form
-    // (plans/02-catalog-format.md §2.3), so a stripped catalog decodes
-    // `{:a\u{F9E7}b}` back as its NFC form `{:a\u{88CF}b}` and is right to.
-    // `mf2-build`'s own tests build the reference workload stripped, which is
-    // what production ships, and conformance L3 holds the two decodes to the
-    // same formatting-relevant model across the whole suite.
+    // original spelling of a name whose written form is not its NFC form, so a
+    // stripped catalog decodes `{:a\u{F9E7}b}` back as its NFC form
+    // `{:a\u{88CF}b}` and is right to. `mf2-build`'s own tests build the
+    // reference workload stripped, which is what production ships, and
+    // conformance L3 holds the two decodes to the same formatting-relevant
+    // model across the whole suite.
     config.catalog.strip.clear();
     let out = std::env::temp_dir().join("mf2-fuzz-build-out");
     let features = Features::parse("fn-number");

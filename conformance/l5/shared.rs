@@ -1,5 +1,5 @@
 // What every conformance L5 crate is, beyond its generated module and its
-// generated call sites (plans/13-phase-5b-work-order.md A4).
+// generated call sites.
 //
 // One file, `include!`d by each of the four locale crates, because they
 // differ in exactly one thing: which locale of the suite they carry. It is

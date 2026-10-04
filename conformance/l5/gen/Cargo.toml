@@ -1,5 +1,4 @@
-# The build-side of conformance layer L5 (plans/01-conformance.md §3,
-# plans/13-phase-5b-work-order.md A4): one i18n crate per locale the suite
+# The build-side of conformance layer L5: one i18n crate per locale the suite
 # uses, its corpus and its `tr!` call sites derived from the vendored suite at
 # build time — so nothing is checked in to drift, and `cargo xtask spec-sync`
 # is carried through by the next build.

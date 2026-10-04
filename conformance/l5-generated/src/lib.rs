@@ -1,5 +1,4 @@
-//! Conformance layer L5 on generated input (`plans/01-conformance.md` §3;
-//! `plans/13-phase-5b-work-order.md` A8).
+//! Conformance layer L5 on generated input.
 //!
 //! The suite is 612 hand-written messages (the WG's and ours). This crate is however
 //! many the ABNF generator produces, steered towards the runtime's functions

@@ -1,6 +1,5 @@
 //! Layers L1–L4 over the whole vendored suite, and the committed ledger
-//! held to their results (plans/08-phase-1-work-order.md A7,
-//! plans/09-phase-2-work-order.md A6, plans/10-phase-3-work-order.md A9).
+//! held to their results.
 
 use std::collections::BTreeSet;
 use std::fs;

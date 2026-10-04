@@ -2,7 +2,7 @@
 //! `:test:format` (`third_party/message-format-wg/test/README.md`, "Test
 //! Functions"), written against `mf2-runtime`'s public [`Function`] trait
 //! and nothing else — the proof that the trait can express a custom
-//! function (`plans/03-runtime.md` §3).
+//! function.
 
 use std::string::String;
 

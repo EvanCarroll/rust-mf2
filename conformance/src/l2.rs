@@ -1,4 +1,4 @@
-//! Layer L2 — the data model (plans/01-conformance.md §3).
+//! Layer L2 — the data model.
 //!
 //! For each test that parses (the `n/a` matrix excludes syntax-error tests):
 //! lower to the interchange data model and validate. The set of Data Model

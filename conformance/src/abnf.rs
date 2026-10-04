@@ -1,6 +1,5 @@
 //! A reader for the ABNF of `spec/message.abnf` (RFC 5234 with RFC 7405's
-//! `%s"…"`), and a random generator of the strings it derives
-//! (plans/01-conformance.md §5, "Grammar-driven generation").
+//! `%s"…"`), and a random generator of the strings it derives.
 //!
 //! Every generated string is well-formed MF2 *by definition* — the grammar is
 //! the spec's — so a generated message that `mf2-syntax` rejects is a parser

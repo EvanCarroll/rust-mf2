@@ -1,5 +1,4 @@
-//! Builds one of conformance L7's four page sets
-//! (`plans/15-phase-7-work-order.md` A4).
+//! Builds one of conformance L7's four page sets.
 //!
 //! A set is the suite's tests of **one** locale — `en-US`, `und`, `fr` or
 //! `ar` — as an i18n crate: a corpus with the twin `en-GB` beside it, the

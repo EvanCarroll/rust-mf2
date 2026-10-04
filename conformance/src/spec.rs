@@ -1,8 +1,8 @@
 //! Where the specification's files are — the one path helper every consumer
-//! of `spec/` goes through (plans/08-phase-1-work-order.md, owner decision 2).
+//! of `spec/` goes through.
 //!
 //! Upstream #1112 restricts redistribution of the spec text, so it is not in
-//! the tree (plans/17-phase-9-work-order.md A0): `cargo xtask spec-sync`
+//! the tree: `cargo xtask spec-sync`
 //! fetches it at the pinned commit, checks it against the digests the `PIN`
 //! records, and writes it to [`SPEC_DIR`] with the commit in [`SPEC_STAMP`].
 //! [`spec_dir`] refuses a missing cache, or one from another pin, naming the

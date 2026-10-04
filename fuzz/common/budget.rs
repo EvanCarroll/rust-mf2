@@ -1,5 +1,4 @@
-//! The per-input work budget every target asserts (`plans/01-conformance.md`
-//! §5), measured in **CPU time**.
+//! The per-input work budget every target asserts, measured in **CPU time**.
 //!
 //! What these targets claim is a property of the code: the work per input
 //! byte is bounded, so no input makes a parser or a writer go quadratic.

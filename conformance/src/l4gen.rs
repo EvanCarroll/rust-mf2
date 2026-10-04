@@ -1,5 +1,4 @@
-//! Layer L4 on generated input (plans/01-conformance.md §5;
-//! plans/10-phase-3-work-order.md A10): a message generated from the
+//! Layer L4 on generated input: a message generated from the
 //! vendored `message.abnf`, **steered** towards the functions the runtime
 //! has, compiled for a random locale, unstripped and stripped, with
 //! generated arguments — one [`Generated`] per seed, deterministically.
@@ -59,7 +58,7 @@ pub struct Generated {
 
 /// The locales generated messages are compiled for: Latin and non-Latin,
 /// both directions, simple and complex plural rules, `und` (root), the
-/// locale panel of plans/01-conformance.md §5, and two non-Latin numbering
+/// goldens' locale panel (`goldens::PANEL`), and two non-Latin numbering
 /// systems (Phase 4, A9).
 pub const LOCALES: [&str; 18] = [
     "en",

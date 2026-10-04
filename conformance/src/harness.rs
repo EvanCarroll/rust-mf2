@@ -1,5 +1,5 @@
 //! Running the layer harnesses over the suite, and holding the ledger to the
-//! results (plans/01-conformance.md §4, harness rules 2 and 3).
+//! results.
 //!
 //! Every applicable cell of a harnessed column ([`crate::matrix::HARNESSED`])
 //! is run. A `pass` that fails is a violation; so is a failing cell's

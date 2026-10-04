@@ -1,4 +1,4 @@
-//! Layer L1 — syntax (plans/01-conformance.md §3).
+//! Layer L1 — syntax.
 //!
 //! For each test: parse `src` with `mf2-syntax`. A syntax error is reported
 //! **iff** `expErrors` contains `syntax-error`. Invariants: the CST is

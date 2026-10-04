@@ -1,5 +1,4 @@
-//! Layer L3 on grammar-driven input (plans/01-conformance.md §5;
-//! plans/09-phase-2-work-order.md A6): random well-formed messages generated
+//! Layer L3 on grammar-driven input: random well-formed messages generated
 //! from the vendored `message.abnf`, each written as a one-message catalog
 //! and decoded back ([`mf2_conformance::l3::check_model`]):
 //!

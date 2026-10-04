@@ -1,4 +1,4 @@
-//! Layer L3 — the binary catalog (plans/01-conformance.md §3).
+//! Layer L3 — the binary catalog.
 //!
 //! For each test that parses without data-model errors (the `n/a` matrix
 //! excludes the rest): `parse_model` → `analyze` (the slots) →
@@ -10,14 +10,13 @@
 //!   locale, direction, not stripped, the id `""` found through IDS), and the
 //!   same bytes under another expected hash are rejected with
 //!   `ManifestMismatch` (F6);
-//! * the stripped catalog (COLD and IDS omitted, plans/02-catalog-format.md
-//!   §2.3) has the same manifest, loads under the same hash, decodes to the
-//!   [formatting-relevant model](formatting_model) of the L2 model, and
-//!   reports `cold_dropped` exactly when the message has COLD data
-//!   ([`has_cold_data`]). So stripped and unstripped catalogs decode to the
-//!   same formatting-relevant model; that they also *format* identically is
-//!   checked from Phase 3 on, when L4 exists (the ledger's
-//!   `stripped-formats-identically` note).
+//! * the stripped catalog (COLD and IDS omitted) has the same manifest, loads
+//!   under the same hash, decodes to the [formatting-relevant
+//!   model](formatting_model) of the L2 model, and reports `cold_dropped`
+//!   exactly when the message has COLD data ([`has_cold_data`]). So stripped
+//!   and unstripped catalogs decode to the same formatting-relevant model; that
+//!   they also *format* identically is checked from Phase 3 on, when L4 exists
+//!   (the ledger's `stripped-formats-identically` note).
 //!
 //! [`check_model`] takes any model, valid or not (the writer accepts invalid
 //! models): `conformance/tests/generated_l3.rs` runs it on ABNF-generated
@@ -156,7 +155,7 @@ fn json(m: &Message<'_>) -> String {
 }
 
 /// The **formatting-relevant model** of `m`: what a catalog stripped of COLD
-/// decodes to (plans/02-catalog-format.md §2.2, §2.3, §2.5). It is `m` with
+/// decodes to. It is `m` with
 ///
 /// * every attribute removed (of expressions, `.input` expressions and
 ///   markup);

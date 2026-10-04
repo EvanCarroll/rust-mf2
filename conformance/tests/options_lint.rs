@@ -17,7 +17,7 @@ use std::collections::BTreeSet;
 use mf2::{Compiled, FormatContext, Formatter, Function, Registry, functions};
 use mf2_build::OPTIONS;
 
-/// The core functions, without `fn-number` (`plans/03-runtime.md` §5.1).
+/// The core functions, without `fn-number`.
 static CORE_FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("integer", &functions::INTEGER),
     ("number", &functions::NUMBER),

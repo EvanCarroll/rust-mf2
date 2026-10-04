@@ -1,4 +1,4 @@
-//! The ledger key of a suite test: (`file`, `hash`, `nth`) — plans/01-conformance.md §4.
+//! The ledger key of a suite test: (`file`, `hash`, `nth`).
 //!
 //! # The hash, byte for byte
 //!

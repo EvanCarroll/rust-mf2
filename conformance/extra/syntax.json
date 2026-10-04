@@ -1,7 +1,7 @@
 {
   "$schema": "../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
   "scenario": "Syntax coverage",
-  "description": "Normative statements of spec/syntax.md that the WG suite does not test: rust-mf2's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/coverage.toml).",
+  "description": "Normative statements of spec/syntax.md that the WG suite does not test: rust-mf2's own tests, written from the spec in the suite's schema (conformance/coverage.toml).",
   "defaultTestProperties": {
     "bidiIsolation": "none",
     "locale": "en-US",

@@ -1,5 +1,4 @@
-//! Layer L4 on grammar-driven input (plans/01-conformance.md §5;
-//! plans/10-phase-3-work-order.md A10): random messages generated from the
+//! Layer L4 on grammar-driven input: random messages generated from the
 //! vendored `message.abnf`, steered towards the runtime's functions and
 //! options, compiled for a random locale with generated arguments
 //! ([`mf2_conformance::l4gen`]), formatted by `mf2-l4-runner` — the code

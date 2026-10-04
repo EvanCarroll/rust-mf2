@@ -1,6 +1,5 @@
-# Conformance layer L4 in the browser, for the `intl` client option
-# (plans/01-conformance.md §3, "The intl build"; plans/11-phase-4-work-order.md,
-# owner decision 4): mf2-l4-runner built for wasm32-unknown-unknown with the
+# Conformance layer L4 in the browser, for the `intl` client option:
+# mf2-l4-runner built for wasm32-unknown-unknown with the
 # `intl` features and mf2-host-web's NUMBERS_HOST, run by
 # tools/e2e/checks/l4-intl.mjs in Chromium, Firefox and WebKit, driven and
 # judged by `cargo xtask l4-web`.

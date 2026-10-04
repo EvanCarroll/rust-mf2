@@ -1,5 +1,4 @@
-//! Layer L6's own assertions about itself (`plans/14-phase-6-work-order.md`
-//! A6).
+//! Layer L6's own assertions about itself.
 //!
 //! The ledger says L6 is green. These say *what* is green: that the markup
 //! half is exercised at all, and that a wrong render is actually caught —

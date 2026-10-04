@@ -1,7 +1,7 @@
 {
   "$schema": "../../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
   "scenario": "Unit function",
-  "description": "The Draft :unit formatter (spec/functions/number.md, \"The :unit function\"), which the WG suite does not test yet: rust-mf2's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; plans/11-phase-4-work-order.md A4). The exp values are CLDR 48.2.1 en data.",
+  "description": "The Draft :unit formatter (spec/functions/number.md, \"The :unit function\"), which the WG suite does not test yet: rust-mf2's own tests, written from the spec in the suite's schema. The exp values are CLDR 48.2.1 en data.",
   "defaultTestProperties": {
     "bidiIsolation": "none",
     "locale": "en-US",

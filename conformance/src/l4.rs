@@ -1,5 +1,4 @@
-//! Layer L4 — the runtime, from the catalog (plans/01-conformance.md §3;
-//! plans/10-phase-3-work-order.md A9).
+//! Layer L4 — the runtime, from the catalog.
 //!
 //! A test expecting a syntax or data-model error passes when the one-message
 //! compile (`mf2::compile_str`) refuses the message with exactly those
@@ -20,10 +19,9 @@
 //!   (absent ⇒ none), in string and in parts output alike.
 //!
 //! Layer **L4d** is the same run in the **default** configuration
-//! ([`mf2_l4_runner::Config::Default`]: `fn-number` and the date functions off,
-//! plans/01-conformance.md §3): a test either passes as above, or degrades
-//! in one of the documented ways ([`check_default`]), which its ledger cell
-//! must name.
+//! ([`mf2_l4_runner::Config::Default`]: `fn-number` and the date functions
+//! off): a test either passes as above, or degrades in one of the documented
+//! ways ([`check_default`]), which its ledger cell must name.
 
 use mf2_l4_runner::{ArgSpec, Case, Config, Record};
 use mf2_runtime::BidiStrategy;
@@ -33,7 +31,7 @@ use crate::ledger::DegradedKind;
 use crate::matrix::TestKind;
 use crate::suite::SuiteTest;
 
-/// The functions only a feature provides (plans/00-master-plan.md §5): in
+/// The functions only a feature provides: in
 /// the default configuration they are Unknown Functions.
 pub const GATED_FUNCTIONS: &[(&str, &str)] = &[
     ("currency", "fn-number"),

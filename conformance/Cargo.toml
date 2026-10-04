@@ -7,7 +7,7 @@ license.workspace = true
 publish.workspace = true
 
 [features]
-# The Leptos line layer L6 renders on (`plans/04-leptos-integration.md` §10):
+# The Leptos line layer L6 renders on:
 # 0.9 by default; `--no-default-features --features leptos-0-8` runs it on
 # 0.8, as `cargo xtask leptos-0-8` does. Each names its line on `mf2`.
 default = ["leptos-0-9"]
@@ -17,9 +17,9 @@ leptos-0-8 = ["dep:leptos_0_8", "dep:tachys_0_2", "mf2/leptos-0-8"]
 [dependencies]
 # Validates model JSON against spec/data-model/message.json (layer L2).
 jsonschema.workspace = true
-# Layer L3: write each message as a catalog, decode it back (plans/09 A6).
+# Layer L3: write each message as a catalog, decode it back.
 mf2-catalog = { workspace = true, features = ["writer", "decode"] }
-# Layer L4: the one-message compile (plans/10 A9) and the client side it runs,
+# Layer L4: the one-message compile and the client side it runs,
 # natively and on wasm32-wasip1.
 # `host-std-datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
 # `host-std`: layer L5 builds its own formatter, so the facade's native host
@@ -45,7 +45,7 @@ mf2-l5-ar.workspace = true
 mf2-l5-en-us.workspace = true
 mf2-l5-fr.workspace = true
 mf2-l5-und.workspace = true
-# Generated L4 cases (plans/10 A10): the catalog's direction and plural rules,
+# Generated L4 cases: the catalog's direction and plural rules,
 # number data, and `icu.blob` (A6).
 mf2-locale-data = { workspace = true, features = ["icu-blob"] }
 mf2-runtime.workspace = true
@@ -64,7 +64,7 @@ unicode-normalization = { workspace = true, features = ["std"] }
 # corpus against `compile_str`'s, through L4's runner. A dev-dependency, so
 # nothing in the conformance library depends on the build pipeline.
 mf2-build = { workspace = true, features = ["icu-blob"] }
-# The differential oracle (plans/05-tooling.md §1): expected ⊆ reported.
+# The differential oracle: expected ⊆ reported.
 ox_mf2_parser.workspace = true
 
 [lints]

@@ -1,6 +1,5 @@
 //! Conformance layer L5, locale `und`: the suite's messages as a corpus
-//! `mf2-build` compiled, and one `tr!` call site per test
-//! (`plans/01-conformance.md` §3).
+//! `mf2-build` compiled, and one `tr!` call site per test.
 //!
 //! Everything here is derived from the vendored suite at build time by
 //! `mf2-l5-gen`; `mf2-conformance` drives it and judges the results against

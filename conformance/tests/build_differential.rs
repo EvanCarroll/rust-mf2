@@ -60,7 +60,7 @@ fn build_one(
     // The suite exercises the *runtime's* errors on purpose: functions
     // nothing provides, `select` taken from a variable, option values that
     // are not what the option takes. rust-mf2 refuses all three in a real
-    // corpus (plans/05 §5), but that is policy — this differential is about
+    // corpus, but that is policy — this differential is about
     // the catalog, so the three lints are turned down here.
     for lint in [
         mf2_build::Lint::UnknownFunction,
@@ -261,8 +261,8 @@ fn a_gated_function_is_a_build_rejection_in_the_default_configuration() {
 /// The ledger's L4d `degraded` cells and the build agree about what the
 /// default configuration cannot do (Phase 5a, A7).
 ///
-/// `plans/01-conformance.md` §3 says a test that degrades in the default
-/// configuration must name how. Two of those kinds are the build's business,
+/// The ledger requires that a test that degrades in the default
+/// configuration name how. Two of those kinds are the build's business,
 /// and this is where the two documents are held together:
 ///
 /// * `unknown-function` — the message names a function only a feature

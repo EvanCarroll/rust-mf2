@@ -1,12 +1,12 @@
-//! Phases, ledger columns, and the two tables of plans/01-conformance.md that
-//! the ledger is generated and checked from: the layer → phase table (§3) and
-//! the `n/a` matrix for error tests (§4).
+//! Phases, ledger columns, and the two tables the ledger is generated and
+//! checked from: the layer → phase table and the `n/a` matrix for error
+//! tests.
 
 use std::fmt;
 
 use crate::key::TestKey;
 
-/// A project phase (plans/00-master-plan.md §9), in order.
+/// A project phase, in order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Phase {
     P0,
@@ -70,7 +70,7 @@ impl fmt::Display for Phase {
 
 /// A status column of the ledger: the layers with all features on, and the
 /// default-features configuration of L4–L7. L7 has two delivery modes, each
-/// with columns of its own (`plans/01-conformance.md` §3; owner,
+/// with columns of its own (owner,
 /// 2026-09-23): `L7`/`L7d` an islands page, `L7c`/`L7cd` a client-only one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Column {
@@ -149,8 +149,8 @@ impl Column {
         matches!(self, Self::L5 | Self::L5d)
     }
 
-    /// The phase at whose exit this column must be green for the test `key`
-    /// (plans/01-conformance.md §3). An `xfail` MUST NOT name a later phase.
+    /// The phase at whose exit this column must be green for the test `key`. An
+    /// `xfail` MUST NOT name a later phase.
     pub fn deadline(self, key: &TestKey) -> Phase {
         let file = key.file.as_str();
         match self {
@@ -181,7 +181,7 @@ impl fmt::Display for Column {
 
 /// Suite files whose L4 (all features) turns green at P4 rather than P3 —
 /// and `extra/functions/unit.json`, our `:unit` tests (the suite has none),
-/// written in Phase 4 (plans/11 A4).
+/// written in Phase 4.
 pub const L4_FUNCTION_FILES_AT_P4: &[&str] = &[
     "functions/percent.json",
     "functions/currency.json",
@@ -193,7 +193,7 @@ pub const L4_FUNCTION_FILES_AT_P4: &[&str] = &[
 
 /// Single tests (`file`, `hash`, `nth`) of the other files whose L4 turns
 /// green at P4 too, because they need Phase 4's locale data
-/// (plans/01-conformance.md §3; owner, 2026-09-21): `syntax.json` #90,
+/// (owner, 2026-09-21): `syntax.json` #90,
 /// `{$one} et {$two}` in `fr`, formats unannotated floats with the French
 /// decimal comma — the `number.symbols` entry and `fn-number`.
 pub const L4_TESTS_AT_P4: &[(&str, &str, u32)] = &[("syntax.json", "8a3aac3e", 0)];
@@ -208,7 +208,7 @@ pub const DATA_MODEL_ERRORS: &[&str] = &[
     "duplicate-variant",
 ];
 
-/// The row of the `n/a` matrix a test falls in (plans/01-conformance.md §4).
+/// The row of the `n/a` matrix a test falls in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TestKind {
     /// `expErrors` contains `syntax-error`.

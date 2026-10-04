@@ -1,5 +1,4 @@
-//! Conformance layer L4, the client side (`plans/01-conformance.md` §3,
-//! `plans/10-phase-3-work-order.md` A9): what runs from a compiled catalog —
+//! Conformance layer L4, the client side: what runs from a compiled catalog —
 //! natively inside the `mf2-conformance` harness, and as `mf2-l4-wasi`
 //! under wasmtime on `wasm32-wasip1` — so the two can be compared byte for
 //! byte.
@@ -24,10 +23,9 @@ use mf2_runtime::{
     Function, Host, MarkupKind, MsgId, Part, PartSink, Registry, SubPartSink, Time, Value,
 };
 
-/// The handlers L4 formats with — the all-features configuration
-/// (`plans/01-conformance.md` §3): `:string`, the localized numeric
-/// functions with `:percent`, `:currency` and `:unit` (`fn-number`), the
-/// date/time functions (`datetime`) and the test functions.
+/// The handlers L4 formats with — the all-features configuration: `:string`,
+/// the localized numeric functions with `:percent`, `:currency` and `:unit`
+/// (`fn-number`), the date/time functions (`datetime`) and the test functions.
 pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
     ("currency", &mf2_fn_number::CURRENCY),
     ("date", &mf2_fn_datetime::DATE),
@@ -49,12 +47,11 @@ pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
 /// generated registry (`plan/08` §4.3).
 pub static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_numbers(&mf2_fn_number::NUMBERS);
 
-/// The handlers of the **default** configuration (L4d, `plans/01-conformance.md`
-/// §3): what an application's generated registry holds with `fn-number` and
-/// `datetime` off — `:string` and the core's neutral `:number`,
-/// `:integer`, `:offset` — plus the test functions. The gated functions
-/// (`:percent`, `:currency`, `:unit`, `:datetime`, `:date`, `:time`) are
-/// absent, so they are Unknown Functions.
+/// The handlers of the **default** configuration (L4d): what an application's
+/// generated registry holds with `fn-number` and `datetime` off — `:string`
+/// and the core's neutral `:number`, `:integer`, `:offset` — plus the test
+/// functions. The gated functions (`:percent`, `:currency`, `:unit`,
+/// `:datetime`, `:date`, `:time`) are absent, so they are Unknown Functions.
 pub static DEFAULT_FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("integer", &mf2_runtime::functions::INTEGER),
     ("number", &mf2_runtime::functions::NUMBER),
@@ -277,7 +274,7 @@ pub fn run(case: &Case) -> Result<Record, String> {
 }
 
 /// [`run`] with another host: the browser's, for the `intl` build's L4 run
-/// in the engines (`conformance/l4-web`; `plans/01-conformance.md` §3).
+/// in the engines (`conformance/l4-web`).
 pub fn run_with(case: &Case, host: &'static dyn Host) -> Result<Record, String> {
     let mut cx = FormatContext::new(host);
     cx.bidi = case.bidi;
@@ -308,7 +305,7 @@ fn run_in(case: &Case, cx: &FormatContext) -> Result<Record, String> {
         }
         _ => Vec::new(),
     };
-    // Names compare under NFC (plans/03-runtime.md §7).
+    // Names compare under NFC.
     let nfc_names: Vec<String> = case
         .args
         .iter()

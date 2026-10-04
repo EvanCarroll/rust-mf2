@@ -1,5 +1,5 @@
 //! Renders the L6 page on the server and writes everything the browser needs
-//! into `target/l6-web/` (`plans/14-phase-6-work-order.md` A6b).
+//! into `target/l6-web/`.
 //!
 //! The page is written by the **same view** the client hydrates, in the same
 //! build of the same crate, which is the only way the comparison means

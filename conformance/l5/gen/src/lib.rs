@@ -1,5 +1,4 @@
-//! Builds one conformance L5 crate (`plans/01-conformance.md` §3,
-//! `plans/13-phase-5b-work-order.md` A4).
+//! Builds one conformance L5 crate.
 //!
 //! L5 is the suite through `tr!`. That needs a real i18n crate per locale the
 //! suite uses — a corpus `mf2-build` compiles, a manifest, a generated module
@@ -29,10 +28,10 @@ use mf2_build::loader::json;
 use mf2_build::{Build, Config, Features, Level, Lint};
 use serde_json::Value;
 
-/// The suite's data-model errors, by the names it gives them
-/// (`plans/01-conformance.md` §2). Duplicated from `mf2-conformance` on
-/// purpose: this crate is a **build** dependency of the L5 crates, and
-/// `mf2-conformance` depends on those, so it cannot be depended on back.
+/// The suite's data-model errors, by the names it gives them. Duplicated from
+/// `mf2-conformance` on purpose: this crate is a **build** dependency of the L5
+/// crates, and `mf2-conformance` depends on those, so it cannot be depended on
+/// back.
 const DATA_MODEL_ERRORS: [&str; 6] = [
     "duplicate-declaration",
     "duplicate-option-name",
@@ -168,12 +167,11 @@ pub fn generate(root: &Path, out: &Path, locale: &str) -> Result<(), Error> {
 /// The same, plus a **twin**: the same messages compiled a second time under
 /// another tag, so that one manifest has two catalogs.
 ///
-/// That is what a locale *switch* has to be tested against
-/// (`plans/14-phase-6-work-order.md` A6): two catalogs of different corpora
-/// have different manifest hashes and cannot be switched between at all, and
-/// one catalog cannot be switched to itself. The twin's text is the same
-/// text; what differs is its locale data, and what the switch must restore
-/// is the original, byte for byte.
+/// That is what a locale *switch* has to be tested against: two catalogs of
+/// different corpora have different manifest hashes and cannot be switched
+/// between at all, and one catalog cannot be switched to itself. The twin's
+/// text is the same text; what differs is its locale data, and what the switch
+/// must restore is the original, byte for byte.
 pub fn generate_with_twin(
     root: &Path,
     out: &Path,
@@ -203,8 +201,7 @@ fn suite_messages(root: &Path, locale: &str) -> Result<Vec<Message>, Error> {
     Ok(tests)
 }
 
-/// Which client configuration a page's corpus is built for (layer L7,
-/// `plans/15-phase-7-work-order.md` A4).
+/// Which client configuration a page's corpus is built for (layer L7).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Configuration {
     /// Every function feature on: the whole runtime-valid corpus.
@@ -378,7 +375,7 @@ fn params(resolved: &serde_json::Map<String, Value>) -> Vec<(String, Param)> {
 /// The corpus configuration: the suite exercises the *runtime's* errors on
 /// purpose — functions nothing provides, a `select` from a variable, option
 /// values an option cannot take, lone markup — which a real corpus refuses
-/// as a matter of policy (`plans/05-tooling.md` §5). Policy is not what L5
+/// as a matter of policy. Policy is not what L5
 /// is about, so every lint goes to its floor.
 fn config(locale: &str) -> Config {
     let mut config = Config::default();
@@ -505,7 +502,7 @@ fn build_rejected(
 /// feature is off, and what it says about each. This is the build's verdict
 /// standing where L4d has a run-time *Unknown Function* — a translation can
 /// never add formatting code to the wasm by itself, so the build stops
-/// first (`plans/05-tooling.md` §5).
+/// first.
 fn build_gated(out: &Path, locale: &str) -> Result<BTreeMap<String, String>, Error> {
     let root = out.join("corpus");
     let outcome = Build::at(&root, out.join("default-out"))

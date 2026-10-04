@@ -1,11 +1,10 @@
-//! Conformance layer L4 in the browser, for the `intl` client option
-//! (`plans/01-conformance.md` §3, "The `intl` build"): `mf2-l4-runner`'s
-//! cases — compiled natively by `cargo xtask l4-web` — formatted by the
-//! `intl` build in the engine, where the numeric functions take their
-//! display, `:integer`'s rounding and the plural category from
+//! Conformance layer L4 in the browser, for the `intl` client option:
+//! `mf2-l4-runner`'s cases — compiled natively by `cargo xtask l4-web` —
+//! formatted by the `intl` build in the engine, where the numeric functions
+//! take their display, `:integer`'s rounding and the plural category from
 //! `Intl.NumberFormat` and `Intl.PluralRules` through
-//! `mf2_host_web::NUMBERS_HOST`. One canonical record per case, the same
-//! line `mf2-l4-wasi` writes, for the native side to judge.
+//! `mf2_host_web::NUMBERS_HOST`. One canonical record per case, the same line
+//! `mf2-l4-wasi` writes, for the native side to judge.
 
 use mf2_runtime::Host;
 use wasm_bindgen::prelude::wasm_bindgen;

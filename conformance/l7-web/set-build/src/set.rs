@@ -1,6 +1,6 @@
 // What a conformance L7 page needs from one set, beyond its generated module
-// (`setup()` among it) and its call sites (`plans/15-phase-7-work-order.md`
-// A4). Included by each of the four set crates; see `mf2-l7-set-build`.
+// (`setup()` among it) and its call sites. Included by each of the four set
+// crates; see `mf2-l7-set-build`.
 
 /// How many call sites the page holds.
 #[must_use]

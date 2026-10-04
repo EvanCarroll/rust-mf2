@@ -1,8 +1,8 @@
-//! `ox_mf2_parser` as a differential oracle (plans/05-tooling.md §1; work
-//! order A7): on every suite test, the syntax and Data Model errors it
-//! reports include the expected ones (*expected ⊆ reported*), and where it
-//! reports more, it is one of its two known over-reports. `mf2-syntax`, held
-//! to *exactly* the expected set by L1/L2, agrees with it everywhere else.
+//! `ox_mf2_parser` as a differential oracle: on every suite test, the syntax
+//! and Data Model errors it reports include the expected ones (*expected ⊆
+//! reported*), and where it reports more, it is one of its two known
+//! over-reports. `mf2-syntax`, held to *exactly* the expected set by L1/L2,
+//! agrees with it everywhere else.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

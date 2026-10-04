@@ -1,7 +1,7 @@
 {
   "$schema": "../../../third_party/message-format-wg/test/schemas/v0/tests.schema.json",
   "scenario": "Default functions accept their options",
-  "description": "rust-mf2's own tests, written from the spec in the suite's schema (plans/01-conformance.md §5; conformance/COVERAGE.md names the statement each covers): every value of every REQUIRED option of every numeric default function is accepted without an error (spec/functions/README.md, \"accept\"). They assert no errors and no output: accepting an option does not fix what it prints.",
+  "description": "rust-mf2's own tests, written from the spec in the suite's schema (conformance/COVERAGE.md names the statement each covers): every value of every REQUIRED option of every numeric default function is accepted without an error (spec/functions/README.md, \"accept\"). They assert no errors and no output: accepting an option does not fix what it prints.",
   "defaultTestProperties": {
     "bidiIsolation": "none",
     "locale": "en-US",

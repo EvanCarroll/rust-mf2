@@ -1,4 +1,4 @@
-# The spec coverage matrix (plans/01-conformance.md §5; the rules are in
+# The spec coverage matrix (the rules are in
 # conformance/src/coverage.rs). One [[statement]] per normative statement.
 
 [[statement]]

@@ -1,6 +1,6 @@
 # fuzz — cargo-fuzz targets
 
-plans/01-conformance.md §5 ("Fuzzing"): no panic, no out-of-bounds, linear
+Every target holds the same properties: no panic, no out-of-bounds, linear
 time. The time budget is **CPU time**, not wall clock (`common/budget.rs`):
 the property is that the work per input byte is bounded, and measuring it on
 a clock the machine shares makes a busy desktop fail a run the code passes.
@@ -85,6 +85,5 @@ quadratic in the catalog's size. Its string sink stops resolving catalog
 text past 16 MiB (still counting what it is handed), and a message that
 reached the cap is not formatted again.
 
-The exit runs (≥ 1 h, clean) and their figures are recorded in
-[plans/phase-1-results.md](../plans/phase-1-results.md) (`parse`), the
-Phase 2 results (`catalog`) and the Phase 3 results (`format`).
+Each target passed an exit run of at least an hour, clean: `parse` in
+Phase 1, `catalog` in Phase 2 and `format` in Phase 3.

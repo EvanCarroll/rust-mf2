@@ -1,6 +1,5 @@
 //! Fuzz target `format`: `mf2-runtime` formatting every message of arbitrary
-//! and of writer-made catalogs with arbitrary arguments (A10,
-//! `plans/10-phase-3-work-order.md`).
+//! and of writer-made catalogs with arbitrary arguments.
 //!
 //! The input is `[flags] [n] [n argument bytes] [payload]`:
 //!

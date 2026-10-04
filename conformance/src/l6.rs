@@ -1,11 +1,10 @@
-//! Layer L6 — the suite through the **view type**
-//! (`plans/01-conformance.md` §3; `plans/14-phase-6-work-order.md` A6).
+//! Layer L6 — the suite through the **view type**.
 //!
 //! L5 formats a call site with a formatter the harness built. L6 renders the
 //! same call site the way a page does: `<Tr as RenderHtml>::to_html`, with
 //! the catalog coming from the request context, the registry from the same
-//! place, and the errors discarded — which is the release client's policy
-//! (`plans/03-runtime.md` §8) and therefore what a user actually sees.
+//! place, and the errors discarded — which is the release client's policy and
+//! therefore what a user actually sees.
 //!
 //! Two things are asserted, and they are different questions:
 //!

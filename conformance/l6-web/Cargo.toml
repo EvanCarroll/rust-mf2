@@ -1,4 +1,4 @@
-# Conformance layer L6 in the browser (plans/14-phase-6-work-order.md A6b):
+# Conformance layer L6 in the browser:
 # every runtime-valid suite message rendered on the server, hydrated in a real
 # engine, switched to a twin locale and back.
 #

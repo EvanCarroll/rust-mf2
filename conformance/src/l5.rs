@@ -1,5 +1,4 @@
-//! Layer L5 — the suite through `tr!` (`plans/01-conformance.md` §3;
-//! `plans/13-phase-5b-work-order.md` A4).
+//! Layer L5 — the suite through `tr!`.
 //!
 //! Where L4 compiles one message with `compile_str` and formats it, L5 is the
 //! shipped road: a corpus `mf2-build` compiled, a manifest, a generated

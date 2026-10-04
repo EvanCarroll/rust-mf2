@@ -1,5 +1,4 @@
-//! Conformance layer L6 in the browser
-//! (`plans/14-phase-6-work-order.md` A6b).
+//! Conformance layer L6 in the browser.
 //!
 //! The same call sites layer L6 renders on the server, on **one page**, so
 //! that a real engine can be asked three things the server cannot answer:

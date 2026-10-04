@@ -1,6 +1,6 @@
 //! The suite's `en-US` tests, as a corpus and as call sites — plus a **twin**
 //! locale carrying the same messages, which is what a locale switch is tested
-//! against (`plans/14-phase-6-work-order.md` A6).
+//! against.
 //!
 //! `en-GB` is the twin. It is a real locale, not a relabelling: its `:unit`
 //! names are the British ones (`42 metres` where `en-US` says `42 meters`),

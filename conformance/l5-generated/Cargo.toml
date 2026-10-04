@@ -1,6 +1,6 @@
-# Conformance layer L5 on **generated** input (plans/13-phase-5b-work-order.md
-# A8): `l4gen`'s messages as a corpus `mf2-build` compiles and `tr!` calls,
-# compared against what L4's runner makes of the same message.
+# Conformance layer L5 on **generated** input: `l4gen`'s messages as a corpus
+# `mf2-build` compiles and `tr!` calls, compared against what L4's runner makes
+# of the same message.
 #
 # How many, and from which seed, are the build script's environment —
 # `MF2_L5_GENERATED` (default 200, so an ordinary `cargo test` pays little)

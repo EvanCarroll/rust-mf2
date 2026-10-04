@@ -1,6 +1,5 @@
-//! The committed locale-output goldens equal a fresh render
-//! (plans/01-conformance.md §5; plans/11 A8). After a deliberate change of
-//! output, `cargo xtask goldens` rewrites them — review the diff.
+//! The committed locale-output goldens equal a fresh render. After a deliberate
+//! change of output, `cargo xtask goldens` rewrites them — review the diff.
 
 use std::fs;
 use std::path::PathBuf;

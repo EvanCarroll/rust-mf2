@@ -52,7 +52,7 @@ impl Suite {
     }
 
     /// Loads the vendored suite below `suite_dir` and our own tests below
-    /// `extra_dir` (plans/01-conformance.md §5: gaps get tests written in the
+    /// `extra_dir` (gaps get tests written in the
     /// WG schema under `conformance/extra/`, run through the same layers),
     /// the latter under the relative path `extra/…`. A missing `extra_dir`
     /// adds nothing.

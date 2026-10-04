@@ -1,8 +1,7 @@
 # Conformance layer L5 for the suite's `en-US` tests: an i18n crate exactly as
-# an application writes one, whose corpus and call sites are the suite itself
-# (plans/01-conformance.md §3, plans/13-phase-5b-work-order.md A4). Its build
-# script derives everything from the vendored suite, so nothing is checked in
-# to drift.
+# an application writes one, whose corpus and call sites are the suite itself.
+# Its build script derives everything from the vendored suite, so nothing is
+# checked in to drift.
 [package]
 name = "mf2-l5-en-us"
 description = "Conformance layer L5: the WG suite's en-US tests as an i18n crate, through tr!."

@@ -1,5 +1,4 @@
-//! Conformance layer L7 in the browser
-//! (`plans/01-conformance.md` §3; `plans/15-phase-7-work-order.md` A4).
+//! Conformance layer L7 in the browser.
 //!
 //! L6(b) server-renders every runtime-valid suite message on one page,
 //! hydrates it, switches it to a twin locale and back. L7 asks the same of

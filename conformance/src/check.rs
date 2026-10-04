@@ -1,6 +1,6 @@
-//! The harness rules of plans/01-conformance.md §4 that apply to a ledger and
-//! the suite before any layer exists, plus the well-formedness rules that
-//! follow from §3–§4:
+//! The harness rules that apply to a ledger and the suite before any layer
+//! exists, plus the well-formedness rules that follow from the layer → phase
+//! table and the `n/a` matrix:
 //!
 //! 1. ledger ↔ suite is a bijection on the key (rule 1);
 //! 2. every entry has exactly the thirteen columns, `n/a` exactly where the matrix

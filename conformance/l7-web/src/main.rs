@@ -1,5 +1,5 @@
 //! Renders one set's L7 pages and writes everything the browser needs into
-//! a directory (`plans/15-phase-7-work-order.md` A4):
+//! a directory:
 //!
 //! ```text
 //! l7-page <locale> <dir>

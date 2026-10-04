@@ -1,4 +1,4 @@
-//! Grammar-driven properties (plans/01-conformance.md §5; work order A8):
+//! Grammar-driven properties:
 //! random well-formed messages generated from the vendored `message.abnf`.
 //!
 //! * L1: no syntax error (the grammar is the definition of well-formed), a

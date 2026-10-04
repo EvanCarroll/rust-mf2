@@ -1,7 +1,7 @@
-//! Variable analysis (work order A6): the suite forms plans/01-conformance.md
-//! §3 names for L5 (`.input`, `.local` shadowing, variables used only in
-//! options, selectors or markup options), NFC ordering, and agreement with
-//! the Phase 0 manifest code on the reference workload.
+//! Variable analysis: the suite forms layer L5 must cover (`.input`, `.local`
+//! shadowing, variables used only in options, selectors or markup options), NFC
+//! ordering, and agreement with the Phase 0 manifest code on the reference
+//! workload.
 //!
 //! `fixtures/workload-1600.p07-manifest.json` was produced once by the P0.7
 //! probe's own code (`probes/p0-07-catalog-encoding`: `external_vars`,

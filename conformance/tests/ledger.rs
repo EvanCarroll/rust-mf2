@@ -1,4 +1,4 @@
-//! The ledger ↔ suite relation (plans/01-conformance.md §4) on the committed
+//! The ledger ↔ suite relation on the committed
 //! ledger, and mutation tests showing that each harness rule turns it red.
 
 use std::collections::BTreeSet;

@@ -1,4 +1,4 @@
-//! Conformance harness for rust-mf2 (`plans/01-conformance.md`).
+//! Conformance harness for rust-mf2.
 //!
 //! Loading the vendored WG suite with `defaultTestProperties` applied, the
 //! ledger key (`file`, `hash`, `nth` — see [`key`]), the ledger
@@ -10,7 +10,7 @@
 
 #![forbid(unsafe_code)]
 
-// Layer L6's Leptos line (`plans/04-leptos-integration.md` §10): the 0.8
+// Layer L6's Leptos line: the 0.8
 // crates, when they are the ones on, renamed back.
 #[cfg(all(feature = "leptos-0-8", not(feature = "leptos-0-9")))]
 extern crate leptos_0_8 as leptos;
@@ -48,7 +48,7 @@ pub use suite::{Suite, SuiteDiff, SuiteTest, diff};
 
 /// The vendored suite's test directory, relative to the repository root.
 pub const SUITE_DIR: &str = "third_party/message-format-wg/test/tests";
-/// Our own tests in the WG schema (plans/01-conformance.md §5), relative to
+/// Our own tests in the WG schema, relative to
 /// the repository root; they load as `extra/…`.
 pub const EXTRA_DIR: &str = "conformance/extra";
 

@@ -1,4 +1,4 @@
-//! The spec coverage matrix (plans/01-conformance.md §5) on the committed
+//! The spec coverage matrix on the committed
 //! `conformance/coverage.toml`: every normative statement of the vendored
 //! spec covered, `COVERAGE.md` current, and mutations showing each rule of
 //! `coverage::check` turns it red.

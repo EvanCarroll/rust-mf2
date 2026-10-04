@@ -1,5 +1,4 @@
-//! Every generated message through `tr!`, against what layer L4 makes of it
-//! (`plans/13-phase-5b-work-order.md` A8).
+//! Every generated message through `tr!`, against what layer L4 makes of it.
 //!
 //! The two sides are given the same message and the same arguments and must
 //! produce the same record — the same string, the same errors, the same

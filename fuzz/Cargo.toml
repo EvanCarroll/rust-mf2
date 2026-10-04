@@ -1,4 +1,4 @@
-# cargo-fuzz targets (plans/01-conformance.md §5, "Fuzzing"). A standalone
+# cargo-fuzz targets. A standalone
 # workspace: cargo-fuzz needs a nightly toolchain, and this is
 # the one place that uses `+nightly` (see README.md). The root workspace
 # excludes this directory.
