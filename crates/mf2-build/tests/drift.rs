@@ -593,7 +593,11 @@ fn unused_feature_names_each_family_once() {
         "{}",
         said[0]
     );
-    assert!(said[0].contains("plain placeholder"), "{}", said[0]);
+    assert!(
+        said[0].contains("a date handed to a plain placeholder is an error"),
+        "{}",
+        said[0]
+    );
     assert!(
         said[1].contains("`fn-number` and `number-intl` are on for this build"),
         "{}",

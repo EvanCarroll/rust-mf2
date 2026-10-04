@@ -274,9 +274,9 @@ brotli, is a few hundred bytes for a corpus of a handful of date shapes,
 and about 16 to 18 KB once a message shows a time-zone name. A browser that
 formats with `intl` downloads none of it.
 
-A build with a date formatter links the date code even for a message that
-only has plain placeholders, so a formatter that no message uses still
-costs its full size; the build warns with
+Only a date function formats a date: a plain placeholder never does (a
+date handed to one is an error). A formatter on in a corpus with no date
+function therefore has nothing to format, and the build warns with
 [`unused-feature`](lints.md#unused-feature).
 
 ### The features, one by one

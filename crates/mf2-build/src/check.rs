@@ -247,11 +247,10 @@ fn unused_features(
     if !dates.is_empty() && !used.dates {
         found.push(format!(
             "{} on for this build, and no message uses :datetime, :date or :time. \
-             A date may still be handed to a plain placeholder, but with the \
-             feature on every plain placeholder links the date code and time \
-             zones; if none receives a date, drop it (another crate in the \
-             workspace may have turned it on), or set `unused-feature = \"allow\"` \
-             in mf2.toml",
+             Only a date function formats a date: a date handed to a plain \
+             placeholder is an error, so no message can use the formatter; drop \
+             it (another crate in the workspace may have turned it on), or set \
+             `unused-feature = \"allow\"` in mf2.toml",
             is_on(&dates)
         ));
     }

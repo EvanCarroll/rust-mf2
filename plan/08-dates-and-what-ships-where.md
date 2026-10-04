@@ -214,8 +214,8 @@ With no date feature a date cannot be passed to a message either: the
 conversions of date types exist only with one, as they do under `fn-datetime`
 today.
 
-A build with a date feature links the date code for every plain placeholder
-(F10). That is unchanged, and the `unused-feature` warning keeps saying it.
+Since 17.5 a plain placeholder never formats a date (it is an error), so the
+`unused-feature` warning says only a date function reaches a formatter.
 
 ### 3.4 The manifests
 

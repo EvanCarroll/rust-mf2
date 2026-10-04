@@ -266,8 +266,8 @@ raised once per family, for the whole corpus:
 
 * the date formatters (every `…-datetime-…` feature that is on, or
   `datetime` alone) when no message calls `:datetime`, `:date` or `:time`.
-  With a formatter on, every plain placeholder links the date code and
-  time zones, so the feature costs its full size for nothing;
+  Only a date function formats a date: a date handed to a plain
+  placeholder is an error, so no message can use the formatter;
 * the number family (`fn-number`, `number-intl`) when no message formats or
   selects on a number: no numeric function, no plural selection and no
   plain placeholder that could receive one.
