@@ -28,9 +28,9 @@ question.
 
 ## State
 
-* **In flight:** 19.3. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.3
+* **Next:** 19.4
 
 ## Done
 
@@ -46,6 +46,11 @@ question.
   slice table (brotli, `icu`/`intl`) built in-process (`mf2-build` now a normal
   xtask dependency); row ids include the corpus. Canary: plain placeholder in
   the base corpus, canary-only `no-date-message`.
+* 19.3: `native-canaries` forbids `icu_*` (a prefix entry) and `mf2_fn_datetime`
+  in every dateless row and ICU4X in the ISO row; a `native-datetime-icu` row
+  requires ICU4X, ceiling 2,000,000 B stripped (`strip -o`). The client check
+  is in `codegen_matrix.rs` (the B6 grep; `size.rs` greps nothing): `cargo tree`
+  and the wasm's names for `hydrate,host-web-datetime-intl`.
 
 ## Before this phase
 
@@ -283,6 +288,9 @@ One line per task, only for what could not be confirmed by reading.
 * 19.2: that `Build::check` fills `Catalog::br` and cuts the `icu` slice
   in-process as the i18n build script does (`xtask/src/feature_costs.rs`
   `catalogs`); xtask's first build now compiles `mf2-build` with `icu-blob`.
+* 19.3: that the ICU ceiling sits between the two real stripped sizes, and that
+  `mf2-i18n-client` built with `CARGO_PROFILE_RELEASE_STRIP=none` keeps names
+  and links the date formatter through `registry()` (`xtask/src/codegen_matrix.rs`).
 
 ## Phase exit (coordinator)
 
