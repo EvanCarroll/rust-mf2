@@ -602,15 +602,15 @@ mod __dates {{
     );
 }
 
-/// Whether a date can reach this corpus's messages: a date function, or a
-/// placeholder with no function, which may be handed one at run time. The
-/// date host is named only then (`plan/01` §4.1).
+/// Whether a date can reach this corpus's messages: only through a date
+/// function, since a date handed to a placeholder with no function is an
+/// error and never reaches the formatter. The date host is named only then
+/// (`plan/01` §4.1).
 fn reaches_a_date(m: &Module<'_>) -> bool {
     m.features.fn_datetime()
-        && (m.unannotated
-            || m.functions
-                .iter()
-                .any(|f| matches!(f.as_str(), "datetime" | "date" | "time")))
+        && m.functions
+            .iter()
+            .any(|f| matches!(f.as_str(), "datetime" | "date" | "time"))
 }
 
 /// Whether `number-intl` is on and a number can reach this corpus's messages: a
@@ -1702,12 +1702,15 @@ mod tests {
         let code = write(&module(&[], &dates, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
 
-        // A date function, or a plain placeholder, which may be handed one.
+        // A date function names it.
         let time = ["time".to_owned()];
         let code = write(&module(&time, &dates, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
+        // A plain placeholder does not: a date handed to one is an error, so
+        // with no date function there is no date host and no date handler.
         let code = write(&module(&[], &dates, &custom, &locales, true));
-        assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
+        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        assert!(!code.contains("__date_statics"), "{code}");
         // Without the feature, neither names one.
         let code = write(&module(&time, &none, &custom, &locales, true));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");

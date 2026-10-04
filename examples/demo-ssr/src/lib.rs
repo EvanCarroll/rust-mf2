@@ -33,13 +33,13 @@
 // --release` did not compile. Debug builds were unaffected.
 #![recursion_limit = "256"]
 
+use demo_i18n::Locale;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Title, provide_meta_context};
-use demo_i18n::Locale;
-use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::{Lazy, LazyRoute, lazy_route, path};
 use mf2::DateTimeValue;
+use mf2::leptos::{CatalogLinks, CatalogPreload, LocaleOption, LocaleSwitcher, html_lang};
 
 /// The document. `<html lang dir>` comes from the catalog this request is
 /// being rendered with, so the page always says what language it is in
