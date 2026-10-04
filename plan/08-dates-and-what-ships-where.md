@@ -174,10 +174,16 @@ What the tools recommend: `intl` in a browser, `icu` in native code.
 
 ### 3.2 One formatter per build
 
-`Locale::format` is one method, shared by terminal code, Axum handlers and
-the Leptos server, so a binary formats dates with one formatter. When more
-than one choice of a side is on, the strongest formats: ICU4X, then `Intl`,
-then ISO. Two cases reach this rule:
+The server binary and the client wasm are two builds. Each has its own
+formatter, chosen from the features of its own side, and neither changes the
+other's. `leptos-client-datetime-intl` with `leptos-server-datetime-icu` is
+`Intl` in the browser and ICU4X on the server: nothing conflicts, and the
+rule below does not apply.
+
+The rule is about one build. `Locale::format` is one method, shared by
+terminal code, Axum handlers and the Leptos server, so a binary formats
+dates with one formatter. When more than one choice of its side is on, the
+strongest formats: ICU4X, then `Intl`, then ISO. Two cases reach this rule:
 
 * two features of one family;
 * two frameworks in one build that disagree. An application whose optional
