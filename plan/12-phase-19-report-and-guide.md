@@ -28,13 +28,17 @@ question.
 
 ## State
 
-* **In flight:** 19.1. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.1
+* **Next:** 19.2
 
 ## Done
 
-(nothing yet)
+* 19.1: `Catalog::bundles` (`mf2-build`) lists messages, the optional
+  sections (cold, ids, fallback, nfc), LOCALE and server-only entries with
+  readers and place; `mf2 stats` prints them and the unread bytes, text and
+  JSON; test `stats_says_what_ships_where`; `docs/command-line.md`. Choice:
+  the optional sections take the messages' readers (one shared reader).
 
 ## Before this phase
 
@@ -266,7 +270,9 @@ Done entry.
 
 One line per task, only for what could not be confirmed by reading.
 
-(nothing yet)
+* 19.1: the byte figures in `docs/command-line.md`'s stats sample are
+  written from the code, not a run; `docs/translating.md`'s generated stats
+  sample still shows the old "entry by entry" lines and needs regenerating.
 
 ## Phase exit (coordinator)
 
