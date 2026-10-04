@@ -1168,7 +1168,8 @@ mod tests {
             "index.crates.io-1949cf8c".to_owned(),
         ];
         let found = local_extracts(src, &dirs, "3.0.0");
-        assert_eq!(found.len(), 16);
+        // One path per published crate, all under the local registry's folder.
+        assert_eq!(found.len(), crate::packages::PUBLISHED.len());
         assert!(
             found
                 .iter()
