@@ -72,6 +72,12 @@ fn build_one(
     // A one-message corpus keeps its id table: nothing looks messages up by
     // name here, but stripping is L3's business, not this differential's.
     config.catalog.strip.clear();
+    // The runner's registry links the widest ICU4X form (every calendar,
+    // zone names), as `compile_str`'s does; a corpus's own build cuts the
+    // narrowest form it needs (task 18.1), whose slice that registry cannot
+    // read. So this build asks for the widest form.
+    config.dates.calendars = mf2_build::DateCalendars::All;
+    config.dates.zone_names = mf2_build::ZoneNames::Yes;
     let outcome = Build::at(root, out)
         .config(config)
         .features(features)
