@@ -28,7 +28,7 @@ question.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 19.1. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 19.1
 

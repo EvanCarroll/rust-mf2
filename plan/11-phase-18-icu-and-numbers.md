@@ -25,7 +25,7 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.5 (in `plan/10`), then Phase 18's exit and Phase 19 (`plan/12`)
+* **Next:** nothing; Phase 19 (`plan/12`) follows.
 
 ## Done
 
@@ -51,6 +51,8 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
   a process-wide `AtomicU64` from 1, given at load and again by `with_server_data`; `cache.rs` keys
   on it and keeps no blob copy (the provider still owns one: the catalog's bytes are not `'static`).
   Test: `cache_keys_on_the_load_number`. Nothing run.
+* Phase 18 (2026-10-04): 18.1–18.4 and 18.2a (added by the owner after 18.2) committed,
+  nothing compiled; 18.4's default and the figures are Phase 22's.
 
 ## Before this phase
 

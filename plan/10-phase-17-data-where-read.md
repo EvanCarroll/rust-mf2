@@ -46,9 +46,8 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
   each `catalog::write`; `Error::UnreadData` (an error, not a `[lints]` entry: nothing to locate in
   a source). Tests: wrong placements in `catalog.rs`; every buildable set of `feature_sets.rs` ×
   the fixture's three corpora, web and native, in `xtask` (dev-dep `mf2-build/icu-blob`).
-* Phase 17 (2026-10-04): 17.1–17.4 committed, nothing compiled. Open with the owner: a
-  17.5 in which the browser writes a hydrated message again only when its text differs
-  from the page's (17.3 rewrites every one when the date formatters differ).
+* Phase 17 (2026-10-04): 17.1–17.5 committed, nothing compiled. 17.5 was added by the
+  owner after 17.3: only date messages are rewritten, and a date needs a date function.
 * 17.5: `Catalog::names_function`/`calls` (`MsgView::calls`); `Function::formats_dates`,
   `Registry::is_date_function`; the correction acts only on date messages (`zone.rs`,
   `Relocalize::msg_id`). `with_dates`, `unannotated()` and `DATES` removed everywhere; lint
