@@ -38,6 +38,39 @@ pub const TIME_ZONE_COOKIE: &str = "mf2_tz";
 /// page was rendered in `Setup`'s zone.
 pub const ZONE_ATTR: &str = "data-mf2-zone";
 
+/// The attribute of the preload link ([`PRELOAD_ATTR`]) that states the
+/// date formatter the server rendered the page with, as
+/// [`date_formatter`] spells it. When it is not the client's, the client
+/// rewrites every text it hydrated (`plan/08` §4.3). Absent, the server
+/// formats no dates and nothing is rewritten for the formatter.
+pub const DATES_ATTR: &str = "data-mf2-dates";
+
+/// The date formatter of this build's side: `icu`, `intl` (a browser build
+/// only) or `iso`; `None` without a date feature. The strongest of the
+/// side's features formats, as `mf2-fn-datetime` picks its backend: in a
+/// browser build ICU4X, then `Intl`, then ISO; natively ICU4X, then ISO.
+#[must_use]
+pub const fn date_formatter() -> Option<&'static str> {
+    if !cfg!(feature = "datetime") {
+        return None;
+    }
+    Some(
+        if cfg!(all(target_arch = "wasm32", target_os = "unknown")) {
+            if cfg!(feature = "host-web-datetime-icu") {
+                "icu"
+            } else if cfg!(feature = "host-web-datetime-intl") {
+                "intl"
+            } else {
+                "iso"
+            }
+        } else if cfg!(feature = "host-std-datetime-icu") {
+            "icu"
+        } else {
+            "iso"
+        },
+    )
+}
+
 pub use crate::links::LOCALE_QUERY;
 
 /// The attribute of the preload link ([`PRELOAD_ATTR`]) that names the query

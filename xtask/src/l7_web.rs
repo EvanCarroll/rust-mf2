@@ -19,6 +19,13 @@
 //!    ([`mf2_conformance::verify`]); `--promote` tightens it instead
 //!    ([`mf2_conformance::promote`]) and rewrites the report.
 //!
+//! Beside L7 it runs the date-formatter pages (`plan/08` §4.3): the en-US
+//! set's islands page rendered by a server with the ISO stand-in
+//! (`target/l7-web/dates-iso/`) and with ICU4X (`dates-icu/`), both
+//! hydrated by a client with `Intl`; `tools/e2e/checks/dates-formatter.mjs`
+//! checks that the first page's dates are rewritten after hydration and the
+//! second's are not.
+//!
 //! In the default configuration a test whose message the build refuses (L6d
 //! `build-reject`) is not on the page — no application in that
 //! configuration could ship it — and its cell is `degraded` the same way;
@@ -49,6 +56,13 @@ const SETS: [&str; 4] = ["en-US", "und", "fr", "ar"];
 /// function feature is on.
 const CONFIGURATIONS: [(&str, bool); 2] = [("all", true), ("default", false)];
 
+/// The date-formatter configurations: each one's directory under
+/// `target/l7-web/` and its feature of `conformance/l7-web`.
+const DATE_CONFIGURATIONS: [&str; 2] = ["dates-iso", "dates-icu"];
+
+/// The set the date-formatter pages are rendered from.
+const DATE_SET: &str = "en-US";
+
 /// The two delivery modes: the check's name for each, and the columns it
 /// judges in each configuration.
 const MODES: [(&str, Column, Column); 2] = [
@@ -62,6 +76,9 @@ pub(crate) fn run(root: &Path, engines: &str, build: bool, promote: bool) -> Res
         for (name, all) in CONFIGURATIONS {
             build_configuration(root, &out.join(name), all)?;
         }
+        for name in DATE_CONFIGURATIONS {
+            build_dates(root, &out.join(name), name)?;
+        }
     }
     let report_path = out.join("report.json");
     eprintln!("l7-web: running tools/e2e/checks/l7.mjs in {engines}");
@@ -74,6 +91,22 @@ pub(crate) fn run(root: &Path, engines: &str, build: bool, promote: bool) -> Res
             OsStr::new(engines),
             OsStr::new("--json"),
             report_path.as_os_str(),
+        ],
+        &root.join("tools/e2e"),
+    )
+    .is_ok();
+
+    let dates_report = out.join("dates-report.json");
+    eprintln!("l7-web: running tools/e2e/checks/dates-formatter.mjs in {engines}");
+    let dates_ok = cmd::run_inherit(
+        OsStr::new("node"),
+        &[
+            OsStr::new("run.mjs"),
+            OsStr::new("dates-formatter"),
+            OsStr::new("--browser"),
+            OsStr::new(engines),
+            OsStr::new("--json"),
+            dates_report.as_os_str(),
         ],
         &root.join("tools/e2e"),
     )
@@ -131,6 +164,11 @@ pub(crate) fn run(root: &Path, engines: &str, build: bool, promote: bool) -> Res
     if !browser_ok {
         return Err(Error::L7(
             "the browser run failed (target/l7-web/report.json)".to_owned(),
+        ));
+    }
+    if !dates_ok {
+        return Err(Error::L7(
+            "the date-formatter pages failed (target/l7-web/dates-report.json)".to_owned(),
         ));
     }
     eprintln!(
@@ -204,6 +242,66 @@ fn build_configuration(root: &Path, dir: &Path, all: bool) -> Result<()> {
         )?;
     }
     Ok(())
+}
+
+/// Renders the date-formatter page of one configuration (`feature`, a
+/// feature of `conformance/l7-web`) and builds its islands client: one set,
+/// one delivery mode, since only the formatter differs from L7's pages.
+fn build_dates(root: &Path, dir: &Path, feature: &str) -> Result<()> {
+    if dir.exists() {
+        fs::remove_dir_all(dir).map_err(|source| Error::IoAt {
+            path: dir.to_owned(),
+            source,
+        })?;
+    }
+    eprintln!(
+        "l7-web: rendering the date-formatter page ({}, ssr)",
+        dir.display()
+    );
+    let ssr = format!("ssr,{feature}");
+    cargo(
+        root,
+        &["build", "--release", "--features", &ssr, "--bin", "l7-page"],
+        "ssr",
+    )?;
+    let page = root.join("target/l7-web/cargo-ssr/release/l7-page");
+    cmd::run_inherit(
+        page.as_os_str(),
+        &[OsStr::new(DATE_SET), dir.as_os_str()],
+        root,
+    )?;
+    eprintln!(
+        "l7-web: building the date-formatter client ({})",
+        dir.display()
+    );
+    let hydrate = format!("hydrate,{feature}");
+    cargo(
+        root,
+        &[
+            "build",
+            "--release",
+            "--target",
+            "wasm32-unknown-unknown",
+            "--features",
+            &hydrate,
+            "--lib",
+        ],
+        "hydrate",
+    )?;
+    let wasm =
+        root.join("target/l7-web/cargo-hydrate/wasm32-unknown-unknown/release/mf2_l7_web.wasm");
+    let pkg = dir.join("pkg-islands");
+    cmd::run_inherit(
+        OsStr::new("wasm-bindgen"),
+        &[
+            OsStr::new("--target"),
+            OsStr::new("web"),
+            OsStr::new("--out-dir"),
+            pkg.as_os_str(),
+            wasm.as_os_str(),
+        ],
+        root,
+    )
 }
 
 /// `cargo <args>` on `conformance/l7-web`, in the target directory of `kind`.

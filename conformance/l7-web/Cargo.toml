@@ -46,6 +46,19 @@ all-functions = [
     "mf2-l7-set-ar/host-std-datetime-icu",
     "mf2-l7-set-ar/host-web-datetime-icu",
 ]
+# The date-formatter pages of `cargo xtask l7-web` (plan/08 §4.3): the
+# en-US set, whole, with `Intl` in the browser and ISO (`dates-iso`) or
+# ICU4X (`dates-icu`) on the server. Each build formats with its own side's.
+dates-iso = [
+    "mf2-l7-set-en-us/fn-number",
+    "mf2-l7-set-en-us/host-std-datetime-iso",
+    "mf2-l7-set-en-us/host-web-datetime-intl",
+]
+dates-icu = [
+    "mf2-l7-set-en-us/fn-number",
+    "mf2-l7-set-en-us/host-std-datetime-icu",
+    "mf2-l7-set-en-us/host-web-datetime-intl",
+]
 # `leptos/islands` in both halves of the islands page: the server writes
 # the island wrappers the client's walk looks for.
 ssr = [

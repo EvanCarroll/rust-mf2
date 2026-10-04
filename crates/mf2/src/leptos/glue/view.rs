@@ -692,6 +692,16 @@ impl Relocalize for RichNode {
     fn relocalize(&mut self, catalog: &mf2_catalog::Catalog) {
         rich::fragment(&self.desc, catalog).rebuild(&mut self.state);
     }
+
+    /// tachys rebuilds a text only when it differs from the one it
+    /// hydrated, which is the client's; the page holds the server's. An
+    /// empty rebuild first unmounts every child, so the full one mounts
+    /// them again with the client's text, in one synchronous step.
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    fn rewrite(&mut self, catalog: &mf2_catalog::Catalog) {
+        Vec::<tachys::view::any_view::AnyView>::new().rebuild(&mut self.state);
+        rich::fragment(&self.desc, catalog).rebuild(&mut self.state);
+    }
 }
 
 /// The retained state of a rendered rich message.

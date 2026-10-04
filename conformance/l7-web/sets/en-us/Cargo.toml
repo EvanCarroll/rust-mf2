@@ -14,6 +14,10 @@ fn-number = ["mf2/fn-number"]
 # Dates over ICU4X, natively and in the browser (plan/08 §3.1).
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu"]
+# The smallest server and the browser's own formatter (plan/08 §4.3), for
+# `cargo xtask l7-web`'s date-formatter pages.
+host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 ssr = ["mf2/host-std", "mf2/ssr"]
 client = ["mf2/host-web"]
 

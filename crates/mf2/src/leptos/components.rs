@@ -66,19 +66,30 @@ impl ui::Layer for Mf2 {
     }
 
     #[cfg(feature = "ssr")]
-    fn preload() -> Option<(String, Option<String>, Option<&'static str>)> {
+    fn preload() -> Option<(
+        String,
+        Option<String>,
+        Option<&'static str>,
+        Option<&'static str>,
+    )> {
         let href = crate::leptos::catalog::active()
             .and_then(|catalog| crate::leptos::catalog::catalog_name(catalog.locale()))
             .map(crate::leptos::links::catalog_href)?;
         let zone = crate::leptos::catalog::request_time_zone()
             .and_then(|zone| crate::leptos::zone::zone_name(&zone).map(String::from));
+        let dates = crate::leptos::links::date_formatter();
         let query = crate::leptos::catalog::locale_query();
         let query = (query != crate::links::LOCALE_QUERY).then_some(query);
-        Some((href, zone, query))
+        Some((href, zone, dates, query))
     }
 
     #[cfg(not(feature = "ssr"))]
-    fn preload() -> Option<(String, Option<String>, Option<&'static str>)> {
+    fn preload() -> Option<(
+        String,
+        Option<String>,
+        Option<&'static str>,
+        Option<&'static str>,
+    )> {
         None
     }
 

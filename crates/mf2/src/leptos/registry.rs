@@ -110,15 +110,22 @@ impl Target {
     /// Rewrites this node if its text in the zone now in force differs from
     /// its text in `page`, the zone it was rendered in — the reader's-zone
     /// correction (`crate::leptos::zone`). A node whose text does not depend on the
-    /// zone is not written at all.
+    /// zone is not written at all, unless `always`: the server's date
+    /// formatter was not the client's, so the node holds text the client
+    /// would not write, and it is written whatever the zone.
     #[cfg(all(feature = "hydrate", feature = "datetime"))]
     pub(crate) fn correct_zone(
         &self,
         desc: &Stored,
         catalog: &Catalog,
         page: mf2_runtime::TimeZone,
+        always: bool,
     ) {
         let use_ = self.text_use();
+        if always {
+            text::with_text(desc, catalog, use_, |now| self.write(now));
+            return;
+        }
         let before = crate::leptos::zone::scoped(Some(page), || {
             text::with_text(desc, catalog, use_, |t: &str| {
                 alloc::string::String::from(t)
@@ -148,6 +155,13 @@ impl Target {
 pub(crate) trait Relocalize {
     /// Rebuilds against `catalog`.
     fn relocalize(&mut self, catalog: &Catalog);
+
+    /// Rebuilds against `catalog` and writes every text, even one the
+    /// rebuild thinks unchanged: after hydration under another date
+    /// formatter than the server's, the view's state holds the client's
+    /// text and the page the server's (`crate::leptos::zone`).
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    fn rewrite(&mut self, catalog: &Catalog);
 }
 
 enum Slot {

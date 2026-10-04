@@ -70,7 +70,7 @@ pub fn mf2_leptos_ui_0_8::Layer::html_lang() -> (alloc::string::String, &'static
 pub fn mf2_leptos_ui_0_8::Layer::locale_name(usize) -> core::option::Option<leptos::text_prop::TextProp>
 pub fn mf2_leptos_ui_0_8::Layer::locale_query() -> &'static str
 pub fn mf2_leptos_ui_0_8::Layer::locales() -> &'static [(&'static str, mf2_model::id::Dir)]
-pub fn mf2_leptos_ui_0_8::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>, core::option::Option<&'static str>)>
+pub fn mf2_leptos_ui_0_8::Layer::preload() -> core::option::Option<(alloc::string::String, core::option::Option<alloc::string::String>, core::option::Option<&'static str>, core::option::Option<&'static str>)>
 pub fn mf2_leptos_ui_0_8::Layer::source_locale() -> &'static str
 pub fn mf2_leptos_ui_0_8::Layer::switch(alloc::string::String)
 pub fn mf2_leptos_ui_0_8::AlternateLinks<L: mf2_leptos_ui_0_8::Layer>(mf2_leptos_ui_0_8::AlternateLinksProps<L>) -> impl leptos::into_view::IntoView

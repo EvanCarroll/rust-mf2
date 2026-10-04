@@ -17,6 +17,15 @@
 //! zone, so everything formatted while hydrating agrees with the served
 //! HTML. After it, the zone becomes the reader's, and exactly the nodes whose
 //! text changes are rewritten — found by formatting each in both zones.
+//!
+//! **The formatter** (client, with a server): the page also states the
+//! server's date formatter (`data-mf2-dates`). When it is not the client's —
+//! ISO on the server and `Intl` in the browser, the smallest server — the
+//! served dates are the server's text, which the client never produces, so
+//! the same queue rewrites **every** text it hydrated, whatever the zone.
+//! ICU4X on the server and `Intl` in the browser is the one difference that
+//! is left alone: the server's text is a localized date already, and stays
+//! until its node next updates (`plan/08` §4.3).
 
 use mf2_runtime::TimeZone;
 
@@ -125,11 +134,13 @@ mod correction {
     #[derive(Clone, Copy)]
     enum Phase {
         /// Nothing to correct: the page was rendered in the reader's zone,
-        /// or the reader's is not known.
+        /// or the reader's is not known, and in the client's formatter.
         Idle,
         /// Hydrating in the page's zone; every hydrated node is queued, and
-        /// `reader` is the zone to switch to afterwards.
-        Hydrating { reader: TimeZone },
+        /// `reader` is the zone to switch to afterwards — the page's own
+        /// when only the formatter differs, in which case `moved` is false
+        /// and no cookie is written.
+        Hydrating { reader: TimeZone, moved: bool },
         /// Switched to the reader's zone. A node that hydrates now — a lazy
         /// route's chunk, a `Suspense`, an island — still holds text in
         /// `page`, and is corrected as it registers.
@@ -145,6 +156,38 @@ mod correction {
     std::thread_local! {
         static PHASE: Cell<Phase> = const { Cell::new(Phase::Idle) };
         static QUEUE: RefCell<Vec<Queued>> = const { RefCell::new(Vec::new()) };
+        /// The server's date formatter is not the client's: every queued
+        /// node is rewritten, not only those whose text the zone changes.
+        static REWRITE: Cell<bool> = const { Cell::new(false) };
+    }
+
+    fn rewrite() -> bool {
+        REWRITE.with(Cell::get)
+    }
+
+    /// The page's preload link, which carries what the server states.
+    fn preload_link() -> Option<web_sys::Element> {
+        web_sys::window().and_then(|w| w.document()).and_then(|d| {
+            d.query_selector(&["link[", crate::leptos::links::PRELOAD_ATTR, "]"].concat())
+                .ok()
+                .flatten()
+        })
+    }
+
+    /// Whether the dates in the page are not what this client would write:
+    /// the server states a formatter that is not the client's, other than
+    /// ICU4X under `Intl` (left alone, §4.3). A page that states none
+    /// formats no dates on the server.
+    fn formatter_differs(link: Option<&web_sys::Element>) -> bool {
+        let Some(own) = crate::leptos::links::date_formatter() else {
+            return false;
+        };
+        let Some(page) = link.and_then(|l| l.get_attribute(crate::leptos::links::DATES_ATTR))
+        else {
+            return false;
+        };
+        let page = page.as_str();
+        page != own && !(page == "icu" && own == "intl")
     }
 
     fn phase() -> Phase {
@@ -153,23 +196,8 @@ mod correction {
 
     /// The zone the page states it was rendered in: its `data-mf2-zone`,
     /// else `Setup`'s (the client has the same `Setup`).
-    fn page_zone() -> (Option<TimeZone>, TimeZone) {
-        let stated = web_sys::window()
-            .and_then(|w| w.document())
-            .and_then(|d| {
-                d.query_selector(
-                    &[
-                        "link[",
-                        crate::leptos::links::PRELOAD_ATTR,
-                        "][",
-                        crate::leptos::links::ZONE_ATTR,
-                        "]",
-                    ]
-                    .concat(),
-                )
-                .ok()
-                .flatten()
-            })
+    fn page_zone(link: Option<&web_sys::Element>) -> (Option<TimeZone>, TimeZone) {
+        let stated = link
             .and_then(|link| link.get_attribute(crate::leptos::links::ZONE_ATTR))
             .and_then(|name| TimeZone::named(&name));
         let setup = crate::leptos::state::setup().map_or(TimeZone::UTC, |s| s.time_zone);
@@ -188,43 +216,55 @@ mod correction {
     }
 
     /// Before hydration: format in the page's zone, and remember the
-    /// reader's if it differs. `islands` switches at once instead — Leptos
-    /// walks the islands itself, so there is no "after" to wait for.
+    /// reader's if it differs, or that the server's formatter does.
+    /// `islands` switches at once instead — Leptos walks the islands
+    /// itself, so there is no "after" to wait for.
     pub(crate) fn before_hydration(islands: bool) {
-        let (stated, page) = page_zone();
+        let link = preload_link();
+        let (stated, page) = page_zone(link.as_ref());
         set(stated);
-        let Some((reader, name)) = browser_zone() else {
-            return;
-        };
-        if same(&page, &reader) {
+        let differs = formatter_differs(link.as_ref());
+        REWRITE.with(|r| r.set(differs));
+        let moved = browser_zone().filter(|(reader, _)| !same(&page, reader));
+        if moved.is_none() && !differs {
             return;
         }
         if islands {
-            set(Some(reader));
+            match moved {
+                Some((reader, name)) => {
+                    set(Some(reader));
+                    remember(&name);
+                }
+                None => set(Some(page)),
+            }
             PHASE.with(|p| p.set(Phase::Corrected { page }));
-            remember(&name);
         } else {
-            PHASE.with(|p| p.set(Phase::Hydrating { reader }));
+            let (reader, moved) = match moved {
+                Some((reader, _)) => (reader, true),
+                None => (page, false),
+            };
+            PHASE.with(|p| p.set(Phase::Hydrating { reader, moved }));
         }
     }
 
     /// After the synchronous hydration: the reader's zone, the queued nodes
     /// brought up to date, the conversions re-read, the cookie written.
     pub(crate) fn after_hydration() {
-        let Phase::Hydrating { reader } = phase() else {
+        let Phase::Hydrating { reader, moved } = phase() else {
             return;
         };
-        let page = super::current().unwrap_or_else(|| page_zone().1);
+        let page = super::current().unwrap_or_else(|| page_zone(preload_link().as_ref()).1);
+        let all = rewrite();
         set(Some(reader));
         PHASE.with(|p| p.set(Phase::Corrected { page }));
         let queued = QUEUE.with(|q| core::mem::take(&mut *q.borrow_mut()));
         if let Some(catalog) = catalog::active() {
             for node in &queued {
                 match node {
-                    Queued::Value(target, desc) => target.correct_zone(desc, &catalog, page),
+                    Queued::Value(target, desc) => target.correct_zone(desc, &catalog, page, all),
                     Queued::Rich(node) => {
                         if let Ok(mut node) = node.try_borrow_mut() {
-                            node.relocalize(&catalog);
+                            relocalize(&mut *node, &catalog, all);
                         }
                     }
                 }
@@ -232,8 +272,18 @@ mod correction {
         }
         drop(queued);
         reactive_graph::traits::Notify::notify(&catalog::changed());
-        if let Some(name) = zone_name(&reader) {
+        if let Some(name) = zone_name(&reader).filter(|_| moved) {
             remember(name);
+        }
+    }
+
+    /// Brings a markup message up to date: rebuilt, or, when the server's
+    /// formatter is not the client's, rewritten whole (`Relocalize::rewrite`).
+    fn relocalize(node: &mut dyn Relocalize, catalog: &mf2_catalog::Catalog, all: bool) {
+        if all {
+            node.rewrite(catalog);
+        } else {
+            node.relocalize(catalog);
         }
     }
 
@@ -257,7 +307,7 @@ mod correction {
             }
             Phase::Corrected { page } => {
                 if let Some(catalog) = catalog::active() {
-                    target.correct_zone(desc, &catalog, page);
+                    target.correct_zone(desc, &catalog, page, rewrite());
                 }
             }
         }
@@ -283,7 +333,7 @@ mod correction {
             }
             Phase::Corrected { .. } => {
                 if let (Some(catalog), Ok(mut node)) = (catalog::active(), node.try_borrow_mut()) {
-                    node.relocalize(&catalog);
+                    relocalize(&mut *node, &catalog, rewrite());
                 }
             }
         }

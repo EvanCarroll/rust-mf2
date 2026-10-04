@@ -79,11 +79,18 @@ pub trait Layer: 'static {
     fn html_lang() -> (String, &'static str);
 
     /// The preload link for the catalog of the page's locale: its URL, the
-    /// reader's time zone the page was rendered in, if it was, and the query
-    /// parameter the switcher submits, when it is not the default one (the
-    /// client's switch takes it out of the address). A server's; `None` in a
-    /// client build, which never renders it.
-    fn preload() -> Option<(String, Option<String>, Option<&'static str>)>;
+    /// reader's time zone the page was rendered in, if it was, the server's
+    /// date formatter, if it formats dates, and the query parameter the
+    /// switcher submits, when it is not the default one (the client's switch
+    /// takes it out of the address). A server's; `None` in a client build,
+    /// which never renders it.
+    #[allow(clippy::type_complexity)]
+    fn preload() -> Option<(
+        String,
+        Option<String>,
+        Option<&'static str>,
+        Option<&'static str>,
+    )>;
 
     /// The name of the language at `index` in [`Layer::locales`], in that
     /// language: its `language.<tag>` message, when the corpus has one.
@@ -117,7 +124,7 @@ pub fn CatalogPreload<L: Layer>(
 ) -> impl IntoView {
     #[cfg(feature = "ssr")]
     {
-        L::preload().map(|(href, zone, query)| {
+        L::preload().map(|(href, zone, dates, query)| {
             view! {
                 <link
                     rel="preload"
@@ -126,6 +133,7 @@ pub fn CatalogPreload<L: Layer>(
                     href=href
                     data-mf2=""
                     data-mf2-zone=zone
+                    data-mf2-dates=dates
                     data-mf2-query=query
                 />
             }

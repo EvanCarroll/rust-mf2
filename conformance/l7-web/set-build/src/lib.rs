@@ -53,6 +53,8 @@ fn try_generate(locale: &str) -> Result<(), mf2_l5_gen::Error> {
     let datetime = [
         "CARGO_FEATURE_HOST_STD_DATETIME_ICU",
         "CARGO_FEATURE_HOST_WEB_DATETIME_ICU",
+        "CARGO_FEATURE_HOST_STD_DATETIME_ISO",
+        "CARGO_FEATURE_HOST_WEB_DATETIME_INTL",
     ]
     .into_iter()
     .any(|name| std::env::var_os(name).is_some());

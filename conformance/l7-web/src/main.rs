@@ -138,8 +138,14 @@ fn link_tags(locale: &str) -> String {
         if entry.tag == locale {
             let _ = write!(
                 out,
-                "<link rel=\"preload\" as=\"fetch\" crossorigin=\"anonymous\" href=\"{href}\" data-mf2>"
+                "<link rel=\"preload\" as=\"fetch\" crossorigin=\"anonymous\" href=\"{href}\" data-mf2"
             );
+            // The server's date formatter, which the client compares with
+            // its own (plan/08 §4.3), as `CatalogPreload` states it.
+            if let Some(dates) = mf2::leptos::links::date_formatter() {
+                let _ = write!(out, " {}=\"{dates}\"", mf2::leptos::links::DATES_ATTR);
+            }
+            out.push('>');
         }
         let _ = write!(
             out,

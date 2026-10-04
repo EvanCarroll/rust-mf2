@@ -162,6 +162,25 @@ fn the_page_states_the_readers_zone_and_only_that() {
 }
 
 #[test]
+fn the_page_states_the_servers_date_formatter() {
+    // ICU4X natively when its feature is on, else the ISO stand-in: what
+    // the client compares with its own (plan/08 §4.3).
+    let want = if cfg!(feature = "host-std-datetime-icu") {
+        "icu"
+    } else {
+        "iso"
+    };
+    assert_eq!(mf2::leptos::links::date_formatter(), Some(want));
+    for reader in [None, Some("America/New_York")] {
+        let html = in_request(reader, || view! { <CatalogPreload /> }.to_html());
+        assert!(
+            html.contains(&format!(r#"data-mf2-dates="{want}""#)),
+            "{html}"
+        );
+    }
+}
+
+#[test]
 fn a_reader_zone_must_be_well_formed_and_known() {
     installed();
     assert!(reader_time_zone("America/New_York").is_some());
