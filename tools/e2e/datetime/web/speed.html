@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rust-mf2: the speed of a date</title>
+</head>
+<body>
+<main>
+<h1>The speed of a date: Intl against ICU4X</h1>
+<p id="status" role="status">loading…</p>
+</main>
+<script type="module">
+// The speed of one date placeholder in a browser (plan/08 §9): every build
+// of tools/e2e/datetime/speed (`intl`, `icu`, `icu-cached`; speed.sh) loaded
+// in this one page, alternated as the number probe alternates its variants
+// (bench/intl-probe/web/lib/speed.mjs), so clock drift and tiering hit all
+// alike. For each catalog of speed.json (locale × message), `rounds`
+// samples per build, the order rotated every round and reversed every other
+// one; each sample one call of `bench` — `iters` formats in a loop inside
+// wasm — timed with performance.now(). `iters` is calibrated once per
+// catalog so a sample takes about `sampleMs` in the slowest build; every
+// build runs the same `iters`. Reported: the median ns per format of each
+// build, its range, and the ratios to `intl`.
+const BUILDS = ['intl', 'icu', 'icu-cached'];
+const status = document.getElementById('status');
+
+function bytes(hex) {
+  const b = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < b.length; i += 1) b[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return b;
+}
+
+const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+
+const data = await (await fetch('/target/e2e-datetime/speed.json')).json();
+const loaded = {};
+for (const name of BUILDS) {
+  // Each build is its own module (its own memory and statics).
+  const m = await import(`/target/e2e-datetime/speed/${name}/speed.js`);
+  await m.default();
+  const bench = new m.Bench(JSON.stringify(data.values));
+  const errors = data.catalogs.map((c) => bench.load(bytes(c.catalog), c.hash)).filter((e) => e !== '');
+  loaded[name] = { bench, backend: m.backend(), errors, values: bench.value_count() };
+}
+
+function sample(bench, cat, iters) {
+  const t0 = performance.now();
+  bench.bench(cat, iters);
+  return performance.now() - t0;
+}
+
+window.mf2speed = {
+  builds: () => BUILDS.map((name) => ({
+    name, backend: loaded[name].backend, loadErrors: loaded[name].errors, values: loaded[name].values,
+  })),
+  expectedValues: () => data.values.length,
+  // Each build's text for the first value, beside ICU4X's native text.
+  samples: () => data.catalogs.map((c, cat) => {
+    const row = { locale: c.locale, name: c.name, src: c.src, native: c.icu, nativeErrors: c.icuErrors };
+    for (const name of BUILDS) {
+      const [text, errors] = loaded[name].bench.sample(cat, 0).split('\t');
+      row[name] = { text, errors: errors === '' ? [] : errors.split(',') };
+    }
+    return row;
+  }),
+  run({ rounds = 9, sampleMs = 60 } = {}) {
+    const rows = [];
+    for (let cat = 0; cat < data.catalogs.length; cat += 1) {
+      const { locale, name, src } = data.catalogs[cat];
+      // Warm up and calibrate on the slowest build.
+      let per = 0;
+      for (const b of BUILDS) {
+        sample(loaded[b].bench, cat, 200);
+        per = Math.max(per, sample(loaded[b].bench, cat, 200) / 200);
+      }
+      const iters = Math.max(100, Math.round(sampleMs / Math.max(per, 1e-6)));
+      const ns = Object.fromEntries(BUILDS.map((b) => [b, []]));
+      for (let r = 0; r < rounds; r += 1) {
+        const k = r % BUILDS.length;
+        const order = [...BUILDS.slice(k), ...BUILDS.slice(0, k)];
+        for (const b of r % 2 === 0 ? order : order.reverse()) {
+          ns[b].push((sample(loaded[b].bench, cat, iters) * 1e6) / iters);
+        }
+      }
+      const row = { locale, name, src, iters, rounds };
+      for (const b of BUILDS) row[b] = { median: median(ns[b]), min: Math.min(...ns[b]), max: Math.max(...ns[b]) };
+      row.icuOverIntl = row.icu.median / row.intl.median;
+      row.cachedOverIntl = row['icu-cached'].median / row.intl.median;
+      rows.push(row);
+    }
+    const crossOriginIsolated = typeof globalThis.crossOriginIsolated === 'boolean' ? globalThis.crossOriginIsolated : null;
+    return { builds: BUILDS, rows, crossOriginIsolated };
+  },
+};
+status.textContent = `ready (${BUILDS.map((b) => loaded[b].backend).join('; ')})`;
+</script>
+</body>
+</html>

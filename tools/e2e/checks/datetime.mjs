@@ -81,7 +81,8 @@ const KNOWN = [
   },
 ];
 
-function serve() {
+/** The static server (datetime-speed.mjs serves the same paths). */
+export function serve() {
   const server = createServer((req, res) => {
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/+/, '');
     const file = normalize(join(REPO, path));

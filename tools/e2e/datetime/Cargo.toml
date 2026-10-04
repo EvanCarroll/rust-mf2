@@ -5,9 +5,15 @@
 #
 #   tools/e2e/datetime/build.sh     # cases + expected ICU4X text, and the module
 #   cd tools/e2e && node run.mjs datetime --browser all
+#
+# And the speed of one date placeholder in a browser, `Intl` against ICU4X
+# (plan/08 §9; `speed`, built once per formatter, each in its own cargo
+# invocation so no feature unifies):
+#
+#   tools/e2e/datetime/speed.sh     # builds, runs all three engines, writes speed-results.md
 [workspace]
 resolver = "3"
-members = ["cases", "wasm"]
+members = ["cases", "speed", "wasm"]
 
 [workspace.package]
 version = "0.0.0"

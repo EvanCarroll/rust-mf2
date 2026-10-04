@@ -6,7 +6,11 @@
 //! `tools/e2e/checks/datetime.mjs`, which formats the same catalogs in the
 //! browser through `Intl.DateTimeFormat`.
 //!
-//!   e2e-datetime-cases <out.json>
+//! Beside it, `speed.json`: the catalogs and argument values of the speed
+//! harness (plan/08 §9; `tools/e2e/datetime/web/speed.html`), with ICU4X's
+//! text for the first value.
+//!
+//!   e2e-datetime-cases <out.json>     # also writes speed.json beside it
 
 mod error;
 
@@ -282,5 +286,79 @@ fn main() -> Result<(), Error> {
         serde_json::to_string(&json!({ "cldr": "48.2.1", "cases": cases }))?,
     )?;
     eprintln!("e2e-datetime-cases: {n} cases → {out}");
+    let speed_out = Path::new(&out).with_file_name("speed.json");
+    std::fs::write(&speed_out, serde_json::to_string(&speed(&cx)?)?)?;
+    eprintln!(
+        "e2e-datetime-cases: speed catalogs → {}",
+        speed_out.display()
+    );
     Ok(())
+}
+
+/// The speed harness's locales (plan/08 §9): Latin, and a script written
+/// right to left.
+const SPEED_LOCALES: [&str; 3] = ["en", "pl", "ar"];
+
+/// The speed harness's messages: one date placeholder each, for a date, a
+/// date and time, and a date and time with a zone name.
+const SPEED_MESSAGES: [(&str, &str); 3] = [
+    ("date", "{$d :date}"),
+    ("datetime", "{$d :datetime}"),
+    (
+        "zone-name",
+        "{$d :datetime timeZone=|America/New_York| timeZoneStyle=long}",
+    ),
+];
+
+/// The argument values the harness cycles through: 100 floating date/time
+/// literals, every month, many days and hours (so no engine formats one
+/// value over and over).
+fn speed_values() -> Vec<String> {
+    (0..100u32)
+        .map(|i| {
+            format!(
+                "2026-{:02}-{:02}T{:02}:{:02}:05",
+                1 + i % 12,
+                1 + i % 28,
+                i % 24,
+                (i * 7) % 60
+            )
+        })
+        .collect()
+}
+
+/// `speed.json`: every locale × message's one-message catalog, and ICU4X's
+/// text for the first value (what the server renders; the page compares
+/// each build's text with it).
+fn speed(cx: &FormatContext) -> Result<serde_json::Value, Error> {
+    let values = speed_values();
+    let first = values
+        .first()
+        .and_then(|v| mf2_fn_datetime::parse_literal(v));
+    let mut catalogs = Vec::new();
+    for locale in SPEED_LOCALES {
+        for (name, src) in SPEED_MESSAGES {
+            let m = mf2::compile_str(src, locale).map_err(|source| Error::Compile {
+                src: src.to_owned(),
+                locale: locale.to_owned(),
+                source,
+            })?;
+            let f = Formatter::new(&m.catalog, &REGISTRY, cx);
+            let mut text = String::new();
+            let mut errors = Vec::new();
+            let args: Vec<(&str, Arg<'_>)> =
+                first.iter().map(|d| ("d", Arg::DateTime(d))).collect();
+            f.write_named(mf2::Compiled::ID, &args, &mut text, &mut errors);
+            catalogs.push(json!({
+                "locale": locale,
+                "name": name,
+                "src": src,
+                "catalog": hex(m.catalog.as_bytes()),
+                "hash": m.manifest.hash().to_string(),
+                "icu": text,
+                "icuErrors": errors.iter().map(|e| suite_name(*e)).collect::<Vec<_>>(),
+            }));
+        }
+    }
+    Ok(json!({ "cldr": "48.2.1", "values": values, "catalogs": catalogs }))
 }

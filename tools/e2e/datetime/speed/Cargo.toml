@@ -1,0 +1,35 @@
+[package]
+name = "e2e-datetime-speed"
+description = "The speed of one date placeholder in a browser: the same catalogs formatted in a loop inside wasm, one build per formatter (Intl, ICU4X, ICU4X with its cache), timed by tools/e2e/datetime/web/speed.html."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+# Exactly one per build (speed.sh builds each in its own cargo invocation,
+# so nothing unifies):
+[features]
+# The browser's `Intl.DateTimeFormat` through mf2-host-web's INTL_HOST: what
+# `leptos-client-datetime-intl` ships.
+intl = ["mf2/host-web-datetime-intl"]
+# ICU4X over the catalog's `icu.blob`, its provider and formatter built for
+# each placeholder: what `leptos-client-datetime-icu` ships.
+icu = ["mf2/host-web-datetime-icu"]
+# The same with the formatter cache (`mf2-fn-datetime`'s `cache`), which no
+# browser build turns on until its size is measured: what turning it on
+# would buy.
+icu-cached = ["icu", "mf2-fn-datetime/cache"]
+
+[dependencies]
+mf2 = { workspace = true, features = ["host-web"] }
+mf2-fn-datetime.workspace = true
+# The values, as the native side wrote them (a harness: size is not what it
+# measures).
+serde_json.workspace = true
+wasm-bindgen.workspace = true
+
+[lints]
+workspace = true
