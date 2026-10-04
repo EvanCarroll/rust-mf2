@@ -30,7 +30,12 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
-    let (features, source) = features_or_assumed(dir, &args.features);
+    let (features, source, icu_blob) = features_or_assumed(dir, &args.features);
+    // The build refuses an ICU4X formatter without `mf2-build`'s `icu-blob`
+    // before it reads a message; so does the check (`plan/08` §3.5).
+    if let Some(icu_blob) = icu_blob {
+        features.check_icu_blob(icu_blob)?;
+    }
     let mut checked = config.clone();
     if matches!(source, Source::Unknown) {
         // An assumed feature is not on "for this build": nothing to say.
@@ -100,15 +105,23 @@ pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     features_or_assumed(dir, args).0
 }
 
-/// [`features`], and where they came from: given, resolved (with what the
-/// crate writes on `mf2`), or assumed.
-fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, Source) {
+/// [`features`], where they came from (given, resolved with what the crate
+/// writes on `mf2`, or assumed), and, when cargo resolved them, whether the
+/// crate's `mf2-build` has `icu-blob` (`None` without an `mf2-build`).
+fn features_or_assumed(
+    dir: &Path,
+    args: &FeatureArgs,
+) -> (mf2_build::Features, Source, Option<bool>) {
     if let Some(given) = args.given() {
-        return (given, Source::Given);
+        return (given, Source::Given, None);
     }
     if let Ok(resolved) = resolve(dir, true) {
         let written = resolved.written;
-        return (resolved.features, Source::Cargo { written });
+        return (
+            resolved.features,
+            Source::Cargo { written },
+            resolved.icu_blob,
+        );
     }
     eprintln!(
         "note: cargo could not say which of mf2's features this crate has, so every \
@@ -121,6 +134,7 @@ fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, 
     (
         mf2_build::Features::from_names(["fn-number", "host-std-datetime-iso"]),
         Source::Unknown,
+        None,
     )
 }
 

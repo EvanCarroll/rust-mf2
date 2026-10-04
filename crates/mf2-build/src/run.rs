@@ -72,16 +72,7 @@ fn mf2_features(features: Option<&str>, version: Option<&str>, icu_blob: bool) -
             build: ours.to_owned(),
         });
     }
-    if features.cuts_date_slice() && !icu_blob {
-        let named: Vec<String> = features
-            .icu_date_features()
-            .iter()
-            .map(|name| format!("`{name}`"))
-            .collect();
-        return Err(Error::IcuBlob {
-            features: named.join(" and "),
-        });
-    }
+    features.check_icu_blob(icu_blob)?;
     Ok(features)
 }
 

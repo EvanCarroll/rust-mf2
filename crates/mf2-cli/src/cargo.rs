@@ -33,6 +33,10 @@ pub(crate) struct Resolved {
     /// The features the crate itself writes on its `mf2` dependency, in the
     /// order written: what `mf2 check` keeps of the modes.
     pub(crate) written: Vec<String>,
+    /// Whether the crate's `mf2-build` build-dependency has `icu-blob`;
+    /// `None` when it names no `mf2-build` there. The build needs it when
+    /// a side's date formatter is ICU4X, and `mf2 check` says so too.
+    pub(crate) icu_blob: Option<bool>,
 }
 
 /// [`resolved_features`], with the features the crate writes itself.
@@ -107,13 +111,14 @@ pub(crate) fn resolve(dir: &Path, offline: bool) -> Result<Resolved> {
         .find(|node| &node["id"] == id)
         .ok_or_else(|| fail(format!("{name} is not in the resolve")))?;
     // `mf2` as a normal dependency (a `null` kind), under whatever name.
-    let is_mf2 = |pkg: &Value| {
+    let is_package = |pkg: &Value, wanted: &str| {
         metadata["packages"]
             .as_array()
             .into_iter()
             .flatten()
-            .any(|p| &p["id"] == pkg && p["name"] == "mf2")
+            .any(|p| &p["id"] == pkg && p["name"] == wanted)
     };
+    let is_mf2 = |pkg: &Value| is_package(pkg, "mf2");
     let mf2 = node["deps"]
         .as_array()
         .into_iter()
@@ -127,6 +132,25 @@ pub(crate) fn resolve(dir: &Path, offline: bool) -> Result<Resolved> {
                     .any(|kind| kind["kind"].is_null())
         })
         .ok_or_else(|| fail(format!("{name} does not name `mf2` in its [dependencies]")))?;
+    // `mf2-build` as a build-dependency, and whether it has `icu-blob`.
+    let icu_blob = node["deps"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .find(|dep| {
+            is_package(&dep["pkg"], "mf2-build")
+                && dep["dep_kinds"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .any(|kind| kind["kind"] == "build")
+        })
+        .map(|dep| {
+            nodes()
+                .find(|node| node["id"] == dep["pkg"])
+                .and_then(|node| node["features"].as_array())
+                .is_some_and(|features| features.iter().any(|f| f == "icu-blob"))
+        });
     let node = nodes()
         .find(|node| node["id"] == mf2["pkg"])
         .ok_or_else(|| fail("mf2 is not in the resolve".into()))?;
@@ -139,6 +163,7 @@ pub(crate) fn resolve(dir: &Path, offline: bool) -> Result<Resolved> {
         name,
         features: Features::from_names(features),
         written,
+        icu_blob,
     })
 }
 

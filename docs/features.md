@@ -246,7 +246,8 @@ mf2-build = { version = "3", features = ["icu-blob"] }
 ```
 
 `icu-blob` is a feature of the build dependency, and cargo cannot turn it on
-from `mf2`'s features; the build's error names the line when it is missing.
+from `mf2`'s features; the build's error names the line when it is missing,
+and `mf2 check` reports the same error, from your `Cargo.toml`.
 It is off by default because it adds about 16 seconds to a cold build.
 
 When a side has a date message and no formatter, the build fails with

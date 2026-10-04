@@ -703,6 +703,28 @@ impl Features {
         off
     }
 
+    /// The build's refusal when it cuts ICU4X's date slice and `mf2-build`
+    /// lacks `icu-blob` (`plan/08` §3.5): [`Error::IcuBlob`], naming the
+    /// `icu` features that are on. The build script asks it with its own
+    /// features; `mf2 check` with those the application's manifest gives
+    /// its `mf2-build` build-dependency, so both say the same.
+    ///
+    /// [`Error::IcuBlob`]: crate::Error::IcuBlob
+    #[doc(hidden)]
+    pub fn check_icu_blob(&self, icu_blob: bool) -> crate::Result<()> {
+        if !self.cuts_date_slice() || icu_blob {
+            return Ok(());
+        }
+        let named: Vec<String> = self
+            .icu_date_features()
+            .iter()
+            .map(|name| format!("`{name}`"))
+            .collect();
+        Err(crate::Error::IcuBlob {
+            features: named.join(" and "),
+        })
+    }
+
     /// The date features that make a side's formatter ICU4X, for the error
     /// that asks for `mf2-build`'s `icu-blob`.
     #[doc(hidden)]

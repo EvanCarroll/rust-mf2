@@ -432,6 +432,87 @@ fn check_resolves_a_crate_with_a_dependency_for_another_platform() {
     assert!(stderr(&out).is_empty(), "{}", stderr(&out));
 }
 
+/// Makes `dir` an application with stand-ins for `mf2`, with `features`
+/// (each date formatter's feature implies its host's and `datetime`, as the
+/// real crate's do), and, when `build` is given, for `mf2-build` as a
+/// build-dependency with those features.
+fn date_app(dir: &Path, features: &str, build: Option<&str>) {
+    for (name, list) in [
+        (
+            "mf2",
+            "fn-number = []\nleptos = []\nnative = []\nratatui = []\naxum = []\n\
+             datetime = []\nhost-std-datetime-icu = [\"datetime\"]\n\
+             native-datetime-icu = [\"host-std-datetime-icu\"]\n",
+        ),
+        ("mf2-build", "icu-blob = []\n"),
+    ] {
+        std::fs::create_dir_all(dir.join(name).join("src")).expect("mkdir");
+        std::fs::write(
+            dir.join(name).join("Cargo.toml"),
+            format!(
+                "[package]\nname = \"{name}\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
+                 [features]\n{list}"
+            ),
+        )
+        .expect("write");
+        std::fs::write(dir.join(name).join("src/lib.rs"), "").expect("write");
+    }
+    let build = build.map_or_else(String::new, |features| {
+        format!(
+            "[build-dependencies]\nmf2-build = {{ path = \"mf2-build\", features = [{features}] }}\n\n"
+        )
+    });
+    std::fs::write(
+        dir.join("Cargo.toml"),
+        format!(
+            "[package]\nname = \"date-app\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
+             [dependencies]\nmf2 = {{ path = \"mf2\", features = [{features}] }}\n\n{build}\
+             # Not a member of the repository's workspace.\n[workspace]\n"
+        ),
+    )
+    .expect("write");
+    std::fs::create_dir_all(dir.join("src")).expect("mkdir");
+    std::fs::write(dir.join("src/lib.rs"), "").expect("write");
+}
+
+#[test]
+fn check_asks_for_icu_blob_where_the_build_does() {
+    // An ICU4X formatter, and an `mf2-build` without `icu-blob`: the build
+    // refuses with the line to write, and so does the check (task 21.7).
+    let dir = small_corpus("cli-check-icu-blob", &[("en", "when = {$d :datetime}\n")]);
+    date_app(&dir, "\"ratatui\", \"native-datetime-icu\"", Some(""));
+    let out = run(&dir, &["check"]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    assert!(
+        stderr(&out).contains(
+            "mf2-build: the date formatter of `native-datetime-icu` is ICU4X, whose catalogs \
+             carry ICU4X's date data"
+        ) && stderr(&out).contains("features = [\"icu-blob\"]"),
+        "{}",
+        stderr(&out)
+    );
+    // With `icu-blob`, the check passes, as the build does.
+    date_app(
+        &dir,
+        "\"ratatui\", \"native-datetime-icu\"",
+        Some("\"icu-blob\""),
+    );
+    let text = ok(&run(&dir, &["check"]));
+    assert!(!text.contains("icu-blob"), "{text}");
+    // Without an ICU4X formatter `icu-blob` is not needed; without an
+    // `mf2-build` there is no build script to refuse; and `--features`
+    // says nothing of `mf2-build`.
+    date_app(&dir, "\"ratatui\"", Some(""));
+    assert!(!stderr(&run(&dir, &["check"])).contains("icu-blob"));
+    date_app(&dir, "\"ratatui\", \"native-datetime-icu\"", None);
+    ok(&run(&dir, &["check"]));
+    date_app(&dir, "\"ratatui\", \"native-datetime-icu\"", Some(""));
+    ok(&run(
+        &dir,
+        &["check", "--features", "ratatui,native-datetime-icu"],
+    ));
+}
+
 #[test]
 fn check_names_the_first_missing_translations() {
     let source = (0..13)
