@@ -296,6 +296,15 @@ too_many_lines = "allow"
 # clippy::expect_used, clippy::indexing_slicing, clippy::panic, and forbid the
 # fmt machinery on the client path (plans/06-size-and-perf.md, B12).
 
+# Tests and debug builds at opt-level 1: the workspace's tests are long-running
+# (3,000 generated messages per layer, the conformance suite at every layer),
+# and unoptimised they took 1,721 s of `cargo xtask ci`'s 1,878 s on a warm
+# tree (2026-10-03). At opt-level 1 the conformance crate's tests ran in 297 s
+# against 1,369 s (plan/09, 16.0). Debug assertions and overflow checks stay
+# on: they are the dev profile's defaults and are not changed here.
+[profile.dev]
+opt-level = 1
+
 # Native benches (e.g. the parser gate) use `release`: cargo's opt-level 3 plus
 # fat LTO.
 [profile.release]

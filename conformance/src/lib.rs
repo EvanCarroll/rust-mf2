@@ -33,6 +33,7 @@ pub mod l5;
 pub mod l6;
 pub mod ledger;
 pub mod matrix;
+pub mod parallel;
 pub mod report;
 pub mod spec;
 pub mod suite;

@@ -20,6 +20,7 @@
 //! The seed is `generated.rs`'s, so case `n` starts from the same message.
 
 use std::collections::BTreeSet;
+use std::ops::Range;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
 
@@ -75,17 +76,44 @@ fn run(case: &Case, n: u64, source: &str) -> Record {
     }
 }
 
-#[test]
-fn generated_messages_format_from_a_catalog() {
-    let g = grammar();
-    let base = seed();
-    let n = cases();
-    let (mut valid, mut clean, mut numeric, mut selects, mut formatted) = (0u64, 0, 0, 0, 0);
+/// What the cases of one thread reached.
+#[derive(Default)]
+struct Counts {
+    valid: u64,
+    clean: u64,
+    numeric: u64,
+    selects: u64,
+    formatted: u64,
     // Phase 4 (A9): the localized and date/time families.
-    let (mut percent, mut measure, mut dates, mut dated, mut sliced) = (0u64, 0, 0, 0, 0);
-    let mut kinds = BTreeSet::new();
-    for case in 0..n {
-        let generated = match l4gen::case(&g, base.wrapping_add(case)) {
+    percent: u64,
+    measure: u64,
+    dates: u64,
+    dated: u64,
+    sliced: u64,
+    kinds: BTreeSet<String>,
+}
+
+impl Counts {
+    fn add(&mut self, other: Counts) {
+        self.valid += other.valid;
+        self.clean += other.clean;
+        self.numeric += other.numeric;
+        self.selects += other.selects;
+        self.formatted += other.formatted;
+        self.percent += other.percent;
+        self.measure += other.measure;
+        self.dates += other.dates;
+        self.dated += other.dated;
+        self.sliced += other.sliced;
+        self.kinds.extend(other.kinds);
+    }
+}
+
+/// Runs the cases of `range` and counts what they reached.
+fn run_cases(g: &Grammar, base: u64, range: Range<u64>) -> Counts {
+    let mut c = Counts::default();
+    for case in range {
+        let generated = match l4gen::case(g, base.wrapping_add(case)) {
             Ok(x) => x,
             Err(e) => panic!("case {case}: {e}"),
         };
@@ -111,20 +139,47 @@ fn generated_messages_format_from_a_catalog() {
                 "case {case}: icu.blob sliced to the message formats differently from one with \
                  every shape's data on {src:?}"
             );
-            sliced += 1;
+            c.sliced += 1;
         }
-        valid += u64::from(generated.valid);
-        clean += u64::from(first.errors.is_empty());
-        numeric += u64::from(src.contains(":number") || src.contains(":integer"));
-        selects += u64::from(src.starts_with('.') && src.contains(".match"));
+        c.valid += u64::from(generated.valid);
+        c.clean += u64::from(first.errors.is_empty());
+        c.numeric += u64::from(src.contains(":number") || src.contains(":integer"));
+        c.selects += u64::from(src.starts_with('.') && src.contains(".match"));
         // A number or a selection that went through a core handler.
-        formatted += u64::from(first.parts.contains("\"type\":\"number\""));
-        percent += u64::from(src.contains(":percent"));
-        measure += u64::from(src.contains(":currency") || src.contains(":unit"));
-        dates += u64::from(src.contains(":date") || src.contains(":time"));
-        dated += u64::from(first.parts.contains("\"type\":\"datetime\""));
-        kinds.extend(first.errors);
+        c.formatted += u64::from(first.parts.contains("\"type\":\"number\""));
+        c.percent += u64::from(src.contains(":percent"));
+        c.measure += u64::from(src.contains(":currency") || src.contains(":unit"));
+        c.dates += u64::from(src.contains(":date") || src.contains(":time"));
+        c.dated += u64::from(first.parts.contains("\"type\":\"datetime\""));
+        c.kinds.extend(first.errors);
     }
+    c
+}
+
+#[test]
+fn generated_messages_format_from_a_catalog() {
+    let g = grammar();
+    let base = seed();
+    let n = cases();
+    // The cases run on one thread per core (`mf2_conformance::parallel`);
+    // case `n` is the same message whichever thread runs it.
+    let mut total = Counts::default();
+    for c in mf2_conformance::parallel::cases(n, |range| run_cases(&g, base, range)) {
+        total.add(c);
+    }
+    let Counts {
+        valid,
+        clean,
+        numeric,
+        selects,
+        formatted,
+        percent,
+        measure,
+        dates,
+        dated,
+        sliced,
+        kinds,
+    } = total;
     eprintln!(
         "generated_l4: {n} cases: {valid} valid, {clean} formatted without errors, \
          {numeric} calling :number or :integer, {formatted} with a formatted number, \

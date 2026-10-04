@@ -49,37 +49,58 @@ fn seed() -> u64 {
     env_u64("MF2_GEN_SEED", 0x6d66_3274_776f)
 }
 
+/// What the cases of one thread reached.
+#[derive(Default)]
+struct Counts {
+    complex: u64,
+    invalid: u64,
+    cold: u64,
+    spelling: u64,
+}
+
 #[test]
 fn generated_messages_round_trip_through_a_catalog() {
     let g = grammar();
     let base = seed();
-    let (mut complex, mut invalid, mut cold, mut spelling) = (0u64, 0u64, 0u64, 0u64);
-    for case in 0..cases() {
-        let mut generator = Generator::new(&g, base.wrapping_add(case));
-        let src = generator.generate("message");
-        let parsed = mf2_syntax::parse_model(&src);
-        let Some(model) = parsed.message else {
-            panic!("case {case}: no model for {src:?}");
-        };
-        complex += u64::from(!model.declarations().is_empty());
-        invalid += u64::from(!parsed.diagnostics.is_empty());
-        let a = mf2_syntax::analyze(&model);
-        spelling += u64::from(
-            [&a.externals, &a.locals, &a.markup, &a.functions]
-                .into_iter()
-                .flatten()
-                .any(|n| n.spelling != n.nfc),
-        );
-        if let Err(e) = check_model(&model, "en") {
-            panic!("case {case}: L3 fails on generated {src:?}: {e}");
+    // The cases run on one thread per core (`mf2_conformance::parallel`);
+    // case `n` is the same message whichever thread runs it.
+    let per_thread = mf2_conformance::parallel::cases(cases(), |range| {
+        let mut c = Counts::default();
+        for case in range {
+            let mut generator = Generator::new(&g, base.wrapping_add(case));
+            let src = generator.generate("message");
+            let parsed = mf2_syntax::parse_model(&src);
+            let Some(model) = parsed.message else {
+                panic!("case {case}: no model for {src:?}");
+            };
+            c.complex += u64::from(!model.declarations().is_empty());
+            c.invalid += u64::from(!parsed.diagnostics.is_empty());
+            let a = mf2_syntax::analyze(&model);
+            c.spelling += u64::from(
+                [&a.externals, &a.locals, &a.markup, &a.functions]
+                    .into_iter()
+                    .flatten()
+                    .any(|n| n.spelling != n.nfc),
+            );
+            if let Err(e) = check_model(&model, "en") {
+                panic!("case {case}: L3 fails on generated {src:?}: {e}");
+            }
+            let projected = formatting_model(&model);
+            c.cold += u64::from(projected != model);
+            assert_eq!(
+                formatting_model(&projected),
+                projected,
+                "case {case}: the projection is not idempotent on {src:?}"
+            );
         }
-        let projected = formatting_model(&model);
-        cold += u64::from(projected != model);
-        assert_eq!(
-            formatting_model(&projected),
-            projected,
-            "case {case}: the projection is not idempotent on {src:?}"
-        );
+        c
+    });
+    let (mut complex, mut invalid, mut cold, mut spelling) = (0u64, 0u64, 0u64, 0u64);
+    for c in per_thread {
+        complex += c.complex;
+        invalid += c.invalid;
+        cold += c.cold;
+        spelling += c.spelling;
     }
     // The generator reaches complex messages, messages with COLD data (among
     // them names not in NFC) and invalid models, not only simple ones.
