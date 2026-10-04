@@ -27,13 +27,17 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
 
 ## State
 
-* **In flight:** 16.0. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 16.0
+* **Next:** 16.1
 
 ## Done
 
-(nothing yet)
+* 16.0 (2026-10-03): `[profile.dev] opt-level = 1`; `generated_l3`/`_l4`
+  split their cases over scoped threads (`mf2_conformance::parallel`)
+  (f566b3b). `cargo xtask ci --compile` (badfb66) and `--keep-going`
+  (1a81c34, `Error::CiStepsFailed`). Unit tests for both modes and the
+  splitter; nothing compiled.
 
 ## Before this phase
 
