@@ -25,7 +25,7 @@ use crate::codegen;
 use crate::config::{Config, DataSet, Layout};
 use crate::corpus::{self, LocaleSource};
 use crate::error::{Error, Result};
-use crate::features::Features;
+use crate::features::{Features, Place};
 use crate::lint::{Level, Lint};
 use crate::manifest;
 use crate::report::{Report, Sink};
@@ -106,6 +106,9 @@ pub struct LocaleInfo {
     pub hash: String,
     /// The file name the server publishes.
     pub file_name: String,
+    /// The file name of its server-only table (`plan/08` §4.2), when the
+    /// build wrote one: embedded in the server, never published.
+    pub server_file_name: Option<String>,
 }
 
 /// What a build produced.
@@ -202,7 +205,8 @@ impl Outcome {
         }
         std::fs::create_dir_all(dir).map_err(|source| Error::io(dir.to_path_buf(), source))?;
         let mut published = Published::default();
-        let keep = write_catalogs(dir, &self.catalogs, &mut published.written)?;
+        // What a browser reads and nothing else: no server-only table.
+        let keep = write_catalogs(dir, &self.catalogs, false, &mut published.written)?;
         let index: serde_json::Map<String, serde_json::Value> = self
             .catalogs
             .iter()
@@ -235,11 +239,21 @@ pub struct Published {
 fn write_catalogs(
     dir: &Path,
     catalogs: &[Catalog],
+    server: bool,
     written: &mut Vec<PathBuf>,
 ) -> Result<Vec<PathBuf>> {
     let mut keep = Vec::new();
     for catalog in catalogs {
         let base = dir.join(catalog.file_name());
+        // The server-only table, beside the catalog it completes; its name
+        // holds `.mf2b`, so `remove_stale` prunes an old one too.
+        if server && let Some(name) = catalog.server_file_name() {
+            let path = dir.join(name);
+            if catalog::write_if_changed(&path, &catalog.server)? {
+                written.push(path.clone());
+            }
+            keep.push(path);
+        }
         for (path, bytes) in [
             (base.clone(), &catalog.bytes),
             (with_suffix(&base, ".br"), &catalog.br),
@@ -512,6 +526,13 @@ impl Build {
             .collect();
 
         let filler = Filler::new(&built.manifest.ids, config.catalog.missing);
+        // A native application keeps every entry in its catalog (`plan/08`
+        // §4.2): no browser downloads it.
+        let date_slice = if codegen::is_native(self.emit) {
+            Place::Catalog
+        } else {
+            features.date_slice_place()
+        };
         let mut catalogs = Vec::with_capacity(tags.len());
         let mut locales = Vec::with_capacity(tags.len());
         for (i, tag) in tags.iter().enumerate() {
@@ -548,12 +569,14 @@ impl Build {
                     Emit::Both | Emit::Catalogs => self.compress,
                     _ => catalog::Compress::No,
                 },
+                date_slice,
             )?;
             locales.push(LocaleInfo {
                 tag: tag.clone(),
                 dir: catalog::dir_of(tag)?,
                 hash: catalog.hash.clone(),
                 file_name: catalog.file_name(),
+                server_file_name: catalog.server_file_name(),
             });
             catalogs.push(catalog);
         }
@@ -696,7 +719,7 @@ impl Build {
                 outcome.written.push(path);
             }
         }
-        let keep = write_catalogs(&self.out_dir, &outcome.catalogs, &mut outcome.written)?;
+        let keep = write_catalogs(&self.out_dir, &outcome.catalogs, true, &mut outcome.written)?;
         outcome.removed = catalog::remove_stale(&self.out_dir, &keep)?;
         Ok(())
     }

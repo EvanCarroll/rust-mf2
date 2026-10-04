@@ -227,7 +227,7 @@ mod tests {
     ))]
     #[test]
     fn the_server_carries_every_catalog() {
-        for (tag, name, bytes) in super::CATALOGS {
+        for (tag, name, bytes, _server) in super::CATALOGS {
             assert!(name.starts_with(tag), "{name} is not {tag}'s");
             assert!(
                 std::path::Path::new(name)

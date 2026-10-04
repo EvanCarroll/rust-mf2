@@ -86,18 +86,17 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
             }
             println!("\nlocale data, entry by entry (raw bytes in the catalog):");
             for catalog in &outcome.catalogs {
-                let entries = entries(catalog);
-                let total_bytes: usize = entries.iter().map(|(_, n)| n).sum();
-                let list = if entries.is_empty() {
-                    "(none)".to_owned()
-                } else {
-                    entries
-                        .iter()
-                        .map(|(name, n)| format!("{name} {n} B"))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                };
-                println!("  {:<8} {total_bytes:>6} B  {list}", catalog.tag);
+                println!("  {}", entry_line(&catalog.tag, &entries(catalog)));
+            }
+            // The server-only table (`plan/08` §4.2): what the browser's
+            // catalog leaves out and only the server reads.
+            if outcome.catalogs.iter().any(|c| !c.server.is_empty()) {
+                println!(
+                    "\nlocale data only the server reads (raw bytes in the server-only table):"
+                );
+                for catalog in &outcome.catalogs {
+                    println!("  {}", entry_line(&catalog.tag, &server_entries(catalog)));
+                }
             }
             println!("\ncanonical equivalence, the keys a decomposed value can reach:");
             for catalog in &outcome.catalogs {
@@ -121,6 +120,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                 .iter()
                 .map(|catalog| {
                     let entries = entries(catalog);
+                    let server = server_entries(catalog);
                     let (translated, missing) = coverage(&catalog.tag)
                         .map_or((0, 0), |c| (c.translated(), c.missing.len()));
                     serde_json::json!({
@@ -138,6 +138,11 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
                             "bytes": nfc_map(&catalog.bytes).1,
                         },
                         "locale_data": entries
+                            .iter()
+                            .map(|(name, n)| serde_json::json!({ "entry": name, "bytes": n }))
+                            .collect::<Vec<_>>(),
+                        "server_file": catalog.server_file_name(),
+                        "server_data": server
                             .iter()
                             .map(|(name, n)| serde_json::json!({ "entry": name, "bytes": n }))
                             .collect::<Vec<_>>(),
@@ -207,11 +212,34 @@ fn nfc_map(bytes: &[u8]) -> (usize, usize) {
 
 /// The LOCALE entries of a catalog, named and measured.
 fn entries(catalog: &mf2_build::catalog::Catalog) -> Vec<(&'static str, usize)> {
-    catalog
-        .locale_entries
+    named(&catalog.locale_entries)
+}
+
+/// The entries of a catalog's server-only table, named and measured.
+fn server_entries(catalog: &mf2_build::catalog::Catalog) -> Vec<(&'static str, usize)> {
+    named(&catalog.server_entries)
+}
+
+fn named(entries: &[(u32, usize)]) -> Vec<(&'static str, usize)> {
+    entries
         .iter()
         .map(|(key, bytes)| (entry_name(*key), *bytes))
         .collect()
+}
+
+/// One locale's entries as a line: the tag, the total, each entry.
+fn entry_line(tag: &str, entries: &[(&'static str, usize)]) -> String {
+    let total_bytes: usize = entries.iter().map(|(_, n)| n).sum();
+    let list = if entries.is_empty() {
+        "(none)".to_owned()
+    } else {
+        entries
+            .iter()
+            .map(|(name, n)| format!("{name} {n} B"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    format!("{tag:<8} {total_bytes:>6} B  {list}")
 }
 
 /// What a LOCALE key is called (the catalog-format design §4).

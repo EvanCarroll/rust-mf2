@@ -329,7 +329,7 @@ pub fn preload_locale(tag: &'static str) {
 #[cfg(all(feature = "ssr", any(feature = "leptos", feature = "leptos-0-8")))]
 pub fn install_server(
     setup: crate::leptos::Setup,
-    catalogs: &'static [(&'static str, &'static str, &'static [u8])],
+    catalogs: &'static [(&'static str, &'static str, &'static [u8], &'static [u8])],
 ) {
     crate::leptos::install(setup);
     if let Err(error) = crate::leptos::install_catalogs(catalogs) {
@@ -418,7 +418,9 @@ mod server {
             .iter()
             .map(|file| {
                 let bytes = file.bytes()?;
-                match Catalog::new(Vec::from(bytes), corpus.manifest_hash()) {
+                match Catalog::new(Vec::from(bytes), corpus.manifest_hash())
+                    .and_then(|catalog| catalog.with_server_data(file.server_data()))
+                {
                     Ok(catalog) => Some(catalog),
                     Err(error) => refused(error),
                 }

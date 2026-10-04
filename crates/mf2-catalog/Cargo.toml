@@ -34,6 +34,11 @@ decode = []
 # applications, through mf2::native). Off for the client, which fetches its
 # catalog: the extra buffer kind would cost it a branch on every read.
 static-bytes = []
+# `Catalog::with_server_data`: a second source of LOCALE entries, the
+# server-only table the build writes beside a catalog a browser downloads
+# (plan/08 §4.2). Only the native host turns it on; off, the field does not
+# exist and the client's bytes do not move.
+server-data = []
 # `content_hash`: the SHA-256 prefix in a catalog's file name (mf2-build names
 # the files with it; mf2::native checks a file it reads against its name). Off
 # for the client, which never computes it.
@@ -85,7 +90,7 @@ required-features = ["writer"]
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-features = ["manifest", "writer", "decode", "static-bytes", "content-hash"]
+features = ["manifest", "writer", "decode", "static-bytes", "server-data", "content-hash"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lints]

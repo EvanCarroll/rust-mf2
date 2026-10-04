@@ -12,6 +12,7 @@ use mf2_model::{Message, Pattern, PatternMessage};
 
 use crate::config::{Config, Missing, Strip};
 use crate::error::{Error, Result};
+use crate::features::Place;
 use crate::slice::Slice;
 
 /// Brotli as `plans/06-size-and-perf.md` §3 measures B7: quality 11, window
@@ -55,6 +56,13 @@ pub struct Catalog {
     /// The LOCALE entries it carries: `(key, bytes)`, ascending by key —
     /// what `mf2 stats` breaks down.
     pub locale_entries: Vec<(u32, usize)>,
+    /// The server-only table (`plan/08` §4.2): the LOCALE entries only
+    /// native code reads, in the LOCALE section's encoding, written beside
+    /// the catalog and embedded in the server. Empty when there is none.
+    /// Neither the catalog's bytes nor its hash cover it.
+    pub server: Vec<u8>,
+    /// The table's entries, as [`Catalog::locale_entries`].
+    pub server_entries: Vec<(u32, usize)>,
     /// What its locale data covers.
     pub slice: Slice,
 }
@@ -64,6 +72,13 @@ impl Catalog {
     /// (`plans/02-catalog-format.md` §3).
     pub fn file_name(&self) -> String {
         format!("{}.{}.mf2b", self.tag, self.hash)
+    }
+
+    /// `<locale>.<content-hash>.mf2b.server`, where the build writes the
+    /// server-only table beside the catalog, when there is one. A site
+    /// (`Outcome::publish`) never holds it.
+    pub fn server_file_name(&self) -> Option<String> {
+        (!self.server.is_empty()).then(|| format!("{}.server", self.file_name()))
     }
 }
 
@@ -80,6 +95,8 @@ impl core::fmt::Debug for Catalog {
             .field("missing", &self.missing)
             .field("fallbacks", &self.fallbacks)
             .field("locale_entries", &self.locale_entries)
+            .field("server", &self.server.len())
+            .field("server_entries", &self.server_entries)
             .field("slice", &self.slice)
             .finish()
     }
@@ -191,7 +208,11 @@ pub fn resolve<'a>(
     Resolved { messages, origins }
 }
 
-/// Writes one locale's catalog: the bytes, `.br`, `.gz` and the hash.
+/// Writes one locale's catalog: the bytes, `.br`, `.gz` and the hash, and
+/// the server-only table. `date_slice` is where ICU4X's date slice goes
+/// (`plan/08` §4.1), when the corpus needs one.
+// Each argument is one independent input of the catalog.
+#[allow(clippy::too_many_arguments)]
 pub fn write(
     tag: &str,
     manifest: &Manifest,
@@ -200,6 +221,7 @@ pub fn write(
     slice: Slice,
     config: &Config,
     compress: Compress,
+    date_slice: Place,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
         locale: tag.to_owned(),
@@ -210,10 +232,18 @@ pub fn write(
     options.strip_ids = config.catalog.strip.contains(&Strip::Ids);
     options.cldr_version = Some(CLDR_VERSION);
     options.locale_entries = locale_entries(tag, &slice.needs)?;
+    let mut server_entries: Vec<(u32, Vec<u8>)> = Vec::new();
     #[cfg(feature = "icu-blob")]
     if let Some(entry) = crate::slice::icu_entry(tag, &slice)? {
-        options.locale_entries.push(entry);
+        match date_slice {
+            Place::Catalog => options.locale_entries.push(entry),
+            Place::Server => server_entries.push(entry),
+            // No side formats with ICU4X, so the slice was not cut.
+            Place::Nowhere => {}
+        }
     }
+    #[cfg(not(feature = "icu-blob"))]
+    let _ = date_slice;
     let mut missing = 0;
     let mut fallbacks = 0;
     for (i, origin) in resolved.origins.iter().enumerate() {
@@ -254,12 +284,20 @@ pub fn write(
         Compress::Best => (brotli(tag, &bytes)?, gzip(tag, &bytes)?),
     };
     let hash = content_hash(&bytes);
-    let mut locale_entries: Vec<(u32, usize)> = options
-        .locale_entries
-        .iter()
-        .map(|(key, payload)| (*key, payload.len()))
-        .collect();
-    locale_entries.sort_unstable();
+    let server = writer::server_table(&server_entries).map_err(|source| Error::Write {
+        locale: tag.to_owned(),
+        source,
+    })?;
+    let sizes = |entries: &[(u32, Vec<u8>)]| {
+        let mut sizes: Vec<(u32, usize)> = entries
+            .iter()
+            .map(|(key, payload)| (*key, payload.len()))
+            .collect();
+        sizes.sort_unstable();
+        sizes
+    };
+    let locale_entries = sizes(&options.locale_entries);
+    let server_entries = sizes(&server_entries);
     Ok(Catalog {
         tag: tag.to_owned(),
         bytes,
@@ -269,6 +307,8 @@ pub fn write(
         missing,
         fallbacks,
         locale_entries,
+        server,
+        server_entries,
         slice,
     })
 }

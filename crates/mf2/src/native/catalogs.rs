@@ -76,6 +76,7 @@ impl Catalogs {
                 .bytes()
                 .ok_or_else(|| Error::NotEmbedded(tag.to_owned()))?;
             Catalog::from_static(bytes, corpus.manifest_hash())
+                .and_then(|catalog| catalog.with_server_data(file.server_data()))
                 .map(Some)
                 .map_err(|source| Error::Catalog {
                     locale: tag.to_owned(),
@@ -126,6 +127,7 @@ impl Catalogs {
                 return Err(Error::ContentMismatch { path, actual });
             }
             Catalog::new(bytes, corpus.manifest_hash())
+                .and_then(|catalog| catalog.with_server_data(file.server_data()))
                 .map(Some)
                 .map_err(|source| Error::Catalog {
                     locale: tag.to_owned(),

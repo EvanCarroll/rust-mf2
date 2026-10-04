@@ -483,6 +483,17 @@ fn planes(entries: &[u32]) -> Vec<u8> {
     out
 }
 
+/// The server-only table (`plan/08` §4.2): `entries` in the LOCALE
+/// section's own encoding, checked as LOCALE's are, for
+/// `Catalog::with_server_data`. Empty when there are none, which the
+/// reader takes as no table.
+pub fn server_table(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {
+    if entries.is_empty() {
+        return Ok(Vec::new());
+    }
+    locale_section(entries)
+}
+
 /// LOCALE: entries sorted by key; the entries of known kinds checked
 /// (plural §4.1, number §4.2–§4.3, currency §4.6, unit §4.7).
 fn locale_section(entries: &[(u32, Vec<u8>)]) -> Result<Vec<u8>, WriteError> {

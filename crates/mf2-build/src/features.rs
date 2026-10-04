@@ -313,15 +313,31 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
     Some(names.contains(&option))
 }
 
-/// What decides what a catalog may hold, as [`Features::for_catalogs`]
-/// names it: which functions a message may call (`fn-number`, `datetime`),
-/// and whether the catalog carries ICU4X's date slice (`icu-blob`, when an
-/// `icu` formatter is on either side). The wasm and the catalogs must agree
-/// on these; the other features (`number-intl`, the `intl` and `iso`
-/// formatters, `tzdb-bundled`, the host features) change only the code a
-/// build compiles — `tzdb-bundled` only which IANA database a named time
-/// zone is looked up in.
+/// What decides what a catalog — the file a browser downloads — may hold,
+/// as [`Features::for_catalogs`] names it: which functions a message may
+/// call (`fn-number`, `datetime`), and whether the catalog carries ICU4X's
+/// date slice (`icu-blob`, [`Features::date_slice_place`] being
+/// [`Place::Catalog`]). These are the browser-side choices, in the one list
+/// both builds see, so that a server's build script knows what the browser
+/// reads (`plan/08` §4.1). The wasm and the catalogs must agree on them; the
+/// other features (`number-intl`, the `intl` and `iso` formatters,
+/// `tzdb-bundled`, the host features) change only the code a build
+/// compiles — `tzdb-bundled` only which IANA database a named time zone is
+/// looked up in.
 pub const CATALOG_FEATURES: [&str; 3] = ["fn-number", "datetime", "icu-blob"];
+
+/// Where the build writes a LOCALE entry (`plan/08` §4.1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Place {
+    /// Into the catalog: a browser reads it, or no browser downloads the
+    /// catalog (a native application: one reader, one file).
+    Catalog,
+    /// Into the server-only table beside the catalog: a browser downloads
+    /// the catalog and only native code reads the entry.
+    Server,
+    /// Nowhere: no side reads it.
+    Nowhere,
+}
 
 impl Features {
     /// The set cargo passed this `build.rs`: every `CARGO_FEATURE_*` in the
@@ -367,7 +383,8 @@ impl Features {
 
     /// What of this set changes a catalog, in the [`CATALOG_FEATURES`]
     /// names: `fn-number`, `datetime` when the date functions are on under
-    /// any of their names, `icu-blob` when the date slice is cut. What
+    /// any of their names, `icu-blob` when the catalog carries the date
+    /// slice (not when only the server-only table does). What
     /// `mf2 compile --site` compares with the i18n crate's, so that two
     /// spellings of one build (a framework's family or the host's, with or
     /// without the `datetime` they imply) compare equal.
@@ -377,7 +394,7 @@ impl Features {
         let on = [
             (numbers, self.fn_number()),
             (dates, self.fn_datetime()),
-            (slice, self.cuts_date_slice()),
+            (slice, self.date_slice_place() == Place::Catalog),
         ];
         Features::from_names(on.into_iter().filter(|(_, on)| *on).map(|(name, _)| name))
     }
@@ -431,13 +448,42 @@ impl Features {
         self.date_formatters(side).into_iter().max()
     }
 
-    /// Whether the catalogs carry ICU4X's date slice (`icu.blob`): when
-    /// either side's formatter is `icu`. A build script cuts it for both
-    /// builds, so it needs `mf2-build`'s `icu-blob` then.
+    /// Whether the build cuts ICU4X's date slice (`icu.blob`): when either
+    /// side's formatter is `icu`. A build script cuts it for both builds, so
+    /// it needs `mf2-build`'s `icu-blob` then; [`Features::date_slice_place`]
+    /// says whether it goes into the catalog or the server-only table.
     pub fn cuts_date_slice(&self) -> bool {
         Side::ALL
             .into_iter()
             .any(|side| self.date_formatter(side) == Some(DateFormatter::Icu))
+    }
+
+    /// Whether a browser downloads this build's catalogs: a framework or
+    /// host of the browser's side is on, or a browser date formatter is.
+    /// Without one the catalogs have native readers alone, and keep every
+    /// entry (`plan/08` §4.1).
+    pub fn has_browser_side(&self) -> bool {
+        self.date_families()
+            .iter()
+            .any(|family| family.side == Side::Browser)
+            || self.date_formatter(Side::Browser).is_some()
+    }
+
+    /// Where ICU4X's date slice (`icu.blob`) goes (`plan/08` §4.1): into
+    /// the catalog when the browser's formatter is `icu` or no browser
+    /// downloads the catalog and native code's is; into the server-only
+    /// table when native code's is `icu` and the browser's is not; nowhere
+    /// when neither side's is. A native application's build keeps it in
+    /// its catalog whatever this says (`Build`).
+    pub fn date_slice_place(&self) -> Place {
+        let icu = |side| self.date_formatter(side) == Some(DateFormatter::Icu);
+        if icu(Side::Browser) || (icu(Side::Native) && !self.has_browser_side()) {
+            Place::Catalog
+        } else if icu(Side::Native) {
+            Place::Server
+        } else {
+            Place::Nowhere
+        }
     }
 
     /// The date families of the frameworks that are on (`plan/08` §3.5),
@@ -731,7 +777,7 @@ fn quoted(names: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::Features;
-    use super::{DateFormatter, Side};
+    use super::{DateFormatter, Place, Side};
 
     // `plan/08` §3.2, on each side: the formatter is chosen from the
     // features of its own side only; with more than one of a family on, the
@@ -928,6 +974,46 @@ mod tests {
                 .names()
                 .collect::<Vec<_>>(),
             ["datetime", "icu-blob"]
+        );
+        // ICU4X on the server alone puts the slice in the server-only
+        // table: the browser's catalog is the one built with no native
+        // formatter.
+        assert_eq!(
+            Features::parse("ssr,leptos-client-datetime-intl,leptos-server-datetime-icu")
+                .for_catalogs(),
+            Features::parse("ssr,leptos-client-datetime-intl").for_catalogs()
+        );
+    }
+
+    // `plan/08` §4.1: where the date slice goes.
+
+    #[test]
+    fn the_date_slice_goes_where_it_is_read() {
+        let place = |list| Features::parse(list).date_slice_place();
+        assert_eq!(
+            place("ssr,leptos-client-datetime-intl,leptos-server-datetime-icu"),
+            Place::Server
+        );
+        assert_eq!(
+            place("ssr,leptos-client-datetime-icu,leptos-server-datetime-icu"),
+            Place::Catalog
+        );
+        assert_eq!(
+            place("hydrate,leptos-client-datetime-icu,leptos-server-datetime-iso"),
+            Place::Catalog
+        );
+        // No browser side: one reader, one file.
+        assert_eq!(place("native,native-datetime-icu"), Place::Catalog);
+        assert_eq!(place("axum,axum-datetime-icu"), Place::Catalog);
+        assert_eq!(place("host-std,host-std-datetime-icu"), Place::Catalog);
+        // A browser formatter says there is a browser side.
+        assert_eq!(
+            place("host-std-datetime-icu,host-web-datetime-intl"),
+            Place::Server
+        );
+        assert_eq!(
+            place("ssr,leptos-client-datetime-intl,leptos-server-datetime-iso"),
+            Place::Nowhere
         );
     }
 

@@ -114,6 +114,31 @@ pub struct Catalog {
     ids: Option<Span>,
     nfc: Option<Span>,
     pub(crate) strings: Span,
+    /// The server-only table (`server-data`): the LOCALE entries only native
+    /// code reads, which `locale_entry` falls back to.
+    #[cfg(feature = "server-data")]
+    server: Option<ServerData>,
+}
+
+/// The server-only table (`plan/08` §4.2): LOCALE entries in the LOCALE
+/// section's own encoding, embedded in the server beside its catalog, and
+/// the plural entries' spans in it.
+#[cfg(feature = "server-data")]
+struct ServerData {
+    bytes: &'static [u8],
+    plural: [Option<Span>; 2],
+}
+
+#[cfg(feature = "server-data")]
+impl ServerData {
+    fn entry(&self, key: u32) -> Option<&'static [u8]> {
+        let bytes = self.bytes;
+        match key {
+            locale_key::PLURAL_CARDINAL => self.plural[0].map(|s| s.of(bytes)),
+            locale_key::PLURAL_ORDINAL => self.plural[1].map(|s| s.of(bytes)),
+            _ => find_entry(bytes, key),
+        }
+    }
 }
 
 /// A catalog's buffer. Without `static-bytes` it is the fetched `Vec`, as
@@ -311,7 +336,31 @@ impl Catalog {
             nfc: found.nfc,
             strings,
             bytes,
+            #[cfg(feature = "server-data")]
+            server: None,
         })
+    }
+
+    /// The same catalog, with `table` as the second source of its LOCALE
+    /// entries (feature `server-data`, `plan/08` §4.2): the entries only
+    /// native code reads, which the build wrote beside the catalog. The
+    /// table is checked as LOCALE is; an empty one leaves the catalog as it
+    /// was.
+    #[cfg(feature = "server-data")]
+    pub fn with_server_data(mut self, table: &'static [u8]) -> Result<Catalog, CatalogError> {
+        if table.is_empty() {
+            return Ok(self);
+        }
+        let all = Span {
+            off: 0,
+            len: table.len(),
+        };
+        let plural = check_locale(table, all).ok_or(CatalogError::Locale)?;
+        self.server = Some(ServerData {
+            bytes: table,
+            plural,
+        });
+        Ok(self)
     }
 
     /// `format_version`: `major << 8 | minor`.
@@ -481,27 +530,34 @@ impl Catalog {
     }
 
     /// The payload of the LOCALE entry with `key` (opaque; §2.7, §4).
+    #[cfg(not(feature = "server-data"))]
     #[doc(hidden)]
     pub fn locale_entry(&self, key: u32) -> Option<&[u8]> {
+        self.own_locale_entry(key)
+    }
+
+    /// The payload of the LOCALE entry with `key` (opaque; §2.7, §4): this
+    /// catalog's own, else the server-only table's.
+    #[cfg(feature = "server-data")]
+    #[doc(hidden)]
+    pub fn locale_entry(&self, key: u32) -> Option<&[u8]> {
+        match self.own_locale_entry(key) {
+            Some(payload) => Some(payload),
+            None => self.server.as_ref()?.entry(key),
+        }
+    }
+
+    // Always inlined: without `server-data` it is the whole of
+    // `locale_entry`, on the client's path, which must not move.
+    #[inline(always)]
+    #[allow(clippy::inline_always)]
+    fn own_locale_entry(&self, key: u32) -> Option<&[u8]> {
         match key {
             locale_key::PLURAL_CARDINAL => return self.plural[0].map(|s| s.of(&self.bytes)),
             locale_key::PLURAL_ORDINAL => return self.plural[1].map(|s| s.of(&self.bytes)),
             _ => {}
         }
-        let mut c = Cur::new(self.locale_sec.of(&self.bytes), 0);
-        let n = c.varint()?;
-        for _ in 0..n {
-            let k = c.varint()?;
-            let len = c.len()?;
-            let payload = c.take(len)?;
-            if k == key {
-                return Some(payload);
-            }
-            if k > key {
-                return None;
-            }
-        }
-        None
+        find_entry(self.locale_sec.of(&self.bytes), key)
     }
 
     /// A message's variable names (NAMES): its slots and its locals. Empty
@@ -607,6 +663,27 @@ impl Catalog {
         }
         None
     }
+}
+
+/// The payload of `key` in a LOCALE container (keys strictly increasing,
+/// checked by [`check_locale`]).
+#[inline(always)]
+#[allow(clippy::inline_always)]
+fn find_entry(sec: &[u8], key: u32) -> Option<&[u8]> {
+    let mut c = Cur::new(sec, 0);
+    let n = c.varint()?;
+    for _ in 0..n {
+        let k = c.varint()?;
+        let len = c.len()?;
+        let payload = c.take(len)?;
+        if k == key {
+            return Some(payload);
+        }
+        if k > key {
+            return None;
+        }
+    }
+    None
 }
 
 /// Walks the section table: bounds, order, duplicates, STRINGS last.

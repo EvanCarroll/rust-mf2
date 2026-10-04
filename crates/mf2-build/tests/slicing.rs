@@ -432,3 +432,166 @@ fn an_explicit_list_narrows_a_variable_currency() {
     assert!(warns(&every));
     assert!(!warns(&narrow));
 }
+
+// `plan/08` §4.1, §4.2: the date slice goes where it is read.
+
+/// A corpus that formats a date, in two locales.
+#[cfg(feature = "icu-blob")]
+const DATES: &str = "plain = Save\nwhen = {$d :date}\n";
+
+/// [`DATES`] built and written (`Build::run`) under `features` and `emit`,
+/// and the directory it was written to.
+#[cfg(feature = "icu-blob")]
+fn build_dates(
+    name: &str,
+    features: &str,
+    emit: mf2_build::Emit,
+) -> (mf2_build::Outcome, std::path::PathBuf) {
+    let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join("slicing")
+        .join(name);
+    let _ = std::fs::remove_dir_all(&root);
+    for tag in ["en", "fr"] {
+        let path = root.join("locales").join(tag).join("main.mf2");
+        std::fs::create_dir_all(path.parent().expect("a parent")).expect("mkdir");
+        std::fs::write(&path, format!("@locale {tag}\n---\n\n{DATES}")).expect("write");
+    }
+    let mut config = Config::default();
+    "en".clone_into(&mut config.source_locale);
+    let out = out_dir(&format!("slicing-{name}"));
+    let outcome = Build::at(&root, &out)
+        .config(config)
+        .features(Features::parse(features))
+        .emit(emit)
+        .run()
+        .expect("the corpus builds");
+    assert!(
+        outcome.report.is_clean(),
+        "{name}:\n{}",
+        outcome.report.to_text()
+    );
+    (outcome, out)
+}
+
+#[cfg(feature = "icu-blob")]
+#[test]
+fn icu4x_on_the_server_alone_keeps_the_slice_out_of_the_browsers_catalog() {
+    use mf2_build::Emit;
+    let (split, out) = build_dates(
+        "dates-server-icu",
+        "ssr,leptos-client-datetime-intl,leptos-server-datetime-icu",
+        Emit::Both,
+    );
+    // The same application with no date formatter in native code: its
+    // browser build (a server build without one fails `:date`).
+    let (plain, _) = build_dates(
+        "dates-no-native",
+        "hydrate,leptos-client-datetime-intl",
+        Emit::Both,
+    );
+    for catalog in &split.catalogs {
+        let tag = &catalog.tag;
+        assert!(
+            catalog
+                .locale_entries
+                .iter()
+                .all(|(key, _)| *key != locale_key::ICU_BLOB),
+            "{tag}: the browser's catalog carries entry 48: {:?}",
+            catalog.locale_entries
+        );
+        let same = plain.catalog(tag).expect("the same locale");
+        assert!(
+            same.server.is_empty(),
+            "{tag}: no native formatter, no table"
+        );
+        assert_eq!(
+            catalog.bytes, same.bytes,
+            "{tag}: not the catalog built with no date formatter in native code"
+        );
+        assert_eq!(catalog.file_name(), same.file_name());
+        // The slice is in the server-only table, written beside the catalog
+        // and named in the module.
+        assert!(
+            catalog
+                .server_entries
+                .iter()
+                .any(|(key, n)| *key == locale_key::ICU_BLOB && *n > 0),
+            "{tag}: {:?}",
+            catalog.server_entries
+        );
+        let name = catalog.server_file_name().expect("a server-only table");
+        assert_eq!(
+            std::fs::read(out.join(&name)).expect("written beside the catalog"),
+            catalog.server
+        );
+        assert!(
+            split.generated.contains(&name),
+            "{tag}: the module embeds {name}"
+        );
+        // The server reads the slice through the table.
+        let table: &'static [u8] = Box::leak(catalog.server.clone().into_boxed_slice());
+        let reader = mf2_catalog::Catalog::new(catalog.bytes.clone(), split.manifest_hash)
+            .expect("the catalog loads");
+        assert!(reader.locale_entry(locale_key::ICU_BLOB).is_none());
+        let reader = reader.with_server_data(table).expect("the table loads");
+        assert!(
+            reader
+                .locale_entry(locale_key::ICU_BLOB)
+                .is_some_and(|b| !b.is_empty())
+        );
+    }
+    // A site holds what a browser reads and nothing else.
+    let site = out_dir("slicing-dates-server-icu-site");
+    split.publish(&site).expect("published");
+    let names: Vec<String> = std::fs::read_dir(&site)
+        .expect("the site")
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect();
+    assert!(
+        names.iter().all(|n| !n.ends_with(".server")),
+        "a site holds a server-only table: {names:?}"
+    );
+}
+
+#[cfg(feature = "icu-blob")]
+#[test]
+fn icu4x_in_the_browser_keeps_the_slice_in_the_catalog() {
+    use mf2_build::Emit;
+    for (name, features, emit) in [
+        (
+            "dates-browser-icu",
+            "ssr,leptos-client-datetime-icu,leptos-server-datetime-icu",
+            Emit::Both,
+        ),
+        // A native application: one reader, one file.
+        (
+            "dates-native-icu",
+            "native,native-datetime-icu",
+            Emit::Native,
+        ),
+    ] {
+        let (outcome, out) = build_dates(name, features, emit);
+        for catalog in &outcome.catalogs {
+            assert!(
+                catalog
+                    .locale_entries
+                    .iter()
+                    .any(|(key, _)| *key == locale_key::ICU_BLOB),
+                "{name} {}: {:?}",
+                catalog.tag,
+                catalog.locale_entries
+            );
+            assert!(catalog.server.is_empty(), "{name} {}", catalog.tag);
+            assert!(catalog.server_entries.is_empty(), "{name} {}", catalog.tag);
+            assert_eq!(catalog.server_file_name(), None);
+        }
+        let tables: Vec<_> = std::fs::read_dir(&out)
+            .expect("the output")
+            .flatten()
+            .filter(|e| e.file_name().to_string_lossy().ends_with(".server"))
+            .collect();
+        assert!(tables.is_empty(), "{name}: {tables:?}");
+        assert!(!outcome.generated.contains("MF2_SERVER_DATA"), "{name}");
+    }
+}

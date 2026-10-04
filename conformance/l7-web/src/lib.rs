@@ -39,9 +39,10 @@ pub struct Set {
     pub id: fn(usize) -> Option<&'static str>,
     /// Call site `index`, as a view.
     pub view: fn(usize) -> AnyView,
-    /// Every catalog of the set: the locale's and the twin's.
+    /// Every catalog of the set: the locale's and the twin's, each with its
+    /// server-only table.
     #[cfg(feature = "ssr")]
-    pub catalogs: &'static [(&'static str, &'static str, &'static [u8])],
+    pub catalogs: &'static [(&'static str, &'static str, &'static [u8], &'static [u8])],
 }
 
 macro_rules! set {

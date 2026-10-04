@@ -40,7 +40,7 @@ pub fn read(bytes: Vec<u8>) -> Result<Arc<Catalog>, LoadError> {
 /// generated `CATALOGS`, then shared by every request.
 #[cfg(feature = "ssr")]
 mod store {
-    use super::{Arc, Catalog, LoadError, Vec, read, state};
+    use super::{Arc, Catalog, LoadError, Vec, state};
     use std::sync::OnceLock;
 
     /// One locale, as the server holds it: what to serve, under what name,
@@ -69,21 +69,33 @@ mod store {
     static STORE: OnceLock<Vec<CatalogEntry>> = OnceLock::new();
 
     /// Parses and stores the generated `CATALOGS` —
-    /// `(tag, file name, bytes)`. Call it once, after
+    /// `(tag, file name, bytes, server-only table)`. Call it once, after
     /// [`install`](crate::leptos::install).
     ///
     /// Every catalog is checked against `MANIFEST_HASH` here, at startup,
     /// so a skewed deploy fails the server's boot rather than a request.
+    /// The server-only table (`plan/08` §4.2) holds the LOCALE entries only
+    /// the server reads, which the browser's catalog leaves out; it is
+    /// served to no one, and empty when there is none.
     pub fn install_catalogs(
-        catalogs: &[(&'static str, &'static str, &'static [u8])],
+        catalogs: &[(&'static str, &'static str, &'static [u8], &'static [u8])],
     ) -> Result<(), LoadError> {
         let mut parsed = Vec::with_capacity(catalogs.len());
-        for (tag, file, bytes) in catalogs {
+        for (tag, file, bytes, server) in catalogs {
+            // As `read`, with the table: kept apart so that the client's
+            // `read` does not move.
+            if !state::installed() {
+                return Err(LoadError::NotInstalled);
+            }
+            let catalog = Catalog::new(bytes.to_vec(), state::manifest_hash())
+                .and_then(|catalog| catalog.with_server_data(server))
+                .map(Arc::new)
+                .map_err(LoadError::from_reader)?;
             parsed.push(CatalogEntry {
                 tag,
                 file,
                 bytes,
-                catalog: read(bytes.to_vec())?,
+                catalog,
             });
         }
         let _ = STORE.set(parsed);

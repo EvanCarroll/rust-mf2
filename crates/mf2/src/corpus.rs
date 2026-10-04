@@ -61,6 +61,10 @@ pub struct CatalogFile {
     tag: &'static str,
     file_name: &'static str,
     bytes: Option<&'static [u8]>,
+    /// The server-only table the build wrote beside the catalog
+    /// (`plan/08` §4.2): the LOCALE entries only native code reads. Empty
+    /// when there is none.
+    server_data: &'static [u8],
 }
 
 impl Corpus {
@@ -165,7 +169,17 @@ impl CatalogFile {
             tag,
             file_name,
             bytes,
+            server_data: &[],
         }
+    }
+
+    /// The same, with the server-only table the build embedded beside the
+    /// catalog: what the generated module calls when there is one.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn with_server_data(mut self, table: &'static [u8]) -> CatalogFile {
+        self.server_data = table;
+        self
     }
 
     /// The locale's BCP 47 tag.
@@ -184,5 +198,12 @@ impl CatalogFile {
     #[must_use]
     pub const fn bytes(&self) -> Option<&'static [u8]> {
         self.bytes
+    }
+
+    /// The server-only table embedded beside the catalog: the LOCALE
+    /// entries a browser never reads. Empty when there is none.
+    #[must_use]
+    pub const fn server_data(&self) -> &'static [u8] {
+        self.server_data
     }
 }

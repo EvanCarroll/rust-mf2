@@ -47,7 +47,7 @@ fn installed() {
             Setup::new(&REGISTRY, &mf2::host_std::ZONES_HOST, hash, "en", LOCALES)
                 .with_time_zone(zone("Asia/Tokyo")),
         );
-        install_catalogs(&[("en", "en.test.mf2b", bytes)]).expect("the catalog loads");
+        install_catalogs(&[("en", "en.test.mf2b", bytes, &[])]).expect("the catalog loads");
     });
 }
 

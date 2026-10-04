@@ -400,6 +400,17 @@ fn embedded(s: &mut String, m: &Module<'_>) {
         );
     }
     table.push_str("];\n");
+    if has_server_data(m) {
+        let _ = writeln!(
+            table,
+            "\n/// The server-only tables (`plan/08` §4.2), embedded once beside the\n/// catalogs: the LOCALE entries only native code reads, never published.\nstatic MF2_SERVER_DATA: [&[u8]; {}] = [",
+            m.locales.len()
+        );
+        for locale in m.locales {
+            let _ = writeln!(table, "    {},", server_bytes(locale));
+        }
+        table.push_str("];\n");
+    }
     let catalogs = catalogs(m, Some("MF2_CATALOG_BYTES"));
     s.push('\n');
     if native {
@@ -413,19 +424,35 @@ fn embedded(s: &mut String, m: &Module<'_>) {
     }
 }
 
+/// Whether any locale has a server-only table (`plan/08` §4.2).
+fn has_server_data(m: &Module<'_>) -> bool {
+    m.locales.iter().any(|l| l.server_file_name.is_some())
+}
+
+/// A locale's server-only table as an expression: included from the output
+/// directory, or empty.
+fn server_bytes(locale: &LocaleInfo) -> String {
+    match &locale.server_file_name {
+        Some(name) => format!("include_bytes!(concat!(env!(\"OUT_DIR\"), \"/\", {name:?}))"),
+        None => "&[]".to_owned(),
+    }
+}
+
 /// `CATALOGS`, `catalog()` and `catalog_name()`: each catalog's bytes from
-/// `table`, or included here ([`Emit::Catalogs`]).
+/// `table`, or included here ([`Emit::Catalogs`]), with its server-only
+/// table from `MF2_SERVER_DATA` beside `table`, or included here.
 fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
     let mut s = String::new();
     let _ = writeln!(
         s,
-        "/// {}\npub static CATALOGS: &[(&str, &str, &[u8])] = &[",
+        "/// {}\npub static CATALOGS: &[(&str, &str, &[u8], &[u8])] = &[",
         if is_native(m.emit) {
-            "The catalogs, for the Leptos layer's server beside `native`: `(tag,\n/// file name, bytes)`, the bytes `CORPUS` holds."
+            "The catalogs, for the Leptos layer's server beside `native`: `(tag,\n/// file name, bytes, server-only table)`, the bytes `CORPUS` holds."
         } else {
-            "The catalogs, embedded for the **server** only: `(tag, file name,\n/// bytes)`. The client fetches its one locale instead, so its wasm holds no\n/// message text, no id and no catalog name (B6)."
+            "The catalogs, embedded for the **server** only: `(tag, file name,\n/// bytes, server-only table)`. The client fetches its one locale instead, so\n/// its wasm holds no message text, no id and no catalog name (B6). The\n/// server-only table holds the locale data only the server reads; it is\n/// served to no one, and empty when there is none."
         }
     );
+    let shared = table.is_some() && has_server_data(m);
     for (i, locale) in m.locales.iter().enumerate() {
         let bytes = match table {
             Some(table) => format!("{table}[{i}]"),
@@ -434,9 +461,14 @@ fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
                 locale.file_name
             ),
         };
+        let server = if shared {
+            format!("MF2_SERVER_DATA[{i}]")
+        } else {
+            server_bytes(locale)
+        };
         let _ = writeln!(
             s,
-            "    ({tag:?}, {file:?}, {bytes}),",
+            "    ({tag:?}, {file:?}, {bytes}, {server}),",
             tag = locale.tag,
             file = locale.file_name
         );
@@ -446,13 +478,13 @@ fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
 
 /// The embedded catalog of `tag`, for a server that serves it from memory.
 pub fn catalog(tag: &str) -> Option<&'static [u8]> {
-    CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, _, b)| *b)
+    CATALOGS.iter().find(|(t, ..)| *t == tag).map(|(_, _, b, _)| *b)
 }
 
 /// The file name `tag`'s catalog is published under, content-hashed and
 /// served immutable.
 pub fn catalog_name(tag: &str) -> Option<&'static str> {
-    CATALOGS.iter().find(|(t, _, _)| *t == tag).map(|(_, n, _)| *n)
+    CATALOGS.iter().find(|(t, ..)| *t == tag).map(|(_, n, ..)| *n)
 }
 ",
     );
@@ -624,9 +656,16 @@ pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
         } else {
             "None".to_owned()
         };
+        // The server-only table, shared with `CATALOGS` (only a build that
+        // embeds the catalogs for a browser's server writes one).
+        let server = if embeds(m.emit) && locale.server_file_name.is_some() {
+            format!(".with_server_data(MF2_SERVER_DATA[{i}])")
+        } else {
+            String::new()
+        };
         let _ = writeln!(
             c,
-            "        __mf2::CatalogFile::new({tag:?}, {file:?}, {bytes}),",
+            "        __mf2::CatalogFile::new({tag:?}, {file:?}, {bytes}){server},",
             tag = locale.tag,
             file = locale.file_name
         );
@@ -1256,12 +1295,14 @@ mod tests {
                 dir: Dir::Ltr,
                 hash: "0123456789abcdef".to_owned(),
                 file_name: "en.0123456789abcdef.mf2b".to_owned(),
+                server_file_name: None,
             },
             LocaleInfo {
                 tag: "ar".to_owned(),
                 dir: Dir::Rtl,
                 hash: "fedcba9876543210".to_owned(),
                 file_name: "ar.fedcba9876543210.mf2b".to_owned(),
+                server_file_name: None,
             },
         ]
     }
@@ -1352,6 +1393,42 @@ mod tests {
         );
         assert!(code.contains("pub static LOCALES: &[(&str, __mf2::Dir)]"));
         assert!(code.contains("(\"ar\", __mf2::Dir::Rtl),"));
+    }
+
+    // `plan/08` §4.2: the server-only table, embedded once for the server.
+    #[test]
+    fn the_server_only_table_is_embedded_once_for_the_server() {
+        let mut locales = locales();
+        locales[0].server_file_name = Some("en.0123456789abcdef.mf2b.server".to_owned());
+        let features = Features::default();
+        let custom = BTreeMap::new();
+        let code = write(&module(&[], &features, &custom, &locales, false));
+        let server = block(&code, "__if_host_std");
+        let format = block(&code, "__if_format");
+        // Behind the gate that keeps the catalogs out of a client, once.
+        assert_eq!(code.matches(".mf2b.server").count(), 1, "{code}");
+        assert_eq!(server.matches(".mf2b.server").count(), 1, "{code}");
+        assert!(
+            server.contains("static MF2_SERVER_DATA: [&[u8]; 2]"),
+            "{code}"
+        );
+        // Arabic has none.
+        assert!(server.contains("    &[],\n"), "{code}");
+        // `CATALOGS` and `CORPUS` share it.
+        assert!(
+            server.contains("MF2_CATALOG_BYTES[0], MF2_SERVER_DATA[0]),"),
+            "{code}"
+        );
+        assert!(
+            format.contains(".with_server_data(MF2_SERVER_DATA[0]),"),
+            "{code}"
+        );
+        assert!(!format.contains("MF2_SERVER_DATA[1]"), "{code}");
+
+        // Without a table, `CATALOGS` carries an empty one.
+        let plain = write(&module(&[], &features, &custom, &self::locales(), false));
+        assert!(!plain.contains("MF2_SERVER_DATA"), "{plain}");
+        assert!(plain.contains("MF2_CATALOG_BYTES[0], &[]),"), "{plain}");
     }
 
     #[test]

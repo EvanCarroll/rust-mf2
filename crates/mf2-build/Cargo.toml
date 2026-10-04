@@ -54,6 +54,9 @@ thiserror = { workspace = true, features = ["std"] }
 toml.workspace = true
 
 [dev-dependencies]
+# `server-data`: the slicing tests read a catalog through its server-only
+# table, as a server does.
+mf2-catalog = { workspace = true, features = ["server-data"] }
 mf2-resource.workspace = true
 mf2-syntax.workspace = true
 workload-gen.workspace = true

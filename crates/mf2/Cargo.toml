@@ -86,7 +86,9 @@ native-datetime-icu = ["host-std-datetime-icu"]
 tzdb-bundled = ["mf2-host-std?/tzdb-bundled"]
 # A Host: native (servers, tests, wasm32-wasip1) or the browser. A mode
 # implies its host; with no framework, naming one is how `mf2` is used.
-host-std = ["dep:mf2-host-std"]
+# The native host also reads the server-only table beside each catalog
+# (`mf2-catalog/server-data`, plan/08 §4.2), which no browser build links.
+host-std = ["dep:mf2-host-std", "mf2-catalog/server-data"]
 host-web = ["dep:mf2-host-web"]
 # A native application, a command-line tool or a terminal UI (`mf2::native`):
 # one generated corpus's catalogs, embedded in the executable (read in place,
