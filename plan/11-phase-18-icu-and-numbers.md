@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
 
 ## State
 
-* **In flight:** 18.4. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 18.4
+* **Next:** Phase 18's exit, then Phase 19 (`plan/12`)
 
 ## Done
 
@@ -42,6 +42,11 @@ last task it adds a Done line for the phase and goes straight on to Phase 19
   `icu`, `icu-cached`), runs `checks/datetime-speed.mjs` (page `web/speed.html`, builds alternated;
   Chromium also at 4x throttle) in all three engines and writes `speed-results.md` beside it. The
   cases generator also writes `speed.json` (en, pl, ar x date, datetime, zone name). Nothing run.
+* 18.4: `intl-names` (`mf2-fn-number`, `mf2-host-web`; `mf2-build` reads the name and puts
+  `currency.data`/`unit.data` in the server-only table): `src/names.rs` streams `Intl`'s parts with
+  Rust's digits; `mf2_runtime::currency_digits_by_host` (hidden). Probe variant `rt-names-cu`;
+  `bench/intl-probe/scripts/7-names.sh` writes `NAMES-RESULTS.md`. Tests in `names.rs`,
+  `features.rs`, `catalog.rs`. Nothing run.
 
 ## Before this phase
 
@@ -213,6 +218,9 @@ One line per task, only for what could not be confirmed by reading.
 * Coordinator, from the session's rust-analyzer after 18.1: `conformance/tests/date_forms.rs`
   lines 28–37 trip `unreachable_pub` (a `pub` item in a test file; ci denies warnings).
 * 18.2: `mf2-fn-datetime`'s `api.txt`/`package.txt` hand-edited (regenerate); `reborrow` and the disjoint field borrows in `src/icu/cache.rs` (`Catalog::run`) must pass the borrow checker.
+* 18.4: `mf2-build`'s `api.txt` (`intl_names`, `names_place`, `CATALOG_FEATURES: [_; 5]`); `Merge`'s one
+  lifetime over `Symbols`/`Digits` in `mf2-fn-number/src/names.rs` (covariance); its tests compile
+  `{|JPY| :digits}` (a custom function) with `mf2::compile_str`; the probe's lock gains `brotli`.
 * 18.3: `mf2-fn-datetime`'s `cache` on `wasm32-unknown-unknown` (the `icu-cached` build of `tools/e2e/datetime/speed`) must compile; ICU4X's native text must equal the browser ICU4X builds' (asserted).
 
 ## Phase exit (coordinator)

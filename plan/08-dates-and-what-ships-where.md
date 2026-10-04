@@ -431,6 +431,10 @@ the language panel. The owner then chooses: the browser's default, an opt-in,
 or neither. Until then `fn-number` formats in Rust everywhere and
 `number-intl` is the opt-in it is.
 
+As built (18.4): `intl-names` of `mf2-fn-number` and `mf2-host-web` (and the name `mf2-build`
+reads); `Intl` also gives the layout around the name and a currency's own digits, and without it
+the client shows digits and the code, so the Rust currency and unit code is not linked.
+
 `number-intl` itself is fixed by §4.1: its number data stops going to the
 browser.
 
