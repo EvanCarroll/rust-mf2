@@ -69,9 +69,10 @@ pub(crate) struct FeatureList {
     /// Per side, the formatter in force; `None` when unknown.
     dates: Option<Vec<SideDates>>,
     /// The corpus formats dates and the line names no formatter, because
-    /// nothing says which builds the crate has: the lines to choose from
-    /// ([`mf2_build::DATE_LINES`]).
-    date_choices: bool,
+    /// nothing says which builds the crate has: the lines to choose from,
+    /// those of [`mf2_build::DATE_LINES`] whose framework is on, or all of
+    /// them with none on. Empty otherwise.
+    date_choices: Vec<(&'static str, &'static [&'static str])>,
     /// Where `on` came from.
     source: &'static str,
 }
@@ -117,7 +118,7 @@ impl FeatureList {
                 line.push("number-intl".to_owned());
             }
         }
-        let mut date_choices = false;
+        let mut date_choices = Vec::new();
         if needs.dates {
             // The formatters as the crate writes them, not every name they
             // imply; then, for each framework's side with none, its
@@ -135,7 +136,13 @@ impl FeatureList {
                     }
                 }
             }
-            date_choices = formatters.is_empty();
+            if formatters.is_empty() {
+                date_choices = if known {
+                    features.date_lines()
+                } else {
+                    mf2_build::DATE_LINES.to_vec()
+                };
+            }
             line.extend(formatters);
         }
         let dates = known.then(|| {
@@ -203,9 +210,9 @@ impl FeatureList {
             "  write:            mf2 = {{ ..., features = [{}] }}",
             quoted.join(", ")
         );
-        if self.date_choices {
+        if !self.date_choices.is_empty() {
             let _ = writeln!(out, "  and for dates, the line of the application's kind:");
-            for (what, features) in mf2_build::DATE_LINES {
+            for (what, features) in &self.date_choices {
                 let quoted: Vec<String> = features.iter().map(|f| format!("\"{f}\"")).collect();
                 let _ = writeln!(out, "    {what}: {}", quoted.join(", "));
             }
@@ -228,8 +235,8 @@ impl FeatureList {
             }
             Value::Object(by_side)
         });
-        let choices = self.date_choices.then(|| {
-            mf2_build::DATE_LINES
+        let choices = (!self.date_choices.is_empty()).then(|| {
+            self.date_choices
                 .iter()
                 .map(|(what, features)| json!({ "for": what, "features": features }))
                 .collect::<Vec<_>>()

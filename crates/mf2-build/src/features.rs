@@ -675,9 +675,7 @@ impl Features {
     /// `native-datetime-` without `native`. The host families need none.
     #[doc(hidden)]
     pub fn date_features_without_framework(&self) -> Vec<String> {
-        let leptos = ["leptos", "leptos-0-8", "ssr", "hydrate", "csr"]
-            .iter()
-            .any(|name| self.has(name));
+        let leptos = self.leptos_on();
         let frameworks = [
             ("leptos-client-datetime-", Side::Browser, leptos),
             ("leptos-server-datetime-", Side::Native, leptos),
@@ -725,6 +723,37 @@ impl Features {
         })
     }
 
+    /// Whether a Leptos feature is on.
+    fn leptos_on(&self) -> bool {
+        ["leptos", "leptos-0-8", "ssr", "hydrate", "csr"]
+            .iter()
+            .any(|name| self.has(name))
+    }
+
+    /// The lines of [`DATE_LINES`] for the kinds of application whose
+    /// framework is on (`plan/08` §3.5): Leptos's; a command-line tool's or
+    /// terminal UI's (`native`, `ratatui`); an Axum server's (without
+    /// Leptos, whose server writes its own); and, with none of those but a
+    /// host, the framework-free one. Every line when nothing says which kind
+    /// of application this is.
+    #[doc(hidden)]
+    pub fn date_lines(&self) -> Vec<(&'static str, &'static [&'static str])> {
+        let leptos = self.leptos_on();
+        let native = self.has("native") || self.has("ratatui");
+        let axum = self.has("axum") && !leptos;
+        let host = !(leptos || native || axum) && (self.has("host-std") || self.has("host-web"));
+        let on = [leptos, native, axum, host];
+        if !on.contains(&true) {
+            return DATE_LINES.to_vec();
+        }
+        DATE_LINES
+            .iter()
+            .zip(on)
+            .filter(|(_, on)| *on)
+            .map(|(line, _)| *line)
+            .collect()
+    }
+
     /// The date features that make a side's formatter ICU4X, for the error
     /// that asks for `mf2-build`'s `icu-blob`.
     #[doc(hidden)]
@@ -748,7 +777,8 @@ impl Features {
                 "; a message may never add formatting code by itself. Write the \
                  features for the builds of this crate on the `mf2` dependency: ",
             );
-            let lines: Vec<String> = DATE_LINES
+            let lines: Vec<String> = self
+                .date_lines()
                 .iter()
                 .map(|(what, features)| {
                     let features: Vec<String> = features.iter().map(|&f| f.to_owned()).collect();
@@ -1331,6 +1361,31 @@ mod tests {
         assert!(message.contains("+239 B gzipped"), "{message}");
         // With no framework, a formatter of either side is enough.
         assert!(Features::parse("host-web-datetime-iso").formats_dates());
+    }
+
+    #[test]
+    fn the_date_lines_are_those_of_the_frameworks_that_are_on() {
+        let kinds = |features: &str| -> Vec<&str> {
+            Features::parse(features)
+                .date_lines()
+                .iter()
+                .map(|(what, _)| *what)
+                .collect()
+        };
+        let all: Vec<&str> = super::DATE_LINES.iter().map(|(what, _)| *what).collect();
+        assert_eq!(kinds(""), all);
+        assert_eq!(kinds("fn-number"), all);
+        assert_eq!(kinds("leptos"), ["a server-rendered Leptos application"]);
+        assert_eq!(kinds("ssr,axum"), ["a server-rendered Leptos application"]);
+        assert_eq!(kinds("ratatui"), ["a command-line tool or a terminal UI"]);
+        assert_eq!(kinds("axum"), ["an Axum server"]);
+        assert_eq!(kinds("host-std"), ["no framework"]);
+        let message = Features::parse("leptos").no_date_formatter("datetime");
+        assert!(
+            message.contains("`leptos-server-datetime-icu`"),
+            "{message}"
+        );
+        assert!(!message.contains("`native-datetime-icu`"), "{message}");
     }
 
     #[test]

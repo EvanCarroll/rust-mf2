@@ -514,6 +514,46 @@ fn check_asks_for_icu_blob_where_the_build_does() {
 }
 
 #[test]
+fn check_lists_the_date_lines_of_the_frameworks_that_are_on() {
+    // A Leptos application before a date formatter is chosen: the Leptos
+    // line, not every kind of application's (task 21.10).
+    let dir = small_corpus("cli-check-date-lines", &[("en", "when = {$d :datetime}\n")]);
+    date_app(&dir, "\"leptos\", \"fn-number\"", Some(""));
+    let out = run(&dir, &["check"]);
+    let text = stdout(&out);
+    assert!(
+        text.contains(
+            "a server-rendered Leptos application: \"leptos-client-datetime-intl\", \
+             \"leptos-server-datetime-icu\""
+        ),
+        "{text}"
+    );
+    for other in [
+        "native-datetime-icu",
+        "axum-datetime-icu",
+        "host-web-datetime-intl",
+    ] {
+        assert!(!text.contains(other), "{other}: {text}");
+    }
+    // A terminal UI: its own line.
+    date_app(&dir, "\"ratatui\"", Some(""));
+    let text = stdout(&run(&dir, &["check"]));
+    assert!(text.contains("\"native-datetime-icu\""), "{text}");
+    assert!(!text.contains("leptos-server-datetime-icu"), "{text}");
+    // No framework: every kind's line.
+    date_app(&dir, "\"fn-number\"", Some(""));
+    let text = stdout(&run(&dir, &["check"]));
+    for (_, features) in mf2_build::DATE_LINES {
+        for feature in features {
+            assert!(
+                text.contains(&format!("\"{feature}\"")),
+                "{feature}: {text}"
+            );
+        }
+    }
+}
+
+#[test]
 fn check_names_the_first_missing_translations() {
     let source = (0..13)
         .map(|n| format!("m{n:02} = Text"))
