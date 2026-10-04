@@ -27,7 +27,7 @@ reason = "test/README.md asks implementations whose strings can hold unpaired su
 [[note]]
 id     = "stripped-formats-identically"
 status = "pass"
-reason = "Production catalogs are stripped of COLD and IDS (plans/02-catalog-format.md §2.3), which must not change formatting. L3 checks that the stripped catalog decodes to the formatting-relevant model of the unstripped one (conformance/src/l3.rs); since Phase 3, L4 formats every L4-applicable test from both catalogs and requires identical string output, parts and errors (conformance/src/l4.rs), so a difference fails that test's L4 cell."
+reason = "Production catalogs are stripped of COLD and IDS, which must not change formatting. L3 checks that the stripped catalog decodes to the formatting-relevant model of the unstripped one (conformance/src/l3.rs); since Phase 3, L4 formats every L4-applicable test from both catalogs and requires identical string output, parts and errors (conformance/src/l4.rs), so a difference fails that test's L4 cell."
 
 [[intl]]
 cases   = "golden/numbers/ar"
