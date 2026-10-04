@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.2 (17.3). A worktree made for a task is removed once its work
+* **In flight:** 22.12. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.12, 22.13, then 22.3–22.11
+* **Next:** 22.13, 22.14, then 22.3–22.11
 
 ## Done
 
@@ -45,6 +45,10 @@ starts in a fresh session.
   --target wasm32-unknown-unknown --release`, `ar tv`, `target/rl-sizes.txt`): 23a80ce +170 B, the
   `formats_dates` default method each function in the generated table now carries (code an
   application keeps); 548eca5 +32 B of metadata only; 3014fd9 +2 B. To 22.13 with the TUI's.
+* 22.2 17.3 (`cargo xtask size`; demo-ssr: `cargo leptos build --release --split --frontend-only`,
+  `node tools/checks/measure-demo.mjs`): 0 B in `b1`/`app` (no dates there); demo-ssr +466 B gz
+  (wasm +451), though its pair — ICU4X server, `Intl` browser — is never rewritten; +21 B raw a
+  page (`data-mf2-dates`). Calls for 22.14.
 
 ## Before this phase
 
@@ -240,6 +244,14 @@ every placeholder; `formats_dates` is a method in every function's vtable, +170 
 fixture's rlib) and remove what a build without dates never runs, keeping 17.5's
 behaviour. Confirmed by the TUI's stripped size and 17.5's tests; what cannot go is said,
 with its bytes.
+
+### 22.14 No rewrite code where the pair never rewrites (from 22.2)
+
+The build knows both sides' date formatters. Where the pair never rewrites (the same
+formatter on both sides, or ICU4X on the server and `Intl` in the browser: `plan/08` §4.3),
+the browser links no rewrite code and the page states no formatter. demo-ssr pays +466 B gz
+and 21 B a page for code that never runs. Confirmed by demo-ssr's gzip bytes (−466 B) and
+17.3's browser test (the ISO page is still rewritten, the ICU4X one is not).
 
 
 ## Phase exit (coordinator)
