@@ -23,9 +23,9 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
 
 ## State
 
-* **In flight:** 17.3. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 17.3
+* **Next:** 17.4
 
 ## Done
 
@@ -38,6 +38,10 @@ last task it adds a Done line for the phase and goes straight on to Phase 18
   `Features::number_place` sends `plural.*`, `number.*`, `currency.data`, `unit.data` to the
   table when a browser side exists; `number-intl` joins `CATALOG_FEATURES`. Both builds must
   now see `number-intl` (the guide, Phase 19). Tests in `slicing.rs`, `features.rs`.
+* 17.3: the preload link states `data-mf2-dates` (`links::date_formatter`, `Layer::preload`
+  gains a field); when it is not the client's (ICU4X under `Intl` excepted) the correction's
+  queue rewrites every hydrated text, rich nodes via an empty rebuild first. Tests:
+  `time_zone.rs`; `checks/dates-formatter.mjs`, run by `l7-web` on new `dates-iso`/`-icu` pages.
 
 ## Before this phase
 
@@ -185,6 +189,8 @@ One line per task, only for what could not be confirmed by reading.
   373): stale out dirs, or a codegen path still writing three fields. It also flagged
   `mf2/tests/time_zone.rs:50`, which reads as four fields (likely stale).
 * 17.2: `api.txt` of `mf2-build` moves (`CATALOG_FEATURES` is `[&str; 4]`, `number_place`).
+* 17.3: the `dates-iso`/`dates-icu` builds of `conformance/l7-web` (en-US set whole, `Intl`
+  client) are new; and whether `ui.rs`'s `#[allow(clippy::type_complexity)]` is needed.
 
 ## Phase exit (coordinator)
 
