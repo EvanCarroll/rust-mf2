@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.2 (`rlib`). A worktree made for a task is removed once its work
+* **In flight:** 22.2 (17.3). A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.2 (17.3's client cost), 22.12, 22.13, then 22.3–22.11
+* **Next:** 22.12, 22.13, then 22.3–22.11
 
 ## Done
 
@@ -41,6 +41,10 @@ starts in a fresh session.
   3014fd9 (17.1, `server-data` through `host-std`) +496 B, code for a table a terminal UI never
   has; 23a80ce (17.5, the date walk and `with_dates` gone) +2,816 B, the part not isolated;
   548eca5 0 B. Calls for 22.12 and 22.13.
+* 22.2 `rlib` (+204 B; `cargo build -p mf2-i18n-fixture --no-default-features --features hydrate
+  --target wasm32-unknown-unknown --release`, `ar tv`, `target/rl-sizes.txt`): 23a80ce +170 B, the
+  `formats_dates` default method each function in the generated table now carries (code an
+  application keeps); 548eca5 +32 B of metadata only; 3014fd9 +2 B. To 22.13 with the TUI's.
 
 ## Before this phase
 
@@ -232,7 +236,8 @@ TUI's stripped size (−496 B against c63af17) and 17.1's slicing tests.
 
 17.5 added 2,816 B to the TUI, which formats no date. Find which part a native build links
 (the date walk over FUNCS has only a Leptos caller; the bare-placeholder path changed for
-every placeholder) and remove what a build without dates never runs, keeping 17.5's
+every placeholder; `formats_dates` is a method in every function's vtable, +170 B in the
+fixture's rlib) and remove what a build without dates never runs, keeping 17.5's
 behaviour. Confirmed by the TUI's stripped size and 17.5's tests; what cannot go is said,
 with its bytes.
 
