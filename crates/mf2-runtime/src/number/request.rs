@@ -240,7 +240,6 @@ impl DigitPlan {
 /// `mf2-fn-number` (feature `intl-names`, `plan/08` §6) asks this where the
 /// Rust path reads the catalog's `currency.data`, which such a client does
 /// not download. On any build it only asks the host.
-#[doc(hidden)]
 pub fn currency_digits_by_host(cx: &FnContext<'_>, code: &str) -> Option<u8> {
     let formatter = cx.host().numbers()?;
     let request = NumberRequest {
