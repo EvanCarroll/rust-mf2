@@ -29,7 +29,7 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
 
 * **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** the phase exit (coordinator)
+* **Next:** nothing; Phase 17 (`plan/10`) follows.
 
 ## Done
 
@@ -53,6 +53,8 @@ last task it adds a Done line for the phase and goes straight on to Phase 17
   `no_date_formatter`; `several-date-formatters`; `unused-feature` names formatters and
   framework-less families; `IcuBlob { features }` prints the line. `mf2 check` per side; the
   converter lists `DATE_LINES` (with a "no framework" line: a small choice). `lints.md`: 2 entries.
+* Phase 16 (2026-10-03): 16.0–16.3 committed, nothing compiled; the suite against the
+  baseline is Phase 21's, the owner's figures Phase 22's.
 
 ## Before this phase
 
@@ -246,6 +248,10 @@ One line per task, only for what could not be confirmed by reading.
   (host-std), or a dated corpus is now gated; `mf2-build/api.txt` gains `DateFamily`, `DATE_LINES`.
 * 16.2: `unexpected_cfgs` for the `host-*-datetime-icu` `cfg` of `conformance/l5/shared.rs`
   in every crate that includes it (l5 sets, l5-generated, l6-web, l7 sets declare both).
+* Coordinator, from the session's rust-analyzer after 16.3: `mf2-build/src/features.rs`
+  633–682 `write!` into a `String` with no `use std::fmt::Write` (E0599);
+  `mf2-cli/src/feature_list.rs:193` unused `DateFormatter`, `Side`;
+  `mf2-fn-datetime/tests/icu.rs:72` `PANEL` unused.
 
 ## Phase exit (coordinator)
 
