@@ -209,8 +209,9 @@ pub fn resolve<'a>(
 }
 
 /// Writes one locale's catalog: the bytes, `.br`, `.gz` and the hash, and
-/// the server-only table. `date_slice` is where ICU4X's date slice goes
-/// (`plan/08` §4.1), when the corpus needs one.
+/// the server-only table. `numbers` is where the plural and number entries
+/// go, and `date_slice` where ICU4X's date slice goes, when the corpus
+/// needs them (`plan/08` §4.1).
 // Each argument is one independent input of the catalog.
 #[allow(clippy::too_many_arguments)]
 pub fn write(
@@ -221,6 +222,7 @@ pub fn write(
     slice: Slice,
     config: &Config,
     compress: Compress,
+    numbers: Place,
     date_slice: Place,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
@@ -231,8 +233,13 @@ pub fn write(
     options.strip_cold = config.catalog.strip.contains(&Strip::Cold);
     options.strip_ids = config.catalog.strip.contains(&Strip::Ids);
     options.cldr_version = Some(CLDR_VERSION);
-    options.locale_entries = locale_entries(tag, &slice.needs)?;
+    // `locale_entries` gives the plural and number entries alone.
     let mut server_entries: Vec<(u32, Vec<u8>)> = Vec::new();
+    match numbers {
+        Place::Catalog => options.locale_entries = locale_entries(tag, &slice.needs)?,
+        Place::Server => server_entries = locale_entries(tag, &slice.needs)?,
+        Place::Nowhere => {}
+    }
     #[cfg(feature = "icu-blob")]
     if let Some(entry) = crate::slice::icu_entry(tag, &slice)? {
         match date_slice {

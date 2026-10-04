@@ -595,3 +595,93 @@ fn icu4x_in_the_browser_keeps_the_slice_in_the_catalog() {
         assert!(!outcome.generated.contains("MF2_SERVER_DATA"), "{name}");
     }
 }
+
+// `plan/08` §4.1: the number entries go where they are read.
+
+/// The plural and number entries: every LOCALE key below the date range.
+fn is_number_entry(key: u32) -> bool {
+    key < locale_key::DATE_FIRST
+}
+
+#[test]
+fn number_intl_moves_the_number_entries_to_the_server_only_table() {
+    let tags = ["en", "fr"];
+    // The browser formats and selects through `Intl`: it reads none of them.
+    let on = build_panel(
+        "numbers-intl",
+        EVERY_NUMERIC,
+        &tags,
+        &Features::parse("hydrate,fn-number,number-intl"),
+    );
+    // The browser formats them in Rust: they stay in the catalog.
+    let off = build_panel(
+        "numbers-rust",
+        EVERY_NUMERIC,
+        &tags,
+        &Features::parse("hydrate,fn-number"),
+    );
+    for catalog in &off.catalogs {
+        let tag = &catalog.tag;
+        for key in [
+            locale_key::PLURAL_CARDINAL,
+            locale_key::PLURAL_ORDINAL,
+            locale_key::NUMBER_SYMBOLS,
+            locale_key::NUMBER_PATTERNS,
+            locale_key::CURRENCY_DATA,
+            locale_key::UNIT_DATA,
+        ] {
+            assert!(
+                catalog.locale_entries.iter().any(|(k, _)| *k == key),
+                "{tag}: without number-intl the catalog lacks entry {key}: {:?}",
+                catalog.locale_entries
+            );
+        }
+        assert!(
+            catalog.server.is_empty(),
+            "{tag}: no table without number-intl"
+        );
+        assert!(catalog.server_entries.is_empty(), "{tag}");
+    }
+    for catalog in &on.catalogs {
+        let tag = &catalog.tag;
+        assert!(
+            catalog
+                .locale_entries
+                .iter()
+                .all(|(key, _)| !is_number_entry(*key)),
+            "{tag}: with number-intl the browser's catalog carries number entries: {:?}",
+            catalog.locale_entries
+        );
+        // The table holds exactly what the catalog held without it.
+        let same = off.catalog(tag).expect("the same locale");
+        assert_eq!(catalog.server_entries, same.locale_entries, "{tag}");
+        assert!(catalog.bytes.len() < same.bytes.len(), "{tag}");
+        // The server reads them, the plural spans too, through the table.
+        let table: &'static [u8] = Box::leak(catalog.server.clone().into_boxed_slice());
+        let reader = mf2_catalog::Catalog::new(catalog.bytes.clone(), on.manifest_hash)
+            .expect("the catalog loads");
+        assert!(reader.locale_entry(locale_key::PLURAL_CARDINAL).is_none());
+        assert!(reader.locale_entry(locale_key::NUMBER_SYMBOLS).is_none());
+        let reader = reader.with_server_data(table).expect("the table loads");
+        for (key, n) in &same.locale_entries {
+            assert_eq!(
+                reader.locale_entry(*key).map(<[u8]>::len),
+                Some(*n),
+                "{tag}: entry {key} through the table"
+            );
+        }
+    }
+    // No browser side: one reader, one file, whatever `number-intl` says.
+    let native = build_panel(
+        "numbers-native-intl",
+        EVERY_NUMERIC,
+        &tags,
+        &Features::parse("native,fn-number,number-intl"),
+    );
+    for catalog in &native.catalogs {
+        let tag = &catalog.tag;
+        assert!(catalog.server.is_empty(), "{tag}");
+        let same = off.catalog(tag).expect("the same locale");
+        assert_eq!(catalog.locale_entries, same.locale_entries, "{tag}");
+    }
+}

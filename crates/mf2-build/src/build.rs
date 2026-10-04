@@ -528,10 +528,10 @@ impl Build {
         let filler = Filler::new(&built.manifest.ids, config.catalog.missing);
         // A native application keeps every entry in its catalog (`plan/08`
         // §4.2): no browser downloads it.
-        let date_slice = if codegen::is_native(self.emit) {
-            Place::Catalog
+        let (numbers, date_slice) = if codegen::is_native(self.emit) {
+            (Place::Catalog, Place::Catalog)
         } else {
-            features.date_slice_place()
+            (features.number_place(), features.date_slice_place())
         };
         let mut catalogs = Vec::with_capacity(tags.len());
         let mut locales = Vec::with_capacity(tags.len());
@@ -569,6 +569,7 @@ impl Build {
                     Emit::Both | Emit::Catalogs => self.compress,
                     _ => catalog::Compress::No,
                 },
+                numbers,
                 date_slice,
             )?;
             locales.push(LocaleInfo {

@@ -317,14 +317,16 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
 /// as [`Features::for_catalogs`] names it: which functions a message may
 /// call (`fn-number`, `datetime`), and whether the catalog carries ICU4X's
 /// date slice (`icu-blob`, [`Features::date_slice_place`] being
-/// [`Place::Catalog`]). These are the browser-side choices, in the one list
-/// both builds see, so that a server's build script knows what the browser
-/// reads (`plan/08` §4.1). The wasm and the catalogs must agree on them; the
-/// other features (`number-intl`, the `intl` and `iso` formatters,
-/// `tzdb-bundled`, the host features) change only the code a build
-/// compiles — `tzdb-bundled` only which IANA database a named time zone is
-/// looked up in.
-pub const CATALOG_FEATURES: [&str; 3] = ["fn-number", "datetime", "icu-blob"];
+/// [`Place::Catalog`]), and whether the browser formats numbers through
+/// `Intl` and so reads none of the number entries (`number-intl`,
+/// [`Features::number_place`] being [`Place::Server`]). These are the
+/// browser-side choices, in the one list both builds see, so that a
+/// server's build script knows what the browser reads (`plan/08` §4.1). The
+/// wasm and the catalogs must agree on them; the other features (the `intl`
+/// and `iso` formatters, `tzdb-bundled`, the host features) change only the
+/// code a build compiles — `tzdb-bundled` only which IANA database a named
+/// time zone is looked up in.
+pub const CATALOG_FEATURES: [&str; 4] = ["fn-number", "datetime", "icu-blob", "number-intl"];
 
 /// Where the build writes a LOCALE entry (`plan/08` §4.1).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -384,17 +386,19 @@ impl Features {
     /// What of this set changes a catalog, in the [`CATALOG_FEATURES`]
     /// names: `fn-number`, `datetime` when the date functions are on under
     /// any of their names, `icu-blob` when the catalog carries the date
-    /// slice (not when only the server-only table does). What
+    /// slice (not when only the server-only table does), `number-intl` when
+    /// the number entries go to the server-only table. What
     /// `mf2 compile --site` compares with the i18n crate's, so that two
     /// spellings of one build (a framework's family or the host's, with or
     /// without the `datetime` they imply) compare equal.
     #[must_use]
     pub fn for_catalogs(&self) -> Features {
-        let [numbers, dates, slice] = CATALOG_FEATURES;
+        let [numbers, dates, slice, intl] = CATALOG_FEATURES;
         let on = [
             (numbers, self.fn_number()),
             (dates, self.fn_datetime()),
             (slice, self.date_slice_place() == Place::Catalog),
+            (intl, self.number_place() == Place::Server),
         ];
         Features::from_names(on.into_iter().filter(|(_, on)| *on).map(|(name, _)| name))
     }
@@ -483,6 +487,23 @@ impl Features {
             Place::Server
         } else {
             Place::Nowhere
+        }
+    }
+
+    /// Where the number entries go (`plan/08` §4.1): `plural.cardinal`,
+    /// `plural.ordinal`, `number.symbols`, `number.patterns`,
+    /// `currency.data` and `unit.data`. With `number-intl` the browser
+    /// formats and selects through `Intl` and reads none of them, so when a
+    /// browser downloads the catalog they go to the server-only table;
+    /// otherwise, and when no browser does, into the catalog. Native code
+    /// reads them on every build that needs them, so never nowhere. A
+    /// native application's build keeps them in its catalog whatever this
+    /// says (`Build`).
+    pub fn number_place(&self) -> Place {
+        if self.number_intl() && self.has_browser_side() {
+            Place::Server
+        } else {
+            Place::Catalog
         }
     }
 
@@ -731,8 +752,9 @@ impl Features {
     }
 
     /// Numbers and plural selection through the browser's `Intl` on the
-    /// client (`number-intl`, 2.0's `intl`). The server keeps the Rust path, so a catalog still
-    /// carries the data unless the build writes a client variant.
+    /// client (`number-intl`, 2.0's `intl`). The server keeps the Rust path,
+    /// so the number entries move to the server-only table
+    /// ([`Features::number_place`]).
     pub fn number_intl(&self) -> bool {
         self.has("number-intl")
     }
@@ -960,7 +982,7 @@ mod tests {
         );
         assert_eq!(
             features.for_catalogs().names().collect::<Vec<_>>(),
-            ["datetime", "fn-number"]
+            ["datetime", "fn-number", "number-intl"]
         );
         // Two spellings of one build compare equal; an `icu` formatter on
         // either side adds the slice.
@@ -982,6 +1004,50 @@ mod tests {
             Features::parse("ssr,leptos-client-datetime-intl,leptos-server-datetime-icu")
                 .for_catalogs(),
             Features::parse("ssr,leptos-client-datetime-intl").for_catalogs()
+        );
+    }
+
+    // `plan/08` §4.1: where the number entries go.
+
+    #[test]
+    fn the_number_entries_go_where_they_are_read() {
+        let place = |list| Features::parse(list).number_place();
+        // `number-intl` with a browser side: the browser reads none of them.
+        for list in [
+            "ssr,fn-number,number-intl",
+            "hydrate,fn-number,number-intl",
+            "csr,fn-number,number-intl",
+            "host-web,fn-number,number-intl",
+            "fn-number,number-intl,host-std-datetime-icu,host-web-datetime-intl",
+        ] {
+            assert_eq!(place(list), Place::Server, "{list}");
+        }
+        // Without it the browser formats them in Rust.
+        for list in [
+            "ssr,fn-number",
+            "hydrate,fn-number",
+            "csr,fn-number",
+            "host-web,fn-number",
+        ] {
+            assert_eq!(place(list), Place::Catalog, "{list}");
+        }
+        // No browser side: one reader, one file.
+        for list in [
+            "native,fn-number,number-intl",
+            "axum,fn-number,number-intl",
+            "host-std,fn-number,number-intl",
+        ] {
+            assert_eq!(place(list), Place::Catalog, "{list}");
+        }
+        // The browser-side choice is one of the catalog's features, so a
+        // site built with and without it does not compare equal.
+        assert_ne!(
+            Features::parse("csr,fn-number,number-intl").for_catalogs(),
+            Features::parse("csr,fn-number").for_catalogs()
+        );
+        assert_eq!(
+            Features::parse("native,fn-number,number-intl").for_catalogs(),
+            Features::parse("native,fn-number").for_catalogs()
         );
     }
 
