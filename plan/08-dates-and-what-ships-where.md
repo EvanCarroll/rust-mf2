@@ -369,6 +369,11 @@ bare. Where the call-site macro can know which arguments a message formats
 as dates, a date value passed to any other argument is a compile error.
 Unannotated numbers still format by type. A server's number text that
 differs from the browser's is not rewritten, and must not break hydration.
+
+**The first visit's zone in one call** (owner, 2026-10-04). Beside `install()`, the
+generated module offers `install_with(setup)`, which does all that `install()` does
+with the setup it is given: `install_with(setup().with_time_zone(zone))` on each side.
+Nothing installs twice, so `installed_twice()` stays a true alarm.
 (17.5: `with_dates` left the runtime too, so a hand-written registry cannot format a bare date
 either; `date-mismatch` counts only `:datetime`, `:date`, `:time`, as the build cannot see
 `Function::formats_dates`; the call-site compile error is left — it needs a per-argument date
@@ -461,6 +466,11 @@ browser.
 * **The client:** a browser build with `intl` has no ICU4X symbol, and its
   dependency graph no `icu_*` crate.
 * **`CLAUDE.md`** carries decision 1 as a rule.
+
+**The `mf2` tool cuts the date slice too** (owner, 2026-10-04). `mf2 stats` and
+`mf2 check` re-run the build in memory, so `mf2-cli` turns on `icu-blob` by default and
+both match the build's files byte for byte. The tool's own size is not a budget: only
+what applications build with mf2 is (+5.3 MB to the `mf2` binary, measured by 21.9).
 
 ## 8. The phases
 

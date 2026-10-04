@@ -27,7 +27,7 @@ in the same session or a fresh one.
 
 * **In flight:** 21.9. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 21.9, then 21.7/21.8/21.10, 21.11, the phase exit
+* **Next:** 21.9 with 21.8, 21.12, the phase exit
 
 ## Done
 
@@ -208,6 +208,13 @@ features, dates, zones and what ships where:
 * **21.11** `call-sites.md` names `setup().with_time_zone(…)` for the first visit's zone
   without saying what `setup()` is, where it is called and on which side. Confirmed by the
   docs check.
+
+Owner, 2026-10-04, on 21.9 (and so 21.8): `mf2-cli` turns on `icu-blob` by default; the
+tool's size does not matter, only what applications build. And a new task:
+
+* **21.12** the generated module offers `install_with(setup)` (owner, `plan/08` §4.3), and
+  `call-sites.md` uses it for the first visit's zone; `install()` is `install_with(setup())`.
+  Confirmed by the codegen tests and the docs check.
 
 For the owner, not a task here: `getting-started.md` says its manifests name 2.0.0 while
 they say 3 (the release phase's sentence, 23.3).
