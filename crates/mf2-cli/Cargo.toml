@@ -31,6 +31,10 @@ name = "mf2"
 path = "src/main.rs"
 
 [features]
+# On by default (owner, 2026-10-04): `mf2 stats` and `mf2 check` cut each
+# language's ICU4X date slice as the build does, so what they report matches
+# the build's files. The tool's own size is not a budget.
+default = ["icu-blob"]
 # The per-locale `icu.blob` of the `icu` date formatters.
 icu-blob = ["mf2-build/icu-blob"]
 

@@ -198,7 +198,10 @@ or both) and where it ships (the catalog, or the server-only table the
 server embeds beside it). The bundles are the messages; each part of a
 catalog that can be left out (`cold` and `ids`, which `[catalog] strip`
 removes, `fallback` and `nfc`); each piece of locale data in the catalog;
-and each piece in the server-only table. A closing line gives the bytes a
+and each piece in the server-only table. With an ICU4X date formatter,
+`icu.blob` is each language's date slice, cut as the build cuts it: in the
+catalog when the side that formats with ICU4X reads the catalog, in the
+server-only table when only the server does. A closing line gives the bytes a
 browser downloads and never reads, which is 0 unless `strip` is turned
 off: the browser reads neither `cold` nor `ids`, so a browser's catalog that
 carries them counts their bytes there. A hydrated application that

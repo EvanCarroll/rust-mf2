@@ -857,6 +857,37 @@ fn stats_says_what_ships_where() {
             );
             assert!(slice["bytes"].as_u64().expect("a number") > 0);
         }
+        // `icu` on the server and `intl` in the browser: the slice ships in
+        // the server-only table, read by native code alone (task 21.9).
+        let features = "ssr,fn-number,leptos-client-datetime-intl,leptos-server-datetime-icu";
+        let server = stats(features);
+        check(&server, features);
+        for locale in server["locales"].as_array().expect("an array") {
+            let slice = bundle(locale, "icu.blob").expect("icu.blob");
+            assert_eq!(slice["ships"], "server-only table", "{slice}");
+            assert_eq!(
+                (&slice["browser"], &slice["native"]),
+                (&false.into(), &true.into())
+            );
+            assert!(slice["bytes"].as_u64().expect("a number") > 0);
+        }
+        // A terminal UI with `icu`: the slice is in the catalog, read by
+        // native code alone.
+        let features = "ratatui,fn-number,native-datetime-icu";
+        let native: serde_json::Value = serde_json::from_str(&ok(&run(
+            &dir,
+            &["stats", "--features", features, "--format", "json"],
+        )))
+        .expect("json");
+        assert_eq!(native["browser_downloads"], false, "{native}");
+        for locale in native["locales"].as_array().expect("an array") {
+            let slice = bundle(locale, "icu.blob").expect("icu.blob");
+            assert_eq!(slice["ships"], "catalog", "{slice}");
+            assert_eq!(
+                (&slice["browser"], &slice["native"]),
+                (&false.into(), &true.into())
+            );
+        }
     }
 
     // With `[catalog] strip` turned off, the browser's catalog carries the
