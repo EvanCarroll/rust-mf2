@@ -875,13 +875,15 @@ impl DateUse {
     fn of(message: &Message<'_>) -> DateUse {
         let declarations = message.declarations();
         let mut out = DateUse::default();
-        let mut date_call = |e: &Expression<'_>| {
+        // The root variable a date-function expression formats, if any.
+        let date_call = |e: &Expression<'_>| -> Option<String> {
             if let (Some(f), Expression::Variable(v)) = (e.function(), e)
                 && is_date_function(f.name.as_ref())
                 && let Some(root) = root_variable(declarations, v.arg.name.as_ref(), 0)
             {
-                out.dated.insert(nfc(root).into_owned());
+                return Some(nfc(root).into_owned());
             }
+            None
         };
         for d in declarations {
             match d {
@@ -895,7 +897,7 @@ impl DateUse {
                             .insert(nfc(i.value.arg.name.as_ref()).into_owned());
                     }
                 }
-                Declaration::Local(l) => date_call(&l.value),
+                Declaration::Local(l) => out.dated.extend(date_call(&l.value)),
                 _ => {}
             }
         }
@@ -903,7 +905,7 @@ impl DateUse {
         for pattern in patterns(message) {
             for part in pattern {
                 if let PatternPart::Expression(e) = part {
-                    date_call(e);
+                    out.dated.extend(date_call(e));
                     if let (None, Expression::Variable(v)) = (e.function(), e) {
                         let name = v.arg.name.as_ref();
                         if crate::slice::declared_function(declarations, name, 0).is_none()
