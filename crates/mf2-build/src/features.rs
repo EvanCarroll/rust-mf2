@@ -32,10 +32,12 @@ pub enum Side {
 
 impl Side {
     /// Both sides, the browser first.
+    #[doc(hidden)]
     pub const ALL: [Side; 2] = [Side::Browser, Side::Native];
 
     /// The feature families of this side, the framework-free one first:
     /// each family's features are its prefix and a formatter's name.
+    #[doc(hidden)]
     pub fn families(self) -> &'static [&'static str] {
         match self {
             Side::Browser => &["host-web-datetime-", "leptos-client-datetime-"],
@@ -49,6 +51,7 @@ impl Side {
     }
 
     /// The formatters this side's families offer, the strongest first.
+    #[doc(hidden)]
     pub fn formatters(self) -> &'static [DateFormatter] {
         match self {
             Side::Browser => &[DateFormatter::Icu, DateFormatter::Intl, DateFormatter::Iso],
@@ -58,6 +61,7 @@ impl Side {
 
     /// The formatter the tools recommend for this side (`plan/08` §3.1):
     /// `Intl` in a browser, ICU4X in native code.
+    #[doc(hidden)]
     pub fn recommended(self) -> DateFormatter {
         match self {
             Side::Browser => DateFormatter::Intl,
@@ -66,6 +70,7 @@ impl Side {
     }
 
     /// The side as a message names it.
+    #[doc(hidden)]
     pub fn name(self) -> &'static str {
         match self {
             Side::Browser => "the browser",
@@ -74,6 +79,7 @@ impl Side {
     }
 
     /// The side as `mf2 check --format json` names it.
+    #[doc(hidden)]
     pub fn key(self) -> &'static str {
         match self {
             Side::Browser => "browser",
@@ -93,16 +99,19 @@ pub struct DateFamily {
     /// Whether this build is one of them, and so needs a formatter of its
     /// side. A Leptos server's build script also reads the browser's
     /// family, which changes no code in it.
+    #[doc(hidden)]
     pub builds_here: bool,
 }
 
 impl DateFamily {
     /// The family's feature for `formatter`.
+    #[doc(hidden)]
     pub fn feature(self, formatter: DateFormatter) -> String {
         format!("{}{}", self.prefix, formatter.name())
     }
 
     /// The family's feature for its side's recommended formatter.
+    #[doc(hidden)]
     pub fn recommended(self) -> String {
         self.feature(self.side.recommended())
     }
@@ -141,6 +150,7 @@ pub enum DateFormatter {
 
 impl DateFormatter {
     /// The name a family's feature ends with.
+    #[doc(hidden)]
     pub fn name(self) -> &'static str {
         match self {
             DateFormatter::Iso => "iso",
@@ -150,6 +160,7 @@ impl DateFormatter {
     }
 
     /// What it is, as a message names it.
+    #[doc(hidden)]
     pub fn what(self) -> &'static str {
         match self {
             DateFormatter::Iso => "the ISO stand-in",
@@ -159,6 +170,7 @@ impl DateFormatter {
     }
 
     /// What it costs on `side`, as `plan/08` §1.2 measured it (§3.1).
+    #[doc(hidden)]
     pub fn cost(self, side: Side) -> &'static str {
         match (self, side) {
             (DateFormatter::Iso, _) => "no locale data and no ICU4X",
@@ -448,6 +460,7 @@ impl Features {
     /// Every date formatter on for `side`, the strongest first: one of its
     /// families' features. More than one is the `several-date-formatters`
     /// case.
+    #[doc(hidden)]
     pub fn date_formatters(&self, side: Side) -> Vec<DateFormatter> {
         side.formatters()
             .iter()
@@ -481,6 +494,7 @@ impl Features {
     /// host of the browser's side is on, or a browser date formatter is.
     /// Without one the catalogs have native readers alone, and keep every
     /// entry (`plan/08` §4.1).
+    #[doc(hidden)]
     pub fn has_browser_side(&self) -> bool {
         self.date_families()
             .iter()
@@ -586,6 +600,7 @@ impl Features {
     /// The sides this build formats dates on and has no formatter for, in
     /// [`Side::ALL`]'s order. Empty when every side it builds has one, and
     /// when no framework or host says which sides it builds.
+    #[doc(hidden)]
     pub fn sides_without_formatter(&self) -> Vec<Side> {
         let families = self.date_families();
         Side::ALL
@@ -616,6 +631,7 @@ impl Features {
     /// frameworks' features, and a host family's only for a formatter no
     /// framework's feature names (the frameworks' families are written as
     /// the host's, so both are on).
+    #[doc(hidden)]
     pub fn date_features_on(&self, side: Side) -> Vec<String> {
         let Some((host, frameworks)) = side.families().split_first() else {
             return Vec::new();
@@ -642,6 +658,7 @@ impl Features {
     /// The date features to add (`plan/08` §3.5): for each family of the
     /// frameworks that are on whose side has no formatter, the side's
     /// recommended one.
+    #[doc(hidden)]
     pub fn missing_date_features(&self) -> Vec<String> {
         let mut missing: Vec<String> = Vec::new();
         for family in self.date_families() {
@@ -656,6 +673,7 @@ impl Features {
     /// The date features on whose framework is not (`plan/08` §3.5): a
     /// Leptos family without Leptos, `axum-datetime-` without `axum`,
     /// `native-datetime-` without `native`. The host families need none.
+    #[doc(hidden)]
     pub fn date_features_without_framework(&self) -> Vec<String> {
         let leptos = ["leptos", "leptos-0-8", "ssr", "hydrate", "csr"]
             .iter()
@@ -687,6 +705,7 @@ impl Features {
 
     /// The date features that make a side's formatter ICU4X, for the error
     /// that asks for `mf2-build`'s `icu-blob`.
+    #[doc(hidden)]
     pub fn icu_date_features(&self) -> Vec<String> {
         Side::ALL
             .into_iter()

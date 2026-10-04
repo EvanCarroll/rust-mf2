@@ -44,10 +44,6 @@ pub enum mf2_build::DateFormatter
 pub mf2_build::DateFormatter::Icu
 pub mf2_build::DateFormatter::Intl
 pub mf2_build::DateFormatter::Iso
-impl mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::cost(self, mf2_build::Side) -> &'static str
-pub fn mf2_build::DateFormatter::name(self) -> &'static str
-pub fn mf2_build::DateFormatter::what(self) -> &'static str
 impl core::clone::Clone for mf2_build::DateFormatter
 pub fn mf2_build::DateFormatter::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::DateFormatter
@@ -253,13 +249,6 @@ impl core::marker::StructuralPartialEq for mf2_build::Place
 pub enum mf2_build::Side
 pub mf2_build::Side::Browser
 pub mf2_build::Side::Native
-impl mf2_build::Side
-pub const mf2_build::Side::ALL: [mf2_build::Side; 2]
-pub fn mf2_build::Side::families(self) -> &'static [&'static str]
-pub fn mf2_build::Side::formatters(self) -> &'static [mf2_build::DateFormatter]
-pub fn mf2_build::Side::key(self) -> &'static str
-pub fn mf2_build::Side::name(self) -> &'static str
-pub fn mf2_build::Side::recommended(self) -> mf2_build::DateFormatter
 impl core::clone::Clone for mf2_build::Side
 pub fn mf2_build::Side::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::Side
@@ -373,12 +362,8 @@ pub fn mf2_build::Config::serialize<S: serde_core::ser::Serializer>(&self, S) ->
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Config where mf2_build::Config: core::default::Default
 pub fn mf2_build::Config::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
 pub struct mf2_build::DateFamily
-pub mf2_build::DateFamily::builds_here: bool
 pub mf2_build::DateFamily::prefix: &'static str
 pub mf2_build::DateFamily::side: mf2_build::Side
-impl mf2_build::DateFamily
-pub fn mf2_build::DateFamily::feature(self, mf2_build::DateFormatter) -> alloc::string::String
-pub fn mf2_build::DateFamily::recommended(self) -> alloc::string::String
 impl core::clone::Clone for mf2_build::DateFamily
 pub fn mf2_build::DateFamily::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::DateFamily
@@ -432,10 +417,7 @@ pub struct mf2_build::Features
 impl mf2_build::Features
 pub fn mf2_build::Features::cuts_date_slice(&self) -> bool
 pub fn mf2_build::Features::date_families(&self) -> alloc::vec::Vec<mf2_build::DateFamily>
-pub fn mf2_build::Features::date_features_on(&self, mf2_build::Side) -> alloc::vec::Vec<alloc::string::String>
-pub fn mf2_build::Features::date_features_without_framework(&self) -> alloc::vec::Vec<alloc::string::String>
 pub fn mf2_build::Features::date_formatter(&self, mf2_build::Side) -> core::option::Option<mf2_build::DateFormatter>
-pub fn mf2_build::Features::date_formatters(&self, mf2_build::Side) -> alloc::vec::Vec<mf2_build::DateFormatter>
 pub fn mf2_build::Features::date_slice_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::fn_datetime(&self) -> bool
 pub fn mf2_build::Features::fn_number(&self) -> bool
@@ -445,10 +427,7 @@ pub fn mf2_build::Features::from_env() -> mf2_build::Features
 pub fn mf2_build::Features::from_names<S: core::convert::Into<alloc::string::String>>(impl core::iter::traits::collect::IntoIterator<Item = S>) -> mf2_build::Features
 pub fn mf2_build::Features::from_vars(impl core::iter::traits::collect::IntoIterator<Item = (alloc::string::String, alloc::string::String)>) -> mf2_build::Features
 pub fn mf2_build::Features::has(&self, &str) -> bool
-pub fn mf2_build::Features::has_browser_side(&self) -> bool
-pub fn mf2_build::Features::icu_date_features(&self) -> alloc::vec::Vec<alloc::string::String>
 pub fn mf2_build::Features::intl_names(&self) -> bool
-pub fn mf2_build::Features::missing_date_features(&self) -> alloc::vec::Vec<alloc::string::String>
 pub fn mf2_build::Features::missing_feature(&self, &str) -> core::option::Option<&'static str>
 pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::Iterator<Item = &str>
 pub fn mf2_build::Features::names_place(&self) -> mf2_build::Place
@@ -457,7 +436,6 @@ pub fn mf2_build::Features::number_intl(&self) -> bool
 pub fn mf2_build::Features::number_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
 pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>
-pub fn mf2_build::Features::sides_without_formatter(&self) -> alloc::vec::Vec<mf2_build::Side>
 impl core::clone::Clone for mf2_build::Features
 pub fn mf2_build::Features::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::Features
