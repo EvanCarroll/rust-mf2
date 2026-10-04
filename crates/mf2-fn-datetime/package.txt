@@ -8,6 +8,7 @@ README.md
 api.txt
 src/function.rs
 src/icu.rs
+src/icu/cache.rs
 src/intl.rs
 src/lib.rs
 src/literal.rs

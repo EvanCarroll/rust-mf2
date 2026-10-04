@@ -7,20 +7,37 @@
 //! `String`, best of 9 × 2,000 calls. Timings on a machine whose clock
 //! drifts: compare builds by alternating their binaries.
 //!
+//! By default the `icu` rows go through the formatter cache (`CachedBlob`,
+//! plan/08 §5.2: the provider kept per catalog, the formatter per language
+//! and shape); with the bench's `uncached-dates` feature, through `Blob`,
+//! which builds both for every placeholder (the behaviour before the cache).
+//!
 //! ```sh
 //! cargo run --release -p runtime-bench --example date_cost
+//! cargo run --release -p runtime-bench --example date_cost --features uncached-dates
 //! ```
 
 use std::hint::black_box;
 use std::time::Instant;
 
 use mf2::{Arg, Compiled, DateTime, FormatContext, Formatter, Function, NoErrors, Registry};
+#[cfg(feature = "uncached-dates")]
+use mf2_fn_datetime::icu::Blob as IcuData;
+#[cfg(not(feature = "uncached-dates"))]
+use mf2_fn_datetime::icu::CachedBlob as IcuData;
+use mf2_fn_datetime::icu::{AnyCalendar, Icu, WithZones};
 use mf2_fn_datetime::{DateTimeFunction, Neutral};
 
+/// The default backend's variant, with the data the build chose.
+type IcuBackend = Icu<AnyCalendar, WithZones, IcuData>;
+
+static I_DATE: DateTimeFunction<IcuBackend> = DateTimeFunction::date(Icu::NEW);
+static I_DATETIME: DateTimeFunction<IcuBackend> = DateTimeFunction::datetime(Icu::NEW);
+static I_TIME: DateTimeFunction<IcuBackend> = DateTimeFunction::time(Icu::NEW);
 static ICU: [(&str, &dyn Function); 3] = [
-    ("date", &mf2_fn_datetime::DATE),
-    ("datetime", &mf2_fn_datetime::DATETIME),
-    ("time", &mf2_fn_datetime::TIME),
+    ("date", &I_DATE),
+    ("datetime", &I_DATETIME),
+    ("time", &I_TIME),
 ];
 static ICU_REGISTRY: Registry = Registry::new(&ICU);
 
@@ -69,6 +86,12 @@ fn time(label: &str, registry: &Registry, src: &str, locale: &str) {
 }
 
 fn main() {
+    let data = if cfg!(feature = "uncached-dates") {
+        "Blob (uncached)"
+    } else {
+        "CachedBlob"
+    };
+    println!("icu data: {data}");
     for (src, locale) in [
         ("{$d :datetime}", "en"),
         ("{$d :date length=long}", "ja"),

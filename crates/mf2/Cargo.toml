@@ -61,7 +61,7 @@ datetime = ["dep:mf2-fn-datetime", "mf2-host-std?/time-zones"]
 #
 # The two sides, with no framework.
 host-std-datetime-iso = ["datetime"]
-host-std-datetime-icu = ["datetime", "mf2-fn-datetime/std-icu", "mf2-locale-data?/icu-blob"]
+host-std-datetime-icu = ["datetime", "mf2-fn-datetime/std-icu", "mf2-fn-datetime/cache", "mf2-locale-data?/icu-blob"]
 host-web-datetime-iso = ["datetime"]
 host-web-datetime-intl = ["datetime", "mf2-fn-datetime/web-intl", "mf2-host-web?/datetime-intl"]
 host-web-datetime-icu = ["datetime", "mf2-fn-datetime/web-icu", "mf2-host-web?/time-zones"]

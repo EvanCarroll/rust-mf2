@@ -10,9 +10,9 @@
 //! |---|---|---|
 //! | calendar `C` | [`AnyCalendar`] (default) · [`GregorianOnly`] | `DateTimeFormatter` (every calendar; a locale's default, e.g. `th`'s Buddhist, and `calendar=`) · `FixedCalendarDateTimeFormatter<Gregorian>` (B4: ≤ 95 KB gz against ≤ 105) |
 //! | zones `Z` | [`WithZones`] (default) · [`NoZones`] | the composite field set with time-zone styles · the date/time-only one — `timeZoneStyle` is then an *Unsupported Operation* (03 §5.2(1): −29 KB gz of code, ≈ −85 % of `icu.blob`) |
-//! | data `D` | [`Blob`] (default) · [`Compiled`] | the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes) · ICU4X's compiled data (off the browser, with this crate's `compiled-data` feature, for a registry written by hand: no feature of `mf2` turns it on) |
+//! | data `D` | [`DefaultData`] (default) · [`Blob`] · `CachedBlob` · [`Compiled`] | `CachedBlob` with this crate's `cache` feature, else [`Blob`] · the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes), its provider and formatter built for each placeholder · the same, with the provider kept per catalog and the formatter per language and shape (`cache`: per thread, so it needs `std`) · ICU4X's compiled data (off the browser, with this crate's `compiled-data` feature, for a registry written by hand: no feature of `mf2` turns it on) |
 //!
-//! [`Blob`] never falls back to compiled data: a catalog without its blob
+//! [`Blob`] and `CachedBlob` never fall back to compiled data: a catalog without its blob
 //! is an *Unsupported Operation*. The blob is built by `mf2-locale-data`'s
 //! `icu-blob` feature by recording what [`prime`] constructs — the same code
 //! as formatting — so it holds exactly the data this backend requests.
@@ -66,6 +66,9 @@ use writeable::TryWriteable;
 
 use crate::plan::{Backend, Plan};
 
+#[cfg(feature = "cache")]
+mod cache;
+
 /// Calendar support: every calendar (the default).
 #[derive(Clone, Copy, Debug)]
 pub struct AnyCalendar;
@@ -82,9 +85,27 @@ pub struct WithZones;
 #[derive(Clone, Copy, Debug)]
 pub struct NoZones;
 
-/// Data: the catalog's `icu.blob` LOCALE entry (the default).
+/// Data: the catalog's `icu.blob` LOCALE entry, its provider and formatter
+/// built for each placeholder (the default without `cache`).
 #[derive(Clone, Copy, Debug)]
 pub struct Blob;
+
+/// Data: the catalog's `icu.blob` LOCALE entry, its provider kept per
+/// catalog and its formatter per language and shape, per thread (`cache`;
+/// the default with it). Formats what [`Blob`] formats, byte for byte.
+#[cfg(feature = "cache")]
+#[derive(Clone, Copy, Debug)]
+pub struct CachedBlob;
+
+/// The data [`Icu`] reads by default: [`CachedBlob`] with this crate's
+/// `cache` feature (the native host turns it on), else [`Blob`].
+#[cfg(feature = "cache")]
+pub type DefaultData = CachedBlob;
+
+/// The data [`Icu`] reads by default: `CachedBlob` with this crate's
+/// `cache` feature (the native host turns it on), else [`Blob`].
+#[cfg(not(feature = "cache"))]
+pub type DefaultData = Blob;
 
 /// Data: ICU4X's compiled data (never in the browser; `compiled-data`).
 #[cfg(all(
@@ -115,6 +136,34 @@ pub trait Data: Sync + 'static {
         cx: &FnContext<'_>,
         f: impl FnOnce(Source<'_>) -> Result<R, FormatError>,
     ) -> Result<R, FormatError>;
+
+    /// Formats `plan` with variant `V` into `out` (`None`: checks only that
+    /// it formats). Builds the formatter from this data each time, unless
+    /// the data keeps it (`CachedBlob`).
+    fn run<V: Variant>(
+        cx: &FnContext<'_>,
+        plan: &Plan<'_>,
+        out: Option<&mut dyn Sink>,
+    ) -> Result<(), FormatError> {
+        Self::with(cx, |src| {
+            V::run(&src, cx.locale(), plan.options, Some((plan, out)))
+        })
+    }
+}
+
+/// The catalog's `icu.blob` LOCALE entry; without it, an Unsupported
+/// Operation.
+fn blob<'x>(cx: &FnContext<'x>) -> Result<&'x [u8], FormatError> {
+    cx.catalog()
+        .locale_entry(mf2_catalog::format::locale_key::ICU_BLOB)
+        .ok_or(FormatError::UnsupportedOperation)
+}
+
+/// The provider over a copy of `bytes`: it owns its blob (the catalog's
+/// bytes are not `'static`).
+fn provider(bytes: &[u8]) -> Result<icu_provider_blob::BlobDataProvider, FormatError> {
+    icu_provider_blob::BlobDataProvider::try_new_from_blob(Box::from(bytes))
+        .map_err(|_| FormatError::UnsupportedOperation)
 }
 
 impl Data for Blob {
@@ -122,15 +171,26 @@ impl Data for Blob {
         cx: &FnContext<'_>,
         f: impl FnOnce(Source<'_>) -> Result<R, FormatError>,
     ) -> Result<R, FormatError> {
-        let bytes = cx
-            .catalog()
-            .locale_entry(mf2_catalog::format::locale_key::ICU_BLOB)
-            .ok_or(FormatError::UnsupportedOperation)?;
-        // A copy: the provider owns its blob (the catalog's bytes are not
-        // `'static`).
-        let provider = icu_provider_blob::BlobDataProvider::try_new_from_blob(Box::from(bytes))
-            .map_err(|_| FormatError::UnsupportedOperation)?;
+        let provider = provider(blob(cx)?)?;
         f(Source::Buffer(&provider))
+    }
+}
+
+#[cfg(feature = "cache")]
+impl Data for CachedBlob {
+    fn with<R>(
+        cx: &FnContext<'_>,
+        f: impl FnOnce(Source<'_>) -> Result<R, FormatError>,
+    ) -> Result<R, FormatError> {
+        Blob::with(cx, f)
+    }
+
+    fn run<V: Variant>(
+        cx: &FnContext<'_>,
+        plan: &Plan<'_>,
+        out: Option<&mut dyn Sink>,
+    ) -> Result<(), FormatError> {
+        cache::run::<V>(cx, plan, out)
     }
 }
 
@@ -153,7 +213,7 @@ type Params<C, Z, D> = PhantomData<fn() -> (C, Z, D)>;
 
 /// The ICU4X backend over calendar support `C`, zone support `Z` and data
 /// `D` (see the module docs). `Icu::NEW` builds one.
-pub struct Icu<C = AnyCalendar, Z = WithZones, D = Blob>(Params<C, Z, D>);
+pub struct Icu<C = AnyCalendar, Z = WithZones, D = DefaultData>(Params<C, Z, D>);
 
 impl<C, Z, D> Icu<C, Z, D> {
     /// The backend (it has no state).
@@ -184,13 +244,45 @@ pub trait Variant {
     /// Whether this variant formats the Gregorian calendar only.
     const GREGORIAN_ONLY: bool;
 
-    /// Builds (and with `run = Some`, formats).
+    /// The formatter this variant builds (it owns its data: it outlives
+    /// the provider it was built from).
+    type Formatter: 'static;
+
+    /// Builds the formatter of `locale` and the shape of `o`.
+    fn build(
+        src: &Source<'_>,
+        locale: &str,
+        o: &DateTimeOptions<'_>,
+    ) -> Result<Self::Formatter, FormatError>;
+
+    /// Formats `plan` with `f` into `out` (`None`: checks only). `zones` is
+    /// the IANA parser when the plan has a zone style, else `None`.
+    fn write(
+        f: &Self::Formatter,
+        plan: &Plan<'_>,
+        zones: Option<&IanaParser>,
+        out: Option<&mut dyn Sink>,
+    ) -> Result<(), FormatError>;
+
+    /// Builds (and with `run = Some`, formats): the formatter, and with a
+    /// zone style the IANA parser.
     fn run(
         src: &Source<'_>,
         locale: &str,
         o: &DateTimeOptions<'_>,
         run: Option<(&Plan<'_>, Option<&mut dyn Sink>)>,
-    ) -> Result<(), FormatError>;
+    ) -> Result<(), FormatError> {
+        let f = Self::build(src, locale, o)?;
+        let zones = match o.time_zone_style {
+            Some(_) => Some(iana(src)?),
+            None => None,
+        };
+        match run {
+            Some((plan, out)) => Self::write(&f, plan, zones.as_ref(), out),
+            // Building only (`prime`).
+            None => Ok(()),
+        }
+    }
 }
 
 impl<C: 'static, Z: 'static, D: Data> Backend for Icu<C, Z, D>
@@ -198,15 +290,11 @@ where
     (C, Z): Variant,
 {
     fn supports(&self, cx: &FnContext<'_>, plan: &Plan<'_>) -> Result<(), FormatError> {
-        D::with(cx, |src| {
-            <(C, Z)>::run(&src, cx.locale(), plan.options, Some((plan, None)))
-        })
+        D::run::<(C, Z)>(cx, plan, None)
     }
 
     fn format(&self, cx: &FnContext<'_>, plan: &Plan<'_>, out: &mut dyn Sink) {
-        let _ = D::with(cx, |src| {
-            <(C, Z)>::run(&src, cx.locale(), plan.options, Some((plan, Some(out))))
-        });
+        let _ = D::run::<(C, Z)>(cx, plan, Some(out));
     }
 
     /// Localized text has the catalog's direction (Arabic dates are not
@@ -307,11 +395,10 @@ fn iana(src: &Source<'_>) -> Result<IanaParser, FormatError> {
 
 /// Sets the zone of `plan` on `input` (for a field set with a zone style).
 fn zone(
-    src: &Source<'_>,
+    parser: &IanaParser,
     plan: &Plan<'_>,
     input: &mut DateTimeInputUnchecked,
 ) -> Result<(), FormatError> {
-    let parser = iana(src)?;
     let (id, offset) = match plan.zone {
         ZoneOption::Offset(o) => (TimeZone::UNKNOWN, Some(o)),
         ZoneOption::Named(n) => (parser.as_borrowed().parse(n), plan.offset),
@@ -330,26 +417,27 @@ fn zone(
 
 /// Writes `formatted` to `out` (a lossy fallback, e.g. a zone name the data
 /// lacks, is written as ICU4X gives it).
-fn write(formatted: &impl TryWriteable, out: Option<&mut dyn Sink>) {
+fn emit(formatted: &impl TryWriteable, out: Option<&mut dyn Sink>) {
     if let Some(out) = out {
         let _ = formatted.try_write_to(&mut SinkWrite(out));
     }
 }
 
-/// One variant's `run`: `$fset` the field set type, `$build` its builder
-/// method, `$new` the formatter constructor path, `$date` the input date.
+/// One variant's `build` and `write`: `$fmt` the formatter type, `$build`
+/// the builder method of its field set, `$date` the input date.
 macro_rules! variant {
     ($cal:ty, $zones:ty, $has_zones:expr, $gregorian:expr, $fmt:ty, $build:ident, $date:expr) => {
         impl Variant for ($cal, $zones) {
             const ZONES: bool = $has_zones;
             const GREGORIAN_ONLY: bool = $gregorian;
 
-            fn run(
+            type Formatter = $fmt;
+
+            fn build(
                 src: &Source<'_>,
                 locale: &str,
                 o: &DateTimeOptions<'_>,
-                run: Option<(&Plan<'_>, Option<&mut dyn Sink>)>,
-            ) -> Result<(), FormatError> {
+            ) -> Result<$fmt, FormatError> {
                 let mut b = builder(o)?;
                 if let Some(style) = o.time_zone_style {
                     if !$has_zones {
@@ -363,7 +451,7 @@ macro_rules! variant {
                 }
                 let fs = b.$build().map_err(|_| FormatError::UnsupportedOperation)?;
                 let prefs = prefs(locale, o, $gregorian)?;
-                let f = match src {
+                match src {
                     Source::Buffer(p) => <$fmt>::try_new_with_buffer_provider(*p, prefs, fs),
                     #[cfg(all(
                         feature = "compiled-data",
@@ -371,23 +459,23 @@ macro_rules! variant {
                     ))]
                     Source::Compiled(_) => <$fmt>::try_new(prefs, fs),
                 }
-                .map_err(|_| FormatError::UnsupportedOperation)?;
+                .map_err(|_| FormatError::UnsupportedOperation)
+            }
+
+            fn write(
+                f: &$fmt,
+                plan: &Plan<'_>,
+                zones: Option<&IanaParser>,
+                out: Option<&mut dyn Sink>,
+            ) -> Result<(), FormatError> {
                 let mut input = DateTimeInputUnchecked::default();
-                let Some((plan, out)) = run else {
-                    // Building only (`prime`): with a zone style, the IANA
-                    // parser too.
-                    if o.time_zone_style.is_some() {
-                        iana(src)?;
-                    }
-                    return Ok(());
-                };
-                let date = $date(&f, plan)?;
+                let date = $date(f, plan)?;
                 input.set_date_fields_unchecked(date);
                 input.set_time_fields(time(plan)?);
-                if o.time_zone_style.is_some() {
-                    zone(src, plan, &mut input)?;
+                if let Some(parser) = zones {
+                    zone(parser, plan, &mut input)?;
                 }
-                write(&f.format_unchecked(input), out);
+                emit(&f.format_unchecked(input), out);
                 Ok(())
             }
         }

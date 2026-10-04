@@ -9,6 +9,10 @@ publish.workspace = true
 [features]
 # The A/B baseline: the numeric code over `fixed_decimal` (plans/10 A5b).
 fixed-decimal = ["mf2-runtime/fixed-decimal"]
+# `date_cost` without the formatter cache: ICU4X's provider and formatter
+# built for each placeholder, as before plan/11 18.2 (to alternate with the
+# default binary).
+uncached-dates = []
 
 [dependencies]
 catalog-bench.workspace = true
@@ -17,7 +21,7 @@ clap.workspace = true
 # rows through a native application's forms (Phase 10 C2).
 mf2 = { workspace = true, features = ["compile", "host-std", "fn-number", "native-datetime-icu", "native"] }
 mf2-catalog.workspace = true
-mf2-fn-datetime = { workspace = true, features = ["std-icu"] }
+mf2-fn-datetime = { workspace = true, features = ["std-icu", "cache"] }
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true
 serde = { workspace = true, features = ["std"] }

@@ -13,7 +13,7 @@ use mf2::{
 use mf2_fn_datetime::DateTimeFunction;
 #[cfg(feature = "compiled-data")]
 use mf2_fn_datetime::icu::Compiled;
-use mf2_fn_datetime::icu::{AnyCalendar, GregorianOnly, Icu, NoZones, WithZones};
+use mf2_fn_datetime::icu::{AnyCalendar, Blob, CachedBlob, GregorianOnly, Icu, NoZones, WithZones};
 
 use FormatError::UnsupportedOperation;
 
@@ -58,6 +58,30 @@ static NARROW: [(&str, &dyn Function); 3] = [
     ("time", &N_TIME),
 ];
 static NARROW_REGISTRY: Registry = Registry::new(&NARROW);
+
+/// The full backend with each data explicitly: the formatter cache and the
+/// formatter built for each placeholder (the native host's default is the
+/// cache, so `REGISTRY` is it too).
+type Cached = Icu<AnyCalendar, WithZones, CachedBlob>;
+type Uncached = Icu<AnyCalendar, WithZones, Blob>;
+static K_DATE: DateTimeFunction<Cached> = DateTimeFunction::date(Icu::NEW);
+static K_DATETIME: DateTimeFunction<Cached> = DateTimeFunction::datetime(Icu::NEW);
+static K_TIME: DateTimeFunction<Cached> = DateTimeFunction::time(Icu::NEW);
+static CACHED: [(&str, &dyn Function); 3] = [
+    ("date", &K_DATE),
+    ("datetime", &K_DATETIME),
+    ("time", &K_TIME),
+];
+static CACHED_REGISTRY: Registry = Registry::new(&CACHED);
+static U_DATE: DateTimeFunction<Uncached> = DateTimeFunction::date(Icu::NEW);
+static U_DATETIME: DateTimeFunction<Uncached> = DateTimeFunction::datetime(Icu::NEW);
+static U_TIME: DateTimeFunction<Uncached> = DateTimeFunction::time(Icu::NEW);
+static UNCACHED: [(&str, &dyn Function); 3] = [
+    ("date", &U_DATE),
+    ("datetime", &U_DATETIME),
+    ("time", &U_TIME),
+];
+static UNCACHED_REGISTRY: Registry = Registry::new(&UNCACHED);
 
 /// Gregorian with zones, and any calendar without.
 static GZ_TIME: DateTimeFunction<Icu<GregorianOnly, WithZones>> = DateTimeFunction::time(Icu::NEW);
@@ -530,4 +554,40 @@ fn blob_equals_compiled_data() {
         }
     }
     assert_eq!(compared, 11 * messages.len());
+}
+
+/// The formatter cache (plan/08 §5.2): two catalogs of one language
+/// formatted in turn each get their own formatter, and a catalog compiled
+/// after another is dropped (a reload) is not served the dropped one's: the
+/// text is the uncached backend's, every time.
+#[test]
+fn cache_two_catalogs_in_turn() {
+    let utc = cx(TimeZone::UTC);
+    let instant = DateTime::from_epoch_ms(1_136_214_246_000).unwrap();
+    let args = [("d", Arg::DateTime(&instant))];
+    let run = |registry: &Registry, m: &mf2::Compiled| {
+        let f = Formatter::new(&m.catalog, registry, &utc);
+        let mut out = String::new();
+        let mut errors = Vec::new();
+        f.write_named(mf2::Compiled::ID, &args, &mut out, &mut errors);
+        assert!(errors.is_empty(), "{errors:?} ({out:?})");
+        out
+    };
+    let compile = |src: &str| mf2::compile_str(src, "en").unwrap_or_else(|e| panic!("{src}: {e}"));
+    let a = compile("{$d :date length=long}");
+    let b = compile("{$d :datetime timeZone=|America/New_York| timeZoneStyle=long}");
+    let (want_a, want_b) = (run(&UNCACHED_REGISTRY, &a), run(&UNCACHED_REGISTRY, &b));
+    assert_ne!(want_a, want_b);
+    for _ in 0..3 {
+        assert_eq!(run(&CACHED_REGISTRY, &a), want_a);
+        assert_eq!(run(&CACHED_REGISTRY, &b), want_b);
+    }
+    drop(a);
+    let c = compile("{$d :time precision=second hour12=false}");
+    let want_c = run(&UNCACHED_REGISTRY, &c);
+    assert_ne!(want_c, want_a);
+    for _ in 0..3 {
+        assert_eq!(run(&CACHED_REGISTRY, &c), want_c);
+        assert_eq!(run(&CACHED_REGISTRY, &b), want_b);
+    }
 }

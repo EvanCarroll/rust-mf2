@@ -14,6 +14,12 @@ pub fn mf2_fn_datetime::icu::Blob::clone(&self) -> Self
 impl core::fmt::Debug for mf2_fn_datetime::icu::Blob
 pub fn mf2_fn_datetime::icu::Blob::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::Copy for mf2_fn_datetime::icu::Blob
+pub struct mf2_fn_datetime::icu::CachedBlob
+impl core::clone::Clone for mf2_fn_datetime::icu::CachedBlob
+pub fn mf2_fn_datetime::icu::CachedBlob::clone(&self) -> Self
+impl core::fmt::Debug for mf2_fn_datetime::icu::CachedBlob
+pub fn mf2_fn_datetime::icu::CachedBlob::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_fn_datetime::icu::CachedBlob
 pub struct mf2_fn_datetime::icu::Compiled
 impl core::clone::Clone for mf2_fn_datetime::icu::Compiled
 pub fn mf2_fn_datetime::icu::Compiled::clone(&self) -> Self
@@ -51,6 +57,7 @@ pub fn mf2_fn_datetime::icu::WithZones::clone(&self) -> Self
 impl core::fmt::Debug for mf2_fn_datetime::icu::WithZones
 pub fn mf2_fn_datetime::icu::WithZones::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::Copy for mf2_fn_datetime::icu::WithZones
+pub type mf2_fn_datetime::icu::DefaultData = mf2_fn_datetime::icu::CachedBlob
 pub struct mf2_fn_datetime::DateTimeFunction<B>
 impl<B> mf2_fn_datetime::DateTimeFunction<B>
 pub const fn mf2_fn_datetime::DateTimeFunction<B>::backend(&self) -> &B
