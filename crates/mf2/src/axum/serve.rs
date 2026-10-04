@@ -1,5 +1,4 @@
-//! `/i18n/*` — the catalogs, served from the server binary
-//! (`plans/04-leptos-integration.md` §6 step 3).
+//! `/i18n/*` — the catalogs, served from the server binary.
 //!
 //! Two shapes of URL, and the difference between them is the whole caching
 //! story:

@@ -1,5 +1,5 @@
-//! Function handlers and the closed-world registry (`plans/03-runtime.md`
-//! §2.4, §3; budget B13).
+//! Function handlers and the closed-world registry
+//! (budget B13).
 
 use mf2_catalog::Catalog;
 use mf2_model::Dir;
@@ -22,7 +22,7 @@ use crate::value::Value;
 pub trait Function: Sync {
     /// Function resolution (formatting.md): `operand` resolved — a
     /// [`Value::Fallback`] when it failed to resolve, so the handler decides
-    /// (`plans/03-runtime.md` §2.6) — and `options` resolved with
+    /// — and `options` resolved with
     /// `u:id`/`u:dir` removed. `None` makes the expression a fallback value;
     /// the handler has reported why.
     fn resolve<'a>(
@@ -280,7 +280,7 @@ impl Registry {
 
     /// This registry, with `f` formatting unannotated numeric values
     /// (integer, float and decimal arguments): `mf2-fn-number`'s localized
-    /// exact value (`plans/03-runtime.md` §2.7). The evaluator checks such a
+    /// exact value. The evaluator checks such a
     /// value as any unannotated value (a non-finite float is a Bad Operand)
     /// and then asks `f` for its direction, text, sub-parts and part kind;
     /// it still does not select. Without it they format in neutral digits

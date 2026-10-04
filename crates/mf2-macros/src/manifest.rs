@@ -1,5 +1,5 @@
-//! Getting the manifest, once per compiler process (`plans/05-tooling.md`
-//! §4; probe P0.9).
+//! Getting the manifest, once per compiler process
+//! (probe P0.9).
 //!
 //! The generated `tr!` wrapper bakes in the manifest's absolute path and its
 //! hash, so 2,000 expansions in one rustc (or one long-lived rust-analyzer

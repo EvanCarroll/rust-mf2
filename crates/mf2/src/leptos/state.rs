@@ -257,7 +257,7 @@ pub fn dir_of(tag: &str) -> Option<Dir> {
 }
 
 /// The locale of `locales` that best serves a reader of `candidate`: the
-/// one matcher (plans/19-native-and-terminal.md §9), CLDR's language-matching
+/// one matcher, CLDR's language-matching
 /// data read as UTS #35 Part 1 states — the tag filled in by likely
 /// subtags, a distance per field, a match only below 50. `fr-CA` and
 /// `fr_CA.UTF-8` find `fr`, and `fr` finds `fr-CA`; `zh-Hant-TW` finds

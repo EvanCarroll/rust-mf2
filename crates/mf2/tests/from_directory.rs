@@ -1,4 +1,4 @@
-//! `install_from_directory` (plans/19-native-and-terminal.md §5): catalogs
+//! `install_from_directory`: catalogs
 //! shipped beside the executable, each checked against its content-hashed
 //! name, and a partial set accepted — only the source language's file is
 //! required. A test binary of its own, since it installs the process's

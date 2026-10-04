@@ -1,4 +1,4 @@
-//! Why an expansion could not use the manifest (`plans/05-tooling.md` §4).
+//! Why an expansion could not use the manifest.
 //!
 //! Every variant becomes one `compile_error!` spanned at the call site's id
 //! literal, so the message an application sees names a file it can act on.

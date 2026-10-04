@@ -1,4 +1,4 @@
-//! The Phase 4 additions of `plans/03-runtime.md` §2.7, through the public
+//! The runtime's additions for the number and date functions, through the public
 //! API only — the way `mf2-fn-number` and `mf2-fn-datetime` use them: a
 //! handler on `NumberSpec` reading `Digits`, a `Measure` value, the
 //! unannotated-number hook, date/time arguments, the context's time zone.

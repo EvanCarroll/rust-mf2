@@ -2,8 +2,7 @@
 // whole of CLDR's language-matching data, packed as `super::LanguageMatching` reads it
 // (mf2-locale-data's `data/matching.txt`, `Matching::encode`). Do not edit.
 
-/// CLDR's whole table: what a server and a native application match with
-/// (plans/19-native-and-terminal.md §9).
+/// CLDR's whole table: what a server and a native application match with.
 pub(super) static CLDR: super::LanguageMatching = super::LanguageMatching::new(
     &[
         37_261, 40_194, 41_453, 51_234, 51_625, 51_630, 55_924, 66_953, 66_997, 67_211,

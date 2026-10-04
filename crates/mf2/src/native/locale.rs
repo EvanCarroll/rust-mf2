@@ -1,6 +1,6 @@
 //! Where the active language came from, and which of the corpus's languages
-//! a tag or the system's list asks for: the one matcher
-//! (plans/19-native-and-terminal.md §9), over the corpus's cut of CLDR's
+//! a tag or the system's list asks for: the one matcher,
+//! over the corpus's cut of CLDR's
 //! table, which gives its locales the answers the whole table gives.
 
 use mf2_catalog::Dir;

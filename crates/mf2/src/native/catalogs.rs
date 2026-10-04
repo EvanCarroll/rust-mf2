@@ -55,7 +55,7 @@ impl fmt::Debug for Catalogs {
 
 /// What a text form needs of a message, and only that: a `&dyn` of it lists
 /// `write` alone, so a program that never formats to parts links none of
-/// that path (`plans/18-phase-10-work-order.md`, A4).
+/// that path.
 trait Writes {
     fn write_to(&self, f: &Formatter<'_>, out: &mut dyn Sink, errs: &mut dyn ErrorSink);
 }

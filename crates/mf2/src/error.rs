@@ -162,8 +162,8 @@ pub enum NativeError {
 }
 
 /// Why a generated `Locale::from_str` refused a tag: none of the
-/// application's languages serves it (plans/19-native-and-terminal.md §9,
-/// §10). Its text lists the languages there are — "no language of this
+/// application's languages serves it.
+/// Its text lists the languages there are — "no language of this
 /// application matches; it has en, fr" — which is what clap shows for a
 /// refused `--lang`. It allocates nothing: it holds the build's own table.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, thiserror::Error)]

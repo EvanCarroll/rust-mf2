@@ -1,4 +1,4 @@
-//! The call-site core (`plans/04-leptos-integration.md` §2.1): what `tr!`
+//! The call-site core: what `tr!`
 //! builds, formatted against a catalog the caller supplies — no Leptos, no
 //! ambient state.
 

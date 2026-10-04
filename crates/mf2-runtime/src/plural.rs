@@ -1,6 +1,6 @@
 //! The plural-rule evaluator (decision D3; P0.4): one encoded
 //! `plural.cardinal` / `plural.ordinal` LOCALE entry
-//! (`plans/02-catalog-format.md` §4.1) applied to the UTS #35 operands of a
+//! applied to the UTS #35 operands of a
 //! *formatted* number. No allocation, no panic: malformed data stops the
 //! evaluation with `other`, the spec's catch-all.
 
@@ -90,7 +90,7 @@ impl Category {
 }
 
 /// The UTS #35 operands of a non-negative decimal (Part 3 §5.1.1): the
-/// formatter's side of the contract of `plans/02-catalog-format.md` §4.1.
+/// formatter's side of the plural rules' contract.
 /// `n` is integral iff `t == 0`, and then equals `i`.
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash, Debug)]
 pub struct Operands {

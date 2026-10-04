@@ -1,4 +1,4 @@
-//! Formatting errors: small plain values (`plans/03-runtime.md` §2.2). They
+//! Formatting errors: small plain values. They
 //! derive `thiserror::Error` for server and test use; its `Display` is never
 //! reached from the client path (B12).
 

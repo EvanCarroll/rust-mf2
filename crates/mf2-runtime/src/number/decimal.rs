@@ -1,5 +1,4 @@
-//! The digit backend of the numeric semantics — the seam of owner decision 1
-//! (`plans/10-phase-3-work-order.md`, A5 and A5b).
+//! The digit backend of the numeric semantics — the seam of owner decision 1.
 //!
 //! The default is this crate's own buffer ([`own`]): an exact decimal of up
 //! to [`INPUT_DIGITS`] significant digits, stored inline — `Copy`, no

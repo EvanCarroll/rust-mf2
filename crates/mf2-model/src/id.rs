@@ -5,7 +5,7 @@
 /// them, and never builds one from a number.
 ///
 /// Inside, low 24 bits are an index into one catalog chunk's message table
-/// and the high 8 bits the chunk (plans/02-catalog-format.md §3) — the
+/// and the high 8 bits the chunk — the
 /// catalog's layout, which 1.x does not promise, so the methods that expose
 /// it are hidden. Until per-route chunking exists every message is in chunk 0.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]

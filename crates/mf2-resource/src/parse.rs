@@ -1,6 +1,6 @@
 //! The parser: a resource file's lines to a [`Resource`].
 //!
-//! The grammar is line-oriented (`plans/05-tooling.md` §2), so the parser is
+//! The grammar is line-oriented, so the parser is
 //! one pass over the lines with three pieces of state: the comment and the
 //! properties waiting for something to attach to, and whether the frontmatter
 //! is still open. It never stops at the first error — `mf2 check` reports a
@@ -53,7 +53,7 @@ fn split_lines(src: &str) -> Vec<Line> {
 /// Parses `src` into a resource whose values are the MF2 source as written,
 /// plus the syntax errors found.
 ///
-/// **Attachment** (`plans/05-tooling.md` §2): a comment attaches to the next
+/// **Attachment**: a comment attaches to the next
 /// frontmatter separator, section head or entry unless an empty line
 /// intervenes — properties may. A property attaches to the next one of those
 /// three; other properties may sit in between, comments and empty lines may

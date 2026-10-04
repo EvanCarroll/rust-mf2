@@ -1,4 +1,4 @@
-//! The entry point (`plans/03-runtime.md` §2.1).
+//! The entry point.
 
 use mf2_catalog::{Catalog, Entry, MsgId, Names, StrRef};
 
@@ -33,7 +33,7 @@ pub struct FormatContext {
     /// The platform services.
     pub host: &'static dyn Host,
     /// The default time zone: what `timeZone` defaults to, and the zone of a
-    /// floating date/time (`plans/03-runtime.md` §6).
+    /// floating date/time.
     pub time_zone: TimeZone,
 }
 

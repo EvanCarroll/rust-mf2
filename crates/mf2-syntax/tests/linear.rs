@@ -1,5 +1,5 @@
-//! Linear time on adversarial input (plans/01-conformance.md §5: "the parser
-//! MUST NOT recurse on input", linear time).
+//! Linear time on adversarial input (the parser never
+//! recurses on its input, and runs in linear time).
 //!
 //! Each input is large (hundreds of KB) and built to provoke backtracking,
 //! re-scanning or cascading recovery. A linear parser handles each in

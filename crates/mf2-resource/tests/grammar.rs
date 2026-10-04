@@ -1,4 +1,4 @@
-//! One test per production of the working grammar (`plans/05-tooling.md` §2),
+//! One test per production of the working grammar,
 //! and the examples that document it.
 
 use mf2_resource::{Resource, code, parse, serialize};
@@ -372,7 +372,7 @@ fn a_property_needs_a_name() {
 
 // ─────────────────────────── the documented example ─────────────────────
 
-/// The file in `plans/05-tooling.md` §2, whole.
+/// The grammar's worked example file, whole.
 #[test]
 fn the_plan_example_reads_as_documented() {
     let src = "\
@@ -423,7 +423,7 @@ name = Example
 
 // ─────────────────────────── the canonical layout ───────────────────────
 
-/// `mf2 fmt`'s blank lines (owner, 2026-09-27; `plans/05-tooling.md` §6):
+/// `mf2 fmt`'s blank lines (owner, 2026-09-27):
 /// one after the frontmatter's `---`, one before a section head and before
 /// a commented entry, and one on each side of a message whose value starts
 /// on its own line. Blank lines anywhere else come out; an entry that only

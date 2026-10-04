@@ -1,4 +1,4 @@
-//! The app-wide store (plans/19-native-and-terminal.md §5; A4's design): one
+//! The app-wide store: one
 //! corpus's catalogs for the whole process, the language every thread
 //! formats in, a thread's own language for a scope, and the settings.
 //!
@@ -149,7 +149,7 @@ fn choose(store: &Catalogs) {
 /// Makes the language that best serves `locale` the app-wide language: the
 /// corpus's closest by CLDR's language-matching data, if close enough
 /// (`fr_CA.UTF-8` finds `fr`, `zh-Hant-TW` finds `zh-TW`, `sr-Latn` finds
-/// `sr`; plans/19-native-and-terminal.md §9). Every thread's next format
+/// `sr`). Every thread's next format
 /// uses it, but a thread inside [`with_locale`]. A locale nothing serves is
 /// an error and changes nothing, so a mistyped `--lang` is reported, not
 /// ignored.
@@ -292,13 +292,12 @@ fn current() -> Option<(&'static Catalogs, usize)> {
 }
 
 /// A native-only build formatting with nothing installed is a programming
-/// error, and says so (plans/18-phase-10-work-order.md, "Decided without
-/// asking").
+/// error, and says so.
 #[cold]
 #[inline(never)]
 #[allow(
     clippy::panic,
-    reason = "native only: the ambient forms of a build whose only mode is `native` panic before install() (plans/19 §5)"
+    reason = "native only: the ambient forms of a build whose only mode is `native` panic before install()"
 )]
 pub(crate) fn not_installed() -> ! {
     panic!("mf2: no catalogs are installed: call install() at start-up")
@@ -308,7 +307,7 @@ pub(crate) fn not_installed() -> ! {
 #[inline(never)]
 #[allow(
     clippy::panic,
-    reason = "native only: install() returns nothing, and a catalog that does not load means a corrupt executable (plans/19 §5)"
+    reason = "native only: install() returns nothing, and a catalog that does not load means a corrupt executable"
 )]
 fn refused(call: &str, error: &Error) -> ! {
     panic!("mf2: {call}: {error}")
@@ -406,8 +405,8 @@ pub fn time_zone() -> TimeZone {
 
 // ------------------------------------------------------------------ the text
 
-/// The text of `m` through the store — steps 2 and 3 of the one lookup
-/// (plans/19 §5): this thread's language, else the app-wide one; `None`
+/// The text of `m` through the store — steps 2 and 3 of the one lookup:
+/// this thread's language, else the app-wide one; `None`
 /// when neither is set. A simple message is borrowed from the catalog; any
 /// other is formatted into a reused buffer and copied out once. `plain`:
 /// never isolated.

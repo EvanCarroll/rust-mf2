@@ -1,5 +1,4 @@
-//! What the module `mf2-build` generates calls — never written by hand
-//! (plans/19-native-and-terminal.md §10).
+//! What the module `mf2-build` generates calls — never written by hand.
 //!
 //! **The cfg-forwarding macros** (A2). The generated module is compiled in
 //! the application's crate, whose own features say nothing about how `mf2`
@@ -345,7 +344,7 @@ pub fn install_server(
 #[inline(never)]
 #[allow(
     clippy::panic,
-    reason = "server only: install() returns nothing, and an embedded catalog that does not load means a corrupt executable (plans/19 §10)"
+    reason = "server only: install() returns nothing, and an embedded catalog that does not load means a corrupt executable"
 )]
 fn refused(error: &crate::leptos::LoadError) -> ! {
     panic!("mf2: install(): {error}")

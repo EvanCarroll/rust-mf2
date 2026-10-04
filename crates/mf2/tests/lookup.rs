@@ -1,6 +1,6 @@
 //! The one lookup with a Leptos mode and `native` both on, as a workspace
-//! that holds a web application and a native one builds `mf2` on the host
-//! (plans/19-native-and-terminal.md §3, §5): the request's catalog (`ssr`)
+//! that holds a web application and a native one builds `mf2` on the host:
+//! the request's catalog (`ssr`)
 //! or the page's (`hydrate`, `csr`) first, then the native thread's
 //! language, then the app-wide one; before any of them, the web's rule — no
 //! text, never a panic. Nothing here installs the native store, so outside

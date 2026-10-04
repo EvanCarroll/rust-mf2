@@ -1,7 +1,7 @@
 //! `:number`, `:integer`, `:offset` (`functions/number.md`): the core
 //! numeric semantics of [`crate::number`], with neutral symbols —
 //! `useGrouping=always` / `min2` report *Unsupported Operation* and format
-//! neutrally (`plans/03-runtime.md` §5.1). `mf2-fn-number` supplies the
+//! neutrally. `mf2-fn-number` supplies the
 //! localized handlers under the same names. With feature `intl` on
 //! `wasm32-unknown-unknown` the neutral text comes from the host's number
 //! formatter (`crate::INTL_NUMBERS`).
@@ -42,8 +42,8 @@ impl Function for NumberFunction {
     ) -> Option<Value<'a>> {
         let n = number::resolve(self.spec, cx, operand, *options, errs)?;
         // Grouping other than `auto`/`never` is only about the locale: the
-        // neutral handlers cannot honour it (plans/03-runtime.md §5.1;
-        // `fn-number` does).
+        // neutral handlers cannot honour it
+        // (`fn-number` does).
         if matches!(n.grouping(), Some(Grouping::Always | Grouping::Min2)) {
             errs.error(FormatError::UnsupportedOperation);
         }

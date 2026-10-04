@@ -1,5 +1,5 @@
-//! Numbers through the browser (`plans/03-runtime.md` §2.7, "the `intl`
-//! option"; §5.3): a [`NumberFormatter`] whose `format` is
+//! Numbers through the browser (the `intl`
+//! option): a [`NumberFormatter`] whose `format` is
 //! `Intl.NumberFormat` (`format`, and `formatToParts` for sub-parts) and
 //! whose `plural` is `Intl.PluralRules`, given by `Host::numbers` only when
 //! the engine has `Intl.NumberFormat` v3, which every MF2 digit option

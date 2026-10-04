@@ -1,5 +1,5 @@
 //! `compile_str`: an ad-hoc message as a one-message catalog
-//! (`plans/03-runtime.md` §1: there is no "format from a model" path).
+//! (there is no "format from a model" path).
 
 use alloc::vec::Vec;
 
@@ -32,7 +32,7 @@ impl Compiled {
 /// locale's direction, plural rules (both kinds) and number data (CLDR
 /// 48.2.1): `number.symbols` always — any placeholder can receive a number,
 /// which `fn-number` localizes — and what the message's numeric functions
-/// need by the slicing rule of `plans/02-catalog-format.md` §4.4: the
+/// need by the catalog's slicing rule: the
 /// patterns, and the currencies and units its literal options name (a
 /// variable option value: all of them). With `host-std-datetime-icu`, also the
 /// `icu.blob` of what the message formats with the date functions, or can
@@ -43,7 +43,7 @@ pub fn compile_str(source: &str, locale: &str) -> Result<Compiled, CompileError>
 }
 
 /// [`compile_str`], with the catalog in its production form: COLD and IDS
-/// stripped (`plans/02-catalog-format.md` §2.3). It formats identically.
+/// stripped. It formats identically.
 pub fn compile_str_stripped(source: &str, locale: &str) -> Result<Compiled, CompileError> {
     compile(source, locale, true)
 }

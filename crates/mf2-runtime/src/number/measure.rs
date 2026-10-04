@@ -1,4 +1,4 @@
-//! A number with a currency or a unit (`plans/03-runtime.md` §2.7): what
+//! A number with a currency or a unit: what
 //! `:currency` and `:unit` (`mf2-fn-number`) resolve to. The runtime only
 //! carries it — as a numeric operand it is its number.
 

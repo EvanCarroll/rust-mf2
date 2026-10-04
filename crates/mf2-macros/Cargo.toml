@@ -1,5 +1,4 @@
-# The `tr!` proc-macro (plans/05-tooling.md §4, plans/04-leptos-integration.md
-# §2). Never named by an application: the generated i18n module's exported
+# The `tr!` proc-macro. Never named by an application: the generated i18n module's exported
 # `tr!` wrapper forwards to it through the facade's `__mf2` re-export, with the
 # manifest's absolute path and hash baked in.
 [package]

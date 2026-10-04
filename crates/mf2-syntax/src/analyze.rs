@@ -1,5 +1,5 @@
 //! Variable analysis: what a message needs from its caller — the input to
-//! the build's manifest (plans/05-tooling.md §3).
+//! the build's manifest.
 
 use alloc::borrow::Cow;
 use alloc::collections::BTreeSet;

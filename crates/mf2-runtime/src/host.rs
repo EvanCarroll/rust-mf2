@@ -1,5 +1,5 @@
-//! What the runtime asks of its platform (`plans/03-runtime.md` §2.5,
-//! §2.7): the shortest text of a float (no float-printing code in the
+//! What the runtime asks of its platform:
+//! the shortest text of a float (no float-printing code in the
 //! wasm), for dates the UTC offset of a named time zone and —
 //! with the `intl` date formatter — a date formatter, and — `intl` — a number formatter
 //! with plural rules. `mf2-host-std` implements it natively and for
@@ -50,14 +50,14 @@ pub trait Host: Sync {
     /// and `Intl.PluralRules`, when the engine has `Intl.NumberFormat` v3);
     /// `None` (the default) when it has none — the numeric functions of an
     /// `intl` client then show exact digits and report *Unsupported
-    /// Operation* (`plans/03-runtime.md` §2.7).
+    /// Operation*.
     fn numbers(&self) -> Option<&dyn NumberFormatter> {
         None
     }
 }
 
-/// A number formatter for the `intl` option ([`Host::numbers`];
-/// `plans/03-runtime.md` §2.7, §5.3): the final "value + resolved options →
+/// A number formatter for the `intl` option ([`Host::numbers`]):
+/// the final "value + resolved options →
 /// text" step and the plural category, where the numeric functions keep
 /// MF2's semantics in Rust. `mf2-host-web` implements it with `Intl`.
 pub trait NumberFormatter: Sync {

@@ -1,5 +1,5 @@
-//! The `intl` backend of the numeric functions (`plans/03-runtime.md` §2.7,
-//! §5.3; owner decision 4): with feature `intl` on `wasm32-unknown-unknown`
+//! The `intl` backend of the numeric functions
+//! (owner decision 4): with feature `intl` on `wasm32-unknown-unknown`
 //! ([`crate::INTL_NUMBERS`]) the display, `:integer`'s rounding and the
 //! plural category come from the host's number formatter
 //! ([`Host::numbers`](crate::Host::numbers): the browser's

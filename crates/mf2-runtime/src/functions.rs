@@ -1,4 +1,4 @@
-//! The core functions (`plans/03-runtime.md` §3, §5.1): statics for a
+//! The core functions: statics for a
 //! [`crate::Registry`]. An application's generated registry names only the
 //! ones its corpus uses (closed world, B13).
 

@@ -1,5 +1,5 @@
-//! The evaluator: walks one message's views in place
-//! (`plans/03-runtime.md` §2.6). Declarations resolve lazily, each at most
+//! The evaluator: walks one message's views in place.
+//! Declarations resolve lazily, each at most
 //! once, without recursion; selection is the spec's algorithm; string and
 //! parts output share this one walker through [`Out`].
 
@@ -585,8 +585,7 @@ fn resolve_expr_or_stop<'a>(
             None => None,
         },
         // The handler sees the fallback and decides (the suite: the numeric
-        // functions report Bad Operand, `:string` takes `{$x}`;
-        // plans/03-runtime.md §2.6).
+        // functions report Bad Operand, `:string` takes `{$x}`).
         Opnd::Fallback => {
             temp = Value::Fallback(source(env, expr));
             Some(&temp)
@@ -646,7 +645,7 @@ fn emit(
 ) {
     let cx = env.cx(r.udir);
     // An unannotated number goes to the registry's number handler, if it has
-    // one (`fn-number`: plans/03-runtime.md §2.7); an unannotated date/time
+    // one (`fn-number`); an unannotated date/time
     // has none and is a Bad Operand (`plan/08` §4.3). The number is still checked
     // as any unannotated value, so its errors do not depend on the feature.
     let hook = match r.handler {

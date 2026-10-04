@@ -2,7 +2,7 @@
 //!
 //! Written from the W3C Message Resource draft at
 //! `third_party/w3c-message-resource/PIN` (the draft states no license, so
-//! nothing is vendored; see `plans/05-tooling.md` §2). The draft's
+//! nothing is vendored). The draft's
 //! `Resource<Message>` becomes [`Resource<'a, V>`]: `V` is whatever an entry's
 //! value is — the MF2 source as written (`parse` gives
 //! `Cow<'a, str>`), or a parsed `Message`, or anything else a caller maps to
@@ -103,7 +103,7 @@ impl<'a> Id<'a> {
                 out.push(c);
             }
         }
-        // `---` is the frontmatter separator, never an id (plans/05 §2).
+        // `---` is the frontmatter separator, never an id.
         if out[start..] == *"---" {
             out.insert(start, '\\');
         }
@@ -174,7 +174,7 @@ fn finish_part<'a>(
 }
 
 /// Whether `c` may stand unescaped in an id part: letters, digits, `_`, `-`
-/// and the non-ASCII name characters of `spec/message.abnf` (plans/05 §2).
+/// and the non-ASCII name characters of `spec/message.abnf`.
 pub fn is_id_char(c: char) -> bool {
     if c.is_ascii() {
         return c.is_ascii_alphanumeric() || c == '_' || c == '-';
@@ -193,7 +193,7 @@ impl fmt::Display for Id<'_> {
     /// an id built in code can hold one).
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.parts.len() == 1 && self.parts[0] == "---" {
-            // The frontmatter separator is never an id (plans/05 §2).
+            // The frontmatter separator is never an id.
             f.write_str("\\")?;
         }
         for (i, part) in self.parts.iter().enumerate() {

@@ -1,13 +1,12 @@
-//! What a call site is checked against, and what it becomes
-//! (`plans/04-leptos-integration.md` §2, `plans/05-tooling.md` §4).
+//! What a call site is checked against, and what it becomes.
 //!
 //! Checked against the manifest: the id exists, the argument names are
 //! exactly the message's variables, and — for a call site that supplies
 //! markup handlers at all — every markup name of the message has one.
 //! Emitted: a positional construction, spanned at the id literal, with no id
 //! string, no argument name and no markup name in it. Each argument is
-//! converted by `mf2::__arg`'s dispatch (`plans/19-native-and-terminal.md`
-//! §7), spanned at the argument, so a type that is not an argument is
+//! converted by `mf2::__arg`'s dispatch,
+//! spanned at the argument, so a type that is not an argument is
 //! reported there.
 
 use std::sync::Arc;
@@ -21,7 +20,7 @@ use crate::parse::{Call, Input};
 
 /// `msg_id!("id")`: the id checked against the manifest, and nothing else —
 /// the `MsgId` a caller needs to format a message whose arguments are not
-/// known until run time (`mf2::TrDyn`, `plans/13-phase-5b-work-order.md` A3).
+/// known until run time (`mf2::TrDyn`).
 /// It takes no arguments, so there is no argument set to check.
 pub(crate) fn expand_id(input: Input) -> syn::Result<TokenStream> {
     let Input {

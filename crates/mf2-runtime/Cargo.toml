@@ -17,11 +17,11 @@ categories = ["internationalization", "localization", "value-formatting", "no-st
 exclude = ["package.txt"]
 
 [features]
-# The A/B of owner decision 1 (plans/10 A5b): the numeric code over
+# The A/B of owner decision 1: the numeric code over
 # `fixed_decimal` instead of the crate's own panic-free digit buffer. Bench and
 # test only; never enabled by a client.
 fixed-decimal = ["dep:fixed_decimal"]
-# The `intl` client option (plans/03-runtime.md §2.7, §5.3; owner decision 4):
+# The `intl` client option (owner decision 4):
 # on wasm32-unknown-unknown only, the numeric functions take their display,
 # `:integer`'s rounding and the plural category from the host's number
 # formatter (`Host::numbers`: mf2-host-web's

@@ -37,7 +37,7 @@ pub(crate) fn u64_str(mut n: u64, buf: &mut [u8; 20]) -> &str {
     core::str::from_utf8(digits).unwrap_or("")
 }
 
-/// The NFC quick check of `plans/03-runtime.md` §7: every code point is
+/// The NFC quick check: every code point is
 /// below U+0300 (so the string is already NFC). In UTF-8 that is every byte
 /// below 0xCC, since U+0300 is `CC 80`.
 #[inline]

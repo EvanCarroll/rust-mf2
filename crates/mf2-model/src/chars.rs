@@ -2,8 +2,8 @@
 //!
 //! They live here because two frontends need them: `mf2-syntax` for names
 //! inside a message, and `mf2-resource` for the parts of an entry's id
-//! (`plans/05-tooling.md` §2: "letters, digits, `_`, `-` and non-ASCII name
-//! characters").
+//! (its rule: letters, digits, `_`, `-` and non-ASCII name
+//! characters).
 
 /// `name-start`: an ASCII letter, `+`, `_`, or a non-ASCII character that is
 /// not whitespace, a bidi control, a surrogate, a private-use character or a

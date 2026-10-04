@@ -118,8 +118,7 @@ impl Corpus {
         self.host.unwrap_or(&mf2_host_std::HOST)
     }
 
-    /// What a language is matched with among these locales
-    /// (plans/19-native-and-terminal.md §9).
+    /// What a language is matched with among these locales.
     #[cfg(feature = "native")]
     pub(crate) fn language_matching(&self) -> &'static LanguageMatching {
         self.language_matching.unwrap_or(&LanguageMatching::EMPTY)

@@ -1,4 +1,4 @@
-//! Dates through the browser (`plans/03-runtime.md` §2.7, §5.1):
+//! Dates through the browser:
 //! `Host::format_date_time` with `Intl.DateTimeFormat` (`datetime-intl`)
 //! and `Host::zone_offset` from the browser's own zone data (`time-zones`).
 //! One inline-JS module: the formatters are cached in it, one per locale

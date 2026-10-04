@@ -1,5 +1,5 @@
-//! The one matcher reads a tag where it lies (plans/18-phase-10-work-order.md,
-//! C2's finding, routed to C3): choosing a language allocates nothing. 1.x's
+//! The one matcher reads a tag where it lies:
+//! choosing a language allocates nothing. 1.x's
 //! native matcher copied the tag into a `String` on every `set_locale` and
 //! `with_locale`. A binary of its own: its allocator counts what this
 //! thread allocates, and the store is process-wide.

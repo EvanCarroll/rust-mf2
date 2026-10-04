@@ -185,8 +185,8 @@ compile_error!(
 // `hydrate` and `csr` make for `wasm32`. On the host the two compile
 // together: cargo unifies features across the packages it builds together,
 // so `cargo check --workspace` (and rust-analyzer's check) over a browser
-// client and a native application turns both on, as 1.x allowed
-// (plans/19-native-and-terminal.md §3). `ratatui` implies `native` and has
+// client and a native application turns both on, as 1.x allowed.
+// `ratatui` implies `native` and has
 // a sentence of its own, below, so that the one error names the feature an
 // application turned on.
 #[cfg(all(

@@ -1,4 +1,4 @@
-//! [`Negotiator`] as a tower layer (`plans/04-leptos-integration.md` §12.5).
+//! [`Negotiator`] as a tower layer.
 //!
 //! The layer negotiates each request once and puts the answer in the
 //! request's extensions. A Leptos render finds it through the request

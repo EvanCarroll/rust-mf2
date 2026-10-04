@@ -1,4 +1,4 @@
-//! Arguments and resolved values (`plans/03-runtime.md` §2.3).
+//! Arguments and resolved values.
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -126,7 +126,7 @@ pub trait CustomValue {
 
 /// A resolved value's data. The handler that resolved it decides how it
 /// formats and selects; a value no handler resolved (a literal, an
-/// argument) is *unannotated* (`plans/03-runtime.md` §2.6).
+/// argument) is *unannotated*.
 #[non_exhaustive]
 pub enum Value<'a> {
     /// A string: a literal, a string argument, or `:string`'s operand.
@@ -147,8 +147,7 @@ pub enum Value<'a> {
     /// A fallback value, as a function's operand: the operand failed to
     /// resolve (an unresolved variable, a declaration that failed). The
     /// handler decides — the numeric ones report Bad Operand, `:string`
-    /// takes the text of its representation (`{$x}`), as the suite expects
-    /// (`plans/03-runtime.md` §2.6).
+    /// takes the text of its representation (`{$x}`), as the suite expects.
     Fallback(FallbackSource<'a>),
     /// A date/time: an argument, or what `:datetime`, `:date`, `:time`
     /// resolved (with its options).

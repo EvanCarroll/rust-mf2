@@ -1,5 +1,5 @@
-//! [`NativeI18n`]: 1.x's app-owned handle, kept beside the 2.0 forms
-//! (plans/18-phase-10-work-order.md: `NativeI18n` stays). 2.0's forms are the store
+//! [`NativeI18n`]: 1.x's app-owned handle, kept beside the 2.0 forms.
+//! 2.0's forms are the store
 //! ([`install`](super::install), `Display`, `to_string()`) and
 //! [`Catalogs`](super::Catalogs), which this is built on.
 

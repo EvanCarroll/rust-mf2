@@ -1,4 +1,4 @@
-//! Before `install()` (plans/19-native-and-terminal.md §5): in a build whose
+//! Before `install()`: in a build whose
 //! only mode is `native`, the app-wide forms panic and name `install()`; in a
 //! build with a Leptos mode beside it, the web's rule holds — no text, never
 //! a panic. `with_locale` and the settings need no `install()`.

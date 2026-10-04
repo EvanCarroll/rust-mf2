@@ -1,4 +1,4 @@
-//! Format to parts (`plans/03-runtime.md` §2.2): the shape the suite's
+//! Format to parts: the shape the suite's
 //! `expParts` asserts, and what the Leptos layer builds elements from.
 
 use mf2_catalog::{Catalog, StrRef};

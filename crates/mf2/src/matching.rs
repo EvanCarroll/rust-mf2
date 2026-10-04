@@ -1,5 +1,5 @@
-//! The one locale matcher (plans/19-native-and-terminal.md §9; the master
-//! plan's D21): which of an application's languages best serves a reader,
+//! The one locale matcher:
+//! which of an application's languages best serves a reader,
 //! by CLDR's language-matching data and the algorithm of UTS #35 Part 1
 //! §4.3–§4.4. Everything that matches a language goes through it: the
 //! native store (`install`, `set_locale`, `with_locale`, `Catalogs`), the

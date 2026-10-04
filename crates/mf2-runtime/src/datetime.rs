@@ -1,4 +1,4 @@
-//! Date/time values (`plans/03-runtime.md` §2.7; `datetime.md`): what an
+//! Date/time values (`datetime.md`): what an
 //! application passes ([`crate::Arg::DateTime`]), what `mf2-fn-datetime`
 //! resolves (the value with its [`DateTimeOptions`]), the formatting
 //! context's [`TimeZone`], and the request a host's date formatter receives.
@@ -286,7 +286,7 @@ impl<'a> DateTime<'a> {
     /// Writes the ISO 8601 / RFC 9557 text: `2006-01-02T15:04:06`, with
     /// `.mmm` when there are milliseconds, `Z` or `±hh:mm` when the value
     /// has an offset, `[zone]` when it names one — how an unannotated
-    /// date/time formats (`plans/03-runtime.md` §2.7).
+    /// date/time formats.
     pub fn write_iso(&self, out: &mut dyn Sink) {
         let y = self.date.year;
         if (0..=9999).contains(&y) {
@@ -470,8 +470,8 @@ pub enum ZoneOption<'a> {
 /// the longest POSIX TZ rule.
 const MAX_ZONE_NAME: usize = 64;
 
-/// The formatting context's time zone: the default of `timeZone`
-/// (`plans/03-runtime.md` §6). Owned — a per-request zone need not be
+/// The formatting context's time zone: the default of `timeZone`.
+/// Owned — a per-request zone need not be
 /// `'static`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TimeZone {

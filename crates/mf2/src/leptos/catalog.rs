@@ -448,8 +448,8 @@ fn no_catalog_warning() {
 }
 
 /// The request's own catalog, with no fallback to the source locale's: the
-/// first step of the one lookup when `native` is on beside `ssr`
-/// (plans/19-native-and-terminal.md §5), whose next steps are the native
+/// first step of the one lookup when `native` is on beside `ssr`,
+/// whose next steps are the native
 /// store's.
 #[cfg(all(feature = "ssr", feature = "native"))]
 pub(crate) fn requested() -> Option<RequestI18n> {

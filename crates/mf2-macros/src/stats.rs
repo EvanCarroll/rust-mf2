@@ -1,5 +1,5 @@
-//! What the macro costs, when something is measuring it (P0.9's method,
-//! `plans/06-size-and-perf.md` §5).
+//! What the macro costs, when something is measuring it (P0.9's
+//! method).
 //!
 //! Off unless `MF2_MACRO_STATS` names a file. Each rustc process then writes
 //! `<file>.<pid>`:

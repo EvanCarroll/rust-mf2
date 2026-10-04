@@ -1,4 +1,4 @@
-//! The input of `__tr_impl!` (`plans/05-tooling.md` §4).
+//! The input of `__tr_impl!`.
 //!
 //! ```text
 //! __tr_impl!("<abs path>/manifest.mf2m" 0x<hash>u64 ; $crate ; "id", name = value, …)

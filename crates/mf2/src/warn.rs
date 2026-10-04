@@ -1,4 +1,4 @@
-//! The server's one-time warnings (plans/18, E4): what used to fall back
+//! The server's one-time warnings: what used to fall back
 //! without a word says so on standard error, once per process for each kind
 //! (and, where it helps, each language), never once per request.
 //!

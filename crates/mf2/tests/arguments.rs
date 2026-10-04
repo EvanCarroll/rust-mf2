@@ -1,4 +1,4 @@
-//! What a `tr!` argument may be (`plans/19-native-and-terminal.md` §7):
+//! What a `tr!` argument may be:
 //! each [`IntoArg`] conversion, exact, formatted against a catalog
 //! `compile_str` wrote; and the dispatch `tr!` expands an argument to, step
 //! by step. Signals are

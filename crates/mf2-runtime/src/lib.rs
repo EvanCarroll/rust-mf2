@@ -90,8 +90,8 @@ pub use plural::{Category, Operands};
 pub use sink::{ErrorSink, NoErrors, Sink, SubPartSink};
 pub use value::{Arg, CustomValue, Value};
 
-/// Whether numbers format through the host (`plans/03-runtime.md` §2.7,
-/// §5.3): feature `intl`, on `wasm32-unknown-unknown` only. The numeric
+/// Whether numbers format through the host:
+/// feature `intl`, on `wasm32-unknown-unknown` only. The numeric
 /// functions — the core's and `mf2-fn-number`'s — then take the display,
 /// `:integer`'s rounding and the plural category from
 /// the host's [`NumberFormatter`] ([`Host::numbers`]: the browser's

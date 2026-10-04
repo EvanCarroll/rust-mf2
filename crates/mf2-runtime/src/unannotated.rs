@@ -1,5 +1,5 @@
-//! Values no handler resolved — literals and arguments
-//! (`plans/03-runtime.md` §2.6): a string formats as itself (direction
+//! Values no handler resolved — literals and arguments:
+//! a string formats as itself (direction
 //! unknown); an integer, float or decimal argument as its exact value in
 //! plain neutral digits (`Ltr`) — no rounding, so the numeric handlers are
 //! not linked unless the corpus uses them; an application value through

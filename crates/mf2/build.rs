@@ -1,5 +1,5 @@
 //! Carries this crate's features to the build script of the crate that
-//! includes the generated module (plans/19-native-and-terminal.md §11).
+//! includes the generated module.
 //!
 //! `links = "mf2-v3"` makes cargo hand each `cargo::metadata=KEY=VALUE` below
 //! to the build script of every crate that names `mf2` as a dependency, as

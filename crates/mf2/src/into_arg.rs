@@ -1,5 +1,4 @@
-//! What a `tr!` argument may be, and how the macro converts one
-//! (`plans/19-native-and-terminal.md` §7).
+//! What a `tr!` argument may be, and how the macro converts one.
 //!
 //! [`IntoArg`] is the typed conversion: numbers, text, dates, paths, and an
 //! application's own types that implement it. Any other type with a

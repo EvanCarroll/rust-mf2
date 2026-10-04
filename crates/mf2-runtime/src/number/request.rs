@@ -1,5 +1,5 @@
 //! What a numeric function asks of the host's number formatter
-//! (`plans/03-runtime.md` §2.7, "the `intl` option"; §5.3): the exact value
+//! (the `intl` option): the exact value
 //! and the options the function resolved, in the terms of ECMA-402's
 //! `Intl.NumberFormat` and `Intl.PluralRules` — MF2 took its option names
 //! and meanings from there — and [`Number::format_by_host`], which builds
@@ -46,7 +46,7 @@ pub struct NumberRequest<'r> {
 /// ECMA-402's digit options as `SetNumberFormatDigitOptions` resolved them
 /// for MF2 — so never a set `Intl` rejects: where it would throw, the
 /// numeric function reported *Bad Option* and dropped or replaced the
-/// option (`plans/03-runtime.md` §5.3).
+/// option.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[non_exhaustive]
 pub struct DigitOptions {
@@ -335,7 +335,7 @@ impl Number {
     /// sub-parts: a resolved number's display (its digit options,
     /// `signDisplay`, `useGrouping`), a bare number's exact value. `false`:
     /// the host has no number formatter (nothing written). The `intl` path
-    /// of the numeric functions (`plans/03-runtime.md` §2.7); on any build
+    /// of the numeric functions; on any build
     /// it only asks the host.
     #[doc(hidden)]
     pub fn format_by_host(

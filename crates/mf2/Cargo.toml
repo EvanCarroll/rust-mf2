@@ -18,7 +18,7 @@ categories = ["internationalization", "localization", "wasm", "web-programming"]
 # The package\'s file list (`cargo xtask package`) is not part of it.
 exclude = ["package.txt"]
 # Its features reach the build script of the crate that includes the
-# generated module as `DEP_MF2_V3_FEATURES` (`mf2_build::run()`, plans/19 §11).
+# generated module as `DEP_MF2_V3_FEATURES` (`mf2_build::run()`).
 # The major version is in the name, so that a 4.x resolves beside it.
 links = "mf2-v3"
 build = "build.rs"

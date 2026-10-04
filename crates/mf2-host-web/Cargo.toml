@@ -27,7 +27,7 @@ time-zones = ["dep:wasm-bindgen"]
 # `datetime-intl`: `INTL_HOST` — that, and `Host::format_date_time` with
 # `Intl.DateTimeFormat` (one formatter cached per locale and option set).
 datetime-intl = ["time-zones"]
-# `intl` (plans/03-runtime.md §2.7, §5.3): `NUMBERS_HOST` / `IntlNumbers` —
+# `intl`: `NUMBERS_HOST` / `IntlNumbers` —
 # another host plus `Host::numbers`: `Intl.NumberFormat` and
 # `Intl.PluralRules` (cached per locale and option set) when the engine has
 # `Intl.NumberFormat` v3 (detected once). One such host over each of the

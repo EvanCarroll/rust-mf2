@@ -373,7 +373,7 @@ fn malformed_markup_name() {
 
 #[test]
 fn neutral_grouping_is_unsupported() {
-    // plans/03-runtime.md §5.1: the locale-only grouping values.
+    // The locale-only grouping values.
     for (src, want) in [
         (
             "{12345 :number useGrouping=always}",

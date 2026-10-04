@@ -16,7 +16,7 @@ pub trait Sink {
     fn push_str(&mut self, s: &str);
 
     /// Appends the catalog string `r` — the seam for catalog text as JS
-    /// strings (`plans/stretch_goals_after_v1/prob_builtin_strings.md` §7):
+    /// strings:
     /// the evaluator writes catalog text only through this method. Returns
     /// `false` (and writes nothing) when the string is not valid (F4).
     #[doc(hidden)]
@@ -54,7 +54,7 @@ impl ErrorSink for Vec<FormatError> {
     }
 }
 
-/// Discards errors: the release client's policy (`plans/03-runtime.md` §8).
+/// Discards errors: the release client's policy.
 #[derive(Clone, Copy, Default, Debug)]
 pub struct NoErrors;
 

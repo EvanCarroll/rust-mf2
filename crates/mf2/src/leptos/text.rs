@@ -322,7 +322,7 @@ pub(crate) fn with_active_marked_text<D: Description, R>(
     }
 }
 
-/// Step 1 of the one lookup (plans/19-native-and-terminal.md §5) in a build
+/// Step 1 of the one lookup in a build
 /// with `native` beside the mode: the text of `m` in the request's catalog
 /// (`ssr`) or the page's (`hydrate`, `csr`), if there is one. On the client
 /// it subscribes to the locale change, as [`to_string`] does.

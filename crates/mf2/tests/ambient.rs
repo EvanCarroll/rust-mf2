@@ -1,4 +1,4 @@
-//! The native store (plans/19-native-and-terminal.md §5): `install`, the
+//! The native store: `install`, the
 //! app-wide language and a thread's own, the settings, and the ambient forms
 //! — `Display`, `to_string()`, `to_plain_string()`, `to_cow()` — read
 //! through it; and `Catalogs`, the explicit form.

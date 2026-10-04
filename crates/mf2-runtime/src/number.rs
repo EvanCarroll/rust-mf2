@@ -1,4 +1,4 @@
-//! The core numeric semantics (`number.md`; `plans/03-runtime.md` §5.1):
+//! The core numeric semantics (`number.md`):
 //! `:number`, `:integer` and `:offset` — operand rules, every digit and
 //! rounding option, `signDisplay`, option inheritance, `select` = `exact` /
 //! `plural` / `ordinal`, the exact-match serialization and the plural
@@ -9,7 +9,7 @@
 //! The display, `:integer`'s rounding and the plural category come from a
 //! backend with one interface: the Rust one (`display.rs`), or — feature
 //! `intl` on `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`] — the host's
-//! number formatter (`intl.rs`; `plans/03-runtime.md` §2.7, §5.3), and
+//! number formatter (`intl.rs`), and
 //! then the Rust rounding, digit output and plural evaluator are not linked.
 
 mod decimal;
@@ -98,7 +98,7 @@ pub enum Sign {
     Plus,
 }
 
-/// Digits to show (`plans/03-runtime.md` §2.7): a resolved number's
+/// Digits to show: a resolved number's
 /// rounded display digits ([`Number::digits`]), or a number's exact value
 /// ([`Number::exact_digits`]) — what `mf2-fn-number` localizes.
 #[derive(Clone, Copy)]
@@ -249,7 +249,7 @@ impl Number {
     }
 
     /// The exact value's digits, unrounded — how an unannotated number
-    /// formats (`plans/03-runtime.md` §2.6): `-1234.5`, `0.001`, `-0`.
+    /// formats: `-1234.5`, `0.001`, `-0`.
     pub fn exact_digits(&self) -> Digits<'_> {
         let d = &self.value;
         Digits {
@@ -381,7 +381,7 @@ fn is_number_literal(key: &str) -> bool {
 
 // ─────────────────────────────────────────────────────────── resolution ──
 
-/// How one numeric function resolves (`plans/03-runtime.md` §2.7): which
+/// How one numeric function resolves: which
 /// options it reads, its fraction-digit defaults, whether it rounds to an
 /// integer, whether it selects, and the power of ten it applies. Closed
 /// world: a handler is a spec.

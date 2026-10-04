@@ -1,5 +1,4 @@
-//! Negotiation: an **ordered list of typed sources and sinks**
-//! (`plans/04-leptos-integration.md` §6, §11 item 5).
+//! Negotiation: an **ordered list of typed sources and sinks**.
 //!
 //! Not a boolean matrix. The prior-art audit found ~60 hand-parsed
 //! parameters covering the full `initial_language_from_<source>_to_<target>`
@@ -490,7 +489,7 @@ impl Negotiator {
     }
 }
 
-/// The one matcher (plans/19-native-and-terminal.md §9), shared with a
+/// The one matcher, shared with a
 /// client-only application's boot: the locale that best serves one tag.
 pub(crate) fn lookup(
     candidate: &str,

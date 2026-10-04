@@ -1,5 +1,5 @@
-//! The system's time zone without an IANA name (plans/19-native-and-terminal.md
-//! §5): a zone that follows the system's daylight-saving rules, never the
+//! The system's time zone without an IANA name:
+//! a zone that follows the system's daylight-saving rules, never the
 //! offset in force at start-up, as 1.x froze it. `TZ` is read when the
 //! process starts, so the test runs this binary again with
 //! `TZ=EST5EDT,M3.2.0,M11.1.0`, the rule of the US Eastern zone, and the

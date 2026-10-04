@@ -1,5 +1,5 @@
-//! The one locale matcher (plans/19-native-and-terminal.md §9;
-//! plans/18-phase-10-work-order.md, C3), over CLDR's whole table as a server
+//! The one locale matcher,
+//! over CLDR's whole table as a server
 //! and a native application carry it. Each case says why it holds:
 //!
 //! * the owner's answers (18, questions 11 and 15) and C3's table;

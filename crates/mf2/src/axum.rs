@@ -143,8 +143,8 @@ pub(crate) fn catalog_file(name: &str) -> Option<(&'static str, &'static [u8])> 
     }
 }
 
-/// The one matcher over CLDR's whole table (plans/19-native-and-terminal.md
-/// §9), a reader's list best first.
+/// The one matcher over CLDR's whole table,
+/// a reader's list best first.
 pub(crate) fn best_locale<'a>(
     candidates: impl IntoIterator<Item = &'a str>,
     locales: &[(&'static str, Dir)],

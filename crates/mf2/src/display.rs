@@ -1,6 +1,5 @@
 //! A description's text as a `String`, and `Display` — the ambient forms,
-//! which read the catalog in force, in the order of the one lookup
-//! (plans/19-native-and-terminal.md §5):
+//! which read the catalog in force, in the order of the one lookup:
 //!
 //! 1. the request's catalog (`ssr`) or the page's (`hydrate`, `csr`);
 //! 2. with `native`, this thread's language (`mf2::native::with_locale`);
