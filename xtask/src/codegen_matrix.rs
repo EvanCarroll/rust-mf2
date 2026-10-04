@@ -7,7 +7,8 @@
 //! `src/lib.rs` that includes what it generated. A plain workspace build
 //! compiles it for the server; this command adds the client and the
 //! combinations, and greps each client build for the things that may never
-//! reach it.
+//! reach it — among them ICU4X, in a client that formats dates through
+//! `Intl` (`plan/08` §7).
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -45,7 +46,147 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
         client.len()
     );
     canaries(&cargo, root)?;
+    intl_links_no_icu(&cargo, root)?;
     Ok(())
+}
+
+/// A client whose dates go through the browser's `Intl`: `host-web-datetime-intl`,
+/// which `leptos-client-datetime-intl` is under the framework's name.
+const CLIENT_INTL: &str = "hydrate,host-web-datetime-intl";
+
+/// The fixture's client binary, the one linked wasm it makes.
+const CLIENT_BIN: &str = "mf2-i18n-client";
+
+/// `Intl` formats the client's dates, so ICU4X must not reach it: no ICU4X
+/// crate in the browser target's dependency graph, and no ICU4X symbol in the
+/// linked wasm. The wasm is built into a target directory of its own with
+/// its symbol names kept (the release profile strips debug information,
+/// which a build with other profile settings would rebuild the main target
+/// directory to undo).
+fn intl_links_no_icu(cargo: &OsStr, root: &Path) -> Result<()> {
+    eprintln!("codegen-matrix: no ICU4X in a client that formats dates through Intl");
+    let tree = [
+        "tree",
+        "-p",
+        FIXTURE,
+        "--target",
+        WASM,
+        "--no-default-features",
+        "--features",
+        CLIENT_INTL,
+        "--edges",
+        "normal",
+        "--prefix",
+        "none",
+    ]
+    .map(OsStr::new);
+    let listing = cmd::run_capture(cargo, &tree, root, &[])?;
+    let listing = String::from_utf8_lossy(&listing);
+    let mut crates: Vec<&str> = listing
+        .lines()
+        .filter_map(|line| line.split_whitespace().next())
+        .filter(|name| *name == "icu" || name.starts_with("icu_"))
+        .collect();
+    crates.sort_unstable();
+    crates.dedup();
+    if !crates.is_empty() {
+        return Err(Error::CommandFailed {
+            command: format!("cargo tree --target {WASM} --features {CLIENT_INTL}"),
+            status: format!("{} ICU4X crate(s) in the client's graph", crates.len()),
+            stderr: crates.join("\n"),
+        });
+    }
+
+    let target = root.join("target").join("client-canaries");
+    let args = [
+        OsStr::new("build"),
+        OsStr::new("-p"),
+        OsStr::new(FIXTURE),
+        OsStr::new("--bin"),
+        OsStr::new(CLIENT_BIN),
+        OsStr::new("--no-default-features"),
+        OsStr::new("--features"),
+        OsStr::new(CLIENT_INTL),
+        OsStr::new("--target"),
+        OsStr::new(WASM),
+        OsStr::new("--release"),
+        OsStr::new("--target-dir"),
+        target.as_os_str(),
+    ];
+    let keep_names = [("CARGO_PROFILE_RELEASE_STRIP", OsStr::new("none"))];
+    cmd::run_inherit_env(cargo, &args, root, &keep_names)?;
+    let wasm = target
+        .join(WASM)
+        .join("release")
+        .join(format!("{CLIENT_BIN}.wasm"));
+    let bytes = std::fs::read(&wasm).map_err(|source| Error::IoAt {
+        path: wasm.clone(),
+        source,
+    })?;
+    // A wasm with no names would pass whatever it links.
+    if !find(&bytes, b"core::") && !find(&bytes, b"4core") {
+        return Err(Error::CommandFailed {
+            command: format!("ICU4X symbols in {}", wasm.display()),
+            status: "the wasm carries no symbol names, so the search proves nothing".to_owned(),
+            stderr: String::new(),
+        });
+    }
+    if let Some(name) = icu_symbol(&bytes) {
+        return Err(Error::CommandFailed {
+            command: format!("ICU4X symbols in {}", wasm.display()),
+            status: format!("a symbol of `{name}` is linked"),
+            stderr: String::new(),
+        });
+    }
+    eprintln!(
+        "codegen-matrix: no ICU4X crate in the client's graph, no ICU4X symbol in {} ({} B)",
+        wasm.file_name().unwrap_or_default().to_string_lossy(),
+        bytes.len()
+    );
+    Ok(())
+}
+
+/// The first ICU4X crate a symbol name in `wasm` belongs to. A name is
+/// written demangled (`icu_calendar::…`) or mangled, where each path
+/// component follows its length (`12icu_calendar`); no item of the client's
+/// own crates is named `icu_…`, so either form is ICU4X's.
+fn icu_symbol(wasm: &[u8]) -> Option<String> {
+    let needle = b"icu_";
+    let mut from = 0;
+    while let Some(found) = wasm
+        .get(from..)
+        .and_then(|rest| rest.windows(needle.len()).position(|w| w == needle))
+    {
+        let start = from + found;
+        let tail = wasm.get(start..).unwrap_or_default();
+        let len = tail
+            .iter()
+            .position(|b| !(b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_'))
+            .unwrap_or(tail.len());
+        // Mangled, the digits before the name are its length, which may be
+        // shorter than the run of name characters (`12icu_provider5load`).
+        let head = wasm.get(start.saturating_sub(3)..start).unwrap_or_default();
+        let digits = head.len()
+            - head
+                .iter()
+                .rposition(|b| !b.is_ascii_digit())
+                .map_or(0, |at| at + 1);
+        let mangled = std::str::from_utf8(head.get(head.len() - digits..).unwrap_or_default())
+            .ok()
+            .and_then(|text| text.parse::<usize>().ok())
+            .filter(|length| *length > needle.len() && *length <= len);
+        let demangled = tail.get(len..len + 2) == Some(b"::".as_slice());
+        let name_len = match mangled {
+            Some(length) => Some(length),
+            None if demangled => Some(len),
+            None => None,
+        };
+        if let Some(name) = name_len.and_then(|n| tail.get(..n)) {
+            return Some(String::from_utf8_lossy(name).into_owned());
+        }
+        from = start + 1;
+    }
+    None
 }
 
 /// Budget B6 on the generated module: build the fixture for the client and
@@ -162,4 +303,31 @@ fn check(cargo: &OsStr, root: &Path, set: &Set) -> Result<()> {
         },
         other => other,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::icu_symbol;
+
+    /// An ICU4X crate is found in either way a wasm writes a symbol's name,
+    /// and the date crate whose name ends in `web_icu` is not taken for one.
+    #[test]
+    fn an_icu4x_symbol_is_found_demangled_or_mangled() {
+        assert_eq!(
+            icu_symbol(b"\x00\x2aicu_calendar::any_calendar::AnyCalendar::new::h0123"),
+            Some("icu_calendar".to_owned())
+        );
+        assert_eq!(
+            icu_symbol(b"_RNvCs1_12icu_provider5load"),
+            Some("icu_provider".to_owned())
+        );
+        assert_eq!(
+            icu_symbol(b"<core::ptr::drop_in_place<icu_datetime::DateTimeFormatter>>"),
+            Some("icu_datetime".to_owned())
+        );
+        assert_eq!(
+            icu_symbol(b"mf2_fn_datetime_web_icu::format core::fmt::write icu.blob"),
+            None
+        );
+    }
 }

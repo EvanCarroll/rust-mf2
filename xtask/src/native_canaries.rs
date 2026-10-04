@@ -34,6 +34,14 @@
 //! separate crate in the symbol table, and whether a native application
 //! reads the system's database or carries a copy (a quarter of a megabyte)
 //! is exactly what a row should be able to say.
+//!
+//! The date families (`plan/08` §7) add three guards. A build with no date
+//! feature, whose corpus has a plain placeholder (`greeting`), links nothing
+//! of jiff, ICU4X or `mf2_fn_datetime`. `native-datetime-iso` links no ICU4X
+//! crate. `native-datetime-icu` must link ICU4X (the positive control for
+//! [`ICU`], which matches every `icu_` crate) and stays under a ceiling on
+//! its *stripped* size that ICU4X's compiled-in data would break: the
+//! catalog's slice keeps it near 0.9 MB, compiled-in data puts it near 5 MB.
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;
@@ -56,7 +64,22 @@ const CRATES: &[&str] = &[
     "ryu",
     "sha2",
     "sys_locale",
+    ICU,
+    FN_DATETIME,
 ];
+
+/// Every ICU4X crate: an entry ending in `*` matches each crate whose name
+/// begins with what precedes it.
+const ICU: &str = "icu_*";
+
+/// The date functions' crate, which only a date formatter links.
+const FN_DATETIME: &str = "mf2_fn_datetime";
+
+/// The ceiling on the stripped `native-datetime-icu` binary, in bytes:
+/// about twice what it weighs over the catalog's slice (893,136 B in
+/// `plan/08` §1.2) and well under what ICU4X's compiled-in data makes it
+/// (5,041,944 B there).
+const ICU_CEILING: u64 = 2_000_000;
 
 /// The bundled IANA database, which lives in jiff's own
 /// `jiff::tz::db::bundled` and so owns no crate name of its own.
@@ -78,6 +101,9 @@ struct Row {
     requires: &'static [&'static str],
     /// Crates that must have none.
     forbids: &'static [&'static str],
+    /// The most the binary may weigh once stripped, when the row has a
+    /// ceiling.
+    ceiling: Option<u64>,
 }
 
 /// Every row, one native binary each.
@@ -87,18 +113,21 @@ const ROWS: &[Row] = &[
         features: "native",
         requires: &[],
         forbids: LEAN,
+        ceiling: None,
     },
     Row {
         what: "a native application formatting numbers",
         features: "native,fn-number",
         requires: &[],
         forbids: LEAN,
+        ceiling: None,
     },
     Row {
         what: "a terminal UI formatting numbers",
         features: "ratatui,fn-number",
         requires: &[],
         forbids: LEAN,
+        ceiling: None,
     },
     Row {
         // `axum` turns `tzdb-bundled` on, so that every reply says the same
@@ -109,6 +138,7 @@ const ROWS: &[Row] = &[
         features: "axum",
         requires: &[],
         forbids: LEAN,
+        ceiling: None,
     },
     Row {
         // The positive control, and the one row about which database a
@@ -116,11 +146,24 @@ const ROWS: &[Row] = &[
         // `Host::zone_offset`, which is jiff. If this row reported no jiff,
         // the reader would be broken and every forbidding row vacuous. The
         // zone comes from the system, so jiff's bundled copy of the IANA
-        // database — a quarter of a megabyte — must not be linked.
+        // database — a quarter of a megabyte — must not be linked. The ISO
+        // formatter reads no locale data, so no ICU4X crate may be linked
+        // either.
         what: "a native application formatting a date in a named zone (the positive control)",
         features: "native,native-datetime-iso",
-        requires: &["jiff"],
-        forbids: &[BUNDLED_TZDB],
+        requires: &["jiff", FN_DATETIME],
+        forbids: &[BUNDLED_TZDB, ICU],
+        ceiling: None,
+    },
+    Row {
+        // ICU4X over the catalog's date slice. It must link ICU4X — else
+        // the ISO row's forbidding of it proves nothing — and its stripped
+        // binary stays under a ceiling that ICU4X's compiled-in data breaks.
+        what: "a native application formatting a date through ICU4X over the catalog's slice",
+        features: "native,native-datetime-icu",
+        requires: &[ICU, FN_DATETIME],
+        forbids: &[],
+        ceiling: Some(ICU_CEILING),
     },
     Row {
         // The other positive control: compiling a message at run time parses
@@ -131,14 +174,17 @@ const ROWS: &[Row] = &[
         features: "native,compile",
         requires: &[NFC_TABLES],
         forbids: &[],
+        ceiling: None,
     },
 ];
 
-/// What a native application with prebuilt catalogs and no dates must not
-/// link: the date library and its bundled database, the float writer
-/// `StdHost::f64_to_text` stopped using in 12.4, and the normalization
-/// tables, which 13.5 left to the build side and to `compile` alone.
-const LEAN: &[&str] = &["jiff", BUNDLED_TZDB, "ryu", NFC_TABLES];
+/// What a native application with prebuilt catalogs and no date feature must
+/// not link: the date library and its bundled database, the float writer
+/// `StdHost::f64_to_text` stopped using in 12.4, the normalization tables,
+/// which 13.5 left to the build side and to `compile` alone, and — though
+/// the corpus has a plain placeholder, which could receive a date at run
+/// time — ICU4X and the date functions.
+const LEAN: &[&str] = &["jiff", BUNDLED_TZDB, "ryu", NFC_TABLES, ICU, FN_DATETIME];
 
 /// The normalization tables. A build that compiles a message at run time
 /// parses it, which normalizes names and keys; nothing else links them.
@@ -151,6 +197,8 @@ const BIN: &str = "native-canary";
 struct Linked {
     row: &'static Row,
     size: u64,
+    /// Its stripped size, read for a row with a ceiling.
+    stripped: Option<u64>,
     /// The crates of [`CRATES`] with a symbol in it, in that order.
     present: Vec<&'static str>,
 }
@@ -164,19 +212,23 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         eprintln!("native-canaries: linking `{}`: {}", row.features, row.what);
         build(root, &manifest, &target, row.features)?;
         let bin = target.join("release").join(BIN);
-        let size = fs::metadata(&bin)
-            .map_err(|source| Error::IoAt {
-                path: bin.clone(),
-                source,
-            })?
-            .len();
+        let size = file_size(&bin)?;
+        let stripped = match row.ceiling {
+            Some(_) => Some(stripped_size(root, &bin, &out)?),
+            None => None,
+        };
         let owners = owners(root, &bin)?;
         let present = CRATES
             .iter()
             .copied()
-            .filter(|c| owners.contains(*c))
+            .filter(|c| links(&owners, c))
             .collect();
-        rows.push(Linked { row, size, present });
+        rows.push(Linked {
+            row,
+            size,
+            stripped,
+            present,
+        });
     }
 
     let report = report(&rows);
@@ -193,8 +245,41 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Whether `owners` has a symbol of `entry`: the crate itself, or for an
+/// entry ending in `*` any crate whose name begins with the rest.
+fn links(owners: &BTreeSet<String>, entry: &str) -> bool {
+    match entry.strip_suffix('*') {
+        Some(prefix) => owners.iter().any(|owner| owner.starts_with(prefix)),
+        None => owners.contains(entry),
+    }
+}
+
+/// The size of the file at `path`.
+fn file_size(path: &Path) -> Result<u64> {
+    fs::metadata(path)
+        .map(|meta| meta.len())
+        .map_err(|source| Error::IoAt {
+            path: path.to_path_buf(),
+            source,
+        })
+}
+
+/// The size of `bin` once stripped of its symbols, as `plan/08` §1.2's
+/// figures are: `strip` writes a copy into `out`, and the binary the symbols
+/// are read from stays whole.
+fn stripped_size(root: &Path, bin: &Path, out: &Path) -> Result<u64> {
+    let copy = out.join("stripped");
+    cmd::run_capture(
+        OsStr::new("strip"),
+        &[OsStr::new("-o"), copy.as_os_str(), bin.as_os_str()],
+        root,
+        &[],
+    )?;
+    file_size(&copy)
+}
+
 /// What the canaries refuse: a required crate with no symbol, a forbidden
-/// crate with one.
+/// crate with one, a stripped binary over its ceiling.
 fn judge(rows: &[Linked]) -> Vec<String> {
     let mut failures = Vec::new();
     for linked in rows {
@@ -213,6 +298,14 @@ fn judge(rows: &[Linked]) -> Vec<String> {
                     linked.row.features
                 ));
             }
+        }
+        if let (Some(ceiling), Some(stripped)) = (linked.row.ceiling, linked.stripped)
+            && stripped > ceiling
+        {
+            failures.push(format!(
+                "`{}` weighs {stripped} B stripped, over its ceiling of {ceiling} B",
+                linked.row.features
+            ));
         }
     }
     failures
@@ -325,14 +418,36 @@ fn report(rows: &[Linked]) -> String {
     }
     s.push('\n');
     for linked in rows {
-        let _ = writeln!(s, "* `{}`: {}.", linked.row.features, linked.row.what);
+        let _ = write!(s, "* `{}`: {}.", linked.row.features, linked.row.what);
+        if let (Some(ceiling), Some(stripped)) = (linked.row.ceiling, linked.stripped) {
+            let _ = write!(s, " Stripped: {stripped} B, ceiling {ceiling} B.");
+        }
+        s.push('\n');
     }
     s
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
+
     use super::owner;
+
+    /// `icu_*` stands for every ICU4X crate, and a plain entry for its own
+    /// crate alone — the difference between the ISO row forbidding ICU4X
+    /// and that row passing because no crate is called `icu_*`.
+    #[test]
+    fn a_starred_entry_matches_every_crate_its_prefix_begins() {
+        let owners: BTreeSet<String> = ["core", "icu_calendar", "mf2_fn_datetime"]
+            .map(str::to_owned)
+            .into();
+        assert!(super::links(&owners, super::ICU));
+        assert!(super::links(&owners, super::FN_DATETIME));
+        assert!(!super::links(&owners, "jiff"));
+        let dateless: BTreeSet<String> = ["core", "mf2_runtime"].map(str::to_owned).into();
+        assert!(!super::links(&dateless, super::ICU));
+        assert!(!super::links(&dateless, super::FN_DATETIME));
+    }
 
     /// A symbol belongs to the crate its path begins with, never to the one
     /// that instantiated it — the difference between a forbidding row that
