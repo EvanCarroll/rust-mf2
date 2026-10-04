@@ -627,11 +627,19 @@ impl Catalog {
                 });
             }
         }
-        let entry = |(key, bytes): &(u32, usize), place| Bundle {
-            name: entry_name(*key),
-            bytes: *bytes,
-            readers: Readers::of(*key, features),
-            place,
+        // Without a browser side, no browser reads an entry, whatever the
+        // features would have it read.
+        let entry = |(key, bytes): &(u32, usize), place| {
+            let readers = Readers::of(*key, features);
+            Bundle {
+                name: entry_name(*key),
+                bytes: *bytes,
+                readers: Readers {
+                    browser: readers.browser && downloaded,
+                    native: readers.native,
+                },
+                place,
+            }
         };
         let entries: Vec<Bundle> = self
             .locale_entries

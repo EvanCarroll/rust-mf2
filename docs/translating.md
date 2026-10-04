@@ -344,6 +344,8 @@ mf2 features (as --features names them):
   the corpus needs: fn-number
   on:               fn-number
   on and unused:    none
+  the browser:      no date formatter
+  native code:      no date formatter
   write:            mf2 = { ..., features = ["fn-number"] }
 mf2 check: 0 error(s), 2 warning(s)
 ```
@@ -369,8 +371,8 @@ fr          100.0%        0       448       350       307  fr.06bc11d3b946c25a.m
 
 what ships where (raw bytes, who reads it, where it ships):
   de
-    messages               402 B  native code alone            catalog
-    fallback                 6 B  native code alone            catalog
+    messages               387 B  native code alone            catalog
+    fallback                21 B  native code alone            catalog
     plural.cardinal          5 B  native code alone            catalog
     number.symbols          12 B  native code alone            catalog
   en
@@ -378,7 +380,8 @@ what ships where (raw bytes, who reads it, where it ships):
     plural.cardinal          5 B  native code alone            catalog
     number.symbols          12 B  native code alone            catalog
   fr
-    messages               418 B  native code alone            catalog
+    messages               409 B  native code alone            catalog
+    fallback                 9 B  native code alone            catalog
     plural.cardinal         16 B  native code alone            catalog
     number.symbols          14 B  native code alone            catalog
 bytes a browser downloads and never reads: 0 B (no browser side: native code alone reads these catalogs)
@@ -431,6 +434,8 @@ mf2 features (as --features names them):
   the corpus needs: fn-number
   on:               fn-number
   on and unused:    none
+  the browser:      no date formatter
+  native code:      no date formatter
   write:            mf2 = { ..., features = ["fn-number"] }
 mf2 check: 0 error(s), 1 warning(s)
 ```
