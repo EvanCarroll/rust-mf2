@@ -28,7 +28,7 @@ question.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 19.7, in five agents by directory. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 19.6
 
