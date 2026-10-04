@@ -92,6 +92,7 @@ static GZ_REGISTRY: Registry = Registry::new(&GZ);
 static AN: [(&str, &dyn Function); 2] = [("date", &AN_DATE), ("time", &AN_TIME)];
 static AN_REGISTRY: Registry = Registry::new(&AN);
 
+#[cfg(feature = "compiled-data")]
 const PANEL: [&str; 11] = [
     "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
 ];

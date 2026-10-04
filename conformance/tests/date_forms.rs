@@ -25,7 +25,7 @@ macro_rules! form {
             mf2::__date_statics!($calendars $zones);
             static FUNCTIONS: [(&str, &dyn mf2_runtime::Function); 3] =
                 [("date", &DATE), ("datetime", &DATETIME), ("time", &TIME)];
-            pub static REGISTRY: mf2_runtime::Registry = mf2_runtime::Registry::new(&FUNCTIONS);
+            pub(crate) static REGISTRY: mf2_runtime::Registry = mf2_runtime::Registry::new(&FUNCTIONS);
         }
     };
 }
