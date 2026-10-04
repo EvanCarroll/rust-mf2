@@ -159,7 +159,7 @@ crate-type = ["cdylib", "rlib"]
 leptos = { version = "0.9.0-beta", default-features = false }
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
-mf2 = { version = "2", features = ["leptos", "fn-number"] }
+mf2 = { version = "3", features = ["leptos", "fn-number"] }
 
 axum = { version = "0.8", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
@@ -168,7 +168,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"], option
 wasm-bindgen = { version = "0.2", optional = true }
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 
 [features]
 hydrate = [
@@ -268,7 +268,7 @@ leptos = { version = "0.8", default-features = false }
 leptos_meta = "0.8"
 leptos_router = "0.8"
 leptos_axum = { version = "0.8", optional = true }
-mf2 = { version = "2", features = ["leptos-0-8", "fn-number"] }
+mf2 = { version = "3", features = ["leptos-0-8", "fn-number"] }
 ```
 
 Asking for both lines at once — `leptos` and `leptos-0-8` — is a compile

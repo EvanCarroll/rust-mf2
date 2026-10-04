@@ -21,10 +21,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mf2 = { version = "2", features = ["native", "fn-number"] }
+mf2 = { version = "3", features = ["native", "fn-number"] }
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 ```
 
 ```rust file=guide/build.rs

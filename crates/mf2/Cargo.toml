@@ -378,7 +378,8 @@ required-features = ["host-std"]
 [package.metadata.docs.rs]
 # The server on Leptos 0.9, and the native, Ratatui and Axum modules, which
 # compile beside it: the modes exclude each other, and `mf2::leptos` names what the
-# client modes add.
+# client modes add. Dates: each native family's `icu` formatter, the one the
+# tools recommend there (they are one switch, `host-std-datetime-icu`).
 features = [
     "compile",
     "fn-number",

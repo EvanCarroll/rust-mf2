@@ -22,8 +22,9 @@ leptos = { version = "0.9.0-beta", default-features = false }
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
 # `mark-fallback-lang`: borrowed text is marked with its language (the note
-# on the home page, untranslated in Arabic on purpose).
-mf2 = { path = "../../crates/mf2", features = ["leptos", "fn-number", "leptos-client-datetime-icu", "leptos-server-datetime-icu", "mark-fallback-lang"] }
+# on the home page, untranslated in Arabic on purpose). Dates: the browser's
+# own `Intl` in the client, ICU4X on the server.
+mf2 = { path = "../../crates/mf2", features = ["leptos", "fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu", "mark-fallback-lang"] }
 
 axum = { version = "0.8.9", optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }

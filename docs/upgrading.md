@@ -5,7 +5,9 @@ paths moved, and code that 1.x asked the application to write is now
 generated. This page lists each change with its 1.x form and its 2.0 form,
 so an upgrade is a list of edits. The
 [changelog](https://github.com/EvanCarroll/rust-mf2/blob/main/CHANGELOG.md)
-has every change in detail.
+has every change in detail. The manifests name 3, the current release:
+the forms marked 2.0 are what it accepts, and the changelog says what 3.0
+changed since.
 
 Blocks marked **1.x** show the old code for comparison and are not
 compiled. The 2.0 forms are compiled: the command-line tool below here, and
@@ -51,10 +53,10 @@ same for both builds; the mode and `axum` are forwarded as `leptos`'s are:
 
 ```toml excerpt
 [dependencies]
-mf2 = { version = "2", features = ["leptos", "fn-number"] }
+mf2 = { version = "3", features = ["leptos", "fn-number"] }
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 
 [features]
 hydrate = ["leptos/hydrate", "mf2/hydrate"]

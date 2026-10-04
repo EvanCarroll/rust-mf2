@@ -11,7 +11,7 @@
 //! | the search field's `placeholder` | a description as an attribute value |
 //! | "N people are here" | a **signal-valued** argument: one library effect, no closure per call site (04 §4) |
 //! | the hotkey line | **markup as elements** — and the `<kbd>` lands in a different place in French, which is the point (04 §7) |
-//! | the published line | a date, through `:datetime` and the catalog's ICU4X blob |
+//! | the published line | a date, through `:datetime`: ICU4X on the server, `Intl` in the browser |
 //! | the note | a sentence left untranslated in Arabic on purpose: borrowed from English, and inside `<span lang="en" dir="ltr">` there (`mark-fallback-lang`, WCAG 3.1.2) |
 //! | the echo line | a plain `String` from an event handler — no bidi isolation in it (04 §9) |
 //! | the switcher | `<LocaleSwitcher>`: a labelled native control whose option text never reaches the wasm, applied by a button — live once hydrated, a plain `GET ?lang=` before |

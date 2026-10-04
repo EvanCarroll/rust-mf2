@@ -179,7 +179,7 @@ in `mf2`:
 ```toml file=islands/Cargo.toml merge
 [dependencies]
 leptos = { version = "0.9.0-beta", default-features = false, features = ["islands"] }
-mf2 = { version = "2", features = ["leptos", "fn-number", "static-locale"] }
+mf2 = { version = "3", features = ["leptos", "fn-number", "static-locale"] }
 ```
 
 `static-locale` applies to the server and the client alike. Nothing on
@@ -318,10 +318,10 @@ edition = "2024"
 console_error_panic_hook = "0.1"
 leptos = { version = "0.9.0-beta", features = ["csr"] }
 leptos_meta = "0.9.0-beta"
-mf2 = { version = "2", features = ["leptos", "csr", "fn-number"] }
+mf2 = { version = "3", features = ["leptos", "csr", "fn-number"] }
 
 [build-dependencies]
-mf2-build = "2"
+mf2-build = "3"
 
 [profile.release]
 opt-level = "z"
