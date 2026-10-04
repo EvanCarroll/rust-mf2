@@ -1,5 +1,5 @@
 //! The canonical encoder of the `plural.cardinal` / `plural.ordinal` LOCALE
-//! entries (`plans/02-catalog-format.md` §4.1; ported from P0.4): rules in
+//! entries (ported from P0.4): rules in
 //! category order zero < one < two < few < many, `other` never written;
 //! groups, relations and items in source order; minimal LEB128; a range with
 //! `lo = hi` as a single value; moduli 10^1…10^6 as the short code.

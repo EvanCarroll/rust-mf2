@@ -1,4 +1,4 @@
-//! Views over MESSAGES (`plans/02-catalog-format.md` §2.2): small `Copy`
+//! Views over MESSAGES: small `Copy`
 //! cursors the evaluator walks without building a tree. They never panic
 //! and never allocate; a malformed record yields one `Err(Malformed)` and
 //! ends its iterator (the runtime then formats the fallback for that message

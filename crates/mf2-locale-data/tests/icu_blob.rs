@@ -1,7 +1,7 @@
-//! `icu.blob` (plans/11 A6; plans/02-catalog-format.md §4.4, §4.9): the
+//! `icu.blob`: the
 //! slicing rule read off messages; the blobs of the panel's locales (and
 //! `th`, whose default calendar is Buddhist) within B4's per-locale budgets
-//! (plans/06-size-and-perf.md: ≤ 3 KB gz without zone names, ≤ 25 KB gz
+//! (budget: ≤ 3 KB gz without zone names, ≤ 25 KB gz
 //! with); determinism and the test vectors of §4.9. Sizes are printed
 //! (`cargo test -p mf2-locale-data --features icu-blob --test icu_blob
 //! sizes -- --nocapture`).
@@ -266,7 +266,7 @@ fn deterministic_and_nested() {
     );
 }
 
-/// The vectors of plans/02-catalog-format.md §4.9: size, FNV-1a 64 and the
+/// The format's test vectors: size, FNV-1a 64 and the
 /// leading bytes of `en`'s blobs (CLDR 48 as ICU4X 2.3 bakes it; the zones vector follows
 /// `icu_time_data`, which a time-zone data patch release moves — 2.3.1 here).
 #[test]

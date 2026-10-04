@@ -1,4 +1,4 @@
-//! The number LOCALE entries, v1 (`plans/02-catalog-format.md` §4.2, §4.3):
+//! The number LOCALE entries, v1:
 //! the §4.5 vectors from hand-written input through the encoders, back
 //! through the client views, and the views' robustness — every truncation
 //! and every single-byte mutation of the vectors is read without a panic.

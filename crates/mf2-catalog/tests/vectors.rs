@@ -1,4 +1,4 @@
-//! The hand-worked vectors of `plans/02-catalog-format.md` §2.10: the writer
+//! The hand-worked vectors of the catalog format: the writer
 //! produces exactly these bytes, and the reader and decoder read these
 //! values back.
 

@@ -1,5 +1,4 @@
-//! The generated Rust module (`plans/05-tooling.md` §4,
-//! `plans/19-native-and-terminal.md` §10).
+//! The generated Rust module.
 //!
 //! `build.rs` writes it to `OUT_DIR`; the i18n crate includes it at its root
 //! with `mf2::include_generated!()`. Its text is the same in every build of
@@ -319,7 +318,7 @@ fn identity(s: &mut String, m: &Module<'_>) {
 #[doc(hidden)]
 pub use {facade} as __mf2;
 
-/// `manifest_hash` (`plans/02-catalog-format.md` §3): {agree}
+/// `manifest_hash`: {agree}
 pub const MANIFEST_HASH: u64 = {hash};
 
 /// The locale the manifest was built from.

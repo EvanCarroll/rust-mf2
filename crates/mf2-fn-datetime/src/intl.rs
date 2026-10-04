@@ -1,4 +1,4 @@
-//! The `web-intl` backend in the browser (`plans/03-runtime.md` §5.1):
+//! The `web-intl` backend in the browser:
 //! the plan goes to the host's date formatter, `Host::format_date_time` —
 //! `mf2-host-web`'s `Intl.DateTimeFormat` — as a `DateTimeRequest`
 //! ([`Plan::request`]), so the wasm carries no date-formatting code and the

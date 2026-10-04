@@ -1,5 +1,5 @@
 //! CLDR's message-like patterns (`{0} km`, `{0} {1}`, `{0}/{1}`) → the
-//! template parts of `plans/02-catalog-format.md` §4.6. Each placeholder
+//! template parts of a measure entry. Each placeholder
 //! occurs at most once; a pattern may have none (`ar` writes some dual
 //! forms with the number in the word); any other brace, and a control
 //! character, is refused, so a CLDR update that uses one is noticed.

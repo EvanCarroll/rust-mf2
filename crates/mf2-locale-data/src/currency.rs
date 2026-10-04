@@ -1,5 +1,5 @@
-//! Currency data (`plans/05-tooling.md` §7, `plans/02-catalog-format.md`
-//! §4.6): the shipped all-locale table (`data/currencies.txt`), resolved
+//! Currency data: the shipped all-locale table (`data/currencies.txt`),
+//! resolved
 //! through the parent chain of `data/numbers.txt` and CLDR's fallbacks, and
 //! the `currency.data` LOCALE entry built from it.
 //!

@@ -1,5 +1,5 @@
-//! Client view of the `unit.data` LOCALE entry, v1
-//! (`plans/02-catalog-format.md` §4.7): the configured units' patterns per
+//! Client view of the `unit.data` LOCALE entry, v1:
+//! the configured units' patterns per
 //! width and plural category, their per-unit patterns and (optionally)
 //! display names, and the locale's `per` compound pattern — what `:unit`
 //! formats with.

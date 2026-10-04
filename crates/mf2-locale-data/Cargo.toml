@@ -13,8 +13,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-locale-data"
 keywords = ["messageformat", "mf2", "i18n", "cldr", "locale"]
 categories = ["internationalization", "localization"]
-# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
-# A4): the drift test regenerates `data/` from `third_party/cldr-json`.
+# Left out of the package, run in the workspace:
+# the drift test regenerates `data/` from `third_party/cldr-json`.
 exclude = [
     "tests/table.rs",
     # Its own file list (`cargo xtask package`).
@@ -26,7 +26,7 @@ exclude = [
 # all-locale number, currency and unit tables, the `cargo xtask cldr-sync`
 # cache (`cargo xtask locale-data`; the drift tests).
 extract = ["dep:serde_json"]
-# `icu-blob`: the `icu.blob` LOCALE entry of the `icu` date formatters (plans/11 A6),
+# `icu-blob`: the `icu.blob` LOCALE entry of the `icu` date formatters,
 # recorded from mf2-fn-datetime's own ICU4X backend over ICU4X's baked CLDR
 # data (the `icu_*_data` crates; nothing downloaded).
 icu-blob = [
@@ -75,7 +75,7 @@ icu_provider = { workspace = true, optional = true }
 icu_provider_export = { workspace = true, optional = true }
 icu_time = { workspace = true, optional = true }
 icu_time_data = { workspace = true, optional = true }
-# `writer`: the LOCALE entry encoders (plans/02-catalog-format.md §4).
+# `writer`: the LOCALE entry encoders.
 mf2-catalog = { workspace = true, features = ["writer"] }
 # `icu-blob`: the backend whose requests the blob records.
 mf2-fn-datetime = { workspace = true, optional = true }
@@ -90,10 +90,10 @@ zerotrie = { workspace = true, optional = true }
 zerovec = { workspace = true, optional = true }
 
 [dev-dependencies]
-# The client evaluator the CLDR samples test (plans/10 A6).
+# The client evaluator the CLDR samples test.
 mf2-runtime.workspace = true
 serde_json.workspace = true
-# B8 (plans/06-size-and-perf.md §3): gzip -9 of the LOCALE entries.
+# B8: gzip -9 of the LOCALE entries.
 flate2.workspace = true
 # The slicing rule on parsed messages (`NumberNeeds::add_message`).
 mf2-syntax.workspace = true

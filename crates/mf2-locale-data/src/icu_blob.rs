@@ -1,5 +1,5 @@
-//! The `icu.blob` LOCALE entry (`plans/02-catalog-format.md` §4.9, key 48;
-//! `plans/11` A6): per locale, an ICU4X postcard data blob holding exactly
+//! The `icu.blob` LOCALE entry (key 48):
+//! per locale, an ICU4X postcard data blob holding exactly
 //! what `mf2-fn-datetime`'s `icu` date formatter requests for what the
 //! corpus formats.
 //!
@@ -7,7 +7,7 @@
 //! — the same construction code that formats — builds the formatter of
 //! every shape the corpus can format ([`DateNeeds`]: the date and time
 //! parts, zone styles, `hour12` values and calendars its expressions and
-//! literal options give, `plans/02-catalog-format.md` §4.4) through a
+//! literal options give) through a
 //! *recording* buffer provider: each request is answered from ICU4X's
 //! compiled data (the `icu_*_data` crates' baked CLDR 48 tables — nothing is
 //! downloaded, as in P0.6's `blobgen`) and remembered, and the blob is
@@ -370,7 +370,7 @@ impl Shape {
 }
 
 /// What a corpus formats with the date functions: the slicing rule of
-/// `icu.blob` (`plans/02-catalog-format.md` §4.4), decided by the build
+/// `icu.blob`, decided by the build
 /// from the expressions and literal options the corpus uses
 /// ([`DateNeeds::add_message`]). Build one with `default()` (nothing) or
 /// [`DateNeeds::all`], and add.

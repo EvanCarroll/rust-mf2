@@ -1,5 +1,4 @@
-//! Plural rules (`plans/05-tooling.md` §7, `plans/02-catalog-format.md`
-//! §4.1): the UTS #35 parser, the canonical encoder, and the shipped
+//! Plural rules: the UTS #35 parser, the canonical encoder, and the shipped
 //! all-locale table with CLDR's lookup (subtag truncation, then root).
 
 mod encode;

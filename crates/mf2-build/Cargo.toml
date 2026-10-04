@@ -13,8 +13,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-build"
 keywords = ["messageformat", "mf2", "i18n", "build", "codegen"]
 categories = ["internationalization", "localization", "development-tools::build-utils"]
-# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
-# A4): these tests build their corpora with `workload-gen`, which is not
+# Left out of the package, run in the workspace:
+# these tests build their corpora with `workload-gen`, which is not
 # published (a path-only dev-dependency, stripped from the package).
 exclude = [
     "tests/common/",
@@ -31,7 +31,7 @@ exclude = [
 
 [features]
 # The per-locale `icu.blob` of the `icu` date formatters; pulls ICU4X's baked
-# data crates into the build (plans/12 "What Phase 4 changes here").
+# data crates into the build.
 icu-blob = ["mf2-locale-data/icu-blob"]
 # The `icu.blob` entry keys live in the catalog format module.
 

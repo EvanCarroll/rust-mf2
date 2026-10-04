@@ -1,5 +1,5 @@
-//! The canonical encoder of `currency.data` (feature `writer`;
-//! `plans/02-catalog-format.md` §4.6). [`crate::currency`] reads it.
+//! The canonical encoder of `currency.data` (feature `writer`).
+//! [`crate::currency`] reads it.
 
 use alloc::vec::Vec;
 

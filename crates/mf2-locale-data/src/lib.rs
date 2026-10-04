@@ -95,8 +95,8 @@ pub const CLDR_VERSION: CldrVersion = CldrVersion {
 };
 
 /// Everything a corpus needs of its locale's data: plural rules of each
-/// kind it selects on, and number data ([`NumberNeeds`]). The slicing rule
-/// is `plans/02-catalog-format.md` §4.4. Build one with `default()` and set
+/// kind it selects on, and number data ([`NumberNeeds`]).
+/// Build one with `default()` and set
 /// fields.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]

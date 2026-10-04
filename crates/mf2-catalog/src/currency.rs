@@ -1,5 +1,5 @@
-//! Client view of the `currency.data` LOCALE entry, v1
-//! (`plans/02-catalog-format.md` §4.6): the configured currencies'
+//! Client view of the `currency.data` LOCALE entry, v1:
+//! the configured currencies'
 //! symbols, names and fraction digits, and the locale's name patterns —
 //! what `:currency` formats with.
 //!
@@ -43,7 +43,7 @@ const INDEX_STRIDE: usize = 7;
 /// `[[:^S:]&[:^Z:]]` — neither a symbol nor a separator: a letter, a digit,
 /// punctuation. Where the symbol touches the number with such a character,
 /// `:currency` uses the pattern's `…-alpha` style and CLDR's currency
-/// spacing inserts U+00A0 (`plans/02-catalog-format.md` §4.3, §4.6).
+/// spacing inserts U+00A0.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct Edges {
     /// The first scalar: it touches the number when the symbol follows it

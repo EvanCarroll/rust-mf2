@@ -1,4 +1,4 @@
-//! The manifest (`plans/05-tooling.md` §3): what the wasm and every catalog
+//! The manifest: what the wasm and every catalog
 //! agree on.
 //!
 //! It is derived from the **source locale** — ids numbered densely in
@@ -56,7 +56,7 @@ pub fn build(
     };
     let mut source_records = Vec::with_capacity(by_id.len());
     // A `BTreeMap<&str, _>` is already in bytewise ascending order, which is
-    // `MsgId` order (plans/02 §3).
+    // `MsgId` order.
     for (id, &record) in by_id {
         let (slots, markup) = match models.get(record).and_then(Option::as_ref) {
             Some(model) => {

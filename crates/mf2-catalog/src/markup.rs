@@ -1,5 +1,4 @@
-//! The key a call site's markup handler is found by
-//! (`plans/04-leptos-integration.md` §2.1).
+//! The key a call site's markup handler is found by.
 //!
 //! A rich call site carries `(key, handler)` pairs, not names: the macro
 //! hashes each markup name at compile time, the renderer hashes the name the
@@ -8,8 +7,8 @@
 //! (B6). It lives here because both sides — `mf2-macros` and the `mf2`
 //! facade — already depend on this crate, and neither depends on the other.
 
-/// FNV-1a 64 over the name's UTF-8 bytes — the manifest hash's function
-/// (`plans/02-catalog-format.md` §3), over a single name.
+/// FNV-1a 64 over the name's UTF-8 bytes — the manifest hash's function,
+/// over a single name.
 ///
 /// Names are NFC on both sides: the manifest's are normalized by the build,
 /// and a part's name comes from a catalog the same build wrote.

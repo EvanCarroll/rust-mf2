@@ -307,7 +307,7 @@ fn the_manifest_hash_ignores_a_translation_edit() {
 
 #[test]
 fn the_catalogs_can_be_emitted_apart_from_the_module() {
-    // Owner question 1 of plans/12: with the two apart, a translation edit
+    // An owner decision: with the two apart, a translation edit
     // leaves the i18n crate's generated module byte for byte the same, so
     // cargo has nothing to recompile in the client build.
     let root = corpus(
@@ -484,8 +484,8 @@ fn a_stray_directory_is_not_a_locale() {
 }
 
 /// Stripping COLD drops the original spelling of a name whose written form is
-/// not its NFC form; keeping COLD preserves it (F1,
-/// `plans/02-catalog-format.md` §2.3). Both directions, because the suite has
+/// not its NFC form; keeping COLD preserves it (F1).
+/// Both directions, because the suite has
 /// no such name and the `pipeline` fuzz target asserted the wrong one until
 /// it found `{:a\u{F9E7}b}` — U+F9E7 is a CJK compatibility ideograph whose
 /// NFC form is U+88CF.

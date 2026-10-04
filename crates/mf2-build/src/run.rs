@@ -1,5 +1,5 @@
 //! [`run`]: the whole build script of the crate that includes the generated
-//! module (plans/19-native-and-terminal.md §11).
+//! module.
 //!
 //! `mf2` has `links = "mf2-v3"` and a build script that prints its features,
 //! its target and its version; cargo hands them to the build script of each

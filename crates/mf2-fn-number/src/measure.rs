@@ -1,5 +1,5 @@
-//! `:currency` and `:unit` (`functions/number.md`; `plans/03-runtime.md`
-//! §2.7, §5): the runtime's numeric core resolves the number
+//! `:currency` and `:unit` (`functions/number.md`):
+//! the runtime's numeric core resolves the number
 //! (`NumberSpec::currency`, `NumberSpec::UNIT`), this module the currency or
 //! unit and the options only these functions have, into a `Measure`; the
 //! catalog's `currency.data` / `unit.data` entries (02 §4.6–§4.7) and the

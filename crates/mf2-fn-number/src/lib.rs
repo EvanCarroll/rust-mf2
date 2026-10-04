@@ -186,8 +186,8 @@ impl core::fmt::Debug for NumberFunction {
 
 /// Unannotated numbers — integer, float and decimal arguments — as their
 /// exact value (no rounding) with the locale's symbols, grouping (`auto`)
-/// and digits: the handler of `Registry::with_numbers` (`plans/03-runtime.md`
-/// §2.7). The evaluator checks the value first (a non-finite float is a
+/// and digits: the handler of `Registry::with_numbers`.
+/// The evaluator checks the value first (a non-finite float is a
 /// Bad Operand, as without this handler).
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Unannotated;

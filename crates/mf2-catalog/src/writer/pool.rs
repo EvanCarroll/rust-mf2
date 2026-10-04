@@ -1,4 +1,4 @@
-//! The STRINGS pool (`plans/02-catalog-format.md` §2.9): every distinct
+//! The STRINGS pool: every distinct
 //! string once, identifiers first, then text, each group sorted bytewise,
 //! each string NUL-terminated.
 //!

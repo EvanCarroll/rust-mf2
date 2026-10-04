@@ -31,19 +31,17 @@ use crate::manifest;
 use crate::report::{Report, Sink};
 use crate::slice;
 
-/// The manifest's file name in `OUT_DIR` (`plans/02-catalog-format.md` §5).
+/// The manifest's file name in `OUT_DIR`.
 pub(crate) const MANIFEST_FILE: &str = "manifest.mf2m";
 /// The generated module's file name in `OUT_DIR`.
 pub(crate) const GENERATED_FILE: &str = "mf2_generated.rs";
 /// The catalog table's file name, when the two are emitted apart.
 pub(crate) const CATALOGS_FILE: &str = "mf2_catalogs.rs";
 /// The catalog index's file name in a published site ([`Outcome::publish`]):
-/// what a client-only application reads to learn each locale's hashed URL
-/// (`plans/04-leptos-integration.md` §8).
+/// what a client-only application reads to learn each locale's hashed URL.
 pub(crate) const INDEX_FILE: &str = "index.json";
 
-/// What a build writes (`plans/05-tooling.md` §4; owner question 1 of
-/// `plans/12-phase-5a-work-order.md`).
+/// What a build writes (an owner decision).
 ///
 /// Every locale change rewrites a catalog, and a catalog is named by its
 /// content hash, so a build that writes both puts a new name in the
@@ -90,7 +88,7 @@ pub struct Build {
     emit_cargo: bool,
     inline_manifest: bool,
     /// How a web server's catalogs are compressed: at a fast level in a
-    /// debug build's script (plans/19 §11), else at the best.
+    /// debug build's script, else at the best.
     compress: catalog::Compress,
 }
 
@@ -365,7 +363,7 @@ impl Build {
     }
 
     /// Bakes the manifest's **bytes** into the `tr!` wrapper instead of its
-    /// path (`plans/05-tooling.md` §4): every expansion is then independent
+    /// path: every expansion is then independent
     /// of where the target directory lives, which is what remote execution
     /// and a relocated CI cache need. It costs macro time and manifest size
     /// × call sites in the generated module, so it is opt-in (P0.9:
@@ -629,8 +627,8 @@ impl Build {
 
         let unannotated = catalogs.iter().any(|c| c.slice.unannotated);
         let manifest_bytes = built.manifest.write();
-        // The part of CLDR's language-matching data these locales need
-        // (plans/19-native-and-terminal.md §9): all a browser's client
+        // The part of CLDR's language-matching data these locales need:
+        // all a browser's client
         // carries of it. It depends on the tags alone, so a translation
         // edit leaves it, and the module, as they are.
         let tags: Vec<&str> = locales.iter().map(|l| l.tag.as_str()).collect();
@@ -798,7 +796,7 @@ fn definitions(
 }
 
 /// An id a translation has and the source locale does not would be dropped
-/// without a word, so it is an error (`plans/05-tooling.md` §5).
+/// without a word, so it is an error.
 fn ids_of_translations(
     sources: &[LocaleSource],
     indexes: &[BTreeMap<&str, usize>],

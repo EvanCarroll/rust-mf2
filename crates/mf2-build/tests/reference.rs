@@ -1,7 +1,7 @@
 //! The user guide's reference pages (Phase 10 F2): every lint, every
 //! `mf2.toml` key and every feature of `mf2` has a section of its own, and
-//! nothing documented there has gone. `plans/04-leptos-integration.md` §11
-//! took the idea from the audit of `leptos-fluent`: a test that every
+//! nothing documented there has gone. The idea
+//! came from an audit of `leptos-fluent`: a test that every
 //! configuration option has a section in the docs.
 //!
 //! The keys are read from the configuration's own deserializer (its "unknown

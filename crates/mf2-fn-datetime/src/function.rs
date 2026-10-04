@@ -98,8 +98,8 @@ fn parts<'a>(kind: Kind, own: &Own<'a>) -> DateTimeOptions<'a> {
     o
 }
 
-/// Build side (`mf2-locale-data`'s `icu.blob` slicing, `plans/02-catalog-format.md`
-/// §4.4): what an expression of `function` — `datetime`, `date` or `time`
+/// Build side (`mf2-locale-data`'s `icu.blob` slicing):
+/// what an expression of `function` — `datetime`, `date` or `time`
 /// — shows, from its literal options: `literal(name)` is
 /// the literal value of the option `name`, `None` when the expression has
 /// none or sets it by a variable. The result has the date and time parts

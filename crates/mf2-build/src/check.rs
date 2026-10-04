@@ -1,4 +1,4 @@
-//! `mf2 check` (`plans/05-tooling.md` §5): every lint, on the parsed corpus.
+//! `mf2 check`: every lint, on the parsed corpus.
 //!
 //! The checks run on models, never on text, so a lint says what is wrong with
 //! the *message* — and every one of them is placed in the file it came from,
@@ -716,8 +716,7 @@ fn plural_kinds_used(select: &mf2_model::SelectMessage<'_>) -> Vec<PluralKind> {
 
 // ────────────────────────── a translation and its source ─────────────────
 
-/// What a translation may and may not do with the source message's inputs
-/// (`plans/05-tooling.md` §3).
+/// What a translation may and may not do with the source message's inputs.
 fn against_source(
     at: &mut At<'_, '_>,
     corpus: &Corpus<'_>,
@@ -997,8 +996,8 @@ pub fn coverage_of(corpus: &Corpus<'_>, locale: usize) -> Coverage {
 }
 
 /// How many of the corpus's messages a locale is missing, once per locale,
-/// naming the first few (`plans/05-tooling.md` §5: "reported with counts
-/// per locale").
+/// naming the first few (reported with counts
+/// per locale).
 fn coverage(sink: &mut Sink<'_>, corpus: &Corpus<'_>, locale: usize, config: &Config) {
     if locale == corpus.source_index {
         return;
@@ -1060,7 +1059,7 @@ fn first_ids(ids: &[&str]) -> String {
 }
 
 /// An id no `tr!` in the application's sources names
-/// (`plans/05-tooling.md` §5), reported where `defined` says the source
+/// reported where `defined` says the source
 /// locale defines it, else at `where_looked`.
 ///
 /// A plain text scan, deliberately: a call site may build its id in a macro

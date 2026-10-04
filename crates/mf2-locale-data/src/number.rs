@@ -1,5 +1,5 @@
-//! Number data (`plans/05-tooling.md` §7, `plans/02-catalog-format.md`
-//! §4.2–§4.4): the shipped all-locale table (`data/numbers.txt`), CLDR's
+//! Number data: the shipped all-locale table (`data/numbers.txt`),
+//! CLDR's
 //! locale resolution for it, and the `number.symbols` / `number.patterns`
 //! LOCALE entries of a catalog, sliced to what its corpus needs.
 //!
@@ -40,8 +40,7 @@ fn table() -> Result<&'static Table<'static>, Error> {
 }
 
 /// A configured set of currency codes, unit identifiers or calendars
-/// (`mf2.toml` `[locale_data] currencies` / `units` / `calendars`,
-/// `plans/02-catalog-format.md` §4.4).
+/// (`mf2.toml` `[locale_data] currencies` / `units` / `calendars`).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Selection {
     /// These (the corpus's literal values by default, plus any listed in
@@ -66,8 +65,8 @@ impl Selection {
     }
 }
 
-/// What a corpus needs of its locale's number data: the slicing rule of
-/// `plans/02-catalog-format.md` §4.4, decided by the build from the functions
+/// What a corpus needs of its locale's number data: the slicing rule,
+/// decided by the build from the functions
 /// and literal options the corpus uses ([`NumberNeeds::add_message`]). Build
 /// one with `default()` and set fields.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]

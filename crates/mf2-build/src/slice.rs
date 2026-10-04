@@ -1,5 +1,4 @@
-//! Locale data, sliced to what a corpus uses (`plans/02-catalog-format.md`
-//! §4.4).
+//! Locale data, sliced to what a corpus uses.
 //!
 //! `mf2::compile_str` does this for one message; here it is the union over a
 //! locale's *flattened* message set — after fallback, because a translation
@@ -205,7 +204,7 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
 /// Which plural rule sets a message's selectors need.
 ///
 /// A selector takes its function from the declaration that binds it; the
-/// `select` option says which rules apply (`plans/03-runtime.md` §4). An
+/// `select` option says which rules apply. An
 /// option value that is not a literal could be either, so it is both.
 pub(crate) fn plural_kinds(message: &Message<'_>) -> (bool, bool) {
     match message {

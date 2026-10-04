@@ -1,5 +1,5 @@
-//! The ICU4X backend (`std-icu` natively, `web-icu` in the browser;
-//! `plans/03-runtime.md` §5.1–§5.2): a [`Plan`] becomes an
+//! The ICU4X backend (`std-icu` natively, `web-icu` in the browser):
+//! a [`Plan`] becomes an
 //! ICU4X semantic skeleton built at runtime (`FieldSetBuilder`), formatted
 //! by `icu_datetime` with the plan's wall time and zone.
 //!

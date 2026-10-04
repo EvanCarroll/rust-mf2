@@ -1,4 +1,4 @@
-//! The client feature set (`plans/05-tooling.md` §3.1).
+//! The client feature set.
 //!
 //! Features belong to the **application**, declared once on its i18n crate
 //! and applied to its server and its wasm build alike, so SSR output always
@@ -173,7 +173,7 @@ impl DateFormatter {
 
 /// A built-in function and the feature it needs.
 ///
-/// `plans/00-master-plan.md` §5: a function that exists only behind a feature
+/// A function that exists only behind a feature
 /// and is used while that feature is off is a **build error** naming the file
 /// and the line.
 pub const BUILTINS: [(&str, Option<&str>); 10] = [
@@ -357,7 +357,7 @@ impl Features {
     ///
     /// Cargo spells a feature `some-feature` as `CARGO_FEATURE_SOME_FEATURE`,
     /// so a feature whose name already holds `_` comes back with `-`. None of
-    /// the facade's features does (`plans/00-master-plan.md` §5).
+    /// the facade's features does.
     pub fn from_env() -> Features {
         Features::from_vars(std::env::vars())
     }

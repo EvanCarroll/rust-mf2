@@ -1,11 +1,11 @@
-//! Linear time on adversarial catalogs (A7; `plans/09-phase-2-work-order.md`,
-//! "Linear time everywhere"): `Catalog::new` walks each section once; the
+//! Linear time on adversarial catalogs (A7):
+//! `Catalog::new` walks each section once; the
 //! views, the decoder and `lookup` are linear in the bytes they touch; the
 //! writer's deduplication is sorted.
 //!
 //! Every case is built twice, at a scale `n` and at `4n` (the larger one
 //! 100–300 KB; 650 KB for 65,534 section-table entries) — with the writer
-//! where it can express the shape, by hand (`plans/02-catalog-format.md` §2)
+//! where it can express the shape, by hand
 //! where it cannot — and then loaded, walked completely (every declaration,
 //! part, expression, option, markup, selector, variant and key; `text` on
 //! every string; every variable through NAMES and every function through
@@ -412,7 +412,7 @@ fn planes(entries: &[u32]) -> Vec<u8> {
     out
 }
 
-/// A hand-built catalog (`plans/02-catalog-format.md` §2.4): header, section
+/// A hand-built catalog: header, section
 /// table, sections in the order given (STRINGS must be last), manifest hash
 /// [`RAW_HASH`], locale at `StrRef` 0.
 fn raw(count: usize, sections: &[(u16, Vec<u8>)]) -> Vec<u8> {
@@ -910,7 +910,7 @@ fn runaway_records(n: usize) -> Case {
 /// selector or variant count — can run on through the records after it;
 /// walking *every* message of such a catalog is O(messages × MESSAGES)
 /// (1,000 → 2,000 → 4,000 records: 0.6 → 2.5 → 9.7 s in a debug build). The
-/// format accepts that (`plans/02-catalog-format.md` §2, "Cost bounds"): a
+/// format accepts that: a
 /// length per record would not bound strings, which F4 checks per access.
 /// What it guarantees, and this test holds: **one** message's walk is linear
 /// in the catalog, however far it runs.

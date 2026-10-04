@@ -16,8 +16,8 @@ use mf2_build::{Build, Config, Features, catalog};
 use mf2_catalog::format::locale_key;
 use mf2_locale_data::number::NumberNeeds;
 
-/// The 11 locales `third_party/cldr-json` vendors in full
-/// (`plans/11-phase-4-work-order.md`), which is what B8 is stated over.
+/// The 11 locales `third_party/cldr-json` vendors in full,
+/// which is what B8 is stated over.
 const PANEL: [&str; 11] = [
     "en", "es", "de", "fr", "ar", "he", "ja", "hi", "ru", "pl", "cy",
 ];
@@ -266,8 +266,7 @@ fn a_select_from_a_variable_carries_both_rule_sets() {
     assert!(keys.contains(&locale_key::PLURAL_ORDINAL), "{keys:?}");
 }
 
-/// Budget B8: plural + number symbols ≤ 0.5 KB gz per locale
-/// (`plans/06-size-and-perf.md` §3).
+/// Budget B8: plural + number symbols ≤ 0.5 KB gz per locale.
 #[test]
 fn b8_plural_and_number_symbols_stay_under_half_a_kilobyte() {
     const LIMIT: usize = 512;

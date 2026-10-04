@@ -1,5 +1,5 @@
-//! Client views of the number LOCALE entries (`plans/02-catalog-format.md`
-//! §4.2, §4.3): [`Symbols`] over `number.symbols` and [`Patterns`] over
+//! Client views of the number LOCALE entries: [`Symbols`] over
+//! `number.symbols` and [`Patterns`] over
 //! `number.patterns`, version 1 each — what `mf2-fn-number` formats with.
 //!
 //! Client-path code: borrowing, allocation-free, panic-free, fmt-free. A
@@ -601,7 +601,7 @@ pub(crate) const T_ARG1: u8 = 0x02;
 
 /// A CLDR message-like pattern (`{0} km`, `{0} {1}`, `{0}/{1}`), stored as
 /// UTF-8 in which the byte 0x01 stands for `{0}` and 0x02 for `{1}`; no other
-/// byte below 0x20 occurs (`plans/02-catalog-format.md` §4.6). A template may
+/// byte below 0x20 occurs. A template may
 /// have no placeholder at all: CLDR writes some `one`/`two` unit forms with
 /// the number in the word (`ar` `دورتان`, two revolutions).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

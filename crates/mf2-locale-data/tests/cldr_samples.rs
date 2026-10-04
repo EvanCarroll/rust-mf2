@@ -3,7 +3,7 @@
 //! evaluator** (`mf2_runtime::plural_category`), cross-checked against an
 //! independent reference evaluator (exact rational arithmetic over the parsed
 //! rules), and exclusive: each sample is claimed by exactly its own category.
-//! P0.4's threshold: 15,041 / 15,041 (plans/10 A6).
+//! P0.4's threshold: 15,041 / 15,041.
 
 use std::collections::BTreeSet;
 

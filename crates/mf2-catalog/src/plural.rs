@@ -1,5 +1,5 @@
-//! Structural check of a `plural.cardinal` / `plural.ordinal` LOCALE entry
-//! (`plans/02-catalog-format.md` §4.1), done once by `Catalog::new` (F4).
+//! Structural check of a `plural.cardinal` / `plural.ordinal` LOCALE entry,
+//! done once by `Catalog::new` (F4).
 //! The evaluator (Phase 3) still answers `other` on malformed data; this walk
 //! only guarantees that a loaded catalog has none.
 

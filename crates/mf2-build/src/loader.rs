@@ -1,4 +1,4 @@
-//! Loaders: a locale's files to records (`plans/05-tooling.md` §2).
+//! Loaders: a locale's files to records.
 //!
 //! `mf2-build` never sees a container. It asks a [`Loader`] for records —
 //! id, source, spans, comment, properties, file — so a change to the W3C

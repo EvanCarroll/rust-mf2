@@ -154,7 +154,7 @@ fn committed_table_matches_the_vendored_cldr() {
         fresh == committed,
         "data/directions.txt is stale: run `cargo xtask locale-data`"
     );
-    // Language matching (plans/19-native-and-terminal.md §9): the table the
+    // Language matching: the table the
     // build cuts, and the whole of it as `mf2` carries it.
     let fresh = mf2_locale_data::extract::matching_table(
         &read("likelySubtags.json"),

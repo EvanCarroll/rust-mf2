@@ -1,5 +1,5 @@
-//! Unit data (`plans/05-tooling.md` §7, `plans/02-catalog-format.md`
-//! §4.7): the shipped all-locale table (`data/units.txt`), resolved through
+//! Unit data: the shipped all-locale table (`data/units.txt`),
+//! resolved through
 //! the parent chain of `data/numbers.txt` and CLDR's fallback (a missing
 //! plural form is `other`'s), and the `unit.data` LOCALE entry.
 //!

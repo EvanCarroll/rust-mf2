@@ -1,4 +1,4 @@
-//! The lints of `mf2 check` (`plans/05-tooling.md` §5): their names, their
+//! The lints of `mf2 check`: their names, their
 //! default levels, and how low `mf2.toml` may set each one.
 //!
 //! The checks themselves are in [`crate::check`]; this module is what
@@ -112,7 +112,7 @@ lints! {
     /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
     /// a date formatter on every side the build formats on (`plan/08` §3.3;
     /// `datetime` alone is none). A translation can never silently add
-    /// formatting code to the wasm (`plans/03-runtime.md` §5.1). For a date
+    /// formatting code to the wasm. For a date
     /// function the message names the features to write, the date families
     /// of the frameworks that are on, and what each formatter costs.
     GatedFunction = ("gated-function", Error, Error);
@@ -169,8 +169,7 @@ lints! {
     SuspiciousBidi = ("suspicious-bidi", Warn, Allow);
     /// A `:currency` whose `currency` option is not a literal, so the catalog
     /// must carry every currency CLDR has; listing the codes it can hold in
-    /// `mf2.toml` `[locale_data]` carries only those and silences this
-    /// (`plans/02-catalog-format.md` §4.4).
+    /// `mf2.toml` `[locale_data]` carries only those and silences this.
     DynamicCurrency = ("dynamic-currency", Warn, Allow);
     /// The same for `:unit`.
     DynamicUnit = ("dynamic-unit", Warn, Allow);

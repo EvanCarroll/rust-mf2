@@ -21,7 +21,7 @@ use crate::view::{MsgView, Names};
 /// An opaque reference to a catalog string; [`Catalog::text`] resolves it.
 ///
 /// Nothing outside this crate may assume what it holds (a seam kept for
-/// catalog text as JS strings, `plans/stretch_goals_after_v1`).
+/// catalog text as JS strings).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct StrRef(pub(crate) u32);
 

@@ -62,7 +62,7 @@ pub enum CatalogError {
     Strings,
 }
 
-/// Why the writer refused a catalog (`plans/02-catalog-format.md` §2.9).
+/// Why the writer refused a catalog.
 #[cfg(feature = "writer")]
 #[derive(Clone, PartialEq, Eq, Debug, Error)]
 #[non_exhaustive]

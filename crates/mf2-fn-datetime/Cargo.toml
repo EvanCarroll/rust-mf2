@@ -27,8 +27,8 @@ exclude = [
 # and the other side's features change nothing in it. `mf2`'s date families
 # turn these on; with none, the handlers format through the stub.
 #
-# `std-icu`: natively, ICU4X over the catalog's `icu.blob` LOCALE entry
-# (plans/02 §4). ICU4X is compiled into a native build only with this.
+# `std-icu`: natively, ICU4X over the catalog's `icu.blob` LOCALE entry.
+# ICU4X is compiled into a native build only with this.
 std-icu = [
     "dep:mf2-catalog",
     "dep:icu_calendar",
@@ -98,8 +98,7 @@ writeable = { workspace = true, optional = true }
 # Path-only, not the workspace's `=3.0.0`: `mf2` depends on this crate, so
 # a versioned dev-dependency on it is a cycle `cargo package` cannot
 # resolve. Cargo strips a path-only dev-dependency from the package, and
-# the tests that use `mf2` stay in the workspace (`exclude` above;
-# plans/17-phase-9-work-order.md A4).
+# the tests that use `mf2` stay in the workspace (`exclude` above).
 mf2 = { path = "../mf2", features = ["compile", "host-std", "host-std-datetime-icu"] }
 # A catalog written without its `icu.blob` (tests/icu.rs).
 mf2-catalog = { workspace = true, features = ["writer"] }

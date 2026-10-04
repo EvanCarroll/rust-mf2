@@ -131,7 +131,7 @@ impl<'a> Cur<'a> {
 }
 
 /// A minimal unsigned LEB128 of at most 10 bytes whose value fits `u64`
-/// (the plural entries of LOCALE, `plans/02-catalog-format.md` §4.1).
+/// (the plural entries of LOCALE).
 pub(crate) fn varint64(c: &mut Cur<'_>) -> Option<u64> {
     let mut value = 0u64;
     let mut shift = 0u32;

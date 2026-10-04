@@ -1,6 +1,6 @@
 //! The localized handlers on real CLDR 48.2.1 data, through `mf2::compile_str`
-//! (which writes the locale's `number.*` entries): the locale panel of
-//! `plans/01-conformance.md` §5, numbering systems, and tags without data.
+//! (which writes the locale's `number.*` entries): the locale panel,
+//! numbering systems, and tags without data.
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 

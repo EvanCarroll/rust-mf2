@@ -1,5 +1,5 @@
-//! CLDR's language-matching data, build side (plans/19-native-and-terminal.md
-//! §9; the master plan's D21): likely subtags (UTS #35 Part 1 §4.3), and the
+//! CLDR's language-matching data, build side:
+//! likely subtags (UTS #35 Part 1 §4.3), and the
 //! rules, match variables and paradigm locales of language matching (§4.4),
 //! shipped as `data/matching.txt` (`cargo xtask locale-data`, from the
 //! vendored `likelySubtags.json`, `languageMatching.json` and
@@ -481,8 +481,7 @@ impl Matching {
              // whole of CLDR's language-matching data, packed as `super::LanguageMatching` reads it\n\
              // (mf2-locale-data's `data/matching.txt`, `Matching::encode`). Do not edit.\n\
              \n\
-             /// CLDR's whole table: what a server and a native application match with\n\
-             /// (plans/19-native-and-terminal.md §9).\n\
+             /// CLDR's whole table: what a server and a native application match against.\n\
              pub(super) static CLDR: super::LanguageMatching = {table};\n",
             cldr = self.cldr
         ))

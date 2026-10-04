@@ -1,4 +1,4 @@
-//! `mf2.toml` (`plans/05-tooling.md` §3.1): the one place a corpus is
+//! `mf2.toml`: the one place a corpus is
 //! configured, read by `build.rs` through [`crate::Build`] and by `mf2-cli`,
 //! so the two always agree.
 //!
@@ -87,8 +87,7 @@ impl Default for Config {
 #[serde(deny_unknown_fields, default)]
 #[non_exhaustive]
 pub struct CatalogConfig {
-    /// Sections to leave out of the catalogs (`plans/02-catalog-format.md`
-    /// §2.3).
+    /// Sections to leave out of the catalogs.
     pub strip: BTreeSet<Strip>,
     /// What a locale that lacks a message gets.
     pub missing: Missing,

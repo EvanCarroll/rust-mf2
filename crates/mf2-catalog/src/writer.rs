@@ -4,7 +4,7 @@
 //! what conformance L3/L4, `mf2::compile_str` and the CLI use.
 //!
 //! Output is deterministic (F8): it depends only on the inputs. The byte
-//! format and the writer policies are `plans/02-catalog-format.md` §2.
+//! format and the writer policies are this module's code.
 
 pub mod currency;
 mod encode;

@@ -3,7 +3,7 @@
 //!
 //! It walks the same views the runtime walks, so reader and decoder cannot
 //! disagree on the grammar, and applies the message's COLD record
-//! (`plans/02-catalog-format.md` §2.5) site by site. With COLD stripped it
+//! site by site. With COLD stripped it
 //! gives the formatting-relevant model — names and keys in NFC, no
 //! attributes, no catch-all values — and says so ([`Decoded::cold_dropped`]).
 //! Linear in the bytes it reads; strings are borrowed from the catalog.

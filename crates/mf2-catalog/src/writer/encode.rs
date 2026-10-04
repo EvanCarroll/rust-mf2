@@ -1,5 +1,4 @@
-//! One pattern or select message → its MESSAGES record and its COLD record
-//! (`plans/02-catalog-format.md` §2.2, §2.5).
+//! One pattern or select message → its MESSAGES record and its COLD record.
 //!
 //! The encoder numbers the COLD sites exactly as the decoder does: in the
 //! order their bytes appear in the record. Each site takes its number when

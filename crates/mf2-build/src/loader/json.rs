@@ -1,5 +1,5 @@
 //! The flat JSON loader: `{ "id": "source" }`, the shape every
-//! translation-management system speaks (`plans/05-tooling.md` §2).
+//! translation-management system speaks.
 //!
 //! The reader here is small and strict on purpose. It accepts exactly an
 //! object of strings, and it keeps the byte offset of every key and every

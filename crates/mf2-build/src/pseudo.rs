@@ -1,4 +1,4 @@
-//! Pseudo-locales (`plans/05-tooling.md` §6): `en-XA` and `ar-XB`, as
+//! Pseudo-locales: `en-XA` and `ar-XB`, as
 //! `bench/workload-gen` defines them.
 //!
 //! * **`en-XA`** — `[`, the text accented character for character, padding
@@ -76,8 +76,8 @@ impl Kind {
     pub const ALL: [Kind; 2] = [Kind::Accented, Kind::RightToLeft];
 }
 
-/// The names the build adds for the pseudo-locales among `tags`
-/// (`plans/19-native-and-terminal.md` §10): when a real language has an
+/// The names the build adds for the pseudo-locales among `tags`:
+/// when a real language has an
 /// argument-free `language.<tag>` message, each pseudo-locale without one
 /// gets its id and a message whose text is its tag, in every catalog. So
 /// `Locale::name()` is still generated, and shows `en-XA` for `en-XA`. No

@@ -6,7 +6,7 @@
 //! flattened, COLD and IDS stripped, and the LOCALE entries this corpus
 //! needs.
 //!
-//! B7 (`plans/06-size-and-perf.md` §3) is stated on brotli 11 — the `.br`
+//! B7 is stated on brotli 11 — the `.br`
 //! file the build writes and `mf2::axum` serves:
 //!
 //! * the reference `en`: ≤ 0.91 × 25 KB = 23,296 B;
@@ -37,8 +37,7 @@ fn raw_limit(source_bytes: usize, messages: usize) -> usize {
 }
 
 /// What Phase 2 measured for the same locales, with no locale data in the
-/// catalogs (`plans/phase-2-results.md` §A8, re-stated in
-/// `plans/06-size-and-perf.md` §3).
+/// catalogs.
 const PHASE_2_BR: [(&str, usize); 4] = [
     ("en", 18_072),
     ("pl", 24_137),

@@ -1,4 +1,4 @@
-//! Digits → localized text or sub-parts (`plans/03-runtime.md` §5.1): the
+//! Digits → localized text or sub-parts: the
 //! catalog's `number.symbols` (decimal and group separators, signs, the
 //! percent sign, the numbering system's digits, grouping sizes and minimum
 //! grouping digits) and `number.patterns` (the percent pattern's affixes and

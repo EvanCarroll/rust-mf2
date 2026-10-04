@@ -52,7 +52,7 @@ pub enum ParseError {
     #[error("more than 31 OR groups in one rule")]
     TooManyGroups,
     /// A value beyond the operand contract.
-    #[error("a modulus or value ≥ 10^18 (plans/02-catalog-format.md §4.1 operand contract)")]
+    #[error("a modulus or value ≥ 10^18 (the plural operand contract)")]
     TooLarge,
     /// A malformed `@integer` / `@decimal` sample.
     #[error("bad sample {0:?}")]

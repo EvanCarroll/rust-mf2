@@ -1,6 +1,6 @@
-//! The manifest (`plans/05-tooling.md` §3): what the wasm and every catalog
+//! The manifest: what the wasm and every catalog
 //! agree on — ids, per-message slot names and markup names, the function set
-//! — its hash (`plans/02-catalog-format.md` §3) and its file,
+//! — its hash and its file,
 //! `manifest.mf2m` (§5).
 
 use alloc::string::String;
@@ -99,7 +99,7 @@ impl Manifest {
         }
     }
 
-    /// The canonical serialization (`plans/02-catalog-format.md` §3).
+    /// The canonical serialization.
     pub fn canonical(&self) -> Vec<u8> {
         let mut out = Vec::new();
         self.serialize(&mut out);

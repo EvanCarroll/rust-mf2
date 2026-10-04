@@ -1,4 +1,4 @@
-//! `mf2.toml` (Phase 5a, A3): every key of `plans/05-tooling.md` §3.1 read,
+//! `mf2.toml` (Phase 5a, A3): every key of `mf2.toml` read,
 //! and anything else refused with the key named.
 
 use std::collections::BTreeSet;
@@ -77,7 +77,7 @@ fn the_defaults_are_the_documented_ones() {
     let config = parse("");
     assert_eq!(config, Config::default());
     assert_eq!(config.source_locale, "en");
-    // Production client catalogs, plans/02 §2.3.
+    // Production client catalogs.
     assert!(config.catalog.strip.contains(&Strip::Cold));
     assert!(config.catalog.strip.contains(&Strip::Ids));
     assert_eq!(config.catalog.missing, Missing::Fallback);

@@ -1,9 +1,9 @@
 //! The `currency.data` and `unit.data` LOCALE entries
-//! (`plans/02-catalog-format.md` §4.6–§4.8) built from the shipped tables:
+//! built from the shipped tables:
 //! byte-exact vectors, CLDR's resolution (parents, fallbacks, the
 //! currency-specific pattern and separators), `X-per-Y` composition, the
 //! slicing rule on parsed messages, every locale encoding, and the sizes of
-//! the configured sets against P0.5 (`plans/phase-0-results.md`).
+//! the configured sets against P0.5.
 //!
 //! The size table: `cargo test -p mf2-locale-data --test measure sizes --
 //! --nocapture`.

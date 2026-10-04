@@ -1,8 +1,8 @@
-//! The number LOCALE entries (`plans/02-catalog-format.md` §4.2–§4.5) built
+//! The number LOCALE entries built
 //! from the shipped table: the byte-exact vectors of §4.5, CLDR's locale
 //! resolution, every locale and style encoding to entries the client views
-//! read back, a catalog round trip, and budget B8 (`plans/06-size-and-perf.md`
-//! §3: plural + number symbols ≤ 0.5 KB gz per locale on the panel).
+//! read back, a catalog round trip, and budget B8 (plural +
+//! number symbols ≤ 0.5 KB gz per locale on the panel).
 //!
 //! Run the B8 table with `cargo test -p mf2-locale-data --test numbers b8 --
 //! --nocapture`.

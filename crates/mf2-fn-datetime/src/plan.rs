@@ -1,6 +1,6 @@
 //! The seam between the date semantics and a backend
-//! (`plans/03-runtime.md` §5.2: "a backend only turns an instant plus a
-//! style into text"): a resolved value becomes a [`Plan`] — the wall time to
+//! (a backend only turns an instant plus a
+//! style into text): a resolved value becomes a [`Plan`] — the wall time to
 //! show, the zone it is shown in, the options — and a [`Backend`] writes it.
 
 use mf2_runtime::{
@@ -79,7 +79,7 @@ impl<'p> Plan<'p> {
 /// A date/time backend: turns a [`Plan`] into text. The semantics —
 /// operands, options, errors, zones — are done; a backend only formats.
 /// Implemented by [`crate::Neutral`] (the stub), and by the ICU4X
-/// (`std-icu`, `web-icu`) and `Intl` (`web-intl`) backends behind features (`plans/11` A6).
+/// (`std-icu`, `web-icu`) and `Intl` (`web-intl`) backends behind features.
 ///
 /// Client-path code: no `core::fmt`, no panics, no allocation.
 pub trait Backend: Sync {

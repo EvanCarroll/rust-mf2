@@ -1,5 +1,5 @@
-//! The canonical encoders of the number LOCALE entries (feature `writer`;
-//! `plans/02-catalog-format.md` §4.2, §4.3): [`symbols`] writes a
+//! The canonical encoders of the number LOCALE entries (feature `writer`):
+//! [`symbols`] writes a
 //! `number.symbols` payload, [`patterns`] a `number.patterns` payload. Both
 //! validate their input against the format's limits and give the same bytes
 //! for the same input (F8); [`crate::number`] reads them.

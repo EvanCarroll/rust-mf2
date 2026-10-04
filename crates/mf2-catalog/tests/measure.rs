@@ -1,6 +1,5 @@
-//! `currency.data` and `unit.data`, v1 (`plans/02-catalog-format.md` §4.6,
-//! §4.7): byte-exact encodings of hand-written input, the views' reading of
-//! them (lookups, CLDR's fallbacks, the omitted forms), the writer's
+//! `currency.data` and `unit.data`, v1: byte-exact encodings of hand-written input,
+//! the views' reading of them (lookups, CLDR's fallbacks, the omitted forms), the writer's
 //! refusals, and the views' robustness — every truncation and single-byte
 //! mutation is read without a panic.
 

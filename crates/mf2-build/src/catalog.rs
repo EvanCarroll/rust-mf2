@@ -15,12 +15,12 @@ use crate::error::{Error, Result};
 use crate::features::{DateFormatter, Features, Place, Side};
 use crate::slice::Slice;
 
-/// Brotli as `plans/06-size-and-perf.md` §3 measures B7: quality 11, window
+/// Brotli as budget B7 is measured: quality 11, window
 /// 22 — what a server has on disk and hands to a client that says
 /// `Accept-Encoding: br`.
 const BROTLI_QUALITY: u32 = 11;
 const BROTLI_WINDOW: u32 = 22;
-/// A debug build's brotli (plans/19 §11): on a 197 KB catalog, the brotli
+/// A debug build's brotli: on a 197 KB catalog, the brotli
 /// CLI took 3 % of quality 11's time at quality 5, for 12 % more bytes;
 /// quality 9 took 2.4 times quality 5's, for 3 % fewer.
 const BROTLI_FAST_QUALITY: u32 = 5;
@@ -68,8 +68,7 @@ pub struct Catalog {
 }
 
 impl Catalog {
-    /// `<locale>.<content-hash>.mf2b`, the name the server publishes
-    /// (`plans/02-catalog-format.md` §3).
+    /// `<locale>.<content-hash>.mf2b`, the name the server publishes.
     pub fn file_name(&self) -> String {
         format!("{}.{}.mf2b", self.tag, self.hash)
     }

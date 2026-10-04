@@ -13,8 +13,8 @@ readme = "README.md"
 documentation = "https://docs.rs/mf2-catalog"
 keywords = ["messageformat", "mf2", "i18n", "catalog", "binary"]
 categories = ["internationalization", "localization", "encoding", "no-std", "wasm"]
-# Left out of the package, run in the workspace (plans/17-phase-9-work-order.md
-# A4): these tests read the committed corpora in `bench/corpora/`.
+# Left out of the package, run in the workspace:
+# these tests read the committed corpora in `bench/corpora/`.
 exclude = [
     "tests/manifest.rs",
     "tests/roundtrip.rs",

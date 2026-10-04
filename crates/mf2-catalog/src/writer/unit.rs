@@ -1,5 +1,5 @@
-//! The canonical encoder of `unit.data` (feature `writer`;
-//! `plans/02-catalog-format.md` §4.7). [`crate::unit`] reads it.
+//! The canonical encoder of `unit.data` (feature `writer`).
+//! [`crate::unit`] reads it.
 
 use alloc::vec;
 use alloc::vec::Vec;

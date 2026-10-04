@@ -1,4 +1,4 @@
-//! The ICU4X backend (`std-icu`, plans/11 A6): text from catalogs
+//! The ICU4X backend (`std-icu`): text from catalogs
 //! `mf2::compile_str` built with their `icu.blob`, in every variant (any or
 //! Gregorian-only calendar, with or without zone styles); the blob against
 //! ICU4X's compiled data, which must agree byte for byte (the blob holds
