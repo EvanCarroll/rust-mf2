@@ -441,10 +441,6 @@ impl Function for Iso {
     fn dir(&self, _cx: &FnContext<'_>, _value: &Value<'_>) -> mf2_runtime::Dir {
         mf2_runtime::Dir::Ltr
     }
-
-    fn formats_dates(&self) -> bool {
-        true
-    }
 }
 
 static DATED_FUNCTIONS: [(&str, &dyn Function); 3] =
@@ -505,7 +501,7 @@ fn date_time_arguments() {
 }
 
 /// A registry says which of its functions format dates: the handler's own
-/// mark, nothing else.
+/// mark (its `"datetime"` part kind), nothing else.
 #[test]
 fn date_functions_are_marked() {
     assert!(DATED.is_date_function("iso"));

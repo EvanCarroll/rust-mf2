@@ -115,8 +115,8 @@
 //!   is *Bad Operand*.
 //! * **Unannotated** date/time values are a Bad Operand, with the
 //!   placeholder's fallback: a message writes `{$when :datetime}`
-//!   (`plan/08` §4.3). Every handler here says it formats dates
-//!   (`Function::formats_dates`).
+//!   (`plan/08` §4.3). Every handler's parts are `"datetime"`,
+//!   which marks a date function (`Function::part_kind`).
 //!
 //! Client-path code: `no_std`, `forbid(unsafe_code)`, no `core::fmt` use,
 //! no panicking operation, no allocation —

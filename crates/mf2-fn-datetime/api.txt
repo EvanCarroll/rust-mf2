@@ -73,7 +73,6 @@ impl<B: mf2_fn_datetime::Backend> mf2_runtime::function::Function for mf2_fn_dat
 pub fn mf2_fn_datetime::DateTimeFunction<B>::dir(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> mf2_model::id::Dir
 pub fn mf2_fn_datetime::DateTimeFunction<B>::format(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::Sink)
 pub fn mf2_fn_datetime::DateTimeFunction<B>::format_parts(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>, &mut dyn mf2_runtime::sink::SubPartSink)
-pub fn mf2_fn_datetime::DateTimeFunction<B>::formats_dates(&self) -> bool
 pub fn mf2_fn_datetime::DateTimeFunction<B>::formattable(&self, &mf2_runtime::function::FnContext<'_>, &mf2_runtime::value::Value<'_>) -> core::result::Result<(), mf2_runtime::error::FormatError>
 pub fn mf2_fn_datetime::DateTimeFunction<B>::part_kind(&self) -> &'static str
 pub fn mf2_fn_datetime::DateTimeFunction<B>::resolve<'a>(&self, &mf2_runtime::function::FnContext<'_>, core::option::Option<&mf2_runtime::value::Value<'a>>, &mf2_runtime::function::Options<'_, 'a>, &mut dyn mf2_runtime::sink::ErrorSink) -> core::option::Option<mf2_runtime::value::Value<'a>>

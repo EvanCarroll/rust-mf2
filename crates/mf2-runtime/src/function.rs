@@ -48,7 +48,14 @@ pub trait Function: Sync {
         let _ = (cx, value, out);
     }
 
-    /// The `type` of this handler's expression parts.
+    /// The `type` of this handler's expression parts. A handler whose parts
+    /// are `"datetime"` is a *date function* (`:datetime`, `:date`, `:time`,
+    /// and so may an application's own): a message that calls one is a
+    /// *date message*, which a Leptos client rewrites after hydration when
+    /// the server's date formatter or zone was not its own (`plan/08` §4.3).
+    /// Only a date function formats a date: an unannotated date/time is a
+    /// Bad Operand. The kind is the mark, so no build pays a method of its
+    /// own for it.
     fn part_kind(&self) -> &'static str {
         "string"
     }
@@ -84,16 +91,6 @@ pub trait Function: Sync {
     /// `BetterThan(value, key1, key2)`, for two keys that both match.
     fn better_than(&self, cx: &FnContext<'_>, value: &Value<'_>, key1: &str, key2: &str) -> bool {
         let _ = (cx, value, key1, key2);
-        false
-    }
-
-    /// Whether this handler formats dates (false by default). `:datetime`,
-    /// `:date` and `:time` say yes, and so may an application's own: a
-    /// message that calls one is a *date message*, which a Leptos client
-    /// rewrites after hydration when the server's date formatter or zone
-    /// was not its own (`plan/08` §4.3). Only a date function formats a
-    /// date: an unannotated date/time is a Bad Operand.
-    fn formats_dates(&self) -> bool {
         false
     }
 }
@@ -313,9 +310,9 @@ impl Registry {
     }
 
     /// Whether `name` (a FUNCS identifier) is a handler here that formats
-    /// dates ([`Function::formats_dates`]).
+    /// dates: its parts are `"datetime"` ([`Function::part_kind`]).
     pub fn is_date_function(&self, name: &str) -> bool {
-        self.get(name).is_some_and(Function::formats_dates)
+        self.get(name).is_some_and(|f| f.part_kind() == "datetime")
     }
 }
 

@@ -350,7 +350,7 @@ language's message shows the same variable bare, since one of them would
 show `{$when}` where the other shows a date.
 
 A function of your own that formats dates says so: its
-`mf2::Function` implementation returns `true` from `formats_dates`, and
+`mf2::Function` implementation returns `"datetime"` from `part_kind`, and
 it is registered under [`[functions]`](configuration.md#functions) in
 `mf2.toml`. A message that calls it is then a date message, as one that
 calls `:datetime` is: a Leptos client rewrites it after hydrating when the

@@ -30,7 +30,7 @@
 //!
 //! **Only date messages** (owner, 2026-10-04): both act only on a message
 //! that calls a date function — `:datetime`, `:date`, `:time`, or one the
-//! application's registry marks (`Function::formats_dates`) — read from the
+//! application registers whose parts are `"datetime"` (`Function::part_kind`) — read from the
 //! catalog's FUNCS and the message's tags, never from the page's text. Any
 //! other node keeps the server's text, a number the server wrote otherwise
 //! included, and is not formatted again.

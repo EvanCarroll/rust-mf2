@@ -192,13 +192,10 @@ impl<B: Backend> Function for DateTimeFunction<B> {
         }
     }
 
+    /// `"datetime"`, for every one of them: this kind marks a date function,
+    /// so a message that calls one is a date message.
     fn part_kind(&self) -> &'static str {
         "datetime"
-    }
-
-    /// Every one of them: a message that calls one is a date message.
-    fn formats_dates(&self) -> bool {
-        true
     }
 
     fn dir(&self, cx: &FnContext<'_>, value: &Value<'_>) -> Dir {

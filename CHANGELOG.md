@@ -45,7 +45,7 @@ What a version number promises, `mf2`'s feature names among it, is in
   `{$when :datetime}`. Numbers still format by type. The new error
   `date-mismatch` fails the build when one language formats a variable with
   `:datetime`, `:date` or `:time` and another shows it bare. A function of
-  your own that formats dates returns `true` from `Function::formats_dates`.
+  your own that formats dates returns `"datetime"` from `Function::part_kind`.
 * **Breaking: `mf2`'s `intl` feature is now `number-intl`.** It says what it
   hands to the browser. Both builds of an application turn it on, on the
   `mf2` dependency line, not under `hydrate`: the server's build then keeps
