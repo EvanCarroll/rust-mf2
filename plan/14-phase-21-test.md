@@ -25,9 +25,9 @@ in the same session or a fresh one.
 
 ## State
 
-* **In flight:** 21.9. A worktree made for a task is removed once its work
+* **In flight:** the phase exit (`p21b`). A worktree made for a task is removed once its work
   is merged.
-* **Next:** 21.9 with 21.8, 21.12, the phase exit
+* **Next:** the phase exit
 
 ## Done
 
@@ -62,6 +62,14 @@ in the same session or a fresh one.
   so its symbol search can fail.
 * 21.6: the cold start built and ran both applications from the guide; five stumbles
   became 21.7–21.11, one goes to the owner (`getting-started.md`'s 2.0.0 line).
+* 21.7–21.12: 643aa46 (21.7, `mf2 check` stops with the build's `IcuBlob` error),
+  92af0d4 (21.8, the ICU4X form line, tested), e31192d (21.9, `mf2-cli` turns on `icu-blob`
+  by default — owner: the tool's +5.34 MB is not a budget; `mf2 stats` matches the build's
+  files), 5cbb1cd (21.10, date lines of the frameworks that are on), 26da8ce (21.11, the
+  first visit's zone in `call-sites.md`), 548eca5 (21.12, the generated `install_with`).
+  Exit: the fixes after the suite touch crates nearly every check builds, so the whole
+  suite runs once more under a fresh label, `p21b` (a second run into `p21` would append
+  to its logs), with the affected checks of 21.5.
 
 ## Before this phase
 
