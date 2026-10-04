@@ -263,7 +263,7 @@ application:
 * In the browser, the library asks for the reader's zone
   (`Intl.DateTimeFormat().resolvedOptions().timeZone`).
 * A server cannot know it on a reader's **first visit**, so that page is
-  rendered in UTC — or in the zone `setup().with_time_zone(…)` names. When
+  rendered in UTC — or in a zone the application chooses (below). When
   the page has hydrated, the library rewrites the dates that come out
   differently in the reader's zone, and only those; the rest of the page is
   not touched. It then remembers the zone in a cookie, `mf2_tz`.
@@ -274,11 +274,39 @@ application:
 * A **client-only** application renders in the reader's zone from its
   first frame, and writes no cookie.
 
+**Choosing the first visit's zone.** UTC is the default. To render first
+visits in another zone, install the Leptos setup yourself, with the zone
+added, just before the generated `install()`:
+
+* `setup()` is generated next to `install()` (by `mf2::include_generated!()`):
+  it returns the `mf2::leptos::Setup` that `install()` hands to the Leptos
+  layer. `.with_time_zone(zone)` returns a copy with that default zone.
+* Call `mf2::leptos::install(setup().with_time_zone(zone))`, then
+  `install()`, on **both sides**: in the server's `main`, before the router
+  is built, and in the browser's entry point (the `hydrate` function),
+  before hydrating. The first Leptos setup installed is the one kept, so
+  `install()` still loads the catalogs and does the rest of its work, and
+  leaves your zone in place.
+* Use the same zone on both sides. A page rendered in the default zone does
+  not say so; the browser assumes its own setup's zone while it hydrates, so
+  a different one there would make the dates disagree with the served page.
+
+The zone is only a default. Once the cookie is set, later pages use the
+reader's zone, and in the browser the reader's zone always wins, so
+`with_time_zone` decides only what a first visit's server-rendered page
+shows until it hydrates, and what a component that stays on the server shows
+on that visit (see Islands below).
+
 `with_time_zone` takes an `mf2::TimeZone`: `TimeZone::UTC`,
 `TimeZone::offset(seconds)`, or `TimeZone::named("Europe/Paris")`, which
-returns an `Option` — `None` for a name the server's time-zone database
-does not know — so the application decides what to fall back to:
-`setup().with_time_zone(TimeZone::named("Europe/Paris").unwrap_or(TimeZone::UTC))`.
+returns an `Option` — `None` for a name the time-zone database does not
+know — so the application decides what to fall back to:
+`TimeZone::named("Europe/Paris").unwrap_or(TimeZone::UTC)`.
+
+A **native** application (`mf2::native`, no Leptos) has no first visit and
+no cookie: it shows dates in the system's time zone. To use another one,
+call `mf2::native::set_time_zone(zone)`, at start-up or later; it applies to
+every thread's next format.
 
 So a reader on a first visit may see a date change once, just after the
 page becomes interactive. A message that must show one particular zone —
