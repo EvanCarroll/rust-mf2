@@ -200,6 +200,26 @@ Fix: correct the name if it is a typo, or register the application's
 function under `[functions]`. Lowered, the call stays in the catalog and the
 message shows MF2's fallback for an unknown function when it runs.
 
+### `date-mismatch`
+
+Default `error`; the lowest `mf2.toml` may set it is `error`.
+
+One language's message formats a variable with `:datetime`, `:date` or
+`:time`, and another language's message shows the same variable bare. Only
+a date function formats a date: a date in a bare placeholder is an error at
+run time, shown as the placeholder's fallback. So one of the two languages
+would show `{$when}` where the other shows a date. Each translation is
+compared with the source message.
+
+```text
+en   posted = Posted {$when :datetime}
+fr   posted = Publié {$when}
+```
+
+Fix: format the variable with the same date function in both
+(`Publié {$when :datetime}`). A function of your own that formats dates is
+not counted: keep its variable formatted the same way in every language.
+
 ## Warnings by default
 
 ### `missing-translation`
@@ -244,23 +264,28 @@ Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 A function feature is on for this build and no message can use it. It is
 raised once per family, for the whole corpus:
 
-* the date family (`fn-datetime`, `datetime-icu`, `datetime-intl`) when no
-  message calls `:datetime`, `:date` or `:time`. A date can still be handed
-  to a plain placeholder, which is why the feature costs something here:
-  with it on, every plain placeholder links the date code and time zones;
+* the date formatters (every `…-datetime-…` feature that is on, or
+  `datetime` alone) when no message calls `:datetime`, `:date` or `:time`.
+  With a formatter on, every plain placeholder links the date code and
+  time zones, so the feature costs its full size for nothing;
 * the number family (`fn-number`, `number-intl`) when no message formats or
   selects on a number: no numeric function, no plural selection and no
   plain placeholder that could receive one.
+
+It is also raised for a date feature of a framework that is off, such as
+`axum-datetime-icu` in a crate without `axum`: it still turns its side's
+formatter on, under a name that says nothing about this build, and the
+message asks for the family of the framework that formats there.
 
 The message says "on for this build": in a workspace another crate may have
 turned the feature on, and cargo builds `mf2` once with the union.
 
 ```text
-en   (fn-datetime on; no message names a date function)
+en   (native-datetime-icu on; no message names a date function)
 ```
 
 Fix: drop the feature from `Cargo.toml` (or from the crate that turned it
-on); or, if plain placeholders receive dates on purpose,
+on), or write the family of the framework in use; or
 `unused-feature = "allow"` under `[lints]`.
 
 ### `several-date-formatters`
@@ -428,3 +453,15 @@ en   greeting = Hello, {$nаme}!
 
 The `а` above is Cyrillic, so `$nаme` is not the `$name` a call site
 passes. Fix: spell the name in one script, with letters and digits.
+
+## The build's own faults
+
+One check guards the build itself rather than the messages, and so has no
+level in `mf2.toml`: `unread-data`. After the build has cut each language's
+locale data, it checks that every piece went where one of its readers looks
+(the browser, native code) and nowhere else: not into a catalog the browser
+downloads when only the server reads it, not into the server's own table
+when the server does not read it ([What ships where](features.md#what-ships-where)).
+The build places the data itself, so this error is a fault of `mf2-build`,
+never of your messages or features. Please report it, with the features of
+`mf2` the build had.

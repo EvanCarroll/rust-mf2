@@ -180,7 +180,8 @@ fn main() -> ExitCode {
 * **Dates use the system's time zone** — its IANA name when it has one,
   else a zone that follows the system's daylight-saving rules, else UTC.
   `mf2::native::set_time_zone` changes it. Time zones come with
-  `fn-datetime`, not with `native`, and their rules come from the machine's
+  a date formatter (`native-datetime-icu` or `native-datetime-iso`), not
+  with `native`, and their rules come from the machine's
   database; a container with none needs `tzdb-bundled`
   ([Time zones](features.md#time-zones)).
 

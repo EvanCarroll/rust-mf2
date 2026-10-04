@@ -14,8 +14,43 @@ are renamed where 2.0 named them badly. The breaking changes come first.
 What a version number promises, `mf2`'s feature names among it, is in
 [`docs/versioning.md`](docs/versioning.md).
 
-* **Breaking: `mf2`'s `intl` feature is now `number-intl`.** It pairs with
-  `datetime-intl` and says what it hands to the browser. Write
+* **Breaking: the date features are renamed, after the framework and the
+  side.** A browser build and native code (a server, a command-line tool, a
+  terminal UI) each name their own date formatter, from the family of their
+  framework: `leptos-client-datetime-`, `leptos-server-datetime-`,
+  `axum-datetime-`, `native-datetime-`, and with no framework
+  `host-web-datetime-` and `host-std-datetime-`. Each family has `icu`
+  (ICU4X over each language's date data) and `iso` (the ISO stand-in, no
+  locale data); the browser's families also have `intl`
+  (`Intl.DateTimeFormat`). No framework turns one on. A side with a date
+  message and no formatter is the `gated-function` error, which names the
+  features to write; `mf2 check` prints them too. In place of 2.0's:
+
+  | 2.0 | 3.0 |
+  |---|---|
+  | `fn-datetime` alone | the `iso` feature of each family in use |
+  | `datetime-icu` | the `icu` feature of each family in use |
+  | `datetime-intl` | `intl` in the browser's family and `icu` in the native one; the native side now needs `mf2-build`'s `icu-blob` |
+  | both | the same as `datetime-intl` |
+
+  A server-rendered Leptos application writes
+  `leptos-client-datetime-intl` and `leptos-server-datetime-icu` on the
+  `mf2` dependency line; a command-line tool or a terminal UI
+  `native-datetime-icu`; an Axum server `axum-datetime-icu`. Within one
+  build, when more than one formatter of its side is on, the strongest
+  formats (ICU4X, then `Intl`, then ISO), and the new warning
+  `several-date-formatters` names it.
+* **Breaking: only a date function formats a date.** A date handed to a bare
+  placeholder (`{$when}`) is a *Bad Operand*, shown as its fallback; write
+  `{$when :datetime}`. Numbers still format by type. The new error
+  `date-mismatch` fails the build when one language formats a variable with
+  `:datetime`, `:date` or `:time` and another shows it bare. A function of
+  your own that formats dates returns `true` from `Function::formats_dates`.
+* **Breaking: `mf2`'s `intl` feature is now `number-intl`.** It says what it
+  hands to the browser. Both builds of an application turn it on, on the
+  `mf2` dependency line, not under `hydrate`: the server's build then keeps
+  the number and plural data out of the catalogs the browser downloads, and
+  with it on one build only the two write different catalogs. Write
   `features = ["number-intl"]` where 2.x wrote `"intl"`.
   `mf2-fn-number`'s `intl` feature, which only switched on
   `mf2-runtime/intl`, is removed; `mf2-runtime/intl` and `mf2-host-web/intl`
@@ -40,23 +75,23 @@ What a version number promises, `mf2`'s feature names among it, is in
   binary links the normalization tables only with `compile` (a message
   compiled at run time), and the browser client has one glue function less.
 * **Breaking: the native host has a time-zone database only with dates.**
-  `mf2-host-std` gained a feature `time-zones`, which `mf2`'s `fn-datetime`
-  turns on, and a second static, `mf2::host_std::ZONES_HOST`: it resolves a
+  `mf2-host-std` gained a feature `time-zones`, which `mf2`'s native date
+  formatters turn on, and a second static, `mf2::host_std::ZONES_HOST`: it resolves a
   named time zone, as `HOST` used to. Without dates `HOST` has no zone data,
   so a named zone is *Bad Option* and the IANA database is not linked. The
   generated `host::HOST` names the right one for the build, so an
   application that formats through it needs no change; one that names
   `mf2::host_std::HOST` itself and shows dates in a named zone writes
   `ZONES_HOST`. Native code reads the system's zone only with
-  `fn-datetime`; without it the default zone is UTC.
+  a date formatter; without one the default zone is UTC.
 * **Breaking: `mf2` no longer depends on jiff.** The date library is the
   native host's alone: `mf2::host_std::jiff` re-exports it (feature
-  `host-std` with `fn-datetime`), and `mf2::host_std::system_time_zone()`
+  `host-std` with a native date formatter), and `mf2::host_std::system_time_zone()`
   reads the zone the machine is set to. A program that hands `mf2` a jiff
   value and wants no jiff dependency of its own uses that re-export. The
   `IntoArg` impls for jiff's `Timestamp`, `Zoned`, `civil::Date` and
-  `civil::DateTime` now come with `host-std` and `fn-datetime` rather than
-  with `native`, so a server has them too.
+  `civil::DateTime` now come with `host-std` and a native date formatter
+  rather than with `native`, so a server has them too.
 * **Breaking: `mf2`'s `links` name is `mf2-v3`.** A build script that reads
   `mf2`'s metadata itself reads `DEP_MF2_V3_FEATURES` and
   `DEP_MF2_V3_VERSION` where 2.x had `DEP_MF2_V2_*`; `mf2_build::run()`
@@ -71,12 +106,24 @@ What a version number promises, `mf2`'s feature names among it, is in
   the bundle: the new feature `mf2/tzdb-bundled`, which `ssr` and `axum`
   turn on. Turn it on by hand to carry the bundle in any other build; a
   zone no database holds is *Bad Option*, as before.
-* **Changed: with both date backends on, the browser formats with `Intl`.**
-  2.0 let `datetime-icu` win everywhere when `datetime-intl` was on too. In
-  3.0 the browser formats through `Intl.DateTimeFormat` and the server and
-  native code through the catalog's ICU data, so a browser build carries no
-  ICU date data; the text after hydration may differ from the server's
-  where the two disagree. `mf2 check` says which backend formats.
+* **Changed: a server no longer links ICU4X's data for every language.**
+  With ICU4X natively, a server, a command-line tool and a terminal UI
+  format over the date data the build cuts for each language's messages,
+  never over ICU4X's compiled-in data for every language (about 4.4 MB in
+  2.0 with `datetime-intl`). The build links the narrowest form of ICU4X
+  the messages need (Gregorian only, no zone names, unless a message or a
+  language asks), and `[dates]` in `mf2.toml` overrides it.
+* **Changed: a browser that formats dates with `Intl` downloads no date
+  data.** Data goes only to the side that reads it: a server keeps what only
+  it reads (ICU4X's date data, and the number data under `number-intl`) in
+  a table of its own beside each catalog, which the browser never
+  downloads. A build check, `unread-data`, fails if a piece goes where no
+  one reads it, and `mf2 stats` lists what ships where for each language.
+* **Changed: a server that formats dates as ISO is rewritten by the
+  browser.** With `leptos-server-datetime-iso` and another formatter in the
+  browser, the page states the server's formatter, and once it hydrates the
+  browser rewrites every message that formats a date. A reader without
+  JavaScript sees the ISO dates.
 * **Changed: `mf2 init --tui` on an existing crate asks for `ratatui,
   fn-number`.** `mf2 init` now writes one feature list per mode, the same in
   a new application's manifest and in `cargo add`: an existing crate also
@@ -91,7 +138,7 @@ What a version number promises, `mf2`'s feature names among it, is in
   both answers are the same length and the same distance from the value.
 * **Changed: a build links a time-zone database only where a date can
   reach a message.** The generated `host::HOST` names the zone-resolving
-  host when `fn-datetime` is on *and* some message uses `:datetime`,
+  host when a date formatter is on *and* some message uses `:datetime`,
   `:date` or `:time` or has a placeholder with no function; otherwise it
   names the plain host, and `Catalogs` and `Locale::format` take the host
   from the corpus. An application that formats through the generated module
@@ -110,12 +157,11 @@ What a version number promises, `mf2`'s feature names among it, is in
 * **Added: `mf2 check` prints the feature list.** After the diagnostics, a
   block names the function features the corpus needs, those that are on,
   those on and unused, and the `features = [...]` to write on `mf2` with
-  the modes kept; the JSON report has it as `features`. It also says which
-  date backend formats when both are on. Without cargo's answer, the list
+  the modes kept; the JSON report has it as `features`. It also names the date
+  formatter of each side, and the form of ICU4X chosen. Without cargo's answer, the list
   is the corpus's needs only.
 * **Added: the lint `unused-feature` (warn).** The build and `mf2 check`
-  warn when the date family (`fn-datetime` or a date backend) is on and no
-  message calls `:datetime`, `:date` or `:time`, or when `fn-number` /
+  warn when a date formatter is on and no message calls `:datetime`, `:date` or `:time`, or when `fn-number` /
   `number-intl` is on and nothing formats or selects on a number. Drop the
   feature, or set `unused-feature = "allow"` in `mf2.toml`.
 * **Fixed: `intl` now formats numbers and selects plurals in a browser.**
@@ -127,8 +173,15 @@ What a version number promises, `mf2`'s feature names among it, is in
   `Intl.PluralRules` whenever its corpus can reach a number, with dates or
   without. `mf2-host-web` gains `ZONES_NUMBERS_HOST` and
   `INTL_DATES_NUMBERS_HOST`, the same host over its two date hosts; the
-  second, over the `datetime-intl` date host, puts both dates and numbers
+  second, over the `Intl` date host, puts both dates and numbers
   through `Intl`. Nothing changes off the browser.
+
+* **Fixed: 2.0.0 with both date features on put ICU4X in the browser.**
+  With `datetime-icu` and `datetime-intl` both on, 2.0.0 formatted with ICU4X
+  on every target, so its browser build carried ICU4X's code and each
+  catalog its date data. In 3.0 each build formats with its own side's
+  formatter, and a browser build compiles the ICU4X crates only with its
+  own `icu` feature.
 
 ## 2.0.0
 

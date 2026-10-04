@@ -206,8 +206,8 @@ pub fn Order(customer: String, items: u32, total: f64) -> impl IntoView {
 | `&T`, for any of these that is `Copy` | the value |
 | any other type with `Display` (an error, an address) | its text, which is not translated |
 
-With `native`, jiff's `Timestamp`, `Zoned`, `civil::Date` and
-`civil::DateTime` are dates too; a `civil::Time` is passed as its text. A
+In native code with a date formatter, jiff's `Timestamp`, `Zoned`,
+`civil::Date` and `civil::DateTime` are dates too; a `civil::Time` is passed as its text. A
 `Cow` that borrows for less than `'static` is refused by the borrow
 checker: pass `&*cow`.
 
@@ -217,13 +217,15 @@ may be. A type of your own implements `Display` to pass its text, or
 
 ### Dates
 
-A date needs a date backend among `mf2`'s features: `datetime-icu` (which
-also needs `mf2-build`'s `icu-blob`, to put each language's date data in
-its catalog), or `datetime-intl` for the browser's own formatter:
+A date needs a date formatter for each side among `mf2`'s features. A
+server-rendered Leptos application names `leptos-client-datetime-intl`, the
+browser's own formatter, and `leptos-server-datetime-icu`, ICU4X on the
+server, which also needs `mf2-build`'s `icu-blob` to put each language's
+date data in its catalog ([Dates](features.md#dates) has the others):
 
 ```toml file=calls/Cargo.toml merge
 [dependencies]
-mf2 = { version = "2", features = ["leptos", "fn-number", "datetime-icu"] }
+mf2 = { version = "2", features = ["leptos", "fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
 
 [build-dependencies]
 mf2-build = { version = "2", features = ["icu-blob"] }
@@ -233,6 +235,11 @@ mf2-build = { version = "2", features = ["icu-blob"] }
 [post]
 published = Published {$when :datetime dateLength=long}
 ```
+
+Only a date function formats a date: a date handed to a bare placeholder
+(`{$when}`) shows as `{$when}`, and the build fails when one language
+formats a variable as a date and another shows it bare
+([`date-mismatch`](lints.md#date-mismatch)).
 
 ```rust file=calls/src/lib.rs
 #[component]

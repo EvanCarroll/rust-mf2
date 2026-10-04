@@ -367,10 +367,21 @@ de           85.7%        1       425       328       271  de.bf22f132db3ecb6e.m
 en          100.0%        0       394       307       225  en.672c914838662fd5.mf2b
 fr          100.0%        0       448       350       307  fr.06bc11d3b946c25a.mf2b
 
-locale data, entry by entry (raw bytes in the catalog):
-  de           17 B  plural.cardinal 5 B, number.symbols 12 B
-  en           17 B  plural.cardinal 5 B, number.symbols 12 B
-  fr           30 B  plural.cardinal 16 B, number.symbols 14 B
+what ships where (raw bytes, who reads it, where it ships):
+  de
+    messages               402 B  native code alone            catalog
+    fallback                 6 B  native code alone            catalog
+    plural.cardinal          5 B  native code alone            catalog
+    number.symbols          12 B  native code alone            catalog
+  en
+    messages               377 B  native code alone            catalog
+    plural.cardinal          5 B  native code alone            catalog
+    number.symbols          12 B  native code alone            catalog
+  fr
+    messages               418 B  native code alone            catalog
+    plural.cardinal         16 B  native code alone            catalog
+    number.symbols          14 B  native code alone            catalog
+bytes a browser downloads and never reads: 0 B (no browser side: native code alone reads these catalogs)
 
 canonical equivalence, the keys a decomposed value can reach:
   de            0 B  (nothing: only an identical string matches a key)
@@ -383,8 +394,12 @@ canonical equivalence, the keys a decomposed value can reach:
 For each language, `coverage` and `missing` count the messages that need
 translating: the three names marked `@do-not-translate` count in neither,
 here or in `check`. German lacks one of seven. The next columns are the
-language's catalog, raw, gzipped and brotli-compressed, and the last
-section is the locale data each catalog carries, entry by entry.
+language's catalog, raw, gzipped and brotli-compressed. The next section
+says what ships where: each part of each catalog, its bytes, who reads it
+and where it ships. Here native code alone reads the catalogs, so every
+part ships in them and the closing line says so; in a hydrated application
+it names what the browser reads, and what stays in the server's own table
+([`stats`](command-line.md#stats-dump-what-is-in-a-catalog)).
 `--format json` prints the same for a dashboard. Like `check`, `stats`
 counts with the features cargo resolves for the application's `mf2`;
 `--features` names them instead, as here.

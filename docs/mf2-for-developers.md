@@ -115,7 +115,7 @@ The functions this library provides:
 | `:integer` | a number, as a whole number; `.match` as `:number` |
 | `:percent` | a fraction, as a percentage (with `fn-number`) |
 | `:currency`, `:unit` | an amount of money, a measure (with `fn-number`) |
-| `:datetime`, `:date`, `:time` | a date and time (with `fn-datetime`) |
+| `:datetime`, `:date`, `:time` | a date and time (with a [date formatter](features.md#dates)) |
 
 Common `:number` options are `minimumFractionDigits`,
 `maximumFractionDigits` and `useGrouping`. `select=ordinal` makes a number

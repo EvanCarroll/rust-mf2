@@ -40,24 +40,30 @@ compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
 # Locale-aware numbers: symbols, grouping, numbering systems, :percent (and
 # :currency, :unit) — mf2-fn-number.
 fn-number = ["dep:mf2-fn-number"]
-# Dates and times: :datetime, :date, :time and unannotated date/time values
-# — mf2-fn-datetime — and, natively, named time zones (the machine's IANA
+# Dates and times: :datetime, :date and :time — mf2-fn-datetime; a date in a
+# bare placeholder is a Bad Operand — and, natively, named time zones (the machine's IANA
 # database unless `tzdb-bundled`). With a Leptos mode, also dates in the reader's time
 # zone: the client reads the browser's zone, corrects a page rendered in
 # another after hydrating, and writes the `mf2_tz` cookie the server renders
 # the next page in; off, no byte of it is in the client.
 #
 # `datetime` is what every date formatter below turns on; it is not written
-# by hand, and alone it formats with no formatter (plan/08 §3.3).
+# by hand, and alone it gives no side a formatter: a date message is then the
+# `gated-function` error.
 datetime = ["dep:mf2-fn-datetime", "mf2-host-std?/time-zones"]
 
-# The date formatters, one family per side and framework (plan/08 §3.1). A
+# The date formatters, one family per side and framework; no framework turns
+# one on, since a date formatter links the date code for every plain
+# placeholder. A
 # build formats with the strongest of its own side's: ICU4X, then `Intl`,
 # then ISO; the other side's features change nothing in it, and only tell
 # the build script what the other side reads. `icu` is ICU4X over the
 # catalog's `icu.blob` (which `compile_str` then emits, and which natively
 # needs `mf2-build`'s `icu-blob`); `intl` the browser's
 # `Intl.DateTimeFormat`; `iso` the ISO stand-in, with no locale data.
+# Write them on the `mf2` dependency line, where both builds of a Leptos
+# application see them: the server's build script reads the browser's
+# choice to keep out of its catalogs what the browser never reads.
 #
 # The two sides, with no framework.
 host-std-datetime-iso = ["datetime"]

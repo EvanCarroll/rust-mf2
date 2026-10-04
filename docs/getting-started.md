@@ -217,22 +217,25 @@ does to `leptos`, and the server's build turns on `mf2/axum` beside it.
 `locales/`: without it, a translation edit is not seen until something
 else changes.
 
-`mf2`'s other features decide **which formatting functions exist**, and
-they are the same for both builds, so the server and the browser format
-alike. A message can never add code to the wasm by itself: if a French
-translation uses `:datetime` and the crate was not built with
-`fn-datetime`, the build fails and names the message. With no features, a
+`mf2`'s other features decide **which formatting functions exist**. They
+go on the `mf2` dependency line, where both builds see them, so that the
+server knows what the browser formats. A message can never add code to the
+wasm by itself: if a French translation uses `:datetime` and the crate
+names no date formatter, the build fails, names the message and says which
+features to write. With no features, a
 message can still use `:string`, `:number`, `:integer` and plural
 selection. Numbers then use neutral symbols (`1234.5`). `fn-number` gives
 each language's own symbols and grouping (`1 234,5` in French, grouped with
-a narrow no-break space, U+202F); dates take `fn-datetime` and one backend:
+a narrow no-break space, U+202F); dates take one formatter for each side:
 
 | Feature of `mf2` | Adds |
 |---|---|
 | `fn-number` | numbers in each locale's own symbols, `:percent`, `:currency`, `:unit` |
-| `datetime-icu` (with `features = ["icu-blob"]` on `mf2-build`) | `:datetime`, `:date`, `:time` through ICU4X, on the server and in the browser alike; it turns on `fn-datetime` |
-| `datetime-intl` | the same, through the browser's own `Intl.DateTimeFormat`: a smaller wasm, and the browser's formatting |
-| `number-intl` | numbers and plural rules through the browser's `Intl` too |
+| `leptos-client-datetime-intl` | `:datetime`, `:date`, `:time` in the browser, through its own `Intl.DateTimeFormat`: no date data downloaded |
+| `leptos-server-datetime-icu` (with `features = ["icu-blob"]` on `mf2-build`) | the same on the server, through ICU4X over each language's date data |
+| `number-intl` | numbers and plural rules through the browser's `Intl` too; on the dependency line, never under `hydrate` alone |
+
+[Dates](features.md#dates) has the other formatters and what each costs.
 
 A feature that is on but that no message uses adds nothing to the wasm.
 

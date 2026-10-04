@@ -22,6 +22,10 @@ missing = "fallback"
 currencies = "used"
 units = ["kilometer", "mile"]
 
+[dates]
+calendars = "gregorian"
+zone-names = false
+
 [lints]
 neutral-numbers = "allow"
 dropped-markup = "warn"
@@ -122,6 +126,41 @@ The same for `:unit` and CLDR's unit identifiers (`"kilometer"`,
 [`dynamic-unit`](lints.md#dynamic-unit)) or `"all"`, and only the listed
 ones under a list. A unit outside the list is an Unsupported Operation
 error when formatted, unless it is `X-per-Y` of two units the catalog has.
+
+## `[dates]`
+
+The form of ICU4X that formats dates, when a date formatter of `mf2` is
+`icu` ([Dates](features.md#dates)). The form decides both the code linked
+and the date data cut into each catalog, so a narrower one is smaller on
+both counts. With `intl` or `iso` on every side, the section changes
+nothing.
+
+```toml
+[dates]
+calendars = "auto"
+zone-names = "auto"
+```
+
+### `calendars`
+
+* `"auto"` (the default): Gregorian only, unless some language prefers
+  another calendar, or a message names one in its `calendar` option or
+  takes that option from a variable.
+* `"gregorian"`: Gregorian only. A language that prefers another calendar
+  is shown Gregorian dates, and a date in another calendar is an
+  Unsupported Operation error when formatted, which the message shows as
+  its fallback.
+* `"all"`: every calendar ICU4X formats.
+
+### `zone-names`
+
+* `"auto"` (the default): time-zone names only if some message has
+  `timeZoneStyle` (which must then be a literal).
+* `true`: always.
+* `false`: never; a `timeZoneStyle` is an Unsupported Operation error when
+  formatted.
+
+`mf2 check` prints the form the build chose and why.
 
 ## `[lints]`
 

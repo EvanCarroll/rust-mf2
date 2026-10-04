@@ -1,9 +1,9 @@
 # mf2-fn-datetime
 
 The MessageFormat 2 date and time functions — `:datetime`, `:date`,
-`:time` and unannotated date/time values — with their operand, option
-and time-zone semantics, over a choice of backend: a neutral stub,
-ICU4X, or the browser's `Intl.DateTimeFormat`. `no_std`.
+`:time` — with their operand, option and time-zone semantics, over a
+choice of backend: a neutral stub, ICU4X, or the browser's
+`Intl.DateTimeFormat`. `no_std`.
 
 Applications do not name this crate: [`mf2`](https://docs.rs/mf2) re-exports it as
 `mf2::fn_datetime`, behind its date formatter features (`native-datetime-icu`,
