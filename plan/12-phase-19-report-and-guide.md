@@ -28,9 +28,9 @@ question.
 
 ## State
 
-* **In flight:** 19.7, in five agents by directory. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 19.6
+* **Next:** nothing; Phase 20 (`plan/13`) follows.
 
 ## Done
 
@@ -61,6 +61,19 @@ question.
   `icu` server; docs.rs set already 3.0. 6100b16: `unused-feature`, lints.md,
   features.md say a plain placeholder never formats a date (drift test too).
   8614ca8: `reaches_a_date` ignores plain placeholders: no date host without a date function.
+* 19.7 (2026-10-04, five agents by directory; coordinator's entry): 699 `plans/` matches —
+  crates 238 (35af3c7, bab4d84, f7dee99), xtask/tools/examples/CI 164 (aeabc07),
+  conformance/fuzz 132 (16fe79b, 5bdf0ae), bench 165 (570a3dc). Mostly a path with a section
+  in brackets (dropped by script); about 150 reworded by hand; no fact lost. Left for 21.2's
+  generators: `mf2-locale-data/data/{numbers,currencies,units}.txt`, `mf2/src/matching/cldr.rs`,
+  `conformance/{REPORT,COVERAGE}.md`, `ledger.toml`'s header, `bench/catalog-bench/{SIZE,READER}-P2.md`,
+  `bench/parser-gate/GATE-P1.md`, `bench/fluent-ab/SNAPSHOT.md`, `third_party/cldr-json/PIN`.
+  Hand-written records with no generator, 8 lines: `bench/intl-probe/RESULTS.md`,
+  `bench/parser-gate/BASELINE.md`, `bench/runtime-bench/NUMBER-AB-P3.md` (owner asked).
+  Shared scratch names let one agent's script touch another's files; each agent repaired
+  its own, every commit stays in its directories, and the added lines show no broken text.
+* Phase 19 (2026-10-04): 19.1–19.5 and 19.7 committed (19.6 is Phase 21's 21.6), nothing
+  compiled.
 
 ## Before this phase
 
