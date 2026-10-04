@@ -111,7 +111,7 @@ impl Target {
     /// its text in `page`, the zone it was rendered in — the reader's-zone
     /// correction (`crate::leptos::zone`). A node whose text does not depend on the
     /// zone is not written at all.
-    #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
     pub(crate) fn correct_zone(
         &self,
         desc: &Stored,
@@ -142,7 +142,7 @@ impl Target {
 /// `static-locale` nothing follows the locale, so nothing implements it.
 #[cfg(any(
     not(feature = "static-locale"),
-    all(feature = "hydrate", feature = "fn-datetime")
+    all(feature = "hydrate", feature = "datetime")
 ))]
 #[cfg_attr(not(any(feature = "hydrate", feature = "csr")), allow(dead_code))]
 pub(crate) trait Relocalize {
@@ -281,7 +281,7 @@ pub(crate) fn insert(target: Target, desc: Stored) -> u32 {
 pub(crate) fn insert_hydrated(target: Target, desc: Stored) -> u32 {
     // Untracked, as every format outside the node's own effect: see
     // `replace`.
-    #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+    #[cfg(all(feature = "hydrate", feature = "datetime"))]
     untrack(|| crate::leptos::zone::hydrated(&target, &desc));
     insert(target, desc)
 }

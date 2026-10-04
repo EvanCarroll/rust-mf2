@@ -21,18 +21,17 @@
 //! | `leptos` / `leptos-0-8` | the Leptos line the layer renders with: Leptos 0.9 (the default line) or 0.8 |
 //! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host, and `ssr` implies `tzdb-bundled` |
 //! | `axum` | `mf2::axum`: each request's language, the catalogs served from the server binary, the generated `Locale` as an extractor (implies `host-std` and `tzdb-bundled`; refused when compiling for `wasm32` beside `hydrate` or `csr`) |
-//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, installed once for the process, in the system's language (and, with `fn-datetime`, its time zone); the descriptions' `Display`, `to_string()` and `to_cow()` read them (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
+//! | `native` | [`native`]: a native application — a command-line tool, a terminal UI — with its catalogs embedded or beside the executable, installed once for the process, in the system's language (and, with `datetime`, its time zone); the descriptions' `Display`, `to_string()` and `to_cow()` read them (std; implies `host-std`; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `ratatui` | [`ratatui`]: a terminal UI's text — a message as Ratatui `Text` or `Line`, its markup as styles (implies `native`; `ratatui-core` alone; beside `hydrate` or `csr`, refused when compiling for `wasm32`) |
 //! | `clap` | a `clap` value parser on the generated `Locale`: `--lang` matched as the system's language is, and listed in `--help` |
 //! | `host-std` / `host-web` | a [`Host`]: native (servers, tests, `wasm32-wasip1`), or the browser — with no framework, how an application uses `mf2` |
 //! | **What can messages do?** | |
 //! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, `:currency`, `:unit`, localized unannotated numbers |
-//! | `datetime` (2.0's `fn-datetime`) | [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
+//! | `datetime` | turned on by every date formatter below: [`fn_datetime`]: `:datetime` / `:date` / `:time`, unannotated date/time values (`Registry::with_dates`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
 //! | **Who supplies locale data?** | |
 //! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
 //! | `<family>-datetime-<formatter>` | the date formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `icu`, `intl`, `iso`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `icu`, `iso`). `icu` is ICU4X over the catalog's `icu.blob` (and [`compile_str`] emits it), `intl` the browser's `Intl.DateTimeFormat`, `iso` the ISO stand-in. A build formats with the strongest of its own side's: ICU4X, then `Intl`, then ISO; each turns on `datetime` |
-//! | `datetime-icu`, `datetime-intl` | the 2.0 names: `icu` on both sides; `intl` in the browser and `icu` natively |
-//! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `fn-datetime`) |
+//! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `datetime`) |
 //! | **Behaviour and tools** | |
 //! | `static-locale` | a locale switch is a cookie and a navigation (for islands) |
 //! | `mark-fallback-lang` | text borrowed from a fallback language is marked with its own `lang` |
@@ -81,7 +80,7 @@
 //! the registry that formats unannotated date/time values with it.
 //!
 //! ```
-//! # #[cfg(all(feature = "compile", feature = "host-std", feature = "fn-datetime"))] {
+//! # #[cfg(all(feature = "compile", feature = "host-std", feature = "datetime"))] {
 //! use mf2::fn_datetime::{DateTimeFunction, Neutral};
 //! use mf2::{FormatContext, Formatter, Registry};
 //!
@@ -470,8 +469,8 @@ pub use error::CompileError;
 #[cfg(feature = "fn-number")]
 pub use mf2_fn_number as fn_number;
 
-/// The date/time functions (`mf2-fn-datetime`, feature `fn-datetime`).
-#[cfg(feature = "fn-datetime")]
+/// The date/time functions (`mf2-fn-datetime`, feature `datetime`).
+#[cfg(feature = "datetime")]
 pub use mf2_fn_datetime as fn_datetime;
 
 /// The native host (`mf2-host-std`).

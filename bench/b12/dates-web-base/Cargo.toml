@@ -1,6 +1,6 @@
 [package]
 name = "b12-dates-web-base"
-description = "B4 (datetime-intl) base: the date walk over the core registry on mf2-host-web's HOST (with the date features on: HOST must link none of their glue), through wasm-bindgen."
+description = "B4 (intl) base: the date walk over the core registry on mf2-host-web's HOST (with the date features on: HOST must link none of their glue), through wasm-bindgen."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

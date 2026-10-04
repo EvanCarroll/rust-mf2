@@ -647,7 +647,7 @@ fn zone_part(p: &[u8]) -> bool {
 }
 
 /// What a host's date formatter receives (`Host::format_date_time`,
-/// `datetime-intl`): an instant and how to show it.
+/// the `intl` date formatter): an instant and how to show it.
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub struct DateTimeRequest<'r> {

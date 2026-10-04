@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The datetime-intl browser comparison's inputs (plans/11 A6):
+# The intl date formatter's browser comparison's inputs (plans/11 A6):
 #   target/e2e-datetime/cases.json  — every case's catalog and ICU4X's text
 #   target/e2e-datetime/pkg/        — the browser module (wasm-bindgen --target web)
 # Tools: cargo (+ wasm32-unknown-unknown), wasm-bindgen 0.2.128.

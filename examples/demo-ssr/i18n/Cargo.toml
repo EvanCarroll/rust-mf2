@@ -13,7 +13,7 @@ publish = false
 # The functions a message may use: `mf2`'s features, which the build reads
 # from `mf2` itself, as the application's server and client builds unify
 # them. A message can never add formatting code to the wasm by itself.
-mf2 = { path = "../../../crates/mf2", features = ["fn-number", "fn-datetime", "datetime-icu"] }
+mf2 = { path = "../../../crates/mf2", features = ["fn-number", "leptos-client-datetime-icu", "leptos-server-datetime-icu"] }
 
 [build-dependencies]
 # ICU4X dates: the build compiles each locale's date data.

@@ -10,7 +10,7 @@
 //!    `leptos` beside `leptos-0-8` must fail, naming both.
 //! 2. **On 0.8:** `mf2`'s Leptos layer (and its 0.8 helper crate) linted for
 //!    `ssr` natively (every target, with `axum` and `mark-fallback-lang`) and for
-//!    `hydrate` (also with `fn-datetime`) and `csr` on
+//!    `hydrate` (also with a date formatter) and `csr` on
 //!    `wasm32-unknown-unknown`; its `render`, `time_zone`, `churn` and
 //!    `fallback_lang` tests; and conformance layer L6
 //!    (the `layers` and `l6` tests of `mf2-conformance`).
@@ -98,7 +98,7 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
         [
             &["clippy", "--target", wasm][..],
             &mf2,
-            &["hydrate,leptos-0-8,fn-datetime"],
+            &["hydrate,leptos-0-8,leptos-client-datetime-iso"],
             &deny,
         ]
         .concat(),
@@ -111,7 +111,11 @@ pub(crate) fn run(root: &Path, negative_control: bool) -> Result<()> {
         [
             &["test"][..],
             &mf2,
-            &["ssr,leptos-0-8,compile,fn-datetime", "--test", "time_zone"],
+            &[
+                "ssr,leptos-0-8,compile,leptos-server-datetime-iso",
+                "--test",
+                "time_zone",
+            ],
         ]
         .concat(),
         [

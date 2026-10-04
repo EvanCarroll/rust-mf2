@@ -278,7 +278,7 @@ fn write_locale_cookie(window: &web_sys::Window, tag: &str) -> Result<(), LoadEr
 /// ([`TIME_ZONE_COOKIE`](crate::leptos::links::TIME_ZONE_COOKIE)), with the locale
 /// cookie's attributes. Behind the feature, like everything of the
 /// reader's zone, so a build without dates compiles none of it.
-#[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+#[cfg(all(feature = "hydrate", feature = "datetime"))]
 pub(crate) fn write_zone_cookie(window: &web_sys::Window, zone: &str) {
     let Some(document) = window.document() else {
         return;
@@ -505,7 +505,7 @@ where
         }
         // Dates: hydrate in the zone the page was rendered in, then correct
         // to the reader's (`crate::leptos::zone`).
-        #[cfg(feature = "fn-datetime")]
+        #[cfg(feature = "datetime")]
         {
             crate::leptos::zone::before_hydration(false);
             if lazy {
@@ -519,7 +519,7 @@ where
             }
             crate::leptos::zone::after_hydration();
         }
-        #[cfg(not(feature = "fn-datetime"))]
+        #[cfg(not(feature = "datetime"))]
         if lazy {
             leptos::mount::hydrate_lazy(app);
         } else {
@@ -569,7 +569,7 @@ pub fn hydrate_islands() {
     // and the reader's time zone, which each island is corrected to as it
     // hydrates (`crate::leptos::zone`).
     leptos::mount::hydrate_islands();
-    #[cfg(feature = "fn-datetime")]
+    #[cfg(feature = "datetime")]
     crate::leptos::zone::before_hydration(true);
     let boot = wasm_bindgen_futures::future_to_promise(async {
         match load_page_catalog().await {
@@ -732,7 +732,7 @@ pub async fn load_client_catalog() -> Result<(), LoadError> {
     let dir = catalog.dir();
     catalog::set_active(catalog);
     set_document_lang(tag, dir);
-    #[cfg(feature = "fn-datetime")]
+    #[cfg(feature = "datetime")]
     crate::leptos::zone::mount_in_reader_zone();
     Ok(())
 }

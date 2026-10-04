@@ -25,7 +25,7 @@ use mf2_fn_datetime::{DateTimeFunction, Neutral, Plan};
 use FormatError::{BadOperand, BadOption, BadSelector, UnresolvedVariable};
 
 // The neutral backend, named: the default backend depends on the features
-// a build unifies (`datetime-icu` is on in this crate's tests).
+// a build unifies (`host-std-datetime-icu` is on in this crate's tests).
 static DATETIME: DateTimeFunction<Neutral> = DateTimeFunction::datetime(Neutral);
 static DATE: DateTimeFunction<Neutral> = DateTimeFunction::date(Neutral);
 static TIME: DateTimeFunction<Neutral> = DateTimeFunction::time(Neutral);

@@ -31,16 +31,18 @@ default = []
 # Declared so that the generated module's `cfg`s are known ones; `ssr` and
 # `hydrate` turn on what this corpus needs.
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+# Dates over ICU4X in both builds (plan/08 §3.1); also the `cfg` of
+# `shared.rs`'s date parameter.
+host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
+host-web-datetime-icu = ["mf2/host-web-datetime-icu"]
 # Every function feature is on in both: the corpus is the suite's, and a
 # message may not add formatting code to the wasm by itself — so a build
 # without them would be *refused*, not merely different.
 ssr = [
     "mf2/host-std",
     "fn-number",
-    "datetime-icu",
+    "host-std-datetime-icu",
+    "host-web-datetime-icu",
     "leptos/ssr",
     "mf2/ssr",
     "tachys/ssr",
@@ -48,7 +50,8 @@ ssr = [
 hydrate = [
     "mf2/host-web",
     "fn-number",
-    "datetime-icu",
+    "host-std-datetime-icu",
+    "host-web-datetime-icu",
     "leptos/hydrate",
     "mf2/hydrate",
     "tachys/hydrate",

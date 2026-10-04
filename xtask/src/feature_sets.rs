@@ -245,15 +245,16 @@ const fn alone(target: Target, features: &'static str, what: &'static str) -> Se
 }
 
 /// Every feature an application can turn on at once for its server, across
-/// the 16 published crates (the first `msrv` step; also what
+/// the 17 published crates (the first `msrv` step; also what
 /// `cargo xtask package --test` tests the unpacked packages with).
-pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/datetime-icu,mf2/host-std,\
+pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/leptos-server-datetime-icu,mf2/axum-datetime-icu,mf2/native-datetime-icu,mf2/host-std,\
      mf2/leptos,mf2/ssr,mf2/axum,mf2/static-locale,mf2/mark-fallback-lang,mf2/native,mf2/ratatui,mf2-catalog/decode,mf2-catalog/static-bytes,\
      mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
      mf2-runtime/fixed-decimal";
 
-/// The 14 of the 16 published crates the first `msrv` step checks together
-/// (the web host and the Leptos 0.8 helper are the second's).
+/// The 14 of the 17 published crates the first `msrv` step checks together
+/// (the web host and the Leptos 0.8 helper are the second's; the browser's
+/// ICU4X crate is a browser build's dependency only).
 const MSRV_SERVER: &[&str] = &[
     "mf2",
     "mf2-cli",
@@ -337,19 +338,19 @@ pub(crate) const SETS: &[Set] = &[
     ),
     mf2(
         Wasm,
-        "leptos,hydrate,fn-datetime",
+        "leptos,hydrate,leptos-client-datetime-iso",
         &[Use::Ci(&[Clippy])],
         "the reader's time zone: the boot's correction and the glue's hydration queue",
     ),
     mf2(
         Wasm,
-        "leptos,hydrate,fn-datetime,static-locale,mark-fallback-lang",
+        "leptos,hydrate,leptos-client-datetime-iso,static-locale,mark-fallback-lang",
         &[Use::Ci(&[Clippy])],
         "the reader's time zone where the queue, not the registry, holds the nodes",
     ),
     mf2(
         Wasm,
-        "leptos,csr,fn-datetime",
+        "leptos,csr,leptos-client-datetime-iso",
         &[Use::Ci(&[Clippy])],
         "the mount's zone, for `csr`",
     ),
@@ -410,19 +411,19 @@ pub(crate) const SETS: &[Set] = &[
     ),
     mf2(
         Host,
-        "native,compile,fn-datetime",
+        "native,compile,native-datetime-iso",
         &[Use::Ci(&[Test(&["--test", "system_zone"])])],
         "the system's zone as a POSIX rule, in a child process whose `TZ` is one",
     ),
     mf2(
         Host,
-        "native,fn-datetime",
+        "native,native-datetime-iso",
         &[Use::Ci(&[Clippy, Test(&["--test", "zone_db"])])],
         "a native application's zone lookups, which read the machine's IANA database",
     ),
     mf2(
         Host,
-        "native,fn-datetime,tzdb-bundled",
+        "native,native-datetime-iso,tzdb-bundled",
         &[Use::Ci(&[Clippy, Test(&["--test", "zone_db"])])],
         "`tzdb-bundled`, where they read jiff's bundled database instead (what `ssr` and `axum` turn on)",
     ),
@@ -486,7 +487,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-datetime",
+        "ssr,host-std-datetime-iso",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, dates",
@@ -494,7 +495,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-datetime,datetime-icu",
+        "ssr,host-std-datetime-icu",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, dates on ICU4X",
@@ -502,7 +503,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,fn-datetime",
+        "ssr,fn-number,host-std-datetime-iso",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, both function crates",
@@ -510,7 +511,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,fn-datetime,datetime-icu",
+        "ssr,fn-number,host-std-datetime-icu",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, both with ICU4X dates",
@@ -518,7 +519,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,fn-datetime,mf2/leptos,mf2/ssr",
+        "ssr,fn-number,host-std-datetime-iso,mf2/leptos,mf2/ssr",
         true,
         &[CodegenMatrix(Server)],
         "the generated module beside the description types' Leptos impls, 0.9",
@@ -526,7 +527,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-datetime,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
+        "ssr,host-std-datetime-iso,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
         true,
         &[CodegenMatrix(Server)],
         "the generated module beside the Leptos layer, 0.8, marking borrowed text",
@@ -550,7 +551,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "native,fn-number,fn-datetime,datetime-icu,mf2/ratatui",
+        "native,fn-number,host-std-datetime-icu,mf2/ratatui",
         true,
         &[CodegenMatrix(Native)],
         "the native module for a terminal UI, with every function",
@@ -566,7 +567,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-datetime,mf2/leptos,mf2/ssr,mf2/native",
+        "ssr,host-std-datetime-iso,mf2/leptos,mf2/ssr,mf2/native",
         true,
         &[CodegenMatrix(Native)],
         "a web module with `native` turned on beside `ssr`",
@@ -598,7 +599,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-datetime",
+        "hydrate,host-web-datetime-iso",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates",
@@ -606,7 +607,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-datetime,datetime-icu",
+        "hydrate,host-web-datetime-icu",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates on ICU4X",
@@ -614,7 +615,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-datetime,datetime-intl",
+        "hydrate,host-web-datetime-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates through the browser's Intl",
@@ -622,7 +623,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,fn-datetime,datetime-intl,number-intl",
+        "hydrate,fn-number,host-web-datetime-intl,number-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, every function through the browser",
@@ -630,7 +631,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,fn-datetime,mf2/leptos,mf2/hydrate",
+        "hydrate,fn-number,host-web-datetime-iso,mf2/leptos,mf2/hydrate",
         true,
         &[CodegenMatrix(Client)],
         "the generated module beside the Leptos layer's client, 0.9",
@@ -646,7 +647,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-datetime,mf2/leptos-0-8,mf2/hydrate",
+        "hydrate,host-web-datetime-iso,mf2/leptos-0-8,mf2/hydrate",
         true,
         &[CodegenMatrix(Client)],
         "the generated module beside the Leptos layer's client, 0.8",
@@ -673,7 +674,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2", "mf2-host-web"],
         Wasm,
-        "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/datetime-icu,mf2/number-intl",
+        "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/leptos-client-datetime-icu,mf2/number-intl",
         false,
         &[Msrv("wasm32, hydrate, ICU4X dates")],
         "the client with the ICU4X date backend and the `number-intl` option",
@@ -681,7 +682,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         MF2,
         Wasm,
-        "mf2/leptos,mf2/csr,mf2/fn-number,mf2/datetime-intl,mf2/number-intl",
+        "mf2/leptos,mf2/csr,mf2/fn-number,mf2/leptos-client-datetime-intl,mf2/number-intl",
         false,
         &[Msrv("wasm32, csr, number-intl, Intl dates")],
         "the client built in the browser, formatting through the browser",
@@ -689,7 +690,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         MF2,
         Wasm,
-        "hydrate,leptos-0-8,fn-datetime",
+        "hydrate,leptos-0-8,leptos-client-datetime-iso",
         false,
         &[Msrv("wasm32, hydrate, Leptos 0.8")],
         "the client on the Leptos 0.8 opt-in",
@@ -816,20 +817,32 @@ pub(crate) const SETS: &[Set] = &[
     // the browser target; everything else is valid by itself.
     alone(Host, "compile", "`compile`: the one-message compiler"),
     alone(Host, "fn-number", "`fn-number`: the numeric functions"),
+    // The date formatters: the framework-free families, of which each
+    // framework's is another name (`plan/08` §3.4).
     alone(
         Host,
-        "fn-datetime",
-        "`fn-datetime`: the date and time functions",
+        "host-std-datetime-iso",
+        "`host-std-datetime-iso`: native dates, the ISO stand-in",
     ),
     alone(
         Host,
-        "datetime-icu",
-        "`datetime-icu`: ICU4X dates (implies `fn-datetime`)",
+        "host-std-datetime-icu",
+        "`host-std-datetime-icu`: native dates over ICU4X",
     ),
     alone(
-        Host,
-        "datetime-intl",
-        "`datetime-intl`: the browser's dates, ICU4X elsewhere",
+        Wasm,
+        "host-web-datetime-iso",
+        "`host-web-datetime-iso`: the browser's dates, the ISO stand-in",
+    ),
+    alone(
+        Wasm,
+        "host-web-datetime-intl",
+        "`host-web-datetime-intl`: the browser's dates through `Intl`",
+    ),
+    alone(
+        Wasm,
+        "host-web-datetime-icu",
+        "`host-web-datetime-icu`: the browser's dates over ICU4X",
     ),
     alone(Host, "host-std", "`host-std`: the native host"),
     alone(

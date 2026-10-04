@@ -92,7 +92,7 @@ const fn client(corpus: Corpus, features: &'static str) -> Build {
 const fn native(features: &'static str) -> Build {
     Build {
         side: Side::Native,
-        // The canary picks its corpus by `fn-datetime` itself.
+        // The canary picks its corpus by its date formatter itself.
         corpus: Corpus::Numbers,
         features,
     }
@@ -114,18 +114,18 @@ const C_NUMBER: Build = client(Corpus::Numbers, "hydrate,workload-i18n/fn-number
 const C_NUMBER_INTL: Build = client(Corpus::Numbers, "hydrate,workload-i18n/number-intl");
 const C_DATE: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/fn-datetime",
+    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-iso",
 );
 const C_DATE_ICU: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/datetime-icu",
+    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-icu",
 );
 const C_DATE_INTL: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/datetime-intl",
+    "hydrate,workload-i18n/fn-number,workload-i18n/host-web-datetime-intl",
 );
 const N_BASE: Build = native("native");
-const N_DATE: Build = native("native,fn-datetime");
+const N_DATE: Build = native("native,native-datetime-iso");
 
 const WORKLOAD_NUMBERS: &str = "the reference workload, 150 messages with `:number`";
 const WORKLOAD_DATES: &str =
@@ -150,23 +150,23 @@ const COSTS: &[Cost] = &[
         unused: false,
     },
     Cost {
-        // A build without `fn-datetime` refuses a `:datetime` message, so the
+        // A build without a date formatter refuses a `:datetime` message, so the
         // build without it reads the numbers corpus.
-        feature: "fn-datetime",
+        feature: "host-web-datetime-iso",
         without: C_NUMBER,
         with: C_DATE,
         corpus: WORKLOAD_DATES,
         unused: false,
     },
     Cost {
-        feature: "datetime-icu",
+        feature: "host-web-datetime-icu",
         without: C_DATE,
         with: C_DATE_ICU,
         corpus: WORKLOAD_DATES,
         unused: false,
     },
     Cost {
-        feature: "datetime-intl",
+        feature: "host-web-datetime-intl",
         without: C_DATE,
         with: C_DATE_INTL,
         corpus: WORKLOAD_DATES,
@@ -180,7 +180,7 @@ const COSTS: &[Cost] = &[
         unused: false,
     },
     Cost {
-        feature: "fn-datetime",
+        feature: "native-datetime-iso",
         without: N_BASE,
         with: N_DATE,
         corpus: CANARY_DATES,
@@ -189,7 +189,7 @@ const COSTS: &[Cost] = &[
     Cost {
         feature: "tzdb-bundled",
         without: N_DATE,
-        with: native("native,fn-datetime,tzdb-bundled"),
+        with: native("native,native-datetime-iso,tzdb-bundled"),
         corpus: CANARY_DATES,
         unused: false,
     },

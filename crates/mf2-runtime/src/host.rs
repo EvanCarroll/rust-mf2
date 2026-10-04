@@ -1,7 +1,7 @@
 //! What the runtime asks of its platform (`plans/03-runtime.md` §2.5,
 //! §2.7): the shortest text of a float (no float-printing code in the
 //! wasm), for dates the UTC offset of a named time zone and —
-//! `datetime-intl` — a date formatter, and — `intl` — a number formatter
+//! with the `intl` date formatter — a date formatter, and — `intl` — a number formatter
 //! with plural rules. `mf2-host-std` implements it natively and for
 //! `wasm32-wasip1`, `mf2-host-web` in the browser.
 //!
@@ -33,7 +33,7 @@ pub trait Host: Sync {
         None
     }
 
-    /// `datetime-intl`: writes `request` formatted by the host's date
+    /// The `intl` date formatter: writes `request` formatted by the host's date
     /// formatter (the browser's `Intl.DateTimeFormat`) for `locale`, and
     /// returns `true`; `false` (the default) when the host has none.
     fn format_date_time(

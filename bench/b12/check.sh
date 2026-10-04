@@ -60,18 +60,18 @@
 #       backend writing one byte of the plan) — reported beside B4's
 #       3.5 KB gz note; b12-dates-neutral: with the neutral stub backend.
 #       Both B12-gated.
-#     * B4 datetime-icu: b12-dates-icu-{greg,any}-{nozones,zones} (ICU4X over
+#     * B4 icu: b12-dates-icu-{greg,any}-{nozones,zones} (ICU4X over
 #       the catalog's icu.blob): Gregorian with zone styles ≤ 95 KB gz, any
 #       calendar with zone styles ≤ 105 KB gz; the no-zone variants reported.
 #       B12 reported, not gated: ICU4X keeps its own core::fmt and panic
 #       paths, the feature's documented cost (06 B4).
-#     * B4 datetime-intl: b12-dates-intl (Intl.DateTimeFormat through
+#     * B4 intl: b12-dates-intl (Intl.DateTimeFormat through
 #       mf2-host-web's INTL_HOST) − b12-dates-web-base (the same walk on
 #       mf2-host-web's HOST), both through wasm-bindgen: wasm ≤ 6 KB gz and
 #       JS glue ≤ 1 KB gz. mf2-host-web's own glue (js-sys) has a panic
 #       path, reported with the web base; b12-dates-intl must add no fmt or
 #       panic symbol, panic import or panic text to it.
-#     * B13: b12-dates-unused (fn-datetime linked with both backend
+#     * B13: b12-dates-unused (datetime linked with both backend
 #       features, unused), b12-dates-base and b12-runtime link no date
 #       symbol; b12-dates-semantics shows them (the grep can fail).
 #     * B1′: b12-dates-unused = b12-runtime, +0 B; and b12-dates-web-base,
@@ -323,14 +323,14 @@ fi
   printf 'semantics + neutral backend (dates-neutral - dates-base)\t-\t-\t%d\t%d\n' \
     $((RAW[dates-neutral] - RAW[dates-base])) $((GZ[dates-neutral] - GZ[dates-base]))
   for c in dates-icu-greg-nozones dates-icu-greg-zones dates-icu-any-nozones dates-icu-any-zones; do
-    printf 'B4 datetime-icu: %s - dates-base\t-\t-\t%d\t%d\n' "${c#dates-icu-}" \
+    printf 'B4 icu: %s - dates-base\t-\t-\t%d\t%d\n' "${c#dates-icu-}" \
       $((RAW[$c] - RAW[dates-base])) $((GZ[$c] - GZ[dates-base]))
   done
-  printf 'B4 datetime-intl: wasm (dates-intl - dates-web-base)\t-\t-\t%d\t%d\n' \
+  printf 'B4 intl: wasm (dates-intl - dates-web-base)\t-\t-\t%d\t%d\n' \
     $((RAW[dates-intl] - RAW[dates-web-base])) $((GZ[dates-intl] - GZ[dates-web-base]))
-  printf 'B4 datetime-intl: JS glue gz (dates-intl %d - dates-web-base %d)\t-\t-\t-\t%d\n' \
+  printf 'B4 intl: JS glue gz (dates-intl %d - dates-web-base %d)\t-\t-\t-\t%d\n' \
     "${JS[dates-intl]}" "${JS[dates-web-base]}" $((JS[dates-intl] - JS[dates-web-base]))
-  printf "B1': fn-datetime on, unused (dates-unused - runtime)\t-\t-\t%d\t%d\n" \
+  printf "B1': datetime on, unused (dates-unused - runtime)\t-\t-\t%d\t%d\n" \
     $((RAW[dates-unused] - RAW[runtime])) $((GZ[dates-unused] - GZ[runtime]))
   printf 'intl core, stub formatter (runtime-intl - runtime)\t-\t-\t%d\t%d\n' \
     $((RAW[runtime-intl] - RAW[runtime])) $((GZ[runtime-intl] - GZ[runtime]))
@@ -339,19 +339,19 @@ fi
   printf "B1': intl on, unused (runtime-intl-unused - runtime-nonum)\t-\t-\t%d\t%d\n" \
     $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((GZ[runtime-intl-unused] - GZ[runtime-nonum]))
 } > "$OUT/size.tsv"
-# B4 (plans/06-size-and-perf.md §3): datetime-intl ≤ 6 KB gz wasm + ≤ 1 KB gz
-# JS; datetime-icu ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar (with zone
-# styles, the widest of each); B1′ = +0 B for fn-datetime on but unused.
+# B4 (plans/06-size-and-perf.md §3): intl ≤ 6 KB gz wasm + ≤ 1 KB gz
+# JS; icu ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar (with zone
+# styles, the widest of each); B1′ = +0 B for datetime on but unused.
 b4_intl=$((GZ[dates-intl] - GZ[dates-web-base]))
-[ "$b4_intl" -le 6144 ] || bad "B4: datetime-intl costs $b4_intl B gz of wasm (> 6,144)"
+[ "$b4_intl" -le 6144 ] || bad "B4: intl costs $b4_intl B gz of wasm (> 6,144)"
 b4_js=$((JS[dates-intl] - JS[dates-web-base]))
-[ "$b4_js" -le 1024 ] || bad "B4: datetime-intl costs $b4_js B gz of JS (> 1,024)"
+[ "$b4_js" -le 1024 ] || bad "B4: intl costs $b4_js B gz of JS (> 1,024)"
 b4_greg=$((GZ[dates-icu-greg-zones] - GZ[dates-base]))
-[ "$b4_greg" -le 97280 ] || bad "B4: datetime-icu, Gregorian, costs $b4_greg B gz (> 97,280)"
+[ "$b4_greg" -le 97280 ] || bad "B4: icu, Gregorian, costs $b4_greg B gz (> 97,280)"
 b4_any=$((GZ[dates-icu-any-zones] - GZ[dates-base]))
-[ "$b4_any" -le 107520 ] || bad "B4: datetime-icu, any calendar, costs $b4_any B gz (> 107,520)"
+[ "$b4_any" -le 107520 ] || bad "B4: icu, any calendar, costs $b4_any B gz (> 107,520)"
 [ "${RAW[dates-unused]}" -eq "${RAW[runtime]}" ] \
-  || bad "B1': fn-datetime on but unused is not +0 B (raw ${RAW[dates-unused]} vs ${RAW[runtime]})"
+  || bad "B1': datetime on but unused is not +0 B (raw ${RAW[dates-unused]} vs ${RAW[runtime]})"
 # B3 ≤ 5.5 KB gz more (plans/06-size-and-perf.md §3; restated 2026-09-22).
 b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
 [ "$b3" -le 5632 ] || bad "B3: :currency + :unit cost $b3 B gz (> 5,632)"

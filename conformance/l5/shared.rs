@@ -97,9 +97,9 @@ pub fn catalog_bytes() -> &'static [u8] {
 /// A typed `datetime` parameter, parsed as a date/time literal — the same
 /// conversion L4's runner makes (`mf2_l4_runner::ArgSpec::date_time`).
 ///
-/// Only with `fn-datetime`: conformance L7's default-configuration pages
-/// include this file without it, and hold no message that takes a date.
-#[cfg(feature = "fn-datetime")]
+/// Only with a date formatter: conformance L7's default-configuration pages
+/// include this file without one, and hold no message that takes a date.
+#[cfg(any(feature = "host-std-datetime-icu", feature = "host-web-datetime-icu"))]
 #[must_use]
 pub fn date_time(literal: &str) -> ::mf2::ArgValue {
     match ::mf2::fn_datetime::parse_literal(literal) {

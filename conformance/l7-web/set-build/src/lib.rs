@@ -9,7 +9,7 @@
 //! wasm carries all four and installs the one its page names.
 //!
 //! The configuration follows the set crate's own features: with
-//! `fn-number` and `fn-datetime` on it is the whole runtime-valid corpus;
+//! `fn-number` and a date formatter on it is the whole runtime-valid corpus;
 //! with neither it is the default configuration, where the build refuses a
 //! message naming a gated function, so the set holds the rest
 //! ([`mf2_l5_gen::Configuration::Default`]).
@@ -50,7 +50,12 @@ fn try_generate(locale: &str) -> Result<(), mf2_l5_gen::Error> {
         .ok_or("a set sits four directories below the root")?;
     let out = PathBuf::from(std::env::var_os("OUT_DIR").ok_or("no OUT_DIR")?);
     let number = std::env::var_os("CARGO_FEATURE_FN_NUMBER").is_some();
-    let datetime = std::env::var_os("CARGO_FEATURE_FN_DATETIME").is_some();
+    let datetime = [
+        "CARGO_FEATURE_HOST_STD_DATETIME_ICU",
+        "CARGO_FEATURE_HOST_WEB_DATETIME_ICU",
+    ]
+    .into_iter()
+    .any(|name| std::env::var_os(name).is_some());
     let configuration = match (number, datetime) {
         (true, true) => Configuration::All,
         (false, false) => Configuration::Default,

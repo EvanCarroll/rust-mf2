@@ -13,9 +13,9 @@ publish = false
 default = ["fn-number"]
 # The generated module names these whether or not the corpus uses them.
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+host-web-datetime-iso = ["mf2/host-web-datetime-iso"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
+host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
 
 [dependencies]
 mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web"] }

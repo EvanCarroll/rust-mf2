@@ -26,9 +26,13 @@ default = ["ssr"]
 ssr = ["mf2/host-std"]
 hydrate = ["mf2/host-web"]
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["mf2/datetime-icu", "mf2-build/icu-blob"]
-datetime-intl = ["mf2/datetime-intl"]
+# The date formatters, framework-free (plan/08 §3.1). An `icu` one cuts the
+# catalogs' date slice, which needs `mf2-build`'s `icu-blob`.
+host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
+host-std-datetime-icu = ["mf2/host-std-datetime-icu", "mf2-build/icu-blob"]
+host-web-datetime-iso = ["mf2/host-web-datetime-iso"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
+host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
 number-intl = ["mf2/number-intl"]
 # A native application's module (`Emit::Native`): `CORPUS`, the typed
 # locale functions, and — beside `mf2/ssr` — the catalogs the Leptos

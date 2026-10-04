@@ -22,7 +22,7 @@ exclude = ["package.txt"]
 # and a client that names only `HOST` links none of their glue (B1′).
 #
 # `time-zones`: `ZONES_HOST` — `Host::zone_offset` from the browser's zone
-# data (named zones for `datetime-icu`, whose ICU4X has no transition rules).
+# data (named zones for the `icu` date formatter, whose ICU4X has no transition rules).
 time-zones = ["dep:wasm-bindgen"]
 # `datetime-intl`: `INTL_HOST` — that, and `Host::format_date_time` with
 # `Intl.DateTimeFormat` (one formatter cached per locale and option set).

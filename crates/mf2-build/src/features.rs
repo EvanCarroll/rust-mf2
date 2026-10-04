@@ -93,9 +93,9 @@ pub const BUILTINS: [(&str, Option<&str>); 10] = [
     ("percent", Some("fn-number")),
     ("currency", Some("fn-number")),
     ("unit", Some("fn-number")),
-    ("datetime", Some("fn-datetime")),
-    ("date", Some("fn-datetime")),
-    ("time", Some("fn-datetime")),
+    ("datetime", Some("datetime")),
+    ("date", Some("datetime")),
+    ("time", Some("datetime")),
 ];
 
 /// The options each built-in function defines, for the `unknown-option`
@@ -222,20 +222,15 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
     Some(names.contains(&option))
 }
 
-/// The features that decide what a catalog may hold: which functions a
-/// message may call, and which locale data the catalog carries for them.
-/// The wasm and the catalogs must agree on these (an `icu` formatter on
-/// either side puts the date slice in); the others (`number-intl`, the
-/// `intl` and `iso` formatters, `tzdb-bundled`, the host features) change only the code
-/// a build compiles — `tzdb-bundled` only which IANA database a named time
+/// What decides what a catalog may hold, as [`Features::for_catalogs`]
+/// names it: which functions a message may call (`fn-number`, `datetime`),
+/// and whether the catalog carries ICU4X's date slice (`icu-blob`, when an
+/// `icu` formatter is on either side). The wasm and the catalogs must agree
+/// on these; the other features (`number-intl`, the `intl` and `iso`
+/// formatters, `tzdb-bundled`, the host features) change only the code a
+/// build compiles — `tzdb-bundled` only which IANA database a named time
 /// zone is looked up in.
-pub const CATALOG_FEATURES: [&str; 5] = [
-    "fn-number",
-    "fn-datetime",
-    "datetime-icu",
-    "host-std-datetime-icu",
-    "host-web-datetime-icu",
-];
+pub const CATALOG_FEATURES: [&str; 3] = ["fn-number", "datetime", "icu-blob"];
 
 impl Features {
     /// The set cargo passed this `build.rs`: every `CARGO_FEATURE_*` in the
@@ -279,11 +274,21 @@ impl Features {
         }
     }
 
-    /// Only the [`CATALOG_FEATURES`] of this set: what `mf2 compile --site`
-    /// compares with the i18n crate's.
+    /// What of this set changes a catalog, in the [`CATALOG_FEATURES`]
+    /// names: `fn-number`, `datetime` when the date functions are on under
+    /// any of their names, `icu-blob` when the date slice is cut. What
+    /// `mf2 compile --site` compares with the i18n crate's, so that two
+    /// spellings of one build (a framework's family or the host's, with or
+    /// without the `datetime` they imply) compare equal.
     #[must_use]
     pub fn for_catalogs(&self) -> Features {
-        Features::from_names(CATALOG_FEATURES.into_iter().filter(|f| self.has(f)))
+        let [numbers, dates, slice] = CATALOG_FEATURES;
+        let on = [
+            (numbers, self.fn_number()),
+            (dates, self.fn_datetime()),
+            (slice, self.cuts_date_slice()),
+        ];
+        Features::from_names(on.into_iter().filter(|(_, on)| *on).map(|(name, _)| name))
     }
 
     /// Whether `name` is on.
@@ -302,16 +307,20 @@ impl Features {
         self.has("fn-number")
     }
 
-    /// The date and time family: `datetime`, which every date formatter
-    /// turns on (2.0's `fn-datetime`).
+    /// The date and time functions: `datetime`, which every date formatter
+    /// turns on. A formatter's feature counts too, for a list written by
+    /// hand (`mf2 check --features native-datetime-icu`), which does not
+    /// spell out what the feature implies.
     pub fn fn_datetime(&self) -> bool {
-        self.has("datetime") || self.has("fn-datetime")
+        self.has("datetime")
+            || Side::ALL
+                .into_iter()
+                .any(|side| !self.date_formatters(side).is_empty())
     }
 
-    /// Every date formatter on for `side`, the strongest first: a family's
-    /// feature, or a 2.0 name (`datetime-icu` is `icu` on both sides,
-    /// `datetime-intl` is `intl` in the browser and `icu` natively). More
-    /// than one is the `several-date-formatters` case.
+    /// Every date formatter on for `side`, the strongest first: one of its
+    /// families' features. More than one is the `several-date-formatters`
+    /// case.
     pub fn date_formatters(&self, side: Side) -> Vec<DateFormatter> {
         side.formatters()
             .iter()
@@ -320,20 +329,8 @@ impl Features {
                 side.families()
                     .iter()
                     .any(|family| self.has(&format!("{family}{}", formatter.name())))
-                    || self.legacy_date_formatter(side, *formatter)
             })
             .collect()
-    }
-
-    /// The 2.0 names, until every user moves (`plan/08` §3.6).
-    fn legacy_date_formatter(&self, side: Side, formatter: DateFormatter) -> bool {
-        match (side, formatter) {
-            (_, DateFormatter::Icu) => {
-                self.has("datetime-icu") || (side == Side::Native && self.has("datetime-intl"))
-            }
-            (Side::Browser, DateFormatter::Intl) => self.has("datetime-intl"),
-            _ => false,
-        }
     }
 
     /// The formatter `side`'s build formats dates with: the strongest of its
@@ -352,16 +349,6 @@ impl Features {
             .any(|side| self.date_formatter(side) == Some(DateFormatter::Icu))
     }
 
-    /// Dates over ICU4X, from the catalog's `icu.blob`.
-    pub fn datetime_icu(&self) -> bool {
-        self.has("datetime-icu")
-    }
-
-    /// Dates over the browser's `Intl.DateTimeFormat`.
-    pub fn datetime_intl(&self) -> bool {
-        self.has("datetime-intl")
-    }
-
     /// Numbers and plural selection through the browser's `Intl` on the
     /// client (`number-intl`, 2.0's `intl`). The server keeps the Rust path, so a catalog still
     /// carries the data unless the build writes a client variant.
@@ -376,14 +363,23 @@ impl Features {
         let (_, gate) = BUILTINS.iter().find(|(name, _)| *name == identifier)?;
         Some(match gate {
             None => true,
-            Some(feature) => self.has(feature),
+            Some(feature) => self.gate_on(feature),
         })
+    }
+
+    /// Whether a [`BUILTINS`] gate is on: `datetime` under any of its
+    /// names ([`Features::fn_datetime`]), any other by its own.
+    fn gate_on(&self, feature: &str) -> bool {
+        match feature {
+            "datetime" => self.fn_datetime(),
+            _ => self.has(feature),
+        }
     }
 
     /// The feature `identifier` needs and this build does not have.
     pub fn missing_feature(&self, identifier: &str) -> Option<&'static str> {
         let (_, gate) = BUILTINS.iter().find(|(name, _)| *name == identifier)?;
-        gate.filter(|feature| !self.has(feature))
+        gate.filter(|feature| !self.gate_on(feature))
     }
 }
 
@@ -509,24 +505,26 @@ mod tests {
     }
 
     #[test]
-    fn the_2_0_names_read_as_section_3_6_writes_them() {
-        let icu = Features::parse("fn-datetime,datetime-icu");
-        assert_eq!(icu.date_formatter(Side::Browser), Some(DateFormatter::Icu));
-        assert_eq!(icu.date_formatter(Side::Native), Some(DateFormatter::Icu));
-        let intl = Features::parse("fn-datetime,datetime-intl");
+    fn a_formatter_alone_turns_the_date_functions_on() {
+        for list in [
+            "native-datetime-icu",
+            "leptos-client-datetime-intl",
+            "host-web-datetime-iso",
+        ] {
+            let features = Features::parse(list);
+            assert!(features.fn_datetime(), "{list}");
+            assert_eq!(features.provides("time"), Some(true), "{list}");
+            assert_eq!(features.missing_feature("datetime"), None, "{list}");
+        }
         assert_eq!(
-            intl.date_formatter(Side::Browser),
-            Some(DateFormatter::Intl)
-        );
-        assert_eq!(intl.date_formatter(Side::Native), Some(DateFormatter::Icu));
-        assert!(intl.cuts_date_slice());
-        let both = Features::parse("datetime-icu,datetime-intl");
-        assert_eq!(both.date_formatter(Side::Browser), Some(DateFormatter::Icu));
-        assert_eq!(
-            Features::parse("fn-datetime").date_formatter(Side::Native),
-            None
+            Features::default().missing_feature("date"),
+            Some("datetime")
         );
         assert!(Features::parse("datetime").fn_datetime());
+        assert_eq!(
+            Features::parse("datetime").date_formatter(Side::Native),
+            None
+        );
     }
 
     #[test]
@@ -555,20 +553,36 @@ mod tests {
 
     #[test]
     fn a_features_argument_reads_like_cargos() {
-        let features = Features::parse("fn-number, mf2/fn-datetime datetime-icu");
+        let features = Features::parse("fn-number, mf2/datetime native-datetime-icu");
         assert!(features.fn_number());
         assert!(features.fn_datetime());
-        assert!(features.datetime_icu());
+        assert_eq!(
+            features.date_formatter(Side::Native),
+            Some(DateFormatter::Icu)
+        );
     }
 
     #[test]
     fn only_some_features_change_a_catalog() {
         let features = Features::parse(
-            "default,ssr,number-intl,datetime-intl,fn-datetime,fn-number,host-web-datetime-intl",
+            "default,ssr,number-intl,datetime,fn-number,host-web-datetime-intl,leptos-client-datetime-intl",
         );
         assert_eq!(
             features.for_catalogs().names().collect::<Vec<_>>(),
-            ["fn-datetime", "fn-number"]
+            ["datetime", "fn-number"]
+        );
+        // Two spellings of one build compare equal; an `icu` formatter on
+        // either side adds the slice.
+        assert_eq!(
+            Features::parse("native-datetime-icu").for_catalogs(),
+            Features::parse("datetime,host-std-datetime-icu").for_catalogs()
+        );
+        assert_eq!(
+            Features::parse("leptos-client-datetime-icu")
+                .for_catalogs()
+                .names()
+                .collect::<Vec<_>>(),
+            ["datetime", "icu-blob"]
         );
     }
 
@@ -582,7 +596,7 @@ mod tests {
         assert_eq!(none.missing_feature("currency"), Some("fn-number"));
         assert_eq!(none.missing_feature("number"), None);
 
-        let both = Features::parse("fn-number,fn-datetime");
+        let both = Features::parse("fn-number,datetime");
         assert_eq!(both.provides("percent"), Some(true));
         assert_eq!(both.provides("time"), Some(true));
         assert_eq!(both.missing_feature("unit"), None);

@@ -1,4 +1,4 @@
-//! `cargo xtask docs-rs`: the 16 published crates' documentation built as
+//! `cargo xtask docs-rs`: the 17 published crates' documentation built as
 //! docs.rs builds it (`plans/17-phase-9-work-order.md` A5).
 //!
 //! Each library crate's `[package.metadata.docs.rs]` is the one statement

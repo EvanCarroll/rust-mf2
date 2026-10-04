@@ -1,4 +1,4 @@
-//! B4 (`plans/06-size-and-perf.md` §3), `datetime-icu`: the date
+//! B4 (`plans/06-size-and-perf.md` §3), `icu`: the date
 //! functions over `Icu<AnyCalendar, NoZones>` — ICU4X 2.3 from the catalog's
 //! `icu.blob` (any calendar, no zone styles). B4 = this − `b12-dates-base`. B12 is reported, not
 //! gated: ICU4X brings its own `core::fmt` and panic paths, the feature's

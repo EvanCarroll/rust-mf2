@@ -457,7 +457,7 @@ bounded (the unit list, Chromium's Welsh names, the v3 floor, a crossing
 per currency/unit placeholder). That narrower option was not built or
 measured; A4 (`:currency`, `:unit` in Rust) gives the baseline to measure
 it against, with `scripts/build.sh` (`rust-loc` + A4 against `intl-cu`) and
-`scripts/3-agreement.sh`. Dates (`datetime-intl`, already a planned
+`scripts/3-agreement.sh`. Dates (`intl`, already a planned
 backend, B4) were outside this probe.
 
 ## 8. The option as built (Phase 4, after owner decision 4)

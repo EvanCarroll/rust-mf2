@@ -456,7 +456,7 @@ fn date_time_arguments() {
     let (s, e) = run(&REGISTRY, &cx(), "{$a} | {$b}", &args);
     assert_eq!(s, "{$a} | {$b}");
     assert_eq!(e, [FormatError::BadOperand, FormatError::BadOperand]);
-    // With one (fn-datetime's place).
+    // With one (datetime's place).
     assert_eq!(
         ok(&DATED, "{$a} | {$b} | {$c}", &args),
         "2006-01-02T15:04:06Z | 2006-01-02T15:04:06.250 | 2006-01-02T15:04:06+01:00[Europe/Paris]"

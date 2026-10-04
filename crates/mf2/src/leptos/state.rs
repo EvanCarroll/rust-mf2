@@ -325,11 +325,11 @@ pub(crate) fn context_for(use_: TextUse, bidi: Option<BidiStrategy>) -> Option<F
         TextUse::Displayed => bidi.unwrap_or(BidiStrategy::Default),
     };
     // The reader's zone, when this thread knows it (`crate::leptos::zone`).
-    #[cfg(any(feature = "ssr", feature = "fn-datetime"))]
+    #[cfg(any(feature = "ssr", feature = "datetime"))]
     {
         cx.time_zone = crate::leptos::zone::current().unwrap_or(runtime.setup.time_zone);
     }
-    #[cfg(not(any(feature = "ssr", feature = "fn-datetime")))]
+    #[cfg(not(any(feature = "ssr", feature = "datetime")))]
     {
         cx.time_zone = runtime.setup.time_zone;
     }

@@ -6,14 +6,31 @@
 
 use std::fmt::Write as _;
 
-use mf2_build::Features;
 use mf2_build::check::Needs;
+use mf2_build::{DateFormatter, Features, Side};
 use serde_json::{Value, json};
 
 /// The number family: the formatter, and the browser's `Intl` path for it.
 const NUMBERS: [&str; 2] = ["fn-number", "number-intl"];
-/// The date family: the formatter and its two backends.
-const DATES: [&str; 3] = ["fn-datetime", "datetime-icu", "datetime-intl"];
+/// The date functions, then the date formatters: each side's families
+/// (`plan/08` §3.1), the framework-free one first.
+const DATES: [&str; 15] = [
+    "datetime",
+    "host-std-datetime-iso",
+    "host-std-datetime-icu",
+    "host-web-datetime-iso",
+    "host-web-datetime-intl",
+    "host-web-datetime-icu",
+    "leptos-client-datetime-iso",
+    "leptos-client-datetime-intl",
+    "leptos-client-datetime-icu",
+    "leptos-server-datetime-iso",
+    "leptos-server-datetime-icu",
+    "axum-datetime-iso",
+    "axum-datetime-icu",
+    "native-datetime-iso",
+    "native-datetime-icu",
+];
 
 /// Where the features that are on came from.
 #[derive(Debug)]
@@ -37,8 +54,8 @@ pub(crate) struct FeatureList {
     unused: Option<Vec<&'static str>>,
     /// The features to write on the `mf2` dependency.
     line: Vec<String>,
-    /// Both date backends on: the one that formats, in the browser
-    /// (`datetime-intl`) and elsewhere (`datetime-icu`).
+    /// The browser formats dates with `Intl` and native code with ICU4X, so
+    /// a server-rendered date can read differently once hydrated.
     both_backends: bool,
     /// Where `on` came from.
     source: &'static str,
@@ -58,7 +75,7 @@ impl FeatureList {
             needed.push("fn-number");
         }
         if needs.dates {
-            needed.push("fn-datetime");
+            needed.push("datetime");
         }
         let known = !matches!(source, Source::Unknown);
         let on: Vec<&'static str> = NUMBERS
@@ -72,11 +89,12 @@ impl FeatureList {
 
         // The modes as they are, then each needed family with what of it is on.
         let is_family = |name: &str| NUMBERS.contains(&name) || DATES.contains(&name);
-        let mut line: Vec<String> = match source {
+        let written: Vec<String> = match source {
             Source::Cargo { written } => written.clone(),
             Source::Given => features.names().map(str::to_owned).collect(),
             Source::Unknown => Vec::new(),
         };
+        let mut line = written.clone();
         line.retain(|name| !is_family(name));
         if needs.numbers {
             line.push("fn-number".to_owned());
@@ -85,22 +103,26 @@ impl FeatureList {
             }
         }
         if needs.dates {
-            let backends: Vec<&str> = DATES[1..]
+            // The formatters as the crate writes them, not every name they
+            // imply.
+            let formatters: Vec<String> = written
                 .iter()
-                .copied()
-                .filter(|name| known && features.has(name))
+                .filter(|name| DATES[1..].contains(&name.as_str()))
+                .cloned()
                 .collect();
-            if backends.is_empty() {
-                line.push("fn-datetime".to_owned());
+            if formatters.is_empty() {
+                line.push("datetime".to_owned());
             }
-            line.extend(backends.into_iter().map(str::to_owned));
+            line.extend(formatters);
         }
         FeatureList {
             needs: needed,
             on: known.then_some(on),
             unused: known.then_some(unused),
             line,
-            both_backends: known && features.datetime_icu() && features.datetime_intl(),
+            both_backends: known
+                && features.date_formatter(Side::Browser) == Some(DateFormatter::Intl)
+                && features.date_formatter(Side::Native) == Some(DateFormatter::Icu),
             source: match source {
                 Source::Given => "given",
                 Source::Cargo { .. } => "cargo",
@@ -139,11 +161,11 @@ impl FeatureList {
         if self.both_backends {
             let _ = writeln!(
                 out,
-                "  dates:            datetime-icu and datetime-intl are both on; \
-                 in the browser datetime-intl formats (Intl.DateTimeFormat, no \
-                 ICU4X date code or data in the client), and on the server and \
-                 natively datetime-icu does (ICU4X over the catalog's icu.blob), \
-                 so a server-rendered date can read differently once hydrated"
+                "  dates:            in the browser `intl` formats \
+                 (Intl.DateTimeFormat, no ICU4X date code or data in the client), \
+                 and on the server and natively `icu` does (ICU4X over the \
+                 catalog's icu.blob), so a server-rendered date can read \
+                 differently once hydrated"
             );
         }
         out
@@ -153,7 +175,7 @@ impl FeatureList {
     pub(crate) fn to_json(&self) -> Value {
         let backends = self
             .both_backends
-            .then(|| json!({ "wasm32-unknown-unknown": "datetime-intl", "other": "datetime-icu" }));
+            .then(|| json!({ "wasm32-unknown-unknown": "intl", "other": "icu" }));
         json!({
             "source": self.source,
             "needs": self.needs,
@@ -168,7 +190,7 @@ impl FeatureList {
 #[cfg(test)]
 mod tests {
     use super::{FeatureList, Needs, Source};
-    use mf2_build::Features;
+    use mf2_build::{DateFormatter, Features, Side};
 
     fn list(needs: (bool, bool), on: &[&str], source: &Source) -> FeatureList {
         let needs = Needs {
@@ -186,12 +208,25 @@ mod tests {
 
     #[test]
     fn a_terminal_application_keeps_its_mode_and_drops_what_it_does_not_use() {
-        let on = ["fn-number", "fn-datetime", "ratatui", "native", "host-std"];
-        let written = cargo(&["ratatui", "fn-number", "fn-datetime"]);
+        let on = [
+            "fn-number",
+            "datetime",
+            "native-datetime-iso",
+            "ratatui",
+            "native",
+            "host-std",
+        ];
+        let written = cargo(&["ratatui", "fn-number", "native-datetime-iso"]);
         let list = list((true, false), &on, &written);
         assert_eq!(list.needs, ["fn-number"]);
-        assert_eq!(list.on.as_deref(), Some(&["fn-number", "fn-datetime"][..]));
-        assert_eq!(list.unused.as_deref(), Some(&["fn-datetime"][..]));
+        assert_eq!(
+            list.on.as_deref(),
+            Some(&["fn-number", "datetime", "native-datetime-iso"][..])
+        );
+        assert_eq!(
+            list.unused.as_deref(),
+            Some(&["datetime", "native-datetime-iso"][..])
+        );
         assert_eq!(list.line, ["ratatui", "fn-number"]);
         assert!(
             list.to_text()
@@ -202,37 +237,48 @@ mod tests {
 
     #[test]
     fn a_needed_family_keeps_its_backend_and_names_the_one_that_wins() {
-        let on = ["fn-number", "fn-datetime", "datetime-icu", "datetime-intl"];
-        let list = list((true, true), &on, &cargo(&["fn-number", "datetime-icu"]));
+        let on = [
+            "fn-number",
+            "datetime",
+            "leptos-client-datetime-intl",
+            "leptos-server-datetime-icu",
+        ];
+        let written = cargo(&[
+            "fn-number",
+            "leptos-client-datetime-intl",
+            "leptos-server-datetime-icu",
+        ]);
+        let list = list((true, true), &on, &written);
         assert_eq!(list.unused.as_deref(), Some(&[][..]));
-        assert_eq!(list.line, ["fn-number", "datetime-icu", "datetime-intl"]);
-        assert!(
-            list.to_text()
-                .contains("in the browser datetime-intl formats")
+        assert_eq!(
+            list.line,
+            [
+                "fn-number",
+                "leptos-client-datetime-intl",
+                "leptos-server-datetime-icu"
+            ]
         );
+        assert!(list.to_text().contains("in the browser `intl` formats"));
         assert_eq!(
             list.to_json()["date_backend"]["wasm32-unknown-unknown"],
-            "datetime-intl"
+            "intl"
         );
-        assert_eq!(list.to_json()["date_backend"]["other"], "datetime-icu");
+        assert_eq!(list.to_json()["date_backend"]["other"], "icu");
     }
 
     #[test]
     fn a_missing_family_is_added_and_number_intl_stays_with_numbers() {
         let list = list((true, true), &["number-intl", "csr"], &Source::Given);
-        assert_eq!(list.needs, ["fn-number", "fn-datetime"]);
-        assert_eq!(
-            list.line,
-            ["csr", "fn-number", "number-intl", "fn-datetime"]
-        );
+        assert_eq!(list.needs, ["fn-number", "datetime"]);
+        assert_eq!(list.line, ["csr", "fn-number", "number-intl", "datetime"]);
     }
 
     #[test]
     fn without_cargo_the_list_is_the_needs_only() {
-        let on = ["fn-number", "fn-datetime"];
+        let on = ["fn-number", "datetime"];
         let list = list((false, true), &on, &Source::Unknown);
         assert_eq!(list.on, None);
-        assert_eq!(list.line, ["fn-datetime"]);
+        assert_eq!(list.line, ["datetime"]);
         let text = list.to_text();
         assert!(text.contains("the corpus's needs only") && !text.contains("on and unused"));
         assert!(list.to_json()["on"].is_null());

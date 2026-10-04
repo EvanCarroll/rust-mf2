@@ -149,7 +149,7 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     let report = text(&output.stdout);
     assert!(report.contains("0 error(s), 7 warning(s)"), "{report}");
     assert!(
-        report.contains("note: the output needs the client feature(s) fn-datetime, fn-number"),
+        report.contains("note: the output needs the client feature(s) datetime, fn-number"),
         "{report}"
     );
 
@@ -176,7 +176,7 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     // What it writes is a corpus `mf2 check` accepts and `mf2 fmt` would
     // not change.
     std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
-    let check = run(&dir, &["check", "--features", "fn-number,fn-datetime"]);
+    let check = run(&dir, &["check", "--features", "fn-number,datetime"]);
     assert!(check.status.success(), "{}", text(&check.stdout));
     assert!(
         text(&check.stdout).contains("0 error(s)")

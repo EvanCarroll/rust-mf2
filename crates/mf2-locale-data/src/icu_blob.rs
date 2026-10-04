@@ -1,6 +1,6 @@
 //! The `icu.blob` LOCALE entry (`plans/02-catalog-format.md` §4.9, key 48;
 //! `plans/11` A6): per locale, an ICU4X postcard data blob holding exactly
-//! what `mf2-fn-datetime`'s `datetime-icu` backend requests for what the
+//! what `mf2-fn-datetime`'s `icu` date formatter requests for what the
 //! corpus formats.
 //!
 //! **How it is restricted.** The backend's own [`mf2_fn_datetime::icu::prime`]
@@ -553,7 +553,7 @@ impl DateNeeds {
     }
 }
 
-/// What an `icu.blob` is built for: the `datetime-icu` backend variants it
+/// What an `icu.blob` is built for: the `icu` date formatter variants it
 /// serves, and what the corpus formats.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[non_exhaustive]

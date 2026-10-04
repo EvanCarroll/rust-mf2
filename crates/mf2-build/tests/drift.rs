@@ -210,8 +210,10 @@ fn drifts() -> Vec<Drift> {
         },
         Drift {
             lint: Lint::UnusedFeature,
-            what: "`fn-datetime` on and no message formats a date",
-            mutate: |_, features, _| *features = Features::parse("fn-number fn-datetime"),
+            what: "`datetime` on and no message formats a date",
+            mutate: |_, features, _| {
+                *features = Features::parse("fn-number datetime host-std-datetime-iso")
+            },
         },
         Drift {
             lint: Lint::NeutralNumbers,
@@ -564,10 +566,13 @@ fn only_en(body: &str) -> Vec<(String, String)> {
 fn unused_feature_names_each_family_once() {
     // Plain text: no placeholder, no function, no selection.
     let text = only_en("a = Save\nb = Cancel\n");
-    let said = unused(&text, "fn-number number-intl fn-datetime datetime-icu");
+    let said = unused(
+        &text,
+        "fn-number number-intl datetime host-std-datetime-iso",
+    );
     assert_eq!(said.len(), 2, "{said:#?}");
     assert!(
-        said[0].contains("`fn-datetime` and `datetime-icu` are on for this build"),
+        said[0].contains("`datetime` is on for this build"),
         "{}",
         said[0]
     );
@@ -579,10 +584,10 @@ fn unused_feature_names_each_family_once() {
     );
     // The base corpus formats numbers and no dates; across two locales the
     // date family is still reported once.
-    let said = unused(&files(), "fn-number fn-datetime");
+    let said = unused(&files(), "fn-number native-datetime-iso");
     assert_eq!(said.len(), 1, "{said:#?}");
     assert!(
-        said[0].contains("`fn-datetime` is on for this build"),
+        said[0].contains("`datetime` is on for this build"),
         "{}",
         said[0]
     );
@@ -595,7 +600,7 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     // Any of the three date functions uses the family.
     for function in ["datetime", "date", "time"] {
         let dates = only_en(&format!("when = {{$at :{function}}}\n"));
-        let said = unused(&dates, "fn-datetime datetime-intl");
+        let said = unused(&dates, "datetime host-web-datetime-intl");
         assert!(said.is_empty(), ":{function}: {said:#?}");
     }
     // A plain placeholder can receive a number.
@@ -616,7 +621,7 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     let outcome = build_corpus(
         "unused-feature-allow",
         &text,
-        &Features::parse("fn-number fn-datetime"),
+        &Features::parse("fn-number datetime"),
         &config,
     );
     assert!(

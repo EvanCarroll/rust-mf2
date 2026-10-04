@@ -1,4 +1,4 @@
-# The base corpus and a date: the `fn-datetime` rows' corpus, since a
+# The base corpus and a date: the date formatter rows' corpus, since a
 # `:datetime` message is refused by a build without the feature that serves it.
 @locale en
 ---

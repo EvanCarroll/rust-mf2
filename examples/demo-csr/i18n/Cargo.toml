@@ -9,12 +9,12 @@ publish = false
 
 [dependencies]
 # Numbers in each locale's own symbols (the counter), and dates through the
-# browser's own `Intl.DateTimeFormat` (`datetime-intl`): a client-only
+# browser's own `Intl.DateTimeFormat` (`leptos-client-datetime-intl`): a client-only
 # application has a browser to ask, so it ships no date data. The published
 # line is shown in the reader's time zone, read at mount. The build reads
 # `mf2`'s features from `mf2` itself, and `mf2 compile --site`
 # (`../Trunk.toml`) from cargo, to build the catalogs the browser fetches.
-mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web", "fn-number", "datetime-intl"] }
+mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web", "fn-number", "leptos-client-datetime-intl"] }
 
 [build-dependencies]
 mf2-build = { path = "../../../crates/mf2-build" }

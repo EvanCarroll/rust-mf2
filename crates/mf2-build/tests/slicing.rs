@@ -359,7 +359,7 @@ fn a_declaration_annotates_the_placeholders_that_use_it() {
             &[("en", source)],
         );
         let outcome = Build::at(&root, out_dir("unannotated"))
-            .features(Features::parse("fn-number,fn-datetime"))
+            .features(Features::parse("fn-number,datetime"))
             .run()
             .expect("builds");
         assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());

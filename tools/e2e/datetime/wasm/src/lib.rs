@@ -1,4 +1,4 @@
-//! The `datetime-intl` browser comparison, browser side (plans/11 A6): a
+//! The `intl` date formatter's browser comparison, browser side (plans/11 A6): a
 //! case's catalog, with its params, formatted with `:date`, `:time`,
 //! `:datetime` and unannotated dates over the
 //! `Intl` backend — `Intl.DateTimeFormat` through `mf2-host-web`, whose

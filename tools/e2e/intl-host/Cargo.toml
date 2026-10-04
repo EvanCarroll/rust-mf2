@@ -21,11 +21,10 @@ crate-type = ["cdylib"]
 
 # `mf2-build` reads the corpus's features from this crate's.
 [features]
-default = ["number-intl", "fn-number", "datetime-intl"]
+default = ["number-intl", "fn-number", "host-web-datetime-intl"]
 number-intl = ["mf2/number-intl"]
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 
 [dependencies]
 mf2 = { path = "../../../crates/mf2", features = ["host-web"] }

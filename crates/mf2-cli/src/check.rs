@@ -104,7 +104,7 @@ fn features_or_assumed(dir: &Path, args: &FeatureArgs) -> (mf2_build::Features, 
          --features fn-number)"
     );
     (
-        mf2_build::Features::from_names(["fn-number", "fn-datetime"]),
+        mf2_build::Features::from_names(["fn-number", "datetime"]),
         Source::Unknown,
     )
 }

@@ -1,4 +1,4 @@
-//! `cargo xtask api [--check]`: the public API of the 16 published crates,
+//! `cargo xtask api [--check]`: the public API of the 17 published crates,
 //! listed and committed (`plans/17-phase-9-work-order.md` A2;
 //! `docs/versioning.md`): as `crates/<name>/api.txt`, or, for a crate whose
 //! features select what it offers, once per mode, as

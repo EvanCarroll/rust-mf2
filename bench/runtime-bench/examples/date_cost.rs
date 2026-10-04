@@ -1,4 +1,4 @@
-//! What a date placeholder costs with the `datetime-icu` backend (Phase 4,
+//! What a date placeholder costs with the `icu` date formatter (Phase 4,
 //! A6; plans/03-runtime.md §5.2): per format, the catalog's `icu.blob` is
 //! copied into an ICU4X `BlobDataProvider` and the formatter is built from
 //! it — twice, since the runtime asks `formattable` before `format` — then

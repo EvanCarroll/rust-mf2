@@ -103,7 +103,7 @@ lints! {
     BadOptionValue = ("bad-option-value", Error, Allow);
     /// A function whose client feature is off — `:percent`, `:currency` and
     /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
-    /// `fn-datetime`. A translation can never silently add formatting code to
+    /// a date formatter (`datetime`). A translation can never silently add formatting code to
     /// the wasm (`plans/03-runtime.md` §5.1).
     GatedFunction = ("gated-function", Error, Error);
     /// An entry marked `@do-not-translate` differs from the source's.
@@ -127,8 +127,8 @@ lints! {
     /// application passes, so a placeholder that only receives text raises it too.
     NeutralNumbers = ("neutral-numbers", Warn, Allow);
     /// A function family is on for this build and no message can use it:
-    /// the date family (`fn-datetime`, `datetime-icu`, `datetime-intl`) with
-    /// no `:datetime`, `:date` or `:time`, or the number family (`fn-number`,
+    /// the date functions (`datetime`, which every date formatter turns on)
+    /// with no `:datetime`, `:date` or `:time`, or the number family (`fn-number`,
     /// `number-intl`) with nothing that formats or selects on a number. Raised
     /// once per family for the whole corpus. In a workspace another crate may
     /// have turned the feature on, so the message says "on for this build".

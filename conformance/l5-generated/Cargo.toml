@@ -14,13 +14,13 @@ license.workspace = true
 publish.workspace = true
 
 [features]
-default = ["ssr", "fn-number", "datetime-icu"]
+default = ["ssr", "fn-number", "host-std-datetime-icu", "host-web-datetime-icu"]
 ssr = ["mf2/host-std"]
 hydrate = ["mf2/host-web"]
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
-datetime-icu = ["fn-datetime", "mf2/datetime-icu"]
-datetime-intl = ["fn-datetime", "mf2/datetime-intl"]
+# Dates over ICU4X, natively and in the browser (plan/08 §3.1).
+host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
+host-web-datetime-icu = ["mf2/host-web-datetime-icu"]
 
 [dependencies]
 # `compile` so that the test can compile the same message the way L4 does.

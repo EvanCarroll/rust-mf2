@@ -31,7 +31,7 @@ name = "mf2"
 path = "src/main.rs"
 
 [features]
-# The per-locale `icu.blob` of the `datetime-icu` backend.
+# The per-locale `icu.blob` of the `icu` date formatters.
 icu-blob = ["mf2-build/icu-blob"]
 
 [dependencies]

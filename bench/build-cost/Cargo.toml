@@ -8,7 +8,7 @@ publish.workspace = true
 
 [features]
 # The per-locale `icu.blob`: pulls ICU4X's baked data crates into this
-# binary, exactly as `datetime-icu` pulls them into an application's build.
+# binary, exactly as an `icu` date formatter pulls them into an application's build.
 icu-blob = ["mf2-build/icu-blob"]
 
 [dependencies]

@@ -95,8 +95,8 @@ fn i18n_crate(dir: &Path, features: &str) {
     std::fs::write(
         dir.join("mf2/Cargo.toml"),
         "[package]\nname = \"mf2\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
-         [features]\nfn-number = []\nfn-datetime = []\n\
-         datetime-icu = [\"fn-datetime\"]\nintl = []\n",
+         [features]\nfn-number = []\ndatetime = []\n\
+         host-std-datetime-icu = [\"datetime\"]\nintl = []\n",
     )
     .expect("write");
     std::fs::write(dir.join("mf2/src/lib.rs"), "").expect("write");
@@ -271,7 +271,7 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
         &[
             "compile",
             "--features",
-            "fn-number,fn-datetime",
+            "fn-number,datetime",
             "--site",
             site,
         ],
@@ -279,7 +279,7 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     assert!(!out.status.success(), "{}", stdout(&out));
     let err = stderr(&out);
     assert!(
-        err.contains("--features names [fn-datetime, fn-number]")
+        err.contains("--features names [datetime, fn-number]")
             && err.contains("cargo resolves [fn-number] for mf2 in cli-i18n"),
         "{err}"
     );

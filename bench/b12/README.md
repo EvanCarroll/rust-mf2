@@ -114,10 +114,10 @@ native harnesses, `mf2-host-web`'s for the web ones.
 | `b12-dates-base` | the core functions; stub host | the base of the date deltas |
 | `b12-dates-semantics` | + `:datetime`, `:date`, `:time`, unannotated dates over a backend that writes one byte of the plan | the date semantics every backend needs; B12-gated |
 | `b12-dates-neutral` | the same over the neutral stub backend | B12-gated |
-| `b12-dates-icu-{greg,any}-{nozones,zones}` | over `Icu<GregorianOnly \| AnyCalendar, NoZones \| WithZones>` (ICU4X from the catalog's `icu.blob`) | B4 `datetime-icu`; B12 reported (ICU4X's own `core::fmt` and panic paths) |
-| `b12-dates-web-base` | the core functions; `mf2_host_web::HOST` with the date features on; through `wasm-bindgen` | the base of B4 `datetime-intl`; B1′ for `mf2-host-web` (its JS loads no date glue) |
+| `b12-dates-icu-{greg,any}-{nozones,zones}` | over `Icu<GregorianOnly \| AnyCalendar, NoZones \| WithZones>` (ICU4X from the catalog's `icu.blob`) | B4 `icu`; B12 reported (ICU4X's own `core::fmt` and panic paths) |
+| `b12-dates-web-base` | the core functions; `mf2_host_web::HOST` with the date features on; through `wasm-bindgen` | the base of B4 `intl`; B1′ for `mf2-host-web` (its JS loads no date glue) |
 | `b12-dates-web-plain` | `b12-dates-web-base`'s source, built alone without `mf2-host-web`'s date features | B1′ for those features: the web base must be the same size, wasm and JS |
-| `b12-dates-intl` | + the date functions over `Intl`; `mf2_host_web::INTL_HOST`; through `wasm-bindgen` | B4 `datetime-intl`, wasm and JS; adds no fmt / panic symbol, import or text to the web base |
+| `b12-dates-intl` | + the date functions over `Intl`; `mf2_host_web::INTL_HOST`; through `wasm-bindgen` | B4 `intl`, wasm and JS; adds no fmt / panic symbol, import or text to the web base |
 | `b12-dates-unused` | `b12-runtime`'s registry and walk, `mf2-fn-datetime` linked with both backends' features | B1′ (= `b12-runtime`, +0 B), B13 |
 
 Measured 2026-09-22 on the merged tree (rustc 1.98.1, wasm-opt 120, twiggy
@@ -129,13 +129,13 @@ option's numeric rework landed beneath them:
 |---|---:|---:|---|
 | date semantics (`dates-semantics` − `dates-base`) | 7,600 | **3,577** | 06 B4's note: ≤ 3,584 |
 | + the neutral backend (`dates-neutral` − `dates-base`) | 8,582 | 4,032 | — |
-| B4 `datetime-icu`, Gregorian, zone styles (`dates-icu-greg-zones` − `dates-base`) | 154,958 | **69,641** | ≤ 97,280 |
+| B4 `icu`, Gregorian, zone styles (`dates-icu-greg-zones` − `dates-base`) | 154,958 | **69,641** | ≤ 97,280 |
 | … Gregorian, no zone styles | 93,591 | 42,820 | — |
-| B4 `datetime-icu`, any calendar, zone styles | 213,235 | **83,028** | ≤ 107,520 |
+| B4 `icu`, any calendar, zone styles | 213,235 | **83,028** | ≤ 107,520 |
 | … any calendar, no zone styles | 151,113 | 55,476 | — |
-| B4 `datetime-intl`, wasm (`dates-intl` − `dates-web-base`) | 10,830 | **5,131** | ≤ 6,144 |
-| B4 `datetime-intl`, JS glue (3,132 − 2,464 B gz) | — | **668** | ≤ 1,024 |
-| B1′: `fn-datetime` on, unused (`dates-unused` − `runtime`) | 0 | **0** | +0 |
+| B4 `intl`, wasm (`dates-intl` − `dates-web-base`) | 10,830 | **5,131** | ≤ 6,144 |
+| B4 `intl`, JS glue (3,132 − 2,464 B gz) | — | **668** | ≤ 1,024 |
+| B1′: `datetime` on, unused (`dates-unused` − `runtime`) | 0 | **0** | +0 |
 | B1′: `mf2-host-web`'s date features on, `HOST` named (`dates-web-base` − `dates-web-plain`) | 0 | **0** (JS 0) | +0 |
 
 B12: `b12-dates-semantics`, `-neutral`, `-unused` and `-base` clean (no panic

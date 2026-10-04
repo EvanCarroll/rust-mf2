@@ -1,6 +1,6 @@
 [package]
 name = "b12-dates-unused"
-description = "B1', B13: fn-datetime linked with both backend features on, unused — b12-runtime's registry and walk, so the module must equal b12-runtime's (+0 B) and hold no date code."
+description = "B1', B13: the date functions linked with both backend features on, unused — b12-runtime's registry and walk, so the module must equal b12-runtime's (+0 B) and hold no date code."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -1,6 +1,6 @@
 # The workload of `cargo xtask native-canaries` (`plan/01` §6.1): the
 # smallest native application that uses MF2 — a typed language, a plain
-# message, a number and, with `fn-datetime`, a date — so that what a feature
+# message, a number and, with a date formatter, a date — so that what a feature
 # set *links* can be read out of the binary's symbols.
 #
 # A workspace of its own, like the examples: the feature sets it is built
@@ -29,7 +29,10 @@ default = ["native"]
 # languages and the store.
 native = ["mf2/native"]
 fn-number = ["mf2/fn-number"]
-fn-datetime = ["mf2/fn-datetime"]
+# The date formatters of a native application; `icu` cuts the catalogs'
+# date slice, which needs `mf2-build`'s `icu-blob`.
+native-datetime-iso = ["mf2/native-datetime-iso"]
+native-datetime-icu = ["mf2/native-datetime-icu", "mf2-build/icu-blob"]
 compile = ["mf2/compile"]
 # A terminal UI and an Axum server: the two other native shapes `mf2` has a
 # module for. Each embeds the catalogs the same way, so each turns `native`
@@ -41,7 +44,7 @@ tui = ["dep:ratatui-core"]
 ratatui = ["native", "tui", "mf2/ratatui"]
 axum = ["native", "mf2/axum"]
 # The bundled IANA database rather than the machine's, which a server turns
-# on. Nothing without `fn-datetime`.
+# on. Nothing without a date formatter.
 tzdb-bundled = ["mf2/tzdb-bundled"]
 # A command line that takes `--lang`: `cli` parses it as text and looks the
 # language up itself, `clap` lets clap parse it through `mf2`'s value parser.

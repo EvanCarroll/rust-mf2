@@ -27,7 +27,7 @@ use mf2_runtime::{
 /// The handlers L4 formats with — the all-features configuration
 /// (`plans/01-conformance.md` §3): `:string`, the localized numeric
 /// functions with `:percent`, `:currency` and `:unit` (`fn-number`), the
-/// date/time functions (`fn-datetime`) and the test functions.
+/// date/time functions (`datetime`) and the test functions.
 pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
     ("currency", &mf2_fn_number::CURRENCY),
     ("date", &mf2_fn_datetime::DATE),
@@ -52,7 +52,7 @@ pub static REGISTRY: Registry = Registry::new(&FUNCTIONS)
 
 /// The handlers of the **default** configuration (L4d, `plans/01-conformance.md`
 /// §3): what an application's generated registry holds with `fn-number` and
-/// `fn-datetime` off — `:string` and the core's neutral `:number`,
+/// `datetime` off — `:string` and the core's neutral `:number`,
 /// `:integer`, `:offset` — plus the test functions. The gated functions
 /// (`:percent`, `:currency`, `:unit`, `:datetime`, `:date`, `:time`) are
 /// absent, so they are Unknown Functions.

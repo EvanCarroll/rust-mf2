@@ -51,7 +51,7 @@ use tachys::view::{Mountable, Position, PositionState, Render, RenderHtml, ToTem
 use crate::leptos::lang::{self, Wrapper};
 #[cfg(any(
     not(feature = "static-locale"),
-    all(feature = "hydrate", feature = "fn-datetime")
+    all(feature = "hydrate", feature = "datetime")
 ))]
 use crate::leptos::registry::Relocalize;
 use crate::leptos::registry::{self, Target};
@@ -619,14 +619,14 @@ macro_rules! attribute_description {
             type Cloneable = Self;
             type CloneableOwned = Self;
 
-            #[cfg(not(all(feature = "hydrate", feature = "fn-datetime")))]
+            #[cfg(not(all(feature = "hydrate", feature = "datetime")))]
             fn hydrate<const FROM_SERVER: bool>(self, el: &Element, key: &str) -> Self::State {
                 let _ = FROM_SERVER;
                 IntoProperty::build(self, el, key)
             }
 
             /// As `build`, but seen by the reader's-zone correction.
-            #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+            #[cfg(all(feature = "hydrate", feature = "datetime"))]
             fn hydrate<const FROM_SERVER: bool>(self, el: &Element, key: &str) -> Self::State {
                 let _ = FROM_SERVER;
                 with_text(&self, TextUse::Plain, |text| {
@@ -686,7 +686,7 @@ pub(crate) struct RichNode {
 
 #[cfg(any(
     not(feature = "static-locale"),
-    all(feature = "hydrate", feature = "fn-datetime")
+    all(feature = "hydrate", feature = "datetime")
 ))]
 impl Relocalize for RichNode {
     fn relocalize(&mut self, catalog: &mf2_catalog::Catalog) {
@@ -837,14 +837,14 @@ impl RenderHtml for TrRich {
         // After the reader's-zone correction has switched zones, a message
         // hydrating now still shows the page's zone: it hydrates in that
         // one and is then rebuilt (`crate::leptos::zone`).
-        #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+        #[cfg(all(feature = "hydrate", feature = "datetime"))]
         let fragment = crate::leptos::zone::scoped(crate::leptos::zone::hydrating_zone(), || {
             rich::active_fragment(&self)
         });
-        #[cfg(not(all(feature = "hydrate", feature = "fn-datetime")))]
+        #[cfg(not(all(feature = "hydrate", feature = "datetime")))]
         let fragment = rich::active_fragment(&self);
         let state = TrRichState::new(self, fragment.hydrate::<FROM_SERVER>(cursor, position));
-        #[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+        #[cfg(all(feature = "hydrate", feature = "datetime"))]
         crate::leptos::zone::hydrated_rich(state.node.clone());
         state
     }

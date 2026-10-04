@@ -80,7 +80,7 @@ struct Cli {
 /// The client feature set, which decides which functions exist.
 #[derive(Debug, Args, Clone, Default)]
 pub(crate) struct FeatureArgs {
-    /// Comma-separated client features (`fn-number,fn-datetime`), as the
+    /// Comma-separated client features (`fn-number,native-datetime-icu`), as the
     /// application turns them on for `mf2`.
     #[arg(long, value_name = "LIST")]
     features: Option<String>,

@@ -5,7 +5,7 @@
 //! The input is `[flags] [n] [n argument bytes] [payload]`:
 //!
 //! * **flags** — bit 0: the bidi strategy `None` (else `Default`); bit 1:
-//!   the default configuration's registry (`fn-number` and `fn-datetime`
+//!   the default configuration's registry (`fn-number` and `datetime`
 //!   off: layer L4d) instead of the all-features one;
 //! * **arguments** — a sequence of `[tag] …`: `tag % 8` = 0 a string
 //!   (`[len]` bytes, lossy UTF-8), 1 an `i64` (8 bytes LE), 2 an `f64`
@@ -31,7 +31,7 @@
 //! The functions are the L4 registry's — all features (`:string`, the
 //! localized numeric functions, `:percent`, `:currency`, `:unit`, the
 //! date/time functions over ICU4X from the catalog's `icu.blob`
-//! (`datetime-icu`) — in catalog mode over the neutral backend, since ICU4X
+//! (`icu`) — in catalog mode over the neutral backend, since ICU4X
 //! does not promise to survive a damaged blob (`CATALOG_REGISTRY`) — the
 //! unannotated hooks, the suite's `:test:*`) or the default configuration's
 //! (flags bit 1) — the host `mf2-host-std`'s, with `jiff`'s zone data.
@@ -308,7 +308,7 @@ fn compile(data: &[u8]) -> Option<Catalog> {
     options
         .locale_entries
         .extend(number_locale_entries(locale, &needs).expect("number data of a known locale"));
-    // The `datetime-icu` data when the message formats a date or can
+    // The `icu` data when the message formats a date or can
     // receive one (02 §4.4): the locale's blob for every shape, the
     // steering's calendars too (built once per locale: `blob`), which the
     // sliced blob `mf2::compile_str` writes is a subset of (`generated_l4`

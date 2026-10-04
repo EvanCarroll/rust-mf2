@@ -26,7 +26,7 @@ use mf2_l4_runner::{Case, Config as RunConfig, Record, run};
 
 /// The features every function needs (layer L4's registry).
 fn all_features() -> Features {
-    Features::parse("fn-number,fn-datetime,datetime-icu")
+    Features::parse("fn-number,datetime,host-std-datetime-icu,host-web-datetime-icu")
 }
 
 /// A directory holding one message as a one-locale corpus.

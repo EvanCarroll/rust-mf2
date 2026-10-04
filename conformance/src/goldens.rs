@@ -161,7 +161,7 @@ pub const FAMILIES: &[Family] = &[
     },
     Family {
         name: "dates",
-        about: "the date/time family (fn-datetime, datetime-icu: ICU4X from the catalog's \
+        about: "the date/time family (host-std-datetime-icu: ICU4X from the catalog's \
                 icu.blob): :datetime, :date, :time with every length, the field sets, \
                 precisions, hour12, zone styles in UTC, a named zone and an offset, two other \
                 calendars; unannotated values; instants and floating values, in UTC",

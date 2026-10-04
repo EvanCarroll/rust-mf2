@@ -4,7 +4,7 @@
 //! A size claim about a feature is only worth what the linker does with it.
 //! For each row of [`ROWS`] this links `tools/native-canary` — the smallest
 //! application that uses MF2: a typed language, a plain message, a number
-//! and, with `fn-datetime`, a date in a named time zone — in the profile
+//! and, with a date formatter, a date in a named time zone — in the profile
 //! releases use and **unstripped**, then reads the binary's symbol table and
 //! says which of [`CRATES`] still has a named item in it. A row that
 //! requires a crate's symbols fails when there are none, and a row that
@@ -21,7 +21,7 @@
 //! It is what answers `plan/01` §8, "`native` links by use".
 //!
 //! Phase 12 made jiff conditional (`mf2-host-std`'s feature `time-zones`,
-//! which only `fn-datetime` turns on) and removed `ryu` outright, so every
+//! which only a date formatter turns on) and removed `ryu` outright, so every
 //! dateless set forbids both. Phase 13 did the same for
 //! `unicode-normalization`: the runtime decides canonical equivalence from
 //! the map its catalog carries (`plan/01` §4.3), so the tables are linked
@@ -102,7 +102,7 @@ const ROWS: &[Row] = &[
     },
     Row {
         // `axum` turns `tzdb-bundled` on, so that every reply says the same
-        // thing whatever the host holds — but it does not turn `fn-datetime`
+        // thing whatever the host holds — but it does not turn a date formatter
         // on, and `tzdb-bundled` is weak in jiff. A server with no date in
         // any message therefore links no zone database at all.
         what: "an Axum server with no date in any message",
@@ -118,7 +118,7 @@ const ROWS: &[Row] = &[
         // zone comes from the system, so jiff's bundled copy of the IANA
         // database — a quarter of a megabyte — must not be linked.
         what: "a native application formatting a date in a named zone (the positive control)",
-        features: "native,fn-datetime",
+        features: "native,native-datetime-iso",
         requires: &["jiff"],
         forbids: &[BUNDLED_TZDB],
     },

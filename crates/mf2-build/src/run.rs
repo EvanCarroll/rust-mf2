@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn datetime_icu_needs_icu_blob_here() {
-        let list = Some("datetime-icu,fn-datetime");
+        let list = Some("datetime,host-std-datetime-icu,native-datetime-icu");
         let e = mf2_features(list, OURS, false).expect_err("refused without icu-blob");
         assert!(e.to_string().contains(
             "add `features = [\"icu-blob\"]` to this crate's `mf2-build` build-dependency"

@@ -169,7 +169,7 @@ pub mod locale_key {
     pub const DATE_FIRST: u32 = 48;
     /// `icu.blob`, encoding v1 (§4.9): an ICU4X data blob
     /// (`BlobDataProvider`, blob format v3) for this locale, holding what
-    /// the `datetime-icu` backend requests for the shapes the corpus
+    /// the `icu` date formatter requests for the shapes the corpus
     /// formats. The reader does not walk it: the backend hands it to ICU4X.
     pub const ICU_BLOB: u32 = 48;
 }

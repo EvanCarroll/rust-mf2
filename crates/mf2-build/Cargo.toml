@@ -30,7 +30,7 @@ exclude = [
 ]
 
 [features]
-# The per-locale `icu.blob` of the `datetime-icu` backend; pulls ICU4X's baked
+# The per-locale `icu.blob` of the `icu` date formatters; pulls ICU4X's baked
 # data crates into the build (plans/12 "What Phase 4 changes here").
 icu-blob = ["mf2-locale-data/icu-blob"]
 # The `icu.blob` entry keys live in the catalog format module.

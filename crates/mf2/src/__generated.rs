@@ -70,7 +70,7 @@ forward!($ __if_ratatui, feature = "ratatui");
 /// resolves a named time zone, so that nothing else links a time-zone
 /// database. `numbers` (a corpus a number can reach, under `number-intl`) changes
 /// nothing here: off the browser the Rust path formats numbers.
-#[cfg(all(feature = "host-std", feature = "fn-datetime"))]
+#[cfg(all(feature = "host-std", feature = "datetime"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {
@@ -82,7 +82,7 @@ macro_rules! __use_host {
     };
 }
 /// The native one, without dates.
-#[cfg(all(feature = "host-std", not(feature = "fn-datetime")))]
+#[cfg(all(feature = "host-std", not(feature = "datetime")))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __use_host {

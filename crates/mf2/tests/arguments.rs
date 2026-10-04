@@ -420,7 +420,7 @@ fn a_display_argument_is_its_text_when_the_description_is_built() {
 }
 
 /// jiff's instants and civil dates as `tr!` arguments (`IntoArg`, with
-/// `host-std` and `fn-datetime`): each is the date/time value it names, to
+/// `host-std` and `datetime`): each is the date/time value it names, to
 /// the millisecond, as the value's `Debug` shows exactly. jiff comes from
 /// the native host's re-export, as an application's does, so this crate has
 /// no jiff dependency of its own (`plan/01` §4.1).

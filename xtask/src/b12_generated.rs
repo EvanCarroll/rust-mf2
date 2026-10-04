@@ -10,7 +10,7 @@
 //! | Build | Corpus | Features | What it shows |
 //! |---|---|---|---|
 //! | E | nothing a function crate could serve | `hydrate` | the floor |
-//! | F | the same | `hydrate,fn-number,fn-datetime` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
+//! | F | the same | `hydrate,fn-number,host-web-datetime-iso` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
 //! | A | the fixture's own | `hydrate,fn-number` | a corpus that uses `:integer` |
 //! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | **B13** = B − A: what a corpus that does not use them does not pay |
 //!
@@ -40,7 +40,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     };
 
     let e = build("hydrate,corpus-plain")?;
-    let f = build("hydrate,fn-number,fn-datetime,corpus-plain")?;
+    let f = build("hydrate,fn-number,host-web-datetime-iso,corpus-plain")?;
     let a = build("hydrate,fn-number")?;
     let b = build("hydrate,fn-number,corpus-measures")?;
 
@@ -52,7 +52,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     println!("\n| build | corpus | features | .wasm |");
     println!("|---|---|---|---:|");
     println!("| E | nothing to serve | hydrate | {e} |");
-    println!("| F | the same | hydrate,fn-number,fn-datetime | {f} |");
+    println!("| F | the same | hydrate,fn-number,host-web-datetime-iso | {f} |");
     println!("| A | the fixture's | hydrate,fn-number | {a} |");
     println!("| B | A plus the measures | hydrate,fn-number | {b} |");
     println!("\nB1′ = F − E = {b1:+} B (must be +0)");

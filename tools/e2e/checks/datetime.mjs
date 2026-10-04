@@ -1,4 +1,4 @@
-// Phase 4 task A6 — `datetime-intl` against ICU4X in real browsers
+// Phase 4 task A6 — the `intl` date formatter against ICU4X in real browsers
 // (plans/11-phase-4-work-order.md A6; plans/03-runtime.md §5.1–§5.2).
 //
 // Serves the repository itself (its own static server on 127.0.0.1; only

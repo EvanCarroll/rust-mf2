@@ -14,7 +14,7 @@
 //! | Static | Feature | Adds |
 //! |---|---|---|
 //! | [`HOST`] | — | float text |
-//! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (`datetime-icu` clients: named zones) |
+//! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (clients of the `icu` date formatter: named zones) |
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
 //! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
 //!

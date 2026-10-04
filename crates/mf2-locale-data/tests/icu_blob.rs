@@ -210,7 +210,7 @@ fn deterministic_and_nested() {
     let b = icu_blob("en", &spec(false, false, &all)).unwrap();
     assert_eq!(a, b);
     // The narrower variants' data is in the wider blobs (what the
-    // `datetime-icu` tests format from, blob against compiled data).
+    // the `icu` formatter's tests format from, blob against compiled data).
     let narrow = icu_blob("th", &spec(false, false, &all)).unwrap();
     let wide = icu_blob("th", &IcuBlobSpec::all()).unwrap();
     assert!(narrow.len() < wide.len());

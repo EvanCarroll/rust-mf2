@@ -1,4 +1,4 @@
-//! The `datetime-intl` browser comparison, native side (plans/11 A6): for
+//! The `intl` date formatter's browser comparison, native side (plans/11 A6): for
 //! the suite's date files (functions/{date,time,datetime}.json, with their
 //! params and expected errors) and every panel locale × message, the
 //! one-message catalog (`compile_str`, with its `icu.blob`) and the text
@@ -23,7 +23,7 @@ use serde_json::json;
 use crate::error::Error;
 
 /// The date functions over the default backend: ICU4X from the blob
-/// (`datetime-icu`).
+/// (`icu`).
 static FUNCTIONS: [(&str, &dyn Function); 3] = [
     ("date", &mf2_fn_datetime::DATE),
     ("datetime", &mf2_fn_datetime::DATETIME),
@@ -74,8 +74,15 @@ fn messages() -> Vec<(String, Mapping)> {
             "year-month-day",
             "year-month-day-weekday",
         ] {
-            let mapping = if fields == "year-month-day" { Styles } else { Components };
-            m.push((format!("{{{at} :date fields={fields} length={length}}}"), mapping));
+            let mapping = if fields == "year-month-day" {
+                Styles
+            } else {
+                Components
+            };
+            m.push((
+                format!("{{{at} :date fields={fields} length={length}}}"),
+                mapping,
+            ));
         }
         m.push((format!("{{{at} :datetime dateLength={length}}}"), Styles));
         m.push((
@@ -91,18 +98,33 @@ fn messages() -> Vec<(String, Mapping)> {
             } else {
                 Styles
             };
-            m.push((format!("{{{at} :time precision={precision}{hour12}}}"), mapping));
+            m.push((
+                format!("{{{at} :time precision={precision}{hour12}}}"),
+                mapping,
+            ));
         }
     }
     m.push((
         format!("{{{at} :datetime dateFields=month-day-weekday timePrecision=hour}}"),
         Components,
     ));
-    m.push((format!("{{{at} :date calendar=japanese length=long}}"), Styles));
-    for zone in ["UTC", "|America/New_York|", "|Europe/Paris|", "|Asia/Kolkata|", "|+05:30|"] {
+    m.push((
+        format!("{{{at} :date calendar=japanese length=long}}"),
+        Styles,
+    ));
+    for zone in [
+        "UTC",
+        "|America/New_York|",
+        "|Europe/Paris|",
+        "|Asia/Kolkata|",
+        "|+05:30|",
+    ] {
         m.push((format!("{{{at} :time timeZone={zone}}}"), Styles));
         for style in ["long", "short"] {
-            m.push((format!("{{{at} :time timeZone={zone} timeZoneStyle={style}}}"), Zoned));
+            m.push((
+                format!("{{{at} :time timeZone={zone} timeZoneStyle={style}}}"),
+                Zoned,
+            ));
             m.push((
                 format!("{{{at} :datetime timeZone={zone} timeZoneStyle={style}}}"),
                 Zoned,
@@ -145,7 +167,7 @@ static OPAQUE: Opaque = Opaque;
 
 /// The suite's date files (functions/{date,time,datetime}.json): each test
 /// as a case with its params, its expected errors and text, and ICU4X's
-/// output — layer L4 of the `datetime-intl` backend, run in the browsers.
+/// output — layer L4 of the `intl` date formatter, run in the browsers.
 fn suite(repo: &Path, cx: &FormatContext, cases: &mut Vec<serde_json::Value>) -> Result<(), Error> {
     for file in ["date", "time", "datetime"] {
         let path = repo.join(format!(

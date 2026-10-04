@@ -139,7 +139,7 @@ pub enum Error {
     #[cfg(feature = "icu-blob")]
     #[error("icu.blob: {0}")]
     IcuData(#[from] icu_provider::DataError),
-    /// Some formatter of the `datetime-icu` backend does not build from
+    /// Some formatter of the ICU4X backend does not build from
     /// ICU4X's data for the locale (`icu-blob`).
     #[cfg(feature = "icu-blob")]
     #[error("icu.blob for {locale}: {count} formatter(s) do not build, e.g. {first}")]

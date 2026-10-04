@@ -164,7 +164,7 @@ impl Catalogs {
         let mut cx = FormatContext::new(corpus.host());
         cx.bidi = BidiStrategy::None;
         // Without dates, nothing reads the zone, so nothing looks it up.
-        #[cfg(feature = "fn-datetime")]
+        #[cfg(feature = "datetime")]
         {
             cx.time_zone = mf2_host_std::system_time_zone();
         }

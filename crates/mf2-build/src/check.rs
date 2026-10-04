@@ -233,7 +233,12 @@ fn unused_features(
             .collect()
     };
     let mut found = Vec::new();
-    let dates = on(&["fn-datetime", "datetime-icu", "datetime-intl"]);
+    // `datetime` under any of its names: every date formatter turns it on.
+    let dates = if features.fn_datetime() {
+        vec!["`datetime`".to_owned()]
+    } else {
+        Vec::new()
+    };
     if !dates.is_empty() && !used.dates {
         found.push(format!(
             "{} on for this build, and no message uses :datetime, :date or :time. \

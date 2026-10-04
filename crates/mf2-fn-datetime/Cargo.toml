@@ -84,7 +84,7 @@ icu_time = { workspace = true, optional = true }
 writeable = { workspace = true, optional = true }
 
 [dev-dependencies]
-# `datetime-icu`: catalogs with their `icu.blob` (so the tests of this crate
+# `host-std-datetime-icu`: catalogs with their `icu.blob` (so the tests of this crate
 # always have the ICU4X backend on, `std-icu`; they name their backends
 # explicitly). `tests/icu.rs` compares the blob with ICU4X's compiled data
 # under this crate's `compiled-data` (a set of `cargo xtask ci`).
@@ -93,7 +93,7 @@ writeable = { workspace = true, optional = true }
 # resolve. Cargo strips a path-only dev-dependency from the package, and
 # the tests that use `mf2` stay in the workspace (`exclude` above;
 # plans/17-phase-9-work-order.md A4).
-mf2 = { path = "../mf2", features = ["compile", "host-std", "datetime-icu"] }
+mf2 = { path = "../mf2", features = ["compile", "host-std", "host-std-datetime-icu"] }
 # A catalog written without its `icu.blob` (tests/icu.rs).
 mf2-catalog = { workspace = true, features = ["writer"] }
 mf2-syntax.workspace = true

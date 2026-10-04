@@ -20,30 +20,30 @@
 
 use mf2_runtime::TimeZone;
 
-#[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+#[cfg(all(feature = "hydrate", feature = "datetime"))]
 use alloc::vec::Vec;
 
-#[cfg(any(feature = "ssr", feature = "fn-datetime"))]
+#[cfg(any(feature = "ssr", feature = "datetime"))]
 std::thread_local! {
     /// The formatting zone, when it is not `Setup`'s.
     static ZONE: core::cell::Cell<Option<TimeZone>> = const { core::cell::Cell::new(None) };
 }
 
 /// The zone a format on this thread uses, if not `Setup`'s.
-#[cfg(any(feature = "ssr", feature = "fn-datetime"))]
+#[cfg(any(feature = "ssr", feature = "datetime"))]
 pub(crate) fn current() -> Option<TimeZone> {
     ZONE.with(core::cell::Cell::get)
 }
 
 /// Sets the zone for everything formatted on this thread from now on.
-#[cfg(all(any(feature = "hydrate", feature = "csr"), feature = "fn-datetime"))]
+#[cfg(all(any(feature = "hydrate", feature = "csr"), feature = "datetime"))]
 fn set(zone: Option<TimeZone>) {
     ZONE.with(|z| z.set(zone));
 }
 
 /// Runs `body` with `zone` as the formatting zone, then restores the one
 /// before. `None` leaves the zone as it is.
-#[cfg(any(feature = "ssr", all(feature = "hydrate", feature = "fn-datetime")))]
+#[cfg(any(feature = "ssr", all(feature = "hydrate", feature = "datetime")))]
 pub(crate) fn scoped<R>(zone: Option<TimeZone>, body: impl FnOnce() -> R) -> R {
     let Some(zone) = zone else {
         return body();
@@ -60,17 +60,17 @@ pub(crate) fn scoped<R>(zone: Option<TimeZone>, body: impl FnOnce() -> R) -> R {
 /// at most 64 bytes **that the installed host knows**. Anything else is
 /// `None`, which means "not known", never an error.
 ///
-/// Without the `fn-datetime` feature nothing is accepted: an application
+/// Without the `datetime` feature nothing is accepted: an application
 /// without dates reads no zone and states none.
 #[must_use]
 pub fn reader_time_zone(name: &str) -> Option<TimeZone> {
-    #[cfg(feature = "fn-datetime")]
+    #[cfg(feature = "datetime")]
     {
         let zone = TimeZone::named(name)?;
         let host = crate::leptos::state::setup()?.host;
         host.zone_offset(name, 0).map(|_| zone)
     }
-    #[cfg(not(feature = "fn-datetime"))]
+    #[cfg(not(feature = "datetime"))]
     {
         let _ = name;
         None
@@ -78,7 +78,7 @@ pub fn reader_time_zone(name: &str) -> Option<TimeZone> {
 }
 
 /// The zone's IANA name, if it is a named zone.
-#[cfg(any(feature = "ssr", all(feature = "hydrate", feature = "fn-datetime")))]
+#[cfg(any(feature = "ssr", all(feature = "hydrate", feature = "datetime")))]
 pub(crate) fn zone_name(zone: &TimeZone) -> Option<&str> {
     match zone.as_option() {
         mf2_runtime::ZoneOption::Named(name) => Some(name),
@@ -89,7 +89,7 @@ pub(crate) fn zone_name(zone: &TimeZone) -> Option<&str> {
 // ---------------------------------------------------------------- client ---
 
 /// The browser's zone, as a reader zone this build can use.
-#[cfg(all(any(feature = "hydrate", feature = "csr"), feature = "fn-datetime"))]
+#[cfg(all(any(feature = "hydrate", feature = "csr"), feature = "datetime"))]
 fn browser_zone() -> Option<(TimeZone, alloc::string::String)> {
     let format = js_sys::Intl::DateTimeFormat::new(&js_sys::Array::new(), &js_sys::Object::new());
     let name = js_sys::Reflect::get(
@@ -103,14 +103,14 @@ fn browser_zone() -> Option<(TimeZone, alloc::string::String)> {
 
 /// A client-only application's boot: the reader's zone, before anything
 /// mounts. There is no server, so no cookie and nothing to correct.
-#[cfg(all(feature = "csr", feature = "fn-datetime"))]
+#[cfg(all(feature = "csr", feature = "datetime"))]
 pub(crate) fn mount_in_reader_zone() {
     if let Some((zone, _)) = browser_zone() {
         set(Some(zone));
     }
 }
 
-#[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+#[cfg(all(feature = "hydrate", feature = "datetime"))]
 mod correction {
     use super::{TimeZone, Vec, browser_zone, set, zone_name};
     use alloc::rc::Rc;
@@ -290,7 +290,7 @@ mod correction {
     }
 }
 
-#[cfg(all(feature = "hydrate", feature = "fn-datetime"))]
+#[cfg(all(feature = "hydrate", feature = "datetime"))]
 pub(crate) use correction::{
     after_hydration, before_hydration, hydrated, hydrated_rich, hydrating_zone,
 };

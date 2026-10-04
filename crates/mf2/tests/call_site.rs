@@ -18,7 +18,7 @@ static FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("string", &functions::STRING),
 ];
 /// Unannotated date/time values need the hook the closed-world registry
-/// gets when `fn-datetime` is on — without it they are a Bad Operand, which
+/// gets when `datetime` is on — without it they are a Bad Operand, which
 /// is the documented default-configuration degradation (L4d).
 static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_dates(&mf2::fn_datetime::DATES);
 static CX: FormatContext = FormatContext::new(&mf2::host_std::ZONES_HOST);

@@ -34,13 +34,17 @@ default = []
 # the sets are the default configuration (L7d, L7cd).
 all-functions = [
     "mf2-l7-set-en-us/fn-number",
-    "mf2-l7-set-en-us/datetime-icu",
+    "mf2-l7-set-en-us/host-std-datetime-icu",
+    "mf2-l7-set-en-us/host-web-datetime-icu",
     "mf2-l7-set-und/fn-number",
-    "mf2-l7-set-und/datetime-icu",
+    "mf2-l7-set-und/host-std-datetime-icu",
+    "mf2-l7-set-und/host-web-datetime-icu",
     "mf2-l7-set-fr/fn-number",
-    "mf2-l7-set-fr/datetime-icu",
+    "mf2-l7-set-fr/host-std-datetime-icu",
+    "mf2-l7-set-fr/host-web-datetime-icu",
     "mf2-l7-set-ar/fn-number",
-    "mf2-l7-set-ar/datetime-icu",
+    "mf2-l7-set-ar/host-std-datetime-icu",
+    "mf2-l7-set-ar/host-web-datetime-icu",
 ]
 # `leptos/islands` in both halves of the islands page: the server writes
 # the island wrappers the client's walk looks for.

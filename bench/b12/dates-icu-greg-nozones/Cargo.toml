@@ -1,6 +1,6 @@
 [package]
 name = "b12-dates-icu-greg-nozones"
-description = "B4 (datetime-icu): the date functions over ICU4X from the catalog icu.blob — Gregorian, no zone styles. Reported for B12 (ICU4X keeps its own core::fmt and panic paths: the feature documented cost)."
+description = "B4 (icu): the date functions over ICU4X from the catalog icu.blob — Gregorian, no zone styles. Reported for B12 (ICU4X keeps its own core::fmt and panic paths: the feature documented cost)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

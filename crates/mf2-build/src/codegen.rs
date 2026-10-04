@@ -1405,7 +1405,7 @@ mod tests {
     #[test]
     fn a_native_module_never_says_wasm() {
         let locales = locales();
-        let features = Features::parse("fn-number,fn-datetime");
+        let features = Features::parse("fn-number,datetime");
         let custom = BTreeMap::new();
         let markup = ["key".to_owned()];
         let named = vec![true; locales.len()];
@@ -1426,7 +1426,7 @@ mod tests {
     #[test]
     fn every_choice_is_mf2s_features_and_one_item_each() {
         let locales = locales();
-        let features = Features::parse("fn-number,fn-datetime,datetime-intl");
+        let features = Features::parse("fn-number,datetime,host-web-datetime-intl");
         let custom = BTreeMap::new();
         for emit in [Emit::Both, Emit::Module, Emit::Native, Emit::NativeFiles] {
             let mut m = module(&[], &features, &custom, &locales, false);
@@ -1523,7 +1523,7 @@ mod tests {
     fn the_unannotated_hooks_need_a_placeholder_that_can_reach_them() {
         let locales = locales();
         let custom = BTreeMap::new();
-        let both = Features::parse("fn-number,fn-datetime");
+        let both = Features::parse("fn-number,datetime");
         let code = write(&module(&[], &both, &custom, &locales, true));
         assert!(
             code.contains(".with_numbers(&__mf2::fn_number::NUMBERS)"),
@@ -1543,8 +1543,8 @@ mod tests {
         let code = write(&module(&[], &none, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
 
-        // `fn-datetime` is not enough: nothing in this corpus can be a date.
-        let dates = Features::parse("fn-datetime,datetime-intl");
+        // `datetime` is not enough: nothing in this corpus can be a date.
+        let dates = Features::parse("datetime,host-web-datetime-intl");
         let code = write(&module(&[], &dates, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
 
@@ -1584,7 +1584,7 @@ mod tests {
         let code = write(&module(&[], &intl, &custom, &locales, false));
         assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
         // Dates and numbers both.
-        let both = Features::parse("number-intl,fn-datetime,datetime-intl");
+        let both = Features::parse("number-intl,datetime,host-web-datetime-intl");
         let code = write(&module(&[], &both, &custom, &locales, true));
         assert!(
             code.contains("super::__mf2::__use_host!(dates numbers);"),

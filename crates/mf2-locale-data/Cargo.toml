@@ -26,7 +26,7 @@ exclude = [
 # all-locale number, currency and unit tables, the `cargo xtask cldr-sync`
 # cache (`cargo xtask locale-data`; the drift tests).
 extract = ["dep:serde_json"]
-# `icu-blob`: the `icu.blob` LOCALE entry of `datetime-icu` (plans/11 A6),
+# `icu-blob`: the `icu.blob` LOCALE entry of the `icu` date formatters (plans/11 A6),
 # recorded from mf2-fn-datetime's own ICU4X backend over ICU4X's baked CLDR
 # data (the `icu_*_data` crates; nothing downloaded).
 icu-blob = [

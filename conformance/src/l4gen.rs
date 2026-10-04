@@ -182,7 +182,7 @@ pub fn case(grammar: &Grammar, seed: u64) -> Result<Generated, String> {
     options
         .locale_entries
         .extend(number_locale_entries(locale, &needs).map_err(|e| e.to_string())?);
-    // And the date data of the `datetime-icu` backend, as `compile_str`
+    // And the date data of the `icu` date formatter, as `compile_str`
     // writes it: what the message formats (02 §4.4). The same catalog with
     // every shape's data — and each of the steering's other calendars —
     // must format alike: the slicing rule misses nothing.

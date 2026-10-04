@@ -20,7 +20,7 @@
 //!   (absent ⇒ none), in string and in parts output alike.
 //!
 //! Layer **L4d** is the same run in the **default** configuration
-//! ([`mf2_l4_runner::Config::Default`]: `fn-number` and `fn-datetime` off,
+//! ([`mf2_l4_runner::Config::Default`]: `fn-number` and the date functions off,
 //! plans/01-conformance.md §3): a test either passes as above, or degrades
 //! in one of the documented ways ([`check_default`]), which its ledger cell
 //! must name.
@@ -37,10 +37,10 @@ use crate::suite::SuiteTest;
 /// the default configuration they are Unknown Functions.
 pub const GATED_FUNCTIONS: &[(&str, &str)] = &[
     ("currency", "fn-number"),
-    ("date", "fn-datetime"),
-    ("datetime", "fn-datetime"),
+    ("date", "datetime"),
+    ("datetime", "datetime"),
     ("percent", "fn-number"),
-    ("time", "fn-datetime"),
+    ("time", "datetime"),
     ("unit", "fn-number"),
 ];
 

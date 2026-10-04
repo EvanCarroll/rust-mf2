@@ -366,11 +366,11 @@ fn refresh(
 ) -> (BidiStrategy, TimeZone) {
     let settings = *SETTINGS.read().unwrap_or_else(PoisonError::into_inner);
     // The system's zone is read only where a date can be shown.
-    #[cfg(feature = "fn-datetime")]
+    #[cfg(feature = "datetime")]
     let zone = settings
         .time_zone
         .unwrap_or_else(mf2_host_std::system_time_zone);
-    #[cfg(not(feature = "fn-datetime"))]
+    #[cfg(not(feature = "datetime"))]
     let zone = settings.time_zone.unwrap_or(TimeZone::UTC);
     local.set((generation, settings.bidi, zone));
     (settings.bidi, zone)

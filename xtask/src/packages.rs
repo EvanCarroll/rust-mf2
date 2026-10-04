@@ -1,5 +1,5 @@
 //! The published packages' metadata (plans/17-phase-9-work-order.md, A1):
-//! exactly the 16 library crates are publishable, at one version, each with
+//! exactly the 17 library crates are publishable, at one version, each with
 //! what crates.io shows, and every dependency between two of them is an
 //! exact requirement — the generated module, the macro and the runtime share
 //! `#[doc(hidden)]` items that the version policy exempts from semver, so
@@ -11,7 +11,7 @@
 //! that use one are left out of the package and run in the workspace (A4;
 //! `cargo xtask package`).
 //!
-//! Every one of the 16 states the one `rust-version` (A3): the MSRV
+//! Every one of the 17 states the one `rust-version` (A3): the MSRV
 //! `[workspace.package]` records and `cargo xtask msrv` measures.
 
 use std::ffi::OsStr;
@@ -69,7 +69,7 @@ pub(crate) fn metadata(root: &Path) -> Result<Value> {
 }
 
 /// The version the published crates are released at: `mf2`'s (A1's test
-/// holds the 16 to one).
+/// holds the 17 to one).
 pub(crate) fn version(metadata: &Value) -> Option<&str> {
     metadata["packages"]
         .as_array()?

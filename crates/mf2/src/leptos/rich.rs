@@ -70,7 +70,7 @@ pub(crate) fn fragment_with(
 /// `static-locale` only the latter.
 #[cfg(any(
     not(feature = "static-locale"),
-    all(feature = "hydrate", feature = "fn-datetime")
+    all(feature = "hydrate", feature = "datetime")
 ))]
 pub(crate) fn fragment(rich: &TrRich, catalog: &Catalog) -> Vec<AnyView> {
     fragment_with(rich, catalog, None, None)

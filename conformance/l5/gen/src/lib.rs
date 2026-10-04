@@ -399,7 +399,7 @@ fn config(locale: &str) -> Config {
 /// default configuration (L5d) is the same catalogs with the default
 /// registry, exactly as L4d is.
 fn features() -> Features {
-    Features::parse("fn-number,fn-datetime,datetime-icu")
+    Features::parse("fn-number,datetime,host-std-datetime-icu,host-web-datetime-icu")
 }
 
 /// Writes the corpus and builds it: catalogs, manifest and the generated

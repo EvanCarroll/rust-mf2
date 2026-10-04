@@ -13,9 +13,9 @@ fixed-decimal = ["mf2-runtime/fixed-decimal"]
 [dependencies]
 catalog-bench.workspace = true
 clap.workspace = true
-# `datetime-icu`: the date example (`examples/date_cost.rs`). `native`: B10's
+# `native-datetime-icu`: the date example (`examples/date_cost.rs`). `native`: B10's
 # rows through a native application's forms (Phase 10 C2).
-mf2 = { workspace = true, features = ["compile", "host-std", "fn-number", "datetime-icu", "native"] }
+mf2 = { workspace = true, features = ["compile", "host-std", "fn-number", "native-datetime-icu", "native"] }
 mf2-catalog.workspace = true
 mf2-fn-datetime = { workspace = true, features = ["std-icu"] }
 mf2-model = { workspace = true, features = ["suite-names"] }

@@ -21,12 +21,12 @@ jsonschema.workspace = true
 mf2-catalog = { workspace = true, features = ["writer", "decode"] }
 # Layer L4: the one-message compile (plans/10 A9) and the client side it runs,
 # natively and on wasm32-wasip1.
-# `datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
+# `host-std-datetime-icu`: the catalogs carry `icu.blob` for the runner's ICU4X backend.
 # `host-std`: layer L5 builds its own formatter, so the facade's native host
 # has to be there on its own account, not by feature unification.
 # `ssr`: layer L6 renders through `mf2::leptos` on the server, on the line
 # the features above name.
-mf2 = { workspace = true, features = ["compile", "datetime-icu", "host-std", "ssr"] }
+mf2 = { workspace = true, features = ["compile", "host-std-datetime-icu", "host-std", "ssr"] }
 mf2-l4-runner.workspace = true
 # Layer L6: the same call sites, rendered through the view type. `leptos` for
 # the `view!` macro the marker element is written with, `tachys` for
