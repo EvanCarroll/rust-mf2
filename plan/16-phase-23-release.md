@@ -17,12 +17,18 @@ plan pointers in the code, went to the code phases as 19.7.
 
 ## State
 
-* **In flight:** 23.0a, the API records and the hidden host trait.
+* **In flight:** nothing.
   A worktree made for a task is removed once its work is merged.
 * **Next:** 23.0b, then 23.1
 
 ## Done
 
+* **23.0a** `cargo xtask api` puts back a public re-export of a hidden trait
+  as it does one of a macro, renumbering into the listing's own build the ids
+  the trait names; the records are rewritten. They predated every Phase 22
+  fix, and nothing moved in them but the two `mf2::CorpusHost` lines in each
+  of the seven `mf2` listings. `ci` green, all 65 steps, after one run hit
+  23.0b's flake.
 * **23.0** The generator emits `Self` inside `impl Locale` and the trait impls
   for it, `#[must_use]` on the five value-returning `pub fn`s, `ok_or_else` in
   `from_str`, an `# Errors` section on `install_from_directory`, and a one-line

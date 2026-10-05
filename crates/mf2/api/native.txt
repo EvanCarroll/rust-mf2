@@ -435,6 +435,8 @@ impl core::marker::Copy for mf2::UnknownLocale
 impl core::marker::StructuralPartialEq for mf2::UnknownLocale
 pub trait mf2::ArgSource: core::marker::Send + core::marker::Sync
 pub fn mf2::ArgSource::arg_value(&self) -> mf2::ArgValue
+pub trait mf2::CorpusHost: mf2_runtime::host::Host + 'static
+pub const mf2::CorpusHost::SYSTEM_ZONE: core::option::Option<fn() -> mf2_runtime::datetime::TimeZone>
 pub trait mf2::IntoArg
 pub fn mf2::IntoArg::into_arg(self) -> mf2::ArgValue
 impl mf2::IntoArg for &std::ffi::os_str::OsStr

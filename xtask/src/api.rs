@@ -415,11 +415,87 @@ fn hidden_reexports(hidden: &Value) -> Vec<(Vec<String>, Value, Value)> {
     out
 }
 
+/// Copies into `shown` an item that `hidden` has and `shown` has not, with
+/// the items it names: a trait's associated items, which rustdoc dropped
+/// along with the trait. The impls of a hidden trait are not put back —
+/// rustdoc drops those with it as well, and what the listing has to name is
+/// the trait and the names it declares. Returns the item's new id.
+fn graft(shown: &mut Value, hidden: &Value, mut target: Value) -> u64 {
+    if target["inner"].get("trait").is_some() {
+        let ids = target["inner"]["trait"]["items"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_u64)
+            .collect::<Vec<_>>();
+        let mut grafted = Vec::with_capacity(ids.len());
+        for id in ids {
+            let assoc = item(hidden, id).clone();
+            if !assoc.is_null() {
+                grafted.push(json!(graft(shown, hidden, assoc)));
+            }
+        }
+        target["inner"]["trait"]["items"] = json!(grafted);
+        target["inner"]["trait"]["implementations"] = json!([]);
+    }
+    // What it names — its bounds, its types — is numbered as the build that
+    // documents hidden items numbers it, and the listing's build does not
+    // agree; without this the listing prints whatever item happens to wear
+    // the same number.
+    let mut inner = target["inner"].take();
+    remap_ids(shown, hidden, &mut inner);
+    target["inner"] = inner;
+    insert(shown, target)
+}
+
+/// Rewrites in `value` each reference to another item by id — the id beside
+/// a type or a bound — from `hidden`'s numbering into `shown`'s, by the path
+/// the two agree on. A path `shown` does not have yet is added to it.
+fn remap_ids(shown: &mut Value, hidden: &Value, value: &mut Value) {
+    match value {
+        Value::Object(map) => {
+            if let Some(id) = map.get("id").and_then(Value::as_u64)
+                && let Some(path) = hidden["paths"].get(id.to_string()).filter(|p| !p.is_null())
+            {
+                let path = path.clone();
+                map.insert("id".to_owned(), json!(path_id(shown, &path)));
+            }
+            for (_, child) in map.iter_mut() {
+                remap_ids(shown, hidden, child);
+            }
+        }
+        Value::Array(list) => {
+            for child in list.iter_mut() {
+                remap_ids(shown, hidden, child);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// The id `shown` gives a `paths` entry (a path and a kind), adding the
+/// entry under a fresh id when `shown` has no id for it.
+fn path_id(shown: &mut Value, path: &Value) -> u64 {
+    if let Some(paths) = shown["paths"].as_object() {
+        for (id, entry) in paths {
+            if entry["path"] == path["path"]
+                && entry["kind"] == path["kind"]
+                && let Ok(id) = id.parse::<u64>()
+            {
+                return id;
+            }
+        }
+    }
+    let id = fresh_id(shown);
+    shown["paths"][id.to_string()] = path.clone();
+    id
+}
+
 /// Puts back into `shown` each public re-export of a hidden item that rustdoc
 /// dropped with the item ([`hidden_reexports`]), so that the listing names it
 /// at the re-export's path. A macro can be put back as it is, since it
-/// refers to no other item; another kind is refused, so that nothing is left
-/// out unseen.
+/// refers to no other item; a trait is put back with the names it declares
+/// ([`graft`]); another kind is refused, so that nothing is left out unseen.
 fn restore_hidden_reexports(crate_: &str, shown: &mut Value, hidden: &Value) -> Result<()> {
     for (path, use_, target) in hidden_reexports(hidden) {
         let name = use_["inner"]["use"]["name"]
@@ -432,18 +508,18 @@ fn restore_hidden_reexports(crate_: &str, shown: &mut Value, hidden: &Value) -> 
         if names(shown, module).0.contains(&name) {
             continue;
         }
-        if target["inner"].get("macro").is_none() {
+        if target["inner"].get("macro").is_none() && target["inner"].get("trait").is_none() {
             let kind = target["inner"]
                 .as_object()
                 .and_then(|o| o.keys().next().cloned())
                 .unwrap_or_default();
             return Err(fail(format!(
                 "{crate_}: `{at}` re-exports a hidden {kind}, which rustdoc leaves out; `cargo \
-                 xtask api` puts back only a macro: list it by unhiding the item, or teach \
-                 `cargo xtask api` its kind"
+                 xtask api` puts back only a macro or a trait: list it by unhiding the item, or \
+                 teach `cargo xtask api` its kind"
             )));
         }
-        let target = insert(shown, target);
+        let target = graft(shown, hidden, target);
         let mut use_ = use_;
         use_["inner"]["use"]["id"] = json!(target);
         let use_ = insert(shown, use_);
@@ -845,7 +921,10 @@ pub(crate) fn install(root: &Path) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Modes, diff, hidden_reexports, is_hidden, names, read_modes};
+    use super::{
+        Modes, diff, hidden_reexports, is_hidden, item, items, names, read_modes,
+        restore_hidden_reexports,
+    };
     use serde_json::json;
     use std::collections::BTreeMap;
 
@@ -957,6 +1036,72 @@ mod tests {
         assert_eq!(
             names(&json, 1).0.into_iter().collect::<Vec<_>>(),
             ["also", "f", "gate"]
+        );
+    }
+
+    /// A hidden trait re-exported publicly, as `mf2::CorpusHost` is: the
+    /// listing names it and the constant it declares, and not the impls
+    /// rustdoc dropped with it.
+    #[test]
+    fn a_hidden_trait_is_put_back_with_the_names_it_declares() {
+        let hidden_attr = json!([{"other": "#[doc(hidden)]"}]);
+        let hidden = json!({
+            "root": 0,
+            "index": {
+                "0": {"name": "c", "attrs": [], "inner": {"module": {"items": [1, 2]}}},
+                "1": {"name": "m", "attrs": [], "inner": {"module": {"items": [3]}}},
+                "2": {"name": "__Host", "attrs": hidden_attr, "inner": {"trait": {
+                    "items": [4],
+                    "implementations": [9],
+                    "bounds": [{"trait_bound": {"trait": {"path": "Base", "id": 5}}}],
+                }}},
+                "3": {"name": null, "attrs": [], "inner": {"use": {
+                    "source": "crate::__Host", "name": "Host", "id": 2, "is_glob": false,
+                }}},
+                "4": {"name": "K", "attrs": [], "inner": {"assoc_const": {
+                    "type": {"resolved_path": {"path": "Opt", "id": 6}},
+                }}},
+            },
+            "paths": {
+                "5": {"path": ["d", "Base"], "kind": "trait"},
+                "6": {"path": ["core", "option", "Option"], "kind": "enum"},
+            },
+        });
+        let mut shown = json!({
+            "root": 0,
+            "index": {
+                "0": {"name": "c", "attrs": [], "inner": {"module": {"items": [1]}}},
+                "1": {"name": "m", "attrs": [], "inner": {"module": {"items": []}}},
+            },
+            // The same two paths, under this build's own numbers.
+            "paths": {
+                "8": {"path": ["d", "Base"], "kind": "trait"},
+            },
+        });
+        restore_hidden_reexports("c", &mut shown, &hidden).unwrap();
+        assert_eq!(names(&shown, 1).0.into_iter().collect::<Vec<_>>(), ["Host"]);
+        // The re-export points at a grafted trait, whose own item is the
+        // grafted constant, and which claims no impl.
+        let use_ = items(item(&shown, 1)).first().copied().unwrap();
+        let id = item(&shown, use_)["inner"]["use"]["id"].as_u64().unwrap();
+        let trait_ = item(&shown, id);
+        assert_eq!(trait_["name"], "__Host");
+        assert_eq!(trait_["inner"]["trait"]["implementations"], json!([]));
+        // Its bound takes this build's number for the same path, and the
+        // path the build has not got is added to it.
+        assert_eq!(
+            trait_["inner"]["trait"]["bounds"][0]["trait_bound"]["trait"]["id"],
+            8
+        );
+        let assoc = trait_["inner"]["trait"]["items"][0].as_u64().unwrap();
+        let assoc = item(&shown, assoc);
+        assert_eq!(assoc["name"], "K");
+        let opt = assoc["inner"]["assoc_const"]["type"]["resolved_path"]["id"]
+            .as_u64()
+            .unwrap();
+        assert_eq!(
+            shown["paths"][opt.to_string()]["path"],
+            json!(["core", "option", "Option"])
         );
     }
 }
