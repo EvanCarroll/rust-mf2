@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.6. A worktree made for a task is removed once its work
+* **In flight:** 22.7. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.4–22.10, the cost table again, 22.11
 
@@ -77,6 +77,10 @@ starts in a fresh session.
   93–206 B, the date slice in the server table (247–1,652 B; 28,657–41,885 with a zone name); with
   ICU4X in the browser 281–853 B (15,719–17,958 with a zone name). `number-intl` moves 1,951–2,894
   B of number data to the server (catalog 1,099–1,536 → 110–113 B). Unread by a browser: 0, all 16.
+* 22.6 (narrow = `auto`, widest = `[dates] calendars = "all"`, `zone-names = true`;
+  `target/p22-6/`): browser client with `leptos-client-datetime-icu` 758,900 vs 801,143 B gz
+  (−42,243); native canary 748,456 vs 900,384 B stripped (−151,928); slice 14–17 B smaller a
+  language; `mf2 check`: "ICU4X dates: the Gregorian calendar only …; no zone names …".
 
 ## Before this phase
 
