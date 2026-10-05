@@ -21,17 +21,6 @@ exclude = [
     "package.txt",
 ]
 
-[features]
-# The number split (plan/08 §6): on wasm32-unknown-unknown only, `:currency`
-# and `:unit` take their currency symbols and names, unit names and layout
-# from the host's number formatter (`Host::numbers`: mf2-host-web's `Intl`,
-# its feature `intl-names`), and the currency's own fraction digits too;
-# the digits, rounding and plural selection stay in Rust, written with the
-# catalog's number symbols. Such a client reads no `currency.data` or
-# `unit.data`. Everywhere else nothing changes. `mf2-runtime`'s `intl`
-# (the whole option) takes precedence.
-intl-names = []
-
 [dependencies]
 mf2-catalog.workspace = true
 mf2-runtime.workspace = true

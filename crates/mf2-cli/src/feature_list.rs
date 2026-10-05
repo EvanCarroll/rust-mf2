@@ -7,18 +7,11 @@
 use std::fmt::Write as _;
 
 use mf2_build::check::Needs;
-use mf2_build::{DateFormatter, Features, NumberNames, Side};
+use mf2_build::{DateFormatter, Features, Side};
 use serde_json::{Value, json};
 
-/// The number family: the formatter, the browser's `Intl` path for it, and
-/// the number split's families (`plan/08` §2.7), which name the browser's
-/// source for the currency and unit names.
-const NUMBERS: [&str; 4] = [
-    "fn-number",
-    "number-intl",
-    "host-web-number-names-intl",
-    "leptos-client-number-names-intl",
-];
+/// The number family: the formatter, and the browser's `Intl` path for it.
+const NUMBERS: [&str; 2] = ["fn-number", "number-intl"];
 /// The date functions, then the date formatters: each side's families
 /// (`plan/08` §3.1), the framework-free one first.
 const DATES: [&str; 15] = [
@@ -80,12 +73,6 @@ pub(crate) struct FeatureList {
     /// those of [`mf2_build::DATE_LINES`] whose framework is on, or all of
     /// them with none on. Empty otherwise.
     date_choices: Vec<(&'static str, &'static [&'static str])>,
-    /// The number split is off and a browser build could take it
-    /// (`plan/08` §2.7): the feature to write, and what it costs and saves.
-    /// `None` when it is on, when no browser downloads the catalogs, when
-    /// no message formats a number, or when nothing says which features
-    /// are on.
-    names_choice: Option<(String, &'static str)>,
     /// Where `on` came from.
     source: &'static str,
 }
@@ -130,12 +117,6 @@ impl FeatureList {
             if known && features.number_intl() {
                 line.push("number-intl".to_owned());
             }
-            line.extend(
-                written
-                    .iter()
-                    .filter(|name| NUMBERS[2..].contains(&name.as_str()))
-                    .cloned(),
-            );
         }
         let mut date_choices = Vec::new();
         if needs.dates {
@@ -164,17 +145,6 @@ impl FeatureList {
             }
             line.extend(formatters);
         }
-        // The number split (`plan/08` §2.7): an opt-in a browser build may
-        // take, offered with what it costs where the date lines are offered.
-        // `intl_names`, not `number_names`, so that a crate which forwards
-        // the flat name is not offered what it already has.
-        let names_choice =
-            (known && needs.numbers && features.has_browser_side() && !features.intl_names()).then(
-                || {
-                    let source = NumberNames::Intl;
-                    (features.number_names_feature(source), source.cost())
-                },
-            );
         let dates = known.then(|| {
             Side::ALL
                 .into_iter()
@@ -192,7 +162,6 @@ impl FeatureList {
             line,
             dates,
             date_choices,
-            names_choice,
             source: match source {
                 Source::Given => "given",
                 Source::Cargo { .. } => "cargo",
@@ -241,13 +210,6 @@ impl FeatureList {
             "  write:            mf2 = {{ ..., features = [{}] }}",
             quoted.join(", ")
         );
-        if let Some((feature, cost)) = &self.names_choice {
-            let _ = writeln!(
-                out,
-                "  and for the currency and unit names in the browser, optionally \
-                 \"{feature}\": {cost}."
-            );
-        }
         if !self.date_choices.is_empty() {
             let _ = writeln!(out, "  and for dates, the line of the application's kind:");
             for (what, features) in &self.date_choices {
@@ -287,9 +249,6 @@ impl FeatureList {
             "line": self.line,
             "dates": dates,
             "date_choices": choices,
-            "names_choice": self.names_choice.as_ref().map(|(feature, cost)| {
-                json!({ "feature": feature, "cost": cost })
-            }),
         })
     }
 }
@@ -454,61 +413,6 @@ mod tests {
 
     fn list_given(needs: (bool, bool), on: &[&str]) -> FeatureList {
         list(needs, on, &Source::Given)
-    }
-
-    // `plan/08` §2.7: the number split is an opt-in, so `check` offers it to
-    // a browser build with numbers and keeps it where the crate wrote it.
-
-    #[test]
-    fn the_number_split_is_offered_to_a_browser_build_and_kept_once_written() {
-        let offered = list(
-            (true, false),
-            &["fn-number", "csr"],
-            &cargo(&["csr", "fn-number"]),
-        );
-        assert!(offered.names_choice.is_some());
-        let text = offered.to_text();
-        assert!(
-            text.contains("optionally \"leptos-client-number-names-intl\""),
-            "{text}"
-        );
-        assert!(text.contains("+118 B gzipped"), "{text}");
-        assert!(text.contains("writes its code."), "{text}");
-        assert_eq!(
-            offered.to_json()["names_choice"]["feature"],
-            "leptos-client-number-names-intl"
-        );
-
-        // On, it is nothing to choose, and the line keeps the crate's name
-        // for it.
-        let on = [
-            "fn-number",
-            "csr",
-            "host-web-number-names-intl",
-            "intl-names",
-        ];
-        let written = cargo(&["csr", "fn-number", "host-web-number-names-intl"]);
-        let taken = list((true, false), &on, &written);
-        assert_eq!(taken.names_choice, None);
-        assert_eq!(
-            taken.line,
-            ["csr", "fn-number", "host-web-number-names-intl"]
-        );
-        assert_eq!(
-            taken.on.as_deref(),
-            Some(&["fn-number", "host-web-number-names-intl"][..])
-        );
-        assert!(taken.to_json()["names_choice"].is_null());
-
-        // No browser downloads a native application's catalogs, and a
-        // corpus with no number has nothing to take names from.
-        for (needs, on) in [
-            ((true, false), &["fn-number", "native"][..]),
-            ((false, false), &["fn-number", "csr"][..]),
-        ] {
-            let list = list(needs, on, &Source::Given);
-            assert_eq!(list.names_choice, None, "{on:?}");
-        }
     }
 
     #[test]

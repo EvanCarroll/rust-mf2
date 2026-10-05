@@ -209,9 +209,8 @@ pub fn resolve<'a>(
 
 /// Writes one locale's catalog: the bytes, `.br`, `.gz` and the hash, and
 /// the server-only table. `numbers` is where the plural and number entries
-/// go, `names` where `currency.data` and `unit.data` go (the number split,
-/// `plan/08` §6), and `date_slice` where ICU4X's date slice goes, when the
-/// corpus needs them (`plan/08` §4.1).
+/// go and `date_slice` where ICU4X's date slice goes, when the corpus needs
+/// them (`plan/08` §4.1).
 // Each argument is one independent input of the catalog.
 #[allow(clippy::too_many_arguments)]
 pub fn write(
@@ -223,7 +222,6 @@ pub fn write(
     config: &Config,
     compress: Compress,
     numbers: Place,
-    names: Place,
     date_slice: Place,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
@@ -240,15 +238,6 @@ pub fn write(
         Place::Catalog => options.locale_entries = locale_entries(tag, &slice.needs)?,
         Place::Server => server_entries = locale_entries(tag, &slice.needs)?,
         Place::Nowhere => {}
-    }
-    // The number split: the currency and unit entries alone go to the
-    // server-only table.
-    if numbers == Place::Catalog && names == Place::Server {
-        let (moved, kept): (Vec<_>, Vec<_>) = core::mem::take(&mut options.locale_entries)
-            .into_iter()
-            .partition(|(key, _)| is_name_entry(*key));
-        options.locale_entries = kept;
-        server_entries.extend(moved);
     }
     #[cfg(feature = "icu-blob")]
     if let Some(entry) = crate::slice::icu_entry(tag, &slice)? {
@@ -422,13 +411,6 @@ pub fn dir_of(tag: &str) -> Result<Dir> {
     })
 }
 
-/// `currency.data` or `unit.data`: what the number split (`plan/08` §6)
-/// takes from the browser instead.
-fn is_name_entry(key: u32) -> bool {
-    use mf2_catalog::format::locale_key;
-    matches!(key, locale_key::CURRENCY_DATA | locale_key::UNIT_DATA)
-}
-
 /// Who reads a LOCALE entry (`plan/08` §4.1). The browser looks only in the
 /// catalog it downloads; native code looks in the catalog and, beside a
 /// catalog a browser downloads, in the server-only table.
@@ -462,14 +444,10 @@ impl Readers {
             locale_key::PLURAL_CARDINAL
             | locale_key::PLURAL_ORDINAL
             | locale_key::NUMBER_SYMBOLS
-            | locale_key::NUMBER_PATTERNS => Readers {
+            | locale_key::NUMBER_PATTERNS
+            | locale_key::CURRENCY_DATA
+            | locale_key::UNIT_DATA => Readers {
                 browser: !features.number_intl(),
-                native: true,
-            },
-            // The number split (`intl-names`, `plan/08` §6) takes the
-            // currency and unit names from `Intl` too.
-            locale_key::CURRENCY_DATA | locale_key::UNIT_DATA => Readers {
-                browser: !features.number_intl() && !features.intl_names(),
                 native: true,
             },
             _ => Readers {
@@ -748,16 +726,6 @@ mod tests {
         check("hydrate,fn-number,number-intl", &[], &NUMBERS).expect("the server reads them");
         check("native,fn-number,number-intl", &NUMBERS, &[]).expect("one reader, one file");
         check(
-            "hydrate,fn-number,intl-names",
-            &[
-                locale_key::PLURAL_CARDINAL,
-                locale_key::NUMBER_SYMBOLS,
-                locale_key::NUMBER_PATTERNS,
-            ],
-            &[locale_key::CURRENCY_DATA, locale_key::UNIT_DATA],
-        )
-        .expect("the split: the server alone reads the names");
-        check(
             "ssr,leptos-client-datetime-intl,leptos-server-datetime-icu",
             &[],
             &[locale_key::ICU_BLOB],
@@ -788,18 +756,6 @@ mod tests {
         unread(
             check("hydrate,fn-number", &[], &[locale_key::NUMBER_SYMBOLS]),
             "number.symbols",
-        );
-    }
-
-    #[test]
-    fn names_in_the_catalog_under_the_split_fail() {
-        unread(
-            check(
-                "hydrate,fn-number,intl-names",
-                &[locale_key::CURRENCY_DATA],
-                &[],
-            ),
-            "currency.data",
         );
     }
 

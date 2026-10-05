@@ -10,4 +10,3 @@ src/intl.rs
 src/lib.rs
 src/localize.rs
 src/measure.rs
-src/names.rs

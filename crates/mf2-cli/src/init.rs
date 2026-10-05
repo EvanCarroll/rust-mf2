@@ -648,29 +648,4 @@ mod tests {
             }
         }
     }
-
-    /// `plan/08` §2.7: the number split is an opt-in, off by default — it
-    /// changes a few languages' text and costs time — so a starter names no
-    /// number-name feature either, as it names no date formatter. `mf2
-    /// check` is where it is offered, with its figures.
-    #[test]
-    fn the_starters_name_no_number_name_feature() {
-        for mode in MODES {
-            for feature in mode.features() {
-                assert!(
-                    !feature.contains("number-names"),
-                    "{}: {feature}",
-                    mode.what()
-                );
-            }
-            for (path, body) in starter_files(Path::new("app"), "app", mode) {
-                assert!(
-                    !body.contains("number-names"),
-                    "{}: {} names a number-name feature",
-                    mode.what(),
-                    path.display()
-                );
-            }
-        }
-    }
 }

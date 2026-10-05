@@ -32,9 +32,6 @@ mf2-syntax = { path = "../../crates/mf2-syntax" }
 # Exact: the wasm-bindgen CLI that post-processes the module must be the same
 # version (the installed CLI is 0.2.128, the root lockfile's too).
 wasm-bindgen = { version = "=0.2.128", default-features = false }
-# The number split's catalog bytes (`names-data`), compressed as mf2-build
-# writes `.br` (the root workspace's version).
-brotli = "9.0.0"
 clap = { version = "4.6.7", features = ["derive"] }
 serde_json = "1.0.151"
 thiserror = "2.0.20"

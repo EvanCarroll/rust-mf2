@@ -76,9 +76,6 @@ pub use host::{Host, NumberFormatter};
 /// full NFC. Applications use [`FnContext::equivalent`].
 #[doc(hidden)]
 pub use nfc::equivalent as nfc_equivalent;
-/// For `mf2-fn-number`'s `intl-names` split only; applications never call it.
-#[doc(hidden)]
-pub use number::currency_digits_by_host;
 pub use number::{
     CurrencyDisplay, DigitOptions, Digits, Grouping, Measure, MeasureUnit, Number, NumberOut,
     NumberRequest, NumberSpec, NumberStyle, RoundingMode, RoundingPriority, Sign, SignDisplay,

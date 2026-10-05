@@ -157,22 +157,6 @@ const CANARY_DATES: &str =
 const CANARY_NO_DATE: &str = "a plain message, a plain placeholder and a plural, no date: the \
      feature is on and nothing shows a date";
 
-/// The number split's row (`plan/08` §2.7), which this command does not
-/// measure: the reference workload has no `:currency` or `:unit` message,
-/// so the split would change nothing in it. The figures are 22.9's, over
-/// the nine languages of the names probe, and they are written here rather
-/// than in the page so that a fresh run keeps them.
-const NAMES_ROW: &str = "| `leptos-client-number-names-intl` (or `host-web-number-names-intl`) \
-     | browser | `fn-number` | 118 B gzip | nine languages with `:currency` and `:unit` \
-     (`bench/intl-probe/scripts/7-names.sh`), not this command |\n";
-
-/// What the number split's row leaves out: what the catalogs lose.
-const NAMES_NOTE: &str = "\n**The number split.** The split's row above is what the client gains; \
-     the same measurement took 227 to 387 B brotli out of each of the nine languages' \
-     catalogs, where the currency and unit names were, so a visitor — who downloads one \
-     language — saves roughly 100 to 270 B. `cargo xtask feature-costs` does not re-measure \
-     either figure: the reference workload has no `:currency` or `:unit` message.\n";
-
 /// Every row, in the order the table shows them.
 const COSTS: &[Cost] = &[
     Cost {
@@ -579,13 +563,7 @@ fn table(figures: &[i64], slices: &[SliceCost], date: &str, rustc: &str) -> Stri
             cost.with.side.unit(),
             cost.corpus
         );
-        // The split's row goes beside `number-intl`'s, the other answer to
-        // who writes a browser's number text.
-        if cost.feature == "number-intl" && cost.with.side == Side::Client {
-            s.push_str(NAMES_ROW);
-        }
     }
-    s.push_str(NAMES_NOTE);
     s.push_str(
         "\n**The date slice, per language.** The brotli bytes the date data adds \
          to each language's catalog, which a browser downloads: the reference \
@@ -726,13 +704,8 @@ mod tests {
             },
         ];
         let page = table(&figures, &slices, "2026-10-03", "`rustc 1.0.0`");
-        // The number split's row and its note are written with the rest and
-        // survive a fresh run; the row reads back as a figure this command
-        // never measures, so it is one more than `COSTS`.
-        assert!(page.contains(NAMES_ROW), "{page}");
-        assert!(page.contains(NAMES_NOTE), "{page}");
         let read = committed(&page);
-        assert_eq!(read.len(), COSTS.len() + 1 + 2 * slices.len());
+        assert_eq!(read.len(), COSTS.len() + 2 * slices.len());
         for (cost, figure) in COSTS.iter().zip(&figures) {
             assert_eq!(read.get(&id(cost)), Some(figure), "{}", id(cost));
         }

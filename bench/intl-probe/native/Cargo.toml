@@ -16,7 +16,6 @@ number-data = []
 fn-number = ["dep:mf2-fn-number"]
 
 [dependencies]
-brotli.workspace = true
 clap.workspace = true
 mf2 = { workspace = true, features = ["compile", "host-std"] }
 mf2-catalog = { workspace = true, features = ["writer"] }

@@ -37,16 +37,6 @@ rust-cu = ["dep:mf2-fn-number"]
 rt-intl = ["mf2-runtime/intl", "mf2-host-web/intl"]
 rt-intl-loc = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
 rt-intl-cu = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
-# The number split (plan/08 §6, task 18.4): `rust-cu`'s registry with
-# `:currency` and `:unit` taking their names (and a currency's own digits)
-# from `Intl.NumberFormat` through mf2-host-web's NUMBERS_HOST, the digits,
-# rounding and plural selection in Rust. Measured against `rust-cu` by
-# scripts/7-names.sh.
-rt-names-cu = [
-    "dep:mf2-fn-number",
-    "mf2-fn-number/intl-names",
-    "mf2-host-web/intl-names",
-]
 
 [dependencies]
 intl-probe-fn = { workspace = true, optional = true }

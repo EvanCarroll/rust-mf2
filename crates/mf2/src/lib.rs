@@ -30,7 +30,6 @@
 //! | `datetime` | turned on by every date formatter below: [`fn_datetime`]: `:datetime` / `:date` / `:time` (an unannotated date/time is a Bad Operand: a message writes `{$when :datetime}`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
 //! | **Who supplies locale data?** | |
 //! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
-//! | `<family>-number-names-intl` | the currency and unit names of a browser build: the families `host-web-number-names-` and `leptos-client-number-names-` (`intl` so far, since only a browser has a choice). On `wasm32-unknown-unknown`, `:currency` and `:unit` take their names, symbols and surrounding layout from the browser's `Intl.NumberFormat`, the digits, rounding and plural selection staying in Rust, and the catalog that browser downloads carries neither `currency.data` nor `unit.data`; with no feature the names come from the catalog. Each turns on `fn-number`; `number-intl` takes precedence |
 //! | `<family>-datetime-<formatter>` | the date formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `icu`, `intl`, `iso`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `icu`, `iso`). `icu` is ICU4X over the catalog's `icu.blob` (and [`compile_str`] emits it), `intl` the browser's `Intl.DateTimeFormat`, `iso` the ISO stand-in. A build formats with the strongest of its own side's: ICU4X, then `Intl`, then ISO; each turns on `datetime` |
 //! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `datetime`) |
 //! | **Behaviour and tools** | |
@@ -43,7 +42,7 @@
 //! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
 //! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
 //! 0.9, and `native` and `ratatui`, which compile beside it; [`leptos`]
-//! lists what the client modes add. `host-web`, `number-intl` and the number-name family are for
+//! lists what the client modes add. `host-web` and `number-intl` are for
 //! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
 //! is not shown here. A native application turns on `native` (a terminal
 //! UI, `ratatui`), and no Leptos mode.

@@ -420,43 +420,6 @@ pub(crate) fn loc(out: &Path) -> Result<()> {
     blob.write(out, "loc", json!({"cases": index}))
 }
 
-/// [`loc`] with every LOCALE entry the locale's messages need (plural,
-/// number symbols and patterns, `currency.data`, `unit.data`), as
-/// `mf2::compile_str` gives a message: the catalogs the number split's item
-/// formats (`web/lib/names.mjs`), where `rust-cu` reads the names from the
-/// catalog and `rt-names-cu` reads only the symbols.
-#[cfg(feature = "number-data")]
-pub(crate) fn loc_names(out: &Path) -> Result<()> {
-    use mf2_locale_data::{LocaleNeeds, NumberNeeds, locale_entries};
-    let cases = loc_cases();
-    let mut blob = Blob::default();
-    let mut index = Vec::new();
-    for locale in PANEL {
-        let mine: Vec<&(&str, String, &str, String)> =
-            cases.iter().filter(|c| c.0 == locale).collect();
-        let sources: Vec<String> = mine.iter().map(|c| c.3.clone()).collect();
-        let mut numbers = NumberNeeds::default();
-        numbers.symbols = true;
-        for src in &sources {
-            if let Some(m) = &mf2_syntax::parse_model(src).message {
-                numbers.add_message(m);
-            }
-        }
-        let mut needs = LocaleNeeds::default();
-        needs.cardinal = true;
-        needs.ordinal = true;
-        needs.numbers = numbers;
-        let entries = locale_entries(locale, &needs)?;
-        let cat = blob.push(&crate::catalogs::multi_with(&sources, locale, entries)?);
-        for (id, c) in mine.iter().enumerate() {
-            index.push(
-                json!({"locale": c.0, "fn": c.1, "v": c.2, "src": c.3, "cat": cat, "id": id}),
-            );
-        }
-    }
-    blob.write(out, "loc-names", json!({"cases": index}))
-}
-
 /// The locale-symbol cases through the Rust registry (`FUNCTIONS` above):
 /// `loc-rust.json` = `{"registry": …, "out": [[text, errors], …]}` in case
 /// order, what `web/lib/compare.mjs` takes like an engine's output.
@@ -697,74 +660,5 @@ pub(crate) fn observe() -> Result<()> {
         f.write(mf2::Compiled::ID, &[] as &[Arg<'_>], &mut text, &mut errs);
         println!("{src}\t{text}\t{}", error_names(&errs));
     }
-    Ok(())
-}
-
-/// The number split (`plan/08` §6, task 18.4): per panel locale, a catalog of
-/// the locale-symbol panel's `:currency` and `:unit` messages with every
-/// LOCALE entry their corpus needs (`NumberNeeds::add_message`, the build's
-/// slicing rule), and the same without `currency.data` and `unit.data`,
-/// which the split's client does not read: the two entries' raw bytes and
-/// the catalog's brotli bytes (quality 11, window 22, as `mf2-build` writes
-/// `.br`). Writes `names-data.md` and `names-data.tsv`.
-#[cfg(feature = "number-data")]
-pub(crate) fn names_data(out: &Path) -> Result<()> {
-    use mf2_catalog::format::locale_key;
-    use mf2_locale_data::{LocaleNeeds, NumberNeeds, locale_entries};
-    let br = |bytes: &[u8]| -> Result<usize> {
-        use std::io::Write as _;
-        let mut o = Vec::new();
-        {
-            let mut w = brotli::CompressorWriter::new(&mut o, 4096, 11, 22);
-            w.write_all(bytes).map_err(io("brotli"))?;
-            w.flush().map_err(io("brotli"))?;
-        }
-        Ok(o.len())
-    };
-    let is_name = |k: u32| k == locale_key::CURRENCY_DATA || k == locale_key::UNIT_DATA;
-    let cases = loc_cases();
-    let mut md = String::from(
-        "| locale | currency.data B | unit.data B | catalog br with | without | **Δ br** |\n|---|---:|---:|---:|---:|---:|\n",
-    );
-    let mut tsv = String::from("locale\tcurrency_raw\tunit_raw\tbr_with\tbr_without\n");
-    for locale in PANEL {
-        let sources: Vec<String> = cases
-            .iter()
-            .filter(|c| c.0 == locale && (c.1.starts_with(":currency") || c.1.starts_with(":unit")))
-            .map(|c| c.3.clone())
-            .collect();
-        let mut numbers = NumberNeeds::default();
-        numbers.symbols = true;
-        for src in &sources {
-            if let Some(m) = &mf2_syntax::parse_model(src).message {
-                numbers.add_message(m);
-            }
-        }
-        let mut needs = LocaleNeeds::default();
-        needs.numbers = numbers;
-        let all = locale_entries(locale, &needs)?;
-        let raw = |key: u32| -> usize {
-            all.iter()
-                .filter(|(k, _)| *k == key)
-                .map(|(_, b)| b.len())
-                .sum()
-        };
-        let (currency, unit) = (raw(locale_key::CURRENCY_DATA), raw(locale_key::UNIT_DATA));
-        let kept: Vec<(u32, Vec<u8>)> = all.iter().filter(|(k, _)| !is_name(*k)).cloned().collect();
-        let with = br(&crate::catalogs::multi_with(&sources, locale, all)?.bytes)?;
-        let without = br(&crate::catalogs::multi_with(&sources, locale, kept)?.bytes)?;
-        let _ = writeln!(
-            md,
-            "| {locale} | {currency} | {unit} | {with} | {without} | **{}** |",
-            with.saturating_sub(without)
-        );
-        let _ = writeln!(tsv, "{locale}\t{currency}\t{unit}\t{with}\t{without}");
-    }
-    std::fs::create_dir_all(out).map_err(io(out))?;
-    for (name, text) in [("names-data.md", &md), ("names-data.tsv", &tsv)] {
-        let path = out.join(name);
-        std::fs::write(&path, text).map_err(io(&path))?;
-    }
-    print!("{md}");
     Ok(())
 }

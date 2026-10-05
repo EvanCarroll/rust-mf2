@@ -19,14 +19,6 @@
 //! ([`mf2_runtime::INTL_NUMBERS`]) the text comes from the host's number
 //! formatter (the browser's `Intl.NumberFormat`) instead.
 //!
-//! With this crate's feature `intl-names` on `wasm32-unknown-unknown` (the
-//! number split, `plan/08` §6), only `:currency` and `:unit` ask the host's
-//! formatter, and only for what the catalog's `currency.data` and
-//! `unit.data` would give: the currency symbol or name, the unit's name,
-//! their place and spacing, a currency's own fraction digits. The digits,
-//! rounding and plural selection stay in Rust. The host is `mf2-host-web`'s
-//! `NUMBERS_HOST` under its feature `intl-names`.
-//!
 //! Closed world: an application's registry names only the handlers
 //! its corpus uses. Selection, exact-match keys and plural operands are the
 //! core's (neutral digits, the formatted digits' plural category): a
@@ -57,7 +49,6 @@
 mod intl;
 mod localize;
 mod measure;
-mod names;
 
 pub use measure::{CURRENCY, CurrencyFunction, UNIT, UnitFunction};
 

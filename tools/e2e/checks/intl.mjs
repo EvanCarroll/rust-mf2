@@ -18,9 +18,6 @@
 //   speed         item 2: `rust` vs `intl`, alternated; unthrottled, then at
 //                 4× CPU throttle where the engine has it (Chromium: CDP
 //                 Emulation.setCPUThrottlingRate; others: "not available")
-//   names         the number split (plan/08 §6): `rust-cu` vs `rt-names-cu`
-//                 on the locale-symbol panel, ns per placeholder and text
-//                 (bench/intl-probe/scripts/7-names.sh runs it alone)
 //
 // MF2_INTL_ITEMS=a,b selects items (default: all). Results go to
 // target/intl-probe/results/<browser>.json (the loc outputs to
@@ -75,11 +72,7 @@ const mhz = () => {
 
 export async function run(ctx) {
   const items = (process.env.MF2_INTL_ITEMS ?? ALL.join(',')).split(',').filter(Boolean);
-  // `names` alone (bench/intl-probe/scripts/7-names.sh) needs only its two
-  // variants and the panel.
-  const needs = items.every((i) => i === 'names')
-    ? ['pkg/rust-cu/probe.js', 'pkg/rt-names-cu/probe.js', 'data/loc-names.json', 'data/loc-rust.json']
-    : ['pkg/intl-cu/probe.js', 'pkg/rust/probe.js', 'data/l4.json'];
+  const needs = ['pkg/intl-cu/probe.js', 'pkg/rust/probe.js', 'data/l4.json'];
   for (const need of needs) {
     if (!existsSync(join(OUT, need))) throw new Error(`target/intl-probe/${need} missing: run bench/intl-probe/scripts/build.sh and data.sh`);
   }

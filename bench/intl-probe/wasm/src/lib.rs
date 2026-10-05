@@ -36,8 +36,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
     feature = "rust-cu",
     feature = "rt-intl",
     feature = "rt-intl-loc",
-    feature = "rt-intl-cu",
-    feature = "rt-names-cu"
+    feature = "rt-intl-cu"
 )))]
 compile_error!("build intl-probe-wasm with exactly one variant feature (scripts/build.sh)");
 
@@ -112,7 +111,7 @@ static FUNCTIONS: [(&str, &dyn Function); 5] = [
 #[cfg(feature = "rust-loc")]
 const VARIANT: &str = "rust-loc";
 
-#[cfg(any(feature = "rust-cu", feature = "rt-intl-cu", feature = "rt-names-cu"))]
+#[cfg(any(feature = "rust-cu", feature = "rt-intl-cu"))]
 static FUNCTIONS: [(&str, &dyn Function); 7] = [
     ("currency", &mf2_fn_number::CURRENCY),
     ("integer", &mf2_fn_number::INTEGER),
@@ -126,8 +125,6 @@ static FUNCTIONS: [(&str, &dyn Function); 7] = [
 const VARIANT: &str = "rust-cu";
 #[cfg(feature = "rt-intl-cu")]
 const VARIANT: &str = "rt-intl-cu";
-#[cfg(feature = "rt-names-cu")]
-const VARIANT: &str = "rt-names-cu";
 
 #[cfg(feature = "rt-intl")]
 static FUNCTIONS: [(&str, &dyn Function); 4] = [
@@ -152,22 +149,11 @@ const VARIANT: &str = "rt-intl-loc";
 
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
-/// The host: the browser's, and for the option as built (`rt-intl*`) and
-/// the number split (`rt-names-cu`) the same with its number formatter
-/// (`Intl`).
-#[cfg(not(any(
-    feature = "rt-intl",
-    feature = "rt-intl-loc",
-    feature = "rt-intl-cu",
-    feature = "rt-names-cu"
-)))]
+/// The host: the browser's, and for the option as built (`rt-intl*`) the
+/// same with its number formatter (`Intl`).
+#[cfg(not(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu")))]
 const HOST: &dyn mf2_runtime::Host = &mf2_host_web::HOST;
-#[cfg(any(
-    feature = "rt-intl",
-    feature = "rt-intl-loc",
-    feature = "rt-intl-cu",
-    feature = "rt-names-cu"
-))]
+#[cfg(any(feature = "rt-intl", feature = "rt-intl-loc", feature = "rt-intl-cu"))]
 const HOST: &dyn mf2_runtime::Host = &mf2_host_web::NUMBERS_HOST;
 
 static CX_DEFAULT: FormatContext = FormatContext::new(HOST);
