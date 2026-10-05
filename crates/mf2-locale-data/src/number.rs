@@ -72,9 +72,9 @@ impl Selection {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct NumberNeeds {
-    /// Numbers are formatted with the locale's symbols: `fn-number` is on
-    /// and the corpus formats a numeric function or has a placeholder that
-    /// can receive a number → `number.symbols`.
+    /// Numbers are formatted with the locale's symbols: a side's number
+    /// formatter is `builtin`, and the corpus formats a numeric function or
+    /// has a placeholder that can receive a number → `number.symbols`.
     pub symbols: bool,
     /// `:percent` is used → `number.symbols` and the percent pattern.
     pub percent: bool,
@@ -195,9 +195,9 @@ impl NumberNeeds {
     /// `currency=` codes and `unit=` identifiers, the `currencySign`,
     /// `currencyDisplay` and `unitDisplay` values (a variable value counts
     /// as every value), and `symbols` for a placeholder whose variable has
-    /// no function (it can receive a number) — call it only with `fn-number`
-    /// on. Codes and units that only arguments carry at run time are not in
-    /// the corpus: configure them (`mf2.toml`).
+    /// no function (it can receive a number) — call it only where a side's
+    /// number formatter is `builtin`. Codes and units that only arguments
+    /// carry at run time are not in the corpus: configure them (`mf2.toml`).
     pub fn add_message(&mut self, message: &Message<'_>) {
         for d in message.declarations() {
             match d {

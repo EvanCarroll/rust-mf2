@@ -645,7 +645,8 @@ fn emit(
 ) {
     let cx = env.cx(r.udir);
     // An unannotated number goes to the registry's number handler, if it has
-    // one (`fn-number`); an unannotated date/time
+    // one (a number formatter that writes the language's own form adds it);
+    // an unannotated date/time
     // has none and is a Bad Operand (`plan/08` §4.3). The number is still checked
     // as any unannotated value, so its errors do not depend on the feature.
     let hook = match r.handler {

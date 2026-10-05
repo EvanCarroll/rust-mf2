@@ -404,6 +404,7 @@ From the [cost table](#what-each-feature-costs):
 |---|---|---|---|
 | `intl` | about 250 B of gzip more than `iso` | — | none of yours: the browser's |
 | `icu` | about 59 to 101 KB of gzip more than `iso`, by the form below | about 329 KB | each language's date slice, in its catalog |
+| `icu-cached` | about 2.2 KB of gzip more than `icu` | — (native `icu` has the cache) | the same slice |
 | `iso` | about 5 KB of gzip | about 167 KB, mostly time zones | none |
 
 Each figure is against the same application with no date formatter, except
@@ -538,23 +539,6 @@ The page states the server's formatter and time zone; a message is
 rewritten after hydration only when it formats a date and either differs
 from the browser's.
 
-### What ships where
-
-Data goes only to a side that reads it:
-
-| Data | In the catalogs a browser downloads | In the server binary |
-|---|---|---|
-| the messages | yes | yes |
-| ICU4X's date slice | only with `icu` in the browser | with `icu` on the server |
-| the plural rules | with `builtin` or `plain` in the browser | with `builtin` or `plain` on the server |
-| number, currency and unit data | only with `builtin` in the browser | with `builtin` on the server |
-
-A server keeps what only it reads in a table of its own beside each
-catalog, which no browser downloads. A command-line tool or a terminal UI
-has one reader, so every piece of data it reads stays in its catalogs.
-`mf2 stats` lists, for each language, every piece with its size, who reads
-it and where it ships, and the bytes a browser downloads and never reads.
-
 ### The form of ICU4X
 
 With `icu`, the build links the narrowest form of ICU4X the messages need:
@@ -565,6 +549,23 @@ browser: about 59 KB of gzip more than `iso` for Gregorian dates without
 zone names, and about 42 KB more again for every calendar with zone names.
 Natively the widest form adds about 152 KB. `mf2 check` prints the form chosen and why,
 and [`[dates]`](configuration.md#dates) in `mf2.toml` overrides it.
+
+## What ships where
+
+Data goes only to a side that reads it:
+
+| Data | In the catalogs a browser downloads | In the server binary |
+|---|---|---|
+| the messages | yes | yes |
+| ICU4X's date slice | only with `icu` or `icu-cached` in the browser | with `icu` on the server |
+| the plural rules | with `builtin` or `plain` in the browser | with `builtin` or `plain` on the server |
+| number, currency and unit data | only with `builtin` in the browser | with `builtin` on the server |
+
+A server keeps what only it reads in a table of its own beside each
+catalog, which no browser downloads. A command-line tool or a terminal UI
+has one reader, so every piece of data it reads stays in its catalogs.
+`mf2 stats` lists, for each language, every piece with its size, who reads
+it and where it ships, and the bytes a browser downloads and never reads.
 
 ## Time zones
 

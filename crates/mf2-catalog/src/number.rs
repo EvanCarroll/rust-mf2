@@ -187,8 +187,8 @@ impl<'a> Symbols<'a> {
     }
 
     /// The catalog's `number.symbols` entry, parsed; `None` when the catalog
-    /// has none (the corpus formats no number, or `fn-number` is off) or it is
-    /// malformed.
+    /// has none (the corpus formats no number, or no side that reads this
+    /// catalog formats numbers with `builtin`) or it is malformed.
     pub fn of(catalog: &'a Catalog) -> Option<Symbols<'a>> {
         Symbols::parse(catalog.locale_entry(locale_key::NUMBER_SYMBOLS)?)
     }
