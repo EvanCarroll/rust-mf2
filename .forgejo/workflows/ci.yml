@@ -43,9 +43,11 @@
 # Job `b12`: budget B12 for the catalog reader: bench/b12/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
 # survives in the reader; it also records the reader's size delta (part of
-# B1). It needs binaryen (wasm-opt, wasm-dis) and twiggy, installed at pinned
-# versions: binaryen from its release tarball (checked against the published
-# sha256), twiggy with `cargo install --locked`.
+# B1). It needs binaryen (wasm-opt, wasm-dis), which the image brings, and
+# twiggy, which tools/ci/setup.sh installs. The pinned binaryen tarball this
+# job used to download is a glibc build and cannot run on the image, so the
+# image's own wasm-opt is what takes these figures — its version is printed at
+# the head of every report, because the figures belong to it.
 #
 # Job `catalog-size`: budget B7 on the committed reference corpus and the
 # four generated locales (bench/catalog-bench). Deterministic, ≈ 30 s of release
@@ -105,14 +107,33 @@
 # the docs.rs build, the MSRV and `cargo publish --workspace --dry-run`. It
 # repeats the `ci`, `msrv` and `docs-rs` jobs' work, so that one command is
 # what says a commit can be released. It holds no token: the publish is the
-# owner's, and `--publish` refuses to run where `CI` is set. Its runner needs
-# what the `ci` job's does.
+# owner's, and `--publish` refuses to run where `CI` is set. Because it repeats
+# that much work, it runs on a tag or when asked for by hand, not on every push.
 #
-# Actions: only Forgejo-maintained forks. upload-artifact comes from
-# https://code.forgejo.org/forgejo/upload-artifact (tag v5 = upstream v5.0.0 +
+# Job `report`: one file for the whole run. It waits for every job, runs
+# whatever they did, and `tools/ci/report.sh` folds each job's artifact into
+# REPORT.md — headed with the tool versions the figures came from, with a result
+# per job, and with the checks this runner cannot do
+# (tools/ci/local-only.txt) named so a release is never signed off without
+# seeing that they did not run. Uploaded as `mf2-report` and printed into the
+# job's log, so a run can be read without downloading anything.
+#
+# The runner: Forgejo's `docker` label and the image the other Rust
+# repositories here build with, pulled with REGISTRY_TOKEN. It is Alpine, so
+# everything native is musl. tools/ci/setup.sh adds what the image lacks and
+# names every tool version; every step that calls cargo unsets
+# CARGO_BUILD_TARGET first, because the image pins the musl triple and that
+# would move artifacts out of target/{debug,release}, where `cargo xtask docs`,
+# native-canaries and tui-gate look for them. An empty value is not the same
+# thing: cargo refuses it.
+#
+# Actions: only Forgejo-maintained forks. upload-artifact and download-artifact
+# come from https://code.forgejo.org/forgejo/ (tag v5 = upstream v5.0.0 +
 # "disable GHES check", checked 2026-09-20); the code.forgejo.org/actions
-# mirror says its v4+ does not work on Forgejo. Sources are fetched with plain
-# git in a run step.
+# mirror says its v4+ does not work on Forgejo. The cache is the exception:
+# there is no code.forgejo.org/forgejo/cache fork (checked 2026-10-05), so it
+# comes from code.forgejo.org/actions/cache@v4, which is what the other Rust
+# repositories here use. Sources are fetched with plain git in a run step.
 name: ci
 
 on:
@@ -120,17 +141,31 @@ on:
   pull_request:
   workflow_dispatch:
 
+# One run per ref: a push that supersedes another cancels it, so a queue of
+# stale runs cannot hold the runner.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
-    # PLACEHOLDER: the remote host is not decided yet. Replace this label with
-    # one the chosen host's runner offers. The
-    # runner needs git, curl, a C linker (cc), node (for upload-artifact) and
-    # xmllint (libxml2; `mf2-cli`'s tests validate every XLIFF export against
-    # the vendored schema, and fail without it).
-    runs-on: PLACEHOLDER-runner-label
+    # The runner: Forgejo's `docker` label, in the image the other Rust
+    # repositories here build with. It is Alpine, so everything native is musl.
+    # tools/ci/setup.sh adds what the image lacks — xmllint (which
+    # `mf2-cli`'s XLIFF tests fail without, rather than skip), GNU gzip, nm —
+    # installs the toolchain rust-toolchain.toml pins, and prints every tool's
+    # version so a figure in the report is attributable.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -140,6 +175,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -151,27 +192,36 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          # No argument: installs the channel, components and targets named in
-          # rust-toolchain.toml.
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: cargo xtask ci
-        run: cargo xtask ci
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask ci
 
       - name: Upload the conformance report
         if: always()
@@ -182,11 +232,19 @@ jobs:
           if-no-files-found: error
 
   parser-gate:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -196,6 +254,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -207,25 +271,36 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: D1 gate (release build, median of 31, exit 1 on failure)
-        run: cargo run --release -p parser-gate -- --gate
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo run --release -p parser-gate -- --gate
 
       - name: Upload the gate report
         if: always()
@@ -238,11 +313,19 @@ jobs:
           if-no-files-found: error
 
   tui-gate:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -252,6 +335,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -263,26 +352,37 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The terminal UI's gate (allocations per frame and stripped size)
         # Three runs: the counts must agree between them. Time is nightly's.
-        run: cargo xtask tui-gate --gate --runs 3
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask tui-gate --gate --runs 3
 
       - name: Upload the gate report
         if: always()
@@ -295,11 +395,19 @@ jobs:
           if-no-files-found: error
 
   native-canaries:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -309,6 +417,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -320,25 +434,36 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: What each feature set links into a native binary
-        run: cargo xtask native-canaries
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask native-canaries
 
       - name: Upload the canaries' report
         if: always()
@@ -349,11 +474,19 @@ jobs:
           if-no-files-found: error
 
   catalog-size:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -363,6 +496,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -374,25 +513,35 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: B7 on the committed corpus (brotli 11; exit 1 on a failed threshold)
         run: |
+          unset CARGO_BUILD_TARGET
           cargo xtask catalog-size --md target/catalog-bench/SIZE.md \
             --json target/catalog-bench/size.json
 
@@ -407,16 +556,19 @@ jobs:
           if-no-files-found: error
 
   b12:
-    # PLACEHOLDER: see the `ci` job. The runner needs git, curl, tar, gzip,
-    # sha256sum, a C linker (cc) and node (for upload-artifact); x86_64 Linux
-    # (the binaryen tarball below).
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
-      # The versions bench/b12/README.md's figures were measured with.
-      BINARYEN_VERSION: "120"
-      TWIGGY_VERSION: "0.8.0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -426,6 +578,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -437,51 +595,46 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasm-bindgen twiggy
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          # Installs the channel, components and targets (wasm32-unknown-unknown
-          # among them) named in rust-toolchain.toml.
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
-
-      - name: Install binaryen and twiggy (pinned)
         run: |
-          set -eu
-          tools="${RUNNER_TEMP:-/tmp}/b12-tools"
-          mkdir -p "$tools"
-          name="binaryen-version_$BINARYEN_VERSION"
-          tarball="$name-x86_64-linux.tar.gz"
-          url="https://github.com/WebAssembly/binaryen/releases/download/version_$BINARYEN_VERSION/$tarball"
-          curl --proto '=https' --tlsv1.2 -sSfL -o "$tools/$tarball" "$url"
-          curl --proto '=https' --tlsv1.2 -sSfL -o "$tools/$tarball.sha256" "$url.sha256"
-          expected="$(cut -d ' ' -f 1 < "$tools/$tarball.sha256")"
-          echo "$expected  $tools/$tarball" | sha256sum -c -
-          tar -xzf "$tools/$tarball" -C "$tools"
-          echo "$tools/$name/bin" >> "$GITHUB_PATH"
-          "$tools/$name/bin/wasm-opt" --version
-          cargo install --locked twiggy --version "$TWIGGY_VERSION"
-          twiggy --version
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: B12 check (exit 1 on a panic path or core::fmt in the reader or the runtime)
-        run: bash bench/b12/check.sh
+        run: |
+          unset CARGO_BUILD_TARGET
+          bash bench/b12/check.sh
 
       - name: B1′ and B13 on the generated module (Phase 5b, A10)
-        run: cargo xtask b12-generated
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask b12-generated
 
       - name: The browser host builds for wasm32-unknown-unknown
-        run: cargo build --release -p mf2-host-web --target wasm32-unknown-unknown
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo build --release -p mf2-host-web --target wasm32-unknown-unknown
 
       - name: Upload the B12 report
         if: always()
@@ -494,18 +647,19 @@ jobs:
           if-no-files-found: error
 
   build-pipeline:
-    # PLACEHOLDER: see the `ci` job.
-    #
-    # Phase 5a: the module `mf2-build`
-    # generates, compiled in every feature combination of the facade — for the
-    # server and for wasm32-unknown-unknown — with budget B6 grepped for in the
-    # client artifact; then the incremental-rebuild scenarios of P0.9 on the
-    # real pipeline, which is where "a translation-only edit leaves the client
-    # wasm byte-identical" is checked.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -515,6 +669,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -526,35 +686,56 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The generated module in every feature combination, and B6
-        run: cargo xtask codegen-matrix
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask codegen-matrix
 
       - name: The incremental-rebuild scenarios
-        run: cargo xtask scenarios
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask scenarios
 
   docs:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -564,6 +745,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -575,33 +762,51 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: Every documentation sample, compiled (server and wasm32)
-        run: cargo xtask docs
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask docs
 
   l4-wasi:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
-      WASMTIME_VERSION: "49.0.0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -611,6 +816,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -622,31 +833,36 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasmtime
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
-
-      - name: Install wasmtime (pinned, into target/tools)
         run: |
-          set -eu
-          cargo install --root target/tools --locked wasmtime-cli --version "$WASMTIME_VERSION"
-          target/tools/bin/wasmtime --version
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: L4 on wasm32-wasip1 (exit 1 unless byte-identical to native)
-        run: cargo xtask l4-wasi --generated 20000
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask l4-wasi --generated 20000
 
       - name: Upload the records
         if: always()
@@ -659,11 +875,19 @@ jobs:
           if-no-files-found: error
 
   msrv:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -673,6 +897,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -684,35 +914,56 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The 18 on their rust-version (natively and wasm32, both Leptos lines)
-        run: cargo xtask msrv
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask msrv
 
       - name: The release before it must fail
-        run: cargo xtask msrv --below
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask msrv --below
 
   docs-rs:
-    # PLACEHOLDER: see the `ci` job.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -722,6 +973,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -733,33 +990,56 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The documentation, as docs.rs builds it
-        run: cargo xtask docs-rs
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask docs-rs
 
   release:
-    # PLACEHOLDER: see the `ci` job (this job runs `cargo xtask ci` too, so
-    # its runner needs the same tools).
-    runs-on: PLACEHOLDER-runner-label
+    # The dry run repeats the `ci`, `msrv`, `docs-rs` and `package` work, so it
+    # is not run on every push: a tag, or asked for by hand. `cargo xtask
+    # release --publish` refuses to run where CI is set, by design — publishing
+    # stays the owner's, on the owner's machine.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -769,6 +1049,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -780,21 +1066,122 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache (git-ignored, so the tree stays clean).
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The release, as a dry run (never publishes)
-        run: cargo xtask release
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask release
+
+  report:
+    # Everything this run measured, in one file. tools/ci/report.sh folds every
+    # job's artifact into REPORT.md, heads it with the tool versions that
+    # produced the figures — the image's digest is not visible to a job, so the
+    # versions are what attributes a number — and lists the browser checks that
+    # did not run here (tools/ci/local-only.txt). It is uploaded as
+    # `mf2-report` and printed into this job's log, so the run can be read
+    # without downloading anything.
+    needs:
+      - ci
+      - parser-gate
+      - tui-gate
+      - native-canaries
+      - catalog-size
+      - b12
+      - build-pipeline
+      - docs
+      - l4-wasi
+      - msrv
+      - docs-rs
+      - release
+    if: always()
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Download every artifact this run produced
+        # A run where every job failed has nothing to download, and the report
+        # is wanted most of all then. Never let this step be why there is none.
+        continue-on-error: true
+        # No `name`: each artifact lands in its own directory under artifacts/.
+        uses: https://code.forgejo.org/forgejo/download-artifact@v5
+        with:
+          path: artifacts
+
+      - name: Set the job up (for the versions the report is headed with)
+        run: sh tools/ci/setup.sh
+
+      - name: Assemble the report
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          WORKFLOW: ${{ github.workflow }}
+          GIT_SHA: ${{ github.sha }}
+          GIT_REF: ${{ github.ref }}
+          RUN_NUMBER: ${{ github.run_number }}
+          IMAGE: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+        run: |
+          set -eu
+          unset CARGO_BUILD_TARGET
+          sh tools/ci/report.sh artifacts > REPORT.md
+          echo "================ REPORT.md ================"
+          cat REPORT.md
+
+      - name: Upload the report
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: mf2-report
+          path: REPORT.md
+          if-no-files-found: error

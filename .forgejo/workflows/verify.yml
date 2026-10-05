@@ -1,0 +1,231 @@
+# The release verification run: the whole check suite in one job, the way the
+# owner runs it locally, with the rows the runner cannot do left out
+# (tools/ci/local-only.txt).
+#
+# This is step 3 of the release procedure. It is not scheduled: the nightly's
+# jobs already judge each gate on its own and upload their reports, and running
+# the suite beside them would do the same work twice. Ask for this by hand, or
+# push a tag.
+#
+# What it is for, beyond running the checks: `tools/checks/run.sh` writes
+# `target/p10-checks/<label>/summary.tsv`, and `compare.sh` judges one run
+# against an earlier one — B1 beyond ±64 B gz, B5 beyond ±0.2 B a site, any
+# other size that moved, allocations per frame that changed, the stripped TUI
+# binary over its limit. That baseline used to live only in `target/`, and was
+# destroyed when `target/` was recreated. Here it is both an artifact and a
+# cache entry, so it cannot be lost that way again.
+#
+# Actions: only Forgejo-maintained forks; sources are fetched with plain git.
+# See ci.yml for the runner, the image and tools/ci/setup.sh.
+name: verify
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    # See the `ci` job in ci.yml: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh. `trunk` is an extra here and nowhere else: the `sizes`
+    # row builds demo-csr with it.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      # Three, as the owner's local runs use, so a figure is comparable.
+      CARGO_BUILD_JOBS: "3"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasm-bindgen twiggy trunk
+
+      - name: Start sccache
+        run: |
+          sccache --start-server || true
+          sccache --show-stats
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
+
+      # The key is unique to this run, so every run saves; the restore key is a
+      # prefix, so every run reads the newest earlier one. That is the rolling
+      # baseline compare.sh needs.
+      - name: Restore the last verification's figures
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: target/p10-checks
+          key: checks-baseline-${{ github.run_number }}
+          restore-keys: |
+            checks-baseline-
+
+      - name: Name this run
+        run: echo "CHECKS_LABEL=v$(echo "${{ github.sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
+
+      - name: The suite, without the rows this runner cannot do
+        # 15 of the 21. run.sh carries on after a failure and exits 1 at the
+        # end if any row failed, so one run says everything.
+        #
+        # `ci` stays first, and not only for speed: the `sizes` row runs
+        # tools/checks/measure.sh, which sets CARGO_NET_OFFLINE=true, and there
+        # is no Cargo.lock here. It works because `ci` has already fetched the
+        # registry into the cache. Reorder the list and `sizes` fails offline.
+        run: |
+          unset CARGO_BUILD_TARGET
+          bash tools/checks/run.sh "$CHECKS_LABEL" --only \
+            ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,b12,b12-generated,conformance-report,api,refusals,tui-gate,native-canaries
+
+      - name: The TUI gate proper (run.sh keeps the baseline; this judges it)
+        if: always()
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask tui-gate --gate --runs 3
+
+      - name: Against the last verification
+        if: always()
+        run: |
+          set -eu
+          unset CARGO_BUILD_TARGET
+          prev=$(cd target/p10-checks && ls -1dt */ 2>/dev/null \
+                   | sed 's|/$||' | grep -v "^$CHECKS_LABEL\$" | head -1 || true)
+          if [ -z "$prev" ]; then
+            echo "No earlier verification in the cache. This run is the baseline;"
+            echo "the next one is the first that can be compared."
+            exit 0
+          fi
+          echo "comparing $prev -> $CHECKS_LABEL"
+          # compare.sh exits 1 on a flagged drift, and that must fail the job.
+          rc=0
+          bash tools/checks/compare.sh "$prev" "$CHECKS_LABEL" \
+            > "target/p10-checks/$CHECKS_LABEL/compare.md" 2>&1 || rc=$?
+          cat "target/p10-checks/$CHECKS_LABEL/compare.md"
+          [ "$rc" -eq 0 ] || exit "$rc"
+
+      - name: Upload the figures, the comparison and the logs
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: checks
+          path: |
+            target/p10-checks/
+            target/p10-b2/logs/
+          if-no-files-found: error
+
+  report:
+    # One file for the whole verification. See ci.yml's `report` job.
+    needs:
+      - checks
+    if: always()
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Download every artifact this run produced
+        # A run where every job failed has nothing to download, and the report
+        # is wanted most of all then. Never let this step be why there is none.
+        continue-on-error: true
+        uses: https://code.forgejo.org/forgejo/download-artifact@v5
+        with:
+          path: artifacts
+
+      - name: Set the job up (for the versions the report is headed with)
+        run: sh tools/ci/setup.sh
+
+      - name: Assemble the report
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          WORKFLOW: ${{ github.workflow }}
+          GIT_SHA: ${{ github.sha }}
+          GIT_REF: ${{ github.ref }}
+          RUN_NUMBER: ${{ github.run_number }}
+          IMAGE: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+        run: |
+          set -eu
+          unset CARGO_BUILD_TARGET
+          sh tools/ci/report.sh artifacts > REPORT.md
+          echo "================ REPORT.md ================"
+          cat REPORT.md
+
+      - name: Upload the report
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: mf2-report
+          path: REPORT.md
+          if-no-files-found: error

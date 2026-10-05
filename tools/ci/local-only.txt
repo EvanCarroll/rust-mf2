@@ -1,0 +1,15 @@
+# Checks the Forgejo runner cannot do, and the command that does each.
+# tools/ci/report.sh copies this into every report, so a release is never
+# signed off without it being visible that these did not run.
+#
+# One row: <command><TAB><why it is not here, and what it judges>
+#
+# The image has no browser engines (owner, 2026-10-05):
+cargo xtask l4-web	needs chromium, firefox and webkit — conformance layer L4 with the `intl` client option
+cargo xtask l6-web --browser chromium,firefox	needs a browser — layer L6: server-rendered, hydrated, locale switched and back
+cargo xtask l7-web --browser chromium,firefox	needs a browser — layer L7: the same as islands and client-only, both configurations
+cargo xtask churn --browser chromium,firefox	needs a browser — no row shape of a churning list may grow the heap
+bash tools/checks/e2e.sh . <label>	needs a browser — the six demo checks (demo, lazy, islands, csr, zone, a11y); run.sh's e2e-0-9 and e2e-0-8 rows
+#
+# Not a browser: this one compares two kept runs, and a fresh checkout has one.
+bash tools/checks/run.sh <label> --only demos	diffs target/p10-b2/demos/{base,b2} from two earlier measure.sh runs

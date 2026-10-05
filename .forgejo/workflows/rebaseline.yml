@@ -1,0 +1,177 @@
+# Take the figures again, on the runner, and hand back what has to change.
+#
+# Every committed size figure in this repository was measured on the owner's
+# machine: glibc, the owner's binaryen and wasm-bindgen. CI measures on Alpine,
+# so everything built as wasm is unchanged — `wasm32-unknown-unknown` output
+# does not depend on the host's libc — but every figure taken from a *native*
+# binary does change, and so does any wasm figure if the image's `wasm-opt` is
+# not the version the figure was taken with. This run says, with numbers, which
+# ones moved.
+#
+# It writes nothing back to the repository: it uploads the regenerated files and
+# a patch, and the owner commits them. Never scheduled; ask for it by hand.
+#
+# `cargo xtask feature-costs` with no `--check` rewrites docs/feature-costs.md
+# and crates/mf2-build/src/features/costs.rs itself. The rest of the figures are
+# Rust consts and shell literals that no tool rewrites; FIGURES.md in the
+# artifact says where each one lives, beside the number this run measured.
+name: rebaseline
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  figures:
+    # See the `ci` job in ci.yml.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "3"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasm-bindgen twiggy
+
+      - name: Start sccache
+        run: |
+          sccache --start-server || true
+          sccache --show-stats
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
+
+      # Every figure below is wanted whether or not it is still inside its
+      # budget: that a budget is breached is the finding, not a reason to stop.
+      # Each command's exit status is recorded instead of ending the job.
+      - name: Take every figure again
+        run: |
+          set -u
+          unset CARGO_BUILD_TARGET
+          mkdir -p target/rebaseline
+          take() {
+            name=$1; shift
+            echo "=== $name: $* ==="
+            if "$@" > "target/rebaseline/$name.txt" 2>&1; then
+              echo "$name rc=0" >> target/rebaseline/status.txt
+            else
+              echo "$name rc=$? (over budget, or failed — read $name.txt)" \
+                >> target/rebaseline/status.txt
+            fi
+            tail -40 "target/rebaseline/$name.txt"
+          }
+          take feature-costs   cargo xtask feature-costs
+          take size            cargo xtask size
+          take catalog-size    cargo xtask catalog-size
+          take b12             bash bench/b12/check.sh
+          take b12-generated   cargo xtask b12-generated
+          take native-canaries cargo xtask native-canaries
+          take tui-gate        cargo xtask tui-gate --runs 3
+          echo "--- status ---"
+          cat target/rebaseline/status.txt
+
+      - name: Say what has to change, and where
+        if: always()
+        run: |
+          set -eu
+          unset CARGO_BUILD_TARGET
+          cd "$GITHUB_WORKSPACE"
+          {
+            echo "# Figures taken on the runner"
+            echo
+            sh tools/ci/versions.sh
+            echo
+            echo "## Rewritten by the tool — commit these as they are"
+            echo
+            echo '* `docs/feature-costs.md`'
+            echo '* `crates/mf2-build/src/features/costs.rs`'
+            echo
+            echo '```diff'
+            git --no-pager diff -- docs/feature-costs.md \
+              crates/mf2-build/src/features/costs.rs || true
+            echo '```'
+            echo
+            echo "## Hand-written figures, and the file each lives in"
+            echo
+            echo "Read the number out of the matching report below, then edit:"
+            echo
+            echo '| figure | where | what it is |'
+            echo '|---|---|---|'
+            echo '| stripped `tui-mf2` | `xtask/src/tui_gate.rs` `SIZE_LIMIT` | native: changes on musl |'
+            echo '| the same number again | `tools/checks/compare.sh` | native: changes on musl |'
+            echo '| native-canary ICU ceiling | `xtask/src/native_canaries.rs` `ICU_CEILING` | native: changes on musl |'
+            echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/b5.rs` | wasm: only if wasm-opt moved |'
+            echo '| B13 | `xtask/src/b12_generated.rs` | wasm: only if wasm-opt moved |'
+            echo '| B2, B3, B4 | `bench/b12/check.sh` | wasm: only if wasm-opt moved |'
+            echo '| B7 | `crates/mf2-build/tests/sizes.rs` | wasm: only if brotli moved |'
+            echo
+            echo "## Each command's result"
+            echo
+            echo '```'
+            cat target/rebaseline/status.txt
+            echo '```'
+          } > target/rebaseline/FIGURES.md
+          cat target/rebaseline/FIGURES.md
+
+      - name: Upload the figures and the regenerated files
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: rebaseline
+          path: |
+            target/rebaseline/
+            docs/feature-costs.md
+            crates/mf2-build/src/features/costs.rs
+            target/size/report.md
+            target/feature-costs/feature-costs.md
+            target/native-canaries/report.md
+            target/tui-gate/report.md
+          if-no-files-found: warn

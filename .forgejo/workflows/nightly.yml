@@ -23,13 +23,13 @@
 #   runs in a child process with a timeout, under a memory limit.
 # * `fuzz`: 30 minutes each of the `parse`, `catalog`, `format` and `nfc`
 #   fuzz targets (cargo-fuzz, nightly toolchain; see fuzz/README.md).
+#   libFuzzer needs `-Zsanitizer=address`, and whether rustc offers that on an
+#   Alpine host has not been seen yet. If the first nightly says it does not,
+#   these four steps are the owner's to run and leave here as a record.
 # * `reader bench`: the catalog reader's
 #   load and lookup against P0.8's figures, 0 allocations and 0 copies at load
 #   (bench/catalog-bench). Here rather than on every push because its timing
 #   rules are load-sensitive.
-# * `l4-web` (a job of its own; owner decision 4): the `intl` client option's
-#   L4 run in Chromium, Firefox and WebKit, every engine difference the
-#   ledger's (`cargo xtask l4-web`).
 # * `b5` (a job of its own): the
 #   **size gate** — two scales of the reference workload, three generated
 #   Leptos applications each, built for the client and measured after
@@ -45,15 +45,6 @@
 #   Then `cargo xtask feature-costs --check` (plan/01 §6.4): each function
 #   and data feature built with and without, client and native, held to
 #   the figures the guide publishes (docs/feature-costs.md).
-# * `l6-web` (a job of its own): conformance layer L6 in the
-#   browser — every runtime-valid suite message server-rendered, hydrated in
-#   Chromium and Firefox, switched to the twin locale and back
-#   (`cargo xtask l6-web`). The server half of L6 runs in `cargo test`.
-# * `l7-web` (a job of its own): conformance layer L7 — the
-#   same, as islands and client-only, in both configurations, judging the
-#   ledger's L7 columns (`cargo xtask l7-web`). Then, in the same job,
-#   `cargo xtask churn`: no row shape of a churning list may
-#   grow the heap.
 # * `leptos-0-8` (a job of its own): the Leptos
 #   0.8 opt-in — both lines at once refused with the fix named; then, on
 #   0.8, mf2's Leptos layer linted for ssr, hydrate and csr, its render,
@@ -79,6 +70,18 @@
 #   median time per frame, which may not exceed 1.x's
 #   (`cargo xtask tui-gate --gate --baseline-rev`). Load-sensitive.
 #
+# * `report` (a job of its own): one file for the whole night, as in ci.yml.
+#
+# Not here, and not anywhere on this runner: the browser work. The image has no
+# engines (owner, 2026-10-05), so `l4-web`, `l6-web`, `l7-web` and `churn` —
+# which were jobs of this workflow — are the owner's to run. They are listed in
+# tools/ci/local-only.txt with their commands, and every report names them, so a
+# release cannot be signed off without seeing that they did not run.
+#
+# The whole check suite in one run, with `summary.tsv` and the comparison
+# against the previous one, is verify.yml: the release verification run, asked
+# for by hand or by a tag.
+#
 # Actions: only Forgejo-maintained forks (see ci.yml). Sources are fetched
 # with plain git.
 name: nightly
@@ -88,13 +91,27 @@ on:
     - cron: "17 3 * * *"
   workflow_dispatch:
 
+# One run per ref: a push that supersedes another cancels it, so a queue of
+# stale runs cannot hold the runner.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   long-runs:
-    # PLACEHOLDER: the remote host is not decided yet; see ci.yml.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -104,6 +121,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -115,49 +138,72 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchains (pinned stable; nightly for cargo-fuzz)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasmtime fuzz
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup toolchain install nightly --profile minimal
-          cargo install --locked cargo-fuzz
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: Generated input, 1,000,000 messages
-        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
+        run: |
+          unset CARGO_BUILD_TARGET
+          MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
 
       - name: Generated input through the catalog (L3), 1,000,000 messages
-        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l3
+        run: |
+          unset CARGO_BUILD_TARGET
+          MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l3
 
       - name: Generated input formatted from the catalog (L4), 1,000,000 messages
-        run: MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l4
+        run: |
+          unset CARGO_BUILD_TARGET
+          MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l4
 
       - name: Generated input on wasm32-wasip1 (L4), 200,000 of the million
         run: |
           set -eu
-          cargo install --root target/tools --locked wasmtime-cli --version 49.0.0
+          unset CARGO_BUILD_TARGET
+          # wasmtime is already on PATH: tools/ci/setup.sh installed it.
           cargo xtask l4-wasi --generated 200000
 
       - name: Layer L5 on generated input (50,000 messages)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           MF2_L5_GENERATED=50000 cargo test -p mf2-l5-generated --release --test generated
 
       - name: Differential against ox (90,000 messages)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           cargo build --release -p mf2-conformance --example differential
-          (ulimit -v 4000000; ./target/release/examples/differential 30000) | tee differential.txt
+          rc=0
+          (ulimit -v 4000000; ./target/release/examples/differential 30000) \
+            > differential.txt 2>&1 || rc=$?
+          cat differential.txt
+          # A non-zero status here is the run being killed by the memory limit,
+          # which is not agreement either.
+          [ "$rc" -eq 0 ] || exit "$rc"
           # Anything but agreement and ox's known behaviours fails the run.
           if grep -Eq '^  (SYNTAX DISAGREEMENT|DATA-MODEL DISAGREEMENT):' differential.txt; then
             exit 1
@@ -166,6 +212,7 @@ jobs:
       - name: Fuzz the parser (30 minutes)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           cargo xtask fuzz-seed
           cd fuzz
           cargo +nightly fuzz run parse -- -dict=mf2.dict -max_len=16384 -timeout=10 \
@@ -174,6 +221,7 @@ jobs:
       - name: Fuzz the catalog reader and decoder (30 minutes)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           cd fuzz
           cargo +nightly fuzz run catalog -- -dict=mf2.dict -max_len=131072 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
@@ -181,6 +229,7 @@ jobs:
       - name: Fuzz the formatter (30 minutes)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           cd fuzz
           cargo +nightly fuzz run format -- -dict=mf2.dict -max_len=131072 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
@@ -188,17 +237,20 @@ jobs:
       - name: Fuzz the canonical-equivalence check (30 minutes)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           cd fuzz
           cargo +nightly fuzz run nfc -- -max_len=4096 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Reader bench (median of 31, exit 1 on failure)
         run: |
+          unset CARGO_BUILD_TARGET
           cargo run --release -p catalog-bench -- bench --gate \
             --md target/catalog-bench/READER.md --json target/catalog-bench/reader.json
 
       - name: B10 formatting bench (median of 31, exit 1 on failure)
         run: |
+          unset CARGO_BUILD_TARGET
           mkdir -p target/runtime-bench
           cargo run --release -p runtime-bench -- b10 --gate \
             --md target/runtime-bench/B10.md --json target/runtime-bench/b10.json
@@ -215,96 +267,26 @@ jobs:
             target/runtime-bench/
           if-no-files-found: ignore
 
-  l4-web:
-    # The `intl` client option's L4 run in Chromium, Firefox and WebKit
-    # (owner decision 4):
-    # `cargo xtask l4-web` builds conformance/l4-web for wasm32-unknown-unknown,
-    # runs tools/e2e's `l4-intl` check in the three engines and fails unless
-    # every suite test passes there or the ledger says otherwise, and every
-    # difference from the Rust path is the ledger's. Nightly rather than on
-    # every push: it needs the three browsers (Playwright's builds, WebKit's
-    # system libraries through `install-deps`, which needs root).
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
-    # (≥ 20) and npm.
-    runs-on: PLACEHOLDER-runner-label
-    env:
-      CARGO_TERM_COLOR: always
-      CARGO_INCREMENTAL: "0"
-      # Equal to the wasm-bindgen library conformance/l4-web pins.
-      WASM_BINDGEN_VERSION: "0.2.128"
-    steps:
-      - name: Fetch sources (plain git)
-        env:
-          TOKEN: ${{ github.token }}
-          SERVER: ${{ github.server_url }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -eu
-          git init --quiet .
-          git remote add origin "$SERVER/$REPOSITORY.git"
-          if [ -n "$TOKEN" ]; then
-            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
-            git -c "http.extraHeader=Authorization: Basic $auth" \
-              fetch --quiet --depth=1 origin "$SHA"
-          else
-            git fetch --quiet --depth=1 origin "$SHA"
-          fi
-          git checkout --quiet --detach FETCH_HEAD
-
-      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
-        run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
-
-      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
-        # Into target/xtask-cache, checked against the PIN's digests; --check
-        # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
-
-      - name: Install the browser harness and the three engines
-        run: |
-          set -eu
-          cd tools/e2e
-          npm ci
-          npx playwright install --with-deps chromium firefox webkit
-
-      - name: L4 in the three engines, the intl build (exit 1 on an unrecorded difference)
-        run: cargo xtask l4-web
-
-      - name: Upload the report
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: l4-web
-          path: |
-            target/l4-web/report.md
-            target/l4-web/*.json
-          if-no-files-found: ignore
-
   b5:
     # Budget B5: the marginal wasm
     # per call site, by P0.1's method — two scales of the reference workload,
     # three generated Leptos applications each, built for the client and
     # measured after `wasm-opt -Oz`. Nightly rather than on every push: six
     # fat-LTO wasm builds.
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker;
-    # x86_64 Linux (the binaryen tarball).
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
       CARGO_BUILD_JOBS: "3"
-      # The versions B5's figures were measured with.
-      WASM_BINDGEN_VERSION: "0.2.128"
-      BINARYEN_VERSION: "120"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -314,6 +296,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -325,48 +313,82 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain, wasm-bindgen's CLI and binaryen (pinned)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh wasm-bindgen
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
-          tools=$(pwd)/target/tools
-          mkdir -p "$tools"
-          name="binaryen-version_${BINARYEN_VERSION}"
-          curl -sSfL -o "$tools/binaryen.tar.gz" \
-            "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/${name}-x86_64-linux.tar.gz"
-          tar -xzf "$tools/binaryen.tar.gz" -C "$tools"
-          echo "$tools/$name/bin" >> "$GITHUB_PATH"
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The size gate — B1 fixed, B5 per site, and the whole app
-        run: cargo xtask size | tee size.md
+        run: |
+          unset CARGO_BUILD_TARGET
+          mkdir -p target/b5-steps
+          # `cmd | tee f` exits with tee's status, not the command's, so a
+          # breached budget would have read as a pass. Keep the output and the
+          # status both: the figures go in the artifact either way, and a
+          # breach fails the job.
+          rc=0
+          cargo xtask size > target/b5-steps/size.md 2>&1 || rc=$?
+          tee size.md < target/b5-steps/size.md
+          [ "$rc" -eq 0 ] || exit "$rc"
 
       # A server-only component in an
       # islands application adds no code to the client.
       - name: A server-only component costs the client nothing
-        run: cargo xtask islands-zero | tee -a size.md
+        run: |
+          unset CARGO_BUILD_TARGET
+          mkdir -p target/b5-steps
+          # `cmd | tee f` exits with tee's status, not the command's, so a
+          # breached budget would have read as a pass. Keep the output and the
+          # status both: the figures go in the artifact either way, and a
+          # breach fails the job.
+          rc=0
+          cargo xtask islands-zero > target/b5-steps/islands-zero.md 2>&1 || rc=$?
+          tee -a size.md < target/b5-steps/islands-zero.md
+          [ "$rc" -eq 0 ] || exit "$rc"
 
       # The migration of the reference
       # application from leptos-fluent, converted and built.
       - name: The reference application migrated from leptos-fluent
-        run: cargo xtask fluent-migrate
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask fluent-migrate
 
       # plan/01 §6.4: what each function and data feature adds, in the client
       # and in a native binary, held to the table the guide includes
       # (docs/feature-costs.md). Many builds, one at a time.
       - name: Each feature's measured cost holds
-        run: cargo xtask feature-costs --check | tee -a size.md
+        run: |
+          unset CARGO_BUILD_TARGET
+          mkdir -p target/b5-steps
+          # `cmd | tee f` exits with tee's status, not the command's, so a
+          # breached budget would have read as a pass. Keep the output and the
+          # status both: the figures go in the artifact either way, and a
+          # breach fails the job.
+          rc=0
+          cargo xtask feature-costs --check > target/b5-steps/feature-costs.md 2>&1 || rc=$?
+          tee -a size.md < target/b5-steps/feature-costs.md
+          [ "$rc" -eq 0 ] || exit "$rc"
 
       - name: Upload the size report
         if: always()
@@ -379,180 +401,25 @@ jobs:
             target/feature-costs/feature-costs.md
           if-no-files-found: ignore
 
-  l6-web:
-    # Conformance layer L6 in the browser: every runtime-valid suite message
-    # server-rendered by conformance/l6-web, hydrated in Chromium and Firefox,
-    # switched to the twin locale and back. Two engines are what the master
-    # plan requires of P6; WebKit joins wherever a build of it is installed.
-    # The server half of L6 is a Rust harness and runs in `cargo test`, on
-    # every push.
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
-    # (≥ 20) and npm.
-    runs-on: PLACEHOLDER-runner-label
-    env:
-      CARGO_TERM_COLOR: always
-      CARGO_INCREMENTAL: "0"
-      CARGO_BUILD_JOBS: "3"
-      WASM_BINDGEN_VERSION: "0.2.128"
-    steps:
-      - name: Fetch sources (plain git)
-        env:
-          TOKEN: ${{ github.token }}
-          SERVER: ${{ github.server_url }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -eu
-          git init --quiet .
-          git remote add origin "$SERVER/$REPOSITORY.git"
-          if [ -n "$TOKEN" ]; then
-            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
-            git -c "http.extraHeader=Authorization: Basic $auth" \
-              fetch --quiet --depth=1 origin "$SHA"
-          else
-            git fetch --quiet --depth=1 origin "$SHA"
-          fi
-          git checkout --quiet --detach FETCH_HEAD
-
-      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
-        run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup target add wasm32-unknown-unknown
-          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
-
-      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
-        # Into target/xtask-cache, checked against the PIN's digests; --check
-        # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
-
-      - name: Install the browser harness and two engines
-        run: |
-          set -eu
-          cd tools/e2e
-          npm ci
-          npx playwright install --with-deps chromium firefox
-
-      - name: L6 in the browser (exit 1 on a hydration warning or a text change)
-        run: cargo xtask l6-web --browser chromium,firefox
-
-      - name: Upload the L6 report
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: l6-web
-          path: |
-            target/l6-web/report.json
-            target/l6-web/page.json
-          if-no-files-found: ignore
-
-  l7-web:
-    # Conformance layer L7: L6's page and twin switch as an
-    # islands page and as a client-only page, in both configurations, one
-    # page per locale the suite uses, in Chromium and Firefox. Only an engine
-    # can run it, so `cargo xtask l7-web` is the harness of the ledger's L7,
-    # L7c, L7d and L7cd columns: it judges every cell and fails on one the
-    # ledger does not match. Six release builds (a server and two clients per
-    # configuration).
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl, a C linker, node
-    # (≥ 20) and npm.
-    runs-on: PLACEHOLDER-runner-label
-    env:
-      CARGO_TERM_COLOR: always
-      CARGO_INCREMENTAL: "0"
-      CARGO_BUILD_JOBS: "3"
-      WASM_BINDGEN_VERSION: "0.2.128"
-    steps:
-      - name: Fetch sources (plain git)
-        env:
-          TOKEN: ${{ github.token }}
-          SERVER: ${{ github.server_url }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -eu
-          git init --quiet .
-          git remote add origin "$SERVER/$REPOSITORY.git"
-          if [ -n "$TOKEN" ]; then
-            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
-            git -c "http.extraHeader=Authorization: Basic $auth" \
-              fetch --quiet --depth=1 origin "$SHA"
-          else
-            git fetch --quiet --depth=1 origin "$SHA"
-          fi
-          git checkout --quiet --detach FETCH_HEAD
-
-      - name: Install the Rust toolchain and wasm-bindgen's CLI (pinned)
-        run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup target add wasm32-unknown-unknown
-          cargo install --locked wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
-
-      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
-        # Into target/xtask-cache, checked against the PIN's digests; --check
-        # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
-
-      - name: Install the browser harness and two engines
-        run: |
-          set -eu
-          cd tools/e2e
-          npm ci
-          npx playwright install --with-deps chromium firefox
-
-      - name: L7 in the browser (exit 1 on a cell the ledger does not match)
-        run: cargo xtask l7-web --browser chromium,firefox
-
-      - name: Upload the L7 report
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: l7-web
-          path: |
-            target/l7-web/report.json
-            target/l7-web/*/*.json
-          if-no-files-found: ignore
-
-      # P0.11's churning list on
-      # mf2's Leptos layer, one row shape per variant (text, attribute,
-      # argument, TextProp, Signal<String>, to_string(), Oco); the heap must
-      # stay flat over 100,000 churned rows. Here because this job has the
-      # engines.
-      - name: The conversions under churn (exit 1 on a row shape that leaks)
-        run: cargo xtask churn --browser chromium,firefox
-
-      - name: Upload the churn report
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: churn
-          path: target/churn/report.json
-          if-no-files-found: ignore
-
   leptos-0-8:
     # Leptos 0.9 is the default line and
     # every other job builds on it; this one builds and tests the 0.8
     # opt-in (`default-features = false, features = ["leptos-0-8"]`). Both
     # lines are in the one lock file, so it runs in the checkout.
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
       CARGO_BUILD_JOBS: "3"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -562,6 +429,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -573,37 +446,56 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (pinned) and the wasm32 target
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup target add wasm32-unknown-unknown
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: mf2's Leptos layer and layer L6 on Leptos 0.8
-        run: cargo xtask leptos-0-8
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask leptos-0-8
 
   feature-sets:
     # plan/01 §6.3: `ci` builds the feature sets applications really use,
     # which is not the same as each feature being valid by itself. This job
     # compiles each of `mf2`'s features alone, on the target the table says
-    # it needs. PLACEHOLDER: see ci.yml. The runner needs git, curl and a C
-    # linker.
-    runs-on: PLACEHOLDER-runner-label
+    # it needs.
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
       CARGO_BUILD_JOBS: "3"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -613,6 +505,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -624,35 +522,53 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (pinned) and the wasm32 target
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup target add wasm32-unknown-unknown
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: Every feature of mf2, alone
-        run: cargo xtask feature-sets
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask feature-sets
 
   fmt-check:
-    # See the header. PLACEHOLDER: see ci.yml. The runner needs git, curl and
-    # a C linker.
-    runs-on: PLACEHOLDER-runner-label
+    # See the header.
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
       CARGO_BUILD_JOBS: "3"
-      TWIGGY_VERSION: "0.8.0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -662,6 +578,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -673,22 +595,29 @@ jobs:
           fi
           git checkout --quiet --detach FETCH_HEAD
 
-      - name: Install the Rust toolchain (pinned), the wasm32 target and twiggy
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh twiggy
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup target add wasm32-unknown-unknown
-          cargo install --locked twiggy --version "$TWIGGY_VERSION"
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: The demos' clients, debug profile (names kept)
         run: |
           set -eu
+          unset CARGO_BUILD_TARGET
           for demo in demo-ssr demo-islands; do
             (cd "examples/$demo" && cargo build --lib --target wasm32-unknown-unknown \
               --no-default-features --features hydrate)
@@ -697,18 +626,27 @@ jobs:
 
       - name: No Display / Debug of ours in a client
         run: |
+          unset CARGO_BUILD_TARGET
           bash tools/fmt-check.sh \
             examples/demo-ssr/target/wasm32-unknown-unknown/debug/demo_ssr.wasm \
             examples/demo-islands/target/wasm32-unknown-unknown/debug/demo_islands.wasm \
             examples/demo-csr/target/wasm32-unknown-unknown/debug/demo-csr.wasm
 
   tui-gate:
-    # PLACEHOLDER: see ci.yml. The runner needs git, curl and a C linker.
-    runs-on: PLACEHOLDER-runner-label
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
       CARGO_BUILD_JOBS: "3"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -720,6 +658,12 @@ jobs:
           BASE: 3a296a920952239a8c62399f2e8d51aad46f84ec
         run: |
           set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
           git init --quiet .
           git remote add origin "$SERVER/$REPOSITORY.git"
           if [ -n "$TOKEN" ]; then
@@ -734,27 +678,38 @@ jobs:
           fi
           git checkout --quiet --detach "$SHA"
 
-      - name: Install the Rust toolchain (rustup; rust-toolchain.toml pins it)
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: sh tools/ci/setup.sh
+
+      - name: Start sccache
         run: |
-          set -eu
-          if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain none
-            export PATH="$HOME/.cargo/bin:$PATH"
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          fi
-          rustup toolchain install
-          rustup show active-toolchain
+          sccache --start-server || true
+          sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
-        run: cargo xtask spec-sync --check
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
 
       - name: The terminal UI's gate, with time against the 1.x binary
         # Builds 1.x's binaries in a worktree and alternates them with this
         # build's, 31 runs each: a time is only comparable within one run.
-        run: cargo xtask tui-gate --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
+        run: |
+          unset CARGO_BUILD_TARGET
+          cargo xtask tui-gate --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
 
       - name: Upload the gate report
         if: always()
@@ -764,4 +719,88 @@ jobs:
           path: |
             target/tui-gate/report.md
             target/tui-gate/report.json
+          if-no-files-found: error
+
+  report:
+    # Everything this run measured, in one file. tools/ci/report.sh folds every
+    # job's artifact into REPORT.md, heads it with the tool versions that
+    # produced the figures — the image's digest is not visible to a job, so the
+    # versions are what attributes a number — and lists the browser checks that
+    # did not run here (tools/ci/local-only.txt). It is uploaded as
+    # `mf2-report` and printed into this job's log, so the run can be read
+    # without downloading anything.
+    needs:
+      - long-runs
+      - b5
+      - leptos-0-8
+      - feature-sets
+      - fmt-check
+      - tui-gate
+    if: always()
+    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/b12/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Download every artifact this run produced
+        # A run where every job failed has nothing to download, and the report
+        # is wanted most of all then. Never let this step be why there is none.
+        continue-on-error: true
+        # No `name`: each artifact lands in its own directory under artifacts/.
+        uses: https://code.forgejo.org/forgejo/download-artifact@v5
+        with:
+          path: artifacts
+
+      - name: Set the job up (for the versions the report is headed with)
+        run: sh tools/ci/setup.sh
+
+      - name: Assemble the report
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          WORKFLOW: ${{ github.workflow }}
+          GIT_SHA: ${{ github.sha }}
+          GIT_REF: ${{ github.ref }}
+          RUN_NUMBER: ${{ github.run_number }}
+          IMAGE: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+        run: |
+          set -eu
+          unset CARGO_BUILD_TARGET
+          sh tools/ci/report.sh artifacts > REPORT.md
+          echo "================ REPORT.md ================"
+          cat REPORT.md
+
+      - name: Upload the report
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: mf2-report
+          path: REPORT.md
           if-no-files-found: error

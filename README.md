@@ -141,6 +141,15 @@ a Ratatui mode — is the application
   conformance tests need it; run the command once after cloning. UTS #35
   Part 1, whose language-matching rules the locale matcher follows, is
   fetched the same way by `cargo xtask uts35-sync`; nothing builds from it.
+* Continuous integration:
+  [`.forgejo/workflows/README.md`](.forgejo/workflows/README.md) says what runs
+  on every push, what runs nightly, and what the runner cannot do. It has no
+  browser engines, so the browser conformance layers and the demo checks are run
+  by hand — [`tools/ci/local-only.txt`](tools/ci/local-only.txt) lists them with
+  their commands, and every run names them in its report. Each run uploads one
+  `mf2-report` artifact: every figure, and the tool versions that produced it.
+  Everything native is built on musl there, so a native size figure from CI is
+  not comparable with one taken on a glibc machine; wasm figures are.
 
 ```sh
 cargo xtask spec-sync          # fetch the MF2 specification text (once)
