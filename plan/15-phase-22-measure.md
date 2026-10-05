@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.14. A worktree made for a task is removed once its work
+* **In flight:** 22.3. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.3–22.11
+* **Next:** 22.4–22.11
 
 ## Done
 
@@ -54,6 +54,10 @@ starts in a fresh session.
   TUI → 1,327,528 B (−2,880; much of it clap's layout, which another change can move), the
   fixture rlib 46,520 → 46,280 B. The TUI is now 1,136 B under `p14`. (`STRIP=symbols cargo build
   --release --bins --manifest-path examples/tui/Cargo.toml`.)
+* 22.14 (94405c5, 24d66d1): the cfg `mf2_date_rewrite` only for a pair that can rewrite; demo-ssr
+  248,067 → 247,768 B gz (−299, not −466: about 210 B of 17.3 remain, not attributed); the ICU4X
+  page states no formatter (`icu/states-none`); `l7-web` 70/70; `stated_date_formatter` hidden.
+  (`cargo leptos build --release --split --frontend-only`, `node tools/checks/measure-demo.mjs`.)
 
 ## Before this phase
 
