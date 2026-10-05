@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 22.10. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.10, the cost table again, 22.11
+* **Next:** 22.10, 22.11
 
 ## Done
 
@@ -94,6 +94,9 @@ starts in a fresh session.
   `:unit`; text same 1160/1232 + 857/924 (Chromium; cy has no names there), 1202 + 899 (Firefox):
   ar/he doubled LRM, ar long liter "لتر1". Script fixed: Rust registry lacked `:currency`/`:unit`,
   page catalogs lacked number data (new `loc-names` set).
+* The cost table again (`cargo xtask feature-costs`, 15 min 36 s, after 22.12–22.15): the unused
+  `native-datetime-icu` row −40 B (was +146,080), `native-datetime-iso` 167,192, `-icu` 328,664,
+  `compile` 8,352,704 B; no finding.
 
 ## Before this phase
 
