@@ -21,6 +21,36 @@ impl serde_core::ser::Serialize for mf2_build::DataSet
 pub fn mf2_build::DataSet::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::DataSet
 pub fn mf2_build::DataSet::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub enum mf2_build::DateBackend
+pub mf2_build::DateBackend::Icu
+pub mf2_build::DateBackend::Intl
+pub mf2_build::DateBackend::Iso
+impl core::clone::Clone for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::DateBackend
+impl core::cmp::Ord for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::DateBackend
+pub fn mf2_build::DateBackend::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::DateBackend
+impl core::marker::StructuralPartialEq for mf2_build::DateBackend
+impl mf2_build::Backend for mf2_build::DateBackend
+pub const mf2_build::DateBackend::ADJECTIVE: &'static str
+pub const mf2_build::DateBackend::DOMAIN: &'static str
+pub const mf2_build::DateBackend::NOUN: &'static str
+pub const mf2_build::DateBackend::THING: &'static str
+pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::DateBackend::name(self) -> &'static str
+pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
+pub fn mf2_build::DateBackend::recommended(mf2_build::Side) -> mf2_build::DateBackend
+pub fn mf2_build::DateBackend::what(self) -> &'static str
 #[non_exhaustive] pub enum mf2_build::DateCalendars
 pub mf2_build::DateCalendars::All
 pub mf2_build::DateCalendars::Auto
@@ -40,25 +70,6 @@ impl serde_core::ser::Serialize for mf2_build::DateCalendars
 pub fn mf2_build::DateCalendars::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::DateCalendars
 pub fn mf2_build::DateCalendars::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
-pub enum mf2_build::DateFormatter
-pub mf2_build::DateFormatter::Icu
-pub mf2_build::DateFormatter::Intl
-pub mf2_build::DateFormatter::Iso
-impl core::clone::Clone for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::clone(&self) -> Self
-impl core::cmp::Eq for mf2_build::DateFormatter
-impl core::cmp::Ord for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::cmp(&self, &Self) -> core::cmp::Ordering
-impl core::cmp::PartialEq for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::eq(&self, &Self) -> bool
-impl core::cmp::PartialOrd for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
-impl core::fmt::Debug for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::hash::Hash for mf2_build::DateFormatter
-pub fn mf2_build::DateFormatter::hash<__H: core::hash::Hasher>(&self, &mut __H)
-impl core::marker::Copy for mf2_build::DateFormatter
-impl core::marker::StructuralPartialEq for mf2_build::DateFormatter
 #[non_exhaustive] pub enum mf2_build::Emit
 pub mf2_build::Emit::Both
 pub mf2_build::Emit::Catalogs
@@ -301,6 +312,17 @@ impl serde_core::ser::Serialize for mf2_build::ZoneNames
 pub fn mf2_build::ZoneNames::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::ZoneNames
 pub fn mf2_build::ZoneNames::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
+pub struct mf2_build::Active
+pub mf2_build::Active::family: &'static mf2_build::Family
+impl core::clone::Clone for mf2_build::Active
+pub fn mf2_build::Active::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Active
+impl core::cmp::PartialEq for mf2_build::Active
+pub fn mf2_build::Active::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::Active
+pub fn mf2_build::Active::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Active
+impl core::marker::StructuralPartialEq for mf2_build::Active
 pub struct mf2_build::Build
 impl mf2_build::Build
 pub fn mf2_build::Build::at(impl core::convert::Into<std::path::PathBuf>, impl core::convert::Into<std::path::PathBuf>) -> mf2_build::Build
@@ -361,18 +383,6 @@ impl serde_core::ser::Serialize for mf2_build::Config
 pub fn mf2_build::Config::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Config where mf2_build::Config: core::default::Default
 pub fn mf2_build::Config::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
-pub struct mf2_build::DateFamily
-pub mf2_build::DateFamily::prefix: &'static str
-pub mf2_build::DateFamily::side: mf2_build::Side
-impl core::clone::Clone for mf2_build::DateFamily
-pub fn mf2_build::DateFamily::clone(&self) -> Self
-impl core::cmp::Eq for mf2_build::DateFamily
-impl core::cmp::PartialEq for mf2_build::DateFamily
-pub fn mf2_build::DateFamily::eq(&self, &Self) -> bool
-impl core::fmt::Debug for mf2_build::DateFamily
-pub fn mf2_build::DateFamily::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::marker::Copy for mf2_build::DateFamily
-impl core::marker::StructuralPartialEq for mf2_build::DateFamily
 #[non_exhaustive] pub struct mf2_build::DatesConfig
 pub mf2_build::DatesConfig::calendars: mf2_build::DateCalendars
 pub mf2_build::DatesConfig::zone_names: mf2_build::ZoneNames
@@ -413,27 +423,39 @@ pub fn mf2_build::Diagnostic::fmt(&self, &mut core::fmt::Formatter<'_>) -> core:
 impl core::marker::StructuralPartialEq for mf2_build::Diagnostic
 impl serde_core::ser::Serialize for mf2_build::Diagnostic
 pub fn mf2_build::Diagnostic::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
+pub struct mf2_build::Family
+pub mf2_build::Family::prefix: &'static str
+pub mf2_build::Family::side: mf2_build::Side
+impl core::clone::Clone for mf2_build::Family
+pub fn mf2_build::Family::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Family
+impl core::cmp::PartialEq for mf2_build::Family
+pub fn mf2_build::Family::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::Family
+pub fn mf2_build::Family::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Family
+impl core::marker::StructuralPartialEq for mf2_build::Family
 pub struct mf2_build::Features
 impl mf2_build::Features
+pub fn mf2_build::Features::backend<B: mf2_build::Backend>(&self, mf2_build::Side) -> core::option::Option<B>
 pub fn mf2_build::Features::cuts_date_slice(&self) -> bool
-pub fn mf2_build::Features::date_families(&self) -> alloc::vec::Vec<mf2_build::DateFamily>
-pub fn mf2_build::Features::date_formatter(&self, mf2_build::Side) -> core::option::Option<mf2_build::DateFormatter>
 pub fn mf2_build::Features::date_slice_place(&self) -> mf2_build::Place
+pub fn mf2_build::Features::families(&self) -> alloc::vec::Vec<mf2_build::Active>
 pub fn mf2_build::Features::fn_datetime(&self) -> bool
 pub fn mf2_build::Features::fn_number(&self) -> bool
 pub fn mf2_build::Features::for_catalogs(&self) -> mf2_build::Features
-pub fn mf2_build::Features::formats_dates(&self) -> bool
+pub fn mf2_build::Features::formats<B: mf2_build::Backend>(&self) -> bool
 pub fn mf2_build::Features::from_env() -> mf2_build::Features
 pub fn mf2_build::Features::from_names<S: core::convert::Into<alloc::string::String>>(impl core::iter::traits::collect::IntoIterator<Item = S>) -> mf2_build::Features
 pub fn mf2_build::Features::from_vars(impl core::iter::traits::collect::IntoIterator<Item = (alloc::string::String, alloc::string::String)>) -> mf2_build::Features
 pub fn mf2_build::Features::has(&self, &str) -> bool
 pub fn mf2_build::Features::missing_feature(&self, &str) -> core::option::Option<&'static str>
 pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::Iterator<Item = &str>
-pub fn mf2_build::Features::no_date_formatter(&self, &str) -> alloc::string::String
 pub fn mf2_build::Features::number_intl(&self) -> bool
 pub fn mf2_build::Features::number_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
 pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>
+pub fn mf2_build::Features::refusal<B: mf2_build::Backend>(&self, &str) -> alloc::string::String
 impl core::clone::Clone for mf2_build::Features
 pub fn mf2_build::Features::clone(&self) -> Self
 impl core::cmp::Eq for mf2_build::Features
@@ -516,6 +538,28 @@ impl core::fmt::Debug for mf2_build::Report
 pub fn mf2_build::Report::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl serde_core::ser::Serialize for mf2_build::Report
 pub fn mf2_build::Report::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
-pub const mf2_build::DATE_LINES: [(&str, &[&str]); 4]
+pub const mf2_build::FAMILIES: [mf2_build::Family; 6]
+pub trait mf2_build::Backend: core::marker::Copy + core::cmp::Ord + core::fmt::Debug + 'static
+pub const mf2_build::Backend::ADJECTIVE: &'static str
+pub const mf2_build::Backend::DOMAIN: &'static str
+pub const mf2_build::Backend::NOUN: &'static str
+pub const mf2_build::Backend::THING: &'static str
+pub fn mf2_build::Backend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::Backend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::Backend::name(self) -> &'static str
+pub fn mf2_build::Backend::offered(mf2_build::Side) -> &'static [Self]
+pub fn mf2_build::Backend::recommended(mf2_build::Side) -> Self
+pub fn mf2_build::Backend::what(self) -> &'static str
+impl mf2_build::Backend for mf2_build::DateBackend
+pub const mf2_build::DateBackend::ADJECTIVE: &'static str
+pub const mf2_build::DateBackend::DOMAIN: &'static str
+pub const mf2_build::DateBackend::NOUN: &'static str
+pub const mf2_build::DateBackend::THING: &'static str
+pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::DateBackend::name(self) -> &'static str
+pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
+pub fn mf2_build::DateBackend::recommended(mf2_build::Side) -> mf2_build::DateBackend
+pub fn mf2_build::DateBackend::what(self) -> &'static str
 pub fn mf2_build::run()
 pub type mf2_build::Result<T> = core::result::Result<T, mf2_build::Error>

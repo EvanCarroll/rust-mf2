@@ -551,7 +551,7 @@ fn check_lists_the_date_lines_of_the_frameworks_that_are_on() {
     // No framework: every kind's line.
     date_app(&dir, "\"fn-number\"", Some(""));
     let text = stdout(&run(&dir, &["check"]));
-    for (_, features) in mf2_build::DATE_LINES {
+    for (_, features) in mf2_build::kind_lines::<mf2_build::DateBackend>() {
         for feature in features {
             assert!(
                 text.contains(&format!("\"{feature}\"")),

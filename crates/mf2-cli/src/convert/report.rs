@@ -275,7 +275,7 @@ impl Report {
         if features.contains("datetime") {
             // `datetime` alone formats no date (`plan/08` §3.3): the line
             // names a formatter for each build, by the application's kind.
-            let lines: Vec<String> = mf2_build::DATE_LINES
+            let lines: Vec<String> = mf2_build::kind_lines::<mf2_build::DateBackend>()
                 .iter()
                 .map(|(what, names)| format!("for {what}, {}", names.join(" and ")))
                 .collect();
@@ -293,7 +293,7 @@ impl Report {
     /// (`plan/08` §3.5), for the JSON report; `None` when it formats none.
     fn date_lines(&self) -> Option<serde_json::Value> {
         self.features().contains("datetime").then(|| {
-            mf2_build::DATE_LINES
+            mf2_build::kind_lines::<mf2_build::DateBackend>()
                 .iter()
                 .map(|(what, names)| serde_json::json!({ "for": what, "features": names }))
                 .collect()

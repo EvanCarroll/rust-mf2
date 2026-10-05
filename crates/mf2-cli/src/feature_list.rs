@@ -7,30 +7,11 @@
 use std::fmt::Write as _;
 
 use mf2_build::check::Needs;
-use mf2_build::{DateFormatter, Features, Side};
+use mf2_build::{Backend, DateBackend, Features, Side, domain_features, kind_lines};
 use serde_json::{Value, json};
 
 /// The number family: the formatter, and the browser's `Intl` path for it.
 const NUMBERS: [&str; 2] = ["fn-number", "number-intl"];
-/// The date functions, then the date formatters: each side's families
-/// (`plan/08` §3.1), the framework-free one first.
-const DATES: [&str; 15] = [
-    "datetime",
-    "host-std-datetime-iso",
-    "host-std-datetime-icu",
-    "host-web-datetime-iso",
-    "host-web-datetime-intl",
-    "host-web-datetime-icu",
-    "leptos-client-datetime-iso",
-    "leptos-client-datetime-intl",
-    "leptos-client-datetime-icu",
-    "leptos-server-datetime-iso",
-    "leptos-server-datetime-icu",
-    "axum-datetime-iso",
-    "axum-datetime-icu",
-    "native-datetime-iso",
-    "native-datetime-icu",
-];
 
 /// Where the features that are on came from.
 #[derive(Debug)]
@@ -49,7 +30,7 @@ pub(crate) enum Source {
 struct SideDates {
     side: Side,
     /// The formatter the side's build formats with; `None` with none on.
-    formatter: Option<DateFormatter>,
+    formatter: Option<DateBackend>,
     /// The side's date features as the crate writes them.
     features: Vec<String>,
 }
@@ -61,29 +42,33 @@ pub(crate) struct FeatureList {
     /// formatter.
     needs: Vec<&'static str>,
     /// The function and data features that are on; `None` when unknown.
-    on: Option<Vec<&'static str>>,
+    on: Option<Vec<String>>,
     /// Those of `on` whose family no message uses.
-    unused: Option<Vec<&'static str>>,
+    unused: Option<Vec<String>>,
     /// The features to write on the `mf2` dependency.
     line: Vec<String>,
     /// Per side, the formatter in force; `None` when unknown.
     dates: Option<Vec<SideDates>>,
     /// The corpus formats dates and the line names no formatter, because
     /// nothing says which builds the crate has: the lines to choose from,
-    /// those of [`mf2_build::DATE_LINES`] whose framework is on, or all of
+    /// those of [`mf2_build::kind_lines`] whose framework is on, or all of
     /// them with none on. Empty otherwise.
-    date_choices: Vec<(&'static str, &'static [&'static str])>,
+    date_choices: Vec<(&'static str, Vec<String>)>,
     /// Where `on` came from.
     source: &'static str,
 }
 
 impl FeatureList {
     pub(crate) fn new(needs: Needs, features: &Features, source: &Source) -> FeatureList {
-        let family = |names: &[&'static str], used: bool| -> Vec<&'static str> {
+        // The number family, then the date functions and every family's
+        // date formatters: the features this list answers for.
+        let numbers: Vec<String> = NUMBERS.iter().map(|&name| name.to_owned()).collect();
+        let dates = domain_features::<DateBackend>();
+        let family = |names: &[String], used: bool| -> Vec<String> {
             names
                 .iter()
-                .copied()
                 .filter(|name| features.has(name) && !used)
+                .cloned()
                 .collect()
         };
         let mut needed = Vec::new();
@@ -94,17 +79,17 @@ impl FeatureList {
             needed.push("dates");
         }
         let known = !matches!(source, Source::Unknown);
-        let on: Vec<&'static str> = NUMBERS
+        let on: Vec<String> = numbers
             .iter()
-            .chain(DATES.iter())
-            .copied()
+            .chain(&dates)
             .filter(|name| features.has(name))
+            .cloned()
             .collect();
-        let mut unused = family(&NUMBERS, needs.numbers);
-        unused.extend(family(&DATES, needs.dates));
+        let mut unused = family(&numbers, needs.numbers);
+        unused.extend(family(&dates, needs.dates));
 
         // The modes as they are, then each needed family with what of it is on.
-        let is_family = |name: &str| NUMBERS.contains(&name) || DATES.contains(&name);
+        let is_family = |name: &String| numbers.contains(name) || dates.contains(name);
         let written: Vec<String> = match source {
             Source::Cargo { written } => written.clone(),
             Source::Given => features.names().map(str::to_owned).collect(),
@@ -126,11 +111,11 @@ impl FeatureList {
             // written: it formats nothing.
             let mut formatters: Vec<String> = written
                 .iter()
-                .filter(|name| DATES[1..].contains(&name.as_str()))
+                .filter(|name| *name != DateBackend::DOMAIN && dates.contains(name))
                 .cloned()
                 .collect();
             if known {
-                for feature in features.missing_date_features() {
+                for feature in features.missing::<DateBackend>() {
                     if !formatters.contains(&feature) {
                         formatters.push(feature);
                     }
@@ -138,9 +123,9 @@ impl FeatureList {
             }
             if formatters.is_empty() {
                 date_choices = if known {
-                    features.date_lines()
+                    features.lines::<DateBackend>()
                 } else {
-                    mf2_build::DATE_LINES.to_vec()
+                    kind_lines::<DateBackend>()
                 };
             }
             line.extend(formatters);
@@ -150,8 +135,8 @@ impl FeatureList {
                 .into_iter()
                 .map(|side| SideDates {
                     side,
-                    formatter: features.date_formatter(side),
-                    features: features.date_features_on(side),
+                    formatter: features.backend::<DateBackend>(side),
+                    features: features.features_on::<DateBackend>(side),
                 })
                 .collect()
         });
@@ -172,13 +157,13 @@ impl FeatureList {
 
     /// The block of the text report.
     pub(crate) fn to_text(&self) -> String {
-        let list = |names: &[&str]| {
+        fn list<S: std::borrow::Borrow<str>>(names: &[S]) -> String {
             if names.is_empty() {
                 "none".to_owned()
             } else {
                 names.join(", ")
             }
-        };
+        }
         let mut out = String::new();
         let from = match self.source {
             "given" => "as --features names them",
@@ -228,7 +213,7 @@ impl FeatureList {
                 by_side.insert(
                     side.side.key().to_owned(),
                     json!({
-                        "formatter": side.formatter.map(DateFormatter::name),
+                        "formatter": side.formatter.map(DateBackend::name),
                         "features": side.features,
                     }),
                 );
@@ -286,12 +271,12 @@ mod tests {
         let list = list((true, false), &on, &written);
         assert_eq!(list.needs, ["fn-number"]);
         assert_eq!(
-            list.on.as_deref(),
-            Some(&["fn-number", "datetime", "native-datetime-iso"][..])
+            list.on.as_deref().unwrap_or_default(),
+            ["fn-number", "datetime", "native-datetime-iso"]
         );
         assert_eq!(
-            list.unused.as_deref(),
-            Some(&["datetime", "native-datetime-iso"][..])
+            list.unused.as_deref().unwrap_or_default(),
+            ["datetime", "native-datetime-iso"]
         );
         assert_eq!(list.line, ["ratatui", "fn-number"]);
         assert!(
@@ -315,7 +300,7 @@ mod tests {
             "leptos-server-datetime-icu",
         ]);
         let list = list((true, true), &on, &written);
-        assert_eq!(list.unused.as_deref(), Some(&[][..]));
+        assert_eq!(list.unused, Some(Vec::new()));
         assert_eq!(
             list.line,
             [
@@ -400,14 +385,14 @@ mod tests {
         let list = list_given((false, true), &["datetime"]);
         assert!(list.line.is_empty(), "{:?}", list.line);
         let text = list.to_text();
-        for (_, features) in mf2_build::DATE_LINES {
+        for (_, features) in mf2_build::kind_lines::<mf2_build::DateBackend>() {
             for feature in features {
                 assert!(text.contains(&format!("\"{feature}\"")), "{text}");
             }
         }
         assert_eq!(
             list.to_json()["date_choices"].as_array().map(Vec::len),
-            Some(mf2_build::DATE_LINES.len())
+            Some(mf2_build::KINDS.len())
         );
     }
 

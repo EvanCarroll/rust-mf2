@@ -9,11 +9,15 @@
 //! [`Lint::ALL`] and the features from `crates/mf2/Cargo.toml`, so a new one
 //! fails here until the page has it. Run in the workspace only (the pages
 //! are not in the package).
+//!
+//! The same manifest is held to the table the build and the tools read
+//! ([`FAMILIES`] and each domain's [`Backend`]s): a feature of a family
+//! written in one and not the other fails here too.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use mf2_build::{Config, Error, Lint};
+use mf2_build::{Backend, Config, DateBackend, Error, FAMILIES, Framework, Lint, domain_features};
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -187,20 +191,111 @@ fn every_lint_has_a_section_with_its_levels() {
     );
 }
 
-#[test]
-fn every_feature_of_mf2_has_a_section() {
+/// The features of `mf2`, each with what it turns on.
+fn mf2_features() -> BTreeMap<String, Vec<String>> {
     let path = root().join("crates/mf2/Cargo.toml");
     let manifest: toml::Table = std::fs::read_to_string(&path)
         .expect("crates/mf2/Cargo.toml")
         .parse()
         .expect("a manifest");
-    let features: BTreeSet<&str> = manifest["features"]
+    manifest["features"]
         .as_table()
         .expect("[features]")
+        .iter()
+        .filter(|(name, _)| *name != "default")
+        .map(|(name, on)| {
+            let on = on
+                .as_array()
+                .expect("a feature is a list")
+                .iter()
+                .map(|f| f.as_str().expect("of names").to_owned())
+                .collect();
+            (name.clone(), on)
+        })
+        .collect()
+}
+
+/// Holds `mf2`'s features of `B`'s domain to the table:
+///
+/// * every family has a feature for each backend its side offers, and the
+///   domain has its own;
+/// * a side's framework-free feature turns the domain on, itself or through
+///   the weaker backend it implies;
+/// * a framework's feature is that framework-free feature under another
+///   name, and turns on nothing else;
+/// * the manifest has no feature of the domain the table does not offer,
+///   except `not_yet`: features the manifest has and the tools do not know
+///   yet, each of which must exist.
+fn manifest_matches_table<B: Backend>(features: &BTreeMap<String, Vec<String>>, not_yet: &[&str]) {
+    let offered = domain_features::<B>();
+    for feature in &offered {
+        assert!(
+            features.contains_key(feature),
+            "crates/mf2/Cargo.toml has no `{feature}`, which the table offers"
+        );
+    }
+    for family in &FAMILIES {
+        let host = FAMILIES
+            .iter()
+            .find(|host| host.side == family.side && host.framework == Framework::Host)
+            .expect("each side has a framework-free family");
+        for &backend in B::offered(family.side) {
+            let feature = family.feature(backend);
+            let on = &features[&feature];
+            if family.framework == Framework::Host {
+                let implied = backend.implies().map(|weaker| family.feature(weaker));
+                assert!(
+                    on.iter()
+                        .any(|name| name == B::DOMAIN || Some(name) == implied.as_ref()),
+                    "`{feature}` does not turn `{}` on: {on:?}",
+                    B::DOMAIN
+                );
+            } else {
+                assert_eq!(
+                    on,
+                    &[host.feature(backend)],
+                    "`{feature}` is `{}` under its framework's name, and nothing else",
+                    host.feature(backend)
+                );
+            }
+        }
+    }
+    for name in not_yet {
+        assert!(
+            features.contains_key(*name) && !offered.iter().any(|feature| feature == name),
+            "`{name}` is no longer an exception: remove it from this test"
+        );
+    }
+    let of_domain = format!("-{}-", B::DOMAIN);
+    let unknown: Vec<&String> = features
         .keys()
-        .map(String::as_str)
-        .filter(|f| *f != "default")
+        .filter(|name| name.contains(&of_domain))
+        .filter(|name| !offered.contains(name) && !not_yet.contains(&name.as_str()))
         .collect();
+    assert!(
+        unknown.is_empty(),
+        "crates/mf2/Cargo.toml has `{}` features the table does not offer: {unknown:?}",
+        B::DOMAIN
+    );
+}
+
+#[test]
+fn every_date_feature_of_mf2_is_in_the_table() {
+    // The browser's cached ICU4X is in the manifest and not yet in the
+    // table: the tools learn it with `DateBackend::IcuCached`.
+    manifest_matches_table::<DateBackend>(
+        &mf2_features(),
+        &[
+            "host-web-datetime-icu-cached",
+            "leptos-client-datetime-icu-cached",
+        ],
+    );
+}
+
+#[test]
+fn every_feature_of_mf2_has_a_section() {
+    let manifest = mf2_features();
+    let features: BTreeSet<&str> = manifest.keys().map(String::as_str).collect();
     let text = page("features.md");
     let documented: BTreeSet<String> = sections(&text)
         .into_iter()

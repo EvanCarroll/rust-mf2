@@ -16,7 +16,7 @@ use mf2_syntax::Analysis;
 
 use crate::config::{Config, Missing};
 use crate::corpus::LocaleSource;
-use crate::features::{Features, Side, defines_option};
+use crate::features::{Backend, DateBackend, Features, Side, defines_option};
 use crate::lint::{Level, Lint};
 use crate::loader::Record;
 use crate::manifest::Built;
@@ -157,7 +157,7 @@ fn functions(
                 // A date function's message names the formatters to write
                 // (`plan/08` §3.3): `datetime` alone formats nothing.
                 let message = if feature == "datetime" {
-                    features.no_date_formatter(&name.nfc)
+                    features.refusal::<DateBackend>(&name.nfc)
                 } else {
                     format!(
                         ":{} needs the `{feature}` feature, which this build does \
@@ -238,7 +238,7 @@ fn unused_features(
     // The date formatters as a crate writes them, or `datetime` alone.
     let mut dates: Vec<String> = Side::ALL
         .into_iter()
-        .flat_map(|side| features.date_features_on(side))
+        .flat_map(|side| features.features_on::<DateBackend>(side))
         .map(|name| format!("`{name}`"))
         .collect();
     if dates.is_empty() && features.fn_datetime() {
@@ -268,7 +268,7 @@ fn unused_features(
     // A family's feature with its framework off (`plan/08` §3.5): it
     // still turns its side's formatter on, under a name that says nothing
     // about this build.
-    for feature in features.date_features_without_framework() {
+    for feature in features.without_framework::<DateBackend>() {
         found.push(format!(
             "`{feature}` is on for this build and its framework is not: it is the \
              date formatter of a framework this crate does not use; write the \
@@ -296,7 +296,7 @@ fn several_date_formatters(
     }
     let mut found = Vec::new();
     for side in Side::ALL {
-        let formatters = features.date_formatters(side);
+        let formatters = features.on::<DateBackend>(side);
         let Some(&strongest) = formatters.first() else {
             continue;
         };
@@ -304,7 +304,7 @@ fn several_date_formatters(
             continue;
         }
         let on: Vec<String> = features
-            .date_features_on(side)
+            .features_on::<DateBackend>(side)
             .iter()
             .map(|name| format!("`{name}`"))
             .collect();

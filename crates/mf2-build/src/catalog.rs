@@ -12,7 +12,7 @@ use mf2_model::{Message, Pattern, PatternMessage};
 
 use crate::config::{Config, Missing, Strip};
 use crate::error::{Error, Result};
-use crate::features::{DateFormatter, Features, Place, Side};
+use crate::features::{DateBackend, Features, Place, Side};
 use crate::slice::Slice;
 
 /// Brotli as budget B7 is measured: quality 11, window
@@ -432,7 +432,11 @@ impl Readers {
         use mf2_catalog::format::locale_key;
         match key {
             locale_key::ICU_BLOB => {
-                let icu = |side| features.date_formatter(side) == Some(DateFormatter::Icu);
+                let icu = |side| {
+                    features
+                        .backend::<DateBackend>(side)
+                        .is_some_and(DateBackend::reads_slice)
+                };
                 Readers {
                     browser: icu(Side::Browser),
                     native: icu(Side::Native),

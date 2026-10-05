@@ -102,9 +102,12 @@ pub use config::{
     ZoneNames,
 };
 pub use error::{Error, Result};
+pub use features::{Active, Backend, DateBackend, FAMILIES, Family, Features, Place, Side};
 #[doc(hidden)]
-pub use features::{BUILTINS, CATALOG_FEATURES, OPTIONS, defines_option};
-pub use features::{DATE_LINES, DateFamily, DateFormatter, Features, Place, Side};
+pub use features::{
+    BUILTINS, CATALOG_FEATURES, Framework, KINDS, OPTIONS, defines_option, domain_features,
+    kind_lines,
+};
 pub use lint::{Level, Lint};
 #[doc(hidden)]
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};

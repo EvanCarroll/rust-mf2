@@ -10,177 +10,17 @@
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
+mod backend;
+mod family;
+
+pub use backend::{Backend, DateBackend};
+pub use family::{Active, FAMILIES, Family, Framework, KINDS, Side, domain_features, kind_lines};
+
 /// Which functions the built catalogs may use, and which locale data they
 /// need.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Features {
     names: BTreeSet<String>,
-}
-
-/// The two builds that format dates (`plan/08` §3.1): a browser build, and
-/// native code — a server, a command-line tool, a terminal UI. Each has its
-/// own date formatter, chosen from the features of its own side.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum Side {
-    /// `wasm32-unknown-unknown`: the families `host-web-datetime-` and
-    /// `leptos-client-datetime-`.
-    Browser,
-    /// Everything else: the families `host-std-datetime-`,
-    /// `leptos-server-datetime-`, `axum-datetime-` and `native-datetime-`.
-    Native,
-}
-
-impl Side {
-    /// Both sides, the browser first.
-    #[doc(hidden)]
-    pub const ALL: [Side; 2] = [Side::Browser, Side::Native];
-
-    /// The feature families of this side, the framework-free one first:
-    /// each family's features are its prefix and a formatter's name.
-    #[doc(hidden)]
-    pub fn families(self) -> &'static [&'static str] {
-        match self {
-            Side::Browser => &["host-web-datetime-", "leptos-client-datetime-"],
-            Side::Native => &[
-                "host-std-datetime-",
-                "leptos-server-datetime-",
-                "axum-datetime-",
-                "native-datetime-",
-            ],
-        }
-    }
-
-    /// The formatters this side's families offer, the strongest first.
-    #[doc(hidden)]
-    pub fn formatters(self) -> &'static [DateFormatter] {
-        match self {
-            Side::Browser => &[DateFormatter::Icu, DateFormatter::Intl, DateFormatter::Iso],
-            Side::Native => &[DateFormatter::Icu, DateFormatter::Iso],
-        }
-    }
-
-    /// The formatter the tools recommend for this side (`plan/08` §3.1):
-    /// `Intl` in a browser, ICU4X in native code.
-    #[doc(hidden)]
-    pub fn recommended(self) -> DateFormatter {
-        match self {
-            Side::Browser => DateFormatter::Intl,
-            Side::Native => DateFormatter::Icu,
-        }
-    }
-
-    /// The side as a message names it.
-    #[doc(hidden)]
-    pub fn name(self) -> &'static str {
-        match self {
-            Side::Browser => "the browser",
-            Side::Native => "native code",
-        }
-    }
-
-    /// The side as `mf2 check --format json` names it.
-    #[doc(hidden)]
-    pub fn key(self) -> &'static str {
-        match self {
-            Side::Browser => "browser",
-            Side::Native => "native",
-        }
-    }
-}
-
-/// The date family of a framework that is on (`plan/08` §3.3, §3.5): the
-/// features a crate writes for it are its prefix and a formatter's name.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct DateFamily {
-    /// The family, without its formatter: `leptos-server-datetime-`.
-    pub prefix: &'static str,
-    /// The side its builds run on.
-    pub side: Side,
-    /// Whether this build is one of them, and so needs a formatter of its
-    /// side. A Leptos server's build script also reads the browser's
-    /// family, which changes no code in it.
-    #[doc(hidden)]
-    pub builds_here: bool,
-}
-
-impl DateFamily {
-    /// The family's feature for `formatter`.
-    #[doc(hidden)]
-    pub fn feature(self, formatter: DateFormatter) -> String {
-        format!("{}{}", self.prefix, formatter.name())
-    }
-
-    /// The family's feature for its side's recommended formatter.
-    #[doc(hidden)]
-    pub fn recommended(self) -> String {
-        self.feature(self.side.recommended())
-    }
-}
-
-/// What the tools write for dates when no framework says which build this
-/// is (`plan/08` §3.5): a kind of application and its features.
-pub const DATE_LINES: [(&str, &[&str]); 4] = [
-    (
-        "a server-rendered Leptos application",
-        &["leptos-client-datetime-intl", "leptos-server-datetime-icu"],
-    ),
-    (
-        "a command-line tool or a terminal UI",
-        &["native-datetime-icu"],
-    ),
-    ("an Axum server", &["axum-datetime-icu"]),
-    (
-        "no framework",
-        &["host-std-datetime-icu", "host-web-datetime-intl"],
-    ),
-];
-
-/// A date formatter, the weakest first: the order is the rule a build with
-/// more than one of its side's on applies, where the strongest formats
-/// (`plan/08` §3.2).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum DateFormatter {
-    /// The ISO stand-in: no locale data, no ICU4X.
-    Iso,
-    /// The browser's `Intl.DateTimeFormat`: no date data downloaded.
-    Intl,
-    /// ICU4X over the catalog's `icu.blob`, which the build cuts.
-    Icu,
-}
-
-impl DateFormatter {
-    /// The name a family's feature ends with.
-    #[doc(hidden)]
-    pub fn name(self) -> &'static str {
-        match self {
-            DateFormatter::Iso => "iso",
-            DateFormatter::Intl => "intl",
-            DateFormatter::Icu => "icu",
-        }
-    }
-
-    /// What it is, as a message names it.
-    #[doc(hidden)]
-    pub fn what(self) -> &'static str {
-        match self {
-            DateFormatter::Iso => "the ISO stand-in",
-            DateFormatter::Intl => "the browser's Intl.DateTimeFormat",
-            DateFormatter::Icu => "ICU4X",
-        }
-    }
-
-    /// What it costs on `side`, as `plan/08` §1.2 measured it (§3.1).
-    #[doc(hidden)]
-    pub fn cost(self, side: Side) -> &'static str {
-        match (self, side) {
-            (DateFormatter::Iso, _) => "no locale data and no ICU4X",
-            (DateFormatter::Intl, _) => "+239 B gzipped, and no date data downloaded",
-            (DateFormatter::Icu, Side::Browser) => {
-                "+43 to +100 KB gzipped, and the date slice in each catalog"
-            }
-            (DateFormatter::Icu, Side::Native) => "+298 KB, and the date slices",
-        }
-    }
 }
 
 /// A built-in function and the feature it needs.
@@ -436,33 +276,48 @@ impl Features {
     /// hand (`mf2 check --features native-datetime-icu`), which does not
     /// spell out what the feature implies.
     pub fn fn_datetime(&self) -> bool {
-        self.has("datetime")
-            || Side::ALL
-                .into_iter()
-                .any(|side| !self.date_formatters(side).is_empty())
+        self.domain_on::<DateBackend>()
     }
 
-    /// Every date formatter on for `side`, the strongest first: one of its
-    /// families' features. More than one is the `several-date-formatters`
-    /// case.
+    /// Whether `B`'s domain is on: the feature every backend of it turns
+    /// on, or a backend's own — for a list written by hand, which does not
+    /// spell out what a backend's feature implies.
     #[doc(hidden)]
-    pub fn date_formatters(&self, side: Side) -> Vec<DateFormatter> {
-        side.formatters()
+    pub fn domain_on<B: Backend>(&self) -> bool {
+        self.has(B::DOMAIN)
+            || Side::ALL
+                .into_iter()
+                .any(|side| !self.on::<B>(side).is_empty())
+    }
+
+    /// Every backend of `B`'s domain on for `side`, the strongest first: one
+    /// of its families' features. More than one is the
+    /// `several-date-formatters` case. A backend whose feature a stronger
+    /// one's turns on with it is that stronger one, not a second.
+    #[doc(hidden)]
+    pub fn on<B: Backend>(&self, side: Side) -> Vec<B> {
+        let on: Vec<B> = B::offered(side)
             .iter()
             .copied()
-            .filter(|formatter| {
+            .filter(|backend| {
                 side.families()
-                    .iter()
-                    .any(|family| self.has(&format!("{family}{}", formatter.name())))
+                    .any(|family| self.has(&family.feature(*backend)))
+            })
+            .collect();
+        on.iter()
+            .copied()
+            .filter(|backend| {
+                !on.iter()
+                    .any(|stronger| stronger.implies() == Some(*backend))
             })
             .collect()
     }
 
-    /// The formatter `side`'s build formats dates with: the strongest of its
-    /// own side's on (ICU4X, then `Intl`, then ISO), whatever the other
-    /// side's say; `None` with none.
-    pub fn date_formatter(&self, side: Side) -> Option<DateFormatter> {
-        self.date_formatters(side).into_iter().max()
+    /// The backend `side`'s build formats `B`'s domain with: the strongest
+    /// of its own side's on (for dates ICU4X, then `Intl`, then ISO),
+    /// whatever the other side's say; `None` with none.
+    pub fn backend<B: Backend>(&self, side: Side) -> Option<B> {
+        self.on(side).into_iter().max()
     }
 
     /// Whether the build cuts ICU4X's date slice (`icu.blob`): when either
@@ -472,29 +327,35 @@ impl Features {
     pub fn cuts_date_slice(&self) -> bool {
         Side::ALL
             .into_iter()
-            .any(|side| self.date_formatter(side) == Some(DateFormatter::Icu))
+            .any(|side| self.reads_date_slice(side))
+    }
+
+    /// Whether `side`'s date formatter formats from the date slice.
+    fn reads_date_slice(&self, side: Side) -> bool {
+        self.backend::<DateBackend>(side)
+            .is_some_and(DateBackend::reads_slice)
     }
 
     /// Whether a browser downloads this build's catalogs: a framework or
     /// host of the browser's side is on, or a browser date formatter is —
-    /// each of those names a browser build. Without one the catalogs have native readers alone, and keep every
-    /// entry (`plan/08` §4.1).
+    /// each of those names a browser build. Without one the catalogs have
+    /// native readers alone, and keep every entry.
     #[doc(hidden)]
     pub fn has_browser_side(&self) -> bool {
-        self.date_families()
+        self.families()
             .iter()
-            .any(|family| family.side == Side::Browser)
-            || self.date_formatter(Side::Browser).is_some()
+            .any(|active| active.family.side == Side::Browser)
+            || self.backend::<DateBackend>(Side::Browser).is_some()
     }
 
-    /// Where ICU4X's date slice (`icu.blob`) goes (`plan/08` §4.1): into
-    /// the catalog when the browser's formatter is `icu` or no browser
-    /// downloads the catalog and native code's is; into the server-only
-    /// table when native code's is `icu` and the browser's is not; nowhere
-    /// when neither side's is. A native application's build keeps it in
-    /// its catalog whatever this says (`Build`).
+    /// Where ICU4X's date slice (`icu.blob`) goes: into the catalog when the
+    /// browser's formatter is `icu` or no browser downloads the catalog and
+    /// native code's is; into the server-only table when native code's is
+    /// `icu` and the browser's is not; nowhere when neither side's is. A
+    /// native application's build keeps it in its catalog whatever this says
+    /// (`Build`).
     pub fn date_slice_place(&self) -> Place {
-        let icu = |side| self.date_formatter(side) == Some(DateFormatter::Icu);
+        let icu = |side| self.reads_date_slice(side);
         if icu(Side::Browser) || (icu(Side::Native) && !self.has_browser_side()) {
             Place::Catalog
         } else if icu(Side::Native) {
@@ -504,15 +365,14 @@ impl Features {
         }
     }
 
-    /// Where the number entries go (`plan/08` §4.1): `plural.cardinal`,
-    /// `plural.ordinal`, `number.symbols`, `number.patterns`,
-    /// `currency.data` and `unit.data`. With `number-intl` the browser
-    /// formats and selects through `Intl` and reads none of them, so when a
-    /// browser downloads the catalog they go to the server-only table;
-    /// otherwise, and when no browser does, into the catalog. Native code
-    /// reads them on every build that needs them, so never nowhere. A
-    /// native application's build keeps them in its catalog whatever this
-    /// says (`Build`).
+    /// Where the number entries go: `plural.cardinal`, `plural.ordinal`,
+    /// `number.symbols`, `number.patterns`, `currency.data` and `unit.data`.
+    /// With `number-intl` the browser formats and selects through `Intl` and
+    /// reads none of them, so when a browser downloads the catalog they go
+    /// to the server-only table; otherwise, and when no browser does, into
+    /// the catalog. Native code reads them on every build that needs them,
+    /// so never nowhere. A native application's build keeps them in its
+    /// catalog whatever this says (`Build`).
     pub fn number_place(&self) -> Place {
         if self.number_intl() && self.has_browser_side() {
             Place::Server
@@ -521,8 +381,8 @@ impl Features {
         }
     }
 
-    /// The date families of the frameworks that are on (`plan/08` §3.5),
-    /// each with its side and whether this build is one of its builds:
+    /// The families of the frameworks that are on, each with whether this
+    /// build is one of its builds:
     ///
     /// * `ssr`: the Leptos server's family, built here, and the browser's,
     ///   which the server's build script reads; `hydrate`: the same two, the
@@ -534,137 +394,137 @@ impl Features {
     ///
     /// Empty when nothing says which build this is (`mf2 check --features
     /// fn-number`, a library with no host).
-    pub fn date_families(&self) -> Vec<DateFamily> {
-        let family = |prefix, side, builds_here| DateFamily {
-            prefix,
-            side,
-            builds_here,
+    pub fn families(&self) -> Vec<Active> {
+        let active = |prefix: &str, builds_here| {
+            FAMILIES
+                .iter()
+                .find(|family| family.prefix == prefix)
+                .map(|family| Active {
+                    family,
+                    builds_here,
+                })
         };
         let (ssr, hydrate, csr) = (self.has("ssr"), self.has("hydrate"), self.has("csr"));
         let mut families = Vec::new();
         if ssr || hydrate {
-            families.push(family("leptos-server-datetime-", Side::Native, ssr));
+            families.extend(active("leptos-server-", ssr));
         }
         if ssr || hydrate || csr {
-            families.push(family(
-                "leptos-client-datetime-",
-                Side::Browser,
-                hydrate || csr,
-            ));
+            families.extend(active("leptos-client-", hydrate || csr));
         }
         if self.has("axum") && !ssr {
-            families.push(family("axum-datetime-", Side::Native, true));
+            families.extend(active("axum-", true));
         }
         if self.has("native") || self.has("ratatui") {
-            families.push(family("native-datetime-", Side::Native, true));
+            families.extend(active("native-", true));
         }
         if families.is_empty() {
             if self.has("host-std") {
-                families.push(family("host-std-datetime-", Side::Native, true));
+                families.extend(active("host-std-", true));
             }
             if self.has("host-web") {
-                families.push(family("host-web-datetime-", Side::Browser, true));
+                families.extend(active("host-web-", true));
             }
         }
         families
     }
 
-    /// The sides this build formats dates on and has no formatter for, in
-    /// [`Side::ALL`]'s order. Empty when every side it builds has one, and
-    /// when no framework or host says which sides it builds.
+    /// The sides this build formats on and has no backend of `B`'s domain
+    /// for, in [`Side::ALL`]'s order. Empty when every side it builds has
+    /// one, and when no framework or host says which sides it builds.
     #[doc(hidden)]
-    pub fn sides_without_formatter(&self) -> Vec<Side> {
-        let families = self.date_families();
+    pub fn sides_without<B: Backend>(&self) -> Vec<Side> {
+        let families = self.families();
         Side::ALL
             .into_iter()
             .filter(|&side| {
                 families
                     .iter()
-                    .any(|family| family.builds_here && family.side == side)
-                    && self.date_formatter(side).is_none()
+                    .any(|active| active.builds_here && active.family.side == side)
+                    && self.backend::<B>(side).is_none()
             })
             .collect()
     }
 
-    /// Whether a date function can format in this build (`plan/08` §3.3):
-    /// every side it builds has a formatter; with no framework or host on,
-    /// some side has one. `datetime` alone has none.
-    pub fn formats_dates(&self) -> bool {
-        if self.date_families().iter().any(|family| family.builds_here) {
-            self.sides_without_formatter().is_empty()
+    /// Whether a function of `B`'s domain can format in this build: every
+    /// side it builds has a backend; with no framework or host on, some side
+    /// has one. The domain's own feature alone has none.
+    pub fn formats<B: Backend>(&self) -> bool {
+        if self.families().iter().any(|active| active.builds_here) {
+            self.sides_without::<B>().is_empty()
         } else {
             Side::ALL
                 .into_iter()
-                .any(|side| self.date_formatter(side).is_some())
+                .any(|side| self.backend::<B>(side).is_some())
         }
     }
 
-    /// The date features on for `side`, as a crate writes them: the
-    /// frameworks' features, and a host family's only for a formatter no
-    /// framework's feature names (the frameworks' families are written as
-    /// the host's, so both are on).
-    #[doc(hidden)]
-    pub fn date_features_on(&self, side: Side) -> Vec<String> {
-        let Some((host, frameworks)) = side.families().split_first() else {
+    /// The features that turn `backend` on for `side`, as a crate writes
+    /// them: the frameworks' features, and the host family's only when no
+    /// framework's names it (the frameworks' families are written as the
+    /// host's, so both are on).
+    fn features_of<B: Backend>(&self, side: Side, backend: B) -> Vec<String> {
+        let mut families = side.families();
+        let Some(host) = families.next() else {
             return Vec::new();
         };
-        let mut on = Vec::new();
-        for formatter in side.formatters() {
-            let named: Vec<String> = frameworks
-                .iter()
-                .map(|prefix| format!("{prefix}{}", formatter.name()))
-                .filter(|feature| self.has(feature))
-                .collect();
-            if named.is_empty() {
-                let feature = format!("{host}{}", formatter.name());
-                if self.has(&feature) {
-                    on.push(feature);
-                }
-            } else {
-                on.extend(named);
+        let named: Vec<String> = families
+            .map(|family| family.feature(backend))
+            .filter(|feature| self.has(feature))
+            .collect();
+        if named.is_empty() {
+            let feature = host.feature(backend);
+            if self.has(&feature) {
+                return vec![feature];
             }
         }
-        on
+        named
     }
 
-    /// The date features to add (`plan/08` §3.5): for each family of the
-    /// frameworks that are on whose side has no formatter, the side's
+    /// The features of `B`'s domain on for `side`, as a crate writes them
+    /// ([`Features::features_of`]), the strongest backend's first.
+    #[doc(hidden)]
+    pub fn features_on<B: Backend>(&self, side: Side) -> Vec<String> {
+        self.on::<B>(side)
+            .into_iter()
+            .flat_map(|backend| self.features_of(side, backend))
+            .collect()
+    }
+
+    /// The features of `B`'s domain to add: for each family of the
+    /// frameworks that are on whose side has no backend, the side's
     /// recommended one.
     #[doc(hidden)]
-    pub fn missing_date_features(&self) -> Vec<String> {
+    pub fn missing<B: Backend>(&self) -> Vec<String> {
         let mut missing: Vec<String> = Vec::new();
-        for family in self.date_families() {
-            let feature = family.recommended();
-            if self.date_formatter(family.side).is_none() && !missing.contains(&feature) {
+        for active in self.families() {
+            let feature = active.family.recommended::<B>();
+            if self.backend::<B>(active.family.side).is_none() && !missing.contains(&feature) {
                 missing.push(feature);
             }
         }
         missing
     }
 
-    /// The date features on whose framework is not (`plan/08` §3.5): a
-    /// Leptos family without Leptos, `axum-datetime-` without `axum`,
-    /// `native-datetime-` without `native`. The host families need none.
+    /// The features of `B`'s domain on whose framework is not: a Leptos
+    /// family without Leptos, `axum-` without `axum`, `native-` without
+    /// `native`. The host families need none.
     #[doc(hidden)]
-    pub fn date_features_without_framework(&self) -> Vec<String> {
+    pub fn without_framework<B: Backend>(&self) -> Vec<String> {
         let leptos = self.leptos_on();
-        let frameworks = [
-            ("leptos-client-datetime-", Side::Browser, leptos),
-            ("leptos-server-datetime-", Side::Native, leptos),
-            ("axum-datetime-", Side::Native, self.has("axum")),
-            (
-                "native-datetime-",
-                Side::Native,
-                self.has("native") || self.has("ratatui"),
-            ),
-        ];
         let mut off = Vec::new();
-        for (prefix, side, on) in frameworks {
+        for family in &FAMILIES {
+            let on = match family.framework {
+                Framework::Host => true,
+                Framework::Leptos => leptos,
+                Framework::Axum => self.has("axum"),
+                Framework::Native => self.has("native") || self.has("ratatui"),
+            };
             if on {
                 continue;
             }
-            for formatter in side.formatters() {
-                let feature = format!("{prefix}{}", formatter.name());
+            for &backend in B::offered(family.side) {
+                let feature = family.feature(backend);
                 if self.has(&feature) {
                     off.push(feature);
                 }
@@ -674,10 +534,10 @@ impl Features {
     }
 
     /// The build's refusal when it cuts ICU4X's date slice and `mf2-build`
-    /// lacks `icu-blob` (`plan/08` §3.5): [`Error::IcuBlob`], naming the
-    /// `icu` features that are on. The build script asks it with its own
-    /// features; `mf2 check` with those the application's manifest gives
-    /// its `mf2-build` build-dependency, so both say the same.
+    /// lacks `icu-blob`: [`Error::IcuBlob`], naming the `icu` features that
+    /// are on. The build script asks it with its own features; `mf2 check`
+    /// with those the application's manifest gives its `mf2-build`
+    /// build-dependency, so both say the same.
     ///
     /// [`Error::IcuBlob`]: crate::Error::IcuBlob
     #[doc(hidden)]
@@ -702,27 +562,28 @@ impl Features {
             .any(|name| self.has(name))
     }
 
-    /// The lines of [`DATE_LINES`] for the kinds of application whose
-    /// framework is on (`plan/08` §3.5): Leptos's; a command-line tool's or
+    /// What to write for `B`'s domain, for the kinds of application whose
+    /// framework is on ([`kind_lines`]): Leptos's; a command-line tool's or
     /// terminal UI's (`native`, `ratatui`); an Axum server's (without
     /// Leptos, whose server writes its own); and, with none of those but a
     /// host, the framework-free one. Every line when nothing says which kind
     /// of application this is.
     #[doc(hidden)]
-    pub fn date_lines(&self) -> Vec<(&'static str, &'static [&'static str])> {
+    pub fn lines<B: Backend>(&self) -> Vec<(&'static str, Vec<String>)> {
         let leptos = self.leptos_on();
         let native = self.has("native") || self.has("ratatui");
         let axum = self.has("axum") && !leptos;
         let host = !(leptos || native || axum) && (self.has("host-std") || self.has("host-web"));
         let on = [leptos, native, axum, host];
+        let lines = kind_lines::<B>();
         if !on.contains(&true) {
-            return DATE_LINES.to_vec();
+            return lines;
         }
-        DATE_LINES
-            .iter()
+        lines
+            .into_iter()
             .zip(on)
             .filter(|(_, on)| *on)
-            .map(|(line, _)| *line)
+            .map(|(line, _)| line)
             .collect()
     }
 
@@ -732,30 +593,34 @@ impl Features {
     pub fn icu_date_features(&self) -> Vec<String> {
         Side::ALL
             .into_iter()
-            .flat_map(|side| self.date_features_on(side))
-            .filter(|feature| feature.ends_with("-icu"))
+            .flat_map(|side| {
+                self.on::<DateBackend>(side)
+                    .into_iter()
+                    .filter(|backend| backend.reads_slice())
+                    .flat_map(move |backend| self.features_of(side, backend))
+            })
             .collect()
     }
 
-    /// The `gated-function` message for the date function `function`
-    /// (`plan/08` §3.3): the sides without a formatter, the features to
-    /// write, the families of the frameworks that are on, and what each
-    /// formatter costs.
-    pub fn no_date_formatter(&self, function: &str) -> String {
-        let sides = self.sides_without_formatter();
-        let mut out = format!(":{function} formats a date, and this build has no date formatter");
+    /// The `gated-function` message for `function`, a function of `B`'s
+    /// domain: the sides without a backend, the features to write, the
+    /// families of the frameworks that are on, and what each backend costs.
+    pub fn refusal<B: Backend>(&self, function: &str) -> String {
+        let sides = self.sides_without::<B>();
+        let mut out = format!(
+            ":{function} formats {}, and this build has no {}",
+            B::THING,
+            B::NOUN
+        );
         let costed: Vec<Side> = if sides.is_empty() {
             out.push_str(
                 "; a message may never add formatting code by itself. Write the \
                  features for the builds of this crate on the `mf2` dependency: ",
             );
             let lines: Vec<String> = self
-                .date_lines()
+                .lines::<B>()
                 .iter()
-                .map(|(what, features)| {
-                    let features: Vec<String> = features.iter().map(|&f| f.to_owned()).collect();
-                    format!("for {what}, {}", quoted(&features))
-                })
+                .map(|(what, features)| format!("for {what}, {}", quoted(features)))
                 .collect();
             out.push_str(&lines.join("; "));
             out.push('.');
@@ -766,7 +631,7 @@ impl Features {
             let elsewhere: Vec<String> = Side::ALL
                 .into_iter()
                 .filter(|side| !sides.contains(side))
-                .flat_map(|side| self.date_features_on(side))
+                .flat_map(|side| self.features_on::<B>(side))
                 .collect();
             if !elsewhere.is_empty() {
                 let _ = write!(
@@ -779,44 +644,53 @@ impl Features {
                 out,
                 "; a message may never add formatting code by itself. Write {} on \
                  the `mf2` dependency.",
-                quoted(&self.missing_date_features())
+                quoted(&self.missing::<B>())
             );
             let families: Vec<String> = self
-                .date_families()
+                .families()
                 .iter()
-                .map(|family| format!("`{}*` ({})", family.prefix, family.side.name()))
+                .map(|active| {
+                    format!(
+                        "`{}*` ({})",
+                        active.family.stem::<B>(),
+                        active.family.side.name()
+                    )
+                })
                 .collect();
             let _ = write!(
                 out,
-                " The date families of the frameworks on: {}.",
+                " The {} families of the frameworks on: {}.",
+                B::ADJECTIVE,
                 families.join(", ")
             );
             sides
         };
         for side in costed {
-            let formatters: Vec<String> = side
-                .formatters()
+            let backends: Vec<String> = B::offered(side)
                 .iter()
-                .map(|&formatter| {
-                    let recommended = if formatter == side.recommended() {
+                .map(|&backend| {
+                    let recommended = if backend == B::recommended(side) {
                         ", recommended"
                     } else {
                         ""
                     };
                     format!(
                         "`{}` is {}: {}{recommended}",
-                        formatter.name(),
-                        formatter.what(),
-                        formatter.cost(side)
+                        backend.name(),
+                        backend.what(),
+                        backend.cost(side)
                     )
                 })
                 .collect();
-            let _ = write!(out, " In {}: {}.", side.name(), formatters.join("; "));
+            let _ = write!(out, " In {}: {}.", side.name(), backends.join("; "));
         }
-        if self.has("datetime") && !self.formats_dates() {
-            out.push_str(
-                " `datetime` alone turns the date functions on with no formatter; \
-                 a formatter's feature turns it on.",
+        if self.has(B::DOMAIN) && !self.formats::<B>() {
+            let _ = write!(
+                out,
+                " `{}` alone turns the {} functions on with no formatter; a \
+                 formatter's feature turns it on.",
+                B::DOMAIN,
+                B::ADJECTIVE
             );
         }
         out
@@ -842,11 +716,11 @@ impl Features {
     }
 
     /// Whether a [`BUILTINS`] gate is on: `datetime` when a formatter
-    /// formats on every side this build builds ([`Features::formats_dates`];
+    /// formats on every side this build builds ([`Features::formats`];
     /// `datetime` alone is not enough), any other by its own.
     fn gate_on(&self, feature: &str) -> bool {
         match feature {
-            "datetime" => self.formats_dates(),
+            "datetime" => self.formats::<DateBackend>(),
             _ => self.has(feature),
         }
     }
@@ -870,7 +744,7 @@ fn quoted(names: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::Features;
-    use super::{DateFormatter, Place, Side};
+    use super::{Backend, DateBackend, Place, Side};
 
     // `plan/08` §3.2, on each side: the formatter is chosen from the
     // features of its own side only; with more than one of a family on, the
@@ -881,82 +755,94 @@ mod tests {
     fn each_side_reads_only_its_own_features() {
         let split = Features::parse("leptos-client-datetime-intl,leptos-server-datetime-icu");
         assert_eq!(
-            split.date_formatter(Side::Browser),
-            Some(DateFormatter::Intl)
+            split.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Intl)
         );
-        assert_eq!(split.date_formatter(Side::Native), Some(DateFormatter::Icu));
-        assert_eq!(split.date_formatters(Side::Browser), [DateFormatter::Intl]);
-        assert_eq!(split.date_formatters(Side::Native), [DateFormatter::Icu]);
+        assert_eq!(
+            split.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
+        );
+        assert_eq!(split.on::<DateBackend>(Side::Browser), [DateBackend::Intl]);
+        assert_eq!(split.on::<DateBackend>(Side::Native), [DateBackend::Icu]);
 
         let browser_only = Features::parse("host-web-datetime-icu");
         assert_eq!(
-            browser_only.date_formatter(Side::Browser),
-            Some(DateFormatter::Icu)
+            browser_only.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Icu)
         );
-        assert_eq!(browser_only.date_formatter(Side::Native), None);
+        assert_eq!(browser_only.backend::<DateBackend>(Side::Native), None);
 
         let native_only = Features::parse("native-datetime-icu");
         assert_eq!(
-            native_only.date_formatter(Side::Native),
-            Some(DateFormatter::Icu)
+            native_only.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
         );
-        assert_eq!(native_only.date_formatter(Side::Browser), None);
+        assert_eq!(native_only.backend::<DateBackend>(Side::Browser), None);
 
         // `intl` is no formatter of the native families.
         let no_native_intl = Features::parse("native-datetime-intl,host-std-datetime-intl");
-        assert_eq!(no_native_intl.date_formatter(Side::Native), None);
-        assert_eq!(no_native_intl.date_formatter(Side::Browser), None);
+        assert_eq!(no_native_intl.backend::<DateBackend>(Side::Native), None);
+        assert_eq!(no_native_intl.backend::<DateBackend>(Side::Browser), None);
     }
 
     #[test]
     fn two_of_one_family_the_strongest_formats_in_the_browser() {
         let icu_intl = Features::parse("leptos-client-datetime-intl,leptos-client-datetime-icu");
         assert_eq!(
-            icu_intl.date_formatter(Side::Browser),
-            Some(DateFormatter::Icu)
+            icu_intl.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Icu)
         );
         assert_eq!(
-            icu_intl.date_formatters(Side::Browser),
-            [DateFormatter::Icu, DateFormatter::Intl]
+            icu_intl.on::<DateBackend>(Side::Browser),
+            [DateBackend::Icu, DateBackend::Intl]
         );
         let intl_iso = Features::parse("host-web-datetime-iso,host-web-datetime-intl");
         assert_eq!(
-            intl_iso.date_formatter(Side::Browser),
-            Some(DateFormatter::Intl)
+            intl_iso.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Intl)
         );
         let all =
             Features::parse("host-web-datetime-iso,host-web-datetime-intl,host-web-datetime-icu");
-        assert_eq!(all.date_formatter(Side::Browser), Some(DateFormatter::Icu));
-        assert_eq!(all.date_formatters(Side::Browser).len(), 3);
+        assert_eq!(
+            all.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Icu)
+        );
+        assert_eq!(all.on::<DateBackend>(Side::Browser).len(), 3);
     }
 
     #[test]
     fn two_of_one_family_the_strongest_formats_natively() {
         let both = Features::parse("axum-datetime-iso,axum-datetime-icu");
-        assert_eq!(both.date_formatter(Side::Native), Some(DateFormatter::Icu));
         assert_eq!(
-            both.date_formatters(Side::Native),
-            [DateFormatter::Icu, DateFormatter::Iso]
+            both.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
         );
-        assert_eq!(both.date_formatter(Side::Browser), None);
+        assert_eq!(
+            both.on::<DateBackend>(Side::Native),
+            [DateBackend::Icu, DateBackend::Iso]
+        );
+        assert_eq!(both.backend::<DateBackend>(Side::Browser), None);
     }
 
     #[test]
     fn two_frameworks_that_disagree_the_strongest_formats_natively() {
         // A command-line tool on ISO, with an optional web mode on ICU4X.
         let cli = Features::parse("native-datetime-iso");
-        assert_eq!(cli.date_formatter(Side::Native), Some(DateFormatter::Iso));
+        assert_eq!(
+            cli.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Iso)
+        );
         assert!(!cli.cuts_date_slice());
         let with_web = Features::parse("native-datetime-iso,axum-datetime-icu");
         assert_eq!(
-            with_web.date_formatter(Side::Native),
-            Some(DateFormatter::Icu)
+            with_web.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
         );
         assert!(with_web.cuts_date_slice());
         let leptos = Features::parse("leptos-server-datetime-iso,native-datetime-icu");
         assert_eq!(
-            leptos.date_formatter(Side::Native),
-            Some(DateFormatter::Icu)
+            leptos.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
         );
     }
 
@@ -964,11 +850,14 @@ mod tests {
     fn two_frameworks_that_disagree_the_strongest_formats_in_the_browser() {
         let mixed = Features::parse("host-web-datetime-intl,leptos-client-datetime-iso");
         assert_eq!(
-            mixed.date_formatter(Side::Browser),
-            Some(DateFormatter::Intl)
+            mixed.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Intl)
         );
         let icu = Features::parse("host-web-datetime-icu,leptos-client-datetime-intl");
-        assert_eq!(icu.date_formatter(Side::Browser), Some(DateFormatter::Icu));
+        assert_eq!(
+            icu.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::Icu)
+        );
     }
 
     #[test]
@@ -1006,17 +895,20 @@ mod tests {
         );
         assert!(Features::parse("datetime").fn_datetime());
         assert_eq!(
-            Features::parse("datetime").date_formatter(Side::Native),
+            Features::parse("datetime").backend::<DateBackend>(Side::Native),
             None
         );
     }
 
     #[test]
     fn date_formatters_are_ordered_weakest_first() {
-        assert!(DateFormatter::Icu > DateFormatter::Intl);
-        assert!(DateFormatter::Intl > DateFormatter::Iso);
+        assert!(DateBackend::Icu > DateBackend::Intl);
+        assert!(DateBackend::Intl > DateBackend::Iso);
         for side in Side::ALL {
-            let names: Vec<_> = side.formatters().iter().map(|f| f.name()).collect();
+            let names: Vec<_> = DateBackend::offered(side)
+                .iter()
+                .map(|f| f.name())
+                .collect();
             assert_eq!(names.first(), Some(&"icu"));
             assert_eq!(names.last(), Some(&"iso"));
         }
@@ -1041,8 +933,8 @@ mod tests {
         assert!(features.fn_number());
         assert!(features.fn_datetime());
         assert_eq!(
-            features.date_formatter(Side::Native),
-            Some(DateFormatter::Icu)
+            features.backend::<DateBackend>(Side::Native),
+            Some(DateBackend::Icu)
         );
     }
 
@@ -1176,12 +1068,12 @@ mod tests {
     fn datetime_alone_formats_no_date() {
         let alone = Features::parse("fn-number,datetime");
         assert!(alone.fn_datetime(), "the date code still links");
-        assert!(!alone.formats_dates());
+        assert!(!alone.formats::<DateBackend>());
         assert_eq!(alone.provides("date"), Some(false));
         assert_eq!(alone.missing_feature("time"), Some("datetime"));
         assert!(
             alone
-                .no_date_formatter("date")
+                .refusal::<DateBackend>("date")
                 .contains("`datetime` alone turns the date functions on")
         );
     }
@@ -1189,11 +1081,11 @@ mod tests {
     #[test]
     fn a_server_rendered_build_with_only_a_client_formatter_has_no_dates() {
         let ssr = Features::parse("leptos,ssr,leptos-client-datetime-intl");
-        assert_eq!(ssr.sides_without_formatter(), [Side::Native]);
-        assert!(!ssr.formats_dates());
+        assert_eq!(ssr.sides_without::<DateBackend>(), [Side::Native]);
+        assert!(!ssr.formats::<DateBackend>());
         assert_eq!(ssr.provides("datetime"), Some(false));
-        assert_eq!(ssr.missing_date_features(), ["leptos-server-datetime-icu"]);
-        let message = ssr.no_date_formatter("datetime");
+        assert_eq!(ssr.missing::<DateBackend>(), ["leptos-server-datetime-icu"]);
+        let message = ssr.refusal::<DateBackend>("datetime");
         assert!(message.starts_with(":datetime formats a date"), "{message}");
         assert!(message.contains("for native code"), "{message}");
         assert!(
@@ -1210,60 +1102,54 @@ mod tests {
 
         // The browser's build of the same application has its formatter.
         let hydrate = Features::parse("leptos,hydrate,leptos-client-datetime-intl");
-        assert!(hydrate.formats_dates());
+        assert!(hydrate.formats::<DateBackend>());
         assert_eq!(
-            hydrate.missing_date_features(),
+            hydrate.missing::<DateBackend>(),
             ["leptos-server-datetime-icu"]
         );
 
         let both =
             Features::parse("leptos,ssr,leptos-client-datetime-intl,leptos-server-datetime-icu");
-        assert!(both.formats_dates());
-        assert!(both.missing_date_features().is_empty());
+        assert!(both.formats::<DateBackend>());
+        assert!(both.missing::<DateBackend>().is_empty());
     }
 
     #[test]
     fn each_framework_names_its_own_family() {
         let prefixes = |list: &str| -> Vec<(&'static str, Side, bool)> {
             Features::parse(list)
-                .date_families()
+                .families()
                 .into_iter()
-                .map(|f| (f.prefix, f.side, f.builds_here))
+                .map(|f| (f.family.prefix, f.family.side, f.builds_here))
                 .collect()
         };
         assert_eq!(
             prefixes("leptos,ssr,axum,host-std"),
             [
-                ("leptos-server-datetime-", Side::Native, true),
-                ("leptos-client-datetime-", Side::Browser, false),
+                ("leptos-server-", Side::Native, true),
+                ("leptos-client-", Side::Browser, false),
             ]
         );
         assert_eq!(
             prefixes("leptos,csr,host-web"),
-            [("leptos-client-datetime-", Side::Browser, true)]
+            [("leptos-client-", Side::Browser, true)]
         );
-        assert_eq!(
-            prefixes("axum,host-std"),
-            [("axum-datetime-", Side::Native, true)]
-        );
-        assert_eq!(
-            prefixes("ratatui"),
-            [("native-datetime-", Side::Native, true)]
-        );
+        assert_eq!(prefixes("axum,host-std"), [("axum-", Side::Native, true)]);
+        assert_eq!(prefixes("ratatui"), [("native-", Side::Native, true)]);
         assert_eq!(
             prefixes("host-std,host-web"),
             [
-                ("host-std-datetime-", Side::Native, true),
-                ("host-web-datetime-", Side::Browser, true),
+                ("host-std-", Side::Native, true),
+                ("host-web-", Side::Browser, true),
             ]
         );
         assert!(prefixes("fn-number").is_empty());
         assert_eq!(
-            Features::parse("native").missing_date_features(),
+            Features::parse("native").missing::<DateBackend>(),
             ["native-datetime-icu"]
         );
         assert_eq!(
-            Features::parse("axum").missing_date_features(),
+            Features::parse("axum").missing::<DateBackend>(),
             ["axum-datetime-icu"]
         );
     }
@@ -1271,10 +1157,10 @@ mod tests {
     #[test]
     fn with_no_framework_the_message_names_every_line() {
         let none = Features::default();
-        assert!(none.sides_without_formatter().is_empty());
-        assert!(!none.formats_dates());
-        let message = none.no_date_formatter("time");
-        for (_, features) in super::DATE_LINES {
+        assert!(none.sides_without::<DateBackend>().is_empty());
+        assert!(!none.formats::<DateBackend>());
+        let message = none.refusal::<DateBackend>("time");
+        for (_, features) in super::kind_lines::<DateBackend>() {
             for feature in features {
                 assert!(message.contains(&format!("`{feature}`")), "{message}");
             }
@@ -1283,19 +1169,19 @@ mod tests {
         assert!(message.contains("In native code:"), "{message}");
         assert!(message.contains("+239 B gzipped"), "{message}");
         // With no framework, a formatter of either side is enough.
-        assert!(Features::parse("host-web-datetime-iso").formats_dates());
+        assert!(Features::parse("host-web-datetime-iso").formats::<DateBackend>());
     }
 
     #[test]
     fn the_date_lines_are_those_of_the_frameworks_that_are_on() {
         let kinds = |features: &str| -> Vec<&str> {
             Features::parse(features)
-                .date_lines()
+                .lines::<DateBackend>()
                 .iter()
                 .map(|(what, _)| *what)
                 .collect()
         };
-        let all: Vec<&str> = super::DATE_LINES.iter().map(|(what, _)| *what).collect();
+        let all: Vec<&str> = super::KINDS.iter().map(|(what, _)| *what).collect();
         assert_eq!(kinds(""), all);
         assert_eq!(kinds("fn-number"), all);
         assert_eq!(kinds("leptos"), ["a server-rendered Leptos application"]);
@@ -1303,7 +1189,7 @@ mod tests {
         assert_eq!(kinds("ratatui"), ["a command-line tool or a terminal UI"]);
         assert_eq!(kinds("axum"), ["an Axum server"]);
         assert_eq!(kinds("host-std"), ["no framework"]);
-        let message = Features::parse("leptos").no_date_formatter("datetime");
+        let message = Features::parse("leptos").refusal::<DateBackend>("datetime");
         assert!(
             message.contains("`leptos-server-datetime-icu`"),
             "{message}"
@@ -1318,33 +1204,82 @@ mod tests {
              host-web-datetime-intl",
         );
         assert_eq!(
-            features.date_features_on(Side::Native),
+            features.features_on::<DateBackend>(Side::Native),
             ["axum-datetime-icu", "host-std-datetime-iso"]
         );
         assert_eq!(
-            features.date_features_on(Side::Browser),
+            features.features_on::<DateBackend>(Side::Browser),
             ["host-web-datetime-intl"]
         );
         assert_eq!(features.icu_date_features(), ["axum-datetime-icu"]);
         assert_eq!(
-            features.date_features_without_framework(),
+            features.without_framework::<DateBackend>(),
             ["axum-datetime-icu"]
         );
         let with = Features::parse("axum,axum-datetime-icu,ssr,leptos-client-datetime-intl");
-        assert!(with.date_features_without_framework().is_empty());
+        assert!(with.without_framework::<DateBackend>().is_empty());
         assert_eq!(
             Features::parse("native-datetime-iso,leptos-server-datetime-icu")
-                .date_features_without_framework(),
+                .without_framework::<DateBackend>(),
             ["leptos-server-datetime-icu", "native-datetime-iso"]
         );
     }
 
     #[test]
+    fn the_table_gives_the_date_features_and_the_line_of_each_kind() {
+        // Family by family, the weakest formatter first: the order `mf2
+        // check` lists what is on in.
+        assert_eq!(
+            super::domain_features::<DateBackend>(),
+            [
+                "datetime",
+                "host-std-datetime-iso",
+                "host-std-datetime-icu",
+                "host-web-datetime-iso",
+                "host-web-datetime-intl",
+                "host-web-datetime-icu",
+                "leptos-client-datetime-iso",
+                "leptos-client-datetime-intl",
+                "leptos-client-datetime-icu",
+                "leptos-server-datetime-iso",
+                "leptos-server-datetime-icu",
+                "axum-datetime-iso",
+                "axum-datetime-icu",
+                "native-datetime-iso",
+                "native-datetime-icu",
+            ]
+        );
+        let lines = super::kind_lines::<DateBackend>();
+        let lines: Vec<(&str, Vec<&str>)> = lines
+            .iter()
+            .map(|(what, features)| (*what, features.iter().map(String::as_str).collect()))
+            .collect();
+        assert_eq!(
+            lines,
+            [
+                (
+                    "a server-rendered Leptos application",
+                    vec!["leptos-client-datetime-intl", "leptos-server-datetime-icu"]
+                ),
+                (
+                    "a command-line tool or a terminal UI",
+                    vec!["native-datetime-icu"]
+                ),
+                ("an Axum server", vec!["axum-datetime-icu"]),
+                (
+                    "no framework",
+                    vec!["host-std-datetime-icu", "host-web-datetime-intl"]
+                ),
+            ]
+        );
+    }
+
+    #[test]
     fn each_side_recommends_its_formatter() {
-        assert_eq!(Side::Browser.recommended(), DateFormatter::Intl);
-        assert_eq!(Side::Native.recommended(), DateFormatter::Icu);
+        assert_eq!(DateBackend::recommended(Side::Browser), DateBackend::Intl);
+        assert_eq!(DateBackend::recommended(Side::Native), DateBackend::Icu);
         for side in Side::ALL {
-            assert!(side.formatters().contains(&side.recommended()));
+            assert!(DateBackend::offered(side).contains(&DateBackend::recommended(side)));
         }
     }
 }
