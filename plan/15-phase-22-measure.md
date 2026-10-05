@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.9. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.9–22.10, the cost table again, 22.11
+* **Next:** 22.10, the cost table again, 22.11
 
 ## Done
 
@@ -89,6 +89,11 @@ starts in a fresh session.
   / `Intl` ns, en pl ar: a date 1.55–2.60, date and time 1.85–2.91, a zone name 6.00–8.13 (4×
   throttle alike). Cached ICU4X / `Intl`: 0.42–0.69, a zone name 0.75–0.98; the cache is 3.5–4.3×
   (7.1–9.0× with a zone name), but 22.7 keeps it out of the browser. Script ran unchanged.
+* 22.9 (`bench/intl-probe/scripts/7-names.sh`, load ≤ 1.7, no other build; no WebKit): split vs Rust
+  path: client +118 B gz; catalog br −227 to −387 B a language; ns 4.0–7.4× `:currency`, 2.5–4.5×
+  `:unit`; text same 1160/1232 + 857/924 (Chromium; cy has no names there), 1202 + 899 (Firefox):
+  ar/he doubled LRM, ar long liter "لتر1". Script fixed: Rust registry lacked `:currency`/`:unit`,
+  page catalogs lacked number data (new `loc-names` set).
 
 ## Before this phase
 
