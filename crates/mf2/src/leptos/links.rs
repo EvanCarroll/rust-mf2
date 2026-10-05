@@ -42,7 +42,9 @@ pub const ZONE_ATTR: &str = "data-mf2-zone";
 /// date formatter the server rendered the page with, as
 /// [`date_formatter`] spells it. When it is not the client's, the client
 /// rewrites every text it hydrated (`plan/08` §4.3). Absent, the server
-/// formats no dates and nothing is rewritten for the formatter.
+/// formats no dates, or the application's two formatters never make a
+/// rewrite (the same on both sides, or ICU4X under `Intl`), and nothing is
+/// rewritten for the formatter.
 pub const DATES_ATTR: &str = "data-mf2-dates";
 
 /// The date formatter of this build's side: `icu`, `intl` (a browser build
@@ -69,6 +71,20 @@ pub const fn date_formatter() -> Option<&'static str> {
             "iso"
         },
     )
+}
+
+/// What a server's page states in [`DATES_ATTR`]: [`date_formatter`], but
+/// `None` where this build sees both sides' date formatters and they never
+/// make the client rewrite (the same on both sides, or ICU4X on the server
+/// under `Intl`, `plan/08` §4.3). Such a client links no rewrite code, so
+/// the page need not say.
+#[must_use]
+pub const fn stated_date_formatter() -> Option<&'static str> {
+    if cfg!(mf2_date_rewrite) {
+        date_formatter()
+    } else {
+        None
+    }
 }
 
 pub use crate::links::LOCALE_QUERY;

@@ -697,7 +697,7 @@ impl Relocalize for RichNode {
     /// hydrated, which is the client's; the page holds the server's. An
     /// empty rebuild first unmounts every child, so the full one mounts
     /// them again with the client's text, in one synchronous step.
-    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    #[cfg(all(feature = "hydrate", feature = "datetime", mf2_date_rewrite))]
     fn rewrite(&mut self, catalog: &mf2_catalog::Catalog) {
         Vec::<tachys::view::any_view::AnyView>::new().rebuild(&mut self.state);
         rich::fragment(&self.desc, catalog).rebuild(&mut self.state);

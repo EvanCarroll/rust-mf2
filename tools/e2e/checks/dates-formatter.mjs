@@ -2,8 +2,9 @@
 // `cargo xtask l7-web`, which renders conformance L7's en-US islands page
 // twice with `conformance/l7-web`'s `l7-page` — once by a server with the ISO
 // stand-in (target/l7-web/dates-iso/), once with ICU4X (dates-icu/) — and
-// hydrates both with a client that formats with `Intl`. Each page states the
-// server's formatter on its preload link (`data-mf2-dates`).
+// hydrates both with a client that formats with `Intl`. The ISO page states the
+// server's formatter on its preload link (`data-mf2-dates`); the ICU4X one,
+// whose pair never rewrites, states none.
 //
 // The date cases are the ones whose server text differs between the two
 // renders. In each engine, in a UTC browser (so that the reader's-zone
@@ -117,7 +118,7 @@ async function hydrate(browser, configuration, cases, { dates = [], tamper = fal
   await context.addInitScript(`document.addEventListener('DOMContentLoaded', () => {
     window.__served = (${CASE_TEXT})();
     const link = document.querySelector('link[data-mf2]');
-    window.__stated = link ? link.getAttribute('data-mf2-dates') : null;
+    window.__stated = link ? (link.getAttribute('data-mf2-dates') ?? 'none') : null;
     (${watchWrites})(${JSON.stringify(dates)}, ${tamper});
   });`);
   const page = await context.newPage();
@@ -222,10 +223,12 @@ export async function run(ctx) {
   }
   assert('tampered/console-silent', t.console.length === 0, t.console.slice(0, 3));
 
-  // ICU4X on the server, `Intl` in the browser: nothing is rewritten.
+  // ICU4X on the server, `Intl` in the browser: nothing is rewritten, and
+  // since the build knows the pair never rewrites, the page states no
+  // formatter (its preload link is there, without `data-mf2-dates`).
   const b = await hydrate(browser, 'dates-icu', icu.cases.length);
   assert('icu/hydrated', b.error === null, b.error ?? undefined);
-  assert('icu/states-icu', b.stated === 'icu', { stated: b.stated });
+  assert('icu/states-none', b.stated === 'none', { stated: b.stated });
   const rewritten = icu.cases
     .filter((c) => norm(b.hydrated[c.id] ?? '') !== norm(b.served[c.id] ?? ''))
     .map((c) => [c.id, b.served[c.id], b.hydrated[c.id]]);

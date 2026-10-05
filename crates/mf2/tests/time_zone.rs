@@ -171,12 +171,30 @@ fn the_page_states_the_servers_date_formatter() {
         "iso"
     };
     assert_eq!(mf2::leptos::links::date_formatter(), Some(want));
+    // The browser's formatter, when this build sees it: the strongest of its
+    // features. A pair that never rewrites (the same formatter on both
+    // sides, or ICU4X under `Intl`) states nothing, and its client links no
+    // rewrite code (22.14).
+    let browser = if cfg!(feature = "host-web-datetime-icu") {
+        Some("icu")
+    } else if cfg!(feature = "host-web-datetime-intl") {
+        Some("intl")
+    } else if cfg!(feature = "host-web-datetime-iso") {
+        Some("iso")
+    } else {
+        None
+    };
+    let stated = browser.is_none_or(|b| b != want && (want, b) != ("icu", "intl"));
     for reader in [None, Some("America/New_York")] {
         let html = in_request(reader, || view! { <CatalogPreload /> }.to_html());
-        assert!(
-            html.contains(&format!(r#"data-mf2-dates="{want}""#)),
-            "{html}"
-        );
+        if stated {
+            assert!(
+                html.contains(&format!(r#"data-mf2-dates="{want}""#)),
+                "{html}"
+            );
+        } else {
+            assert!(!html.contains("data-mf2-dates"), "{html}");
+        }
     }
 }
 

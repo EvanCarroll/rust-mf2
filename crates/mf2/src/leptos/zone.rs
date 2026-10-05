@@ -26,7 +26,9 @@
 //! the same queue rewrites **every date message** it hydrated, whatever the
 //! zone. ICU4X on the server and `Intl` in the browser is the one difference
 //! that is left alone: the server's text is a localized date already, and
-//! stays until its node next updates (`plan/08` §4.3).
+//! stays until its node next updates (`plan/08` §4.3). Where the build sees
+//! both sides' formatters and they never make a rewrite, none of this is
+//! linked and the page states nothing (`mf2_date_rewrite`, the build script).
 //!
 //! **Only date messages** (owner, 2026-10-04): both act only on a message
 //! that calls a date function — `:datetime`, `:date`, `:time`, or one the
@@ -165,13 +167,25 @@ mod correction {
     std::thread_local! {
         static PHASE: Cell<Phase> = const { Cell::new(Phase::Idle) };
         static QUEUE: RefCell<Vec<Queued>> = const { RefCell::new(Vec::new()) };
+    }
+
+    #[cfg(mf2_date_rewrite)]
+    std::thread_local! {
         /// The server's date formatter is not the client's: every queued
         /// node is rewritten, not only those whose text the zone changes.
         static REWRITE: Cell<bool> = const { Cell::new(false) };
     }
 
+    #[cfg(mf2_date_rewrite)]
     fn rewrite() -> bool {
         REWRITE.with(Cell::get)
+    }
+
+    /// The application's two date formatters never make a rewrite
+    /// (`mf2_date_rewrite`, the build script): no rewrite code is linked.
+    #[cfg(not(mf2_date_rewrite))]
+    const fn rewrite() -> bool {
+        false
     }
 
     /// Whether message `id` formats a date: it calls a function the
@@ -207,6 +221,7 @@ mod correction {
     /// the server states a formatter that is not the client's, other than
     /// ICU4X under `Intl` (left alone, §4.3). A page that states none
     /// formats no dates on the server.
+    #[cfg(mf2_date_rewrite)]
     fn formatter_differs(link: Option<&web_sys::Element>) -> bool {
         let Some(own) = crate::leptos::links::date_formatter() else {
             return false;
@@ -252,8 +267,12 @@ mod correction {
         let link = preload_link();
         let (stated, page) = page_zone(link.as_ref());
         set(stated);
+        #[cfg(mf2_date_rewrite)]
         let differs = formatter_differs(link.as_ref());
+        #[cfg(mf2_date_rewrite)]
         REWRITE.with(|r| r.set(differs));
+        #[cfg(not(mf2_date_rewrite))]
+        let differs = rewrite();
         let moved = browser_zone().filter(|(reader, _)| !same(&page, reader));
         if moved.is_none() && !differs {
             return;
@@ -313,11 +332,12 @@ mod correction {
         if !formats_date(catalog, node.msg_id()) {
             return;
         }
+        #[cfg(mf2_date_rewrite)]
         if rewrite() {
             node.rewrite(catalog);
-        } else {
-            node.relocalize(catalog);
+            return;
         }
+        node.relocalize(catalog);
     }
 
     /// The cookie the server renders the next page in.

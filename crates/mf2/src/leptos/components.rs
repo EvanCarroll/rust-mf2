@@ -77,7 +77,7 @@ impl ui::Layer for Mf2 {
             .map(crate::leptos::links::catalog_href)?;
         let zone = crate::leptos::catalog::request_time_zone()
             .and_then(|zone| crate::leptos::zone::zone_name(&zone).map(String::from));
-        let dates = crate::leptos::links::date_formatter();
+        let dates = crate::leptos::links::stated_date_formatter();
         let query = crate::leptos::catalog::locale_query();
         let query = (query != crate::links::LOCALE_QUERY).then_some(query);
         Some((href, zone, dates, query))

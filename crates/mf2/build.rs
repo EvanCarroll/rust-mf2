@@ -24,6 +24,39 @@ fn main() {
         std::env::var("TARGET").unwrap_or_default()
     );
     println!("cargo::metadata=version={}", env!("CARGO_PKG_VERSION"));
+    // `mf2_date_rewrite`: whether the browser can rewrite a hydrated page's
+    // dates because the server formats them with another formatter
+    // (`plan/08` §4.3). Both builds of an application see both sides'
+    // features, so where the pair is known and never rewrites (the same
+    // formatter on both sides, or ICU4X on the server under `Intl`), the
+    // client links no rewrite code and the page states no formatter. A side
+    // whose formatter this build cannot see may rewrite: the page decides.
+    println!("cargo::rustc-check-cfg=cfg(mf2_date_rewrite)");
+    let on = |feature: &str| std::env::var_os(format!("CARGO_FEATURE_{feature}")).is_some();
+    // The strongest of a side's features formats, as `leptos::links::date_formatter`.
+    let browser = if on("HOST_WEB_DATETIME_ICU") {
+        Some("icu")
+    } else if on("HOST_WEB_DATETIME_INTL") {
+        Some("intl")
+    } else if on("HOST_WEB_DATETIME_ISO") {
+        Some("iso")
+    } else {
+        None
+    };
+    let server = if on("HOST_STD_DATETIME_ICU") {
+        Some("icu")
+    } else if on("HOST_STD_DATETIME_ISO") {
+        Some("iso")
+    } else {
+        None
+    };
+    let rewrites = match (server, browser) {
+        (Some(server), Some(browser)) => server != browser && (server, browser) != ("icu", "intl"),
+        _ => true,
+    };
+    if rewrites {
+        println!("cargo::rustc-cfg=mf2_date_rewrite");
+    }
     // The features are the unit's own: a change makes another unit, which
     // runs this again. Nothing else here can change the output.
     println!("cargo::rerun-if-changed=build.rs");

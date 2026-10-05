@@ -142,7 +142,7 @@ fn link_tags(locale: &str) -> String {
             );
             // The server's date formatter, which the client compares with
             // its own (plan/08 §4.3), as `CatalogPreload` states it.
-            if let Some(dates) = mf2::leptos::links::date_formatter() {
+            if let Some(dates) = mf2::leptos::links::stated_date_formatter() {
                 let _ = write!(out, " {}=\"{dates}\"", mf2::leptos::links::DATES_ATTR);
             }
             out.push('>');

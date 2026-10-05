@@ -123,7 +123,8 @@ impl Target {
         always: bool,
     ) {
         let use_ = self.text_use();
-        if always {
+        // Never true where the pair of formatters cannot rewrite.
+        if cfg!(mf2_date_rewrite) && always {
             text::with_text(desc, catalog, use_, |now| self.write(now));
             return;
         }
@@ -161,7 +162,7 @@ pub(crate) trait Relocalize {
     /// rebuild thinks unchanged: after hydration under another date
     /// formatter than the server's, the view's state holds the client's
     /// text and the page the server's (`crate::leptos::zone`).
-    #[cfg(all(feature = "hydrate", feature = "datetime"))]
+    #[cfg(all(feature = "hydrate", feature = "datetime", mf2_date_rewrite))]
     fn rewrite(&mut self, catalog: &Catalog);
 
     /// The message it renders: the correction rewrites it only when that
