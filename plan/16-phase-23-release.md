@@ -17,8 +17,8 @@ plan pointers in the code, went to the code phases as 19.7.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
-  is merged.
+* **In flight:** 23.0, the generated module under a strict clippy.
+  A worktree made for a task is removed once its work is merged.
 * **Next:** 23.1
 
 ## Done
@@ -28,7 +28,8 @@ plan pointers in the code, went to the code phases as 19.7.
 ## Before this phase
 
 * Phases 11 to 22 are done, each with its exit recorded, and the owner's
-  answer on the number split is in `plan/08` §2.7.
+  answer on the number split is in `plan/08` §2.7. The one exception is 23.0,
+  the generator fix, which the task says may run while Phase 22's exit is open.
 * The owner's crates.io credentials are set up on this machine
   (`cargo login`), as they were for 2.0.0.
 
@@ -43,6 +44,49 @@ plan pointers in the code, went to the code phases as 19.7.
 * From here on no commit is made with `cargo xtask ci` red (`CLAUDE.md`).
 
 ## Tasks
+
+### 23.0 The generated module under a strict clippy
+
+Found 2026-10-05 in a trial port of a terminal application to 2.0, with no mf2
+code changed: an application that includes the generated module with
+`mf2::include_generated!()` and runs clippy with `pedantic` and `nursery` at
+`-D warnings` gets 41 errors from code it did not write, all pointing into the
+`mf2_generated.rs` that `mf2-build` writes to `OUT_DIR` — `use_self` 31,
+`too_long_first_doc_paragraph` 7, `must_use_candidate` 2, `or_fun_call` 1. Code
+pulled in with `include!` is linted as the including crate's own code, so the
+application cannot fix them in its own source and its CI is red until it wraps
+mf2's include in allowances. Nothing in this workspace sees them: mf2's
+`[workspace.lints.clippy]` enables `pedantic` only and allows
+`must_use_candidate`, `nursery` is enabled nowhere, and `cargo xtask
+codegen-matrix` builds `tools/i18n-fixture` with `cargo check`.
+
+This task runs before the phase's gate, with Phase 22's exit still open: it is a
+generator fix that has to land before the pre-flight, and the only figure it can
+move is a few bytes from `ok_or_else`. What it moves, 23.1's
+`compare.sh p21 p23` flags.
+
+1. `crates/mf2-build/src/codegen.rs` emits code that is clean under `pedantic`
+   and `nursery`: `Self` inside `impl Locale` (`ALL`, `SOURCE`, the `match` arms
+   and the `from_str` return type), `#[must_use]` on the generated `has_locale`
+   and `registry`, `ok_or_else` in `from_str`, and a one-line first paragraph on
+   every generated doc comment, the rest after a blank line. No blanket group
+   allowance on the generated items: it would hide the same lints from mf2's own
+   checks and would do nothing for an application that enables `restriction`
+   lints one by one. A targeted `allow` beside the code it covers, as
+   `enum_variant_names` is today, only where a lint cannot reasonably be
+   satisfied — and it is named in the commit.
+2. The string assertions in that file's own tests, and the generated snippets
+   quoted in `docs/`, say what the generator now emits.
+3. `tools/i18n-fixture` carries its own `[lints.clippy]` instead of inheriting
+   the workspace's — `pedantic` and `nursery` at warn, `must_use_candidate` not
+   allowed — and its hand-written source is clean under them. `cargo xtask
+   codegen-matrix` runs `clippy ... -- -D warnings` in place of `check` for at
+   least the server, native and client sets, so the generator cannot regress
+   silently.
+4. `CHANGELOG.md`'s 3.0.0 entry names it: the generated module was not clean
+   under an application's strict clippy, and is now.
+5. Check: `cargo xtask codegen-matrix`, then `cargo xtask ci`. Commit by path
+   with `ci` green.
 
 ### 23.1 Pre-flight
 
