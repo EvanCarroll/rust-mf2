@@ -6,17 +6,13 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
 
 ## Start here
 
-1. Read the documents in `plan/` (not its `archive/`). `plan/01-size-and-features.md` is the
-   current proposal: native binary size, the feature structure, and three optimizations.
-   `plan/08-dates-and-what-ships-where.md` replaces its date features (owner, 2026-10-03):
-   who formats a date on each side, and what data ships where. **All the code first, then
-   compile, test and measure** (owner, 2026-10-03; `plan/08` §8): Phases 16 to 19 write the
-   code and compile nothing, Phase 20 compiles it, Phase 21 tests it, Phase 22 measures it,
-   each once; Phase 23 is the release.
-2. **Never read, search, list or reference `plan/archive/`.** It holds the plans of phases
-   0–10 (the former `plans/` directory) and is kept as history only. Paths such as
-   `plans/03-runtime.md` in code comments point into it; do not follow them. If something
-   seems to be decided only there, ask the owner.
+1. **The `plan/` directory is off-limits** (owner, 2026-10-05). Never read, search, list or
+   reference it, or anything under it, and never ask to. Permission rules and a Bash hook in
+   `.claude/` refuse it; do not work around them. Paths into it appear in code comments and in
+   old commit messages — do not follow them. What an agent needs comes from the code, from
+   `docs/`, from `CHANGELOG.md`, from this file, or from the owner: ask.
+2. The release state, and what is left before publication: `I_AM_A_DUMB_AI.md` at the root
+   (untracked, excluded locally). Keep it current — it is where the owner reads it.
 3. **Phases 1–10 are done.**
    - Release: 1.0.0 and **2.0.0 are on crates.io** (2.0.0 published 2026-09-30, tag `v2.0.0`);
      1.1.0 was never published.
@@ -30,7 +26,7 @@ This section is the canonical statement of the rule; other documents point here.
 
 * Do **not** read, search, list or reference anything outside the repository
   root: no parent directories, no sibling directories, no other projects on this
-  machine. Everything needed is in the tree (`plan/`, `third_party/`, the
+  machine. Everything needed is in the tree (`third_party/`, the
   committed corpora in `bench/corpora/`) or is produced by a Phase 0 task
   (CLDR inputs: A4; the reference workload: A7). The Phase 0 probes and the
   planning session's scratch code (`probes/`, `probes/audit/`) were deleted in
@@ -63,8 +59,8 @@ This section is the canonical statement of the rule; other documents point here.
 * **Every deviation is the owner's to see** (owner, 2026-10-03). A regression, or a known
   departure from the smallest or fastest option — in a Leptos server or client, a
   command-line tool, a terminal UI — is reported to the owner in plain English, with its
-  measurement and the command, when it is found: never only in a plan entry or a results
-  file. A cost that was not measured is reported as not measured.
+  measurement and the command, when it is found: never only in a results file. A cost that
+  was not measured is reported as not measured.
 * **Data goes only where it is read, and every bundle has a setting.** A catalog section, a
   locale entry, a date slice, a time-zone database: each can be left out or placed, and
   none is shipped to a side that does not read it. `Intl` formats what it can in the
@@ -76,7 +72,8 @@ This section is the canonical statement of the rule; other documents point here.
   panicking indexing on the client path.
 * **Don't build worse than what exists.** Replacing an existing crate with our
   own needs a measured baseline, a gate, and a fallback.
-* If the plan is wrong, change the plan in the same change that departs from it.
+* A design that turns out to be wrong is the owner's to change: say so, with the evidence,
+  and wait for the answer rather than departing from it quietly.
 
 ## Conventions
 
@@ -105,7 +102,7 @@ This section is the canonical statement of the rule; other documents point here.
 
 ## Layout
 
-`plan/` · `third_party/` (pinned spec, test suite, CLDR subset, resource-format
+`third_party/` (pinned spec, test suite, CLDR subset, resource-format
 pin) · `crates/` · `conformance/` · `bench/` · `examples/` · `fuzz/` · `xtask/` ·
 `tools/` · `.forgejo/workflows/`. (`probes/`, the throwaway Phase 0
 experiments, was deleted in Phase 2; see the first commit.)
