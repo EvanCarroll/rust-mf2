@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.3. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.4–22.11
 
@@ -58,6 +58,11 @@ starts in a fresh session.
   248,067 → 247,768 B gz (−299, not −466: about 210 B of 17.3 remain, not attributed); the ICU4X
   page states no formatter (`icu/states-none`); `l7-web` 70/70; `stated_date_formatter` hidden.
   (`cargo leptos build --release --split --frontend-only`, `node tools/checks/measure-demo.mjs`.)
+* 22.3 (`cargo xtask feature-costs`, `--check` holds; absolutes rebuilt the xtask's way, `target/abs.sh`):
+  client gz iso / icu / intl 699,516 / 758,909 / 699,832; native iso-less / iso / icu 419,784 / 587,104 /
+  748,592. >10 %: browser icu 99,887 → 59,272; native `fn-number` 8,080 → 9,920 (canary gained a
+  placeholder); native icu 893,136 → 748,592 (§1.2). **Unused and not 0: `native-datetime-icu` +146,080 B**
+  (client `intl` unused −2 B). Slice brotli ar-XB/en/en-XA/pl: 316/466/298/317 with icu, 0 with intl.
 
 ## Before this phase
 
