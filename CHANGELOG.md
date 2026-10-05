@@ -153,9 +153,10 @@ What a version number promises, `mf2`'s feature names among it, is in
   language asks), and `[dates]` in `mf2.toml` overrides it.
 * **Added: `icu-cached`, ICU4X with its formatter cache in the browser.**
   `leptos-client-datetime-icu-cached` and `host-web-datetime-icu-cached`
-  format dates as `icu` does, 3.5 to 8.9 times faster, for 1,667 B of gzip
-  more wasm (measured by `tools/e2e/datetime/speed.sh`): ICU4X's data is set
-  up once for each catalog and a formatter kept for each language and date
+  format dates as `icu` does, 3.5 to 8.9 times faster
+  (`tools/e2e/datetime/speed.sh`), for 2,231 B of gzip more wasm on the
+  reference workload (`cargo xtask feature-costs`): ICU4X's data is set up
+  once for each catalog and a formatter kept for each language and date
   shape. Native code's `icu` always has the cache, which costs no download
   there, and the browser's `icu` has it only when asked.
 * **Changed: a browser that formats dates with `Intl` downloads no date

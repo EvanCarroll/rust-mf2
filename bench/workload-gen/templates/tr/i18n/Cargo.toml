@@ -33,6 +33,7 @@ leptos-server-number-builtin = ["mf2/leptos-server-number-builtin"]
 leptos-client-datetime-iso = ["mf2/leptos-client-datetime-iso"]
 leptos-client-datetime-intl = ["mf2/leptos-client-datetime-intl"]
 leptos-client-datetime-icu = ["mf2/leptos-client-datetime-icu", "mf2-build/icu-blob"]
+leptos-client-datetime-icu-cached = ["mf2/leptos-client-datetime-icu-cached", "mf2-build/icu-blob"]
 
 [dependencies]
 mf2 = { path = "../../../../../crates/mf2" }

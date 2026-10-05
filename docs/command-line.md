@@ -103,7 +103,7 @@ mf2 features (as --features names them):
   the corpus needs: numbers
   on:               native-number-builtin
   on and unused:    none
-  native code:      `builtin` formats numbers (native-number-builtin; +9,920 B over `plain`, and the number data)
+  native code:      `builtin` formats numbers (native-number-builtin; +9.9 KB over `plain`, and the number data)
   write:            mf2 = { ..., features = ["native", "native-number-builtin"] }
 mf2 check: 9 messages in 2 locales, nothing to report
 ```

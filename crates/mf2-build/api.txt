@@ -48,7 +48,7 @@ pub const mf2_build::DateBackend::FUNCTIONS: &'static str
 pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
 pub const mf2_build::DateBackend::THINGS: &'static str
-pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> alloc::string::String
 pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<mf2_build::DateBackend>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
 pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
@@ -287,7 +287,7 @@ pub const mf2_build::NumberBackend::FUNCTIONS: &'static str
 pub const mf2_build::NumberBackend::NOUN: &'static str
 pub const mf2_build::NumberBackend::THING: &'static str
 pub const mf2_build::NumberBackend::THINGS: &'static str
-pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> alloc::string::String
 pub fn mf2_build::NumberBackend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::NumberBackend::name(self) -> &'static str
 pub fn mf2_build::NumberBackend::offered(mf2_build::Side) -> &'static [mf2_build::NumberBackend]
@@ -622,7 +622,7 @@ pub const mf2_build::Backend::FUNCTIONS: &'static str
 pub const mf2_build::Backend::NOUN: &'static str
 pub const mf2_build::Backend::THING: &'static str
 pub const mf2_build::Backend::THINGS: &'static str
-pub fn mf2_build::Backend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::Backend::cost(self, mf2_build::Side) -> alloc::string::String
 pub fn mf2_build::Backend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::Backend::name(self) -> &'static str
 pub fn mf2_build::Backend::offered(mf2_build::Side) -> &'static [Self]
@@ -635,7 +635,7 @@ pub const mf2_build::DateBackend::FUNCTIONS: &'static str
 pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
 pub const mf2_build::DateBackend::THINGS: &'static str
-pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> alloc::string::String
 pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<mf2_build::DateBackend>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
 pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
@@ -648,7 +648,7 @@ pub const mf2_build::NumberBackend::FUNCTIONS: &'static str
 pub const mf2_build::NumberBackend::NOUN: &'static str
 pub const mf2_build::NumberBackend::THING: &'static str
 pub const mf2_build::NumberBackend::THINGS: &'static str
-pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> alloc::string::String
 pub fn mf2_build::NumberBackend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::NumberBackend::name(self) -> &'static str
 pub fn mf2_build::NumberBackend::offered(mf2_build::Side) -> &'static [mf2_build::NumberBackend]

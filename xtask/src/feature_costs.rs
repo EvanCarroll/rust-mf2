@@ -42,6 +42,10 @@ use crate::fsx;
 /// The committed table, relative to the repository root.
 const TABLE: &str = "docs/feature-costs.md";
 
+/// The figures the build's messages are composed from (`mf2-build`'s
+/// `Backend::cost`), written with [`TABLE`] and held to it by a test here.
+const CONSTANTS: &str = "crates/mf2-build/src/features/costs.rs";
+
 /// `:number` messages in both client corpora, and `:datetime` messages in the
 /// dates corpus (of 1,600 messages at the small scale).
 const NUMBERS: &str = "150";
@@ -116,6 +120,9 @@ struct Cost {
     /// The feature is on and nothing uses it: the smallest build would add
     /// 0, so a run reports anything more as a finding.
     unused: bool,
+    /// The constant of [`CONSTANTS`] that carries the figure, when a
+    /// message of the build quotes it.
+    says: Option<&'static str>,
 }
 
 // A message that formats a number builds only where its side has named a
@@ -141,6 +148,10 @@ const C_DATE_ISO: Build = client(
 const C_DATE_ICU: Build = client(
     Corpus::Dates,
     "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-icu",
+);
+const C_DATE_ICU_CACHED: Build = client(
+    Corpus::Dates,
+    "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-icu-cached",
 );
 const C_DATE_INTL: Build = client(
     Corpus::Dates,
@@ -179,6 +190,7 @@ const COSTS: &[Cost] = &[
         with: C_BUILTIN,
         corpus: WORKLOAD_NUMBERS,
         unused: false,
+        says: Some("NUMBER_BUILTIN_BROWSER"),
     },
     Cost {
         feature: "leptos-client-number-intl",
@@ -186,6 +198,7 @@ const COSTS: &[Cost] = &[
         with: C_NUMBER_INTL,
         corpus: WORKLOAD_NUMBERS,
         unused: false,
+        says: Some("NUMBER_INTL_BROWSER"),
     },
     Cost {
         // A build without a date formatter refuses a `:datetime` message, so the
@@ -195,6 +208,7 @@ const COSTS: &[Cost] = &[
         with: C_DATE_ISO,
         corpus: WORKLOAD_DATES,
         unused: false,
+        says: Some("DATE_ISO_BROWSER"),
     },
     Cost {
         feature: "leptos-client-datetime-icu",
@@ -202,6 +216,15 @@ const COSTS: &[Cost] = &[
         with: C_DATE_ICU,
         corpus: WORKLOAD_DATES,
         unused: false,
+        says: Some("DATE_ICU_BROWSER"),
+    },
+    Cost {
+        feature: "leptos-client-datetime-icu-cached",
+        without: C_DATE_ICU,
+        with: C_DATE_ICU_CACHED,
+        corpus: WORKLOAD_DATES,
+        unused: false,
+        says: Some("DATE_ICU_CACHED_BROWSER"),
     },
     Cost {
         feature: "leptos-client-datetime-intl",
@@ -209,6 +232,7 @@ const COSTS: &[Cost] = &[
         with: C_DATE_INTL,
         corpus: WORKLOAD_DATES,
         unused: false,
+        says: Some("DATE_INTL_BROWSER"),
     },
     Cost {
         feature: "leptos-client-datetime-intl",
@@ -216,6 +240,7 @@ const COSTS: &[Cost] = &[
         with: C_INTL_NO_DATE,
         corpus: WORKLOAD_NO_DATE,
         unused: true,
+        says: None,
     },
     Cost {
         feature: "native-number-builtin",
@@ -223,6 +248,7 @@ const COSTS: &[Cost] = &[
         with: native("native,native-number-builtin"),
         corpus: CANARY,
         unused: false,
+        says: Some("NUMBER_BUILTIN_NATIVE"),
     },
     Cost {
         feature: "native-datetime-iso",
@@ -230,6 +256,7 @@ const COSTS: &[Cost] = &[
         with: N_ISO,
         corpus: CANARY_DATES,
         unused: false,
+        says: Some("DATE_ISO_NATIVE"),
     },
     Cost {
         feature: "native-datetime-icu",
@@ -237,6 +264,7 @@ const COSTS: &[Cost] = &[
         with: N_ICU,
         corpus: CANARY_DATES,
         unused: false,
+        says: Some("DATE_ICU_NATIVE"),
     },
     Cost {
         feature: "native-datetime-icu",
@@ -244,6 +272,7 @@ const COSTS: &[Cost] = &[
         with: N_ICU_NO_DATE,
         corpus: CANARY_NO_DATE,
         unused: true,
+        says: None,
     },
     Cost {
         feature: "tzdb-bundled",
@@ -251,6 +280,7 @@ const COSTS: &[Cost] = &[
         with: native("native,native-number-plain,native-datetime-iso,tzdb-bundled"),
         corpus: CANARY_DATES,
         unused: false,
+        says: None,
     },
     Cost {
         feature: "tzdb-bundled",
@@ -258,6 +288,7 @@ const COSTS: &[Cost] = &[
         with: native("native,native-number-plain,tzdb-bundled"),
         corpus: "no date in any message, so the feature is on and unused",
         unused: true,
+        says: None,
     },
     Cost {
         feature: "compile",
@@ -265,6 +296,7 @@ const COSTS: &[Cost] = &[
         with: native("native,native-number-plain,compile"),
         corpus: "the canary's messages, and one compiled at run time",
         unused: false,
+        says: None,
     },
     Cost {
         feature: "ratatui",
@@ -272,6 +304,7 @@ const COSTS: &[Cost] = &[
         with: native("ratatui,native-number-plain"),
         corpus: "a message drawn as a Ratatui `Line`",
         unused: false,
+        says: None,
     },
     Cost {
         feature: "clap",
@@ -279,6 +312,7 @@ const COSTS: &[Cost] = &[
         with: native("native,native-number-plain,clap"),
         corpus: "`--lang` parsed by clap",
         unused: false,
+        says: None,
     },
 ];
 
@@ -346,7 +380,8 @@ pub(crate) fn run(root: &Path, check: bool, keep: bool) -> Result<()> {
 
     if !check {
         fsx::write(&root.join(TABLE), table.as_bytes())?;
-        eprintln!("feature-costs: wrote {TABLE}");
+        fsx::write(&root.join(CONSTANTS), constants(&figures).as_bytes())?;
+        eprintln!("feature-costs: wrote {TABLE} and {CONSTANTS}");
         return Ok(());
     }
     let committed = committed(&fsx::read_to_string(&root.join(TABLE))?);
@@ -518,6 +553,36 @@ fn catalogs(workload: &Path, out: &Path, build: Build) -> Result<BTreeMap<String
             )
         })
         .collect())
+}
+
+/// [`CONSTANTS`]: each figure a message of the build quotes, under the name
+/// its row gives it, in the table's order.
+fn constants(figures: &[i64]) -> String {
+    let mut s = String::from(
+        "//! What each formatter costs, as `cargo xtask feature-costs` measured it.\n\
+         //!\n\
+         //! Written by that command beside `docs/feature-costs.md`, and held to that\n\
+         //! table by `cargo xtask ci`: do not edit by hand. A browser's figure is\n\
+         //! gzip bytes of the client wasm, native code's bytes of the stripped\n\
+         //! binary; each is the size with the feature less the size without it,\n\
+         //! against the build the table names.\n",
+    );
+    for (cost, figure) in COSTS.iter().zip(figures) {
+        let Some(name) = cost.says else { continue };
+        let _ = write!(
+            s,
+            "\n/// `{}`, set against {}.\npub(super) const {name}: i64 = {};\n",
+            cost.feature,
+            shown(cost.without),
+            literal(*figure)
+        );
+    }
+    s
+}
+
+/// `12345` as the integer literal `12_345`.
+fn literal(n: i64) -> String {
+    thousands(n).replace(',', "_")
 }
 
 /// How a row is known in the table: feature, side and what it is set against.
@@ -739,7 +804,7 @@ mod tests {
                 .iter()
                 .any(|c| c.feature == feature && c.with.side == side && c.unused == unused)
         };
-        for formatter in ["iso", "icu", "intl"] {
+        for formatter in ["iso", "icu", "icu-cached", "intl"] {
             let feature = format!("leptos-client-datetime-{formatter}");
             assert!(row(&feature, Side::Client, false), "{feature}");
         }
@@ -748,6 +813,38 @@ mod tests {
         assert!(row("native-datetime-icu", Side::Native, false));
         assert!(row("native-datetime-icu", Side::Native, true));
         assert!(!COSTS.iter().any(|c| c.feature.starts_with("host-web-")));
+    }
+
+    /// The figures the build's messages quote are the committed table's:
+    /// [`CONSTANTS`] is what [`constants`] writes from [`TABLE`], so neither
+    /// can be edited, or regenerated, without the other.
+    #[test]
+    fn the_constants_are_the_tables() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let read = |path: &str| {
+            std::fs::read_to_string(root.join(path)).unwrap_or_else(|e| panic!("{path}: {e}"))
+        };
+        let table = committed(&read(TABLE));
+        let figures: Vec<i64> = COSTS
+            .iter()
+            .map(|cost| {
+                *table
+                    .get(&id(cost))
+                    .unwrap_or_else(|| panic!("{TABLE} has no row `{}`", id(cost)))
+            })
+            .collect();
+        assert_eq!(
+            read(CONSTANTS),
+            constants(&figures),
+            "{CONSTANTS} is not what {TABLE} says: run `cargo xtask feature-costs`"
+        );
+        assert_eq!(literal(-1_234_567), "-1_234_567");
+        // Every quoted figure has a name of its own.
+        let mut names: Vec<&str> = COSTS.iter().filter_map(|cost| cost.says).collect();
+        let quoted = names.len();
+        names.sort_unstable();
+        names.dedup();
+        assert_eq!(names.len(), quoted);
     }
 
     #[test]

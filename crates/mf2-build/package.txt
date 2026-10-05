@@ -15,6 +15,7 @@ src/corpus.rs
 src/error.rs
 src/features.rs
 src/features/backend.rs
+src/features/costs.rs
 src/features/family.rs
 src/features/gate.rs
 src/lib.rs

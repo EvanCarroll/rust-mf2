@@ -1,20 +1,24 @@
-# The intl-host check's corpus: each message has an answer only the
-# browser's `Intl` gives — the Rust number path is not linked under the `intl` number formatter,
-# and without the host a number is its bare digits and a selector matches
-# only `*`.
+# The intl-host check's corpus for a formatter that writes the language's
+# own form (`intl`, `builtin`). Under `intl` each message has an answer only
+# the browser's `Intl` gives: the Rust number path is not linked, and
+# without the host a number is its bare digits and a selector matches only
+# `*`. Under `builtin` the same text comes from the catalog's number data.
 @locale en
 ---
 
-# Grouping and a currency symbol: `Intl.NumberFormat`.
+# Grouping and a currency symbol.
 grouped = {$n :number}
 price = {$n :currency currency=EUR}
 
-# `one` without an exact key `1`: only `Intl.PluralRules` selects it.
+# `one` without an exact key `1`: only a plural rule selects it.
 items =
   .input {$n :number}
   .match $n
   one {{one item}}
   *   {{many items}}
+
+# A number in a placeholder with no function.
+bare = {$n} in all
 
 # A date, so that the generated module names the host with dates and
 # numbers both.

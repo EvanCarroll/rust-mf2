@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use common::{out_dir, workload};
-use mf2_build::{Build, Config, Features, Level, Lint};
+use mf2_build::{Backend, Build, Config, DateBackend, Features, Level, Lint, Side};
 
 /// The clean corpus every mutation starts from.
 ///
@@ -723,7 +723,11 @@ fn a_date_function_with_no_formatter_names_the_features_to_write() {
         "{}",
         ssr[0]
     );
-    assert!(ssr[0].contains("+298 KB"), "{}", ssr[0]);
+    assert!(
+        ssr[0].contains(&DateBackend::Icu.cost(Side::Native)),
+        "{}",
+        ssr[0]
+    );
     // With the server's formatter too, it builds.
     assert!(
         said(

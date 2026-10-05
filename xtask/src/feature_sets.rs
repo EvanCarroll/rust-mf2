@@ -354,6 +354,28 @@ pub(crate) const SETS: &[Set] = &[
         &[Use::Ci(&[Clippy])],
         "ICU4X dates in the browser with the formatter cache it asked for",
     ),
+    // Both sides' number features at once, the same way: each build formats
+    // with its own side's, and `mf2` checks at compile time that the runtime
+    // asks the browser's `Intl` exactly where the browser's formatter is
+    // `intl`.
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-number-intl,leptos-server-number-builtin",
+        &[Use::Ci(&[Clippy])],
+        "`Intl` numbers in the browser beside a server on mf2's own number code",
+    ),
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-number-builtin,leptos-client-number-intl,leptos-server-number-plain",
+        &[Use::Ci(&[Clippy])],
+        "both of the browser's number formatters on: mf2's own code formats, and `Intl` is not asked",
+    ),
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-number-plain,leptos-server-number-builtin",
+        &[Use::Ci(&[Clippy])],
+        "plain digits in the browser beside a server on mf2's own number code",
+    ),
     mf2(
         Wasm,
         "leptos,hydrate,mark-fallback-lang",
@@ -937,6 +959,46 @@ pub(crate) const SETS: &[Set] = &[
         "host-web-datetime-icu-cached",
         "`host-web-datetime-icu-cached`: the same, with ICU4X's formatter cache",
     ),
+    // An application's whole line, for each kind of application: what
+    // `mf2 init` and `mf2 check` write, and the same application on the
+    // smallest formatters. With the rows above, every family's feature for
+    // every formatter is compiled under its own name (a test below holds
+    // the table to that).
+    alone(
+        Host,
+        "leptos,ssr,leptos-client-number-intl,leptos-server-number-builtin,leptos-client-datetime-intl,leptos-server-datetime-icu",
+        "a server-rendered Leptos application's line, on the server",
+    ),
+    alone(
+        Host,
+        "leptos,ssr,leptos-client-number-plain,leptos-server-number-plain,leptos-client-datetime-iso,leptos-server-datetime-iso",
+        "a server-rendered Leptos application on the smallest formatters, on the server",
+    ),
+    alone(
+        Wasm,
+        "leptos,csr,leptos-client-number-builtin,leptos-client-datetime-icu",
+        "a client-only Leptos application with the same text as a server on mf2's own code and ICU4X",
+    ),
+    alone(
+        Host,
+        "native,native-number-builtin,native-datetime-icu",
+        "a command-line tool's line",
+    ),
+    alone(
+        Host,
+        "native,native-number-plain,native-datetime-iso",
+        "a command-line tool on the smallest formatters",
+    ),
+    alone(
+        Host,
+        "axum,axum-number-builtin,axum-datetime-icu",
+        "an Axum server's line",
+    ),
+    alone(
+        Host,
+        "axum,axum-number-plain,axum-datetime-iso",
+        "an Axum server on the smallest formatters",
+    ),
     alone(Host, "host-std", "`host-std`: the native host"),
     alone(
         Wasm,
@@ -1061,7 +1123,9 @@ mod tests {
     use std::collections::BTreeSet;
     use std::path::{Path, PathBuf};
 
-    use mf2_build::{Build, Emit, Features, catalog};
+    use mf2_build::{
+        Backend, Build, DateBackend, Emit, Features, NumberBackend, catalog, domain_features,
+    };
 
     use super::{FIXTURE, Outcome, SETS, Set};
 
@@ -1104,6 +1168,54 @@ mod tests {
         names.sort();
         names.dedup();
         names
+    }
+
+    /// Every feature of the table of families and formatters is compiled
+    /// somewhere: each is named in a set that must build, under its own
+    /// name, and each framework-free one is also a feature of the i18n
+    /// fixture, so that the generated module can be built with it. A
+    /// feature added to `mf2` and to the table fails here until it has both.
+    #[test]
+    fn every_formatter_feature_has_a_row_and_a_forwarder() {
+        let named: BTreeSet<&str> = SETS
+            .iter()
+            .filter(|set| matches!(set.outcome, Outcome::Builds))
+            .flat_map(|set| set.features.split(','))
+            .map(|feature| feature.trim().rsplit('/').next().unwrap_or(""))
+            .collect();
+        let manifest =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../tools/i18n-fixture/Cargo.toml");
+        let manifest: toml::Table = std::fs::read_to_string(&manifest)
+            .expect("the fixture's manifest")
+            .parse()
+            .expect("a manifest");
+        let forwarded = manifest["features"].as_table().expect("[features]");
+        let features = domain_features::<NumberBackend>()
+            .into_iter()
+            .chain(domain_features::<DateBackend>())
+            // A domain's own feature is turned on by each of the others.
+            .filter(|f| f != NumberBackend::DOMAIN && f != DateBackend::DOMAIN);
+        let mut missing = Vec::new();
+        for feature in features {
+            if !named.contains(feature.as_str()) {
+                missing.push(format!("`{feature}` is in no set that must build"));
+            }
+            if feature.starts_with("host-") {
+                let forwards = forwarded
+                    .get(&feature)
+                    .and_then(toml::Value::as_array)
+                    .is_some_and(|on| {
+                        on.iter()
+                            .any(|f| f.as_str() == Some(&format!("mf2/{feature}")))
+                    });
+                if !forwards {
+                    missing.push(format!(
+                        "`{feature}` is not a feature of tools/i18n-fixture that turns on mf2's"
+                    ));
+                }
+            }
+        }
+        assert!(missing.is_empty(), "{}", missing.join("\n"));
     }
 
     /// `unread-data` (`plan/08` §7) over every feature set of the table that

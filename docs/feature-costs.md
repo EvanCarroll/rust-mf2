@@ -6,6 +6,7 @@
 | `leptos-client-number-intl` | browser | `leptos-client-number-plain` | -545 B gzip | the reference workload, 150 messages with `:number` |
 | `leptos-client-datetime-iso` | browser | `leptos-client-number-builtin` | 5,336 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-icu` | browser | `leptos-client-number-builtin`, `leptos-client-datetime-iso` | 59,292 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
+| `leptos-client-datetime-icu-cached` | browser | `leptos-client-number-builtin`, `leptos-client-datetime-icu` | 2,231 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-intl` | browser | `leptos-client-number-builtin`, `leptos-client-datetime-iso` | 247 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-intl` | browser | `leptos-client-number-builtin` | -7 B gzip | the reference workload, 150 messages with `:number` and plain placeholders, no date: the feature is on and nothing shows a date |
 | `native-number-builtin` | native | `native`, `native-number-plain` | 9,920 B stripped | a plain message, a plain placeholder and a plural |

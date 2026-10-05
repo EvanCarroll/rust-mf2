@@ -1,0 +1,20 @@
+# The intl-host check's corpus for `plain`: the other corpus without its
+# `:currency` message, which plain digits cannot show and the build refuses.
+@locale en
+---
+
+# Plain digits: no grouping.
+grouped = {$n :number}
+
+# `one` without an exact key `1`: the catalog's plural rule selects it.
+items =
+  .input {$n :number}
+  .match $n
+  one {{one item}}
+  *   {{many items}}
+
+# A number in a placeholder with no function.
+bare = {$n} in all
+
+# A date, so that the generated module names the host with dates.
+day = {$when :date}

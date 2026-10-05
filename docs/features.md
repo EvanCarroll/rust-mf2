@@ -347,8 +347,8 @@ The formatters:
   server carries no date data for the languages it does not serve. It needs
   `mf2-build`'s `icu-blob` feature (below).
 * **`icu-cached`**: `icu` with its formatter cache, for a browser build. The
-  same text, a date formatted 3.5 to 8.9 times faster, and 1,667 B of gzip
-  more wasm. Native code's `icu` always has the cache, which costs no
+  same text, a date formatted 3.5 to 8.9 times faster, and about 2.2 KB of
+  gzip more wasm. Native code's `icu` always has the cache, which costs no
   download there, so only the browser's families have the feature.
 * **`iso`**: a neutral stand-in that writes ISO-style dates
   (`2006-01-02 15:04`) in every language, with no locale data and no ICU4X.
@@ -441,10 +441,11 @@ language's catalog: the same text as an ICU4X server. Needs `mf2-build`'s
 The same ICU4X formatter with its cache: ICU4X's data is set up once for
 each catalog and a formatter is kept for each language and date shape,
 where `icu` builds both again for every placeholder. The text is the same.
-It adds 1,667 B of gzip to the client, measured on the module
-`tools/e2e/datetime/speed.sh` builds, and formats a date 3.5 to 8.9 times
-faster than `icu` does. In native code `icu` always has the cache, which
-costs no download there.
+It adds about 2.2 KB of gzip to the client of the reference workload (the
+[cost table](#what-each-feature-costs)), and formats a date 3.5 to 8.9
+times faster than `icu` does, as `tools/e2e/datetime/speed.sh` measures it
+on a module of its own, which the cache makes 1,667 B of gzip larger. In
+native code `icu` always has the cache, which costs no download there.
 
 #### `leptos-client-datetime-iso`, `host-web-datetime-iso`
 

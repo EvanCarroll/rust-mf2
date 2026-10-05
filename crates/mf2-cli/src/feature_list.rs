@@ -28,7 +28,7 @@ struct SideFormatter {
     side: Side,
     /// The formatter the side's build formats with — its name, and what it
     /// costs there; `None` with none on.
-    formatter: Option<(&'static str, &'static str)>,
+    formatter: Option<(&'static str, String)>,
     /// The side's features of the domain, as the crate writes them.
     features: Vec<String>,
 }
@@ -245,7 +245,7 @@ impl FeatureList {
                     continue;
                 }
                 let label = format!("{}:", side.name());
-                let what = match formatter.formatter {
+                let what = match &formatter.formatter {
                     Some((name, cost)) => format!(
                         "`{name}` formats {} ({}; {cost})",
                         domain.things,
@@ -295,7 +295,7 @@ impl FeatureList {
                     by_side.insert(
                         side.side.key().to_owned(),
                         json!({
-                            "formatter": side.formatter.map(|(name, _)| name),
+                            "formatter": side.formatter.as_ref().map(|(name, _)| name),
                             "features": side.features,
                         }),
                     );

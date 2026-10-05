@@ -107,9 +107,10 @@ host-web-datetime-intl = ["datetime", "mf2-fn-datetime/web-intl", "mf2-host-web?
 host-web-datetime-icu = ["datetime", "mf2-fn-datetime/web-icu", "mf2-host-web?/time-zones"]
 # `icu` with its formatter cache: ICU4X keeps its data provider per catalog and
 # its formatter per language and shape, where `icu` builds both for every
-# placeholder. The same text; 1,667 B gzip more client (measured on
-# tools/e2e/datetime/speed's module) for a date formatted 3.5 to 8.9 times
-# faster. A native `icu` always has the cache: it costs no download there.
+# placeholder. The same text; 2,231 B gzip more client on the reference
+# workload (`cargo xtask feature-costs`; 1,667 B on tools/e2e/datetime/speed's
+# smaller module), for a date formatted 3.5 to 8.9 times faster there. A
+# native `icu` always has the cache: it costs no download there.
 host-web-datetime-icu-cached = ["host-web-datetime-icu", "mf2-fn-datetime/web-cache"]
 
 # The frameworks' names for them.

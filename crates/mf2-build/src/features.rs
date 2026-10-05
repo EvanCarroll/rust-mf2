@@ -10,6 +10,7 @@ use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 mod backend;
+mod costs;
 mod family;
 mod gate;
 
@@ -1451,7 +1452,10 @@ mod tests {
             message.contains("`leptos-server-datetime-*` (native code)"),
             "{message}"
         );
-        assert!(message.contains("+298 KB"), "{message}");
+        assert!(
+            message.contains(&DateBackend::Icu.cost(Side::Native)),
+            "{message}"
+        );
         assert!(message.contains("`icu` is ICU4X"), "{message}");
         assert!(message.contains("`iso` is the ISO stand-in"), "{message}");
 
@@ -1522,7 +1526,10 @@ mod tests {
         }
         assert!(message.contains("In the browser:"), "{message}");
         assert!(message.contains("In native code:"), "{message}");
-        assert!(message.contains("+239 B gzipped"), "{message}");
+        assert!(
+            message.contains(&DateBackend::Intl.cost(Side::Browser)),
+            "{message}"
+        );
         // With no framework, a formatter of either side is enough.
         assert!(Features::parse("host-web-datetime-iso").formats::<DateBackend>());
     }

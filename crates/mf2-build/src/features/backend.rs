@@ -6,6 +6,7 @@
 //! about backends is derived from an implementation of [`Backend`], so a
 //! domain's list is written once.
 
+use super::costs;
 use super::family::Side;
 
 /// A backend of one domain. The order (`Ord`) is strength, the weakest
@@ -45,13 +46,43 @@ pub trait Backend: Copy + Ord + core::fmt::Debug + 'static {
     /// What it is, as a message names it.
     fn what(self) -> &'static str;
 
-    /// What it costs on `side`, as a message says it.
-    fn cost(self, side: Side) -> &'static str;
+    /// What it costs on `side`, as a message says it: the figures are
+    /// `cargo xtask feature-costs`'s, rounded.
+    fn cost(self, side: Side) -> String;
 
     /// A weaker backend whose feature this one's feature turns on with it:
     /// the two are then one backend, this one.
     fn implies(self) -> Option<Self> {
         None
+    }
+}
+
+/// How a browser's figure is counted: the client wasm, gzipped.
+const GZIPPED: &str = " gzipped";
+
+/// A measured figure as a message says it: to the nearest 10 B below 1 KB,
+/// a tenth of a KB below 100 KB, a whole KB above. Rounded so that a figure
+/// that moves by a few bytes from one measurement to the next reads the
+/// same.
+fn rounded(bytes: i64) -> String {
+    let bytes = bytes.unsigned_abs();
+    if bytes < 1_000 {
+        format!("{} B", (bytes + 5) / 10 * 10)
+    } else if bytes < 100_000 {
+        let tenths = (bytes + 50) / 100;
+        format!("{}.{} KB", tenths / 10, tenths % 10)
+    } else {
+        format!("{} KB", (bytes + 500) / 1_000)
+    }
+}
+
+/// A figure set against another formatter's: `+2.5 KB gzipped over
+/// `plain``, or `0.5 KB gzipped less than `plain`` when it is smaller.
+fn against(bytes: i64, how: &str, base: &str) -> String {
+    if bytes < 0 {
+        format!("{}{how} less than `{base}`", rounded(bytes))
+    } else {
+        format!("+{}{how} over `{base}`", rounded(bytes))
     }
 }
 
@@ -127,17 +158,34 @@ impl Backend for DateBackend {
         }
     }
 
-    fn cost(self, side: Side) -> &'static str {
+    fn cost(self, side: Side) -> String {
         match (self, side) {
-            (DateBackend::Iso, _) => "no locale data and no ICU4X",
-            (DateBackend::Intl, _) => "+239 B gzipped, and no date data downloaded",
-            (DateBackend::Icu, Side::Browser) => {
-                "+43 to +100 KB gzipped, and the date slice in each catalog"
+            (DateBackend::Iso, Side::Browser) => format!(
+                "+{} gzipped, with no locale data and no ICU4X",
+                rounded(costs::DATE_ISO_BROWSER)
+            ),
+            (DateBackend::Iso, Side::Native) => format!(
+                "+{}, mostly time zones, with no locale data and no ICU4X",
+                rounded(costs::DATE_ISO_NATIVE)
+            ),
+            (DateBackend::Intl, _) => format!(
+                "{}, and no date data downloaded",
+                against(costs::DATE_INTL_BROWSER, GZIPPED, "iso")
+            ),
+            (DateBackend::Icu, Side::Browser) => format!(
+                "{} (more with zone names or other calendars), and the date slice in each \\
+                 catalog",
+                against(costs::DATE_ICU_BROWSER, GZIPPED, "iso")
+            ),
+            (DateBackend::Icu, Side::Native) => {
+                format!("+{}, and the date slices", rounded(costs::DATE_ICU_NATIVE))
             }
-            (DateBackend::Icu, Side::Native) => "+298 KB, and the date slices",
-            (DateBackend::IcuCached, _) => {
-                "+1,667 B gzipped over `icu`, for a date formatted 3.5 to 8.9 times faster"
-            }
+            // The speed is `tools/e2e/datetime/speed.sh`'s, which no table
+            // carries.
+            (DateBackend::IcuCached, _) => format!(
+                "{}, for a date formatted 3.5 to 8.9 times faster",
+                against(costs::DATE_ICU_CACHED_BROWSER, GZIPPED, "icu")
+            ),
         }
     }
 
@@ -230,18 +278,79 @@ impl Backend for NumberBackend {
         }
     }
 
-    fn cost(self, side: Side) -> &'static str {
+    fn cost(self, side: Side) -> String {
         match (self, side) {
             (NumberBackend::Plain, _) => {
-                "no number data, and neither :percent, :currency nor :unit"
+                "the smallest, with no number data and neither :percent, :currency nor :unit"
+                    .to_owned()
             }
-            (NumberBackend::Intl, _) => {
-                "545 B gzipped less than `plain`, and no number or plural data downloaded"
-            }
-            (NumberBackend::Builtin, Side::Browser) => {
-                "+2,514 B gzipped over `plain`, and the number data in each catalog"
-            }
-            (NumberBackend::Builtin, Side::Native) => "+9,920 B over `plain`, and the number data",
+            (NumberBackend::Intl, _) => format!(
+                "{}, and no number or plural data downloaded",
+                against(costs::NUMBER_INTL_BROWSER, GZIPPED, "plain")
+            ),
+            (NumberBackend::Builtin, Side::Browser) => format!(
+                "{}, and the number data in each catalog",
+                against(costs::NUMBER_BUILTIN_BROWSER, GZIPPED, "plain")
+            ),
+            (NumberBackend::Builtin, Side::Native) => format!(
+                "{}, and the number data",
+                against(costs::NUMBER_BUILTIN_NATIVE, "", "plain")
+            ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Backend, DateBackend, NumberBackend, Side, against, rounded};
+
+    #[test]
+    fn a_figure_is_rounded_so_that_a_few_bytes_do_not_move_it() {
+        assert_eq!(rounded(247), "250 B");
+        assert_eq!(rounded(253), "250 B");
+        assert_eq!(rounded(-545), "550 B");
+        assert_eq!(rounded(2_494), "2.5 KB");
+        assert_eq!(rounded(2_514), "2.5 KB");
+        assert_eq!(rounded(9_920), "9.9 KB");
+        assert_eq!(rounded(59_292), "59.3 KB");
+        assert_eq!(rounded(167_192), "167 KB");
+        assert_eq!(rounded(328_664), "329 KB");
+    }
+
+    #[test]
+    fn a_figure_set_against_another_says_which_way() {
+        assert_eq!(
+            against(2_514, " gzipped", "plain"),
+            "+2.5 KB gzipped over `plain`"
+        );
+        assert_eq!(
+            against(-545, " gzipped", "plain"),
+            "550 B gzipped less than `plain`"
+        );
+        assert_eq!(against(9_920, "", "plain"), "+9.9 KB over `plain`");
+    }
+
+    #[test]
+    fn every_formatter_says_what_it_costs_where_it_is_offered() {
+        for side in Side::ALL {
+            for &backend in NumberBackend::offered(side) {
+                assert!(!backend.cost(side).is_empty(), "{backend:?}");
+            }
+            for &backend in DateBackend::offered(side) {
+                assert!(!backend.cost(side).is_empty(), "{backend:?}");
+            }
+        }
+        // A browser's figures are of the gzipped client; native code's of
+        // the binary.
+        assert!(
+            NumberBackend::Builtin
+                .cost(Side::Browser)
+                .contains("gzipped")
+        );
+        assert!(
+            !NumberBackend::Builtin
+                .cost(Side::Native)
+                .contains("gzipped")
+        );
     }
 }

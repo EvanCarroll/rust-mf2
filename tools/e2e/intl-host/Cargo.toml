@@ -1,15 +1,16 @@
-# The `intl` number formatter's host wiring in a browser
-# (tools/e2e/checks/intl-host.mjs): an i18n crate whose generated module
-# chooses the host, built for `wasm32-unknown-unknown` with
-# `host-web-number-intl` and `host-web-datetime-intl`. A
-# standalone workspace (the root excludes it), so that its client features
-# never unify with the root's server ones.
+# A browser's number formatter, through the host the generated module names
+# (tools/e2e/checks/intl-host.mjs): an i18n crate built for
+# `wasm32-unknown-unknown` once for each of the browser's number formatters
+# (`intl`, `builtin`, `plain`), with a server's `builtin` on beside it as an
+# application writes both on its one `mf2` line. A standalone workspace (the
+# root excludes it), so that its client features never unify with the root's
+# server ones.
 #
 #   tools/e2e/intl-host/build.sh
 #   cd tools/e2e && node run.mjs intl-host --browser all
 [package]
 name = "e2e-intl-host"
-description = "The intl number formatter's host wiring in a browser: numbers and plural selection through the host the generated module names."
+description = "A browser's number formatter through the host the generated module names: one build for each of intl, builtin and plain."
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
@@ -20,14 +21,28 @@ publish = false
 [lib]
 crate-type = ["cdylib"]
 
-# `mf2-build` reads the corpus's features from this crate's.
 [features]
-default = ["host-web-number-intl", "host-web-datetime-intl"]
+default = ["intl"]
+# One build each (`build.sh` makes all three): the browser's number
+# formatter, the server's `builtin` beside it, and `Intl` dates, so that the
+# generated module names a host with dates and numbers both.
+intl = ["host-web", "host-web-number-intl", "host-std-number-builtin", "host-web-datetime-intl"]
+builtin = ["host-web", "host-web-number-builtin", "host-std-number-builtin", "host-web-datetime-intl"]
+plain = ["host-web", "host-web-number-plain", "host-std-number-builtin", "host-web-datetime-intl"]
+# `mf2-build` reads the corpus's features from this crate's, so each is
+# `mf2`'s of the same name. `host-web` says that the browser's build is the
+# one built here: its formatter has to be able to format every message.
+host-web = ["mf2/host-web"]
 host-web-number-intl = ["mf2/host-web-number-intl"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
+host-web-number-plain = ["mf2/host-web-number-plain"]
+host-std-number-builtin = ["mf2/host-std-number-builtin"]
 host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 
 [dependencies]
-mf2 = { path = "../../../crates/mf2", features = ["host-web"] }
+mf2 = { path = "../../../crates/mf2" }
+# The LOCALE entries' keys, to say which of them the browser's catalog has.
+mf2-catalog = { path = "../../../crates/mf2-catalog" }
 # Exact: the wasm-bindgen CLI that post-processes the module is 0.2.128.
 wasm-bindgen = { version = "=0.2.128" }
 
