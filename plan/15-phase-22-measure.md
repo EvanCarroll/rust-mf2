@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.10. A worktree made for a task is removed once its work
+* **In flight:** 22.11, the owner's report. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.10, 22.11
+* **Next:** the owner's answer, then the phase exit
 
 ## Done
 
@@ -97,6 +97,10 @@ starts in a fresh session.
 * The cost table again (`cargo xtask feature-costs`, 15 min 36 s, after 22.12–22.15): the unused
   `native-datetime-icu` row −40 B (was +146,080), `native-datetime-iso` 167,192, `-icu` 328,664,
   `compile` 8,352,704 B; no finding.
+* 22.10 (5e8cb6f): `docs/features.md` and `CHANGELOG.md` take the table's figures (`intl` +250 B
+  gz over `iso`, `icu` +59–101 KB in the browser, +329 KB natively; a formatter no message uses
+  costs nothing; the server 11,939,208 → 7,429,888 B). `bash tools/checks/run.sh p22-docs --only
+  docs` passes. README's dated client figures are the release's.
 
 ## Before this phase
 
