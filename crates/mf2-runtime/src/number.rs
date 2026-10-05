@@ -8,22 +8,43 @@
 //!
 //! The display, `:integer`'s rounding and the plural category come from a
 //! backend with one interface: the Rust one (`display.rs`), or — feature
-//! `intl` on `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`] — the host's
+//! `web-number-intl` without `web-number-builtin` on
+//! `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`] — the host's
 //! number formatter (`intl.rs`), and
 //! then the Rust rounding, digit output and plural evaluator are not linked.
 
 mod decimal;
-#[cfg(not(all(feature = "intl", target_arch = "wasm32", target_os = "unknown")))]
+#[cfg(not(all(
+    feature = "web-number-intl",
+    not(feature = "web-number-builtin"),
+    target_arch = "wasm32",
+    target_os = "unknown"
+)))]
 mod display;
-#[cfg(all(feature = "intl", target_arch = "wasm32", target_os = "unknown"))]
+#[cfg(all(
+    feature = "web-number-intl",
+    not(feature = "web-number-builtin"),
+    target_arch = "wasm32",
+    target_os = "unknown"
+))]
 mod intl;
 mod measure;
 mod options;
 mod request;
 
-#[cfg(not(all(feature = "intl", target_arch = "wasm32", target_os = "unknown")))]
+#[cfg(not(all(
+    feature = "web-number-intl",
+    not(feature = "web-number-builtin"),
+    target_arch = "wasm32",
+    target_os = "unknown"
+)))]
 use display as backend;
-#[cfg(all(feature = "intl", target_arch = "wasm32", target_os = "unknown"))]
+#[cfg(all(
+    feature = "web-number-intl",
+    not(feature = "web-number-builtin"),
+    target_arch = "wasm32",
+    target_os = "unknown"
+))]
 use intl as backend;
 
 use crate::error::FormatError;
@@ -47,6 +68,10 @@ pub use options::{Grouping, RoundingPriority, SignDisplay};
 pub use request::{
     CurrencyDisplay, DigitOptions, NumberOut, NumberRequest, NumberStyle, UnitDisplay,
 };
+
+/// Whether the backend compiled is the host's: what [`crate::INTL_NUMBERS`]
+/// must say.
+pub(crate) const BY_HOST: bool = backend::BY_HOST;
 
 /// An exact decimal and, once a numeric handler resolved it, its resolved
 /// options and its display form. Opaque: the digit backend is internal
@@ -240,7 +265,7 @@ impl Number {
     }
 
     /// The rounded digits to display; `None` for a number no handler
-    /// resolved — and, with feature `intl` on `wasm32-unknown-unknown`
+    /// resolved — and, where the host formats numbers
     /// ([`crate::INTL_NUMBERS`]), always: the host rounds and formats
     /// ([`Number::format_by_host`]).
     pub fn digits(&self) -> Option<Digits<'_>> {

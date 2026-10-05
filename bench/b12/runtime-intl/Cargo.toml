@@ -1,6 +1,6 @@
 [package]
 name = "b12-runtime-intl"
-description = "B12, B13 for the intl client option: the core numeric functions with mf2-runtime's `intl` (the host's number formatter), over a stub formatter — no Rust rounding or plural evaluator may be linked."
+description = "B12, B13 for the intl client option: the core numeric functions with mf2-runtime's `web-number-intl` (the host's number formatter), over a stub formatter — no Rust rounding or plural evaluator may be linked."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 b12-runtime-walk.workspace = true
-mf2-runtime = { workspace = true, features = ["intl"] }
+mf2-runtime = { workspace = true, features = ["web-number-intl"] }
 
 [lints]
 workspace = true

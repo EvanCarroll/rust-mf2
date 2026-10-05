@@ -53,8 +53,9 @@ What a version number promises, `mf2`'s feature names among it, is in
   with it on one build only the two write different catalogs. Write
   `features = ["number-intl"]` where 2.x wrote `"intl"`.
   `mf2-fn-number`'s `intl` feature, which only switched on
-  `mf2-runtime/intl`, is removed; `mf2-runtime/intl` and `mf2-host-web/intl`
-  keep their names.
+  `mf2-runtime`'s, is removed; `mf2-runtime`'s is now `web-number-intl`
+  (beside a new `web-number-builtin`, which keeps the runtime's own number
+  code when both are on) and `mf2-host-web`'s is `number-intl`.
 * **Breaking: a catalog carries its own canonical-equivalence map, and the
   binary format is version 2.** A compiled catalog now holds a small table
   of the code points that can reach its variant keys and argument names

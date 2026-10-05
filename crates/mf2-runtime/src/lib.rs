@@ -91,16 +91,26 @@ pub use sink::{ErrorSink, NoErrors, Sink, SubPartSink};
 pub use value::{Arg, CustomValue, Value};
 
 /// Whether numbers format through the host:
-/// feature `intl`, on `wasm32-unknown-unknown` only. The numeric
+/// feature `web-number-intl` without `web-number-builtin`, on
+/// `wasm32-unknown-unknown` only. The numeric
 /// functions — the core's and `mf2-fn-number`'s — then take the display,
 /// `:integer`'s rounding and the plural category from
 /// the host's [`NumberFormatter`] ([`Host::numbers`]: the browser's
 /// `Intl.NumberFormat` and `Intl.PluralRules`) instead of the Rust digit
 /// plan, rounding and plural evaluator, which are not linked. Everywhere
-/// else — servers, `wasm32-wasip1`, native tests — `false`: the Rust path.
+/// else — servers, `wasm32-wasip1`, native tests, and a browser with
+/// `web-number-builtin` — `false`: the Rust path.
 #[doc(hidden)]
 pub const INTL_NUMBERS: bool = cfg!(all(
-    feature = "intl",
+    feature = "web-number-intl",
+    not(feature = "web-number-builtin"),
     target_arch = "wasm32",
     target_os = "unknown"
 ));
+// The backend the numeric functions were compiled over is the one the
+// constant states: the two are chosen by the same condition, written twice.
+const _: () = assert!(INTL_NUMBERS == number::BY_HOST);
+// With both of a browser's number features on, this crate's own code
+// formats: the stronger of the two, whichever crate asked for the other.
+#[cfg(feature = "web-number-builtin")]
+const _: () = assert!(!INTL_NUMBERS);

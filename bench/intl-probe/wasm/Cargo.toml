@@ -32,11 +32,11 @@ rust-loc = ["dep:mf2-fn-number"]
 # `rust-loc` + mf2-fn-number's :currency and :unit (Phase 4 A4): the Rust
 # path of the whole localized family.
 rust-cu = ["dep:mf2-fn-number"]
-# The option as built (Phase 4, owner decision 4): the runtime's own `intl` feature and mf2-host-web's NUMBERS_HOST,
+# The option as built (Phase 4, owner decision 4): the runtime's own `web-number-intl` feature and mf2-host-web's NUMBERS_HOST,
 # with the registries of `rust`, `rust-loc` and `rust-cu`.
-rt-intl = ["mf2-runtime/intl", "mf2-host-web/intl"]
-rt-intl-loc = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
-rt-intl-cu = ["dep:mf2-fn-number", "mf2-runtime/intl", "mf2-host-web/intl"]
+rt-intl = ["mf2-runtime/web-number-intl", "mf2-host-web/number-intl"]
+rt-intl-loc = ["dep:mf2-fn-number", "mf2-runtime/web-number-intl", "mf2-host-web/number-intl"]
+rt-intl-cu = ["dep:mf2-fn-number", "mf2-runtime/web-number-intl", "mf2-host-web/number-intl"]
 
 [dependencies]
 intl-probe-fn = { workspace = true, optional = true }

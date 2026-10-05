@@ -287,10 +287,18 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2-runtime", "mf2-fn-number", "mf2-host-web"],
         Wasm,
-        "mf2-runtime/intl,mf2-host-web/intl",
+        "mf2-runtime/web-number-intl,mf2-host-web/number-intl",
         false,
         &[Use::Ci(&[Clippy])],
         "the `number-intl` option's code, which compiles for the browser target only",
+    ),
+    pkgs(
+        &["mf2-runtime", "mf2-fn-number", "mf2-host-web"],
+        Wasm,
+        "mf2-runtime/web-number-intl,mf2-runtime/web-number-builtin,mf2-host-web/number-intl",
+        false,
+        &[Use::Ci(&[Clippy])],
+        "both browser number backends, where our own code must win (a compile-time check)",
     ),
     pkgs(
         &["mf2-fn-datetime"],

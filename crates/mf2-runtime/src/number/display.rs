@@ -1,5 +1,6 @@
 //! The Rust backend of the numeric functions (every build except feature
-//! `intl` on `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`]): ECMA-402's
+//! `web-number-intl` without `web-number-builtin` on
+//! `wasm32-unknown-unknown`, [`crate::INTL_NUMBERS`]): ECMA-402's
 //! `ToRawFixed` / `ToRawPrecision` over the own digit buffer, the digits to
 //! display, and the plural category from the catalog's rules. The `intl`
 //! backend (`intl.rs`) has the same interface and asks the host instead.
@@ -14,6 +15,9 @@ use super::{Digits, Number, Resolved, Sign};
 use crate::function::FnContext;
 use crate::plural::{self, Category};
 use crate::sink::{ErrorSink, NoErrors, Sink, SubPartSink};
+
+/// This backend formats in Rust, not through the host.
+pub(super) const BY_HOST: bool = false;
 
 /// What a resolved number keeps for formatting and selection: the digits
 /// to display — rounded, with the visible magnitude range and the sign

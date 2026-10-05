@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; features: intl,datetime-intl; target: wasm32-unknown-unknown
+# nightly-2026-09-24; features: number-intl,datetime-intl; target: wasm32-unknown-unknown
 pub mod mf2_host_web
 pub struct mf2_host_web::IntlNumbers(pub &'static dyn mf2_runtime::host::Host)
 impl core::clone::Clone for mf2_host_web::IntlNumbers

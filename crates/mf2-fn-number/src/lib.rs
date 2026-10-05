@@ -15,7 +15,7 @@
 //! | [`CURRENCY`], [`UNIT`] | `:currency`, `:unit` (Draft): a `Measure` with the catalog's `currency.data` / `unit.data` |
 //! | [`NUMBERS`] | unannotated numbers, localized: `Registry::with_numbers(&NUMBERS)` |
 //!
-//! With `mf2-runtime`'s feature `intl` (`mf2`'s `number-intl`) on `wasm32-unknown-unknown`
+//! With `mf2-runtime`'s feature `web-number-intl` (`mf2`'s `number-intl`) on `wasm32-unknown-unknown`
 //! ([`mf2_runtime::INTL_NUMBERS`]) the text comes from the host's number
 //! formatter (the browser's `Intl.NumberFormat`) instead.
 //!

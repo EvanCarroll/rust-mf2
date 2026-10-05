@@ -3,7 +3,7 @@
 The browser host of the MF2 runtime: float text through the browser's
 own `String` function, so the wasm carries no float-printing code;
 with `datetime-intl`, dates through `Intl.DateTimeFormat`, and
-with `intl`, numbers through `Intl.NumberFormat` and `Intl.PluralRules`.
+with `number-intl`, numbers through `Intl.NumberFormat` and `Intl.PluralRules`.
 
 Applications do not name this crate: [`mf2`](https://docs.rs/mf2) re-exports it as
 `mf2::host_web`, behind its `host-web` feature.

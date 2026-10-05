@@ -1,5 +1,5 @@
-//! Numbers through the browser (the `intl`
-//! option): a [`NumberFormatter`] whose `format` is
+//! Numbers through the browser (feature
+//! `number-intl`): a [`NumberFormatter`] whose `format` is
 //! `Intl.NumberFormat` (`format`, and `formatToParts` for sub-parts) and
 //! whose `plural` is `Intl.PluralRules`, given by `Host::numbers` only when
 //! the engine has `Intl.NumberFormat` v3, which every MF2 digit option
@@ -30,7 +30,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::HOST;
 
-/// A host with numbers through `Intl` (feature `intl`): the number methods
+/// A host with numbers through `Intl` (feature `number-intl`): the number methods
 /// here, every other method from the host it wraps — [`crate::HOST`], or
 /// a date host (`IntlNumbers(&INTL_HOST)` for a corpus with dates under
 /// `datetime-intl`). Its own static, like the date hosts, so a client that

@@ -4,7 +4,7 @@
 //! carries no float-printing code. Canonical equivalence is the runtime's
 //! own, from the catalog's map, so there is no `normalize` glue either.
 //!
-//! Dates and numbers (`intl`) come as
+//! Dates and numbers come as
 //! more hosts, not as more methods of [`HOST`]: a host method is linked
 //! whenever its host is (it is in the `Host` vtable), so a date or number
 //! method on [`HOST`] would cost every client that has the feature on,
@@ -16,7 +16,7 @@
 //! | [`HOST`] | — | float text |
 //! | [`ZONES_HOST`] | `time-zones` | `Host::zone_offset` from the browser's zone data (clients of the `icu` date formatter: named zones) |
 //! | [`INTL_HOST`] | `datetime-intl` | that, and `Host::format_date_time` through `Intl.DateTimeFormat` |
-//! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
+//! | `NUMBERS_HOST`, `IntlNumbers(&host)` | `number-intl` | numbers through `Intl.NumberFormat` and `Intl.PluralRules` (`Host::numbers`) over another host |
 //!
 //! # The user guide
 //!
@@ -36,17 +36,17 @@ extern crate alloc;
 
 #[cfg(feature = "time-zones")]
 mod dates;
-#[cfg(feature = "intl")]
+#[cfg(feature = "number-intl")]
 mod numbers;
 
 use js_sys::Number;
 use mf2_runtime::Host;
 
-#[cfg(all(feature = "intl", feature = "datetime-intl"))]
+#[cfg(all(feature = "number-intl", feature = "datetime-intl"))]
 pub use numbers::INTL_DATES_NUMBERS_HOST;
-#[cfg(all(feature = "intl", feature = "time-zones"))]
+#[cfg(all(feature = "number-intl", feature = "time-zones"))]
 pub use numbers::ZONES_NUMBERS_HOST;
-#[cfg(feature = "intl")]
+#[cfg(feature = "number-intl")]
 pub use numbers::{IntlNumbers, NUMBERS_HOST};
 
 /// The browser host.

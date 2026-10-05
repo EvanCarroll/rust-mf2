@@ -27,13 +27,13 @@ time-zones = ["dep:wasm-bindgen"]
 # `datetime-intl`: `INTL_HOST` — that, and `Host::format_date_time` with
 # `Intl.DateTimeFormat` (one formatter cached per locale and option set).
 datetime-intl = ["time-zones"]
-# `intl`: `NUMBERS_HOST` / `IntlNumbers` —
+# `number-intl`: `NUMBERS_HOST` / `IntlNumbers` —
 # another host plus `Host::numbers`: `Intl.NumberFormat` and
 # `Intl.PluralRules` (cached per locale and option set) when the engine has
 # `Intl.NumberFormat` v3 (detected once). One such host over each of the
 # others (`ZONES_NUMBERS_HOST`, `INTL_DATES_NUMBERS_HOST`), so that a build that
 # formats dates and numbers reaches both.
-intl = ["dep:wasm-bindgen", "mf2-runtime/intl"]
+number-intl = ["dep:wasm-bindgen", "mf2-runtime/web-number-intl"]
 
 [dependencies]
 js-sys = { workspace = true }
@@ -43,7 +43,7 @@ wasm-bindgen = { workspace = true, optional = true }
 # docs.rs, as `cargo xtask docs-rs` builds it; also the feature set and
 # target `cargo xtask api` lists the public API with (api.txt).
 [package.metadata.docs.rs]
-features = ["intl", "datetime-intl"]
+features = ["number-intl", "datetime-intl"]
 # Its only target.
 default-target = "wasm32-unknown-unknown"
 targets = ["wasm32-unknown-unknown"]

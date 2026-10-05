@@ -28,7 +28,7 @@ VARIANTS=(base rust intl intl-loc intl-cu intl-codes)
 # has a stub).
 grep -q 'pub static PERCENT' "$SRC/crates/mf2-fn-number/src/lib.rs" 2>/dev/null && VARIANTS+=(rust-loc)
 # `rust-cu` needs mf2-fn-number's :currency and :unit (A4), the `rt-intl*`
-# variants the option as built (the runtime's `intl` feature).
+# variants the option as built (the runtime's `web-number-intl` feature).
 grep -q 'pub static CURRENCY' "$SRC/crates/mf2-fn-number/src/measure.rs" 2>/dev/null && VARIANTS+=(rust-cu)
 grep -q 'INTL_NUMBERS' "$SRC/crates/mf2-runtime/src/lib.rs" 2>/dev/null && VARIANTS+=(rt-intl rt-intl-loc rt-intl-cu)
 # VARIANTS="base rust …" in the environment builds only those.

@@ -84,7 +84,7 @@ invocation of their own so that the features never reach the others:
 
 | Crate | What it links |
 |---|---|
-| `b12-runtime-intl` | `b12-runtime`'s registry (the core's `:number`, `:integer`, `:offset`) with `mf2-runtime/intl`, walked over a stub number formatter (`b12_runtime_walk::run_intl`: the host chooses its answers, every request field goes to a sink) |
+| `b12-runtime-intl` | `b12-runtime`'s registry (the core's `:number`, `:integer`, `:offset`) with `mf2-runtime/web-number-intl`, walked over a stub number formatter (`b12_runtime_walk::run_intl`: the host chooses its answers, every request field goes to a sink) |
 | `b12-runtime-fn-number-intl` | `b12-runtime-fn-number-measure`'s registry (the whole localized family, `:currency` and `:unit` included) with the `intl` features, over the same stub |
 | `b12-runtime-intl-unused` | the `intl` features on (`mf2-fn-number` linked), a corpus without numbers: `b12-runtime-nonum`'s registry and host |
 

@@ -43,7 +43,7 @@ export async function speed(env, { rounds = 9, sampleMs = 60, only } = {}) {
     for (const v of ['rust-loc', 'intl-loc']) loaded[v] = await catalogs(env, await variant(env, v), 'speed');
     variants.push('rust-loc', 'intl-loc');
   } catch (e) { /* a build without mf2-fn-number */ }
-  // The option as built (the runtime's `intl` feature, Phase 4).
+  // The option as built (the runtime's `web-number-intl` feature, Phase 4).
   for (const v of ['rt-intl', 'rt-intl-loc']) {
     try {
       loaded[v] = await catalogs(env, await variant(env, v), 'speed');

@@ -21,14 +21,19 @@ exclude = ["package.txt"]
 # `fixed_decimal` instead of the crate's own panic-free digit buffer. Bench and
 # test only; never enabled by a client.
 fixed-decimal = ["dep:fixed_decimal"]
-# The `intl` client option (owner decision 4):
+# A browser's numbers through `Intl` (owner decision 4):
 # on wasm32-unknown-unknown only, the numeric functions take their display,
 # `:integer`'s rounding and the plural category from the host's number
 # formatter (`Host::numbers`: mf2-host-web's
 # `Intl`), and the Rust digit plan, rounding and plural evaluator are not
 # linked. Everywhere else (servers, wasm32-wasip1, native tests) nothing
 # changes.
-intl = []
+web-number-intl = []
+# A browser's numbers by this crate's own code, said out loud: it is what a
+# build has without `web-number-intl`, and with both on it wins. Cargo adds
+# every feature a build's crates ask for, so without this name a second
+# crate asking for `Intl` would take the first's own number code away.
+web-number-builtin = []
 
 [dependencies]
 fixed_decimal = { workspace = true, optional = true }

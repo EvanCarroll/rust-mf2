@@ -1,6 +1,7 @@
 //! The `intl` backend of the numeric functions
-//! (owner decision 4): with feature `intl` on `wasm32-unknown-unknown`
-//! ([`crate::INTL_NUMBERS`]) the display, `:integer`'s rounding and the
+//! (owner decision 4): with feature `web-number-intl` and without
+//! `web-number-builtin`, on `wasm32-unknown-unknown`
+//! ([`crate::INTL_NUMBERS`]), the display, `:integer`'s rounding and the
 //! plural category come from the host's number formatter
 //! ([`Host::numbers`](crate::Host::numbers): the browser's
 //! `Intl.NumberFormat` and `Intl.PluralRules`), so the Rust rounding, digit
@@ -23,6 +24,9 @@ use crate::error::FormatError;
 use crate::function::FnContext;
 use crate::plural::Category;
 use crate::sink::{ErrorSink, Sink, SubPartSink};
+
+/// This backend formats through the host.
+pub(super) const BY_HOST: bool = true;
 
 /// What a resolved number keeps: the digit plan the host is asked with, and
 /// the plural category once the host gave it (`Category as u8 + 1`; 0 = not

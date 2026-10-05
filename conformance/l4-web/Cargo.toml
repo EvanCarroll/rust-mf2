@@ -29,10 +29,10 @@ mf2-l4-runner = { path = "../l4-runner" }
 # data (mf2-host-web's `time-zones`, through `ZONES_NUMBERS_HOST`).
 mf2-fn-datetime = { path = "../../crates/mf2-fn-datetime", features = ["web-icu"] }
 # The intl build: the runtime's numeric functions and mf2-fn-number's through
-# the host's Intl (mf2-runtime's `intl` feature switches both).
+# the host's Intl (mf2-runtime's `web-number-intl` feature switches both).
 mf2-fn-number = { path = "../../crates/mf2-fn-number" }
-mf2-host-web = { path = "../../crates/mf2-host-web", features = ["intl", "time-zones"] }
-mf2-runtime = { path = "../../crates/mf2-runtime", features = ["intl"] }
+mf2-host-web = { path = "../../crates/mf2-host-web", features = ["number-intl", "time-zones"] }
+mf2-runtime = { path = "../../crates/mf2-runtime", features = ["web-number-intl"] }
 # Exact: the wasm-bindgen CLI that post-processes the module must be the same
 # version (0.2.128, as bench/intl-probe).
 wasm-bindgen = "=0.2.128"
