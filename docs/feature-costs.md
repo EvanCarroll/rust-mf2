@@ -9,12 +9,12 @@
 | `leptos-client-datetime-intl` | browser | `fn-number`, `leptos-client-datetime-iso` | 253 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-intl` | browser | `fn-number` | -2 B gzip | the reference workload, 150 messages with `:number` and plain placeholders, no date: the feature is on and nothing shows a date |
 | `fn-number` | native | `native` | 9,920 B stripped | a plain message, a plain placeholder and a plural |
-| `native-datetime-iso` | native | `native` | 167,320 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
-| `native-datetime-icu` | native | `native` | 328,808 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
-| `native-datetime-icu` | native | `native` | 146,080 B stripped | a plain message, a plain placeholder and a plural, no date: the feature is on and nothing shows a date |
+| `native-datetime-iso` | native | `native` | 167,192 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
+| `native-datetime-icu` | native | `native` | 328,664 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
+| `native-datetime-icu` | native | `native` | -40 B stripped | a plain message, a plain placeholder and a plural, no date: the feature is on and nothing shows a date |
 | `tzdb-bundled` | native | `native`, `native-datetime-iso` | 247,608 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
 | `tzdb-bundled` | native | `native` | 0 B stripped | no date in any message, so the feature is on and unused |
-| `compile` | native | `native` | 8,352,880 B stripped | the canary's messages, and one compiled at run time |
+| `compile` | native | `native` | 8,352,704 B stripped | the canary's messages, and one compiled at run time |
 | `ratatui` | native | `native`, `tui` | -14,936 B stripped | a message drawn as a Ratatui `Line` |
 | `clap` | native | `native`, `cli` | 8,864 B stripped | `--lang` parsed by clap |
 
