@@ -78,7 +78,7 @@ export async function run(ctx) {
   // `names` alone (bench/intl-probe/scripts/7-names.sh) needs only its two
   // variants and the panel.
   const needs = items.every((i) => i === 'names')
-    ? ['pkg/rust-cu/probe.js', 'pkg/rt-names-cu/probe.js', 'data/loc.json', 'data/loc-rust.json']
+    ? ['pkg/rust-cu/probe.js', 'pkg/rt-names-cu/probe.js', 'data/loc-names.json', 'data/loc-rust.json']
     : ['pkg/intl-cu/probe.js', 'pkg/rust/probe.js', 'data/l4.json'];
   for (const need of needs) {
     if (!existsSync(join(OUT, need))) throw new Error(`target/intl-probe/${need} missing: run bench/intl-probe/scripts/build.sh and data.sh`);

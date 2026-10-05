@@ -2,7 +2,8 @@
 // their names from Intl.NumberFormat and their digits, rounding and plural
 // selection in Rust (`rt-names-cu`), against the Rust path (`rust-cu`), on
 // the locale-symbol panel (`intl-probe-native loc`: 11 locales × 14 values ×
-// the 8 :currency and 6 :unit annotations).
+// the 8 :currency and 6 :unit annotations; the catalogs of
+// `intl-probe-native loc-names`, with the number and name entries).
 //
 // Speed: per locale and annotation, the ns per placeholder of each variant
 // (`bench_none` over the annotation's 14 messages, in wasm), the variants
@@ -28,7 +29,7 @@ function time(probe, cat, ids, iters) {
 
 export async function names(env, { rounds = 7, sampleMs = 20 } = {}) {
   const loaded = {};
-  for (const v of VARIANTS) loaded[v] = await catalogs(env, await variant(env, v), 'loc');
+  for (const v of VARIANTS) loaded[v] = await catalogs(env, await variant(env, v), 'loc-names');
   const { idx } = loaded['rust-cu'];
   // The timed groups: one per locale and annotation.
   const groups = new Map();

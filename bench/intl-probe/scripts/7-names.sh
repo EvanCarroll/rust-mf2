@@ -33,7 +33,7 @@ D="$OUT/data"
 mkdir -p "$D"
 (cd "$PROBE" && cargo build -q --release -p intl-probe-native --features fn-number,number-data)
 N="$PROBE/target/release/intl-probe-native"
-for c in loc loc-format names-data; do
+for c in loc-names loc-format names-data; do
   "$N" --repo "$REPO" --out "$D" "$c" > "$OUT/names-$c.log"
 done
 

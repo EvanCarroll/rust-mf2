@@ -12,6 +12,7 @@
 //! | `loc-format` | `loc-rust.json`: the same cases through the Rust registry |
 //! | `observe` | prints native observations the report cites |
 //! | `catalog-data` (feature `number-data`, crates ≥ ef65951) | `catalog-data.md`: the LOCALE bytes per panel locale the option would drop |
+//! | `loc-names` (feature `number-data`) | `loc-names.{json,bin}`: `loc` with every LOCALE entry the messages need (the number split's item) |
 //! | `names-data` (feature `number-data`) | `names-data.{md,tsv}`: per panel locale, the brotli bytes of a catalog of the panel's `:currency` / `:unit` messages with and without `currency.data` and `unit.data` (the number split, `plan/08` §6) |
 
 mod catalogs;
@@ -68,6 +69,9 @@ enum Command {
     /// currency and unit entries its client does not read: brotli bytes.
     #[cfg(feature = "number-data")]
     NamesData,
+    /// The locale-symbol cases with every LOCALE entry their messages need.
+    #[cfg(feature = "number-data")]
+    LocNames,
 }
 
 fn main() {
@@ -92,5 +96,7 @@ fn run() -> Result<()> {
         Command::CatalogData => sets::catalog_data(&cli.out),
         #[cfg(feature = "number-data")]
         Command::NamesData => sets::names_data(&cli.out),
+        #[cfg(feature = "number-data")]
+        Command::LocNames => sets::loc_names(&cli.out),
     }
 }

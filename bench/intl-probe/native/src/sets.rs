@@ -18,8 +18,7 @@ pub(crate) const PANEL: [&str; 11] = [
 
 /// Today's Rust registry: the core functions (neutral), or with feature
 /// `fn-number` mf2-fn-number's localized :number / :integer / :offset and
-/// :percent. Its :currency and :unit join in A4; until then they are
-/// Unknown Function on the Rust side of the locale-symbol cases.
+/// :percent, :currency and :unit.
 #[cfg(not(feature = "fn-number"))]
 static FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("integer", &functions::INTEGER),
@@ -28,12 +27,14 @@ static FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("string", &functions::STRING),
 ];
 #[cfg(feature = "fn-number")]
-static FUNCTIONS: [(&str, &dyn Function); 5] = [
+static FUNCTIONS: [(&str, &dyn Function); 7] = [
+    ("currency", &mf2_fn_number::CURRENCY),
     ("integer", &mf2_fn_number::INTEGER),
     ("number", &mf2_fn_number::NUMBER),
     ("offset", &mf2_fn_number::OFFSET),
     ("percent", &mf2_fn_number::PERCENT),
     ("string", &functions::STRING),
+    ("unit", &mf2_fn_number::UNIT),
 ];
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 static CX: FormatContext = {
@@ -417,6 +418,43 @@ pub(crate) fn loc(out: &Path) -> Result<()> {
         }
     }
     blob.write(out, "loc", json!({"cases": index}))
+}
+
+/// [`loc`] with every LOCALE entry the locale's messages need (plural,
+/// number symbols and patterns, `currency.data`, `unit.data`), as
+/// `mf2::compile_str` gives a message: the catalogs the number split's item
+/// formats (`web/lib/names.mjs`), where `rust-cu` reads the names from the
+/// catalog and `rt-names-cu` reads only the symbols.
+#[cfg(feature = "number-data")]
+pub(crate) fn loc_names(out: &Path) -> Result<()> {
+    use mf2_locale_data::{LocaleNeeds, NumberNeeds, locale_entries};
+    let cases = loc_cases();
+    let mut blob = Blob::default();
+    let mut index = Vec::new();
+    for locale in PANEL {
+        let mine: Vec<&(&str, String, &str, String)> =
+            cases.iter().filter(|c| c.0 == locale).collect();
+        let sources: Vec<String> = mine.iter().map(|c| c.3.clone()).collect();
+        let mut numbers = NumberNeeds::default();
+        numbers.symbols = true;
+        for src in &sources {
+            if let Some(m) = &mf2_syntax::parse_model(src).message {
+                numbers.add_message(m);
+            }
+        }
+        let mut needs = LocaleNeeds::default();
+        needs.cardinal = true;
+        needs.ordinal = true;
+        needs.numbers = numbers;
+        let entries = locale_entries(locale, &needs)?;
+        let cat = blob.push(&crate::catalogs::multi_with(&sources, locale, entries)?);
+        for (id, c) in mine.iter().enumerate() {
+            index.push(
+                json!({"locale": c.0, "fn": c.1, "v": c.2, "src": c.3, "cat": cat, "id": id}),
+            );
+        }
+    }
+    blob.write(out, "loc-names", json!({"cases": index}))
 }
 
 /// The locale-symbol cases through the Rust registry (`FUNCTIONS` above):
