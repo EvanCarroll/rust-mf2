@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 22.9. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.9–22.10, the cost table again, 22.11
 
