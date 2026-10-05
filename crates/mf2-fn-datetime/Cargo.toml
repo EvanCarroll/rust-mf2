@@ -65,7 +65,7 @@ std-cache = ["mf2-catalog?/std-load-id"]
 # `host-web-datetime-icu-cached` turns it on: 2,231 B gzip more client on
 # the reference workload (`cargo xtask feature-costs`; 1,667 B on
 # tools/e2e/datetime/speed's smaller module) for a date placeholder
-# formatted 3.5 to 8.9 times faster there.
+# formatted 3 to 10 times faster there.
 web-cache = ["mf2-catalog?/web-load-id"]
 # `compiled-data`: `icu::Compiled`, ICU4X's compiled-in data off the browser,
 # for a registry written by hand. No feature of `mf2` turns it on: the

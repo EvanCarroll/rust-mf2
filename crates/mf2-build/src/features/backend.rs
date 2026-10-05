@@ -183,7 +183,7 @@ impl Backend for DateBackend {
             // The speed is `tools/e2e/datetime/speed.sh`'s, which no table
             // carries.
             (DateBackend::IcuCached, _) => format!(
-                "{}, for a date formatted 3.5 to 8.9 times faster",
+                "{}, for a date formatted 3 to 10 times faster",
                 against(costs::DATE_ICU_CACHED_BROWSER, GZIPPED, "icu")
             ),
         }

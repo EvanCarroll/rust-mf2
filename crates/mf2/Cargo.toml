@@ -109,7 +109,7 @@ host-web-datetime-icu = ["datetime", "mf2-fn-datetime/web-icu", "mf2-host-web?/t
 # its formatter per language and shape, where `icu` builds both for every
 # placeholder. The same text; 2,231 B gzip more client on the reference
 # workload (`cargo xtask feature-costs`; 1,667 B on tools/e2e/datetime/speed's
-# smaller module), for a date formatted 3.5 to 8.9 times faster there. A
+# smaller module), for a date formatted 3 to 10 times faster there. A
 # native `icu` always has the cache: it costs no download there.
 host-web-datetime-icu-cached = ["host-web-datetime-icu", "mf2-fn-datetime/web-cache"]
 
