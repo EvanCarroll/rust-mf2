@@ -645,6 +645,14 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
+        "hydrate,host-web-number-plain,host-web-datetime-icu-cached",
+        true,
+        &[CodegenMatrix(Client)],
+        "the generated module, client, dates on ICU4X with its formatter cache",
+    ),
+    pkgs(
+        &[FIXTURE],
+        Wasm,
         "hydrate,host-web-number-plain,host-web-datetime-intl",
         true,
         &[CodegenMatrix(Client)],

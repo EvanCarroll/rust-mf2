@@ -346,6 +346,10 @@ The formatters:
   data its messages can ask for and puts it in that language's catalog, so a
   server carries no date data for the languages it does not serve. It needs
   `mf2-build`'s `icu-blob` feature (below).
+* **`icu-cached`**: `icu` with its formatter cache, for a browser build. The
+  same text, a date formatted 3.5 to 8.9 times faster, and 1,667 B of gzip
+  more wasm. Native code's `icu` always has the cache, which costs no
+  download there, so only the browser's families have the feature.
 * **`iso`**: a neutral stand-in that writes ISO-style dates
   (`2006-01-02 15:04`) in every language, with no locale data and no ICU4X.
 
@@ -477,7 +481,8 @@ server: nothing conflicts.
 Inside one build, dates are formatted by one formatter, since
 `Locale::format` is shared by terminal code, Axum handlers and the Leptos
 server. When more than one formatter of a side is on, the strongest
-formats: `icu`, then `intl`, then `iso`. That happens with two features of
+formats: `icu` (which `icu-cached` is, with its cache), then `intl`, then
+`iso`. That happens with two features of
 one family, or with two frameworks in one build that disagree: a
 command-line tool built with `native-datetime-iso` whose optional web mode
 adds `axum-datetime-icu` formats with ICU4X when the web mode is on, and

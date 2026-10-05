@@ -225,10 +225,8 @@ fn mf2_features() -> BTreeMap<String, Vec<String>> {
 ///   the weaker backend it implies;
 /// * a framework's feature is that framework-free feature under another
 ///   name, and turns on nothing else;
-/// * the manifest has no feature of the domain the table does not offer,
-///   except `not_yet`: features the manifest has and the tools do not know
-///   yet, each of which must exist.
-fn manifest_matches_table<B: Backend>(features: &BTreeMap<String, Vec<String>>, not_yet: &[&str]) {
+/// * the manifest has no feature of the domain the table does not offer.
+fn manifest_matches_table<B: Backend>(features: &BTreeMap<String, Vec<String>>) {
     let offered = domain_features::<B>();
     for feature in &offered {
         assert!(
@@ -262,17 +260,11 @@ fn manifest_matches_table<B: Backend>(features: &BTreeMap<String, Vec<String>>, 
             }
         }
     }
-    for name in not_yet {
-        assert!(
-            features.contains_key(*name) && !offered.iter().any(|feature| feature == name),
-            "`{name}` is no longer an exception: remove it from this test"
-        );
-    }
     let of_domain = format!("-{}-", B::DOMAIN);
     let unknown: Vec<&String> = features
         .keys()
         .filter(|name| name.contains(&of_domain))
-        .filter(|name| !offered.contains(name) && !not_yet.contains(&name.as_str()))
+        .filter(|name| !offered.contains(name))
         .collect();
     assert!(
         unknown.is_empty(),
@@ -283,20 +275,12 @@ fn manifest_matches_table<B: Backend>(features: &BTreeMap<String, Vec<String>>, 
 
 #[test]
 fn every_date_feature_of_mf2_is_in_the_table() {
-    // The browser's cached ICU4X is in the manifest and not yet in the
-    // table: the tools learn it with `DateBackend::IcuCached`.
-    manifest_matches_table::<DateBackend>(
-        &mf2_features(),
-        &[
-            "host-web-datetime-icu-cached",
-            "leptos-client-datetime-icu-cached",
-        ],
-    );
+    manifest_matches_table::<DateBackend>(&mf2_features());
 }
 
 #[test]
 fn every_number_feature_of_mf2_is_in_the_table() {
-    manifest_matches_table::<NumberBackend>(&mf2_features(), &[]);
+    manifest_matches_table::<NumberBackend>(&mf2_features());
 }
 
 #[test]

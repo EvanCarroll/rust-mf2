@@ -482,6 +482,33 @@ mod tests {
     }
 
     #[test]
+    fn the_cached_browser_formatter_is_named() {
+        // As cargo resolves it: the feature turns `icu`'s on, and the host's.
+        let on = [
+            "csr",
+            "datetime",
+            "host-web-datetime-icu",
+            "host-web-datetime-icu-cached",
+            "leptos-client-datetime-icu-cached",
+        ];
+        let written = cargo(&["csr", "leptos-client-datetime-icu-cached"]);
+        let list = list((false, true), &on, &written);
+        assert_eq!(list.line, ["csr", "leptos-client-datetime-icu-cached"]);
+        let text = list.to_text();
+        assert!(
+            text.contains(
+                "the browser:      `icu-cached` formats dates \
+                 (leptos-client-datetime-icu-cached;"
+            ),
+            "{text}"
+        );
+        assert_eq!(
+            list.to_json()["dates"]["browser"]["formatter"],
+            "icu-cached"
+        );
+    }
+
+    #[test]
     fn a_domain_neither_used_nor_on_has_no_line() {
         let list = list(
             (true, false),

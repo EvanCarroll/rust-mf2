@@ -43,7 +43,7 @@ const B13_TOLERANCE: f64 = 0.10;
 /// The other side's features: a browser build, then the same with the
 /// server's feature an application writes beside it. Each pair must weigh
 /// the same.
-const OTHER_SIDE: [(&str, &str, &str); 5] = [
+const OTHER_SIDE: [(&str, &str, &str); 6] = [
     (
         "a browser on `Intl` numbers beside a server on mf2's own number code",
         "hydrate,host-web-number-intl",
@@ -68,6 +68,11 @@ const OTHER_SIDE: [(&str, &str, &str); 5] = [
         "an ICU4X browser beside an ICU4X server",
         "hydrate,host-web-number-plain,host-web-datetime-icu,corpus-dates",
         "hydrate,host-web-number-plain,host-web-datetime-icu,host-std-datetime-icu,corpus-dates",
+    ),
+    (
+        "a cached ICU4X browser beside an ICU4X server",
+        "hydrate,host-web-number-plain,host-web-datetime-icu-cached,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-icu-cached,host-std-datetime-icu,corpus-dates",
     ),
 ];
 

@@ -23,6 +23,7 @@ impl<'de> serde_core::de::Deserialize<'de> for mf2_build::DataSet
 pub fn mf2_build::DataSet::deserialize<D: serde_core::de::Deserializer<'de>>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error>
 pub enum mf2_build::DateBackend
 pub mf2_build::DateBackend::Icu
+pub mf2_build::DateBackend::IcuCached
 pub mf2_build::DateBackend::Intl
 pub mf2_build::DateBackend::Iso
 impl core::clone::Clone for mf2_build::DateBackend
@@ -48,7 +49,7 @@ pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
 pub const mf2_build::DateBackend::THINGS: &'static str
 pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
-pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<mf2_build::DateBackend>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
 pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
 pub fn mf2_build::DateBackend::recommended(mf2_build::Side) -> mf2_build::DateBackend
@@ -635,7 +636,7 @@ pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
 pub const mf2_build::DateBackend::THINGS: &'static str
 pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
-pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<mf2_build::DateBackend>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
 pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
 pub fn mf2_build::DateBackend::recommended(mf2_build::Side) -> mf2_build::DateBackend

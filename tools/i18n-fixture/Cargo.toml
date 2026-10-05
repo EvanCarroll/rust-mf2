@@ -48,6 +48,7 @@ host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 # builds: the build script reads it as this crate's own feature.
 leptos-client-datetime-intl = ["mf2/leptos-client-datetime-intl"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
+host-web-datetime-icu-cached = ["mf2/host-web-datetime-icu-cached", "mf2-build/icu-blob"]
 # A native application's module (`Emit::Native`): `CORPUS`, the typed
 # locale functions, and — beside `mf2/ssr` — the catalogs the Leptos
 # layer's server installs, from the same embedded bytes.

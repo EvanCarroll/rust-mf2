@@ -963,16 +963,65 @@ mod tests {
 
     #[test]
     fn date_formatters_are_ordered_weakest_first() {
+        assert!(DateBackend::IcuCached > DateBackend::Icu);
         assert!(DateBackend::Icu > DateBackend::Intl);
         assert!(DateBackend::Intl > DateBackend::Iso);
-        for side in Side::ALL {
+        for (side, strongest) in [(Side::Browser, "icu-cached"), (Side::Native, "icu")] {
             let names: Vec<_> = DateBackend::offered(side)
                 .iter()
                 .map(|f| f.name())
                 .collect();
-            assert_eq!(names.first(), Some(&"icu"));
+            assert_eq!(names.first(), Some(&strongest));
             assert_eq!(names.last(), Some(&"iso"));
         }
+    }
+
+    #[test]
+    fn the_cached_formatter_is_icu_and_one_formatter() {
+        // As cargo resolves it: the feature turns `icu`'s on, and the host's.
+        let cargo = Features::parse(
+            "datetime,host-web-datetime-icu,host-web-datetime-icu-cached,\
+             leptos-client-datetime-icu-cached",
+        );
+        assert_eq!(
+            cargo.on::<DateBackend>(Side::Browser),
+            [DateBackend::IcuCached]
+        );
+        assert_eq!(
+            cargo.features_on::<DateBackend>(Side::Browser),
+            ["leptos-client-datetime-icu-cached"]
+        );
+        assert!(cargo.cuts_date_slice());
+        assert_eq!(cargo.placement(false).dates, Place::Catalog);
+        assert_eq!(
+            cargo.icu_date_features(),
+            ["leptos-client-datetime-icu-cached"]
+        );
+        // Written by hand, alone: it formats, and reads the slice.
+        let alone = Features::parse("csr,leptos-client-datetime-icu-cached");
+        assert_eq!(
+            alone.backend::<DateBackend>(Side::Browser),
+            Some(DateBackend::IcuCached)
+        );
+        assert!(alone.formats::<DateBackend>() && alone.cuts_date_slice());
+        // `icu` written beside it is the same formatter, not a second one.
+        let both = Features::parse("leptos-client-datetime-icu,leptos-client-datetime-icu-cached");
+        assert_eq!(
+            both.on::<DateBackend>(Side::Browser),
+            [DateBackend::IcuCached]
+        );
+        // Another formatter beside it is a second one, and it is the stronger.
+        let with_intl =
+            Features::parse("leptos-client-datetime-intl,leptos-client-datetime-icu-cached");
+        assert_eq!(
+            with_intl.on::<DateBackend>(Side::Browser),
+            [DateBackend::IcuCached, DateBackend::Intl]
+        );
+        // Native code has no such feature: its `icu` always has the cache.
+        assert_eq!(
+            Features::parse("native-datetime-icu-cached").backend::<DateBackend>(Side::Native),
+            None
+        );
     }
 
     #[test]
@@ -1544,9 +1593,11 @@ mod tests {
                 "host-web-datetime-iso",
                 "host-web-datetime-intl",
                 "host-web-datetime-icu",
+                "host-web-datetime-icu-cached",
                 "leptos-client-datetime-iso",
                 "leptos-client-datetime-intl",
                 "leptos-client-datetime-icu",
+                "leptos-client-datetime-icu-cached",
                 "leptos-server-datetime-iso",
                 "leptos-server-datetime-icu",
                 "axum-datetime-iso",

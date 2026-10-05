@@ -65,6 +65,11 @@ pub enum DateBackend {
     Intl,
     /// ICU4X over the catalog's `icu.blob`, which the build cuts.
     Icu,
+    /// ICU4X with its formatter cache, in a browser: the same text as
+    /// `icu`, formatted faster for a little more wasm. Its feature turns
+    /// `icu`'s on, and the two are then one formatter, this one. Native
+    /// code's `icu` always has the cache, which costs no download there.
+    IcuCached,
 }
 
 impl DateBackend {
@@ -72,7 +77,7 @@ impl DateBackend {
     /// the build then cuts.
     #[doc(hidden)]
     pub fn reads_slice(self) -> bool {
-        matches!(self, DateBackend::Icu)
+        matches!(self, DateBackend::Icu | DateBackend::IcuCached)
     }
 }
 
@@ -86,7 +91,12 @@ impl Backend for DateBackend {
 
     fn offered(side: Side) -> &'static [DateBackend] {
         match side {
-            Side::Browser => &[DateBackend::Icu, DateBackend::Intl, DateBackend::Iso],
+            Side::Browser => &[
+                DateBackend::IcuCached,
+                DateBackend::Icu,
+                DateBackend::Intl,
+                DateBackend::Iso,
+            ],
             Side::Native => &[DateBackend::Icu, DateBackend::Iso],
         }
     }
@@ -104,6 +114,7 @@ impl Backend for DateBackend {
             DateBackend::Iso => "iso",
             DateBackend::Intl => "intl",
             DateBackend::Icu => "icu",
+            DateBackend::IcuCached => "icu-cached",
         }
     }
 
@@ -112,6 +123,7 @@ impl Backend for DateBackend {
             DateBackend::Iso => "the ISO stand-in",
             DateBackend::Intl => "the browser's Intl.DateTimeFormat",
             DateBackend::Icu => "ICU4X",
+            DateBackend::IcuCached => "ICU4X with its formatter cache",
         }
     }
 
@@ -123,6 +135,16 @@ impl Backend for DateBackend {
                 "+43 to +100 KB gzipped, and the date slice in each catalog"
             }
             (DateBackend::Icu, Side::Native) => "+298 KB, and the date slices",
+            (DateBackend::IcuCached, _) => {
+                "+1,667 B gzipped over `icu`, for a date formatted 3.5 to 8.9 times faster"
+            }
+        }
+    }
+
+    fn implies(self) -> Option<DateBackend> {
+        match self {
+            DateBackend::IcuCached => Some(DateBackend::Icu),
+            _ => None,
         }
     }
 }
