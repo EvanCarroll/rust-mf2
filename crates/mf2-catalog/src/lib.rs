@@ -58,6 +58,7 @@ mod decode;
 mod error;
 #[doc(hidden)]
 pub mod format;
+mod load;
 #[cfg(feature = "manifest")]
 mod manifest;
 mod markup;
@@ -89,6 +90,8 @@ pub use error::DecodeError;
 pub use error::ManifestError;
 #[cfg(feature = "writer")]
 pub use error::WriteError;
+#[doc(hidden)]
+pub use load::LOAD_ID;
 #[cfg(feature = "manifest")]
 #[doc(hidden)]
 pub use manifest::Manifest;

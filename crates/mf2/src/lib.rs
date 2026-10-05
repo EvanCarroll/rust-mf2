@@ -253,6 +253,7 @@ mod line {
     };
 }
 
+mod agreement;
 mod arg;
 #[cfg(feature = "compile")]
 mod compile;

@@ -14,6 +14,7 @@ use crate::format::{
     HEADER_LEN, IDS_RESTART, MAGIC, MAX_FALLBACK_LOCALES, MAX_MESSAGES, SECTION_ENTRY_LEN,
     VERSION_MAJOR, flags, header, kind, locale_key, section,
 };
+use crate::load::Load;
 use crate::nfc_map::NfcMap;
 use crate::plural;
 use crate::view::{MsgView, Names};
@@ -118,20 +119,11 @@ pub struct Catalog {
     /// code reads, which `locale_entry` falls back to.
     #[cfg(feature = "server-data")]
     server: Option<ServerData>,
-    /// The number this catalog was given when it was loaded (`load-id`).
-    #[cfg(feature = "load-id")]
-    load: u64,
-}
-
-/// The next load number (`load-id`, `plan/08` §5.2): process-wide, from 1,
-/// never handed out twice (a `u64` does not wrap in a process's life).
-#[cfg(feature = "load-id")]
-static LOADS: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(1);
-
-/// A load number not given before.
-#[cfg(feature = "load-id")]
-fn next_load() -> u64 {
-    LOADS.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+    /// The number this catalog was given when it was loaded, where this
+    /// build's side numbers its catalogs (`crate::load`); nothing otherwise,
+    /// and then nothing reads it.
+    #[allow(dead_code)]
+    load: Load,
 }
 
 /// The server-only table (`plan/08` §4.2): LOCALE entries in the LOCALE
@@ -352,8 +344,7 @@ impl Catalog {
             bytes,
             #[cfg(feature = "server-data")]
             server: None,
-            #[cfg(feature = "load-id")]
-            load: next_load(),
+            load: Load::next(),
         })
     }
 
@@ -377,21 +368,25 @@ impl Catalog {
             plural,
         });
         // Its LOCALE entries changed: to a cache it is another catalog.
-        #[cfg(feature = "load-id")]
-        {
-            self.load = next_load();
-        }
+        self.load = Load::next();
         Ok(self)
     }
 
-    /// The number this catalog was given when it was loaded (feature
-    /// `load-id`, `plan/08` §5.2): process-wide, never given to another
-    /// catalog, and new again when [`Catalog::with_server_data`] adds a
-    /// table. A cache keys what it builds from the catalog on it.
-    #[cfg(feature = "load-id")]
+    /// The number this catalog was given when it was loaded (`std-load-id`
+    /// off the browser, `web-load-id` in it; `plan/08` §5.2): process-wide,
+    /// never given to another catalog, and new again when
+    /// [`Catalog::with_server_data`] adds a table. A cache keys what it
+    /// builds from the catalog on it.
+    #[cfg(any(
+        all(
+            feature = "std-load-id",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        ),
+        all(feature = "web-load-id", target_arch = "wasm32", target_os = "unknown")
+    ))]
     #[doc(hidden)]
     pub fn load_id(&self) -> u64 {
-        self.load
+        self.load.id()
     }
 
     /// `format_version`: `major << 8 | minor`.

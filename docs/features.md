@@ -195,11 +195,11 @@ formatter:
 
 | Family | For | Formatters |
 |---|---|---|
-| `leptos-client-datetime-` | the browser build of a Leptos application (`hydrate`, `csr`) | `icu`, `intl`, `iso` |
+| `leptos-client-datetime-` | the browser build of a Leptos application (`hydrate`, `csr`) | `icu-cached`, `icu`, `intl`, `iso` |
 | `leptos-server-datetime-` | a Leptos server (`ssr`) | `icu`, `iso` |
 | `axum-datetime-` | an Axum server | `icu`, `iso` |
 | `native-datetime-` | a command-line tool, a terminal UI | `icu`, `iso` |
-| `host-web-datetime-` | a browser build with no framework | `icu`, `intl`, `iso` |
+| `host-web-datetime-` | a browser build with no framework | `icu-cached`, `icu`, `intl`, `iso` |
 | `host-std-datetime-` | native code with no framework | `icu`, `iso` |
 
 The formatters:
@@ -296,6 +296,16 @@ links no ICU4X.
 Dates formatted by ICU4X in the browser build, over the date slice in each
 language's catalog: the same text as an ICU4X server. Needs `mf2-build`'s
 `icu-blob`.
+
+#### `leptos-client-datetime-icu-cached`, `host-web-datetime-icu-cached`
+
+The same ICU4X formatter with its cache: ICU4X's data is set up once for
+each catalog and a formatter is kept for each language and date shape,
+where `icu` builds both again for every placeholder. The text is the same.
+It adds 1,667 B of gzip to the client, measured on the module
+`tools/e2e/datetime/speed.sh` builds, and formats a date 3.5 to 8.9 times
+faster than `icu` does. In native code `icu` always has the cache, which
+costs no download there.
 
 #### `leptos-client-datetime-iso`, `host-web-datetime-iso`
 

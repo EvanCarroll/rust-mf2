@@ -1,4 +1,5 @@
-//! The formatter cache (`cache`; `plan/08` §5.2): [`CachedBlob`]'s data.
+//! The formatter cache (`std-cache` off the browser, `web-cache` in it):
+//! [`CachedBlob`] and its data.
 //!
 //! Without it every date placeholder copies the catalog's `icu.blob` into a
 //! provider and builds its formatter, once for `supports` and once for
@@ -18,7 +19,6 @@
 //! Panic-free: a thread-local already destroyed, or a call made while the
 //! cache is borrowed (a sink that formats a date), formats as [`Blob`] does.
 //!
-//! [`CachedBlob`]: super::CachedBlob
 //! [`Blob`]: super::Blob
 
 extern crate std;
@@ -53,9 +53,32 @@ std::thread_local! {
     static CACHE: RefCell<VecDeque<Catalog>> = const { RefCell::new(VecDeque::new()) };
 }
 
-/// [`CachedBlob`](super::CachedBlob)'s [`Data::run`]: formats through the
-/// thread's cache.
-pub(super) fn run<V: Variant>(
+/// Data: the catalog's `icu.blob` LOCALE entry, its provider kept per
+/// catalog and its formatter per language and shape, per thread (this side's
+/// cache feature; the default with it). Formats what [`Blob`] formats, byte
+/// for byte.
+#[derive(Clone, Copy, Debug)]
+pub struct CachedBlob;
+
+impl Data for CachedBlob {
+    fn with<R>(
+        cx: &FnContext<'_>,
+        f: impl FnOnce(Source<'_>) -> Result<R, FormatError>,
+    ) -> Result<R, FormatError> {
+        Blob::with(cx, f)
+    }
+
+    fn run<V: Variant>(
+        cx: &FnContext<'_>,
+        plan: &Plan<'_>,
+        out: Option<&mut dyn Sink>,
+    ) -> Result<(), FormatError> {
+        run::<V>(cx, plan, out)
+    }
+}
+
+/// [`CachedBlob`]'s [`Data::run`]: formats through the thread's cache.
+fn run<V: Variant>(
     cx: &FnContext<'_>,
     plan: &Plan<'_>,
     mut out: Option<&mut dyn Sink>,

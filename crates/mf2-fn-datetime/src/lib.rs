@@ -14,7 +14,8 @@
 //! | `std-icu` | native | `icu::Icu`: ICU4X over the catalog's `icu.blob` LOCALE entry (narrower variants: `Icu<GregorianOnly, NoZones>` …) |
 //! | `web-icu` | `wasm32-unknown-unknown` | `icu::Icu`, the same, so the browser writes the server's bytes |
 //! | `web-intl` | `wasm32-unknown-unknown` | `Intl`: `Host::format_date_time` (the browser's `Intl.DateTimeFormat` through `mf2-host-web`'s `INTL_HOST`), unless `web-icu` is on |
-//! | `cache` | both | with an ICU4X feature, `icu::Icu` keeps its provider per catalog and its formatter per language and shape, per thread (`std`; `mf2`'s native host turns it on) |
+//! | `std-cache` | native | with `std-icu`, `icu::Icu` keeps its provider per catalog and its formatter per language and shape, per thread (`std`; `mf2`'s native ICU4X formatter turns it on) |
+//! | `web-cache` | `wasm32-unknown-unknown` | the same with `web-icu` (`mf2`'s `host-web-datetime-icu-cached`) |
 //! | `compiled-data` | native | no default: `icu::Compiled`, ICU4X's compiled data, for a registry written by hand (implies `std-icu`) |
 //!
 //! ```

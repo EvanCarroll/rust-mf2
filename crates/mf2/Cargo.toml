@@ -65,15 +65,22 @@ datetime = ["dep:mf2-fn-datetime", "mf2-host-std?/time-zones"]
 #
 # The two sides, with no framework.
 host-std-datetime-iso = ["datetime"]
-host-std-datetime-icu = ["datetime", "mf2-fn-datetime/std-icu", "mf2-fn-datetime/cache", "mf2-locale-data?/icu-blob"]
+host-std-datetime-icu = ["datetime", "mf2-fn-datetime/std-icu", "mf2-fn-datetime/std-cache", "mf2-locale-data?/icu-blob"]
 host-web-datetime-iso = ["datetime"]
 host-web-datetime-intl = ["datetime", "mf2-fn-datetime/web-intl", "mf2-host-web?/datetime-intl"]
 host-web-datetime-icu = ["datetime", "mf2-fn-datetime/web-icu", "mf2-host-web?/time-zones"]
+# `icu` with its formatter cache: ICU4X keeps its data provider per catalog and
+# its formatter per language and shape, where `icu` builds both for every
+# placeholder. The same text; 1,667 B gzip more client (measured on
+# tools/e2e/datetime/speed's module) for a date formatted 3.5 to 8.9 times
+# faster. A native `icu` always has the cache: it costs no download there.
+host-web-datetime-icu-cached = ["host-web-datetime-icu", "mf2-fn-datetime/web-cache"]
 
 # The frameworks' names for them.
 leptos-client-datetime-iso = ["host-web-datetime-iso"]
 leptos-client-datetime-intl = ["host-web-datetime-intl"]
 leptos-client-datetime-icu = ["host-web-datetime-icu"]
+leptos-client-datetime-icu-cached = ["host-web-datetime-icu-cached"]
 leptos-server-datetime-iso = ["host-std-datetime-iso"]
 leptos-server-datetime-icu = ["host-std-datetime-icu"]
 axum-datetime-iso = ["host-std-datetime-iso"]

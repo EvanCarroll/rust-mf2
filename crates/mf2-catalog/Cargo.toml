@@ -41,9 +41,14 @@ static-bytes = []
 server-data = []
 # `Catalog::load_id`: a number each catalog is given when it is loaded, from a
 # process-wide counter that never reuses one (plan/08 §5.2): the key of the
-# native date formatter cache (`mf2-fn-datetime`'s `cache`). Off for the
-# client: the field and the counter do not exist and its bytes do not move.
-load-id = []
+# date formatter cache (`mf2-fn-datetime`'s `std-cache` and `web-cache`). One
+# feature per side, each with effect on its own targets only — `std-load-id`
+# off the browser, `web-load-id` on `wasm32-unknown-unknown` — because both
+# builds of an application see every feature on its `mf2` line, and a server
+# that caches must not number the catalogs of a browser that does not. Off,
+# the number and the counter do not exist and the client's bytes do not move.
+std-load-id = []
+web-load-id = []
 # `content_hash`: the SHA-256 prefix in a catalog's file name (mf2-build names
 # the files with it; mf2::native checks a file it reads against its name). Off
 # for the client, which never computes it.

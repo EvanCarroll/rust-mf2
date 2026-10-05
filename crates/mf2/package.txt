@@ -16,6 +16,7 @@ api/ssr.txt
 build.rs
 src/__arg.rs
 src/__generated.rs
+src/agreement.rs
 src/arg.rs
 src/axum.rs
 src/axum/layer.rs

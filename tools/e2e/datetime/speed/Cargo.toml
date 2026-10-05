@@ -18,10 +18,9 @@ intl = ["mf2/host-web-datetime-intl"]
 # ICU4X over the catalog's `icu.blob`, its provider and formatter built for
 # each placeholder: what `leptos-client-datetime-icu` ships.
 icu = ["mf2/host-web-datetime-icu"]
-# The same with the formatter cache (`mf2-fn-datetime`'s `cache`), which no
-# browser build turns on until its size is measured: what turning it on
-# would buy.
-icu-cached = ["icu", "mf2-fn-datetime/cache"]
+# The same with the formatter cache: what `leptos-client-datetime-icu-cached`
+# ships.
+icu-cached = ["icu", "mf2/host-web-datetime-icu-cached"]
 
 [dependencies]
 mf2 = { workspace = true, features = ["host-web"] }

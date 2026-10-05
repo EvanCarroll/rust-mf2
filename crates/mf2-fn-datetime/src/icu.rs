@@ -10,7 +10,7 @@
 //! |---|---|---|
 //! | calendar `C` | [`AnyCalendar`] (default) · [`GregorianOnly`] | `DateTimeFormatter` (every calendar; a locale's default, e.g. `th`'s Buddhist, and `calendar=`) · `FixedCalendarDateTimeFormatter<Gregorian>` (B4: ≤ 95 KB gz against ≤ 105) |
 //! | zones `Z` | [`WithZones`] (default) · [`NoZones`] | the composite field set with time-zone styles · the date/time-only one — `timeZoneStyle` is then an *Unsupported Operation* (03 §5.2(1): −29 KB gz of code, ≈ −85 % of `icu.blob`) |
-//! | data `D` | [`DefaultData`] (default) · [`Blob`] · `CachedBlob` · [`Compiled`] | `CachedBlob` with this crate's `cache` feature, else [`Blob`] · the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes), its provider and formatter built for each placeholder · the same, with the provider kept per catalog and the formatter per language and shape (`cache`: per thread, so it needs `std`) · ICU4X's compiled data (off the browser, with this crate's `compiled-data` feature, for a registry written by hand: no feature of `mf2` turns it on) |
+//! | data `D` | [`DefaultData`] (default) · [`Blob`] · `CachedBlob` · [`Compiled`] | `CachedBlob` with this side's cache feature (`std-cache` off the browser, `web-cache` in it), else [`Blob`] · the catalog's `icu.blob` LOCALE entry (client and server alike, so the same bytes), its provider and formatter built for each placeholder · the same, with the provider kept per catalog and the formatter per language and shape (per thread, so it needs `std`) · ICU4X's compiled data (off the browser, with this crate's `compiled-data` feature, for a registry written by hand: no feature of `mf2` turns it on) |
 //!
 //! [`Blob`] and `CachedBlob` never fall back to compiled data: a catalog without its blob
 //! is an *Unsupported Operation*. The blob is built by `mf2-locale-data`'s
@@ -66,8 +66,24 @@ use writeable::TryWriteable;
 
 use crate::plan::{Backend, Plan};
 
-#[cfg(feature = "cache")]
+// The cache is one side's: `std-cache` off the browser, `web-cache` in it.
+// The other side's feature changes nothing here.
+#[cfg(any(
+    all(
+        feature = "std-cache",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    ),
+    all(feature = "web-cache", target_arch = "wasm32", target_os = "unknown")
+))]
 mod cache;
+#[cfg(any(
+    all(
+        feature = "std-cache",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    ),
+    all(feature = "web-cache", target_arch = "wasm32", target_os = "unknown")
+))]
+pub use cache::CachedBlob;
 
 /// Calendar support: every calendar (the default).
 #[derive(Clone, Copy, Debug)]
@@ -86,25 +102,32 @@ pub struct WithZones;
 pub struct NoZones;
 
 /// Data: the catalog's `icu.blob` LOCALE entry, its provider and formatter
-/// built for each placeholder (the default without `cache`).
+/// built for each placeholder (the default without this side's cache).
 #[derive(Clone, Copy, Debug)]
 pub struct Blob;
 
-/// Data: the catalog's `icu.blob` LOCALE entry, its provider kept per
-/// catalog and its formatter per language and shape, per thread (`cache`;
-/// the default with it). Formats what [`Blob`] formats, byte for byte.
-#[cfg(feature = "cache")]
-#[derive(Clone, Copy, Debug)]
-pub struct CachedBlob;
-
-/// The data [`Icu`] reads by default: [`CachedBlob`] with this crate's
-/// `cache` feature (the native host turns it on), else [`Blob`].
-#[cfg(feature = "cache")]
+/// The data [`Icu`] reads by default: [`CachedBlob`] with this side's cache
+/// feature (`std-cache` off the browser, which `mf2`'s native ICU4X
+/// formatter turns on; `web-cache` in it), else [`Blob`].
+#[cfg(any(
+    all(
+        feature = "std-cache",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    ),
+    all(feature = "web-cache", target_arch = "wasm32", target_os = "unknown")
+))]
 pub type DefaultData = CachedBlob;
 
-/// The data [`Icu`] reads by default: `CachedBlob` with this crate's
-/// `cache` feature (the native host turns it on), else [`Blob`].
-#[cfg(not(feature = "cache"))]
+/// The data [`Icu`] reads by default: `CachedBlob` with this side's cache
+/// feature (`std-cache` off the browser, which `mf2`'s native ICU4X
+/// formatter turns on; `web-cache` in it), else [`Blob`].
+#[cfg(not(any(
+    all(
+        feature = "std-cache",
+        not(all(target_arch = "wasm32", target_os = "unknown"))
+    ),
+    all(feature = "web-cache", target_arch = "wasm32", target_os = "unknown")
+)))]
 pub type DefaultData = Blob;
 
 /// Data: ICU4X's compiled data (never in the browser; `compiled-data`).
@@ -173,24 +196,6 @@ impl Data for Blob {
     ) -> Result<R, FormatError> {
         let provider = provider(blob(cx)?)?;
         f(Source::Buffer(&provider))
-    }
-}
-
-#[cfg(feature = "cache")]
-impl Data for CachedBlob {
-    fn with<R>(
-        cx: &FnContext<'_>,
-        f: impl FnOnce(Source<'_>) -> Result<R, FormatError>,
-    ) -> Result<R, FormatError> {
-        Blob::with(cx, f)
-    }
-
-    fn run<V: Variant>(
-        cx: &FnContext<'_>,
-        plan: &Plan<'_>,
-        out: Option<&mut dyn Sink>,
-    ) -> Result<(), FormatError> {
-        cache::run::<V>(cx, plan, out)
     }
 }
 

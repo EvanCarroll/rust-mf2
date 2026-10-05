@@ -1,5 +1,6 @@
 //! `cargo xtask b12-generated`: budgets **B1′** and **B13** on the module
-//! `mf2-build` generates.
+//! `mf2-build` generates, and the rule that the other side's features cost
+//! this side nothing.
 //!
 //! Phase 5a measured both by editing the fixture's corpus by hand and putting
 //! it back: B1′ =
@@ -13,6 +14,14 @@
 //! | F | the same | `hydrate,fn-number,host-web-datetime-iso` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
 //! | A | the fixture's own | `hydrate,fn-number` | a corpus that uses `:integer` |
 //! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | **B13** = B − A: what a corpus that does not use them does not pay |
+//! | G, H | a `:datetime` message | `hydrate,host-web-datetime-intl`, and the same with `host-std-datetime-icu` | **the other side** = H − G must be **+0** |
+//! | I, J | the same | `hydrate,host-web-datetime-icu`, and the same with `host-std-datetime-icu` | **the other side** = J − I must be **+0** |
+//!
+//! An application writes both sides' features on its one `mf2` line, so its
+//! browser build sees the server's. A feature that belongs to the server —
+//! its date formatter's cache, the load number that cache keys on — must
+//! leave the browser's bytes alone, and the cost table cannot say so: it
+//! builds the client with the client's features only.
 //!
 //! The size method: `wasm32-unknown-unknown`, profile
 //! `wasm-release`, raw bytes of the client binary — the same figures Phase 5a
@@ -32,6 +41,22 @@ const BIN: &str = "mf2-i18n-client";
 const B13_EXPECTED: i64 = 13_599;
 const B13_TOLERANCE: f64 = 0.10;
 
+/// The other side's features: a browser build, then the same with the
+/// server's feature an application writes beside it. Each pair must weigh
+/// the same.
+const OTHER_SIDE: [(&str, &str, &str); 2] = [
+    (
+        "an `Intl` browser beside an ICU4X server",
+        "hydrate,host-web-datetime-intl,corpus-dates",
+        "hydrate,host-web-datetime-intl,host-std-datetime-icu,corpus-dates",
+    ),
+    (
+        "an ICU4X browser beside an ICU4X server",
+        "hydrate,host-web-datetime-icu,corpus-dates",
+        "hydrate,host-web-datetime-icu,host-std-datetime-icu,corpus-dates",
+    ),
+];
+
 pub(crate) fn run(root: &Path) -> Result<()> {
     let target = root.join("target").join("b12-generated");
     let build = |features: &str| -> Result<u64> {
@@ -43,6 +68,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     let f = build("hydrate,fn-number,host-web-datetime-iso,corpus-plain")?;
     let a = build("hydrate,fn-number")?;
     let b = build("hydrate,fn-number,corpus-measures")?;
+    let others: Vec<(&str, &str, u64, u64)> = OTHER_SIDE
+        .iter()
+        .map(|&(what, without, with)| Ok((what, with, build(without)?, build(with)?)))
+        .collect::<Result<_>>()?;
 
     #[allow(clippy::cast_possible_wrap)]
     let b1 = f as i64 - e as i64;
@@ -55,10 +84,24 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     println!("| F | the same | hydrate,fn-number,host-web-datetime-iso | {f} |");
     println!("| A | the fixture's | hydrate,fn-number | {a} |");
     println!("| B | A plus the measures | hydrate,fn-number | {b} |");
+    for (what, with, without_size, with_size) in &others {
+        println!("| the other side | {what} | {with} | {without_size} → {with_size} |");
+    }
     println!("\nB1′ = F − E = {b1:+} B (must be +0)");
     println!("B13 = B − A = {b13:+} B avoided (Phase 5a: {B13_EXPECTED:+})");
 
     let mut failures = Vec::new();
+    for (what, with, without_size, with_size) in &others {
+        #[allow(clippy::cast_possible_wrap)]
+        let delta = *with_size as i64 - *without_size as i64;
+        println!("the other side, {what}: {delta:+} B (must be +0)");
+        if delta != 0 {
+            failures.push(format!(
+                "the other side's features cost this one {delta:+} B ({what}; with \
+                 `{with}`): a feature of the server changed the browser's build"
+            ));
+        }
+    }
     if b1 != 0 {
         failures.push(format!(
             "B1′ is {b1:+} B: a function crate that the generated registry never names \
@@ -75,7 +118,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         ));
     }
     if failures.is_empty() {
-        eprintln!("b12-generated: B1′ and B13 hold");
+        eprintln!("b12-generated: B1′, B13 and the other side's +0 hold");
         return Ok(());
     }
     Err(Error::CommandFailed {

@@ -324,6 +324,28 @@ pub(crate) const SETS: &[Set] = &[
         &[Use::Ci(&[Clippy])],
         "`csr` with `static-locale`, where a switch reloads rather than writing a cookie",
     ),
+    // Both sides' date features at once, as an application writes them on
+    // its one `mf2` line: a server's feature must change nothing in the
+    // browser's build, which `mf2`'s own compile-time checks hold
+    // (`crates/mf2/src/agreement.rs`).
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-datetime-icu,leptos-server-datetime-icu",
+        &[Use::Ci(&[Clippy])],
+        "ICU4X dates on both sides: the server's formatter cache stays out of the browser",
+    ),
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-datetime-intl,leptos-server-datetime-icu",
+        &[Use::Ci(&[Clippy])],
+        "`Intl` dates beside an ICU4X server: the server's load number stays out of the browser",
+    ),
+    mf2(
+        Wasm,
+        "leptos,hydrate,leptos-client-datetime-icu-cached,leptos-server-datetime-icu",
+        &[Use::Ci(&[Clippy])],
+        "ICU4X dates in the browser with the formatter cache it asked for",
+    ),
     mf2(
         Wasm,
         "leptos,hydrate,mark-fallback-lang",
@@ -843,6 +865,11 @@ pub(crate) const SETS: &[Set] = &[
         Wasm,
         "host-web-datetime-icu",
         "`host-web-datetime-icu`: the browser's dates over ICU4X",
+    ),
+    alone(
+        Wasm,
+        "host-web-datetime-icu-cached",
+        "`host-web-datetime-icu-cached`: the same, with ICU4X's formatter cache",
     ),
     alone(Host, "host-std", "`host-std`: the native host"),
     alone(

@@ -13,6 +13,7 @@ src/decode.rs
 src/error.rs
 src/format.rs
 src/lib.rs
+src/load.rs
 src/manifest.rs
 src/markup.rs
 src/nfc_map.rs

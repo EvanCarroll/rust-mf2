@@ -21,7 +21,7 @@ clap.workspace = true
 # rows through a native application's forms (Phase 10 C2).
 mf2 = { workspace = true, features = ["compile", "host-std", "fn-number", "native-datetime-icu", "native"] }
 mf2-catalog.workspace = true
-mf2-fn-datetime = { workspace = true, features = ["std-icu", "cache"] }
+mf2-fn-datetime = { workspace = true, features = ["std-icu", "std-cache"] }
 mf2-model = { workspace = true, features = ["suite-names"] }
 mf2-runtime.workspace = true
 serde = { workspace = true, features = ["std"] }
