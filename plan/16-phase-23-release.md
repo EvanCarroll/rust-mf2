@@ -19,7 +19,7 @@ plan pointers in the code, went to the code phases as 19.7.
 
 * **In flight:** 23.0a, the API records and the hidden host trait.
   A worktree made for a task is removed once its work is merged.
-* **Next:** 23.1
+* **Next:** 23.0b, then 23.1
 
 ## Done
 
@@ -122,6 +122,35 @@ stays an undocumented path in 3.0, though `mf2::Host` is documented
    public-API change nobody has seen. Report each one; do not absorb it.
 3. Check: `cargo xtask api --check`, then `cargo xtask ci` — all 65 steps, since
    23.0 committed with this one red. Commit by path with `ci` green.
+
+### 23.0b The warning test that saturates the key cap
+
+A test in `mf2`'s lib binary fails intermittently and can turn the pre-flight,
+or `cargo xtask release`'s own `ci`, red for no reason. It failed once during
+15.1 (got 0, expected 1) and then passed; this is the mechanism, read from the
+code, not inferred from a run.
+
+`crate::warn`'s keyed warnings are capped per kind: `once_for` drops a warning
+once 32 keys exist for that kind (`KEYS_PER_KIND`, `crates/mf2/src/warn.rs:52`,
+`:83`), and `SEEN` is one `Mutex<Vec<_>>` for the process. `warn.rs`'s own test
+`a_keyed_warning_is_given_once_per_key_and_the_keys_are_bounded`
+(`crates/mf2/src/warn.rs:146`) pushes **100** keys of `Kind::UnknownLocale` to
+prove the bound holds, which saturates that kind for the whole test process.
+`leptos::catalog::tests::an_unknown_language_provided_is_named_once`
+(`crates/mf2/src/leptos/catalog.rs:608`) then asserts that `"tlh-test"` was
+warned once — and gets nothing, because the cap was reached. Both are unit tests
+of the same crate, so they are in one binary and run on parallel threads: which
+one wins is the thread order, which is why it is intermittent. Any later test
+that expects an `UnknownLocale` warning has the same exposure.
+
+1. The bound is still proved, without spending another test's budget: either
+   the bounded-keys test uses a kind nothing else asserts on, or `warn` gains a
+   test-only reset of `SEEN` that it calls when it is finished, or the two tests
+   are made one. Whichever is chosen, no test may depend on another's thread
+   order.
+2. Check: `cargo test -p mf2` with the feature set that compiles both tests,
+   run three times so an order-dependent pass is visible, then `cargo xtask ci`.
+   Commit by path with `ci` green.
 
 ### 23.1 Pre-flight
 
