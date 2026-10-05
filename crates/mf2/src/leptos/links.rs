@@ -78,6 +78,7 @@ pub const fn date_formatter() -> Option<&'static str> {
 /// make the client rewrite (the same on both sides, or ICU4X on the server
 /// under `Intl`, `plan/08` §4.3). Such a client links no rewrite code, so
 /// the page need not say.
+#[doc(hidden)]
 #[must_use]
 pub const fn stated_date_formatter() -> Option<&'static str> {
     if cfg!(mf2_date_rewrite) {
