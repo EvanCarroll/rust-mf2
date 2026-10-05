@@ -25,23 +25,55 @@ can use the first two only.
 
 ### 1.2 The figures
 
+Each figure below is the 2026-10-03 estimate. **Phase 22 (2026-10-04/05)**
+re-measured most of them, and the measured figure stands beside the estimate;
+a figure with no Phase 22 entry is marked *not re-measured*. §1.3 has the
+2026-10-03 commands; the Done entries of `plan/15-phase-22-measure.md` have
+Phase 22's.
+
 **Browser wasm, gzip.** §1.1's browser figures are `docs/feature-costs.md`'s,
-on the reference workload. The size harness (`bench/b12/README.md`,
-2026-09-22) has ICU4X by form: Gregorian without zone names 42,820 B;
-Gregorian with zone names 69,641; any calendar without zone names 55,476;
-any calendar with zone names 83,028.
+on the reference workload. Re-measured by 22.3 (`cargo xtask feature-costs`,
+with `--check` holding): browser ICU4X **99,887 → 59,272 B**, the only date
+row that moved more than 10 %. The absolute client, one language, is 699,516 B
+gz with ISO, 758,909 with ICU4X and 699,832 with `Intl`, so `Intl` is about
++250 B gz over ISO (the figure `docs/features.md` now carries). A date
+formatter that no message uses costs the browser nothing (unused `intl`:
+−2 B).
 
-**Native binary, stripped**, one language:
+The size harness (`bench/b12/README.md`, 2026-09-22) had ICU4X by form:
+Gregorian without zone names 42,820 B; Gregorian with zone names 69,641; any
+calendar without zone names 55,476; any calendar with zone names 83,028. Those
+four forms were *not re-measured*; what 18.1's choice between them saves was.
+22.6 puts the narrow form (`auto`) against the widest (`[dates] calendars =
+"all"`, `zone-names = true`) at **758,900 vs 801,143 B gz** in the browser,
+−42,243.
 
-| Features | With a date message | No date, one plain placeholder |
-|---|---:|---:|
-| no date feature | 427,240 | 429,704 |
-| date functions, ISO | 595,616 | 596,072 |
-| ICU4X over the catalog's slice | 893,136 | 893,544 |
-| ICU4X over its compiled-in data (`datetime-intl` off the browser) | 5,041,944 | — |
-| ISO, plus one call to jiff's own formatter | — | 829,360 |
+**Native binary, stripped**, one language — the estimate, and 22.3's figure
+for the same canary after 22.12–22.15:
 
-**The date slice, per language** (nine languages: ar de en fr hi ja ru th zh):
+| Features | Estimate, with a date message | 22.3, measured |
+|---|---:|---|
+| no date feature | 427,240 | 419,784 |
+| date functions, ISO | 595,616 | 587,104 (the table's row: +167,192) |
+| ICU4X over the catalog's slice | 893,136 | 748,592 (+328,664) |
+| ICU4X over its compiled-in data | 5,041,944 | the cost table's `compile` row is 8,352,704 B — a feature delta, not the same measurement as the 2026-10-03 binary |
+| ISO, plus one call to jiff's own formatter | 829,360 | *not re-measured* |
+
+With no date message and one plain placeholder the 2026-10-03 estimates were
+429,704 / 596,072 / 893,544. 22.3 found the **unused** `native-datetime-icu`
+row at +146,080 B — jiff's system-zone code, read whenever `datetime` was on —
+and 22.15 moved that read into the dates host: the row is now **−40 B**.
+
+What the narrow ICU4X forms save natively was unknown on 2026-10-03; 22.6
+measured it: the native canary is **748,456 vs 900,384 B** stripped, −151,928.
+
+**The server binary** (new in 22.4): demo-ssr's server, stripped, 11,939,208 B
+with `fn-datetime` + `datetime-icu` → **7,429,888 B** with
+`leptos-server-datetime-icu` + `leptos-client-datetime-intl`: −4,509,320 B,
+−37.8 %.
+
+**The date slice, per language** (nine languages: ar de en fr hi ja ru th zh),
+as estimated:
 
 | Corpus | Slice, raw | Added to the catalog, brotli |
 |---|---:|---:|
@@ -49,24 +81,52 @@ any calendar with zone names 83,028.
 | seven shapes | 582–1,695 B | 349–679 B |
 | seven shapes and a zone name | 28,884–41,999 B | 15,607–17,781 B |
 
-**Number data, per language, raw:** 12–135 B; 1,951–2,894 B when a currency
-code is a variable.
+22.5 measured the bundles that actually ship rather than the slice alone
+(`mf2 stats --format json`, the same nine languages): with ICU4X in the
+browser the catalog carries **281–853 B** brotli (15,719–17,958 with a zone
+name); with `Intl` in the browser the catalog is **93–206 B** and the slice
+sits in the server-only table at 247–1,652 B (28,657–41,885 with a zone name).
+Nothing ships unread: 0 bytes a browser does not read, in all 16 feature sets.
+18.1's narrow form takes a further 14–17 B a language off the slice (22.6),
+and 22.3's brotli slice for ar-XB/en/en-XA/pl is 316/466/298/317 B with ICU4X
+and 0 with `Intl`.
 
-**Speed, native, per date placeholder:** ICU4X 2.55–3.94 µs, 27.07 µs with a
-zone name; ISO 0.32–0.47 µs.
+**Number data, per language, raw:** 12–135 B (*not re-measured*); 1,951–2,894 B
+when a currency code is a variable — 22.5 confirms that range and shows
+`number-intl` moving it to the server-only table (the browser's catalog
+1,099–1,536 → 110–113 B).
 
-**Cold debug build, one run each:** `mf2` with the native host and dates 5 s,
-with ICU4X 15 s; `mf2-build` 11 s, with `icu-blob` 27 s.
+**Speed, native, per date placeholder.** Estimated: ICU4X 2.55–3.94 µs, 27.07
+with a zone name; ISO 0.32–0.47. 22.7 re-ran it (`date_cost`, six alternating
+runs) uncached → with 18.2's cache: en 3.01–3.14 → 0.62–0.66 µs; ja 2.25–2.66
+→ 0.59–0.74; de 1.90–2.26 → 0.63–0.79; a zone name 27.60–32.14 → 1.25–1.55;
+ISO 0.23–0.53 either way. The cache costs 13,032 B natively and +1,764 B gz in
+a browser, so the browser does not get it.
+
+**Browser date speed** had no figure on 2026-10-03. 22.8 measured it with
+18.3's harness: see §9's first item.
+
+**Cold debug build, one run each** (2026-10-03): `mf2` with the native host and
+dates 5 s, with ICU4X 15 s; `mf2-build` 11 s, with `icu-blob` 27 s. *Not
+re-measured.* What was measured is the workspace's test time: 182.5 s over 166
+binaries at 21.1, against 1,721 s at the `p14` label.
 
 **Numbers through `Intl`** (`bench/intl-probe/RESULTS.md`, September): 2–6×
 slower per number in three engines; +2,205 B gz for plain numbers, −3,643 B
 gz once currency and units are used; Firefox has no plural rules for 30 CLDR
 languages, WebKit for 33, Chromium for 5, and each answers with English rules.
+*Not re-measured* — 18.4 narrowed the split to currency and unit names, and
+that is what 22.9 measured: +118 B gz in the client, −227 to −387 B brotli a
+language in the catalog, and 4.0–7.4× slower for `:currency`, 2.5–4.5× for
+`:unit` (Chromium and Firefox; WebKit is not installed on this machine).
 
 **Server and browser text differ** in known cases
 (`tools/e2e/checks/datetime.mjs`, September): Polish short dates in three
 engines; the Spanish long date-and-time joiner in Chromium and WebKit; the
-Arabic short one in Chromium; narrow no-break space against space.
+Arabic short one in Chromium; narrow no-break space against space. 22.9 adds
+the number-name cases: the text matches in Chromium and Firefox except for a
+doubled left-to-right mark in Arabic and Hebrew, and Arabic's long "liter"
+rendering.
 
 ### 1.3 The commands
 
@@ -551,23 +611,47 @@ start, is 21.6. Phase 15's exit took no run of its own.
 * Between Phase 16's first commit and Phase 21's exit, `main` holds commits
   that have not been through `ci` (`CLAUDE.md`, Conventions).
 
-## 9. Not verified
+## 9. Everything that was not verified is now answered (2026-10-05)
 
-* **The speed of `Intl` against ICU4X for a date in a browser.** No
-  measurement exists. Task 18.3 writes the harness and Phase 22 runs it
-  (22.8).
-* **That a browser build under `number-intl` reads no number entry.** The
-  September probe says so; task 17.2 reads the code before it moves them.
-* **What the narrow ICU4X forms save natively.** Only the browser's figures
-  exist.
-* **What a date feature costs a browser client that shows no date** and has
-  a plain placeholder (F10 in the browser). The native figure exists; task
-  19.2 writes the row and Phase 22 measures this one (22.3).
-* **How a date argument carries a calendar**, and whether the build can see
-  it. Task 18.1 finds out; until then §5.1's fallback stands.
-* **Cargo accepting one package under two dependency names, one per
-  target.** Task 16.1 tries it with `cargo tree`, which compiles nothing,
-  and falls back to a crate of its own.
+Seven things were unverified when this document was written. Phases 16 to 22
+settled all seven; each item says what is known and what established it.
+
+* **The speed of `Intl` against ICU4X for a date in a browser.** Measured by
+  22.8 with the harness task 18.3 wrote (`tools/e2e/datetime/speed.sh`, under
+  load; Chromium and Firefox — WebKit is not installed on this machine).
+  Uncached ICU4X takes 1.55–2.60× `Intl`'s time for a date, 1.85–2.91× for a
+  date and time, and 6.00–8.13× with a zone name (alike under Chromium's 4×
+  throttle). With 18.2's cache ICU4X takes 0.42–0.69× `Intl`'s time, 0.75–0.98×
+  with a zone name — but 22.7 keeps the cache out of the browser (+1,764 B gz),
+  so a browser's ICU4X is the slower, uncached path.
+* **That a browser build under `number-intl` reads no number entry.** Confirmed
+  by 17.2 by reading each entry's readers, enforced by 17.4's `check_read`, and
+  measured by 22.5: the plural, number, currency and unit entries move to the
+  server-only table (the browser's catalog 1,099–1,536 → 110–113 B, 1,951–2,894
+  B moved), and `mf2 stats` reports 0 bytes a browser downloads unread, in all
+  16 feature sets.
+* **What the narrow ICU4X forms save natively.** Measured by 22.6: the native
+  canary is 748,456 B stripped with the narrow form (`auto`) against 900,384 B
+  with the widest (`calendars = "all"`, `zone-names = true`) — −151,928 B. The
+  same pair saves 42,243 B gz in the browser.
+* **What a date feature costs a browser client that shows no date** and has a
+  plain placeholder (F10 in the browser). Measured by 22.3, which put the
+  unused-formatter rows into `cargo xtask feature-costs`: in a browser an
+  unused date formatter costs nothing (unused `intl`: −2 B). Natively the row
+  was +146,080 B — jiff's system-zone code — and 22.15 moved that read into the
+  dates host, leaving −40 B; without a date message `time_zone()` answers UTC.
+* **How a date argument carries a calendar**, and whether the build can see it.
+  Answered by 18.1: a calendar reaches a date only through
+  `DateTimeValue::with_calendar` at run time, so a build cannot see it. §5.1's
+  fallback therefore stands, and `mf2 check` prints the form it chose.
+* **Cargo accepting one package under two dependency names, one per target.**
+  Answered by 16.1: Cargo refuses the renames (§3.4). The fallback was taken —
+  browser ICU4X comes through its own published crate,
+  `mf2-fn-datetime-web-icu` — and `cargo tree` on wasm shows no `icu_*` crate
+  under `host-web-datetime-intl,host-std-datetime-icu`.
 * **What `[profile.dev] opt-level = 1` does to the whole workspace's test
-  time.** Measured on the conformance crate only (task 16.0). Phase 21
-  measures the rest (21.1).
+  time.** Measured by 21.1: 182.5 s over 166 test binaries, against 1,721 s at
+  the `p14` label, with none over two minutes (the largest, `generated_l4`,
+  32.9 s). 16.0 changed two things at once — the `opt-level` and the
+  scoped-thread split of `generated_l3`/`_l4` — and they were not separated, so
+  the 9.4× belongs to the pair.
