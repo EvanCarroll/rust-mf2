@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.8. A worktree made for a task is removed once its work
+* **In flight:** nothing. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.4–22.10, the cost table again, 22.11
+* **Next:** 22.9–22.10, the cost table again, 22.11
 
 ## Done
 
@@ -85,6 +85,10 @@ starts in a fresh session.
   3.01–3.14 → 0.62–0.66; ja 2.25–2.66 → 0.59–0.74; de 1.90–2.26 → 0.63–0.79; a zone name 27.60–
   32.14 → 1.25–1.55; ISO 0.23–0.53 both. Native canary: the cache costs 13,032 B stripped, and no
   setting turns it off. Browser: +1,764 B gz, over 1 KB, so the browser does not get it.
+* 22.8 (`tools/e2e/datetime/speed.sh`, under load; Chromium + Firefox, no WebKit installed): ICU4X
+  / `Intl` ns, en pl ar: a date 1.55–2.60, date and time 1.85–2.91, a zone name 6.00–8.13 (4×
+  throttle alike). Cached ICU4X / `Intl`: 0.42–0.69, a zone name 0.75–0.98; the cache is 3.5–4.3×
+  (7.1–9.0× with a zone name), but 22.7 keeps it out of the browser. Script ran unchanged.
 
 ## Before this phase
 
