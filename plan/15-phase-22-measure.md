@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.7. A worktree made for a task is removed once its work
+* **In flight:** 22.8. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.4–22.10, the cost table again, 22.11
 
@@ -81,6 +81,10 @@ starts in a fresh session.
   `target/p22-6/`): browser client with `leptos-client-datetime-icu` 758,900 vs 801,143 B gz
   (−42,243); native canary 748,456 vs 900,384 B stripped (−151,928); slice 14–17 B smaller a
   language; `mf2 check`: "ICU4X dates: the Gregorian calendar only …; no zone names …".
+* 22.7 (`target/p22-7/`): `date_cost` uncached → cached, µs over 6 alternate runs: en `:datetime`
+  3.01–3.14 → 0.62–0.66; ja 2.25–2.66 → 0.59–0.74; de 1.90–2.26 → 0.63–0.79; a zone name 27.60–
+  32.14 → 1.25–1.55; ISO 0.23–0.53 both. Native canary: the cache costs 13,032 B stripped, and no
+  setting turns it off. Browser: +1,764 B gz, over 1 KB, so the browser does not get it.
 
 ## Before this phase
 
