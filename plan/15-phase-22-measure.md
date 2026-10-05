@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.4. A worktree made for a task is removed once its work
+* **In flight:** 22.5. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.4–22.10, the cost table again, 22.11
 
@@ -68,6 +68,10 @@ starts in a fresh session.
   reads the zone. The row is −40 B (`STRIP=symbols cargo build --release --manifest-path
   tools/native-canary/Cargo.toml --features native[,native-datetime-icu,no-date-message]`).
   Without a date message `time_zone()` answers UTC.
+* 22.4: demo-ssr's server, stripped, 11,939,208 B at 2cbbcac (`fn-datetime` + `datetime-icu`) →
+  7,429,888 B now (`leptos-server-datetime-icu` + `leptos-client-datetime-intl`), −4,509,320 B
+  (−37.8 %). `cargo leptos build --release --server-only` then `strip -o`, the old one from
+  `git archive 2cbbcac` with the tree's `Cargo.lock` files (`target/b224.sh`).
 
 ## Before this phase
 
