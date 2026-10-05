@@ -17,7 +17,7 @@ plan pointers in the code, went to the code phases as 19.7.
 
 ## State
 
-* **In flight:** nothing.
+* **In flight:** 23.0a, the API records and the hidden host trait.
   A worktree made for a task is removed once its work is merged.
 * **Next:** 23.1
 
@@ -28,6 +28,10 @@ plan pointers in the code, went to the code phases as 19.7.
   `from_str`, an `# Errors` section on `install_from_directory`, and a one-line
   first doc paragraph throughout; no group allowance was added. The fixture has
   its own strict `[lints.clippy]`, and `codegen-matrix` lints every set.
+  Committed as `9e4b756` with one of `ci`'s 65 steps red, `api --check`, which
+  `main` was already red on before this task (see 23.0a); the owner was told.
+  Size not measured: `ok_or_else` is the only byte-level change, and 23.1's
+  comparison shows it.
 
 ## Before this phase
 
@@ -92,6 +96,33 @@ move is a few bytes from `ok_or_else`. What it moves, 23.1's
 5. Check: `cargo xtask codegen-matrix`, then `cargo xtask ci`. Commit by path
    with `ci` green.
 
+### 23.0a The API records and the hidden host trait
+
+`cargo xtask api --check` is red, and was before 23.0: `mf2::CorpusHost` is a
+`pub use` (`crates/mf2/src/lib.rs:319`) of a `#[doc(hidden)]` trait added by
+`bdd27b8` (22.15, 2026-10-04), while `crates/mf2/api/*.txt` were last written at
+`bcc73f7` (21.2). rustdoc drops a hidden item, so the lister loses the
+re-export; it already puts such a re-export back for one macro
+(`restore_hidden_reexports`, `xtask/src/api.rs`, for `mf2::leptos::islands_gate!`)
+and does not know the trait kind.
+
+**The trait stays hidden** (owner, 2026-10-05). It carries one constant,
+`SYSTEM_ZONE`, from the host to the corpus so that an application with no dates
+links neither the reading of the machine's zone nor a time-zone database; the
+only method that takes it, `Corpus::with_host`, is `#[doc(hidden)]` too, and the
+only caller is the generated module. Documenting it would promise a name whose
+only use is hidden. Bringing a host of one's own to a native corpus therefore
+stays an undocumented path in 3.0, though `mf2::Host` is documented
+(`crates/mf2/src/lib.rs:454`).
+
+1. `xtask/src/api.rs` restores a public re-export of a hidden **trait**, as it
+   does a macro, with a test beside the macro's if there is one.
+2. `cargo xtask api` rewrites the records. Read the whole diff: the records
+   predate every Phase 22 fix, so anything in it besides `mf2::CorpusHost` is a
+   public-API change nobody has seen. Report each one; do not absorb it.
+3. Check: `cargo xtask api --check`, then `cargo xtask ci` — all 65 steps, since
+   23.0 committed with this one red. Commit by path with `ci` green.
+
 ### 23.1 Pre-flight
 
 This is the full run on the final commit. Each check runs once in it: the
@@ -99,7 +130,9 @@ dry run of step 5 runs `ci`, `docs-rs` and `msrv` itself, so step 3 leaves
 them out.
 
 1. The tree is clean: `git status --porcelain --untracked-files=all` prints
-   nothing (`vendor/` and `comparison.md` are excluded locally).
+   nothing (`vendor/`, `comparison.md` and the owner's two root notes,
+   `mf2-generated-code-clippy.md` and the date-backends synopsis, are excluded
+   in `.git/info/exclude`; owner, 2026-10-05).
 2. `CHANGELOG.md` has a complete `## 3.0.0` entry, breaking changes first,
    and no "not yet published" line.
 3. The suite, against Phase 21's run:
