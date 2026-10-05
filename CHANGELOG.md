@@ -182,6 +182,18 @@ What a version number promises, `mf2`'s feature names among it, is in
   catalog its date data. In 3.0 each build formats with its own side's
   formatter, and a browser build compiles the ICU4X crates only with its
   own `icu` feature.
+* **Fixed: the generated module is clean under an application's strict
+  clippy.** An `include!`d file is linted as the including crate's own code,
+  so an application that runs clippy with `pedantic` and `nursery` at
+  `-D warnings` got errors it could not fix in its own source: `use_self`
+  on `Locale`'s constants and match arms, a missing `#[must_use]` on
+  `has_locale`, `registry`, `catalog`, `catalog_name` and
+  `Locale::best_match`, `ok_or` where `ok_or_else` belongs in `from_str`, a
+  first doc paragraph too long on a dozen generated items, and no
+  `# Errors` section on `install_from_directory`. The generator now emits
+  all of it the way a hand-written module would, and `cargo xtask
+  codegen-matrix` lints the fixture with `pedantic` and `nursery` at
+  `-D warnings` in every feature combination, so it stays that way.
 
 ## 2.0.0
 

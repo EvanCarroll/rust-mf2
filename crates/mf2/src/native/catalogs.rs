@@ -76,7 +76,17 @@ fn with_table(catalog: Catalog, file: &CatalogFile) -> Result<Catalog, CatalogEr
 }
 
 /// Without a Leptos server or Axum, there is no server-only table.
+///
+/// The `Result` and the `always` are the other arm's signature and its one
+/// call site, which a `cfg` cannot change: the two lints are allowed here
+/// rather than write the call site twice. Neither can be satisfied while the
+/// arms agree (23.0).
 #[cfg(not(any(feature = "ssr", feature = "axum")))]
+#[allow(
+    clippy::inline_always,
+    clippy::unnecessary_wraps,
+    reason = "the other `cfg` arm's signature"
+)]
 #[inline(always)]
 fn with_table(catalog: Catalog, _file: &CatalogFile) -> Result<Catalog, CatalogError> {
     Ok(catalog)

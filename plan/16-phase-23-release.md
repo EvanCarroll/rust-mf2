@@ -17,13 +17,17 @@ plan pointers in the code, went to the code phases as 19.7.
 
 ## State
 
-* **In flight:** 23.0, the generated module under a strict clippy.
+* **In flight:** nothing.
   A worktree made for a task is removed once its work is merged.
 * **Next:** 23.1
 
 ## Done
 
-(nothing yet)
+* **23.0** The generator emits `Self` inside `impl Locale` and the trait impls
+  for it, `#[must_use]` on the five value-returning `pub fn`s, `ok_or_else` in
+  `from_str`, an `# Errors` section on `install_from_directory`, and a one-line
+  first doc paragraph throughout; no group allowance was added. The fixture has
+  its own strict `[lints.clippy]`, and `codegen-matrix` lints every set.
 
 ## Before this phase
 

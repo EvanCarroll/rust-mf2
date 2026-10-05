@@ -78,5 +78,16 @@ required-features = ["axum"]
 [build-dependencies]
 mf2-build.workspace = true
 
-[lints]
-workspace = true
+# This fixture is linted as a strict application lints its own crate (23.0).
+# The generated module is `include!`d here, so these levels apply to it too:
+# `pedantic` and `nursery` at warn under `-D warnings`, and — unlike the
+# workspace's table — `must_use_candidate` is not allowed. `cargo xtask
+# codegen-matrix` runs clippy over the sets, so the generator cannot regress.
+[lints.rust]
+unsafe_code = "deny"
+unreachable_pub = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }

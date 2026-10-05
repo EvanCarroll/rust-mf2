@@ -58,7 +58,7 @@ mod tests {
     fn clap_parses_a_lang_through_the_matcher() {
         use super::Locale;
 
-        let command = clap::Command::new("app").arg(
+        let mut command = clap::Command::new("app").arg(
             clap::Arg::new("lang")
                 .long("lang")
                 .value_parser(clap::value_parser!(Locale)),
@@ -79,7 +79,7 @@ mod tests {
                 .is_err_and(|e| e.contains("it has ar, en, pl")),
             "{refused:?}"
         );
-        let help = command.clone().render_help().to_string();
+        let help = command.render_help().to_string();
         assert!(help.contains("[possible values: ar, en, pl]"), "{help}");
     }
 

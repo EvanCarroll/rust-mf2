@@ -9,6 +9,13 @@
 //! combinations, and greps each client build for the things that may never
 //! reach it — among them ICU4X, in a client that formats dates through
 //! `Intl` (`plan/08` §7).
+//!
+//! Each combination is built with `cargo clippy ... -- -D warnings`, not
+//! `cargo check` (23.0). The fixture's own `[lints.clippy]` turns `pedantic`
+//! and `nursery` on and does not allow `must_use_candidate`, and an
+//! `include!`d file is linted as the including crate's own code: so this is
+//! what keeps the generated module clean under the lints a strict
+//! application runs over its own source.
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -39,7 +46,7 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
         check(&cargo, root, set)?;
     }
     eprintln!(
-        "codegen-matrix: {} combinations compiled ({} server, {} native, {} client)",
+        "codegen-matrix: {} combinations clean under a strict clippy ({} server, {} native, {} client)",
         server.len() + native.len() + client.len(),
         server.len(),
         native.len(),
@@ -289,18 +296,28 @@ fn find(haystack: &[u8], needle: &[u8]) -> bool {
         .any(|window| window == needle)
 }
 
-/// `cargo check` of the fixture for one set.
+/// `cargo clippy ... -- -D warnings` of the fixture for one set.
+///
+/// Clippy, not `cargo check` (23.0): the fixture carries its own
+/// `[lints.clippy]` with `pedantic` and `nursery` at warn and
+/// `must_use_candidate` not allowed, so the generated module — which is
+/// `include!`d, and therefore linted as the including crate's own code — is
+/// held to what a strict application holds its own source to, in every set.
 fn check(cargo: &OsStr, root: &Path, set: &Set) -> Result<()> {
-    let mut args: Vec<&str> = vec!["check"];
+    let mut args: Vec<&str> = vec!["clippy"];
     args.extend(set.selection());
     if let Some(triple) = set.target.triple() {
         args.push("--target");
         args.push(triple);
     }
+    args.extend(["--", "-D", "warnings"]);
     let args: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
     cmd::run_inherit(cargo, &args, root).map_err(|e| match e {
         Error::CommandFailed { status, .. } => Error::CommandFailed {
-            command: format!("cargo check -p {FIXTURE} --features {}", set.features),
+            command: format!(
+                "cargo clippy -p {FIXTURE} --features {} -- -D warnings",
+                set.features
+            ),
             status,
             stderr: String::new(),
         },

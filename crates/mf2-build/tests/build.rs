@@ -574,7 +574,7 @@ fn pseudo_locales_are_named_by_their_tags() {
         outcome.generated.contains("pub fn name(self)")
             && outcome
                 .generated
-                .contains("Locale::EnXa => tr!(\"language.en-XA\"),"),
+                .contains("Self::EnXa => tr!(\"language.en-XA\"),"),
         "{}",
         outcome.generated
     );

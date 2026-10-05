@@ -367,14 +367,16 @@ pub static LOCALES: &[(&str, __mf2::Dir)] = &[
         "];
 
 /// Whether `tag` is one of them.
+#[must_use]
 pub fn has_locale(tag: &str) -> bool {{
     LOCALES.iter().any(|(t, _)| *t == tag)
 }}
 
-/// CLDR's language-matching data, cut to these locales' languages: the rules
-/// that can serve one of them, and the likely subtags of the languages whose
-/// readers those rules accept. For every reader it gives the answers CLDR's
-/// whole table gives. {who}
+/// CLDR's language-matching data, cut to these locales' languages.
+///
+/// The rules that can serve one of them, and the likely subtags of the
+/// languages whose readers those rules accept. For every reader it gives the
+/// answers CLDR's whole table gives. {who}
 pub static LANGUAGE_MATCHING: __mf2::LanguageMatching = {matching};
 ",
         matching = m.language_matching
@@ -452,9 +454,9 @@ fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
         s,
         "/// {}\npub static CATALOGS: &[(&str, &str, &[u8], &[u8])] = &[",
         if is_native(m.emit) {
-            "The catalogs, for the Leptos layer's server beside `native`: `(tag,\n/// file name, bytes, server-only table)`, the bytes `CORPUS` holds."
+            "The catalogs, for the Leptos layer's server beside `native`.\n///\n/// `(tag, file name, bytes, server-only table)`, the bytes `CORPUS` holds."
         } else {
-            "The catalogs, embedded for the **server** only: `(tag, file name,\n/// bytes, server-only table)`. The client fetches its one locale instead, so\n/// its wasm holds no message text, no id and no catalog name (B6). The\n/// server-only table holds the locale data only the server reads; it is\n/// served to no one, and empty when there is none."
+            "The catalogs, embedded for the **server** only.\n///\n/// `(tag, file name, bytes, server-only table)`. The client fetches its one\n/// locale instead, so its wasm holds no message text, no id and no catalog\n/// name (B6). The server-only table holds the locale data only the server\n/// reads; it is served to no one, and empty when there is none."
         }
     );
     let shared = table.is_some() && has_server_data(m);
@@ -482,12 +484,14 @@ fn catalogs(m: &Module<'_>, table: Option<&str>) -> String {
         "];
 
 /// The embedded catalog of `tag`, for a server that serves it from memory.
+#[must_use]
 pub fn catalog(tag: &str) -> Option<&'static [u8]> {
     CATALOGS.iter().find(|(t, ..)| *t == tag).map(|(_, _, b, _)| *b)
 }
 
 /// The file name `tag`'s catalog is published under, content-hashed and
 /// served immutable.
+#[must_use]
 pub fn catalog_name(tag: &str) -> Option<&'static str> {
     CATALOGS.iter().find(|(t, ..)| *t == tag).map(|(_, n, ..)| *n)
 }
@@ -559,6 +563,7 @@ static FUNCTIONS: [(&str, &dyn __mf2::Function); {n}] = [
         ";
 
 /// The registry every formatter in this application uses.
+#[must_use]
 pub fn registry() -> &'static __mf2::Registry {{
     &REGISTRY
 }}
@@ -649,9 +654,11 @@ fn host(s: &mut String, m: &Module<'_>) {
     let _ = write!(
         s,
         "
-/// The host this build formats through: the server's, or the browser's — and
-/// of the browser's, the one this corpus actually needs, so that the glue of
-/// a feature that is on but unused is never linked (B1′).
+/// The host this build formats through.
+///
+/// The server's, or the browser's — and of the browser's, the one this
+/// corpus actually needs, so that the glue of a feature that is on but
+/// unused is never linked (B1′).
 pub mod host {{
     super::__mf2::__use_host!({dates});
 }}
@@ -664,9 +671,10 @@ fn native_host(s: &mut String, m: &Module<'_>) {
     let _ = write!(
         s,
         "
-/// The host this build formats through: the native one — for a corpus a
-/// date can reach, the one that resolves a named time zone, so that nothing
-/// else links a time-zone database (B1′).
+/// The host this build formats through: the native one.
+///
+/// For a corpus a date can reach, it is the one that resolves a named time
+/// zone, so that nothing else links a time-zone database (B1′).
 pub mod host {{
     super::__mf2::__use_host!({dates});
 }}
@@ -678,9 +686,11 @@ fn corpus(s: &mut String, m: &Module<'_>) {
     let mut c = String::new();
     let _ = writeln!(
         c,
-        "/// Everything `mf2::native` needs, as one value: the source locale, the
-/// manifest hash, the locales, the registry, each catalog's file name{embedded},
-/// and the part of CLDR's language-matching data they need.
+        "/// Everything `mf2::native` needs, as one value.
+///
+/// The source locale, the manifest hash, the locales, the registry, each
+/// catalog's file name{embedded}, and the part of CLDR's language-matching data
+/// they need.
 pub static CORPUS: __mf2::Corpus = __mf2::Corpus::new(
     SOURCE_LOCALE,
     MANIFEST_HASH,
@@ -756,10 +766,10 @@ pub enum Locale {{
 
 impl Locale {{
     /// Every language, in tag order, as `LOCALES` lists them.
-    pub const ALL: [Locale; {n}] = [{all}];
+    pub const ALL: [Self; {n}] = [{all}];
 
     /// The language the messages are written in.
-    pub const SOURCE: Locale = Locale::{source};
+    pub const SOURCE: Self = Self::{source};
 
     /// The BCP 47 tag.
     #[must_use]
@@ -769,12 +779,12 @@ impl Locale {{
         n = variants.len(),
         all = variants
             .iter()
-            .map(|(name, _)| format!("Locale::{name}"))
+            .map(|(name, _)| format!("Self::{name}"))
             .collect::<Vec<_>>()
             .join(", "),
     );
     for (name, l) in &variants {
-        let _ = writeln!(s, "            Locale::{name} => {:?},", l.tag);
+        let _ = writeln!(s, "            Self::{name} => {:?},", l.tag);
     }
     let rtl: Vec<&str> = variants
         .iter()
@@ -789,7 +799,7 @@ impl Locale {{
         format!(
             "        match self {{\n            {} => __mf2::Dir::Rtl,\n            _ => __mf2::Dir::Ltr,\n        }}\n",
             rtl.iter()
-                .map(|name| format!("Locale::{name}"))
+                .map(|name| format!("Self::{name}"))
                 .collect::<Vec<_>>()
                 .join(" | ")
         )
@@ -804,13 +814,16 @@ impl Locale {{
     pub const fn dir(self) -> __mf2::Dir {{
 {dir}    }}
 
-    /// The language that best serves a reader of `desired`, their languages
-    /// in order of preference, by CLDR's language-matching data; `None` when
-    /// none is close enough (the source language is then the usual answer).
-    pub fn best_match<'a>(desired: impl IntoIterator<Item = &'a str>) -> Option<Locale> {{
+    /// The language that best serves a reader of `desired`.
+    ///
+    /// `desired` is their languages in order of preference, matched by CLDR's
+    /// language-matching data; `None` when none is close enough (the source
+    /// language is then the usual answer).
+    #[must_use]
+    pub fn best_match<'a>(desired: impl IntoIterator<Item = &'a str>) -> Option<Self> {{
         LANGUAGE_MATCHING
             .best_match(desired, LOCALES)
-            .and_then(|index| Locale::ALL.get(index).copied())
+            .and_then(|index| Self::ALL.get(index).copied())
     }}
 }}
 
@@ -819,10 +832,10 @@ impl Locale {{
 impl ::core::str::FromStr for Locale {{
     type Err = __mf2::UnknownLocale;
 
-    fn from_str(tag: &str) -> Result<Locale, __mf2::UnknownLocale> {{
+    fn from_str(tag: &str) -> Result<Self, __mf2::UnknownLocale> {{
         __mf2::__best_locale!(LANGUAGE_MATCHING, LOCALES, tag)
-            .and_then(|index| Locale::ALL.get(index).copied())
-            .ok_or(__mf2::UnknownLocale::new(LOCALES))
+            .and_then(|index| Self::ALL.get(index).copied())
+            .ok_or_else(|| __mf2::UnknownLocale::new(LOCALES))
     }}
 }}
 
@@ -837,12 +850,12 @@ __mf2::__if_clap! {{
     /// `--lang fr_CA.UTF-8` parses through `from_str`, and `--help` lists the
     /// tags.
     impl __mf2::__generated::clap::ValueParserFactory for Locale {{
-        type Parser = __mf2::__generated::clap::LocaleParser<Locale>;
+        type Parser = __mf2::__generated::clap::LocaleParser<Self>;
 
         fn value_parser() -> Self::Parser {{
             __mf2::__generated::clap::LocaleParser::new(
                 LOCALES,
-                <Locale as ::core::str::FromStr>::from_str,
+                <Self as ::core::str::FromStr>::from_str,
             )
         }}
     }}
@@ -887,8 +900,8 @@ impl<S: ::core::marker::Send + ::core::marker::Sync> __mf2::__generated::axum::F
     ) -> impl ::core::future::Future<Output = ::core::result::Result<Self, Self::Rejection>>
            + ::core::marker::Send {
         let locale = __mf2::__generated::axum::locale_index(parts, LOCALES, SOURCE_LOCALE)
-            .and_then(|index| Locale::ALL.get(index).copied())
-            .unwrap_or(Locale::SOURCE);
+            .and_then(|index| Self::ALL.get(index).copied())
+            .unwrap_or(Self::SOURCE);
         ::core::future::ready(::core::result::Result::Ok(locale))
     }
 }
@@ -907,10 +920,11 @@ fn functions(s: &mut String, m: &Module<'_>) {
     gate(
         s,
         "__if_leptos",
-        &"/// What the Leptos layer is given, from what this build generated: the
-/// registry, the host, the manifest hash and the locales, and a client-only
-/// application's language-matching data. `install()` installs it; an
-/// application that adds to it calls
+        &"/// What the Leptos layer is given, from what this build generated.
+///
+/// The registry, the host, the manifest hash and the locales, and a
+/// client-only application's language-matching data. `install()` installs it;
+/// an application that adds to it calls
 /// `install_with(setup().with_time_zone(…))` instead, once on each side.
 #[must_use]
 #[allow(clippy::let_and_return)]
@@ -960,9 +974,10 @@ pub fn setup() -> __mf2::leptos::Setup {
     }
     let doc = match m.emit {
         Emit::Native => {
-            "/// Installs the catalogs the executable embeds as the process's, and makes
-/// the language that best serves the system's preferred languages the
-/// app-wide one, else the source language. Call it once, at start-up. It
+            "/// Installs the catalogs the executable embeds as the process's.
+///
+/// It makes the language that best serves the system's preferred languages
+/// the app-wide one, else the source language. Call it once, at start-up. It
 /// returns nothing: embedded catalogs from the same build cannot fail to
 /// load. Beside a Leptos mode it also gives the Leptos layer this build's
 /// setup, and on the server the same catalogs: it is
@@ -973,18 +988,20 @@ pub fn setup() -> __mf2::leptos::Setup {
 /// `install_from_directory` installs them): `install_with(setup())`."
         }
         Emit::Module => {
-            "/// Gives the Leptos layer what this build generated, `setup()`:
-/// `install_with(setup())`. Call it once on each side, before rendering or
-/// hydrating. This module names no catalog: the server installs them from
+            "/// Gives the Leptos layer what this build generated, `setup()`.
+///
+/// It is `install_with(setup())`. Call it once on each side, before rendering
+/// or hydrating. This module names no catalog: the server installs them from
 /// the crate that embeds them."
         }
         _ => {
-            "/// Gives the Leptos layer what this build generated, `setup()`, and, on
-/// the server, the embedded catalogs, each checked against the manifest
-/// hash: `install_with(setup())`. Call it once on each side, before
-/// rendering or hydrating. With `native`, it also installs the catalogs as
-/// the process's (`mf2::native`); with `axum`, as the ones `mf2::axum`
-/// negotiates among and serves.
+            "/// Gives the Leptos layer what this build generated, `setup()`.
+///
+/// On the server it also gives it the embedded catalogs, each checked against
+/// the manifest hash: `install_with(setup())`. Call it once on each side,
+/// before rendering or hydrating. With `native`, it also installs the
+/// catalogs as the process's (`mf2::native`); with `axum`, as the ones
+/// `mf2::axum` negotiates among and serves.
 ///
 /// # Panics
 ///
@@ -993,8 +1010,9 @@ pub fn setup() -> __mf2::leptos::Setup {
         }
     };
     let install_with = format!(
-        "/// Does everything `install()` does, with `setup` given to the Leptos
-/// layer in place of `setup()`: for an application that adds to it, such as
+        "/// Does everything `install()` does, with `setup` in place of `setup()`.
+///
+/// It is for an application that adds to the setup, such as
 /// `install_with(setup().with_time_zone(zone))`. Call it instead of
 /// `install()`, once on each side, before rendering or hydrating, with the
 /// same setup on both: nothing installs twice.{panics}
@@ -1034,9 +1052,16 @@ pub fn install_with(setup: __mf2::leptos::Setup) {{\n{with}}}\n",
         gate(
             s,
             "__if_native",
-            "/// Installs the catalog files this build wrote from `directory` as the
-/// process's, and chooses the app-wide language as `install()` does. Only
-/// the source language's file is required; each must hash to its name.
+            "/// Installs the catalog files this build wrote from `directory`.
+///
+/// They become the process's, and the app-wide language is chosen as
+/// `install()` does. Only the source language's file is required; each must
+/// hash to its name.
+///
+/// # Errors
+///
+/// If the source language's file is missing, if a file does not hash to its
+/// name, or if one does not load: the error says which.
 pub fn install_from_directory(
     directory: impl AsRef<__mf2::__generated::Path>,
 ) -> Result<(), __mf2::native::Error> {
@@ -1054,31 +1079,37 @@ pub fn install_from_directory(
         "__if_leptos"
     };
     let set = if native {
-        "/// Makes `locale` the app-wide language: every thread's next format uses
-/// it, but a thread inside `with_locale`. Beside a Leptos mode, a client
-/// switches its page (spawned), and the server does nothing.
+        "/// Makes `locale` the app-wide language.
+///
+/// Every thread's next format uses it, but a thread inside `with_locale`.
+/// Beside a Leptos mode, a client switches its page (spawned), and the
+/// server does nothing.
 ///
 /// # Panics
 ///
 /// Before `install()`."
     } else {
-        "/// Switches to `locale`: in the browser, fetch, check and swap the catalog,
-/// update every live text and remember the choice (spawned; a failure
-/// leaves the page as it is). On the server it does nothing: the request's
-/// language is the negotiation's. With `native`, it sets the app-wide
-/// language too."
+        "/// Switches to `locale`.
+///
+/// In the browser: fetch, check and swap the catalog, update every live text
+/// and remember the choice (spawned; a failure leaves the page as it is). On
+/// the server it does nothing: the request's language is the negotiation's.
+/// With `native`, it sets the app-wide language too."
     };
     let current = if native {
-        "/// The language this thread formats in: its own (`with_locale`), else the
-/// app-wide one. Beside a Leptos mode, the request's or the page's first.
+        "/// The language this thread formats in.
+///
+/// Its own (`with_locale`), else the app-wide one. Beside a Leptos mode, the
+/// request's or the page's first.
 ///
 /// # Panics
 ///
 /// In a build whose only mode is `native`, before `install()` outside
 /// `with_locale`."
     } else {
-        "/// The language of the request being rendered, or of the page — tracked:
-/// a view that reads it follows a switch. With `native`, then the native
+        "/// The language of the request being rendered, or of the page — tracked.
+///
+/// A view that reads it follows a switch. With `native`, then the native
 /// store's; the source language before any is chosen."
     };
     let _ = write!(
@@ -1115,8 +1146,8 @@ pub fn preload_locale(locale: Locale) {
 
 /// `<LocaleOption tag=Locale::Fr>`: the helper's tag type.
 impl From<Locale> for __mf2::leptos::LocaleTag {
-    fn from(locale: Locale) -> __mf2::leptos::LocaleTag {
-        __mf2::leptos::LocaleTag(locale.tag())
+    fn from(locale: Locale) -> Self {
+        Self(locale.tag())
     }
 }
 ",
@@ -1127,9 +1158,11 @@ impl From<Locale> for __mf2::leptos::LocaleTag {
         gate(
             s,
             "__if_native",
-            "/// Runs `body` with this thread formatting in `locale`, and returns what it
-/// returns; the thread's language is restored when `body` returns or
-/// unwinds, and other threads are not affected. It needs no `install()`.
+            "/// Runs `body` with this thread formatting in `locale`.
+///
+/// It returns what `body` returns; the thread's language is restored when
+/// `body` returns or unwinds, and other threads are not affected. It needs
+/// no `install()`.
 pub fn with_locale<R>(locale: Locale, body: impl FnOnce() -> R) -> R {
     __mf2::__generated::with_locale_in(&CORPUS, locale.tag(), body)
 }
@@ -1150,9 +1183,11 @@ fn indented(text: &str) -> String {
 /// name and its hash.
 fn markup(s: &mut String, m: &Module<'_>) {
     let mut body = String::from(
-        "/// The markup names the messages use, one constant each, for a theme's
-/// styles: `markup::KEY` is `{#key}…{/key}`. A name whose ASCII letters and
-/// digits give no constant, or the same one as another name's, has none.
+        "/// The markup names the messages use, one constant each, for a theme.
+///
+/// `markup::KEY` is `{#key}…{/key}`, for a theme's styles. A name whose
+/// ASCII letters and digits give no constant, or the same one as another
+/// name's, has none.
 pub mod markup {
 ",
     );
@@ -1270,7 +1305,7 @@ impl Locale {{
         );
         for l in m.locales {
             let id = name_id(&l.tag);
-            let _ = writeln!(s, "            Locale::{} => tr!({id:?}),", variant(&l.tag));
+            let _ = writeln!(s, "            Self::{} => tr!({id:?}),", variant(&l.tag));
         }
         s.push_str("        }\n    }\n}\n");
     }
@@ -1306,10 +1341,11 @@ fn prelude(s: &mut String, m: &Module<'_>) {
     let _ = write!(
         s,
         "
-/// What an application names everywhere, for `use …::prelude::*;` (in this
-/// crate, `use crate::prelude::*;`): `tr!` and `msg_id!`, `Locale`, the
-/// functions that choose and read the language where this build has them,
-/// and the description types for signatures. `install`, `setup` and
+/// What an application names everywhere, for `use …::prelude::*;`.
+///
+/// In this crate, `use crate::prelude::*;`: `tr!` and `msg_id!`, `Locale`,
+/// the functions that choose and read the language where this build has
+/// them, and the description types for signatures. `install`, `setup` and
 /// `markup` stay out: each is named once.
 pub mod prelude {{
     pub use super::{{Locale, msg_id, tr}};
@@ -1865,10 +1901,12 @@ mod tests {
         let code = write(&module(&[], &features, &custom, &locales, false));
         for expected in [
             "pub enum Locale {\n    /// `en`\n    En,\n    /// `ar`\n    Ar,\n}",
-            "pub const ALL: [Locale; 2] = [Locale::En, Locale::Ar];",
-            "pub const SOURCE: Locale = Locale::En;",
-            "Locale::Ar => \"ar\",",
-            "Locale::Ar => __mf2::Dir::Rtl,\n            _ => __mf2::Dir::Ltr,",
+            "pub const ALL: [Self; 2] = [Self::En, Self::Ar];",
+            "pub const SOURCE: Self = Self::En;",
+            "Self::Ar => \"ar\",",
+            "Self::Ar => __mf2::Dir::Rtl,\n            _ => __mf2::Dir::Ltr,",
+            "    fn from_str(tag: &str) -> Result<Self, __mf2::UnknownLocale> {",
+            ".ok_or_else(|| __mf2::UnknownLocale::new(LOCALES))",
             "impl ::core::str::FromStr for Locale {\n    type Err = __mf2::UnknownLocale;",
             "__mf2::__best_locale!(LANGUAGE_MATCHING, LOCALES, tag)",
             "impl ::core::fmt::Display for Locale {",
@@ -2013,10 +2051,7 @@ mod tests {
             !code.contains("macro_rules! tr ") && !code.contains("macro_rules! msg_id "),
             "{code}"
         );
-        assert!(
-            code.contains("Locale::Ar => tr!(\"language.ar\"),"),
-            "{code}"
-        );
+        assert!(code.contains("Self::Ar => tr!(\"language.ar\"),"), "{code}");
         // The switcher's names, by index, after the macro too.
         let at = code.find("fn __locale_name(").unwrap_or(0);
         assert!(at > code.find("macro_rules! __mf2_tr {").unwrap_or(usize::MAX));
