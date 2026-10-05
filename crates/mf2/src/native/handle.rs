@@ -140,7 +140,8 @@ impl NativeI18n {
     }
 
     /// The default time zone of dates and times: the system's (by its IANA
-    /// name, else the rules it follows), else UTC.
+    /// name, else the rules it follows), else UTC — and UTC where no
+    /// message can show a date, which does not read the system's.
     #[must_use]
     pub const fn time_zone(&self) -> TimeZone {
         self.catalogs.time_zone()

@@ -181,11 +181,10 @@ impl Catalogs {
         // corpus no date can reach links no zone database (`plan/01` §4.1).
         let mut cx = FormatContext::new(corpus.host());
         cx.bidi = BidiStrategy::None;
-        // Without dates, nothing reads the zone, so nothing looks it up.
-        #[cfg(feature = "datetime")]
-        {
-            cx.time_zone = mf2_host_std::system_time_zone();
-        }
+        // The machine's zone, read only through the host that shows dates:
+        // where no date can be reached, nothing reads the zone, so nothing
+        // looks it up and its database is not linked.
+        cx.time_zone = corpus.system_zone();
         Ok(Catalogs {
             corpus,
             by_locale,
@@ -247,7 +246,8 @@ impl Catalogs {
     }
 
     /// The default time zone of dates and times: the system's (by its IANA
-    /// name, else the rules it follows), else UTC.
+    /// name, else the rules it follows), else UTC — and UTC where no
+    /// message can show a date, which does not read the system's.
     #[must_use]
     pub const fn time_zone(&self) -> TimeZone {
         self.cx.time_zone

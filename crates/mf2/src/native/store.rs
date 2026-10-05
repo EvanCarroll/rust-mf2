@@ -330,10 +330,12 @@ static SETTINGS: RwLock<Settings> = RwLock::new(Settings {
 static GENERATION: AtomicU64 = AtomicU64::new(1);
 
 std::thread_local! {
-    /// This thread's copy of the settings, the time zone resolved, and the
-    /// generation it was taken at.
-    static LOCAL: Cell<(u64, BidiStrategy, TimeZone)> =
-        const { Cell::new((0, BidiStrategy::None, TimeZone::UTC)) };
+    /// This thread's copy of the settings and the generation it was taken
+    /// at. The time zone stays `None` until set: a format resolves it to its
+    /// corpus's, so that only a corpus a date can reach reads the
+    /// system's.
+    static LOCAL: Cell<(u64, BidiStrategy, Option<TimeZone>)> =
+        const { Cell::new((0, BidiStrategy::None, None)) };
 }
 
 fn update(change: impl FnOnce(&mut Settings)) {
@@ -345,7 +347,7 @@ fn update(change: impl FnOnce(&mut Settings)) {
 /// The settings a format on this thread uses: its copy, taken again when
 /// the generation has moved.
 #[inline]
-fn settings() -> (BidiStrategy, TimeZone) {
+fn settings() -> (BidiStrategy, Option<TimeZone>) {
     let generation = GENERATION.load(Ordering::Acquire);
     LOCAL.with(|local| {
         let (taken, bidi, zone) = local.get();
@@ -360,19 +362,12 @@ fn settings() -> (BidiStrategy, TimeZone) {
 #[cold]
 #[inline(never)]
 fn refresh(
-    local: &Cell<(u64, BidiStrategy, TimeZone)>,
+    local: &Cell<(u64, BidiStrategy, Option<TimeZone>)>,
     generation: u64,
-) -> (BidiStrategy, TimeZone) {
+) -> (BidiStrategy, Option<TimeZone>) {
     let settings = *SETTINGS.read().unwrap_or_else(PoisonError::into_inner);
-    // The system's zone is read only where a date can be shown.
-    #[cfg(feature = "datetime")]
-    let zone = settings
-        .time_zone
-        .unwrap_or_else(mf2_host_std::system_time_zone);
-    #[cfg(not(feature = "datetime"))]
-    let zone = settings.time_zone.unwrap_or(TimeZone::UTC);
-    local.set((generation, settings.bidi, zone));
-    (settings.bidi, zone)
+    local.set((generation, settings.bidi, settings.time_zone));
+    (settings.bidi, settings.time_zone)
 }
 
 /// Sets the bidi strategy of every thread's next format.
@@ -400,7 +395,13 @@ pub fn set_time_zone(zone: TimeZone) {
 /// daylight-saving rules ([`TimeZone::rules`]); else UTC.
 #[must_use]
 pub fn time_zone() -> TimeZone {
-    settings().1
+    // The system's is read here only when asked for: a format reads its
+    // corpus's instead, which is the system's where a date can be shown.
+    #[cfg(feature = "datetime")]
+    let system = mf2_host_std::system_time_zone;
+    #[cfg(not(feature = "datetime"))]
+    let system = || TimeZone::UTC;
+    settings().1.unwrap_or_else(system)
 }
 
 // ------------------------------------------------------------------ the text
@@ -421,7 +422,7 @@ pub(crate) fn text(m: &dyn TextOf, plain: bool) -> Option<Cow<'static, str>> {
     let (bidi, zone) = settings();
     let mut cx = FormatContext::new(store.context().host);
     cx.bidi = if plain { BidiStrategy::None } else { bidi };
-    cx.time_zone = zone;
+    cx.time_zone = zone.unwrap_or(store.context().time_zone);
     let f = Formatter::new(catalog, store.corpus().registry(), &cx);
     Some(Cow::Owned(with_scratch(|buf| {
         m.write_text(&f, buf);
@@ -442,7 +443,7 @@ pub(crate) fn with_formatter<R>(
     let catalog: &'static Catalog = store.catalog(index)?;
     let mut cx = FormatContext::new(store.context().host);
     cx.bidi = BidiStrategy::None;
-    cx.time_zone = settings().1;
+    cx.time_zone = settings().1.unwrap_or(store.context().time_zone);
     let f = Formatter::new(catalog, store.corpus().registry(), &cx);
     Some(body(catalog, &f))
 }

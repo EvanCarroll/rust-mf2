@@ -38,6 +38,32 @@ pub struct Corpus {
         allow(dead_code, reason = "read where a corpus is formatted from")
     )]
     host: Option<&'static dyn mf2_runtime::Host>,
+    /// Where the machine's time zone is read, which only a host that shows
+    /// dates names ([`CorpusHost::SYSTEM_ZONE`]): a corpus no date can
+    /// reach never links the reading of the zone or its database.
+    #[cfg_attr(
+        not(feature = "native"),
+        allow(dead_code, reason = "read by `mf2::native`")
+    )]
+    system_zone: Option<fn() -> mf2_runtime::TimeZone>,
+}
+
+/// A host a corpus formats through, as [`Corpus::with_host`] takes it: with
+/// where the machine's time zone is read, for the host that shows dates.
+/// Never implemented by hand.
+#[doc(hidden)]
+pub trait CorpusHost: mf2_runtime::Host + 'static {
+    /// The machine's time zone, for a host that shows dates; `None`, the
+    /// default, for one that does not, whose dates are in UTC.
+    const SYSTEM_ZONE: Option<fn() -> mf2_runtime::TimeZone> = None;
+}
+
+#[cfg(feature = "host-std")]
+impl CorpusHost for mf2_host_std::StdHost {}
+
+#[cfg(all(feature = "host-std", feature = "datetime"))]
+impl CorpusHost for mf2_host_std::ZonesStdHost {
+    const SYSTEM_ZONE: Option<fn() -> mf2_runtime::TimeZone> = Some(mf2_host_std::system_time_zone);
 }
 
 /// Everything but the host, which is a `&dyn` with nothing to show.
@@ -86,6 +112,7 @@ impl Corpus {
             catalogs,
             language_matching: None,
             host: None,
+            system_zone: None,
         }
     }
 
@@ -102,11 +129,21 @@ impl Corpus {
     /// The same, formatting through `host`: what the generated module
     /// calls, with its own `host::HOST`. A corpus without one formats
     /// through the plain native host, whose named zones are *Bad Option*.
+    /// Only the host that shows dates reads the machine's time zone.
     #[doc(hidden)]
     #[must_use]
-    pub const fn with_host(mut self, host: &'static dyn mf2_runtime::Host) -> Corpus {
+    pub const fn with_host<H: CorpusHost>(mut self, host: &'static H) -> Corpus {
         self.host = Some(host);
+        self.system_zone = H::SYSTEM_ZONE;
         self
+    }
+
+    /// The time zone this corpus's dates default to: the machine's when its
+    /// host shows dates, else UTC, which nothing reads.
+    #[cfg(feature = "native")]
+    pub(crate) fn system_zone(&self) -> mf2_runtime::TimeZone {
+        self.system_zone
+            .map_or(mf2_runtime::TimeZone::UTC, |read| read())
     }
 
     /// The host a corpus is formatted through.

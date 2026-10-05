@@ -316,7 +316,7 @@ pub mod axum;
 )]
 pub mod leptos;
 
-pub use corpus::{CatalogFile, Corpus};
+pub use corpus::{CatalogFile, Corpus, CorpusHost};
 pub use error::UnknownLocale;
 pub use matching::LanguageMatching;
 pub use message::Message;
