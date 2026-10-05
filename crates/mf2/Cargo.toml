@@ -30,16 +30,52 @@ build = "build.rs"
 # else is linked because the generated module names it. The features answer
 # four questions: where does it run (the Leptos line and mode, `axum`,
 # `native`, `ratatui`, `clap`, `host-std`, `host-web`); what can messages do
-# (`fn-number`, `datetime`); who supplies locale data (`number-intl`, the date
-# formatters, `tzdb-bundled`); behaviour and tools (`static-locale`,
-# `mark-fallback-lang`, `compile`).
+# (`number`, `datetime`); who formats it, and from whose data, on each side
+# (the number and date formatters, `tzdb-bundled`); behaviour and tools
+# (`static-locale`, `mark-fallback-lang`, `compile`).
 default = []
 # `compile_str`: parse, validate, analyze and write a one-message catalog
 # (std, server and tests; never in a client).
 compile = ["dep:mf2-syntax", "dep:mf2-locale-data", "mf2-catalog/writer"]
-# Locale-aware numbers: symbols, grouping, numbering systems, :percent (and
-# :currency, :unit) — mf2-fn-number.
-fn-number = ["dep:mf2-fn-number"]
+# Numbers: :number, :integer and :offset, :percent, :currency and :unit,
+# plural selection, and a number in a bare placeholder — mf2-fn-number where
+# a side formats them in the language's own form.
+#
+# `number` is what every number formatter below turns on; it is not written
+# by hand, and alone it gives no side a formatter: a number function is then
+# the `gated-function` error.
+number = ["dep:mf2-fn-number"]
+
+# The number formatters, one family per side and framework, as the date
+# formatters below. A build formats with the strongest of its own side's:
+# `builtin`, then `intl`, then `plain`; the other side's features change
+# nothing in it, and only tell the build script what the other side reads.
+# `builtin` is mf2's own code over the CLDR data the build cuts into the
+# catalog: the language's symbols, grouping and digits, its plural rules,
+# :percent, :currency and :unit. `intl` is the browser's `Intl.NumberFormat`
+# and `Intl.PluralRules` (it needs `Intl.NumberFormat` v3): the same
+# functions, and no number or plural data downloaded. `plain` is plain
+# digits (`1234.5`) and the catalog's plural rules: :percent, :currency and
+# :unit are then build errors.
+#
+# The two sides, with no framework.
+host-std-number-plain = ["number"]
+host-std-number-builtin = ["number"]
+host-web-number-plain = ["number"]
+host-web-number-intl = ["number", "mf2-runtime/web-number-intl", "mf2-host-web?/number-intl"]
+host-web-number-builtin = ["number", "mf2-runtime/web-number-builtin"]
+
+# The frameworks' names for them.
+leptos-client-number-plain = ["host-web-number-plain"]
+leptos-client-number-intl = ["host-web-number-intl"]
+leptos-client-number-builtin = ["host-web-number-builtin"]
+leptos-server-number-plain = ["host-std-number-plain"]
+leptos-server-number-builtin = ["host-std-number-builtin"]
+axum-number-plain = ["host-std-number-plain"]
+axum-number-builtin = ["host-std-number-builtin"]
+native-number-plain = ["host-std-number-plain"]
+native-number-builtin = ["host-std-number-builtin"]
+
 # Dates and times: :datetime, :date and :time — mf2-fn-datetime; a date in a
 # bare placeholder is a Bad Operand — and, natively, named time zones (the machine's IANA
 # database unless `tzdb-bundled`). With a Leptos mode, also dates in the reader's time
@@ -144,12 +180,6 @@ axum = [
 # through the one matcher (`fr_CA.UTF-8` is French) and `--help` lists the
 # tags. std; for a native application's command line.
 clap = ["dep:clap"]
-# `number-intl` (2.0's `intl`): on wasm32-unknown-unknown the numeric functions
-# format and select through the browser's Intl.NumberFormat and
-# Intl.PluralRules (mf2-host-web's NUMBERS_HOST), requiring
-# Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
-# keeps the Rust path.
-number-intl = ["mf2-runtime/web-number-intl", "mf2-host-web?/number-intl"]
 # The Leptos line the layer renders with. `leptos` is Leptos 0.9, the
 # default line; `leptos-0-8` is Leptos 0.8. Neither is a default feature: an
 # application writes one on its `mf2` dependency, and a mode needs one. Both
@@ -389,11 +419,14 @@ required-features = ["host-std"]
 [package.metadata.docs.rs]
 # The server on Leptos 0.9, and the native, Ratatui and Axum modules, which
 # compile beside it: the modes exclude each other, and `mf2::leptos` names what the
-# client modes add. Dates: each native family's `icu` formatter, the one the
-# tools recommend there (they are one switch, `host-std-datetime-icu`).
+# client modes add. Numbers and dates: each native family's `builtin` and
+# `icu` formatters, the ones the tools recommend there (each is one switch,
+# `host-std-number-builtin` and `host-std-datetime-icu`).
 features = [
     "compile",
-    "fn-number",
+    "leptos-server-number-builtin",
+    "axum-number-builtin",
+    "native-number-builtin",
     "leptos-server-datetime-icu",
     "axum-datetime-icu",
     "native-datetime-icu",
@@ -414,10 +447,10 @@ targets = ["x86_64-unknown-linux-gnu"]
 # exclude each other. `core` is a build with no mode; each other mode adds
 # its own features to `core`'s, which are the options docs.rs shows.
 [package.metadata.api.modes]
-core = ["compile", "fn-number", "host-std-datetime-icu", "host-std"]
+core = ["compile", "host-std-number-builtin", "host-std-datetime-icu", "host-std"]
 ssr = [
     "compile",
-    "fn-number",
+    "leptos-server-number-builtin",
     "leptos-server-datetime-icu",
     "host-std",
     "leptos",
@@ -427,7 +460,8 @@ ssr = [
 ]
 hydrate = [
     "compile",
-    "fn-number",
+    "leptos-client-number-builtin",
+    "host-std-number-builtin",
     "leptos-client-datetime-icu",
     "host-std-datetime-icu",
     "host-std",
@@ -438,7 +472,8 @@ hydrate = [
 ]
 csr = [
     "compile",
-    "fn-number",
+    "leptos-client-number-builtin",
+    "host-std-number-builtin",
     "leptos-client-datetime-icu",
     "host-std-datetime-icu",
     "host-std",
@@ -447,9 +482,9 @@ csr = [
     "static-locale",
     "mark-fallback-lang",
 ]
-native = ["compile", "fn-number", "native-datetime-icu", "host-std", "native"]
-ratatui = ["compile", "fn-number", "native-datetime-icu", "host-std", "ratatui"]
-axum = ["compile", "fn-number", "axum-datetime-icu", "host-std", "axum"]
+native = ["compile", "native-number-builtin", "native-datetime-icu", "host-std", "native"]
+ratatui = ["compile", "native-number-builtin", "native-datetime-icu", "host-std", "ratatui"]
+axum = ["compile", "axum-number-builtin", "axum-datetime-icu", "host-std", "axum"]
 
 # How 2.0.0, the published release this one is compared with, spelled each of
 # its modes, for `cargo xtask release`: a later rename of a feature must not

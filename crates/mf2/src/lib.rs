@@ -16,7 +16,7 @@
 //!
 //! | Feature | Adds |
 //! |---|---|
-//! | *(core)* | the descriptions, formatted against a [`Formatter`] the caller builds; [`mf2_runtime`]'s formatter: `:string`, `:number` / `:integer` / `:offset` with neutral symbols, markup, bidi, fallback |
+//! | *(core)* | the descriptions, formatted against a [`Formatter`] the caller builds; [`mf2_runtime`]'s formatter: `:string`, `:number` / `:integer` / `:offset` in plain digits, markup, bidi, fallback |
 //! | **Where does it run?** | |
 //! | `leptos` / `leptos-0-8` | the Leptos line the layer renders with: Leptos 0.9 (the default line) or 0.8 |
 //! | `ssr`, `hydrate`, `csr` | the Leptos layer, [`leptos`]: rendering in text, attributes and props, the catalog of the request or of the page, the live switch, the page's components; each mode implies its host, and `ssr` implies `tzdb-bundled` |
@@ -26,10 +26,10 @@
 //! | `clap` | a `clap` value parser on the generated `Locale`: `--lang` matched as the system's language is, and listed in `--help` |
 //! | `host-std` / `host-web` | a [`Host`]: native (servers, tests, `wasm32-wasip1`), or the browser — with no framework, how an application uses `mf2` |
 //! | **What can messages do?** | |
-//! | `fn-number` | [`fn_number`]: `:number` / `:integer` / `:offset` localized, `:percent`, `:currency`, `:unit`, localized unannotated numbers |
+//! | `number` | turned on by every number formatter below: `:number` / `:integer` / `:offset`, `:percent`, `:currency`, `:unit`, plural selection and a number in a bare placeholder — [`fn_number`]'s where a side writes them in the language's own form |
 //! | `datetime` | turned on by every date formatter below: [`fn_datetime`]: `:datetime` / `:date` / `:time` (an unannotated date/time is a Bad Operand: a message writes `{$when :datetime}`), and named time zones — over the neutral stub backend until a formatter is on; with a Leptos mode, also dates in the reader's time zone |
-//! | **Who supplies locale data?** | |
-//! | `number-intl` | on `wasm32-unknown-unknown` (`INTL_NUMBERS`): numbers and plural selection through the browser's `Intl` (`host_web::NUMBERS_HOST`); the Rust path elsewhere |
+//! | **Who formats, and from whose data?** | |
+//! | `<family>-number-<formatter>` | the number formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `builtin`, `intl`, `plain`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `builtin`, `plain`). `builtin` is `mf2`'s own code over the CLDR data the build cuts into the catalog, `intl` the browser's `Intl.NumberFormat` and `Intl.PluralRules` (`host_web::NUMBERS_HOST`, on `wasm32-unknown-unknown`), `plain` plain digits, with no `:percent`, `:currency` or `:unit`. A build formats with the strongest of its own side's: `builtin`, then `intl`, then `plain`; each turns on `number` |
 //! | `<family>-datetime-<formatter>` | the date formatter of one side: the families `host-web-` and `leptos-client-` (a browser build; `icu`, `intl`, `iso`) and `host-std-`, `leptos-server-`, `axum-`, `native-` (native code; `icu`, `iso`). `icu` is ICU4X over the catalog's `icu.blob` (and [`compile_str`] emits it), `intl` the browser's `Intl.DateTimeFormat`, `iso` the ISO stand-in. A build formats with the strongest of its own side's: ICU4X, then `Intl`, then ISO; each turns on `datetime` |
 //! | `tzdb-bundled` | named time zones from the IANA database built into the binary, not the machine's (nothing without `datetime`) |
 //! | **Behaviour and tools** | |
@@ -42,8 +42,8 @@
 //! ["leptos"]`) and the mode where it writes Leptos's own (`ssr =
 //! ["leptos/ssr", "mf2/ssr"]`). This documentation shows `ssr` on Leptos
 //! 0.9, and `native` and `ratatui`, which compile beside it; [`leptos`]
-//! lists what the client modes add. `host-web` and `number-intl` are for
-//! `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
+//! lists what the client modes add. `host-web` and a browser's formatters
+//! are for `wasm32-unknown-unknown`, so [`host_web`](https://docs.rs/mf2-host-web)
 //! is not shown here. A native application turns on `native` (a terminal
 //! UI, `ratatui`), and no Leptos mode.
 //!
@@ -466,8 +466,9 @@ pub use compile::{Compiled, compile_str, compile_str_stripped};
 #[cfg(feature = "compile")]
 pub use error::CompileError;
 
-/// The localized numeric functions (`mf2-fn-number`, feature `fn-number`).
-#[cfg(feature = "fn-number")]
+/// The numeric functions in a language's own form (`mf2-fn-number`): what
+/// a number formatter's feature turns on.
+#[cfg(feature = "number")]
 pub use mf2_fn_number as fn_number;
 
 /// The date/time functions (`mf2-fn-datetime`, feature `datetime`).

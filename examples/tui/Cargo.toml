@@ -22,7 +22,7 @@ publish = false
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
-mf2 = { path = "../../crates/mf2", features = ["ratatui", "fn-number"] }
+mf2 = { path = "../../crates/mf2", features = ["ratatui", "native-number-builtin"] }
 # No terminal backend: every frame is drawn into a `Buffer`. The layout
 # cache is one of Ratatui's defaults; without it every frame re-solves every
 # layout, which costs thousands of allocations and hides everything else.

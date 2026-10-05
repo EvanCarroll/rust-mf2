@@ -78,7 +78,7 @@ fuzz_target!(|data: &[u8]| {
     // model across the whole suite.
     config.catalog.strip.clear();
     let out = std::env::temp_dir().join("mf2-fuzz-build-out");
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
     let build = || {
         Build::at(&dir, &out)
             .config(config.clone())

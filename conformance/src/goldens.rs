@@ -106,7 +106,7 @@ fn date_values() -> Vec<ArgSpec> {
 pub const FAMILIES: &[Family] = &[
     Family {
         name: "numbers",
-        about: "the decimal family (fn-number): unannotated numbers, :number with digit, grouping \
+        about: "the decimal family (numbers by mf2's own code): unannotated numbers, :number with digit, grouping \
             and sign options, :integer, :percent, plural and ordinal selection",
         messages: &[
             "{$n}",
@@ -126,7 +126,7 @@ pub const FAMILIES: &[Family] = &[
     },
     Family {
         name: "currency",
-        about: "the currency family (fn-number): symbols, narrow symbols, codes, names by the \
+        about: "the currency family (numbers by mf2's own code): symbols, narrow symbols, codes, names by the \
                 formatted number's plural category, accounting, no symbol, fraction digits",
         messages: &[
             "{$n :currency currency=EUR}",
@@ -144,7 +144,7 @@ pub const FAMILIES: &[Family] = &[
     },
     Family {
         name: "units",
-        about: "the unit family (fn-number): short, narrow and long patterns by the formatted \
+        about: "the unit family (numbers by mf2's own code): short, narrow and long patterns by the formatted \
                 number's plural category, compound units, one composed X-per-Y",
         messages: &[
             "{$n :unit unit=meter}",

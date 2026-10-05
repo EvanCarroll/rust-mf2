@@ -5,7 +5,8 @@ terminal UI formats them as well as a web page does. A native application
 names two crates of this library, and no more:
 
 * **`mf2`**, with the `native` feature — or `ratatui`, which implies it —
-  and the features of the functions its messages call (`fn-number` here);
+  and a formatter for what its messages show (`native-number-builtin` here:
+  numbers, by `mf2`'s own code);
 * **`mf2-build`**, in its build script, whose whole body is
   `mf2_build::run()`.
 
@@ -31,8 +32,8 @@ theirs, and the book checks that they match. Write them by hand, or let
 ## A command-line tool
 
 `count` counts the files in a directory and says so in the reader's
-language. Its manifest names `mf2` with `native` and `fn-number`, and
-`mf2-build` for the build script:
+language. Its manifest names `mf2` with `native` and
+`native-number-builtin`, and `mf2-build` for the build script:
 
 ```toml file=count/Cargo.toml generated
 [package]
@@ -42,7 +43,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-mf2 = { version = "3", features = ["native", "fn-number"] }
+mf2 = { version = "3", features = ["native", "native-number-builtin"] }
 
 [build-dependencies]
 mf2-build = "3"
@@ -211,7 +212,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-mf2 = { version = "3", features = ["ratatui", "fn-number"] }
+mf2 = { version = "3", features = ["ratatui", "native-number-builtin"] }
 ratatui = "0.30"
 
 [build-dependencies]
@@ -553,7 +554,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mf2 = { version = "3", features = ["native", "fn-number"] }
+mf2 = { version = "3", features = ["native", "native-number-builtin"] }
 
 [build-dependencies]
 mf2-build = "3"

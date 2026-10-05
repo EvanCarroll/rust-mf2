@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
-use mf2_build::Level;
+use mf2_build::{Backend, DateBackend, Gate, Level, NumberBackend};
 
 /// A code of §6.1. A code's meaning never changes; a retired one is not
 /// reused.
@@ -197,15 +197,18 @@ impl Report {
             .count()
     }
 
-    /// The client features the output needs (§5, *gated function*).
+    /// The function families the output needs a formatter for (§5, *gated
+    /// function*): `number`, `datetime`.
     pub(crate) fn features(&self) -> BTreeSet<&'static str> {
         self.functions
             .iter()
             .filter_map(|f| {
-                mf2_build::BUILTINS
-                    .iter()
-                    .find(|(name, _)| name == f)
-                    .and_then(|(_, feature)| *feature)
+                let (_, gate) = mf2_build::BUILTINS.iter().find(|(name, _)| name == f)?;
+                match gate {
+                    Gate::None => None,
+                    Gate::Number | Gate::LocalizedNumber => Some(NumberBackend::DOMAIN),
+                    Gate::Date => Some(DateBackend::DOMAIN),
+                }
             })
             .collect()
     }
@@ -259,41 +262,38 @@ impl Report {
                 "note: {source} was copied into {count} message(s); a later edit to it is an edit to each"
             );
         }
-        let features = self.features();
-        let functions: Vec<&str> = features
-            .iter()
-            .copied()
-            .filter(|feature| *feature != "datetime")
-            .collect();
-        if !functions.is_empty() {
-            let _ = writeln!(
-                out,
-                "note: the output needs the client feature(s) {}",
-                functions.join(", ")
-            );
-        }
-        if features.contains("datetime") {
-            // `datetime` alone formats no date (`plan/08` §3.3): the line
-            // names a formatter for each build, by the application's kind.
-            let lines: Vec<String> = mf2_build::kind_lines::<mf2_build::DateBackend>()
-                .iter()
-                .map(|(what, names)| format!("for {what}, {}", names.join(" and ")))
-                .collect();
-            let _ = writeln!(
-                out,
-                "note: the output formats dates, so each build needs a date formatter: {}; \
-                 `mf2 check` names the line for this crate",
-                lines.join("; ")
-            );
-        }
+        // A domain's own feature formats nothing (`plan/08` §3.3): each
+        // line names a formatter for each build, by the application's kind.
+        out.push_str(&self.formatter_note::<NumberBackend>());
+        out.push_str(&self.formatter_note::<DateBackend>());
         out
     }
 
-    /// The date features to choose from when the output formats dates
-    /// (`plan/08` §3.5), for the JSON report; `None` when it formats none.
-    fn date_lines(&self) -> Option<serde_json::Value> {
-        self.features().contains("datetime").then(|| {
-            mf2_build::kind_lines::<mf2_build::DateBackend>()
+    /// The note that the output formats `B`'s domain, with the features to
+    /// choose from; empty when it formats none.
+    fn formatter_note<B: Backend>(&self) -> String {
+        if !self.features().contains(B::DOMAIN) {
+            return String::new();
+        }
+        let lines: Vec<String> = mf2_build::kind_lines::<B>()
+            .iter()
+            .map(|(what, names)| format!("for {what}, {}", names.join(" and ")))
+            .collect();
+        format!(
+            "note: the output formats {}, so each build needs a {}: {}; `mf2 check` names \
+             the line for this crate\n",
+            B::THINGS,
+            B::NOUN,
+            lines.join("; ")
+        )
+    }
+
+    /// The features of `B`'s domain to choose from when the output formats
+    /// it (`plan/08` §3.5), for the JSON report; `None` when it formats
+    /// none.
+    fn formatter_lines<B: Backend>(&self) -> Option<serde_json::Value> {
+        self.features().contains(B::DOMAIN).then(|| {
+            mf2_build::kind_lines::<B>()
                 .iter()
                 .map(|(what, names)| serde_json::json!({ "for": what, "features": names }))
                 .collect()
@@ -323,7 +323,8 @@ impl Report {
             "diagnostics": diagnostics,
             "inlined": self.inlined,
             "features": self.features(),
-            "date_features": self.date_lines(),
+            "number_features": self.formatter_lines::<NumberBackend>(),
+            "date_features": self.formatter_lines::<DateBackend>(),
             "entries": self.entries,
         });
         serde_json::to_string_pretty(&value).unwrap_or_else(|_| "{}".to_owned())

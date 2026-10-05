@@ -247,7 +247,7 @@ const fn alone(target: Target, features: &'static str, what: &'static str) -> Se
 /// Every feature an application can turn on at once for its server, across
 /// the 17 published crates (the first `msrv` step; also what
 /// `cargo xtask package --test` tests the unpacked packages with).
-pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/fn-number,mf2/leptos-server-datetime-icu,mf2/axum-datetime-icu,mf2/native-datetime-icu,mf2/host-std,\
+pub(crate) const SERVER_FEATURES: &str = "mf2/compile,mf2/leptos-server-number-builtin,mf2/axum-number-builtin,mf2/native-number-builtin,mf2/leptos-server-datetime-icu,mf2/axum-datetime-icu,mf2/native-datetime-icu,mf2/host-std,\
      mf2/leptos,mf2/ssr,mf2/axum,mf2/static-locale,mf2/mark-fallback-lang,mf2/native,mf2/ratatui,mf2-catalog/decode,mf2-catalog/static-bytes,\
      mf2-locale-data/extract,mf2-cli/icu-blob,mf2-model/serde,mf2-resource/serde,\
      mf2-runtime/fixed-decimal";
@@ -290,7 +290,7 @@ pub(crate) const SETS: &[Set] = &[
         "mf2-runtime/web-number-intl,mf2-host-web/number-intl",
         false,
         &[Use::Ci(&[Clippy])],
-        "the `number-intl` option's code, which compiles for the browser target only",
+        "the browser's `intl` number formatter, whose code compiles for the browser target only",
     ),
     pkgs(
         &["mf2-runtime", "mf2-fn-number", "mf2-host-web"],
@@ -501,23 +501,23 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr",
+        "ssr,host-std-number-plain",
         true,
         &[CodegenMatrix(Server)],
-        "the generated module, server",
+        "the generated module, server, numbers in plain digits",
     ),
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number",
+        "ssr,host-std-number-builtin",
         true,
         &[CodegenMatrix(Server)],
-        "the generated module, server, numbers",
+        "the generated module, server, numbers by mf2's own code",
     ),
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,host-std-datetime-iso",
+        "ssr,host-std-number-plain,host-std-datetime-iso",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, dates",
@@ -525,7 +525,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,host-std-datetime-icu",
+        "ssr,host-std-number-plain,host-std-datetime-icu",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, dates on ICU4X",
@@ -533,7 +533,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,host-std-datetime-iso",
+        "ssr,host-std-number-builtin,host-std-datetime-iso",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, both function crates",
@@ -541,7 +541,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,host-std-datetime-icu",
+        "ssr,host-std-number-builtin,host-std-datetime-icu",
         true,
         &[CodegenMatrix(Server)],
         "the generated module, server, both with ICU4X dates",
@@ -549,7 +549,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,fn-number,host-std-datetime-iso,mf2/leptos,mf2/ssr",
+        "ssr,host-std-number-builtin,host-std-datetime-iso,mf2/leptos,mf2/ssr",
         true,
         &[CodegenMatrix(Server)],
         "the generated module beside the description types' Leptos impls, 0.9",
@@ -557,7 +557,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,host-std-datetime-iso,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
+        "ssr,host-std-number-plain,host-std-datetime-iso,mf2/leptos-0-8,mf2/ssr,mf2/mark-fallback-lang",
         true,
         &[CodegenMatrix(Server)],
         "the generated module beside the Leptos layer, 0.8, marking borrowed text",
@@ -565,7 +565,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "native",
+        "native,host-std-number-plain",
         true,
         &[CodegenMatrix(Native)],
         "the module a native application includes (`Emit::Native`)",
@@ -573,7 +573,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "native,fn-number,mf2/clap",
+        "native,host-std-number-builtin,mf2/clap",
         true,
         &[CodegenMatrix(Native)],
         "the native module with a command line's value parser",
@@ -581,7 +581,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "native,fn-number,host-std-datetime-icu,mf2/ratatui",
+        "native,host-std-number-builtin,host-std-datetime-icu,mf2/ratatui",
         true,
         &[CodegenMatrix(Native)],
         "the native module for a terminal UI, with every function",
@@ -589,7 +589,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "native,ssr,fn-number,mf2/leptos,mf2/ssr",
+        "native,ssr,host-std-number-builtin,mf2/leptos,mf2/ssr",
         true,
         &[CodegenMatrix(Native)],
         "the native module beside the Leptos layer's server, from one table of embedded bytes",
@@ -597,7 +597,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Host,
-        "ssr,host-std-datetime-iso,mf2/leptos,mf2/ssr,mf2/native",
+        "ssr,host-std-number-plain,host-std-datetime-iso,mf2/leptos,mf2/ssr,mf2/native",
         true,
         &[CodegenMatrix(Native)],
         "a web module with `native` turned on beside `ssr`",
@@ -605,23 +605,23 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate",
+        "hydrate,host-web-number-plain",
         true,
         &[CodegenMatrix(Client)],
-        "the generated module, client",
+        "the generated module, client, numbers in plain digits",
     ),
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number",
+        "hydrate,host-web-number-builtin",
         true,
         &[CodegenMatrix(Client)],
-        "the generated module, client, numbers",
+        "the generated module, client, numbers by mf2's own code",
     ),
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,number-intl",
+        "hydrate,host-web-number-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, numbers through the browser's Intl",
@@ -629,7 +629,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,host-web-datetime-iso",
+        "hydrate,host-web-number-plain,host-web-datetime-iso",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates",
@@ -637,7 +637,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,host-web-datetime-icu",
+        "hydrate,host-web-number-plain,host-web-datetime-icu",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates on ICU4X",
@@ -645,15 +645,39 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,host-web-datetime-intl",
+        "hydrate,host-web-number-plain,host-web-datetime-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, dates through the browser's Intl",
     ),
     pkgs(
         &[FIXTURE],
+        Host,
+        "ssr,host-std-number-builtin,host-web-number-intl",
+        true,
+        &[CodegenMatrix(Server)],
+        "the generated module, server, with the browser's number formatter on beside its own",
+    ),
+    pkgs(
+        &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,host-web-datetime-intl,number-intl",
+        "hydrate,host-web-number-intl,host-std-number-builtin",
+        true,
+        &[CodegenMatrix(Client)],
+        "the generated module, client, with the server's number formatter on beside its own",
+    ),
+    pkgs(
+        &[FIXTURE],
+        Wasm,
+        "hydrate,host-web-number-plain,host-std-number-builtin",
+        true,
+        &[CodegenMatrix(Client)],
+        "the generated module, client in plain digits beside a server's own code",
+    ),
+    pkgs(
+        &[FIXTURE],
+        Wasm,
+        "hydrate,host-web-number-intl,host-web-datetime-intl",
         true,
         &[CodegenMatrix(Client)],
         "the generated module, client, every function through the browser",
@@ -661,7 +685,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,fn-number,host-web-datetime-iso,mf2/leptos,mf2/hydrate",
+        "hydrate,host-web-number-builtin,host-web-datetime-iso,mf2/leptos,mf2/hydrate",
         true,
         &[CodegenMatrix(Client)],
         "the generated module beside the Leptos layer's client, 0.9",
@@ -669,7 +693,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,mf2/leptos,mf2/csr,mf2/static-locale",
+        "hydrate,host-web-number-plain,mf2/leptos,mf2/csr,mf2/static-locale",
         true,
         &[CodegenMatrix(Client)],
         "the generated module in a `csr` application with no live update",
@@ -677,7 +701,7 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &[FIXTURE],
         Wasm,
-        "hydrate,host-web-datetime-iso,mf2/leptos-0-8,mf2/hydrate",
+        "hydrate,host-web-number-plain,host-web-datetime-iso,mf2/leptos-0-8,mf2/hydrate",
         true,
         &[CodegenMatrix(Client)],
         "the generated module beside the Leptos layer's client, 0.8",
@@ -704,17 +728,17 @@ pub(crate) const SETS: &[Set] = &[
     pkgs(
         &["mf2", "mf2-host-web"],
         Wasm,
-        "mf2/leptos,mf2/hydrate,mf2/fn-number,mf2/leptos-client-datetime-icu,mf2/number-intl",
+        "mf2/leptos,mf2/hydrate,mf2/leptos-client-number-intl,mf2/leptos-client-datetime-icu",
         false,
         &[Msrv("wasm32, hydrate, ICU4X dates")],
-        "the client with the ICU4X date backend and the `number-intl` option",
+        "the client with ICU4X dates and numbers through the browser's `Intl`",
     ),
     pkgs(
         MF2,
         Wasm,
-        "mf2/leptos,mf2/csr,mf2/fn-number,mf2/leptos-client-datetime-intl,mf2/number-intl",
+        "mf2/leptos,mf2/csr,mf2/leptos-client-number-intl,mf2/leptos-client-datetime-intl",
         false,
-        &[Msrv("wasm32, csr, number-intl, Intl dates")],
+        &[Msrv("wasm32, csr, Intl numbers and dates")],
         "the client built in the browser, formatting through the browser",
     ),
     pkgs(
@@ -846,7 +870,33 @@ pub(crate) const SETS: &[Set] = &[
     // Leptos line, and the browser's host and the client-only options need
     // the browser target; everything else is valid by itself.
     alone(Host, "compile", "`compile`: the one-message compiler"),
-    alone(Host, "fn-number", "`fn-number`: the numeric functions"),
+    // The number formatters: the framework-free families, of which each
+    // framework's is another name.
+    alone(
+        Host,
+        "host-std-number-plain",
+        "`host-std-number-plain`: native numbers in plain digits",
+    ),
+    alone(
+        Host,
+        "host-std-number-builtin",
+        "`host-std-number-builtin`: native numbers by mf2's own code",
+    ),
+    alone(
+        Wasm,
+        "host-web-number-plain",
+        "`host-web-number-plain`: the browser's numbers in plain digits",
+    ),
+    alone(
+        Wasm,
+        "host-web-number-intl",
+        "`host-web-number-intl`: the browser's numbers through `Intl`",
+    ),
+    alone(
+        Wasm,
+        "host-web-number-builtin",
+        "`host-web-number-builtin`: the browser's numbers by mf2's own code",
+    ),
     // The date formatters: the framework-free families, of which each
     // framework's is another name (`plan/08` §3.4).
     alone(
@@ -900,11 +950,6 @@ pub(crate) const SETS: &[Set] = &[
         Host,
         "clap",
         "`clap`: a value parser for the generated `Locale`",
-    ),
-    alone(
-        Wasm,
-        "number-intl",
-        "`number-intl`: formatting through the browser, which needs the browser target",
     ),
     alone(
         Host,

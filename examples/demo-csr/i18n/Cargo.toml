@@ -14,7 +14,7 @@ publish = false
 # line is shown in the reader's time zone, read at mount. The build reads
 # `mf2`'s features from `mf2` itself, and `mf2 compile --site`
 # (`../Trunk.toml`) from cargo, to build the catalogs the browser fetches.
-mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web", "fn-number", "leptos-client-datetime-intl"] }
+mf2 = { path = "../../../crates/mf2", features = ["csr", "host-web", "leptos-client-number-intl", "leptos-client-datetime-intl"] }
 
 [build-dependencies]
 mf2-build = { path = "../../../crates/mf2-build" }

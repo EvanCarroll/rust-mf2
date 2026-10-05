@@ -1,7 +1,7 @@
 # B1′: a corpus with **nothing** a function
 # crate could serve — no annotated placeholder, and no placeholder that could
-# receive a number or a date at run time. Building it with `fn-number` and
-# a date formatter on must cost exactly what building it without them costs: the
+# receive a number or a date at run time. Building it with a number formatter
+# and a date formatter on must cost exactly what building it without them costs: the
 # crates are linked, and nothing in the generated registry reaches them.
 @locale en
 ---

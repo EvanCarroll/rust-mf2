@@ -10,9 +10,9 @@ publish = false
 [features]
 # `row-n` formats a number. `mf2 compile --site` (`cargo xtask churn`) reads
 # these from cargo.
-default = ["fn-number"]
+default = ["host-web-number-builtin"]
 # The generated module names these whether or not the corpus uses them.
-fn-number = ["mf2/fn-number"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
 host-web-datetime-iso = ["mf2/host-web-datetime-iso"]
 host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]

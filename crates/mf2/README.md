@@ -10,7 +10,7 @@ as `mf2::ratatui`, re-exports the formatter of the Rust MF2 crates, and
 carries the feature flags that choose what a build includes: the Leptos
 line (`leptos` for 0.9, `leptos-0-8`) and mode (`ssr`, `hydrate` or `csr`),
 a native application (`native`) and its Ratatui text (`ratatui`), localized
-numbers (`fn-number`), dates (a date formatter, one family per side and framework), the host
+numbers and dates (a formatter of each, one family per side and framework), the host
 (`host-std` natively, `host-web` in the browser), and `compile_str` for an
 ad-hoc message.
 

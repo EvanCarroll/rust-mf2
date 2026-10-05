@@ -4,8 +4,8 @@
 //! The input is `[flags] [n] [n argument bytes] [payload]`:
 //!
 //! * **flags** — bit 0: the bidi strategy `None` (else `Default`); bit 1:
-//!   the default configuration's registry (`fn-number` and `datetime`
-//!   off: layer L4d) instead of the all-features one;
+//!   the default configuration's registry (numbers in plain digits, no
+//!   date formatter: layer L4d) instead of the all-features one;
 //! * **arguments** — a sequence of `[tag] …`: `tag % 8` = 0 a string
 //!   (`[len]` bytes, lossy UTF-8), 1 an `i64` (8 bytes LE), 2 an `f64`
 //!   (8 bytes LE bits), 3 a decimal as text (`[len]` bytes), 4 an

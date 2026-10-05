@@ -20,12 +20,24 @@ name = "mf2-i18n-client"
 path = "src/main.rs"
 
 [features]
-# `ssr` by default so that a plain workspace build compiles the server side.
-default = ["ssr"]
+# `ssr` by default so that a plain workspace build compiles the server side,
+# with numbers in plain digits: the corpus counts things, and a message that
+# does builds only where its side has named a number formatter. The browser's
+# is named too, as an application names both on its one `mf2` line: the
+# plural rules then stay in the catalog, where this crate's tests read them,
+# and do not move to the server-only table.
+default = ["ssr", "host-std-number-plain", "host-web-number-plain"]
 # What an application forwards from its own `ssr` / `hydrate` builds.
 ssr = ["mf2/host-std"]
 hydrate = ["mf2/host-web"]
-fn-number = ["mf2/fn-number"]
+# The number formatters, framework-free: each build formats with its own
+# side's, and the other side's only tell the build script what that side
+# reads.
+host-std-number-plain = ["mf2/host-std-number-plain"]
+host-std-number-builtin = ["mf2/host-std-number-builtin"]
+host-web-number-plain = ["mf2/host-web-number-plain"]
+host-web-number-intl = ["mf2/host-web-number-intl"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
 # The date formatters, framework-free (plan/08 §3.1). An `icu` one cuts the
 # catalogs' date slice, which needs `mf2-build`'s `icu-blob`.
 host-std-datetime-iso = ["mf2/host-std-datetime-iso"]
@@ -36,7 +48,6 @@ host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 # builds: the build script reads it as this crate's own feature.
 leptos-client-datetime-intl = ["mf2/leptos-client-datetime-intl"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu", "mf2-build/icu-blob"]
-number-intl = ["mf2/number-intl"]
 # A native application's module (`Emit::Native`): `CORPUS`, the typed
 # locale functions, and — beside `mf2/ssr` — the catalogs the Leptos
 # layer's server installs, from the same embedded bytes.

@@ -19,9 +19,9 @@
 //!   module that embeds catalogs embeds each once, in one table that
 //!   `CATALOGS` and `CORPUS` share (a server beside `native`);
 //! * `registry()` — the closed world (B13): the handlers this corpus uses
-//!   and no others, with `with_numbers` only where a placeholder can
-//!   actually receive a number (#90). There is no date hook: an unannotated
-//!   date/time is a Bad Operand (`plan/08` §4.3);
+//!   and no others, with the hook for a number in a bare placeholder only
+//!   where a placeholder can actually receive a number (#90). There is no
+//!   date hook: an unannotated date/time is a Bad Operand (`plan/08` §4.3);
 //! * `host` — the host the corpus needs, so that a feature that is on but
 //!   unused links none of its glue (B1′);
 //! * `CORPUS` — for `mf2::native`: under [`Emit::Native`] /
@@ -56,7 +56,7 @@ use mf2_catalog::Dir;
 
 use crate::build::{Emit, LocaleInfo};
 use crate::error::{Error, Result};
-use crate::features::Features;
+use crate::features::{DateBackend, Features};
 
 /// What the module is generated from.
 #[derive(Debug)]
@@ -500,23 +500,23 @@ pub fn catalog_name(tag: &str) -> Option<&'static str> {
     s
 }
 
-/// The Rust path of the handler for a built-in function under `features`.
-fn builtin_path(name: &str, features: &Features) -> Option<&'static str> {
-    Some(match (name, features.fn_number()) {
-        ("string", _) => "__mf2::functions::STRING",
-        ("number", false) => "__mf2::functions::NUMBER",
-        ("integer", false) => "__mf2::functions::INTEGER",
-        ("offset", false) => "__mf2::functions::OFFSET",
-        ("number", true) => "__mf2::fn_number::NUMBER",
-        ("integer", true) => "__mf2::fn_number::INTEGER",
-        ("offset", true) => "__mf2::fn_number::OFFSET",
-        ("percent", _) => "__mf2::fn_number::PERCENT",
-        ("currency", _) => "__mf2::fn_number::CURRENCY",
-        ("unit", _) => "__mf2::fn_number::UNIT",
+/// The Rust path of the handler for a built-in function. The same in every
+/// build: `mf2`'s `numbers` module makes each number handler the one of the
+/// number formatter of the side being compiled, as `__date_statics!` does
+/// for dates.
+fn builtin_path(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "string" => "__mf2::functions::STRING",
+        "number" => "__mf2::__generated::numbers::NUMBER",
+        "integer" => "__mf2::__generated::numbers::INTEGER",
+        "offset" => "__mf2::__generated::numbers::OFFSET",
+        "percent" => "__mf2::__generated::numbers::PERCENT",
+        "currency" => "__mf2::__generated::numbers::CURRENCY",
+        "unit" => "__mf2::__generated::numbers::UNIT",
         // The corpus's own, of its ICU4X form (`date_statics`).
-        ("datetime", _) => "__dates::DATETIME",
-        ("date", _) => "__dates::DATE",
-        ("time", _) => "__dates::TIME",
+        "datetime" => "__dates::DATETIME",
+        "date" => "__dates::DATE",
+        "time" => "__dates::TIME",
         _ => return None,
     })
 }
@@ -524,7 +524,7 @@ fn builtin_path(name: &str, features: &Features) -> Option<&'static str> {
 fn registry(s: &mut String, m: &Module<'_>) {
     let mut entries: Vec<(String, String)> = Vec::new();
     for name in m.functions {
-        let path = match builtin_path(name, m.features) {
+        let path = match builtin_path(name) {
             Some(path) => path.to_owned(),
             // A custom function. `unknown-function` is an error by default,
             // so reaching here means the corpus turned that lint down: the
@@ -549,18 +549,17 @@ static FUNCTIONS: [(&str, &dyn __mf2::Function); {n}] = [
     for (name, path) in &entries {
         let _ = writeln!(s, "    ({name:?}, &{path}),");
     }
+    // The hook for a number in a bare placeholder: only if some placeholder
+    // can reach it (#90), and `mf2` adds it only where this side's number
+    // formatter writes the language's own form.
+    let registry = if m.unannotated {
+        "__mf2::__generated::numbers::unannotated(__mf2::Registry::new(&FUNCTIONS))"
+    } else {
+        "__mf2::Registry::new(&FUNCTIONS)"
+    };
     let _ = write!(
         s,
-        "];\n\nstatic REGISTRY: __mf2::Registry = __mf2::Registry::new(&FUNCTIONS)"
-    );
-    // The unannotated hooks: only with their feature, and only if some
-    // placeholder can reach them (#90).
-    if m.unannotated && m.features.fn_number() {
-        let _ = write!(s, "\n    .with_numbers(&__mf2::fn_number::NUMBERS)");
-    }
-    let _ = write!(
-        s,
-        ";
+        "];\n\nstatic REGISTRY: __mf2::Registry = {registry};
 
 /// The registry every formatter in this application uses.
 #[must_use]
@@ -612,25 +611,24 @@ mod __dates {{
 /// error and never reaches the formatter. The date host is named only then
 /// (`plan/01` §4.1).
 fn reaches_a_date(m: &Module<'_>) -> bool {
-    m.features.fn_datetime()
+    m.features.domain_on::<DateBackend>()
         && m.functions
             .iter()
             .any(|f| matches!(f.as_str(), "datetime" | "date" | "time"))
 }
 
-/// Whether `number-intl` is on and a number can reach this corpus's messages: a
-/// numeric function, or a placeholder with no function. In a browser the
-/// host that answers `Host::numbers` with `Intl` is named only then
-/// (`plan/01` §8 F1).
+/// Whether a number can reach this corpus's messages: a numeric function,
+/// or a placeholder with no function. In a browser whose number formatter is
+/// `intl`, the host that answers `Host::numbers` with `Intl` is named only
+/// then (`plan/01` §8 F1); `mf2`'s `__numbers_host!` knows whether it is.
 fn reaches_a_number(m: &Module<'_>) -> bool {
-    m.features.number_intl()
-        && (m.unannotated
-            || m.functions.iter().any(|f| {
-                matches!(
-                    f.as_str(),
-                    "number" | "integer" | "offset" | "math" | "percent" | "currency" | "unit"
-                )
-            }))
+    m.unannotated
+        || m.functions.iter().any(|f| {
+            matches!(
+                f.as_str(),
+                "number" | "integer" | "offset" | "math" | "percent" | "currency" | "unit"
+            )
+        })
 }
 
 /// `__use_host!`'s input: `dates` and `numbers`, each when the corpus can
@@ -1590,7 +1588,7 @@ mod tests {
     #[test]
     fn a_native_module_never_says_wasm() {
         let locales = locales();
-        let features = Features::parse("fn-number,datetime");
+        let features = Features::parse("native-number-builtin,datetime");
         let custom = BTreeMap::new();
         let markup = ["key".to_owned()];
         let named = vec![true; locales.len()];
@@ -1611,7 +1609,7 @@ mod tests {
     #[test]
     fn every_choice_is_mf2s_features_and_one_item_each() {
         let locales = locales();
-        let features = Features::parse("fn-number,datetime,host-web-datetime-intl");
+        let features = Features::parse("host-web-number-intl,datetime,host-web-datetime-intl");
         let custom = BTreeMap::new();
         for emit in [Emit::Both, Emit::Module, Emit::Native, Emit::NativeFiles] {
             let mut m = module(&[], &features, &custom, &locales, false);
@@ -1718,42 +1716,51 @@ mod tests {
         let custom = BTreeMap::from([("app:emoji".to_owned(), "my_app::EMOJI".to_owned())]);
         let functions = ["integer".to_owned(), "app:emoji".to_owned()];
 
-        let core = Features::default();
-        let code = write(&module(&functions, &core, &custom, &locales, false));
-        assert!(
-            code.contains("(\"integer\", &__mf2::functions::INTEGER),"),
-            "{code}"
-        );
-        assert!(code.contains("(\"app:emoji\", &my_app::EMOJI),"), "{code}");
-        assert!(
-            !code.contains("STRING"),
-            "an unused handler is linked:\n{code}"
-        );
-        assert!(!code.contains("with_numbers"), "{code}");
-
-        // With `fn-number`, the same function comes from the localized crate.
-        let localized = Features::parse("fn-number");
-        let code = write(&module(&functions, &localized, &custom, &locales, false));
-        assert!(
-            code.contains("(\"integer\", &__mf2::fn_number::INTEGER),"),
-            "{code}"
-        );
-        // Still no unannotated hook: nothing in this corpus can receive one.
-        assert!(!code.contains("with_numbers"), "{code}");
+        // Whatever the number formatter: the module names `mf2`'s handler
+        // for the function, and `mf2` makes it the one of the formatter of
+        // the side being compiled.
+        for features in ["", "native-number-plain", "host-web-number-intl"] {
+            let features = Features::parse(features);
+            let code = write(&module(&functions, &features, &custom, &locales, false));
+            assert!(
+                code.contains("(\"integer\", &__mf2::__generated::numbers::INTEGER),"),
+                "{code}"
+            );
+            assert!(code.contains("(\"app:emoji\", &my_app::EMOJI),"), "{code}");
+            assert!(
+                !code.contains("STRING"),
+                "an unused handler is linked:\n{code}"
+            );
+            // No unannotated hook: nothing in this corpus can receive one.
+            assert!(!code.contains("numbers::unannotated"), "{code}");
+            assert!(
+                code.contains(
+                    "static REGISTRY: __mf2::Registry = __mf2::Registry::new(&FUNCTIONS);"
+                ),
+                "{code}"
+            );
+        }
     }
 
     #[test]
     fn the_unannotated_hooks_need_a_placeholder_that_can_reach_them() {
         let locales = locales();
         let custom = BTreeMap::new();
-        let both = Features::parse("fn-number,datetime");
+        let both = Features::parse("native-number-builtin,datetime");
         let code = write(&module(&[], &both, &custom, &locales, true));
         assert!(
-            code.contains(".with_numbers(&__mf2::fn_number::NUMBERS)"),
+            code.contains(
+                "static REGISTRY: __mf2::Registry = \
+                 __mf2::__generated::numbers::unannotated(__mf2::Registry::new(&FUNCTIONS));"
+            ),
             "{code}"
         );
         // No date hook: a date is formatted only through a date function.
         assert!(!code.contains("with_dates"), "{code}");
+        // The same with no number formatter at all: `mf2` adds the handler
+        // only where this side's formatter writes the language's own form.
+        let code = write(&module(&[], &Features::default(), &custom, &locales, true));
+        assert!(code.contains("numbers::unannotated("), "{code}");
     }
 
     #[test]
@@ -1814,41 +1821,48 @@ mod tests {
         assert!(code.contains("super::__mf2::__use_host!(dates);"), "{code}");
         // A plain placeholder does not: a date handed to one is an error, so
         // with no date function there is no date host and no date handler.
+        // (It can receive a number, which is the `numbers` word.)
         let code = write(&module(&[], &dates, &custom, &locales, true));
-        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        assert!(
+            code.contains("super::__mf2::__use_host!(numbers);"),
+            "{code}"
+        );
         assert!(!code.contains("__date_statics"), "{code}");
         // Without the feature, neither names one.
         let code = write(&module(&time, &none, &custom, &locales, true));
-        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        assert!(
+            code.contains("super::__mf2::__use_host!(numbers);"),
+            "{code}"
+        );
     }
 
     #[test]
-    fn only_intl_with_a_number_names_the_intl_number_host() {
+    fn only_a_corpus_with_a_number_names_the_number_host() {
         let locales = locales();
         let custom = BTreeMap::new();
         let integer = ["integer".to_owned()];
-        // Without `number-intl`, a number names nothing more.
-        let plain = Features::parse("fn-number");
-        let code = write(&module(&integer, &plain, &custom, &locales, false));
-        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
-        // With it: a numeric function, or a plain placeholder.
-        let intl = Features::parse("number-intl");
-        let code = write(&module(&integer, &intl, &custom, &locales, false));
-        assert!(
-            code.contains("super::__mf2::__use_host!(numbers);"),
-            "{code}"
-        );
-        let code = write(&module(&[], &intl, &custom, &locales, true));
-        assert!(
-            code.contains("super::__mf2::__use_host!(numbers);"),
-            "{code}"
-        );
-        // No number in the corpus: no `Intl` number host.
-        let code = write(&module(&[], &intl, &custom, &locales, false));
-        assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        // Whatever the number formatter: `mf2` names the `Intl` number host
+        // where the browser's is `intl`, and the plain host elsewhere.
+        for features in ["", "host-web-number-builtin", "host-web-number-intl"] {
+            let features = Features::parse(features);
+            // A numeric function, or a plain placeholder.
+            let code = write(&module(&integer, &features, &custom, &locales, false));
+            assert!(
+                code.contains("super::__mf2::__use_host!(numbers);"),
+                "{code}"
+            );
+            let code = write(&module(&[], &features, &custom, &locales, true));
+            assert!(
+                code.contains("super::__mf2::__use_host!(numbers);"),
+                "{code}"
+            );
+            // No number in the corpus: no number host.
+            let code = write(&module(&[], &features, &custom, &locales, false));
+            assert!(code.contains("super::__mf2::__use_host!();"), "{code}");
+        }
         // Dates and numbers both: a date reaches only through a date
         // function.
-        let both = Features::parse("number-intl,datetime,host-web-datetime-intl");
+        let both = Features::parse("host-web-number-intl,datetime,host-web-datetime-intl");
         let datetime = ["datetime".to_owned()];
         let code = write(&module(&datetime, &both, &custom, &locales, true));
         assert!(

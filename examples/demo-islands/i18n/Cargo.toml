@@ -14,7 +14,7 @@ publish = false
 # (master plan §5): on an islands page a switch is a cookie and a reload, so
 # nothing on the client follows the locale. The build reads `mf2`'s features
 # from `mf2` itself.
-mf2 = { path = "../../../crates/mf2", features = ["fn-number", "static-locale"] }
+mf2 = { path = "../../../crates/mf2", features = ["leptos-client-number-intl", "leptos-server-number-builtin", "static-locale"] }
 
 [build-dependencies]
 mf2-build = { path = "../../../crates/mf2-build" }

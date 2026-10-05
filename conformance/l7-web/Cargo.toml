@@ -29,32 +29,49 @@ required-features = ["ssr"]
 
 [features]
 default = []
-# Every function feature: the full-MF2 configuration (L7, L7c). Without it
-# the sets are the default configuration (L7d, L7cd).
+# Every function feature: the full-MF2 configuration (L7, L7c).
 all-functions = [
-    "mf2-l7-set-en-us/fn-number",
+    "mf2-l7-set-en-us/host-std-number-builtin",
+    "mf2-l7-set-en-us/host-web-number-builtin",
     "mf2-l7-set-en-us/host-std-datetime-icu",
     "mf2-l7-set-en-us/host-web-datetime-icu",
-    "mf2-l7-set-und/fn-number",
+    "mf2-l7-set-und/host-std-number-builtin",
+    "mf2-l7-set-und/host-web-number-builtin",
     "mf2-l7-set-und/host-std-datetime-icu",
     "mf2-l7-set-und/host-web-datetime-icu",
-    "mf2-l7-set-fr/fn-number",
+    "mf2-l7-set-fr/host-std-number-builtin",
+    "mf2-l7-set-fr/host-web-number-builtin",
     "mf2-l7-set-fr/host-std-datetime-icu",
     "mf2-l7-set-fr/host-web-datetime-icu",
-    "mf2-l7-set-ar/fn-number",
+    "mf2-l7-set-ar/host-std-number-builtin",
+    "mf2-l7-set-ar/host-web-number-builtin",
     "mf2-l7-set-ar/host-std-datetime-icu",
     "mf2-l7-set-ar/host-web-datetime-icu",
+]
+# The default configuration (L7d, L7cd): plain digits on each side, which a
+# side must name to format a number at all, and no date formatter.
+default-functions = [
+    "mf2-l7-set-en-us/host-std-number-plain",
+    "mf2-l7-set-en-us/host-web-number-plain",
+    "mf2-l7-set-und/host-std-number-plain",
+    "mf2-l7-set-und/host-web-number-plain",
+    "mf2-l7-set-fr/host-std-number-plain",
+    "mf2-l7-set-fr/host-web-number-plain",
+    "mf2-l7-set-ar/host-std-number-plain",
+    "mf2-l7-set-ar/host-web-number-plain",
 ]
 # The date-formatter pages of `cargo xtask l7-web` (plan/08 §4.3): the
 # en-US set, whole, with `Intl` in the browser and ISO (`dates-iso`) or
 # ICU4X (`dates-icu`) on the server. Each build formats with its own side's.
 dates-iso = [
-    "mf2-l7-set-en-us/fn-number",
+    "mf2-l7-set-en-us/host-std-number-builtin",
+    "mf2-l7-set-en-us/host-web-number-builtin",
     "mf2-l7-set-en-us/host-std-datetime-iso",
     "mf2-l7-set-en-us/host-web-datetime-intl",
 ]
 dates-icu = [
-    "mf2-l7-set-en-us/fn-number",
+    "mf2-l7-set-en-us/host-std-number-builtin",
+    "mf2-l7-set-en-us/host-web-number-builtin",
     "mf2-l7-set-en-us/host-std-datetime-icu",
     "mf2-l7-set-en-us/host-web-datetime-intl",
 ]

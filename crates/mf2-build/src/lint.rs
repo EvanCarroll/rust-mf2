@@ -108,13 +108,15 @@ lints! {
     /// default, though the runtime would report Bad Option on its own — the
     /// suite has messages that do exactly that on purpose.
     BadOptionValue = ("bad-option-value", Error, Allow);
-    /// A function whose client feature is off — `:percent`, `:currency` and
-    /// `:unit` without `fn-number`, `:datetime`, `:date` and `:time` without
-    /// a date formatter on every side the build formats on (`plan/08` §3.3;
-    /// `datetime` alone is none). A translation can never silently add
-    /// formatting code to the wasm. For a date
-    /// function the message names the features to write, the date families
-    /// of the frameworks that are on, and what each formatter costs.
+    /// A function this build has no formatter for: `:number`, `:integer`
+    /// and `:offset` without a number formatter on every side the build
+    /// formats on, `:percent`, `:currency` and `:unit` without one that
+    /// writes the language's own form (`plain` does not), `:datetime`,
+    /// `:date` and `:time` without a date formatter on every side
+    /// (`plan/08` §3.3; `number` or `datetime` alone is none). A translation
+    /// can never silently add formatting code to the wasm. The message names
+    /// the features to write, the families of the frameworks that are on,
+    /// and what each formatter costs.
     GatedFunction = ("gated-function", Error, Error);
     /// An entry marked `@do-not-translate` differs from the source's.
     DoNotTranslate = ("do-not-translate", Error, Allow);
@@ -132,24 +134,27 @@ lints! {
 
     /// An id the source locale has and a translation does not: it falls back.
     MissingTranslation = ("missing-translation", Warn, Allow);
-    /// A placeholder can receive a number and `fn-number` is off, so a number
-    /// renders without the locale's symbols. The build cannot see what an
-    /// application passes, so a placeholder that only receives text raises it too.
-    NeutralNumbers = ("neutral-numbers", Warn, Allow);
+    /// A placeholder with no function can receive a number, and a side this
+    /// build formats on has no number formatter, so a number prints there in
+    /// plain digits. The build cannot see what an application passes, so a
+    /// placeholder that only receives text raises it too. A side whose
+    /// formatter is `plain` chose plain digits, and does not raise it.
+    PlainNumbers = ("plain-numbers", Warn, Allow);
     /// A function family is on for this build and no message can use it:
     /// a date formatter (or `datetime` alone) with no `:datetime`, `:date`
-    /// or `:time`, or the number family (`fn-number`, `number-intl`) with
+    /// or `:time`, or a number formatter (or `number` alone) with
     /// nothing that formats or selects on a number. Raised once per family
     /// for the whole corpus. In a workspace another crate may have turned the
-    /// feature on, so the message says "on for this build". A date family's
+    /// feature on, so the message says "on for this build". A family's
     /// feature on without its framework (`axum-datetime-icu` without `axum`)
     /// raises it too.
     UnusedFeature = ("unused-feature", Warn, Allow);
-    /// More than one date formatter of one side is on: a build formats with
-    /// one, the strongest (ICU4X, then `Intl`, then ISO), and the others
-    /// format nothing (`plan/08` §3.2). Raised once per side for the whole
-    /// corpus, naming the one that formats.
-    SeveralDateFormatters = ("several-date-formatters", Warn, Allow);
+    /// More than one number formatter, or more than one date formatter, of
+    /// one side is on: a build formats with one, the strongest (`builtin`,
+    /// then `intl`, then `plain`; ICU4X, then `Intl`, then ISO), and the
+    /// others format nothing (`plan/08` §3.2). Raised once per side and
+    /// domain for the whole corpus, naming the one that formats.
+    SeveralFormatters = ("several-formatters", Warn, Allow);
     /// Markup opened and not closed, or closed and not opened.
     UnpairedMarkup = ("unpaired-markup", Warn, Allow);
     /// A plural `.match` that does not mention every category the *target*

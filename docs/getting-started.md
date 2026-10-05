@@ -159,7 +159,7 @@ crate-type = ["cdylib", "rlib"]
 leptos = { version = "0.9.0-beta", default-features = false }
 leptos_meta = "0.9.0-beta"
 leptos_router = "0.9.0-beta"
-mf2 = { version = "3", features = ["leptos", "fn-number"] }
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin"] }
 
 axum = { version = "0.8", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
@@ -223,19 +223,21 @@ server knows what the browser formats. A message can never add code to the
 wasm by itself: if a French translation uses `:datetime` and the crate
 names no date formatter, the build fails, names the message and says which
 features to write. With no features, a
-message can still use `:string`, `:number`, `:integer` and plural
-selection. Numbers then use neutral symbols (`1234.5`). `fn-number` gives
-each language's own symbols and grouping (`1 234,5` in French, grouped with
-a narrow no-break space, U+202F); dates take one formatter for each side:
+message can still use `:string`. Numbers and dates take one formatter for
+each side. The manifest above names the two for numbers: the browser's own
+`Intl` in the browser, and `mf2`'s own code on the server, which writes
+each language's symbols and grouping from its CLDR data (`1 234,5` in
+French, grouped with a narrow no-break space, U+202F).
 
 | Feature of `mf2` | Adds |
 |---|---|
-| `fn-number` | numbers in each locale's own symbols, `:percent`, `:currency`, `:unit` |
+| `leptos-client-number-intl` | `:number`, `:integer`, `:percent`, `:currency`, `:unit` and plural selection in the browser, through its own `Intl.NumberFormat` and `Intl.PluralRules`: no number data downloaded |
+| `leptos-server-number-builtin` | the same on the server, by `mf2`'s own code over each language's number data |
 | `leptos-client-datetime-intl` | `:datetime`, `:date`, `:time` in the browser, through its own `Intl.DateTimeFormat`: no date data downloaded |
 | `leptos-server-datetime-icu` (with `features = ["icu-blob"]` on `mf2-build`) | the same on the server, through ICU4X over each language's date data |
-| `number-intl` | numbers and plural rules through the browser's `Intl` too; on the dependency line, never under `hydrate` alone |
 
-[Dates](features.md#dates) has the other formatters and what each costs.
+[Numbers](features.md#numbers) and [Dates](features.md#dates) have the
+other formatters and what each costs.
 
 A feature that is on but that no message uses adds nothing to the wasm.
 
@@ -268,7 +270,7 @@ leptos = { version = "0.8", default-features = false }
 leptos_meta = "0.8"
 leptos_router = "0.8"
 leptos_axum = { version = "0.8", optional = true }
-mf2 = { version = "3", features = ["leptos-0-8", "fn-number"] }
+mf2 = { version = "3", features = ["leptos-0-8", "leptos-client-number-intl", "leptos-server-number-builtin"] }
 ```
 
 Asking for both lines at once — `leptos` and `leptos-0-8` — is a compile

@@ -16,7 +16,7 @@ use mf2_syntax::Analysis;
 
 use crate::config::{Config, Missing};
 use crate::corpus::LocaleSource;
-use crate::features::{Backend, DateBackend, Features, Side, defines_option};
+use crate::features::{Backend, DateBackend, Features, NumberBackend, Side, defines_option};
 use crate::lint::{Level, Lint};
 use crate::loader::Record;
 use crate::manifest::Built;
@@ -88,7 +88,15 @@ pub fn corpus(
         coverage(&mut sink, corpus, locale, config);
     }
     unused_features(corpus, config, features, &used, report);
-    several_date_formatters(corpus, config, features, report);
+    let mut several = several_formatters::<NumberBackend>(features);
+    several.extend(several_formatters::<DateBackend>(features));
+    report_once(
+        corpus,
+        report,
+        config.level(Lint::SeveralFormatters),
+        Lint::SeveralFormatters,
+        several,
+    );
     Needs {
         dates: used.dates,
         numbers: used.numbers(),
@@ -151,21 +159,9 @@ fn functions(
         match features.provides(&name.nfc) {
             Some(true) => {}
             Some(false) => {
-                let feature = features
-                    .missing_feature(&name.nfc)
-                    .unwrap_or("the right feature");
-                // A date function's message names the formatters to write
-                // (`plan/08` §3.3): `datetime` alone formats nothing.
-                let message = if feature == "datetime" {
-                    features.refusal::<DateBackend>(&name.nfc)
-                } else {
-                    format!(
-                        ":{} needs the `{feature}` feature, which this build does \
-                         not have; a message may never add formatting code to the \
-                         wasm by itself",
-                        name.nfc
-                    )
-                };
+                // The message names the formatters to write (`plan/08`
+                // §3.3): a domain's own feature alone formats nothing.
+                let message = features.gated(&name.nfc).unwrap_or_default();
                 at.say(Lint::GatedFunction, offset, message);
             }
             None => {
@@ -227,76 +223,79 @@ fn unused_features(
     report: &mut Report,
 ) {
     let level = config.level(Lint::UnusedFeature);
-    let on = |names: &[&str]| -> Vec<String> {
-        names
-            .iter()
-            .filter(|name| features.has(name))
-            .map(|name| format!("`{name}`"))
-            .collect()
-    };
     let mut found = Vec::new();
-    // The date formatters as a crate writes them, or `datetime` alone.
-    let mut dates: Vec<String> = Side::ALL
-        .into_iter()
-        .flat_map(|side| features.features_on::<DateBackend>(side))
-        .map(|name| format!("`{name}`"))
-        .collect();
-    if dates.is_empty() && features.fn_datetime() {
-        dates.push("`datetime`".to_owned());
-    }
-    if !dates.is_empty() && !used.dates {
+    if let Some(on) = family_on::<NumberBackend>(features)
+        && !used.numbers()
+    {
         found.push(format!(
-            "{} on for this build, and no message uses :datetime, :date or :time. \
-             Only a date function formats a date: a date handed to a plain \
-             placeholder is an error, so no message can use the formatter; drop \
-             it (another crate in the workspace may have turned it on), or set \
-             `unused-feature = \"allow\"` in mf2.toml",
-            is_on(&dates)
-        ));
-    }
-    let numbers = on(&["fn-number", "number-intl"]);
-    if !numbers.is_empty() && !used.numbers() {
-        found.push(format!(
-            "{} on for this build, and no message formats or selects on a number: \
+            "{on} on for this build, and no message formats or selects on a number: \
              no numeric function, plural selection or plain placeholder that could \
              receive one, so the number code links for nothing; drop it (another \
              crate in the workspace may have turned it on), or set \
-             `unused-feature = \"allow\"` in mf2.toml",
-            is_on(&numbers)
+             `unused-feature = \"allow\"` in mf2.toml"
+        ));
+    }
+    if let Some(on) = family_on::<DateBackend>(features)
+        && !used.dates
+    {
+        found.push(format!(
+            "{on} on for this build, and no message uses :datetime, :date or :time. \
+             Only a date function formats a date: a date handed to a plain \
+             placeholder is an error, so no message can use the formatter; drop \
+             it (another crate in the workspace may have turned it on), or set \
+             `unused-feature = \"allow\"` in mf2.toml"
         ));
     }
     // A family's feature with its framework off (`plan/08` §3.5): it
     // still turns its side's formatter on, under a name that says nothing
     // about this build.
-    for feature in features.without_framework::<DateBackend>() {
-        found.push(format!(
-            "`{feature}` is on for this build and its framework is not: it is the \
-             date formatter of a framework this crate does not use; write the \
-             family of the framework that formats here (`mf2 check` names it), \
-             or set `unused-feature = \"allow\"` in mf2.toml"
-        ));
-    }
+    found.extend(without_framework::<NumberBackend>(features));
+    found.extend(without_framework::<DateBackend>(features));
     if level == Level::Allow {
         return;
     }
     report_once(corpus, report, level, Lint::UnusedFeature, found);
 }
 
-/// Several date formatters of one side (`several-date-formatters`): once
-/// per side, for the whole corpus, naming the one that formats.
-fn several_date_formatters(
-    corpus: &Corpus<'_>,
-    config: &Config,
-    features: &Features,
-    report: &mut Report,
-) {
-    let level = config.level(Lint::SeveralDateFormatters);
-    if level == Level::Allow {
-        return;
+/// The formatters of `B`'s domain that are on, as a crate writes them, or
+/// the domain's own feature alone: `` `a` and `b` are ``. `None` with
+/// nothing of the domain on.
+fn family_on<B: Backend>(features: &Features) -> Option<String> {
+    let mut on: Vec<String> = Side::ALL
+        .into_iter()
+        .flat_map(|side| features.features_on::<B>(side))
+        .map(|name| format!("`{name}`"))
+        .collect();
+    if on.is_empty() && features.domain_on::<B>() {
+        on.push(format!("`{}`", B::DOMAIN));
     }
+    (!on.is_empty()).then(|| is_on(&on))
+}
+
+/// The features of `B`'s domain on whose framework is not, each as its
+/// `unused-feature` message.
+fn without_framework<B: Backend>(features: &Features) -> Vec<String> {
+    features
+        .without_framework::<B>()
+        .into_iter()
+        .map(|feature| {
+            format!(
+                "`{feature}` is on for this build and its framework is not: it is the \
+                 {} of a framework this crate does not use; write the \
+                 family of the framework that formats here (`mf2 check` names it), \
+                 or set `unused-feature = \"allow\"` in mf2.toml",
+                B::NOUN
+            )
+        })
+        .collect()
+}
+
+/// Several formatters of `B`'s domain on one side (`several-formatters`):
+/// once per side, for the whole corpus, naming the one that formats.
+fn several_formatters<B: Backend>(features: &Features) -> Vec<String> {
     let mut found = Vec::new();
     for side in Side::ALL {
-        let formatters = features.on::<DateBackend>(side);
+        let formatters = features.on::<B>(side);
         let Some(&strongest) = formatters.first() else {
             continue;
         };
@@ -304,22 +303,23 @@ fn several_date_formatters(
             continue;
         }
         let on: Vec<String> = features
-            .features_on::<DateBackend>(side)
+            .features_on::<B>(side)
             .iter()
             .map(|name| format!("`{name}`"))
             .collect();
         found.push(format!(
-            "{} are on for this build, {} date formatters for {}: a build formats \
+            "{} are on for this build, {} {}s for {}: a build formats \
              with one, the strongest, and here that is `{}` ({}); drop the others, \
-             or set `several-date-formatters = \"allow\"` in mf2.toml",
+             or set `several-formatters = \"allow\"` in mf2.toml",
             on.join(" and "),
             formatters.len(),
+            B::NOUN,
             side.name(),
             strongest.name(),
             strongest.what()
         ));
     }
-    report_once(corpus, report, level, Lint::SeveralDateFormatters, found);
+    found
 }
 
 /// Reports each of `found` once for the whole corpus, at the top of the
@@ -331,7 +331,7 @@ fn report_once(
     lint: Lint,
     found: Vec<String>,
 ) {
-    if found.is_empty() {
+    if found.is_empty() || level == Level::Allow {
         return;
     }
     let Some(source) = corpus.sources.get(corpus.source_index) else {

@@ -19,8 +19,8 @@ use mf2_build::{Build, Config, Features, Level, Lint};
 
 /// The clean corpus every mutation starts from.
 ///
-/// It is built with `fn-number`, so nothing here is a `neutral-numbers`
-/// warning until a mutation turns that feature off.
+/// It is built with a number formatter, so nothing here is a
+/// `plain-numbers` warning until a mutation takes the formatter away.
 fn base() -> Vec<(&'static str, &'static str)> {
     vec![
         (
@@ -122,7 +122,8 @@ fn drifts() -> Vec<Drift> {
             lint: Lint::DateMismatch,
             what: "one language formats a variable as a date and another shows it bare",
             mutate: |files, features, _| {
-                *features = Features::parse("fn-number datetime host-std-datetime-iso");
+                *features =
+                    Features::parse("host-std-number-builtin datetime host-std-datetime-iso");
                 append(files, "en", "\ndue = Due {$when :datetime}\n");
                 append(files, "pl", "\ndue = Termin {$when}\n");
             },
@@ -169,7 +170,7 @@ fn drifts() -> Vec<Drift> {
         },
         Drift {
             lint: Lint::GatedFunction,
-            what: "a function whose feature is off",
+            what: "a function with no formatter on",
             mutate: |_, features, _| *features = Features::default(),
         },
         Drift {
@@ -221,23 +222,35 @@ fn drifts() -> Vec<Drift> {
             lint: Lint::UnusedFeature,
             what: "`datetime` on and no message formats a date",
             mutate: |_, features, _| {
-                *features = Features::parse("fn-number datetime host-std-datetime-iso");
-            },
-        },
-        Drift {
-            lint: Lint::SeveralDateFormatters,
-            what: "two date formatters of one side",
-            mutate: |_, features, _| {
                 *features =
-                    Features::parse("fn-number host-web-datetime-iso host-web-datetime-intl");
+                    Features::parse("host-std-number-builtin datetime host-std-datetime-iso");
             },
         },
         Drift {
-            lint: Lint::NeutralNumbers,
-            what: "numbers formatted with `fn-number` off",
+            lint: Lint::SeveralFormatters,
+            what: "two number formatters of one side",
+            mutate: |_, features, _| {
+                *features = Features::parse("host-std-number-plain host-std-number-builtin");
+            },
+        },
+        Drift {
+            lint: Lint::PlainNumbers,
+            what: "a placeholder that can receive a number, with no number formatter",
             mutate: |files, features, _| {
-                // The gated functions have to go first, or that is what the
+                // Every number function has to go first, or that is what the
                 // build would report.
+                edit(
+                    files,
+                    "en",
+                    "count =\n  .input {$n :integer}\n  .match $n\n  one {{one thing}}\n  *   {{{$n} things}}",
+                    "count = {$n} things",
+                );
+                edit(
+                    files,
+                    "pl",
+                    "count =\n  .input {$n :integer}\n  .match $n\n  one  {{jedna rzecz}}\n  few  {{{$n} rzeczy}}\n  many {{{$n} rzeczy}}\n  *    {{{$n} rzeczy}}",
+                    "count = {$n} rzeczy",
+                );
                 edit(
                     files,
                     "en",
@@ -326,13 +339,13 @@ fn files() -> Vec<(String, String)> {
         .collect()
 }
 
-fn with_fn_number() -> Features {
-    Features::parse("fn-number")
+fn with_numbers() -> Features {
+    Features::parse("host-std-number-builtin")
 }
 
 #[test]
 fn the_base_corpus_is_clean() {
-    let outcome = build_corpus("clean", &files(), &with_fn_number(), &Config::default());
+    let outcome = build_corpus("clean", &files(), &with_numbers(), &Config::default());
     assert!(
         outcome.report.is_empty(),
         "the base corpus is not clean:\n{}",
@@ -347,7 +360,7 @@ fn every_lint_fires_on_its_own_drift_and_nothing_else_does() {
             continue; // checked below: it needs the application's sources.
         }
         let mut files = files();
-        let mut features = with_fn_number();
+        let mut features = with_numbers();
         let mut config = Config::default();
         (drift.mutate)(&mut files, &mut features, &mut config);
         let name = drift.lint.name();
@@ -386,7 +399,7 @@ fn a_lint_set_to_allow_says_nothing() {
             continue;
         }
         let mut files = files();
-        let mut features = with_fn_number();
+        let mut features = with_numbers();
         let mut config = Config::default();
         (drift.mutate)(&mut files, &mut features, &mut config);
         config.lints.insert(drift.lint, Level::Allow);
@@ -410,7 +423,7 @@ fn a_lint_set_to_allow_says_nothing() {
 
 #[test]
 fn unused_id_fires_on_the_ids_no_source_names() {
-    let outcome = build_corpus("unused", &files(), &with_fn_number(), &Config::default());
+    let outcome = build_corpus("unused", &files(), &with_numbers(), &Config::default());
     let mut report = mf2_build::Report::new();
     mf2_build::check::unused_ids(
         &outcome.manifest.ids,
@@ -466,7 +479,7 @@ fn markup_that_one_variant_keeps_is_not_dropped() {
     let outcome = build_corpus(
         "markup-kept",
         &files(pl_kept),
-        &with_fn_number(),
+        &with_numbers(),
         &Config::default(),
     );
     assert!(
@@ -480,7 +493,7 @@ fn markup_that_one_variant_keeps_is_not_dropped() {
     let outcome = build_corpus(
         "markup-dropped",
         &files(&pl_dropped),
-        &with_fn_number(),
+        &with_numbers(),
         &Config::default(),
     );
     let text = outcome.report.to_text();
@@ -507,7 +520,7 @@ fn do_not_translate_messages_are_neither_missing_nor_covered() {
     let outcome = build_corpus(
         "dnt-missing",
         &files("@locale fr\n---\n\ngreeting = Bonjour\n"),
-        &with_fn_number(),
+        &with_numbers(),
         &config,
     );
     let text = outcome.report.to_text();
@@ -527,7 +540,7 @@ fn do_not_translate_messages_are_neither_missing_nor_covered() {
     let outcome = build_corpus(
         "dnt-copied",
         &files("@locale fr\n---\n\ngreeting = Bonjour\nlanguage-fr = Français\n"),
-        &with_fn_number(),
+        &with_numbers(),
         &config,
     );
     assert!(
@@ -553,7 +566,8 @@ fn do_not_translate_messages_are_neither_missing_nor_covered() {
                 "@locale fr\n---\n\ngreeting = Bonjour\n".to_owned(),
             ),
         ],
-        // Plain text only: with `fn-number` on, that is `unused-feature`.
+        // Plain text only: with a number formatter on, that is
+        // `unused-feature`.
         &Features::default(),
         &config,
     );
@@ -585,38 +599,46 @@ fn unused_feature_names_each_family_once() {
     let text = only_en("a = Save\nb = Cancel\n");
     let said = unused(
         &text,
-        "fn-number number-intl datetime host-std-datetime-iso",
+        "host-web-number-intl host-std-number-builtin datetime host-std-datetime-iso",
     );
     assert_eq!(said.len(), 2, "{said:#?}");
     assert!(
-        said[0].contains("`host-std-datetime-iso` is on for this build"),
+        said[0]
+            .contains("`host-web-number-intl` and `host-std-number-builtin` are on for this build"),
         "{}",
         said[0]
     );
     assert!(
-        said[0].contains("a date handed to a plain placeholder is an error"),
+        said[1].contains("`host-std-datetime-iso` is on for this build"),
         "{}",
-        said[0]
+        said[1]
     );
     assert!(
-        said[1].contains("`fn-number` and `number-intl` are on for this build"),
+        said[1].contains("a date handed to a plain placeholder is an error"),
         "{}",
         said[1]
     );
     // The base corpus formats numbers and no dates; across two locales the
     // date family is still reported once.
-    let said = unused(&files(), "fn-number native native-datetime-iso");
+    let said = unused(&files(), "native native-number-builtin native-datetime-iso");
     assert_eq!(said.len(), 1, "{said:#?}");
     assert!(
         said[0].contains("`native-datetime-iso` is on for this build"),
         "{}",
         said[0]
     );
-    // `datetime` alone is named as itself.
+    // `datetime` alone is named as itself, and so is `number`.
     let said = unused(&text, "datetime");
     assert_eq!(said.len(), 1, "{said:#?}");
     assert!(
         said[0].contains("`datetime` is on for this build"),
+        "{}",
+        said[0]
+    );
+    let said = unused(&text, "number");
+    assert_eq!(said.len(), 1, "{said:#?}");
+    assert!(
+        said[0].contains("`number` is on for this build"),
         "{}",
         said[0]
     );
@@ -626,16 +648,34 @@ fn unused_feature_names_each_family_once() {
 fn unused_feature_names_a_family_without_its_framework() {
     // The base corpus formats no date, so the formatter is unused too; the
     // framework's line is the second.
-    let said = unused(&files(), "fn-number host-std axum-datetime-iso");
+    let said = unused(
+        &files(),
+        "host-std host-std-number-builtin axum-datetime-iso",
+    );
     assert_eq!(said.len(), 2, "{said:#?}");
     assert!(
-        said[1].contains("`axum-datetime-iso` is on for this build and its framework is not"),
+        said[1].contains(
+            "`axum-datetime-iso` is on for this build and its framework is not: it is the \
+             date formatter of a framework this crate does not use"
+        ),
         "{}",
         said[1]
     );
     // With its framework on, only the unused formatter is said.
-    let said = unused(&files(), "fn-number axum axum-datetime-iso");
+    let said = unused(&files(), "axum axum-number-builtin axum-datetime-iso");
     assert_eq!(said.len(), 1, "{said:#?}");
+    // A number formatter's family without its framework says the same of
+    // itself; the corpus formats numbers, so it is the only line.
+    let said = unused(&files(), "host-std native-number-builtin");
+    assert_eq!(said.len(), 1, "{said:#?}");
+    assert!(
+        said[0].contains(
+            "`native-number-builtin` is on for this build and its framework is not: it is \
+             the number formatter of a framework this crate does not use"
+        ),
+        "{}",
+        said[0]
+    );
     // A host family needs no framework.
     let dates = only_en("when = {$at :date}\n");
     assert!(unused(&dates, "host-std host-std-datetime-iso").is_empty());
@@ -702,10 +742,10 @@ fn a_date_function_with_no_formatter_names_the_features_to_write() {
 }
 
 #[test]
-fn several_date_formatters_names_the_one_that_formats() {
+fn several_formatters_names_the_one_that_formats() {
     let body = "when = {$at :date}\n";
     let both = said(
-        Lint::SeveralDateFormatters,
+        Lint::SeveralFormatters,
         "several-native",
         body,
         "native native-datetime-iso native-datetime-icu",
@@ -714,7 +754,7 @@ fn several_date_formatters_names_the_one_that_formats() {
     assert!(both[0].contains("for native code"), "{}", both[0]);
     assert!(both[0].contains("that is `icu` (ICU4X)"), "{}", both[0]);
     let browser = said(
-        Lint::SeveralDateFormatters,
+        Lint::SeveralFormatters,
         "several-browser",
         body,
         "leptos csr leptos-client-datetime-iso leptos-client-datetime-intl",
@@ -724,10 +764,120 @@ fn several_date_formatters_names_the_one_that_formats() {
     // One formatter on each side is not several.
     assert!(
         said(
-            Lint::SeveralDateFormatters,
+            Lint::SeveralFormatters,
             "several-split",
             body,
             "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
+        )
+        .is_empty()
+    );
+    // Numbers, the same: the strongest of a side's formats.
+    let count = "n = {$n :integer}\n";
+    let numbers = said(
+        Lint::SeveralFormatters,
+        "several-numbers",
+        count,
+        "leptos csr leptos-client-number-intl leptos-client-number-builtin",
+    );
+    assert_eq!(numbers.len(), 1, "{numbers:#?}");
+    assert!(
+        numbers[0].contains(
+            "`leptos-client-number-builtin` and `leptos-client-number-intl` are on for this \
+             build, 2 number formatters for the browser"
+        ),
+        "{}",
+        numbers[0]
+    );
+    assert!(
+        numbers[0].contains("that is `builtin` (mf2's own code over the catalog's CLDR data)"),
+        "{}",
+        numbers[0]
+    );
+    assert!(
+        said(
+            Lint::SeveralFormatters,
+            "several-numbers-split",
+            count,
+            "leptos ssr leptos-client-number-intl leptos-server-number-builtin",
+        )
+        .is_empty()
+    );
+}
+
+#[test]
+fn a_number_function_with_no_formatter_names_the_features_to_write() {
+    let body = "n = {$n :integer}\n";
+    // No number formatter at all.
+    let none = said(Lint::GatedFunction, "gated-number-none", body, "native");
+    assert_eq!(none.len(), 1, "{none:#?}");
+    assert!(
+        none[0].contains(":integer formats a number, and this build has no number formatter"),
+        "{}",
+        none[0]
+    );
+    assert!(
+        none[0].contains("Write `native-number-builtin`"),
+        "{}",
+        none[0]
+    );
+    // `plain` formats it, and no `:currency`.
+    assert!(
+        said(
+            Lint::GatedFunction,
+            "gated-number-plain",
+            body,
+            "native native-number-plain",
+        )
+        .is_empty()
+    );
+    let money = said(
+        Lint::GatedFunction,
+        "gated-currency-plain",
+        "price = {$n :currency currency=EUR}\n",
+        "native native-number-plain",
+    );
+    assert_eq!(money.len(), 1, "{money:#?}");
+    assert!(
+        money[0].contains("(`native-number-plain` is plain digits)"),
+        "{}",
+        money[0]
+    );
+    assert!(
+        money[0].contains("Write `native-number-builtin`"),
+        "{}",
+        money[0]
+    );
+}
+
+#[test]
+fn a_bare_placeholder_with_no_number_formatter_is_plain_numbers() {
+    let body = "hello = Hello, {$name}!\n";
+    let none = said(Lint::PlainNumbers, "plain-numbers-none", body, "native");
+    assert_eq!(none.len(), 1, "{none:#?}");
+    assert!(
+        none[0].contains("this build has no number formatter for native code"),
+        "{}",
+        none[0]
+    );
+    assert!(
+        none[0].contains("Write `native-number-builtin` on the `mf2` dependency"),
+        "{}",
+        none[0]
+    );
+    // A side that chose `plain` chose plain digits: nothing to say.
+    for features in ["native native-number-plain", "native native-number-builtin"] {
+        assert!(
+            said(Lint::PlainNumbers, "plain-numbers-chosen", body, features).is_empty(),
+            "{features}"
+        );
+    }
+    // A corpus with no bare placeholder has nothing that could print one.
+    assert!(
+        said(
+            Lint::PlainNumbers,
+            "plain-numbers-text",
+            "save = Save\n",
+            "native"
         )
         .is_empty()
     );
@@ -745,23 +895,23 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     }
     // A plain placeholder can receive a number.
     let plain = only_en("hello = Hello, {$name}!\n");
-    assert!(unused(&plain, "fn-number").is_empty());
+    assert!(unused(&plain, "host-std-number-builtin").is_empty());
     // So does a numeric function, and a plural selection with no placeholder.
     for function in ["{$n :integer}", "{$n :percent}", "{$n :unit unit=meter}"] {
         let numeric = only_en(&format!("n = {function}\n"));
-        let said = unused(&numeric, "fn-number number-intl");
+        let said = unused(&numeric, "host-web-number-intl host-std-number-builtin");
         assert!(said.is_empty(), "{function}: {said:#?}");
     }
     let select =
         only_en("count =\n  .input {$n :number}\n  .match $n\n  one {{one}}\n  * {{many}}\n");
-    assert!(unused(&select, "fn-number").is_empty());
+    assert!(unused(&select, "host-std-number-builtin").is_empty());
     // `allow` silences it.
     let mut config = Config::default();
     config.lints.insert(Lint::UnusedFeature, Level::Allow);
     let outcome = build_corpus(
         "unused-feature-allow",
         &text,
-        &Features::parse("fn-number datetime"),
+        &Features::parse("host-std-number-builtin datetime"),
         &config,
     );
     assert!(
@@ -785,7 +935,7 @@ fn date_mismatch_compares_each_translation_with_the_source() {
             ("pl".to_owned(), format!("@locale pl\n---\n\n{pl}\n")),
         ]
     };
-    let features = Features::parse("fn-number datetime host-std-datetime-iso");
+    let features = Features::parse("host-std-number-builtin datetime host-std-datetime-iso");
     let mismatches = |name: &str, en: &str, pl: &str| -> usize {
         let outcome = build_corpus(name, &corpus(en, pl), &features, &Config::default());
         outcome
@@ -854,7 +1004,7 @@ fn every_lint_has_a_seeded_drift() {
 fn the_reference_workload_is_clean() {
     let root = workload();
     let outcome = Build::at(&root, out_dir("drift-workload"))
-        .features(with_fn_number())
+        .features(with_numbers())
         .check()
         .expect("the workload is readable");
     assert!(

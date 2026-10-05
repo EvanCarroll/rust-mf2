@@ -2,21 +2,21 @@
 
 | Feature | Where | Set against | Adds | Measured on |
 |---|---|---|---:|---|
-| `fn-number` | browser | no function | 2,494 B gzip | the reference workload, 150 messages with `:number` |
-| `number-intl` | browser | `fn-number` | -3,069 B gzip | the reference workload, 150 messages with `:number` |
-| `leptos-client-datetime-iso` | browser | `fn-number` | 5,337 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
-| `leptos-client-datetime-icu` | browser | `fn-number`, `leptos-client-datetime-iso` | 59,272 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
-| `leptos-client-datetime-intl` | browser | `fn-number`, `leptos-client-datetime-iso` | 253 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
-| `leptos-client-datetime-intl` | browser | `fn-number` | -2 B gzip | the reference workload, 150 messages with `:number` and plain placeholders, no date: the feature is on and nothing shows a date |
-| `fn-number` | native | `native` | 9,920 B stripped | a plain message, a plain placeholder and a plural |
-| `native-datetime-iso` | native | `native` | 167,192 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
-| `native-datetime-icu` | native | `native` | 328,664 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
-| `native-datetime-icu` | native | `native` | -40 B stripped | a plain message, a plain placeholder and a plural, no date: the feature is on and nothing shows a date |
-| `tzdb-bundled` | native | `native`, `native-datetime-iso` | 247,608 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
-| `tzdb-bundled` | native | `native` | 0 B stripped | no date in any message, so the feature is on and unused |
-| `compile` | native | `native` | 8,352,704 B stripped | the canary's messages, and one compiled at run time |
-| `ratatui` | native | `native`, `tui` | -14,936 B stripped | a message drawn as a Ratatui `Line` |
-| `clap` | native | `native`, `cli` | 8,864 B stripped | `--lang` parsed by clap |
+| `leptos-client-number-builtin` | browser | `leptos-client-number-plain` | 2,514 B gzip | the reference workload, 150 messages with `:number` |
+| `leptos-client-number-intl` | browser | `leptos-client-number-plain` | -545 B gzip | the reference workload, 150 messages with `:number` |
+| `leptos-client-datetime-iso` | browser | `leptos-client-number-builtin` | 5,336 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
+| `leptos-client-datetime-icu` | browser | `leptos-client-number-builtin`, `leptos-client-datetime-iso` | 59,292 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
+| `leptos-client-datetime-intl` | browser | `leptos-client-number-builtin`, `leptos-client-datetime-iso` | 247 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
+| `leptos-client-datetime-intl` | browser | `leptos-client-number-builtin` | -7 B gzip | the reference workload, 150 messages with `:number` and plain placeholders, no date: the feature is on and nothing shows a date |
+| `native-number-builtin` | native | `native`, `native-number-plain` | 9,920 B stripped | a plain message, a plain placeholder and a plural |
+| `native-datetime-iso` | native | `native`, `native-number-plain` | 167,192 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
+| `native-datetime-icu` | native | `native`, `native-number-plain` | 328,664 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
+| `native-datetime-icu` | native | `native`, `native-number-plain` | -40 B stripped | a plain message, a plain placeholder and a plural, no date: the feature is on and nothing shows a date |
+| `tzdb-bundled` | native | `native`, `native-number-plain`, `native-datetime-iso` | 247,608 B stripped | a plain message, a plain placeholder, a plural and a date in a named zone |
+| `tzdb-bundled` | native | `native`, `native-number-plain` | 0 B stripped | no date in any message, so the feature is on and unused |
+| `compile` | native | `native`, `native-number-plain` | 8,352,720 B stripped | the canary's messages, and one compiled at run time |
+| `ratatui` | native | `native`, `native-number-plain`, `tui` | -14,936 B stripped | a message drawn as a Ratatui `Line` |
+| `clap` | native | `native`, `native-number-plain`, `cli` | 8,864 B stripped | `--lang` parsed by clap |
 
 **The date slice, per language.** The brotli bytes the date data adds to each language's catalog, which a browser downloads: the reference workload with `:datetime` messages, built for `hydrate` with each browser formatter, less the same with `leptos-client-datetime-iso`. With `intl` the browser formats dates itself and no date data is downloaded, so that column should be 0.
 

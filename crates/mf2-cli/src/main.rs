@@ -80,18 +80,14 @@ struct Cli {
 /// The client feature set, which decides which functions exist.
 #[derive(Debug, Args, Clone, Default)]
 pub(crate) struct FeatureArgs {
-    /// Comma-separated client features (`fn-number,native-datetime-icu`), as the
+    /// Comma-separated client features
+    /// (`native,native-number-builtin,native-datetime-icu`), as the
     /// application turns them on for `mf2`.
     #[arg(long, value_name = "LIST")]
     features: Option<String>,
 }
 
 impl FeatureArgs {
-    /// What the arguments name; none if `--features` is absent.
-    pub(crate) fn features(&self) -> mf2_build::Features {
-        self.given().unwrap_or_default()
-    }
-
     /// What `--features` names, if it was given at all.
     pub(crate) fn given(&self) -> Option<mf2_build::Features> {
         self.features.as_deref().map(mf2_build::Features::parse)

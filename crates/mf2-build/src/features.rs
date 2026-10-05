@@ -1,20 +1,22 @@
 //! The client feature set.
 //!
-//! Features belong to the **application**, declared once on its i18n crate
-//! and applied to its server and its wasm build alike, so SSR output always
-//! matches what the client would produce. `build.rs` therefore reads them
-//! from that crate's own cargo features (`CARGO_FEATURE_FN_NUMBER`, …) and
-//! `mf2-cli` from `--features`; neither reads `mf2.toml`, which would be a
-//! second place for them to disagree.
+//! Features belong to the **application**, written once on its `mf2`
+//! dependency and seen by its server's build and its wasm build alike. A
+//! build script therefore reads them from `mf2` itself, as cargo resolved
+//! them (`run.rs`), and `mf2-cli` from `--features` or from cargo; neither
+//! reads `mf2.toml`, which would be a second place for them to disagree.
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 mod backend;
 mod family;
+mod gate;
 
-pub use backend::{Backend, DateBackend};
+pub use backend::{Backend, DateBackend, NumberBackend};
 pub use family::{Active, FAMILIES, Family, Framework, KINDS, Side, domain_features, kind_lines};
+use gate::Ask;
+pub use gate::{BUILTINS, Gate};
 
 /// Which functions the built catalogs may use, and which locale data they
 /// need.
@@ -22,24 +24,6 @@ pub use family::{Active, FAMILIES, Family, Framework, KINDS, Side, domain_featur
 pub struct Features {
     names: BTreeSet<String>,
 }
-
-/// A built-in function and the feature it needs.
-///
-/// A function that exists only behind a feature
-/// and is used while that feature is off is a **build error** naming the file
-/// and the line.
-pub const BUILTINS: [(&str, Option<&str>); 10] = [
-    ("string", None),
-    ("number", None),
-    ("integer", None),
-    ("offset", None),
-    ("percent", Some("fn-number")),
-    ("currency", Some("fn-number")),
-    ("unit", Some("fn-number")),
-    ("datetime", Some("datetime")),
-    ("date", Some("datetime")),
-    ("time", Some("datetime")),
-];
 
 /// The options each built-in function defines, for the `unknown-option`
 /// lint: MF2 ignores an option a function does not have, so a misspelled or
@@ -165,20 +149,51 @@ pub fn defines_option(function: &str, option: &str) -> Option<bool> {
     Some(names.contains(&option))
 }
 
-/// What decides what a catalog — the file a browser downloads — may hold,
-/// as [`Features::for_catalogs`] names it: which functions a message may
-/// call (`fn-number`, `datetime`), and whether the catalog carries ICU4X's
-/// date slice (`icu-blob`, [`Features::date_slice_place`] being
-/// [`Place::Catalog`]), and whether the browser formats numbers through
-/// `Intl` and so reads none of the number entries (`number-intl`,
-/// [`Features::number_place`] being [`Place::Server`]). These are the
-/// browser-side choices, in the one list both builds see, so that a
-/// server's build script knows what the browser reads (`plan/08` §4.1). The
-/// wasm and the catalogs must agree on them; the other features (the `intl`
-/// and `iso` formatters, `tzdb-bundled`, the host features) change only the
-/// code a build compiles — `tzdb-bundled` only which IANA database a named
-/// time zone is looked up in.
-pub const CATALOG_FEATURES: [&str; 4] = ["fn-number", "datetime", "icu-blob", "number-intl"];
+/// What of a feature set changes a catalog — the file a browser downloads:
+/// which functions a message may call, and which LOCALE entries the catalog
+/// carries ([`Features::for_catalogs`]). The wasm and the catalogs must
+/// agree on them. Two spellings of one build (a framework's family or the
+/// host's, with or without the feature they imply) give the same, and so do
+/// two builds that differ only in code: the `intl` and `iso` date
+/// formatters, `tzdb-bundled`, the host features.
+// Each flag is an independent fact about the catalog.
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CatalogContent {
+    /// A message may call `:number`, `:integer` and `:offset`, and select
+    /// by plural rules.
+    pub numbers: bool,
+    /// A message may call `:percent`, `:currency` and `:unit`.
+    pub localized_numbers: bool,
+    /// A message may call `:datetime`, `:date` and `:time`.
+    pub dates: bool,
+    /// The catalog carries the plural rules.
+    pub plural_rules: bool,
+    /// The catalog carries the number data: symbols, patterns, currencies
+    /// and units.
+    pub number_data: bool,
+    /// The catalog carries ICU4X's date slice (`icu.blob`).
+    pub date_slice: bool,
+}
+
+impl CatalogContent {
+    /// What is on, in words, for a message: `number functions`, `plural
+    /// rules`.
+    pub fn names(&self) -> Vec<&'static str> {
+        [
+            (self.numbers, "number functions"),
+            (self.localized_numbers, "percent/currency/unit"),
+            (self.dates, "date functions"),
+            (self.plural_rules, "plural rules"),
+            (self.number_data, "number data"),
+            (self.date_slice, "date slice"),
+        ]
+        .into_iter()
+        .filter(|(on, _)| *on)
+        .map(|(_, name)| name)
+        .collect()
+    }
+}
 
 /// Where the build writes a LOCALE entry (`plan/08` §4.1).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -191,6 +206,22 @@ pub enum Place {
     Server,
     /// Nowhere: no side reads it.
     Nowhere,
+}
+
+/// Where the build writes each LOCALE entry, by who reads it
+/// ([`Features::placement`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Placement {
+    /// The plural rules (`plural.cardinal`, `plural.ordinal`): read by a
+    /// side whose number formatter is `builtin` or `plain`.
+    pub plural: Place,
+    /// The number data (`number.symbols`, `number.patterns`,
+    /// `currency.data`, `unit.data`): read by a side whose number formatter
+    /// is `builtin`.
+    pub numbers: Place,
+    /// ICU4X's date slice (`icu.blob`): read by a side whose date formatter
+    /// is `icu`.
+    pub dates: Place,
 }
 
 impl Features {
@@ -235,24 +266,20 @@ impl Features {
         }
     }
 
-    /// What of this set changes a catalog, in the [`CATALOG_FEATURES`]
-    /// names: `fn-number`, `datetime` when the date functions are on under
-    /// any of their names, `icu-blob` when the catalog carries the date
-    /// slice (not when only the server-only table does), `number-intl` when
-    /// the number entries go to the server-only table. What
-    /// `mf2 compile --site` compares with the i18n crate's, so that two
-    /// spellings of one build (a framework's family or the host's, with or
-    /// without the `datetime` they imply) compare equal.
+    /// What of this set changes a catalog a browser downloads
+    /// ([`CatalogContent`]). What `mf2 compile --site` compares with the
+    /// i18n crate's.
     #[must_use]
-    pub fn for_catalogs(&self) -> Features {
-        let [numbers, dates, slice, intl] = CATALOG_FEATURES;
-        let on = [
-            (numbers, self.fn_number()),
-            (dates, self.fn_datetime()),
-            (slice, self.date_slice_place() == Place::Catalog),
-            (intl, self.number_place() == Place::Server),
-        ];
-        Features::from_names(on.into_iter().filter(|(_, on)| *on).map(|(name, _)| name))
+    pub fn for_catalogs(&self) -> CatalogContent {
+        let placement = self.placement(false);
+        CatalogContent {
+            numbers: self.formats::<NumberBackend>(),
+            localized_numbers: self.formats_with(Ask::LOCALIZED),
+            dates: self.formats::<DateBackend>(),
+            plural_rules: placement.plural == Place::Catalog,
+            number_data: placement.numbers == Place::Catalog,
+            date_slice: placement.dates == Place::Catalog,
+        }
     }
 
     /// Whether `name` is on.
@@ -263,20 +290,6 @@ impl Features {
     /// The names, sorted.
     pub fn names(&self) -> impl Iterator<Item = &str> {
         self.names.iter().map(String::as_str)
-    }
-
-    /// Number localization: symbols, grouping, numbering systems, and
-    /// `:percent` / `:currency` / `:unit`.
-    pub fn fn_number(&self) -> bool {
-        self.has("fn-number")
-    }
-
-    /// The date and time functions: `datetime`, which every date formatter
-    /// turns on. A formatter's feature counts too, for a list written by
-    /// hand (`mf2 check --features native-datetime-icu`), which does not
-    /// spell out what the feature implies.
-    pub fn fn_datetime(&self) -> bool {
-        self.domain_on::<DateBackend>()
     }
 
     /// Whether `B`'s domain is on: the feature every backend of it turns
@@ -292,7 +305,7 @@ impl Features {
 
     /// Every backend of `B`'s domain on for `side`, the strongest first: one
     /// of its families' features. More than one is the
-    /// `several-date-formatters` case. A backend whose feature a stronger
+    /// `several-formatters` case. A backend whose feature a stronger
     /// one's turns on with it is that stronger one, not a second.
     #[doc(hidden)]
     pub fn on<B: Backend>(&self, side: Side) -> Vec<B> {
@@ -314,70 +327,90 @@ impl Features {
     }
 
     /// The backend `side`'s build formats `B`'s domain with: the strongest
-    /// of its own side's on (for dates ICU4X, then `Intl`, then ISO),
-    /// whatever the other side's say; `None` with none.
+    /// of its own side's on (for numbers `builtin`, then `intl`, then
+    /// `plain`; for dates ICU4X, then `Intl`, then ISO), whatever the other
+    /// side's say; `None` with none.
     pub fn backend<B: Backend>(&self, side: Side) -> Option<B> {
         self.on(side).into_iter().max()
     }
 
     /// Whether the build cuts ICU4X's date slice (`icu.blob`): when either
     /// side's formatter is `icu`. A build script cuts it for both builds, so
-    /// it needs `mf2-build`'s `icu-blob` then; [`Features::date_slice_place`]
-    /// says whether it goes into the catalog or the server-only table.
+    /// it needs `mf2-build`'s `icu-blob` then; [`Features::placement`] says
+    /// whether it goes into the catalog or the server-only table.
     pub fn cuts_date_slice(&self) -> bool {
-        Side::ALL
-            .into_iter()
-            .any(|side| self.reads_date_slice(side))
+        self.read_by(DateBackend::reads_slice)
     }
 
-    /// Whether `side`'s date formatter formats from the date slice.
-    fn reads_date_slice(&self, side: Side) -> bool {
-        self.backend::<DateBackend>(side)
-            .is_some_and(DateBackend::reads_slice)
+    /// Whether the build cuts the plural rules: when either side's number
+    /// formatter selects from them (`builtin`, `plain`).
+    #[doc(hidden)]
+    pub fn cuts_plural_rules(&self) -> bool {
+        self.read_by(NumberBackend::reads_plural_rules)
+    }
+
+    /// Whether the build cuts the number data: when either side's number
+    /// formatter is `builtin`.
+    #[doc(hidden)]
+    pub fn cuts_number_data(&self) -> bool {
+        self.read_by(NumberBackend::reads_number_data)
+    }
+
+    /// Whether `side`'s backend of `B`'s domain reads what `reads` names.
+    fn reads<B: Backend>(&self, side: Side, reads: fn(B) -> bool) -> bool {
+        self.backend::<B>(side).is_some_and(reads)
+    }
+
+    /// Whether either side's does.
+    fn read_by<B: Backend>(&self, reads: fn(B) -> bool) -> bool {
+        Side::ALL.into_iter().any(|side| self.reads(side, reads))
     }
 
     /// Whether a browser downloads this build's catalogs: a framework or
-    /// host of the browser's side is on, or a browser date formatter is —
-    /// each of those names a browser build. Without one the catalogs have
-    /// native readers alone, and keep every entry.
+    /// host of the browser's side is on, or a browser's number or date
+    /// formatter is — each of those names a browser build. Without one the
+    /// catalogs have native readers alone, and keep every entry.
     #[doc(hidden)]
     pub fn has_browser_side(&self) -> bool {
         self.families()
             .iter()
             .any(|active| active.family.side == Side::Browser)
+            || self.backend::<NumberBackend>(Side::Browser).is_some()
             || self.backend::<DateBackend>(Side::Browser).is_some()
     }
 
-    /// Where ICU4X's date slice (`icu.blob`) goes: into the catalog when the
-    /// browser's formatter is `icu` or no browser downloads the catalog and
-    /// native code's is; into the server-only table when native code's is
-    /// `icu` and the browser's is not; nowhere when neither side's is. A
-    /// native application's build keeps it in its catalog whatever this says
-    /// (`Build`).
-    pub fn date_slice_place(&self) -> Place {
-        let icu = |side| self.reads_date_slice(side);
-        if icu(Side::Browser) || (icu(Side::Native) && !self.has_browser_side()) {
-            Place::Catalog
-        } else if icu(Side::Native) {
-            Place::Server
-        } else {
-            Place::Nowhere
+    /// Where each LOCALE entry goes: into the catalog when the browser's
+    /// formatter reads it, or when no browser downloads the catalog and
+    /// native code's does; into the server-only table when native code's
+    /// reads it and the browser's does not; nowhere when neither side's
+    /// does. `native_application` is a build no browser downloads from,
+    /// whatever its features say: what native code reads stays in its
+    /// catalog, one reader and one file, and what only a browser would read
+    /// is not written (`plan/08` §4.2).
+    pub fn placement(&self, native_application: bool) -> Placement {
+        Placement {
+            plural: self.place(native_application, NumberBackend::reads_plural_rules),
+            numbers: self.place(native_application, NumberBackend::reads_number_data),
+            dates: self.place(native_application, DateBackend::reads_slice),
         }
     }
 
-    /// Where the number entries go: `plural.cardinal`, `plural.ordinal`,
-    /// `number.symbols`, `number.patterns`, `currency.data` and `unit.data`.
-    /// With `number-intl` the browser formats and selects through `Intl` and
-    /// reads none of them, so when a browser downloads the catalog they go
-    /// to the server-only table; otherwise, and when no browser does, into
-    /// the catalog. Native code reads them on every build that needs them,
-    /// so never nowhere. A native application's build keeps them in its
-    /// catalog whatever this says (`Build`).
-    pub fn number_place(&self) -> Place {
-        if self.number_intl() && self.has_browser_side() {
+    /// Where an entry goes that the backends `reads` names read.
+    fn place<B: Backend>(&self, native_application: bool, reads: fn(B) -> bool) -> Place {
+        let browser = self.reads(Side::Browser, reads);
+        let native = self.reads(Side::Native, reads);
+        if native_application {
+            if native {
+                Place::Catalog
+            } else {
+                Place::Nowhere
+            }
+        } else if browser || (native && !self.has_browser_side()) {
+            Place::Catalog
+        } else if native {
             Place::Server
         } else {
-            Place::Catalog
+            Place::Nowhere
         }
     }
 
@@ -393,7 +426,7 @@ impl Features {
     ///   framework.
     ///
     /// Empty when nothing says which build this is (`mf2 check --features
-    /// fn-number`, a library with no host).
+    /// compile`, a library with no host).
     pub fn families(&self) -> Vec<Active> {
         let active = |prefix: &str, builds_here| {
             FAMILIES
@@ -434,6 +467,12 @@ impl Features {
     /// one, and when no framework or host says which sides it builds.
     #[doc(hidden)]
     pub fn sides_without<B: Backend>(&self) -> Vec<Side> {
+        self.sides_unable(Ask::<B>::ANY)
+    }
+
+    /// The sides this build formats on whose backend of `B`'s domain cannot
+    /// do what `ask` asks — or that have none.
+    fn sides_unable<B: Backend>(&self, ask: Ask<B>) -> Vec<Side> {
         let families = self.families();
         Side::ALL
             .into_iter()
@@ -441,7 +480,7 @@ impl Features {
                 families
                     .iter()
                     .any(|active| active.builds_here && active.family.side == side)
-                    && self.backend::<B>(side).is_none()
+                    && !self.reads(side, ask.able)
             })
             .collect()
     }
@@ -450,12 +489,15 @@ impl Features {
     /// side it builds has a backend; with no framework or host on, some side
     /// has one. The domain's own feature alone has none.
     pub fn formats<B: Backend>(&self) -> bool {
+        self.formats_with(Ask::<B>::ANY)
+    }
+
+    /// [`Features::formats`] for a function that asks more of its backend.
+    fn formats_with<B: Backend>(&self, ask: Ask<B>) -> bool {
         if self.families().iter().any(|active| active.builds_here) {
-            self.sides_without::<B>().is_empty()
+            self.sides_unable(ask).is_empty()
         } else {
-            Side::ALL
-                .into_iter()
-                .any(|side| self.backend::<B>(side).is_some())
+            self.read_by(ask.able)
         }
     }
 
@@ -496,10 +538,16 @@ impl Features {
     /// recommended one.
     #[doc(hidden)]
     pub fn missing<B: Backend>(&self) -> Vec<String> {
+        self.missing_for(Ask::<B>::ANY)
+    }
+
+    /// [`Features::missing`] for a function that asks more of its backend:
+    /// a side whose backend cannot do it is told the recommended one too.
+    fn missing_for<B: Backend>(&self, ask: Ask<B>) -> Vec<String> {
         let mut missing: Vec<String> = Vec::new();
         for active in self.families() {
             let feature = active.family.recommended::<B>();
-            if self.backend::<B>(active.family.side).is_none() && !missing.contains(&feature) {
+            if !self.reads(active.family.side, ask.able) && !missing.contains(&feature) {
                 missing.push(feature);
             }
         }
@@ -603,14 +651,22 @@ impl Features {
     }
 
     /// The `gated-function` message for `function`, a function of `B`'s
-    /// domain: the sides without a backend, the features to write, the
-    /// families of the frameworks that are on, and what each backend costs.
+    /// domain that any of its backends formats: the sides without one, the
+    /// features to write, the families of the frameworks that are on, and
+    /// what each backend costs.
     pub fn refusal<B: Backend>(&self, function: &str) -> String {
-        let sides = self.sides_without::<B>();
+        self.refusal_for(function, Ask::<B>::ANY)
+    }
+
+    /// The `gated-function` message for `function`, which asks `ask` of its
+    /// domain's backend: the sides whose backend cannot, the features to
+    /// write, the families of the frameworks that are on, and what each
+    /// backend that can costs.
+    fn refusal_for<B: Backend>(&self, function: &str, ask: Ask<B>) -> String {
+        let sides = self.sides_unable(ask);
         let mut out = format!(
             ":{function} formats {}, and this build has no {}",
-            B::THING,
-            B::NOUN
+            ask.thing, ask.lacks
         );
         let costed: Vec<Side> = if sides.is_empty() {
             out.push_str(
@@ -628,6 +684,22 @@ impl Features {
         } else {
             let names: Vec<&str> = sides.iter().map(|side| side.name()).collect();
             let _ = write!(out, " for {}", names.join(" or "));
+            // A side with a backend that cannot: what it is, so that the
+            // message says why the feature that is on is not enough.
+            let unable: Vec<String> = sides
+                .iter()
+                .filter_map(|&side| {
+                    let backend = self.backend::<B>(side)?;
+                    Some(format!(
+                        "{} is {}",
+                        quoted(&self.features_of(side, backend)),
+                        backend.what()
+                    ))
+                })
+                .collect();
+            if !unable.is_empty() {
+                let _ = write!(out, " ({})", unable.join("; "));
+            }
             let elsewhere: Vec<String> = Side::ALL
                 .into_iter()
                 .filter(|side| !sides.contains(side))
@@ -644,7 +716,7 @@ impl Features {
                 out,
                 "; a message may never add formatting code by itself. Write {} on \
                  the `mf2` dependency.",
-                quoted(&self.missing::<B>())
+                quoted(&self.missing_for(ask))
             );
             let families: Vec<String> = self
                 .families()
@@ -668,6 +740,7 @@ impl Features {
         for side in costed {
             let backends: Vec<String> = B::offered(side)
                 .iter()
+                .filter(|&&backend| (ask.able)(backend))
                 .map(|&backend| {
                     let recommended = if backend == B::recommended(side) {
                         ", recommended"
@@ -696,39 +769,31 @@ impl Features {
         out
     }
 
-    /// Numbers and plural selection through the browser's `Intl` on the
-    /// client (`number-intl`, 2.0's `intl`). The server keeps the Rust path,
-    /// so the number entries move to the server-only table
-    /// ([`Features::number_place`]).
-    pub fn number_intl(&self) -> bool {
-        self.has("number-intl")
-    }
-
     /// Whether this build provides the built-in function `identifier` (an
     /// MF2 identifier without its `:`), or `None` if it is not a built-in —
     /// a custom function, which `[functions]` in `mf2.toml` answers for.
     pub fn provides(&self, identifier: &str) -> Option<bool> {
         let (_, gate) = BUILTINS.iter().find(|(name, _)| *name == identifier)?;
         Some(match gate {
-            None => true,
-            Some(feature) => self.gate_on(feature),
+            Gate::None => true,
+            Gate::Number => self.formats::<NumberBackend>(),
+            Gate::LocalizedNumber => self.formats_with(Ask::LOCALIZED),
+            Gate::Date => self.formats::<DateBackend>(),
         })
     }
 
-    /// Whether a [`BUILTINS`] gate is on: `datetime` when a formatter
-    /// formats on every side this build builds ([`Features::formats`];
-    /// `datetime` alone is not enough), any other by its own.
-    fn gate_on(&self, feature: &str) -> bool {
-        match feature {
-            "datetime" => self.formats::<DateBackend>(),
-            _ => self.has(feature),
-        }
-    }
-
-    /// The feature `identifier` needs and this build does not have.
-    pub fn missing_feature(&self, identifier: &str) -> Option<&'static str> {
+    /// The `gated-function` message for the built-in function `identifier`,
+    /// which this build does not provide: the sides that cannot format it,
+    /// and the features to write. `None` if it is not a built-in, or needs
+    /// nothing of the build.
+    pub fn gated(&self, identifier: &str) -> Option<String> {
         let (_, gate) = BUILTINS.iter().find(|(name, _)| *name == identifier)?;
-        gate.filter(|feature| !self.gate_on(feature))
+        match gate {
+            Gate::None => None,
+            Gate::Number => Some(self.refusal::<NumberBackend>(identifier)),
+            Gate::LocalizedNumber => Some(self.refusal_for(identifier, Ask::LOCALIZED)),
+            Gate::Date => Some(self.refusal::<DateBackend>(identifier)),
+        }
     }
 }
 
@@ -744,7 +809,7 @@ fn quoted(names: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::Features;
-    use super::{Backend, DateBackend, Place, Side};
+    use super::{Backend, DateBackend, NumberBackend, Place, Side};
 
     // `plan/08` §3.2, on each side: the formatter is chosen from the
     // features of its own side only; with more than one of a family on, the
@@ -885,15 +950,11 @@ mod tests {
             "host-web-datetime-iso",
         ] {
             let features = Features::parse(list);
-            assert!(features.fn_datetime(), "{list}");
+            assert!(features.domain_on::<DateBackend>(), "{list}");
             assert_eq!(features.provides("time"), Some(true), "{list}");
-            assert_eq!(features.missing_feature("datetime"), None, "{list}");
         }
-        assert_eq!(
-            Features::default().missing_feature("date"),
-            Some("datetime")
-        );
-        assert!(Features::parse("datetime").fn_datetime());
+        assert_eq!(Features::default().provides("date"), Some(false));
+        assert!(Features::parse("datetime").domain_on::<DateBackend>());
         assert_eq!(
             Features::parse("datetime").backend::<DateBackend>(Side::Native),
             None
@@ -915,23 +976,90 @@ mod tests {
     }
 
     #[test]
+    fn number_formatters_are_ordered_weakest_first() {
+        assert!(NumberBackend::Builtin > NumberBackend::Intl);
+        assert!(NumberBackend::Intl > NumberBackend::Plain);
+        for side in Side::ALL {
+            let names: Vec<_> = NumberBackend::offered(side)
+                .iter()
+                .map(|f| f.name())
+                .collect();
+            assert_eq!(names.first(), Some(&"builtin"));
+            assert_eq!(names.last(), Some(&"plain"));
+            // Only a browser has `Intl`.
+            assert_eq!(names.contains(&"intl"), side == Side::Browser);
+            // What the tools recommend writes the language's own form, so
+            // it is the answer to every number function.
+            assert!(NumberBackend::recommended(side).localizes());
+        }
+    }
+
+    #[test]
+    fn each_side_formats_numbers_with_its_own_strongest() {
+        let number = |list: &str, side| Features::parse(list).backend::<NumberBackend>(side);
+        let split = "leptos-client-number-intl,leptos-server-number-builtin";
+        assert_eq!(number(split, Side::Browser), Some(NumberBackend::Intl));
+        assert_eq!(number(split, Side::Native), Some(NumberBackend::Builtin));
+        // `builtin`, then `intl`, then `plain`.
+        assert_eq!(
+            number(
+                "host-web-number-intl,leptos-client-number-builtin",
+                Side::Browser
+            ),
+            Some(NumberBackend::Builtin)
+        );
+        assert_eq!(
+            number("host-web-number-plain,host-web-number-intl", Side::Browser),
+            Some(NumberBackend::Intl)
+        );
+        assert_eq!(
+            number("axum-number-plain,native-number-builtin", Side::Native),
+            Some(NumberBackend::Builtin)
+        );
+        // One side's features say nothing of the other's.
+        assert_eq!(number("native-number-builtin", Side::Browser), None);
+        assert_eq!(number("host-web-number-builtin", Side::Native), None);
+        // `intl` is no formatter of the native families, and `number`
+        // alone is none at all.
+        assert_eq!(
+            number("native-number-intl,host-std-number-intl", Side::Native),
+            None
+        );
+        let alone = Features::parse("number");
+        assert!(alone.domain_on::<NumberBackend>());
+        assert!(!alone.formats::<NumberBackend>());
+    }
+
+    #[test]
     fn cargo_feature_variables_become_feature_names() {
         let features = Features::from_vars([
-            ("CARGO_FEATURE_FN_NUMBER".to_owned(), "1".to_owned()),
+            (
+                "CARGO_FEATURE_NATIVE_NUMBER_BUILTIN".to_owned(),
+                "1".to_owned(),
+            ),
             ("CARGO_FEATURE_SSR".to_owned(), "1".to_owned()),
             ("PATH".to_owned(), "/usr/bin".to_owned()),
         ]);
-        assert!(features.fn_number());
+        assert_eq!(
+            features.backend::<NumberBackend>(Side::Native),
+            Some(NumberBackend::Builtin)
+        );
         assert!(features.has("ssr"));
-        assert!(!features.fn_datetime());
-        assert_eq!(features.names().collect::<Vec<_>>(), ["fn-number", "ssr"]);
+        assert!(!features.domain_on::<DateBackend>());
+        assert_eq!(
+            features.names().collect::<Vec<_>>(),
+            ["native-number-builtin", "ssr"]
+        );
     }
 
     #[test]
     fn a_features_argument_reads_like_cargos() {
-        let features = Features::parse("fn-number, mf2/datetime native-datetime-icu");
-        assert!(features.fn_number());
-        assert!(features.fn_datetime());
+        let features = Features::parse("native-number-plain, mf2/datetime native-datetime-icu");
+        assert_eq!(
+            features.backend::<NumberBackend>(Side::Native),
+            Some(NumberBackend::Plain)
+        );
+        assert!(features.domain_on::<DateBackend>());
         assert_eq!(
             features.backend::<DateBackend>(Side::Native),
             Some(DateBackend::Icu)
@@ -940,77 +1068,167 @@ mod tests {
 
     #[test]
     fn only_some_features_change_a_catalog() {
-        let features = Features::parse(
-            "default,ssr,number-intl,datetime,fn-number,host-web-datetime-intl,leptos-client-datetime-intl",
+        let content = |list: &str| Features::parse(list).for_catalogs();
+        // A Leptos server: its own formatters say which functions a message
+        // may call, and what only it reads is in no catalog a browser
+        // downloads.
+        assert_eq!(
+            content(
+                "default,ssr,number,datetime,leptos-client-number-intl,\
+                 leptos-server-number-builtin,leptos-client-datetime-intl"
+            )
+            .names(),
+            ["number functions", "percent/currency/unit"]
+        );
+        // Two spellings of one build compare equal.
+        assert_eq!(
+            content("native-datetime-icu"),
+            content("datetime,host-std-datetime-icu")
         );
         assert_eq!(
-            features.for_catalogs().names().collect::<Vec<_>>(),
-            ["datetime", "fn-number", "number-intl"]
+            content("native-number-builtin"),
+            content("number,host-std-number-builtin")
         );
-        // Two spellings of one build compare equal; an `icu` formatter on
-        // either side adds the slice.
+        // What a browser's formatter reads is in its catalog.
         assert_eq!(
-            Features::parse("native-datetime-icu").for_catalogs(),
-            Features::parse("datetime,host-std-datetime-icu").for_catalogs()
+            content("leptos-client-datetime-icu").names(),
+            ["date functions", "date slice"]
         );
         assert_eq!(
-            Features::parse("leptos-client-datetime-icu")
-                .for_catalogs()
-                .names()
-                .collect::<Vec<_>>(),
-            ["datetime", "icu-blob"]
+            content("leptos-client-number-builtin").names(),
+            [
+                "number functions",
+                "percent/currency/unit",
+                "plural rules",
+                "number data"
+            ]
         );
-        // ICU4X on the server alone puts the slice in the server-only
-        // table: the browser's catalog is the one built with no native
-        // formatter.
         assert_eq!(
-            Features::parse("ssr,leptos-client-datetime-intl,leptos-server-datetime-icu")
-                .for_catalogs(),
-            Features::parse("ssr,leptos-client-datetime-intl").for_catalogs()
+            content("leptos-client-number-plain").names(),
+            ["number functions", "plural rules"]
         );
+        assert_eq!(
+            content("leptos-client-number-intl").names(),
+            ["number functions", "percent/currency/unit"]
+        );
+        // The `intl` and `iso` date formatters differ only in code.
+        assert_eq!(
+            content("csr,leptos-client-datetime-intl"),
+            content("csr,leptos-client-datetime-iso")
+        );
+        // What the server alone reads goes to the server-only table: the
+        // browser's catalog is the one built with no native formatter.
+        assert_eq!(
+            content("hydrate,leptos-client-datetime-intl,leptos-server-datetime-icu"),
+            content("hydrate,leptos-client-datetime-intl")
+        );
+        assert_eq!(
+            content("hydrate,leptos-client-number-intl,leptos-server-number-builtin"),
+            content("hydrate,leptos-client-number-intl")
+        );
+        assert!(content("").names().is_empty());
     }
 
-    // `plan/08` §4.1: where the number entries go.
+    // `plan/08` §4.1: where the plural rules and the number data go.
 
     #[test]
     fn the_number_entries_go_where_they_are_read() {
-        let place = |list| Features::parse(list).number_place();
-        // `number-intl` with a browser side: the browser reads none of them.
+        let place = |list: &str| {
+            let placement = Features::parse(list).placement(false);
+            (placement.plural, placement.numbers)
+        };
+        // `intl` in the browser reads neither; the server's `builtin` reads
+        // both.
         for list in [
-            "ssr,fn-number,number-intl",
-            "hydrate,fn-number,number-intl",
-            "csr,fn-number,number-intl",
-            "host-web,fn-number,number-intl",
-            "fn-number,number-intl,host-std-datetime-icu,host-web-datetime-intl",
+            "ssr,leptos-client-number-intl,leptos-server-number-builtin",
+            "hydrate,leptos-client-number-intl,leptos-server-number-builtin",
+            "host-web-number-intl,host-std-number-builtin",
         ] {
-            assert_eq!(place(list), Place::Server, "{list}");
+            assert_eq!(place(list), (Place::Server, Place::Server), "{list}");
         }
-        // Without it the browser formats them in Rust.
+        // `builtin` in the browser reads both.
         for list in [
-            "ssr,fn-number",
-            "hydrate,fn-number",
-            "csr,fn-number",
-            "host-web,fn-number",
+            "ssr,leptos-client-number-builtin,leptos-server-number-builtin",
+            "csr,leptos-client-number-builtin",
+            "host-web,host-web-number-builtin",
         ] {
-            assert_eq!(place(list), Place::Catalog, "{list}");
+            assert_eq!(place(list), (Place::Catalog, Place::Catalog), "{list}");
         }
-        // No browser side: one reader, one file.
-        for list in [
-            "native,fn-number,number-intl",
-            "axum,fn-number,number-intl",
-            "host-std,fn-number,number-intl",
-        ] {
-            assert_eq!(place(list), Place::Catalog, "{list}");
-        }
-        // The browser-side choice is one of the catalog's features, so a
-        // site built with and without it does not compare equal.
-        assert_ne!(
-            Features::parse("csr,fn-number,number-intl").for_catalogs(),
-            Features::parse("csr,fn-number").for_catalogs()
+        // `plain` in the browser selects from the plural rules and reads no
+        // number data.
+        assert_eq!(
+            place("hydrate,leptos-client-number-plain,leptos-server-number-builtin"),
+            (Place::Catalog, Place::Server)
         );
         assert_eq!(
-            Features::parse("native,fn-number,number-intl").for_catalogs(),
-            Features::parse("native,fn-number").for_catalogs()
+            place("csr,leptos-client-number-plain"),
+            (Place::Catalog, Place::Nowhere)
+        );
+        // A browser on `intl` with no server: no side reads either.
+        assert_eq!(
+            place("csr,leptos-client-number-intl"),
+            (Place::Nowhere, Place::Nowhere)
+        );
+        // No browser side: one reader, one file.
+        for list in [
+            "native,native-number-builtin",
+            "axum,axum-number-builtin",
+            "host-std,host-std-number-builtin",
+        ] {
+            assert_eq!(place(list), (Place::Catalog, Place::Catalog), "{list}");
+        }
+        assert_eq!(
+            place("native,native-number-plain"),
+            (Place::Catalog, Place::Nowhere)
+        );
+        // No number formatter: no entry.
+        assert_eq!(place("ssr"), (Place::Nowhere, Place::Nowhere));
+        // A native application keeps what native code reads in its catalog,
+        // whatever its features say of a browser, and writes nothing a
+        // browser alone would read.
+        let native = |list: &str| {
+            let placement = Features::parse(list).placement(true);
+            (placement.plural, placement.numbers, placement.dates)
+        };
+        assert_eq!(
+            native("native,hydrate,leptos-client-number-intl,native-number-builtin"),
+            (Place::Catalog, Place::Catalog, Place::Nowhere)
+        );
+        assert_eq!(
+            native(
+                "native,native-number-plain,leptos-client-number-builtin,\
+                 leptos-client-datetime-icu"
+            ),
+            (Place::Catalog, Place::Nowhere, Place::Nowhere)
+        );
+        assert_eq!(
+            native("native,native-datetime-icu"),
+            (Place::Nowhere, Place::Nowhere, Place::Catalog)
+        );
+        // The browser's choice changes its catalog, so a site built with
+        // one and with another does not compare equal.
+        assert_ne!(
+            Features::parse("csr,leptos-client-number-intl").for_catalogs(),
+            Features::parse("csr,leptos-client-number-builtin").for_catalogs()
+        );
+    }
+
+    #[test]
+    fn the_number_data_is_cut_when_a_side_reads_it() {
+        let cuts = |list: &str| {
+            let features = Features::parse(list);
+            (features.cuts_plural_rules(), features.cuts_number_data())
+        };
+        assert_eq!(cuts(""), (false, false));
+        assert_eq!(cuts("leptos-client-number-intl"), (false, false));
+        assert_eq!(cuts("leptos-client-number-plain"), (true, false));
+        assert_eq!(
+            cuts("leptos-client-number-intl,leptos-server-number-plain"),
+            (true, false)
+        );
+        assert_eq!(
+            cuts("leptos-client-number-intl,leptos-server-number-builtin"),
+            (true, true)
         );
     }
 
@@ -1018,7 +1236,7 @@ mod tests {
 
     #[test]
     fn the_date_slice_goes_where_it_is_read() {
-        let place = |list| Features::parse(list).date_slice_place();
+        let place = |list: &str| Features::parse(list).placement(false).dates;
         assert_eq!(
             place("ssr,leptos-client-datetime-intl,leptos-server-datetime-icu"),
             Place::Server
@@ -1047,30 +1265,118 @@ mod tests {
     }
 
     #[test]
-    fn gated_functions_need_their_feature() {
+    fn gated_functions_need_their_formatter() {
         let none = Features::default();
-        assert_eq!(none.provides("number"), Some(true));
+        assert_eq!(none.provides("string"), Some(true));
+        assert_eq!(none.provides("number"), Some(false));
         assert_eq!(none.provides("percent"), Some(false));
         assert_eq!(none.provides("date"), Some(false));
         assert_eq!(none.provides("app:emoji"), None);
-        assert_eq!(none.missing_feature("currency"), Some("fn-number"));
-        assert_eq!(none.missing_feature("number"), None);
+        assert_eq!(none.gated("string"), None);
+        assert_eq!(none.gated("app:emoji"), None);
 
-        let both = Features::parse("fn-number,native-datetime-iso");
+        let plain = Features::parse("native,native-number-plain");
+        assert_eq!(plain.provides("integer"), Some(true));
+        assert_eq!(plain.provides("currency"), Some(false));
+
+        let both = Features::parse("native-number-builtin,native-datetime-iso");
         assert_eq!(both.provides("percent"), Some(true));
         assert_eq!(both.provides("time"), Some(true));
-        assert_eq!(both.missing_feature("unit"), None);
+
+        // A browser's `intl` writes the language's own form too.
+        let intl = Features::parse("csr,leptos-client-number-intl");
+        assert_eq!(intl.provides("unit"), Some(true));
+    }
+
+    #[test]
+    fn a_number_function_with_no_formatter_names_the_features_to_write() {
+        let ssr = Features::parse("leptos,ssr,leptos-client-number-intl");
+        assert_eq!(ssr.sides_without::<NumberBackend>(), [Side::Native]);
+        assert_eq!(ssr.provides("number"), Some(false));
+        let message = ssr.gated("number").unwrap_or_default();
+        assert!(
+            message.starts_with(
+                ":number formats a number, and this build has no number formatter for native \
+                 code (`leptos-client-number-intl` formats on the other side only)"
+            ),
+            "{message}"
+        );
+        assert!(
+            message.contains("Write `leptos-server-number-builtin` on the `mf2` dependency"),
+            "{message}"
+        );
+        assert!(
+            message.contains("`leptos-server-number-*` (native code)"),
+            "{message}"
+        );
+        assert!(message.contains("`builtin` is mf2's own code"), "{message}");
+        assert!(message.contains("`plain` is plain digits"), "{message}");
+        assert!(!message.contains("`intl` is"), "{message}");
+
+        // With nothing that says which builds the crate has: every line.
+        let message = Features::default().gated("integer").unwrap_or_default();
+        for (_, features) in super::kind_lines::<NumberBackend>() {
+            for feature in features {
+                assert!(message.contains(&format!("`{feature}`")), "{message}");
+            }
+        }
+        assert!(
+            message.contains("`intl` is the browser's Intl.NumberFormat"),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn plain_digits_cannot_show_a_currency() {
+        let plain = Features::parse("native,native-number-plain");
+        assert!(plain.formats::<NumberBackend>());
+        assert_eq!(plain.provides("currency"), Some(false));
+        let message = plain.gated("currency").unwrap_or_default();
+        assert!(
+            message.starts_with(
+                ":currency formats a number in the language's own form, and this build has no \
+                 number formatter that writes one for native code (`native-number-plain` is \
+                 plain digits)"
+            ),
+            "{message}"
+        );
+        assert!(
+            message.contains("Write `native-number-builtin` on the `mf2` dependency"),
+            "{message}"
+        );
+        assert!(message.contains("`builtin` is mf2's own code"), "{message}");
+        // `plain` is not offered as an answer.
+        assert!(!message.contains("`plain` is"), "{message}");
+        assert!(!message.contains("alone turns"), "{message}");
+
+        // A browser on `plain` beside a server on `builtin`: the browser's
+        // build is the one refused.
+        let split = "leptos,leptos-client-number-plain,leptos-server-number-builtin";
+        assert_eq!(
+            Features::parse(&format!("ssr,{split}")).provides("percent"),
+            Some(true)
+        );
+        let hydrate = Features::parse(&format!("hydrate,{split}"));
+        assert_eq!(hydrate.provides("percent"), Some(false));
+        let message = hydrate.gated("percent").unwrap_or_default();
+        assert!(message.contains("for the browser"), "{message}");
+        assert!(
+            message.contains("Write `leptos-client-number-intl` on the `mf2` dependency"),
+            "{message}"
+        );
     }
 
     // `plan/08` §3.3 and §3.5: a build with dates and no formatter.
 
     #[test]
     fn datetime_alone_formats_no_date() {
-        let alone = Features::parse("fn-number,datetime");
-        assert!(alone.fn_datetime(), "the date code still links");
+        let alone = Features::parse("datetime");
+        assert!(
+            alone.domain_on::<DateBackend>(),
+            "the date code still links"
+        );
         assert!(!alone.formats::<DateBackend>());
         assert_eq!(alone.provides("date"), Some(false));
-        assert_eq!(alone.missing_feature("time"), Some("datetime"));
         assert!(
             alone
                 .refusal::<DateBackend>("date")
@@ -1143,7 +1449,7 @@ mod tests {
                 ("host-web-", Side::Browser, true),
             ]
         );
-        assert!(prefixes("fn-number").is_empty());
+        assert!(prefixes("compile").is_empty());
         assert_eq!(
             Features::parse("native").missing::<DateBackend>(),
             ["native-datetime-icu"]
@@ -1183,7 +1489,7 @@ mod tests {
         };
         let all: Vec<&str> = super::KINDS.iter().map(|(what, _)| *what).collect();
         assert_eq!(kinds(""), all);
-        assert_eq!(kinds("fn-number"), all);
+        assert_eq!(kinds("compile"), all);
         assert_eq!(kinds("leptos"), ["a server-rendered Leptos application"]);
         assert_eq!(kinds("ssr,axum"), ["a server-rendered Leptos application"]);
         assert_eq!(kinds("ratatui"), ["a command-line tool or a terminal UI"]);

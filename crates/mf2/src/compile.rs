@@ -31,7 +31,8 @@ impl Compiled {
 /// kinds), analyze the variables (the slots), and write it with the
 /// locale's direction, plural rules (both kinds) and number data (CLDR
 /// 48.2.1): `number.symbols` always — any placeholder can receive a number,
-/// which `fn-number` localizes — and what the message's numeric functions
+/// which a number formatter of `builtin` writes in the language's own form
+/// — and what the message's numeric functions
 /// need by the catalog's slicing rule: the
 /// patterns, and the currencies and units its literal options name (a
 /// variable option value: all of them). With `host-std-datetime-icu`, also the

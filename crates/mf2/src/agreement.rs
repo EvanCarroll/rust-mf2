@@ -24,6 +24,19 @@ const _: () = assert!(
         ))
 );
 
+// Numbers format through the browser's `Intl` exactly where the browser's
+// number formatter is `intl`: with `host-web-number-intl`, and without
+// `host-web-number-builtin`, which is stronger. Natively, never.
+const _: () = assert!(
+    mf2_runtime::INTL_NUMBERS
+        == cfg!(all(
+            feature = "host-web-number-intl",
+            not(feature = "host-web-number-builtin"),
+            target_arch = "wasm32",
+            target_os = "unknown"
+        ))
+);
+
 // The data ICU4X formats dates from. In the browser: the catalog's blob, its
 // formatter built for each placeholder, whatever the server's features are.
 #[cfg(all(

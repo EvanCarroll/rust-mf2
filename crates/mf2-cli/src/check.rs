@@ -100,7 +100,8 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
 /// that no function is reported as gated when it may not be, and one line
 /// says so (on stderr, so that `--format json` stays one document). `mf2
 /// import` checks what it would write with the same, and `mf2 stats`
-/// counts what the build ships.
+/// counts what the build ships; `mf2 compile` and `mf2 watch` build with the
+/// same.
 pub(crate) fn features(dir: &Path, args: &FeatureArgs) -> mf2_build::Features {
     features_or_assumed(dir, args).0
 }
@@ -126,13 +127,13 @@ fn features_or_assumed(
     eprintln!(
         "note: cargo could not say which of mf2's features this crate has, so every \
          function is assumed on; name them with --features (for example \
-         --features fn-number)"
+         --features native,native-number-builtin)"
     );
     // A formatter's feature, not `datetime`, which alone formats no date
     // (`plan/08` §3.3); with no framework named, one formatter covers both
     // sides.
     (
-        mf2_build::Features::from_names(["fn-number", "host-std-datetime-iso"]),
+        mf2_build::Features::from_names(["host-std-number-builtin", "host-std-datetime-iso"]),
         Source::Unknown,
         None,
     )

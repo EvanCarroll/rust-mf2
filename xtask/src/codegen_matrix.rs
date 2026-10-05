@@ -61,8 +61,9 @@ pub(crate) fn run(root: &Path, quick: bool) -> Result<()> {
 /// (`leptos-client-datetime-intl`, the framework's name for
 /// `host-web-datetime-intl`), over the fixture's corpus with a `:datetime`
 /// message: with no date message, any date formatter is linked out and the
-/// search below could never fail.
-const CLIENT_INTL: &str = "hydrate,leptos-client-datetime-intl,corpus-dates";
+/// search below could never fail. The corpus counts things too, so the
+/// client names a number formatter: plain digits, the smallest.
+const CLIENT_INTL: &str = "hydrate,host-web-number-plain,leptos-client-datetime-intl,corpus-dates";
 
 /// The fixture's client binary, the one linked wasm it makes.
 const CLIENT_BIN: &str = "mf2-i18n-client";
@@ -214,7 +215,7 @@ fn canaries(cargo: &OsStr, root: &Path) -> Result<()> {
         OsStr::new(FIXTURE),
         OsStr::new("--no-default-features"),
         OsStr::new("--features"),
-        OsStr::new("hydrate"),
+        OsStr::new("hydrate,host-web-number-plain"),
         OsStr::new("--target"),
         OsStr::new(WASM),
         OsStr::new("--release"),

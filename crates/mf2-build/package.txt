@@ -16,6 +16,7 @@ src/error.rs
 src/features.rs
 src/features/backend.rs
 src/features/family.rs
+src/features/gate.rs
 src/lib.rs
 src/lint.rs
 src/loader.rs

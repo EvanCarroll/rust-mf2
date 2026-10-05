@@ -21,6 +21,9 @@
 //! * `__date_statics!` — the date handlers of the corpus's ICU4X form
 //!   (`mf2_fn_datetime`'s, re-exported at the crate root: its own features
 //!   say whether it formats with ICU4X);
+//! * [`numbers`] — the number handlers, which are a module and not a macro:
+//!   the same names in every build, each the handler of the number formatter
+//!   of the side being compiled;
 //! * `__best_locale!` — `Locale::from_str`: the one matcher, but in a
 //!   hydrated page, which never matches (the server chose), an exact tag,
 //!   so that its client links none of the matcher.
@@ -74,8 +77,8 @@ forward!($ __if_ratatui, feature = "ratatui");
 /// The host: the native one wherever there is one (a server, a native
 /// application, a test) — for a corpus a date can reach, the one that
 /// resolves a named time zone, so that nothing else links a time-zone
-/// database. `numbers` (a corpus a number can reach, under `number-intl`) changes
-/// nothing here: off the browser the Rust path formats numbers.
+/// database. `numbers` (a corpus a number can reach) changes nothing here:
+/// off the browser no host formats numbers.
 #[cfg(all(feature = "host-std", feature = "datetime"))]
 #[doc(hidden)]
 #[macro_export]
@@ -169,11 +172,16 @@ macro_rules! __use_host {
     ($($use:ident)*) => {};
 }
 
-/// A browser's host for a corpus a number can reach: with `number-intl`, the
-/// `IntlNumbers` host over the one it would otherwise be (its second name),
-/// so `Host::numbers` answers with `Intl.NumberFormat` and
-/// `Intl.PluralRules` (`plan/01` §8 F1); without, that one (its first).
-#[cfg(feature = "number-intl")]
+/// A browser's host for a corpus a number can reach: where the browser's
+/// number formatter is `intl` (`host-web-number-intl`, and no
+/// `host-web-number-builtin`, which is stronger), the `IntlNumbers` host over
+/// the one it would otherwise be (its second name), so `Host::numbers`
+/// answers with `Intl.NumberFormat` and `Intl.PluralRules` (`plan/01` §8
+/// F1); otherwise that one (its first).
+#[cfg(all(
+    feature = "host-web-number-intl",
+    not(feature = "host-web-number-builtin")
+))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __numbers_host {
@@ -181,14 +189,86 @@ macro_rules! __numbers_host {
         pub use $crate::host_web::$numbers as HOST;
     };
 }
-/// Without `number-intl`: the host it would otherwise be.
-#[cfg(not(feature = "number-intl"))]
+/// The browser's number formatter is not `intl`: the host it would
+/// otherwise be.
+#[cfg(not(all(
+    feature = "host-web-number-intl",
+    not(feature = "host-web-number-builtin")
+)))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __numbers_host {
     ($plain:ident, $numbers:ident) => {
         pub use $crate::host_web::$plain as HOST;
     };
+}
+
+/// The number handlers the generated registry names.
+///
+/// The generated module is the same text in every build, so it names these
+/// and no crate: which handler a name is follows the side being compiled
+/// and that side's own number formatter, whatever the other side's is.
+///
+/// * `builtin`, or the browser's `intl`: `mf2-fn-number`'s, which write a
+///   number in the language's own form — from the catalog's data, or through
+///   the browser's `Intl` where `mf2_runtime::INTL_NUMBERS`;
+/// * `plain`, or no formatter: the runtime's, in plain digits. `:percent`,
+///   `:currency` and `:unit` are then a build error for the side's own
+///   build; their names are here so that a module the other side's features
+///   let through still compiles on this one.
+pub mod numbers {
+    pub use side::*;
+
+    /// This side formats numbers in the language's own form.
+    #[cfg(any(
+        all(
+            target_arch = "wasm32",
+            target_os = "unknown",
+            any(feature = "host-web-number-builtin", feature = "host-web-number-intl")
+        ),
+        all(
+            not(all(target_arch = "wasm32", target_os = "unknown")),
+            feature = "host-std-number-builtin"
+        )
+    ))]
+    mod side {
+        pub use mf2_fn_number::{CURRENCY, INTEGER, NUMBER, OFFSET, PERCENT, UNIT};
+        use mf2_runtime::Registry;
+
+        /// `registry`, with a number in a bare placeholder written in the
+        /// language's own form.
+        #[must_use]
+        pub const fn unannotated(registry: Registry) -> Registry {
+            registry.with_numbers(&mf2_fn_number::NUMBERS)
+        }
+    }
+
+    /// This side formats numbers in plain digits, or has no number
+    /// formatter.
+    #[cfg(not(any(
+        all(
+            target_arch = "wasm32",
+            target_os = "unknown",
+            any(feature = "host-web-number-builtin", feature = "host-web-number-intl")
+        ),
+        all(
+            not(all(target_arch = "wasm32", target_os = "unknown")),
+            feature = "host-std-number-builtin"
+        )
+    )))]
+    mod side {
+        #[cfg(feature = "number")]
+        pub use mf2_fn_number::{CURRENCY, PERCENT, UNIT};
+        use mf2_runtime::Registry;
+        pub use mf2_runtime::functions::{INTEGER, NUMBER, OFFSET};
+
+        /// `registry` as it is: a number in a bare placeholder is written
+        /// in plain digits.
+        #[must_use]
+        pub const fn unannotated(registry: Registry) -> Registry {
+            registry
+        }
+    }
 }
 
 /// `Locale::from_str`: the index in `$locales` of the locale that best

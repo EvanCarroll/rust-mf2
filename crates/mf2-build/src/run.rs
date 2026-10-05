@@ -96,14 +96,14 @@ mod tests {
     use super::{emit_for, mf2_features};
     use crate::build::Emit;
     use crate::error::Error;
-    use crate::features::Features;
+    use crate::features::{Features, NumberBackend};
 
     const OURS: Option<&str> = Some(env!("CARGO_PKG_VERSION"));
 
     #[test]
     fn each_mode_emits_what_it_serves() {
         let emit = |list: &str| emit_for(&Features::parse(list));
-        assert_eq!(emit("fn-number,native"), Emit::Native);
+        assert_eq!(emit("native,native-number-builtin"), Emit::Native);
         assert_eq!(emit("native,ratatui"), Emit::Native);
         assert_eq!(emit("leptos,ssr"), Emit::Both);
         assert_eq!(emit("leptos,native,ssr"), Emit::Both);
@@ -117,8 +117,9 @@ mod tests {
 
     #[test]
     fn the_features_come_from_mf2_and_its_version_must_match() {
-        let features = mf2_features(Some("fn-number,native"), OURS, false).expect("read");
-        assert!(features.fn_number() && features.has("native"));
+        let features =
+            mf2_features(Some("native,native-number-builtin"), OURS, false).expect("read");
+        assert!(features.formats::<NumberBackend>() && features.has("native"));
         assert_eq!(
             mf2_features(Some(""), OURS, false).expect("no features"),
             Features::default()

@@ -118,33 +118,47 @@ struct Cost {
     unused: bool,
 }
 
-const C_NUMBERS: Build = client(Corpus::Numbers, "hydrate");
-const C_NUMBER: Build = client(Corpus::Numbers, "hydrate,workload-i18n/fn-number");
-const C_NUMBER_INTL: Build = client(Corpus::Numbers, "hydrate,workload-i18n/number-intl");
+// A message that formats a number builds only where its side has named a
+// number formatter, so every build names one: `plain`, the smallest that
+// builds, is what the other two are set against, and the date rows keep
+// `builtin` on throughout.
+const C_PLAIN: Build = client(
+    Corpus::Numbers,
+    "hydrate,workload-i18n/leptos-client-number-plain",
+);
+const C_BUILTIN: Build = client(
+    Corpus::Numbers,
+    "hydrate,workload-i18n/leptos-client-number-builtin",
+);
+const C_NUMBER_INTL: Build = client(
+    Corpus::Numbers,
+    "hydrate,workload-i18n/leptos-client-number-intl",
+);
 const C_DATE_ISO: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-iso",
+    "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-iso",
 );
 const C_DATE_ICU: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-icu",
+    "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-icu",
 );
 const C_DATE_INTL: Build = client(
     Corpus::Dates,
-    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-intl",
+    "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-intl",
 );
 /// `intl` on, over the corpus with no date: what the feature costs when
 /// nothing shows a date. It had never been measured.
 const C_INTL_NO_DATE: Build = client(
     Corpus::Numbers,
-    "hydrate,workload-i18n/fn-number,workload-i18n/leptos-client-datetime-intl",
+    "hydrate,workload-i18n/leptos-client-number-builtin,workload-i18n/leptos-client-datetime-intl",
 );
-const N_BASE: Build = native("native");
-const N_ISO: Build = native("native,native-datetime-iso");
-const N_ICU: Build = native("native,native-datetime-icu");
+const N_BASE: Build = native("native,native-number-plain");
+const N_ISO: Build = native("native,native-number-plain,native-datetime-iso");
+const N_ICU: Build = native("native,native-number-plain,native-datetime-icu");
 /// `icu` on, and the canary keeps its corpus with no date
 /// (`no-date-message`, a feature of the canary alone).
-const N_ICU_NO_DATE: Build = native("native,native-datetime-icu,no-date-message");
+const N_ICU_NO_DATE: Build =
+    native("native,native-number-plain,native-datetime-icu,no-date-message");
 
 const WORKLOAD_NUMBERS: &str = "the reference workload, 150 messages with `:number`";
 const WORKLOAD_DATES: &str =
@@ -160,15 +174,15 @@ const CANARY_NO_DATE: &str = "a plain message, a plain placeholder and a plural,
 /// Every row, in the order the table shows them.
 const COSTS: &[Cost] = &[
     Cost {
-        feature: "fn-number",
-        without: C_NUMBERS,
-        with: C_NUMBER,
+        feature: "leptos-client-number-builtin",
+        without: C_PLAIN,
+        with: C_BUILTIN,
         corpus: WORKLOAD_NUMBERS,
         unused: false,
     },
     Cost {
-        feature: "number-intl",
-        without: C_NUMBER,
+        feature: "leptos-client-number-intl",
+        without: C_PLAIN,
         with: C_NUMBER_INTL,
         corpus: WORKLOAD_NUMBERS,
         unused: false,
@@ -177,7 +191,7 @@ const COSTS: &[Cost] = &[
         // A build without a date formatter refuses a `:datetime` message, so the
         // build without it reads the numbers corpus.
         feature: "leptos-client-datetime-iso",
-        without: C_NUMBER,
+        without: C_BUILTIN,
         with: C_DATE_ISO,
         corpus: WORKLOAD_DATES,
         unused: false,
@@ -198,15 +212,15 @@ const COSTS: &[Cost] = &[
     },
     Cost {
         feature: "leptos-client-datetime-intl",
-        without: C_NUMBER,
+        without: C_BUILTIN,
         with: C_INTL_NO_DATE,
         corpus: WORKLOAD_NO_DATE,
         unused: true,
     },
     Cost {
-        feature: "fn-number",
+        feature: "native-number-builtin",
         without: N_BASE,
-        with: native("native,fn-number"),
+        with: native("native,native-number-builtin"),
         corpus: CANARY,
         unused: false,
     },
@@ -234,35 +248,35 @@ const COSTS: &[Cost] = &[
     Cost {
         feature: "tzdb-bundled",
         without: N_ISO,
-        with: native("native,native-datetime-iso,tzdb-bundled"),
+        with: native("native,native-number-plain,native-datetime-iso,tzdb-bundled"),
         corpus: CANARY_DATES,
         unused: false,
     },
     Cost {
         feature: "tzdb-bundled",
         without: N_BASE,
-        with: native("native,tzdb-bundled"),
+        with: native("native,native-number-plain,tzdb-bundled"),
         corpus: "no date in any message, so the feature is on and unused",
         unused: true,
     },
     Cost {
         feature: "compile",
         without: N_BASE,
-        with: native("native,compile"),
+        with: native("native,native-number-plain,compile"),
         corpus: "the canary's messages, and one compiled at run time",
         unused: false,
     },
     Cost {
         feature: "ratatui",
-        without: native("native,tui"),
-        with: native("ratatui"),
+        without: native("native,native-number-plain,tui"),
+        with: native("ratatui,native-number-plain"),
         corpus: "a message drawn as a Ratatui `Line`",
         unused: false,
     },
     Cost {
         feature: "clap",
-        without: native("native,cli"),
-        with: native("native,clap"),
+        without: native("native,native-number-plain,cli"),
+        with: native("native,native-number-plain,clap"),
         corpus: "`--lang` parsed by clap",
         unused: false,
     },

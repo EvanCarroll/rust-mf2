@@ -25,7 +25,7 @@ use crate::codegen;
 use crate::config::{Config, DataSet, Layout};
 use crate::corpus::{self, LocaleSource};
 use crate::error::{Error, Result};
-use crate::features::{Features, Place};
+use crate::features::{Features, NumberBackend};
 use crate::lint::{Level, Lint};
 use crate::manifest;
 use crate::report::{Report, Sink};
@@ -532,11 +532,7 @@ impl Build {
         let filler = Filler::new(&built.manifest.ids, config.catalog.missing);
         // A native application keeps every entry in its catalog (`plan/08`
         // §4.2): no browser downloads it.
-        let (numbers, date_slice) = if codegen::is_native(self.emit) {
-            (Place::Catalog, Place::Catalog)
-        } else {
-            (features.number_place(), features.date_slice_place())
-        };
+        let placement = features.placement(codegen::is_native(self.emit));
         // Whether a browser downloads these catalogs, for `unread-data`.
         let downloaded = !codegen::is_native(self.emit) && features.has_browser_side();
         // Every locale is sliced before any catalog is written: the ICU4X
@@ -598,8 +594,7 @@ impl Build {
                     Emit::Both | Emit::Catalogs => self.compress,
                     _ => catalog::Compress::No,
                 },
-                numbers,
-                date_slice,
+                placement,
             )?;
             // `unread-data` (`plan/08` §7): nothing is written where none of
             // its readers looks.
@@ -827,8 +822,9 @@ fn ids_of_translations(
     }
 }
 
-/// What slicing noticed: numbers without `fn-number`, and a currency or unit
-/// set the build could not narrow.
+/// What slicing noticed: a placeholder that can receive a number where a
+/// side has no number formatter, and a currency or unit set the build could
+/// not narrow.
 fn report_slicing(
     tag: &str,
     slice: &slice::Slice,
@@ -844,17 +840,38 @@ fn report_slicing(
         .map_or_else(|| source.path.clone(), |f| f.path.clone());
     let at = mf2_resource::Position { line: 1, column: 1 };
     let mut sink = Sink::new(report, tag);
-    if slice.formats_numbers && !features.fn_number() {
+    if slice.unannotated && !features.formats::<NumberBackend>() {
+        let sides = features.sides_without::<NumberBackend>();
+        let whose = if sides.is_empty() {
+            String::new()
+        } else {
+            let names: Vec<&str> = sides.iter().map(|side| side.name()).collect();
+            format!(" for {}", names.join(" or "))
+        };
+        let write = features.missing::<NumberBackend>();
+        let fix = if write.is_empty() {
+            "a number formatter's feature (`mf2 check` names the line)".to_owned()
+        } else {
+            write
+                .iter()
+                .map(|name| format!("`{name}`"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
         sink.add(
-            config.level(Lint::NeutralNumbers),
-            Some(Lint::NeutralNumbers),
+            config.level(Lint::PlainNumbers),
+            Some(Lint::PlainNumbers),
             &file,
             at,
             None,
-            "a placeholder in this locale's messages can receive a number, and \
-             `fn-number` is off: a number it receives renders without the locale's \
-             symbols, grouping or numbering system (if such placeholders only ever \
-             receive text, set `neutral-numbers = \"allow\"` in mf2.toml)",
+            format!(
+                "a placeholder in this locale's messages can receive a number, and \
+                 this build has no number formatter{whose}: a number it receives \
+                 prints in plain digits (`1234.5`), without the language's symbols, \
+                 grouping or digits. Write {fix} on the `mf2` dependency (if such \
+                 placeholders only ever receive text, set `plain-numbers = \
+                 \"allow\"` in mf2.toml)"
+            ),
         );
     }
     // An explicit list says which codes the variable can hold, so the

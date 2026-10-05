@@ -3,8 +3,8 @@
 //! `mf2::compile_str` does this for one message; here it is the union over a
 //! locale's *flattened* message set — after fallback, because a translation
 //! may use functions and literal options its source does not — narrowed by
-//! the feature set (no `fn-number`, no number entries at all) and widened by
-//! `mf2.toml` `[locale_data]`.
+//! the feature set (an entry no side's formatter reads is not cut) and
+//! widened by `mf2.toml` `[locale_data]`.
 
 use mf2_locale_data::LocaleNeeds;
 use mf2_locale_data::number::{NumberNeeds, Selection};
@@ -37,12 +37,14 @@ pub struct Slice {
     /// The same for `:unit`.
     pub dynamic_unit: bool,
     /// The corpus formats a number somewhere — a numeric function, or a
-    /// placeholder that can receive one. Without `fn-number` that is the
-    /// `neutral-numbers` warning; with it, the reason for `number.symbols`.
+    /// placeholder that can receive one: the reason for `number.symbols`
+    /// where a side's formatter is `builtin`.
     pub formats_numbers: bool,
     /// The corpus has a placeholder with no function at all, which can
     /// therefore receive a number at run time. Only then does the number
     /// hook belong in the registry (#90); a date there is a Bad Operand.
+    /// On a side with no number formatter that is the `plain-numbers`
+    /// warning.
     pub unannotated: bool,
 }
 
@@ -172,11 +174,14 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
     // files for the server and the browser.
     #[cfg(feature = "icu-blob")]
     let cuts_date_slice = features.cuts_date_slice();
+    // The plural rules, when a side selects from them: `builtin` and
+    // `plain` do, and `intl` asks the browser.
+    let cuts_plural_rules = features.cuts_plural_rules();
     for message in messages {
         numbers.add_message(message);
         let (cardinal, ordinal) = plural_kinds(message);
-        slice.needs.cardinal |= cardinal;
-        slice.needs.ordinal |= ordinal;
+        slice.needs.cardinal |= cardinal && cuts_plural_rules;
+        slice.needs.ordinal |= ordinal && cuts_plural_rules;
         scan_dynamic(message, &mut slice);
         #[cfg(feature = "icu-blob")]
         if cuts_date_slice {
@@ -184,7 +189,7 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
         }
     }
     slice.formats_numbers = numbers.symbols;
-    if features.fn_number() {
+    if features.cuts_number_data() {
         // The configured sets widen what the corpus was found to use.
         if let Some(currency) = &mut numbers.currency {
             currency.codes = config.currencies.with_used(&currency.codes);
@@ -194,8 +199,9 @@ pub fn of(messages: &[&Message<'_>], config: &LocaleDataConfig, features: &Featu
         }
         slice.needs.numbers = numbers;
     } else {
-        // Without the feature the client formats digits with neutral
-        // symbols, so none of the number entries would ever be read.
+        // No side's number formatter is `builtin`: `intl` asks the browser
+        // and `plain` writes plain digits, so none of the number entries
+        // would ever be read.
         slice.needs.numbers = NumberNeeds::default();
     }
     slice

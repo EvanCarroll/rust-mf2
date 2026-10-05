@@ -21,7 +21,7 @@
 //! zone-names = "auto"        # "auto" | true | false
 //!
 //! [lints]
-//! neutral-numbers = "warn"
+//! plain-numbers = "warn"
 //!
 //! [functions]                # custom functions for the generated registry
 //! "app:emoji" = "my_app_i18n::functions::emoji"

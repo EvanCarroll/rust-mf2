@@ -71,10 +71,11 @@ pub enum DegradedKind {
     UnknownFunction,
     /// The build refuses the corpus (L5d).
     BuildReject,
-    /// Numbers are written in the core's neutral digits and symbols instead
-    /// of the locale's (`fn-number` off): the errors are the expected ones,
-    /// only the text differs — `mf2 check`'s `neutral-numbers` warning.
-    NeutralNumbers,
+    /// Numbers are written in plain digits instead of the locale's (the
+    /// number formatter is `plain`): the errors are the expected ones, only
+    /// the text differs — what `mf2 check`'s `plain-numbers` warning says
+    /// of a side with no number formatter.
+    PlainNumbers,
 }
 
 impl DegradedKind {
@@ -83,7 +84,7 @@ impl DegradedKind {
             Self::UnsupportedOperation => "unsupported-operation",
             Self::UnknownFunction => "unknown-function",
             Self::BuildReject => "build-reject",
-            Self::NeutralNumbers => "neutral-numbers",
+            Self::PlainNumbers => "plain-numbers",
         }
     }
 
@@ -92,7 +93,7 @@ impl DegradedKind {
             Self::UnsupportedOperation,
             Self::UnknownFunction,
             Self::BuildReject,
-            Self::NeutralNumbers,
+            Self::PlainNumbers,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)
@@ -680,7 +681,7 @@ fn parse_cell(v: &Value) -> std::result::Result<Cell, String> {
             let kind = text("kind")?.ok_or("`degraded` needs `kind`")?;
             let kind = DegradedKind::parse(&kind).ok_or_else(|| {
                 format!(
-                    "unknown degradation {kind:?} (unsupported-operation | unknown-function | build-reject | neutral-numbers)"
+                    "unknown degradation {kind:?} (unsupported-operation | unknown-function | build-reject | plain-numbers)"
                 )
             })?;
             Cell::Degraded {

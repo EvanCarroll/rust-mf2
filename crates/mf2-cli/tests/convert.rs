@@ -149,7 +149,8 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     let report = text(&output.stdout);
     assert!(report.contains("0 error(s), 7 warning(s)"), "{report}");
     assert!(
-        report.contains("note: the output needs the client feature(s) fn-number\n"),
+        report
+            .contains("note: the output formats numbers, so each build needs a number formatter: "),
         "{report}"
     );
     // A date formatter, never `datetime` alone (`plan/08` §3.3).
@@ -188,7 +189,11 @@ fn the_construct_corpus_converts_checks_and_is_canonical() {
     std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
     let check = run(
         &dir,
-        &["check", "--features", "fn-number,host-std-datetime-iso"],
+        &[
+            "check",
+            "--features",
+            "host-std-number-builtin,host-std-datetime-iso",
+        ],
     );
     assert!(check.status.success(), "{}", text(&check.stdout));
     assert!(

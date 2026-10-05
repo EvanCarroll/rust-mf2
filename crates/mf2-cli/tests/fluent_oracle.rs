@@ -8,12 +8,11 @@
 //! sampled argument set. Two corpora: A2's reference workload, and the
 //! mapped part of the construct corpus (`tests/fluent/constructs/`).
 //!
-//! **Settings.** Isolation on both sides or off on both; and the functions
-//! the catalogs are built for — none (the core `:number`, as a converted
-//! corpus that needs no feature builds by default) or `fn-number`
-//! (localized numbers, what `mf2 convert` names when `:percent` or
-//! `:currency` appear). A corpus that needs `fn-number` is not built
-//! without it.
+//! **Settings.** Isolation on both sides or off on both; and the number
+//! formatter the catalogs are built for — `plain` (plain digits, the core
+//! `:number`) or `builtin` (numbers in each language's own form, which a
+//! corpus with `:percent` or `:currency` needs). A corpus that needs
+//! `builtin` is not built with `plain`.
 //!
 //! **Arguments.** A variable Fluent reads as a number — the operand of
 //! `NUMBER`, or a bare selector with a number or plural-category key — gets
@@ -48,8 +47,9 @@ use mf2::{Arg, BidiStrategy, Catalog, FormatContext, Formatter, Function, MsgId,
 use mf2_build::{Build, Config, Features};
 
 // ---------------------------------------------------------------------------
-// The two registries: what a generated module gives a corpus with and
-// without `fn-number` (`mf2-build`'s codegen), every function it could name.
+// The two registries: what a generated module gives a corpus where the
+// number formatter is `plain` and where it is `builtin` (`mf2`'s `numbers`
+// module), every function it could name.
 
 static CORE_FUNCTIONS: [(&str, &dyn Function); 4] = [
     ("string", &mf2::functions::STRING),
@@ -1045,7 +1045,7 @@ fn compare(
         if isolating { "on" } else { "off" }
     );
     let (registry, cx) = (
-        if features == "fn-number" {
+        if features == "builtin" {
             &FN_NUMBER
         } else {
             &CORE
@@ -1158,13 +1158,13 @@ fn run(report: &mut Report, corpus: &str, ftl: &Path, out: &Path) {
     let _ = std::fs::remove_dir_all(out);
     convert(ftl, out);
     let mut locales = load(ftl);
-    for features in ["core", "fn-number"] {
+    for features in ["plain", "builtin"] {
         // The dates are built for, not compared: `fluent-bundle` has no
         // `DATETIME`.
-        let names: &[&str] = if features == "core" {
-            &[]
+        let names: &[&str] = if features == "plain" {
+            &["host-std-number-plain"]
         } else {
-            &["fn-number", "host-std-datetime-iso"]
+            &["host-std-number-builtin", "host-std-datetime-iso"]
         };
         let Some(built) = build(out, names) else {
             continue;
@@ -1275,14 +1275,14 @@ fn a_dropped_plural_key_fails_naming_the_message_and_the_argument() {
     std::fs::write(&file, edited.join("\n") + "\n").expect("write");
 
     let mut locales = load(&ftl);
-    let built = build(&out, &["fn-number"]).expect("builds");
+    let built = build(&out, &["host-std-number-builtin"]).expect("builds");
     let mut report = Report::default();
     compare(
         &mut report,
         "workload",
         &mut locales,
         &built,
-        "fn-number",
+        "builtin",
         false,
     );
     let unexplained = report.unexplained();

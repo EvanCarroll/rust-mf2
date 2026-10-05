@@ -19,8 +19,8 @@
 //!   (absent ⇒ none), in string and in parts output alike.
 //!
 //! Layer **L4d** is the same run in the **default** configuration
-//! ([`mf2_l4_runner::Config::Default`]: `fn-number` and the date functions
-//! off): a test either passes as above, or degrades in one of the documented
+//! ([`mf2_l4_runner::Config::Default`]: numbers in plain digits, and no
+//! date formatter): a test either passes as above, or degrades in one of the documented
 //! ways ([`check_default`]), which its ledger cell must name.
 
 use mf2_l4_runner::{ArgSpec, Case, Config, Record};
@@ -31,15 +31,20 @@ use crate::ledger::DegradedKind;
 use crate::matrix::TestKind;
 use crate::suite::SuiteTest;
 
-/// The functions only a feature provides: in
-/// the default configuration they are Unknown Functions.
+/// What a function asks for that plain digits cannot give.
+const LOCALIZED: &str = "a number formatter that writes the language's own form";
+/// What a date function asks for.
+const DATES: &str = "a date formatter";
+
+/// The functions the default configuration has no formatter for, each with
+/// what it needs: there they are Unknown Functions.
 pub const GATED_FUNCTIONS: &[(&str, &str)] = &[
-    ("currency", "fn-number"),
-    ("date", "datetime"),
-    ("datetime", "datetime"),
-    ("percent", "fn-number"),
-    ("time", "datetime"),
-    ("unit", "fn-number"),
+    ("currency", LOCALIZED),
+    ("date", DATES),
+    ("datetime", DATES),
+    ("percent", LOCALIZED),
+    ("time", DATES),
+    ("unit", LOCALIZED),
 ];
 
 /// What a test does in the default configuration.
@@ -67,10 +72,11 @@ pub fn check(test: &SuiteTest) -> Result<(), String> {
 /// * `unsupported-operation` — the run reports *Unsupported Operation* the
 ///   test does not expect (a locale-only option value such as
 ///   `useGrouping=always`, 03 §5.1), and nothing else differs in its errors;
-/// * `neutral-numbers` — the errors are the expected ones, only the text
+/// * `plain-numbers` — the errors are the expected ones, only the text
 ///   differs, and the message's locale formats numbers with other symbols
-///   than the core's neutral ones (03 §2.6): what `mf2 check`'s
-///   `neutral-numbers` warning covers.
+///   than plain digits (03 §2.6): what a side on `plain` chose, and what
+///   `mf2 check`'s `plain-numbers` warning says of a side with no number
+///   formatter.
 pub fn check_default(test: &SuiteTest) -> DefaultOutcome {
     if test.kind != TestKind::Other {
         // The compile rejects the message whatever the features.
@@ -125,13 +131,13 @@ pub fn classify_default(test: &SuiteTest, got: &Record) -> DefaultOutcome {
     if extra("unsupported-operation") && without == want {
         return DefaultOutcome::Degraded(
             DegradedKind::UnsupportedOperation,
-            "a locale-only option value needs fn-number".to_owned(),
+            format!("a locale-only option value needs {LOCALIZED}"),
         );
     }
     if got.errors == want && got.parts_errors == want && run_checked(test, Config::All).is_ok() {
         return DefaultOutcome::Degraded(
-            DegradedKind::NeutralNumbers,
-            format!("neutral digits: {:?}", got.text),
+            DegradedKind::PlainNumbers,
+            format!("plain digits: {:?}", got.text),
         );
     }
     DefaultOutcome::Fail(problem)

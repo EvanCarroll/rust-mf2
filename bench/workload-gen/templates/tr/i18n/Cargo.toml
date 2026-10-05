@@ -14,10 +14,18 @@ publish = false
 
 [features]
 default = ["ssr"]
-ssr = ["mf2/host-std"]
-hydrate = ["mf2/host-web"]
-fn-number = ["mf2/fn-number"]
-number-intl = ["fn-number", "mf2/number-intl"]
+# The workload counts things, so each side names a number formatter: plain
+# digits, the smallest build there is. A stronger formatter turned on beside
+# it is the one that formats.
+ssr = ["mf2/host-std", "leptos-server-number-plain"]
+hydrate = ["mf2/host-web", "leptos-client-number-plain"]
+# The number formatters, under the family names a Leptos application
+# writes (`cargo xtask feature-costs` builds each).
+leptos-client-number-plain = ["mf2/leptos-client-number-plain"]
+leptos-client-number-intl = ["mf2/leptos-client-number-intl"]
+leptos-client-number-builtin = ["mf2/leptos-client-number-builtin"]
+leptos-server-number-plain = ["mf2/leptos-server-number-plain"]
+leptos-server-number-builtin = ["mf2/leptos-server-number-builtin"]
 # The browser's date formatters, under the family name a Leptos client
 # turns on (`cargo xtask feature-costs` builds each). `icu` reads the date
 # slice the build cuts into each catalog, which needs `mf2-build`'s

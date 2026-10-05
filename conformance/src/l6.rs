@@ -82,10 +82,10 @@ pub fn check(test: &SuiteTest) -> Result<(), String> {
 
 /// Checks one test at L6d, the default configuration.
 ///
-/// The degradations are **L5d's**, and deliberately not restated here: with
-/// the default features a gated function is a build rejection, a locale-only
-/// option value is an unsupported operation, and numbers come out with
-/// neutral digits — none of which is about rendering. What L6d adds is that
+/// The degradations are **L5d's**, and deliberately not restated here: in
+/// the default configuration a gated function is a build rejection, a
+/// locale-only option value is an unsupported operation, and numbers come
+/// out in plain digits — none of which is about rendering. What L6d adds is that
 /// a test L5d passes must also *render* correctly with the default
 /// registry.
 pub fn check_default(test: &SuiteTest) -> DefaultOutcome {

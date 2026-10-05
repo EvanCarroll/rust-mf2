@@ -225,7 +225,7 @@ date data in its catalog ([Dates](features.md#dates) has the others):
 
 ```toml file=calls/Cargo.toml merge
 [dependencies]
-mf2 = { version = "3", features = ["leptos", "fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
 
 [build-dependencies]
 mf2-build = { version = "3", features = ["icu-blob"] }

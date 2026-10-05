@@ -170,9 +170,9 @@ pub(crate) fn run(root: &Path, keep: bool, split: bool) -> Result<()> {
     let fixture = root.join("tools").join("i18n-fixture");
     let saved = save(&fixture)?;
     let features = if split {
-        "hydrate,split-catalogs"
+        "hydrate,host-web-number-plain,split-catalogs"
     } else {
-        "hydrate"
+        "hydrate,host-web-number-plain"
     };
     eprintln!(
         "scenarios: {} arrangement ({features})",

@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; mode: core; features: compile,fn-number,host-std-datetime-icu,host-std
+# nightly-2026-09-24; mode: core; features: compile,host-std-number-builtin,host-std-datetime-icu,host-std
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy

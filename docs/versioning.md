@@ -32,8 +32,8 @@ neither breaks a program that 2.0 built. Anything that would is 3.0.
 * **`mf2`'s feature names**, as [Features](features.md) lists them, and
   what each turns on. A feature an application names keeps its name and
   its meaning across the major version; a minor release may add one. A
-  rename or a removal waits for the next major, as `intl` waited for 3.0
-  to become `number-intl`.
+  rename or a removal waits for the next major, as `fn-number` and `intl`
+  waited for 3.0 to become the number formatters.
 * **The forms of `tr!`**: in text, attributes, props and strings, with
   arguments, signals and markup, as [Call sites](call-sites.md) shows them.
   A call site that compiles under 2.0 compiles under every 2.x, and a

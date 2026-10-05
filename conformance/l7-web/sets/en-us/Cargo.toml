@@ -9,8 +9,14 @@ publish = false
 
 [features]
 default = []
-# Both on: the whole corpus. Both off: the default configuration.
-fn-number = ["mf2/fn-number"]
+# The whole corpus: numbers by mf2's own code, and (below) a date
+# formatter, on each side.
+host-std-number-builtin = ["mf2/host-std-number-builtin"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
+# The default configuration: plain digits on each side, and no date
+# formatter.
+host-std-number-plain = ["mf2/host-std-number-plain"]
+host-web-number-plain = ["mf2/host-web-number-plain"]
 # Dates over ICU4X, natively and in the browser (plan/08 §3.1).
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu"]

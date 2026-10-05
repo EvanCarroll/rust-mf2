@@ -43,8 +43,10 @@ impl core::marker::StructuralPartialEq for mf2_build::DateBackend
 impl mf2_build::Backend for mf2_build::DateBackend
 pub const mf2_build::DateBackend::ADJECTIVE: &'static str
 pub const mf2_build::DateBackend::DOMAIN: &'static str
+pub const mf2_build::DateBackend::FUNCTIONS: &'static str
 pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
+pub const mf2_build::DateBackend::THINGS: &'static str
 pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
 pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
@@ -146,6 +148,20 @@ impl core::fmt::Debug for mf2_build::Error
 pub fn mf2_build::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::fmt::Display for mf2_build::Error
 pub fn mf2_build::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum mf2_build::Gate
+pub mf2_build::Gate::Date
+pub mf2_build::Gate::LocalizedNumber
+pub mf2_build::Gate::None
+pub mf2_build::Gate::Number
+impl core::clone::Clone for mf2_build::Gate
+pub fn mf2_build::Gate::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Gate
+impl core::cmp::PartialEq for mf2_build::Gate
+pub fn mf2_build::Gate::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::Gate
+pub fn mf2_build::Gate::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Gate
+impl core::marker::StructuralPartialEq for mf2_build::Gate
 pub enum mf2_build::Level
 pub mf2_build::Level::Allow
 pub mf2_build::Level::Error
@@ -186,10 +202,10 @@ pub mf2_build::Lint::GatedFunction
 pub mf2_build::Lint::LocaleMismatch
 pub mf2_build::Lint::MissingPluralCategory
 pub mf2_build::Lint::MissingTranslation
-pub mf2_build::Lint::NeutralNumbers
 pub mf2_build::Lint::NonNfcSource
 pub mf2_build::Lint::NonstandardName
-pub mf2_build::Lint::SeveralDateFormatters
+pub mf2_build::Lint::PlainNumbers
+pub mf2_build::Lint::SeveralFormatters
 pub mf2_build::Lint::SuspiciousBidi
 pub mf2_build::Lint::UndeclaredMarkup
 pub mf2_build::Lint::UndeclaredVariable
@@ -244,6 +260,38 @@ impl serde_core::ser::Serialize for mf2_build::Missing
 pub fn mf2_build::Missing::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Missing
 pub fn mf2_build::Missing::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+pub enum mf2_build::NumberBackend
+pub mf2_build::NumberBackend::Builtin
+pub mf2_build::NumberBackend::Intl
+pub mf2_build::NumberBackend::Plain
+impl core::clone::Clone for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::NumberBackend
+impl core::cmp::Ord for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::NumberBackend
+impl core::marker::StructuralPartialEq for mf2_build::NumberBackend
+impl mf2_build::Backend for mf2_build::NumberBackend
+pub const mf2_build::NumberBackend::ADJECTIVE: &'static str
+pub const mf2_build::NumberBackend::DOMAIN: &'static str
+pub const mf2_build::NumberBackend::FUNCTIONS: &'static str
+pub const mf2_build::NumberBackend::NOUN: &'static str
+pub const mf2_build::NumberBackend::THING: &'static str
+pub const mf2_build::NumberBackend::THINGS: &'static str
+pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::NumberBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::NumberBackend::name(self) -> &'static str
+pub fn mf2_build::NumberBackend::offered(mf2_build::Side) -> &'static [mf2_build::NumberBackend]
+pub fn mf2_build::NumberBackend::recommended(mf2_build::Side) -> mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::what(self) -> &'static str
 pub enum mf2_build::Place
 pub mf2_build::Place::Catalog
 pub mf2_build::Place::Nowhere
@@ -355,6 +403,24 @@ impl serde_core::ser::Serialize for mf2_build::CatalogConfig
 pub fn mf2_build::CatalogConfig::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::CatalogConfig where mf2_build::CatalogConfig: core::default::Default
 pub fn mf2_build::CatalogConfig::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+pub struct mf2_build::CatalogContent
+pub mf2_build::CatalogContent::date_slice: bool
+pub mf2_build::CatalogContent::dates: bool
+pub mf2_build::CatalogContent::localized_numbers: bool
+pub mf2_build::CatalogContent::number_data: bool
+pub mf2_build::CatalogContent::numbers: bool
+pub mf2_build::CatalogContent::plural_rules: bool
+impl mf2_build::CatalogContent
+pub fn mf2_build::CatalogContent::names(&self) -> alloc::vec::Vec<&'static str>
+impl core::clone::Clone for mf2_build::CatalogContent
+pub fn mf2_build::CatalogContent::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::CatalogContent
+impl core::cmp::PartialEq for mf2_build::CatalogContent
+pub fn mf2_build::CatalogContent::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::CatalogContent
+pub fn mf2_build::CatalogContent::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::CatalogContent
+impl core::marker::StructuralPartialEq for mf2_build::CatalogContent
 #[non_exhaustive] pub struct mf2_build::Config
 pub mf2_build::Config::catalog: mf2_build::CatalogConfig
 pub mf2_build::Config::dates: mf2_build::DatesConfig
@@ -439,21 +505,17 @@ pub struct mf2_build::Features
 impl mf2_build::Features
 pub fn mf2_build::Features::backend<B: mf2_build::Backend>(&self, mf2_build::Side) -> core::option::Option<B>
 pub fn mf2_build::Features::cuts_date_slice(&self) -> bool
-pub fn mf2_build::Features::date_slice_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::families(&self) -> alloc::vec::Vec<mf2_build::Active>
-pub fn mf2_build::Features::fn_datetime(&self) -> bool
-pub fn mf2_build::Features::fn_number(&self) -> bool
-pub fn mf2_build::Features::for_catalogs(&self) -> mf2_build::Features
+pub fn mf2_build::Features::for_catalogs(&self) -> mf2_build::CatalogContent
 pub fn mf2_build::Features::formats<B: mf2_build::Backend>(&self) -> bool
 pub fn mf2_build::Features::from_env() -> mf2_build::Features
 pub fn mf2_build::Features::from_names<S: core::convert::Into<alloc::string::String>>(impl core::iter::traits::collect::IntoIterator<Item = S>) -> mf2_build::Features
 pub fn mf2_build::Features::from_vars(impl core::iter::traits::collect::IntoIterator<Item = (alloc::string::String, alloc::string::String)>) -> mf2_build::Features
+pub fn mf2_build::Features::gated(&self, &str) -> core::option::Option<alloc::string::String>
 pub fn mf2_build::Features::has(&self, &str) -> bool
-pub fn mf2_build::Features::missing_feature(&self, &str) -> core::option::Option<&'static str>
 pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::Iterator<Item = &str>
-pub fn mf2_build::Features::number_intl(&self) -> bool
-pub fn mf2_build::Features::number_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
+pub fn mf2_build::Features::placement(&self, bool) -> mf2_build::Placement
 pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>
 pub fn mf2_build::Features::refusal<B: mf2_build::Backend>(&self, &str) -> alloc::string::String
 impl core::clone::Clone for mf2_build::Features
@@ -509,6 +571,19 @@ pub fn mf2_build::Outcome::is_clean(&self) -> bool
 pub fn mf2_build::Outcome::publish(&self, &std::path::Path) -> mf2_build::Result<mf2_build::Published>
 impl core::fmt::Debug for mf2_build::Outcome
 pub fn mf2_build::Outcome::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct mf2_build::Placement
+pub mf2_build::Placement::dates: mf2_build::Place
+pub mf2_build::Placement::numbers: mf2_build::Place
+pub mf2_build::Placement::plural: mf2_build::Place
+impl core::clone::Clone for mf2_build::Placement
+pub fn mf2_build::Placement::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::Placement
+impl core::cmp::PartialEq for mf2_build::Placement
+pub fn mf2_build::Placement::eq(&self, &Self) -> bool
+impl core::fmt::Debug for mf2_build::Placement
+pub fn mf2_build::Placement::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for mf2_build::Placement
+impl core::marker::StructuralPartialEq for mf2_build::Placement
 #[non_exhaustive] pub struct mf2_build::Published
 pub mf2_build::Published::removed: alloc::vec::Vec<std::path::PathBuf>
 pub mf2_build::Published::written: alloc::vec::Vec<std::path::PathBuf>
@@ -542,8 +617,10 @@ pub const mf2_build::FAMILIES: [mf2_build::Family; 6]
 pub trait mf2_build::Backend: core::marker::Copy + core::cmp::Ord + core::fmt::Debug + 'static
 pub const mf2_build::Backend::ADJECTIVE: &'static str
 pub const mf2_build::Backend::DOMAIN: &'static str
+pub const mf2_build::Backend::FUNCTIONS: &'static str
 pub const mf2_build::Backend::NOUN: &'static str
 pub const mf2_build::Backend::THING: &'static str
+pub const mf2_build::Backend::THINGS: &'static str
 pub fn mf2_build::Backend::cost(self, mf2_build::Side) -> &'static str
 pub fn mf2_build::Backend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::Backend::name(self) -> &'static str
@@ -553,13 +630,28 @@ pub fn mf2_build::Backend::what(self) -> &'static str
 impl mf2_build::Backend for mf2_build::DateBackend
 pub const mf2_build::DateBackend::ADJECTIVE: &'static str
 pub const mf2_build::DateBackend::DOMAIN: &'static str
+pub const mf2_build::DateBackend::FUNCTIONS: &'static str
 pub const mf2_build::DateBackend::NOUN: &'static str
 pub const mf2_build::DateBackend::THING: &'static str
+pub const mf2_build::DateBackend::THINGS: &'static str
 pub fn mf2_build::DateBackend::cost(self, mf2_build::Side) -> &'static str
 pub fn mf2_build::DateBackend::implies(self) -> core::option::Option<Self>
 pub fn mf2_build::DateBackend::name(self) -> &'static str
 pub fn mf2_build::DateBackend::offered(mf2_build::Side) -> &'static [mf2_build::DateBackend]
 pub fn mf2_build::DateBackend::recommended(mf2_build::Side) -> mf2_build::DateBackend
 pub fn mf2_build::DateBackend::what(self) -> &'static str
+impl mf2_build::Backend for mf2_build::NumberBackend
+pub const mf2_build::NumberBackend::ADJECTIVE: &'static str
+pub const mf2_build::NumberBackend::DOMAIN: &'static str
+pub const mf2_build::NumberBackend::FUNCTIONS: &'static str
+pub const mf2_build::NumberBackend::NOUN: &'static str
+pub const mf2_build::NumberBackend::THING: &'static str
+pub const mf2_build::NumberBackend::THINGS: &'static str
+pub fn mf2_build::NumberBackend::cost(self, mf2_build::Side) -> &'static str
+pub fn mf2_build::NumberBackend::implies(self) -> core::option::Option<Self>
+pub fn mf2_build::NumberBackend::name(self) -> &'static str
+pub fn mf2_build::NumberBackend::offered(mf2_build::Side) -> &'static [mf2_build::NumberBackend]
+pub fn mf2_build::NumberBackend::recommended(mf2_build::Side) -> mf2_build::NumberBackend
+pub fn mf2_build::NumberBackend::what(self) -> &'static str
 pub fn mf2_build::run()
 pub type mf2_build::Result<T> = core::result::Result<T, mf2_build::Error>

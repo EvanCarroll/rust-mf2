@@ -220,7 +220,7 @@ na = { kind = "permission", reason = "a freedom of form with nothing to observe;
 [[statement]]
 id = "formatting.md#97a9ec3a"
 says = "an expression that is only a variable may get extra processing"
-note = "taken: an unannotated numeric argument is formatted as a number (the unannotated-number hook, `fn-number`)"
+note = "taken: an unannotated numeric argument is formatted as a number (the unannotated-number hook of a number formatter that writes the language's own form)"
 tests = [
     "syntax.json@2153b600",
     "syntax.json@8a3aac3e",
@@ -583,7 +583,7 @@ tests = [
 [[statement]]
 id = "functions/README.md#41007a0d"
 says = "an unsupported option or option value may report Unsupported Operation"
-note = "Taken up in two places: `:unit usage=…` (conversion not implemented) and grouping that needs locale data in a build without `fn-number`."
+note = "Taken up in two places: `:unit usage=…` (conversion not implemented) and grouping that needs locale data in a build whose number formatter is `plain`."
 tests = [
     "extra/functions/unit.json@f617da7f",
     "crates/mf2-runtime/tests/format.rs::neutral_grouping_is_unsupported",

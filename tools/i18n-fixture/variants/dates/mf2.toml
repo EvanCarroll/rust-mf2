@@ -5,5 +5,5 @@ strip = ["cold", "ids"]
 missing = "fallback"
 
 [lints]
-# Built with and without `fn-number`, as the fixture is.
-neutral-numbers = "allow"
+# Built with and without a number formatter, as the fixture is.
+plain-numbers = "allow"

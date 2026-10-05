@@ -13,7 +13,7 @@ use std::time::{Duration, SystemTime};
 
 use clap::Args as ClapArgs;
 use mf2_build::Layout;
-use mf2_build::{Build, Config};
+use mf2_build::{Build, Config, Features};
 
 use crate::FeatureArgs;
 use crate::error::{Error, Result};
@@ -43,8 +43,10 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         args.out.display(),
         interval.as_millis()
     );
+    // `mf2 check`'s features, read once: `--features`, else cargo's.
+    let features = crate::check::features(dir, &args.features);
     let mut seen = stamps(&layout, dir);
-    build(dir, args)?;
+    build(dir, args, &features)?;
     let mut rebuilds = 0u32;
     loop {
         std::thread::sleep(interval);
@@ -58,7 +60,7 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
         seen = now;
         // A build that fails prints its report and the watch goes on: the
         // next save is usually the fix.
-        if let Err(e) = build(dir, args) {
+        if let Err(e) = build(dir, args, &features) {
             eprintln!("mf2 watch: {e}");
         }
         rebuilds += 1;
@@ -68,11 +70,11 @@ pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     }
 }
 
-fn build(dir: &Path, args: &Args) -> Result<()> {
+fn build(dir: &Path, args: &Args, features: &Features) -> Result<()> {
     let config = Config::load(dir)?;
     let outcome = Build::at(dir, &args.out)
         .config(config)
-        .features(args.features.features())
+        .features(features.clone())
         .run()?;
     print!("{}", outcome.report.to_text());
     if !outcome.report.is_clean() {

@@ -109,22 +109,22 @@ struct Row {
 /// Every row, one native binary each.
 const ROWS: &[Row] = &[
     Row {
-        what: "a native application with no formatting functions",
-        features: "native",
+        what: "a native application with numbers in plain digits",
+        features: "native,native-number-plain",
         requires: &[],
         forbids: LEAN,
         ceiling: None,
     },
     Row {
-        what: "a native application formatting numbers",
-        features: "native,fn-number",
+        what: "a native application formatting numbers in each language's own form",
+        features: "native,native-number-builtin",
         requires: &[],
         forbids: LEAN,
         ceiling: None,
     },
     Row {
-        what: "a terminal UI formatting numbers",
-        features: "ratatui,fn-number",
+        what: "a terminal UI formatting numbers in each language's own form",
+        features: "ratatui,native-number-builtin",
         requires: &[],
         forbids: LEAN,
         ceiling: None,
@@ -135,7 +135,7 @@ const ROWS: &[Row] = &[
         // on, and `tzdb-bundled` is weak in jiff. A server with no date in
         // any message therefore links no zone database at all.
         what: "an Axum server with no date in any message",
-        features: "axum",
+        features: "axum,native-number-plain",
         requires: &[],
         forbids: LEAN,
         ceiling: None,
@@ -150,7 +150,7 @@ const ROWS: &[Row] = &[
         // formatter reads no locale data, so no ICU4X crate may be linked
         // either.
         what: "a native application formatting a date in a named zone (the positive control)",
-        features: "native,native-datetime-iso",
+        features: "native,native-number-plain,native-datetime-iso",
         requires: &["jiff", FN_DATETIME],
         forbids: &[BUNDLED_TZDB, ICU],
         ceiling: None,
@@ -160,7 +160,7 @@ const ROWS: &[Row] = &[
         // the ISO row's forbidding of it proves nothing — and its stripped
         // binary stays under a ceiling that ICU4X's compiled-in data breaks.
         what: "a native application formatting a date through ICU4X over the catalog's slice",
-        features: "native,native-datetime-icu",
+        features: "native,native-number-plain,native-datetime-icu",
         requires: &[ICU, FN_DATETIME],
         forbids: &[],
         ceiling: Some(ICU_CEILING),
@@ -171,7 +171,7 @@ const ROWS: &[Row] = &[
         // every row that forbids the tables would pass even if the reader
         // had stopped seeing them.
         what: "a native application that compiles a message at run time (the positive control for the normalization tables)",
-        features: "native,compile",
+        features: "native,native-number-plain,compile",
         requires: &[NFC_TABLES],
         forbids: &[],
         ceiling: None,

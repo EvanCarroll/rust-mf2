@@ -30,7 +30,9 @@ required-features = ["ssr"]
 default = []
 # Declared so that the generated module's `cfg`s are known ones; `ssr` and
 # `hydrate` turn on what this corpus needs.
-fn-number = ["mf2/fn-number"]
+# Numbers by mf2's own code in both builds.
+host-std-number-builtin = ["mf2/host-std-number-builtin"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
 # Dates over ICU4X in both builds (plan/08 §3.1); also the `cfg` of
 # `shared.rs`'s date parameter.
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
@@ -43,7 +45,8 @@ host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 # without them would be *refused*, not merely different.
 ssr = [
     "mf2/host-std",
-    "fn-number",
+    "host-std-number-builtin",
+    "host-web-number-builtin",
     "host-std-datetime-icu",
     "host-web-datetime-icu",
     "leptos/ssr",
@@ -52,7 +55,8 @@ ssr = [
 ]
 hydrate = [
     "mf2/host-web",
-    "fn-number",
+    "host-std-number-builtin",
+    "host-web-number-builtin",
     "host-std-datetime-icu",
     "host-web-datetime-icu",
     "leptos/hydrate",

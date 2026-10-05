@@ -22,7 +22,7 @@ use serde_json::{Map, Value, json};
 static FUNCTIONS: [(&str, &dyn Function); 1] = [("number", &functions::NUMBER)];
 static REGISTRY: Registry = Registry::new(&FUNCTIONS);
 
-/// The localized registry (`fn-number`) of the panel differential.
+/// The localized registry (`mf2-fn-number`) of the panel differential.
 static LOCALIZED_FUNCTIONS: [(&str, &dyn Function); 2] = [
     ("number", &mf2::fn_number::NUMBER),
     ("percent", &mf2::fn_number::PERCENT),

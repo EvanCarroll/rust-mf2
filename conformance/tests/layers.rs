@@ -62,8 +62,9 @@ fn every_harnessed_layer_passes_but_the_ledgers_xfails() {
     // and syntax.json #90 since A3, functions/currency.json and
     // extra/functions/unit.json since A4.
     assert_eq!(results.tally(Column::L4), (612, 612));
-    // L4d (default features, A7): the 68 tests of the gated functions'
-    // files degrade to Unknown Function, syntax.json #90 to neutral digits;
+    // L4d (the default configuration, A7): the 68 tests of the gated
+    // functions' files degrade to Unknown Function, syntax.json #90 to plain
+    // digits;
     // and 50 of the matrix's numeric-option tests (A12) degrade the same two
     // ways.
     assert_eq!(results.tally(Column::L4d), (493, 612));

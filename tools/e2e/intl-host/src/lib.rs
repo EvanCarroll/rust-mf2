@@ -1,7 +1,7 @@
-//! The `number-intl` host wiring in a browser: messages formatted through the host
-//! the generated module names (`host::HOST`), never one chosen here, so that
-//! the check fails if `mf2`'s `number-intl` arms stop naming the `Intl` number
-//! host.
+//! The `intl` number formatter's host wiring in a browser: messages formatted
+//! through the host the generated module names (`host::HOST`), never one
+//! chosen here, so that the check fails if `mf2`'s `host-web-number-intl`
+//! arms stop naming the `Intl` number host.
 
 use mf2::{Arg, Catalog, FormatContext, Formatter};
 use wasm_bindgen::prelude::wasm_bindgen;

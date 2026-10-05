@@ -81,7 +81,7 @@ the functions its messages call, forwarding its `ssr` feature to `mf2/ssr`
 and `mf2/axum`, and `hydrate` to `mf2/hydrate`:
 
 ```sh
-cargo add mf2 --features leptos,fn-number   # leptos-0-8 on Leptos 0.8
+cargo add mf2 --features leptos,leptos-client-number-intl,leptos-server-number-builtin   # leptos-0-8 on Leptos 0.8
 cargo add --build mf2-build
 ```
 
@@ -94,7 +94,7 @@ with `native` — or `ratatui`, for a terminal UI — and the functions its
 messages call:
 
 ```sh
-cargo add mf2 --features native,fn-number   # or ratatui,fn-number
+cargo add mf2 --features native,native-number-builtin   # or ratatui,native-number-builtin
 cargo add --build mf2-build
 ```
 

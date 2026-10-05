@@ -15,7 +15,7 @@ publish = false
 # them. A message can never add formatting code to the wasm by itself.
 # Dates: the browser's own `Intl` in the client, so no date data is
 # downloaded, and ICU4X on the server.
-mf2 = { path = "../../../crates/mf2", features = ["fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
+mf2 = { path = "../../../crates/mf2", features = ["leptos-client-number-intl", "leptos-server-number-builtin", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
 
 [build-dependencies]
 # ICU4X dates on the server: the build compiles each locale's date data.

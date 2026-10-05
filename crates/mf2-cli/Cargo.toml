@@ -63,7 +63,7 @@ thiserror = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
 fluent-bundle.workspace = true
-mf2 = { workspace = true, features = ["compile", "fn-number", "host-std"] }
+mf2 = { workspace = true, features = ["compile", "host-std-number-builtin", "host-std"] }
 unic-langid.workspace = true
 workload-gen.workspace = true
 

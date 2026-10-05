@@ -96,7 +96,7 @@ fn build_panel_with(
 #[test]
 fn a_locales_number_needs_are_the_union_of_its_messages() {
     // What `mf2-build` slices for the corpus...
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
     let outcome = build_panel("union", EVERY_NUMERIC, &["en"], &features);
     let catalog = outcome.catalog("en").expect("en");
     let corpus = &catalog.slice.needs.numbers;
@@ -153,7 +153,7 @@ fn a_locales_number_needs_are_the_union_of_its_messages() {
 
 #[test]
 fn a_corpus_that_formats_no_numbers_carries_no_number_data() {
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
     let outcome = build_panel(
         "text-only",
         "plain = Save\nother = Cancel\n",
@@ -169,21 +169,34 @@ fn a_corpus_that_formats_no_numbers_carries_no_number_data() {
 }
 
 #[test]
-fn without_fn_number_no_number_entry_is_carried() {
-    // The client formats digits with neutral symbols, so the locale's would
-    // never be read (and `check` warns `neutral-numbers`).
+fn a_plain_formatter_carries_the_plural_rules_and_no_number_data() {
+    // `plain` writes plain digits, so the language's symbols would never be
+    // read; it selects from the plural rules, so those are carried.
     let outcome = build_panel(
-        "no-fn-number",
-        "count = {$n :number}\nunannotated = You have {$n}\n",
+        "plain-numbers",
+        "count = {$n :number}\nunannotated = You have {$n}\n\
+         files =\n  .input {$n :integer}\n  .match $n\n  one {{one}}\n  * {{many}}\n",
+        &["pl"],
+        &Features::parse("host-std-number-plain"),
+    );
+    let catalog = outcome.catalog("pl").expect("pl");
+    let keys: Vec<u32> = catalog.locale_entries.iter().map(|(key, _)| *key).collect();
+    assert_eq!(keys, [locale_key::PLURAL_CARDINAL], "{keys:?}");
+}
+
+#[test]
+fn with_no_number_formatter_no_number_entry_is_carried() {
+    // A bare placeholder prints a number in plain digits (and `check` warns
+    // `plain-numbers`): nothing of the language's is read.
+    let outcome = build_panel(
+        "no-number-formatter",
+        "unannotated = You have {$n}\n",
         &["pl"],
         &Features::default(),
     );
     let catalog = outcome.catalog("pl").expect("pl");
     assert!(
-        catalog
-            .locale_entries
-            .iter()
-            .all(|(key, _)| *key != locale_key::NUMBER_SYMBOLS),
+        catalog.locale_entries.is_empty(),
         "{:?}",
         catalog.locale_entries
     );
@@ -191,7 +204,7 @@ fn without_fn_number_no_number_entry_is_carried() {
 
 #[test]
 fn only_the_plural_kinds_the_selectors_use_are_carried() {
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
     let cardinal = build_panel(
         "cardinal",
         "x =\n  .input {$n :integer}\n  .match $n\n  one {{one}}\n  * {{many}}\n",
@@ -251,7 +264,7 @@ fn a_select_from_a_variable_carries_both_rule_sets() {
     "pl".clone_into(&mut config.source_locale);
     let outcome = Build::at(&root, out_dir("slicing-dynamic-select"))
         .config(config)
-        .features(Features::parse("fn-number"))
+        .features(Features::parse("host-std-number-builtin"))
         .check()
         .expect("readable");
     assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
@@ -270,7 +283,7 @@ fn a_select_from_a_variable_carries_both_rule_sets() {
 #[test]
 fn b8_plural_and_number_symbols_stay_under_half_a_kilobyte() {
     const LIMIT: usize = 512;
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
 
     // On the reference workload's four locales.
     let outcome = Build::at(workload(), out_dir("slicing-b8-workload"))
@@ -358,7 +371,9 @@ fn a_declaration_annotates_the_placeholders_that_use_it() {
             &[("en", source)],
         );
         let outcome = Build::at(&root, out_dir("unannotated"))
-            .features(Features::parse("fn-number,host-std-datetime-iso"))
+            .features(Features::parse(
+                "host-std-number-builtin,host-std-datetime-iso",
+            ))
             .run()
             .expect("builds");
         assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
@@ -367,10 +382,10 @@ fn a_declaration_annotates_the_placeholders_that_use_it() {
             slice.unannotated, expected,
             "unannotated should be {expected} for:\n{source}"
         );
-        // What the flag is for: the hooks appear in the generated registry
+        // What the flag is for: the hook appears in the generated registry
         // exactly when it is set.
         assert_eq!(
-            outcome.generated.contains("with_numbers"),
+            outcome.generated.contains("numbers::unannotated("),
             expected,
             "the registry disagrees with the slice for:\n{source}"
         );
@@ -382,7 +397,7 @@ fn an_explicit_list_narrows_a_variable_currency() {
     use mf2_build::{DataSet, Lint};
     use mf2_locale_data::number::Selection;
 
-    let features = Features::parse("fn-number");
+    let features = Features::parse("host-std-number-builtin");
     let body = "price = {$n :currency currency=$code}\n";
     let every = build_panel("dynamic-every", body, &["en"], &features);
 
@@ -750,21 +765,21 @@ fn is_number_entry(key: u32) -> bool {
 }
 
 #[test]
-fn number_intl_moves_the_number_entries_to_the_server_only_table() {
+fn a_browser_on_intl_moves_the_number_entries_to_the_server_only_table() {
     let tags = ["en", "fr"];
     // The browser formats and selects through `Intl`: it reads none of them.
     let on = build_panel(
         "numbers-intl",
         EVERY_NUMERIC,
         &tags,
-        &Features::parse("hydrate,fn-number,number-intl"),
+        &Features::parse("hydrate,leptos-client-number-intl,leptos-server-number-builtin"),
     );
-    // The browser formats them in Rust: they stay in the catalog.
+    // The browser formats them with mf2's own code: they stay in the catalog.
     let off = build_panel(
-        "numbers-rust",
+        "numbers-builtin",
         EVERY_NUMERIC,
         &tags,
-        &Features::parse("hydrate,fn-number"),
+        &Features::parse("hydrate,leptos-client-number-builtin,leptos-server-number-builtin"),
     );
     for catalog in &off.catalogs {
         let tag = &catalog.tag;
@@ -778,13 +793,13 @@ fn number_intl_moves_the_number_entries_to_the_server_only_table() {
         ] {
             assert!(
                 catalog.locale_entries.iter().any(|(k, _)| *k == key),
-                "{tag}: without number-intl the catalog lacks entry {key}: {:?}",
+                "{tag}: with `builtin` in the browser the catalog lacks entry {key}: {:?}",
                 catalog.locale_entries
             );
         }
         assert!(
             catalog.server.is_empty(),
-            "{tag}: no table without number-intl"
+            "{tag}: no table with `builtin` in the browser"
         );
         assert!(catalog.server_entries.is_empty(), "{tag}");
     }
@@ -795,7 +810,7 @@ fn number_intl_moves_the_number_entries_to_the_server_only_table() {
                 .locale_entries
                 .iter()
                 .all(|(key, _)| !is_number_entry(*key)),
-            "{tag}: with number-intl the browser's catalog carries number entries: {:?}",
+            "{tag}: with `intl` the browser's catalog carries number entries: {:?}",
             catalog.locale_entries
         );
         // The table holds exactly what the catalog held without it.
@@ -817,17 +832,42 @@ fn number_intl_moves_the_number_entries_to_the_server_only_table() {
             );
         }
     }
-    // No browser side: one reader, one file, whatever `number-intl` says.
+    // No browser side: one reader, one file.
     let native = build_panel(
-        "numbers-native-intl",
+        "numbers-native",
         EVERY_NUMERIC,
         &tags,
-        &Features::parse("native,fn-number,number-intl"),
+        &Features::parse("native,native-number-builtin"),
     );
     for catalog in &native.catalogs {
         let tag = &catalog.tag;
         assert!(catalog.server.is_empty(), "{tag}");
         let same = off.catalog(tag).expect("the same locale");
         assert_eq!(catalog.locale_entries, same.locale_entries, "{tag}");
+    }
+}
+
+#[test]
+fn a_browser_on_plain_keeps_the_plural_rules_and_no_number_data() {
+    // The browser selects from the plural rules and writes plain digits; the
+    // server formats with mf2's own code, from the table.
+    let corpus = "count = {$n :number}\n\
+        files =\n  .input {$n :integer}\n  .match $n\n  one {{one}}\n  * {{many}}\n";
+    let outcome = build_panel(
+        "numbers-plain",
+        corpus,
+        &["en", "pl"],
+        &Features::parse("ssr,leptos-client-number-plain,leptos-server-number-builtin"),
+    );
+    for catalog in &outcome.catalogs {
+        let tag = &catalog.tag;
+        let catalog_keys: Vec<u32> = catalog.locale_entries.iter().map(|(k, _)| *k).collect();
+        let table_keys: Vec<u32> = catalog.server_entries.iter().map(|(k, _)| *k).collect();
+        assert_eq!(catalog_keys, [locale_key::PLURAL_CARDINAL], "{tag}");
+        assert!(
+            table_keys.contains(&locale_key::NUMBER_SYMBOLS)
+                && !table_keys.contains(&locale_key::PLURAL_CARDINAL),
+            "{tag}: {table_keys:?}"
+        );
     }
 }

@@ -334,19 +334,18 @@ While they are there, `mf2 check` reports a warning about `ar-XB` (the
 other is German's gap):
 
 ```sh run=translate-pseudo output=check.txt
-mf2 check --features fn-number
+mf2 check --features native,native-number-builtin
 ```
 
 ```text file=translate-pseudo/check.txt generated
 ./locales/ar-XB/main.mf2:9:3: warn: ar-XB has the plural categories zero, two, few, many, which no variant names; they all fall to the catch-all (in visits, locale ar-XB) [missing-plural-category]
 ./locales/de/main.mf2:1:1: warn: 1 of 7 messages are missing here and fall back to en: not-found (locale de) [missing-translation]
 mf2 features (as --features names them):
-  the corpus needs: fn-number
-  on:               fn-number
+  the corpus needs: numbers
+  on:               native-number-builtin
   on and unused:    none
-  the browser:      no date formatter
-  native code:      no date formatter
-  write:            mf2 = { ..., features = ["fn-number"] }
+  native code:      `builtin` formats numbers (native-number-builtin; +9,920 B over `plain`, and the number data)
+  write:            mf2 = { ..., features = ["native", "native-number-builtin"] }
 mf2 check: 0 error(s), 2 warning(s)
 ```
 
@@ -357,7 +356,7 @@ by its tag, so the switcher and `Locale::name()` show `en-XA` and `ar-XB`.
 ## What is missing: `mf2 stats`
 
 ```sh run=translate output=stats.txt
-mf2 stats --features fn-number
+mf2 stats --features native,native-number-builtin
 ```
 
 ```text file=translate/stats.txt generated
@@ -425,18 +424,17 @@ mf2 fmt: 0 of 3 file(s) would change
 `--deny-warnings` fails it on warnings too, and here the German gap does:
 
 ```sh run=translate status=1 output=ci-check.txt
-mf2 check --features fn-number --deny-warnings
+mf2 check --features native,native-number-builtin --deny-warnings
 ```
 
 ```text file=translate/ci-check.txt generated
 ./locales/de/main.mf2:1:1: warn: 1 of 7 messages are missing here and fall back to en: not-found (locale de) [missing-translation]
 mf2 features (as --features names them):
-  the corpus needs: fn-number
-  on:               fn-number
+  the corpus needs: numbers
+  on:               native-number-builtin
   on and unused:    none
-  the browser:      no date formatter
-  native code:      no date formatter
-  write:            mf2 = { ..., features = ["fn-number"] }
+  native code:      `builtin` formats numbers (native-number-builtin; +9,920 B over `plain`, and the number data)
+  write:            mf2 = { ..., features = ["native", "native-number-builtin"] }
 mf2 check: 0 error(s), 1 warning(s)
 ```
 

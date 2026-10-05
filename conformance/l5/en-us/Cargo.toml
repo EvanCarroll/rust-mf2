@@ -15,10 +15,18 @@ publish.workspace = true
 # declares them — the generated module's host and registry name them, so a
 # crate that includes it has to have them all. Every function feature is on:
 # the catalogs must carry what layer L4 formats with.
-default = ["ssr", "fn-number", "host-std-datetime-icu", "host-web-datetime-icu"]
+default = [
+    "ssr",
+    "host-std-number-builtin",
+    "host-web-number-builtin",
+    "host-std-datetime-icu",
+    "host-web-datetime-icu",
+]
 ssr = ["mf2/host-std"]
 hydrate = ["mf2/host-web"]
-fn-number = ["mf2/fn-number"]
+# Numbers by mf2's own code, natively and in the browser.
+host-std-number-builtin = ["mf2/host-std-number-builtin"]
+host-web-number-builtin = ["mf2/host-web-number-builtin"]
 # Dates over ICU4X, natively and in the browser (plan/08 §3.1).
 host-std-datetime-icu = ["mf2/host-std-datetime-icu"]
 host-web-datetime-icu = ["mf2/host-web-datetime-icu"]

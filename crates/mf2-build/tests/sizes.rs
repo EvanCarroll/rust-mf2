@@ -49,7 +49,7 @@ const PHASE_2_BR: [(&str, usize); 4] = [
 fn b7_every_locale_of_the_reference_workload() {
     let root = workload();
     let outcome = Build::at(&root, out_dir("b7"))
-        .features(Features::parse("fn-number"))
+        .features(Features::parse("host-std-number-builtin"))
         .run()
         .expect("the workload builds");
     assert!(outcome.report.is_clean(), "{}", outcome.report.to_text());
@@ -108,13 +108,13 @@ fn b7_every_locale_of_the_reference_workload() {
 fn b7_the_locale_data_costs_what_it_weighs() {
     let root = workload();
     let with = Build::at(&root, out_dir("b7-with"))
-        .features(Features::parse("fn-number"))
+        .features(Features::parse("host-std-number-builtin"))
         .run()
         .expect("builds");
-    // Without `fn-number` the number entries are not carried at all, so the
-    // difference is what the number data costs on the wire.
+    // With `plain` the number data is not carried at all (the plural rules
+    // are), so the difference is what the number data costs on the wire.
     let without = Build::at(&root, out_dir("b7-without"))
-        .features(Features::default())
+        .features(Features::parse("host-std-number-plain"))
         .run()
         .expect("builds");
 
@@ -125,7 +125,7 @@ fn b7_the_locale_data_costs_what_it_weighs() {
         let entries: usize = a.locale_entries.iter().map(|(_, n)| n).sum();
         let other: usize = b.locale_entries.iter().map(|(_, n)| n).sum();
         eprintln!(
-            "{:<8} {:>6} B br with fn-number, {:>6} without (Δ {delta:+}); \
+            "{:<8} {:>6} B br with `builtin`, {:>6} with `plain` (Δ {delta:+}); \
              locale data {entries} B vs {other} B",
             a.tag,
             a.br.len(),

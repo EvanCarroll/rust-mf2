@@ -195,7 +195,8 @@ pub const L4_FUNCTION_FILES_AT_P4: &[&str] = &[
 /// green at P4 too, because they need Phase 4's locale data
 /// (owner, 2026-09-21): `syntax.json` #90,
 /// `{$one} et {$two}` in `fr`, formats unannotated floats with the French
-/// decimal comma — the `number.symbols` entry and `fn-number`.
+/// decimal comma — the `number.symbols` entry and a number formatter that
+/// reads it.
 pub const L4_TESTS_AT_P4: &[(&str, &str, u32)] = &[("syntax.json", "8a3aac3e", 0)];
 
 /// The error names of the six Data Model Errors (spec `errors.md`).

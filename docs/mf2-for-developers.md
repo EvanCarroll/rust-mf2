@@ -21,7 +21,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mf2 = { version = "3", features = ["native", "fn-number"] }
+mf2 = { version = "3", features = ["native", "native-number-builtin"] }
 
 [build-dependencies]
 mf2-build = "3"
@@ -111,10 +111,10 @@ The functions this library provides:
 | Function | Formats |
 |---|---|
 | `:string` | a value as text; `.match` compares the text |
-| `:number` | a number, in the reader's language; `.match` uses exact values, then the plural category |
+| `:number` | a number, in the reader's language; `.match` uses exact values, then the plural category (with a [number formatter](features.md#numbers)) |
 | `:integer` | a number, as a whole number; `.match` as `:number` |
-| `:percent` | a fraction, as a percentage (with `fn-number`) |
-| `:currency`, `:unit` | an amount of money, a measure (with `fn-number`) |
+| `:percent` | a fraction, as a percentage (with a number formatter other than `plain`) |
+| `:currency`, `:unit` | an amount of money, a measure (with a number formatter other than `plain`) |
 | `:datetime`, `:date`, `:time` | a date and time (with a [date formatter](features.md#dates)) |
 
 Common `:number` options are `minimumFractionDigits`,

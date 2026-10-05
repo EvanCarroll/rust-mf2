@@ -95,17 +95,16 @@ Without a mode, `init` lists the five and changes nothing.
 ## `check`: every check the build makes
 
 ```sh run=cli output=check.txt
-mf2 check --features fn-number
+mf2 check --features native,native-number-builtin
 ```
 
 ```text file=cli/check.txt generated
 mf2 features (as --features names them):
-  the corpus needs: fn-number
-  on:               fn-number
+  the corpus needs: numbers
+  on:               native-number-builtin
   on and unused:    none
-  the browser:      no date formatter
-  native code:      no date formatter
-  write:            mf2 = { ..., features = ["fn-number"] }
+  native code:      `builtin` formats numbers (native-number-builtin; +9,920 B over `plain`, and the number data)
+  write:            mf2 = { ..., features = ["native", "native-number-builtin"] }
 mf2 check: 9 messages in 2 locales, nothing to report
 ```
 
@@ -171,7 +170,7 @@ write `.mf2` files (`convert`, `import`, `pseudo`) write this layout too.
 ## `compile`: the catalogs
 
 ```sh run=cli output=compile.txt
-mf2 compile --features fn-number --out catalogs
+mf2 compile --features native,native-number-builtin --out catalogs
 ```
 
 ```text file=cli/compile.txt generated
@@ -205,7 +204,8 @@ server-only table when only the server does. A closing line gives the bytes a
 browser downloads and never reads, which is 0 unless `strip` is turned
 off: the browser reads neither `cold` nor `ids`, so a browser's catalog that
 carries them counts their bytes there. A hydrated application that
-formats numbers with `Intl` (`number-intl`) shows it like this:
+formats numbers with `Intl` in the browser (`leptos-client-number-intl`,
+beside `leptos-server-number-builtin`) shows it like this:
 
 ```text
 what ships where (raw bytes, who reads it, where it ships):
@@ -365,8 +365,12 @@ Every command takes `-C DIR` (`--dir`), the crate that holds the messages
 (the current directory by default); like `git -C`, it makes every relative
 path the command takes read in DIR. Every command also takes `-h`
 (`--help`). `--features LIST` names the features of `mf2` the application
-builds with, separated by commas (`fn-number,native-datetime-icu`). `--format json`
-reports as JSON, for CI and editors.
+builds with, separated by commas
+(`native,native-number-builtin,native-datetime-icu`). Without it, `check`,
+`compile`, `stats` and `watch` take the features cargo resolves for the
+crate's `mf2`, which are the ones the build has; where cargo cannot say (no
+`Cargo.toml` there), every function is taken to have a formatter, and a
+note says so. `--format json` reports as JSON, for CI and editors.
 
 | Command | Arguments and options |
 |---|---|

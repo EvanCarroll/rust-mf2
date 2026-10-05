@@ -5,7 +5,7 @@ systems over the runtime's numeric core, and `:percent`, `:currency` and
 `:unit`. `no_std`, formatting-machinery-free and panic-free.
 
 Applications do not name this crate: [`mf2`](https://docs.rs/mf2) re-exports it as
-`mf2::fn_number`, behind its `fn-number` feature.
+`mf2::fn_number`, which a number formatter's feature turns on.
 
 API documentation: <https://docs.rs/mf2-fn-number>.
 

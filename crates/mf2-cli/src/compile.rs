@@ -36,9 +36,12 @@ pub(crate) struct Args {
 
 pub(crate) fn run(dir: &Path, args: &Args) -> Result<()> {
     let config = Config::load(dir)?;
+    // A number or a date formats only where a side has named its formatter,
+    // so a build with no feature at all refuses most corpora: the features
+    // are `mf2 check`'s — `--features`, else cargo's for this crate.
     let features = match &args.site {
         Some(_) => site_features(dir, &args.features)?,
-        None => args.features.features(),
+        None => crate::check::features(dir, &args.features),
     };
     let build = Build::at(dir, &args.out)
         .config(config)
@@ -97,10 +100,9 @@ fn site_features(dir: &Path, args: &FeatureArgs) -> Result<mf2_build::Features> 
     Ok(resolved)
 }
 
-/// The catalog features of `features`, for a message.
+/// What of `features` changes a catalog, for a message.
 fn list(features: &mf2_build::Features) -> String {
-    let catalog = features.for_catalogs();
-    let names: Vec<&str> = catalog.names().collect();
+    let names = features.for_catalogs().names();
     if names.is_empty() {
         "no function features".to_owned()
     } else {

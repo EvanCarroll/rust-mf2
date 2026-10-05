@@ -287,6 +287,7 @@ For the application above, the report says:
 ./src/lib.rs:5:1: error: this `use leptos_fluent` is not rewritten: it names I18n, leptos_fluent, move_tr [leptos-fluent-import]
 ./src/lib.rs:12:5: error: `leptos_fluent!` initializes leptos-fluent: replace it with the generated `install()`, on the server and in the browser; its `lang` cookie is not read: the client always writes `mf2_locale`, so to keep the language readers chose before, add `CookieLocale { name: "lang", ..Default::default() }` to the server's `Negotiator` as an extra source, after `CookieLocale::default()` and before `AcceptLanguage` [leptos-fluent-initializer]
 ./src/lib.rs:64:33: error: the `leptos-fluent` context: its language and languages become `<LocaleSwitcher>` or the locale API, its `tr` / `tr_with_args` `msg_id!` and `TrDyn` [leptos-fluent-context]
+note: the output formats numbers, so each build needs a number formatter: for a server-rendered Leptos application, leptos-client-number-intl and leptos-server-number-builtin; for a command-line tool or a terminal UI, native-number-builtin; for an Axum server, axum-number-builtin; for no framework, host-std-number-builtin and host-web-number-intl; `mf2 check` names the line for this crate
 mf2 convert: 22 entries in 2 locale(s), 2 .mf2 file(s) written; 2 Rust file(s) rewritten; 3 error(s), 0 warning(s)
 ```
 
@@ -395,7 +396,7 @@ report says: `.source(CookieLocale { name: "lang",
   when it is needed, and the wasm holds no message text.
 * **Numbers are localized.** `fluent-bundle` printed a number as Rust's
   `f64` does. `:number` groups digits and uses each language's symbols
-  (with the `fn-number` feature).
+  (with a number formatter other than `plain`).
 * **Bidi isolation follows the MF2 specification.** A placeholder whose
   direction could differ from the message's (a string) is isolated; a
   formatted number, in the locale's own direction, is not. The characters are

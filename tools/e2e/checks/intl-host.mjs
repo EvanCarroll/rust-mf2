@@ -3,12 +3,12 @@
 // Serves the repository itself (its own static server on 127.0.0.1; only
 // tools/e2e/intl-host/web/ and target/e2e-intl-host/ are served) and formats
 // tools/e2e/intl-host's messages through the host its generated module
-// names. Under `number-intl` the Rust number path is not linked, and a host with no
+// names. With the `intl` number formatter the Rust number path is not linked, and a host with no
 // number formatter gives a number's bare digits, an Unsupported Operation
 // error, and a selector that matches only `*`. So each assertion below has an
 // answer only the browser's `Intl` gives: grouping and a currency symbol from
 // `Intl.NumberFormat`, the `one` variant (no exact key `1`) from
-// `Intl.PluralRules`. If `mf2`'s `number-intl` arms of `__use_host!` are removed the
+// `Intl.PluralRules`. If `mf2`'s `host-web-number-intl` arms of `__use_host!` are removed the
 // module does not build or, named the plain host, fails every assertion.
 //
 // Prerequisite: tools/e2e/intl-host/build.sh.

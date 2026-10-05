@@ -204,12 +204,13 @@ fn suite_messages(root: &Path, locale: &str) -> Result<Vec<Message>, Error> {
 /// Which client configuration a page's corpus is built for (layer L7).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Configuration {
-    /// Every function feature on: the whole runtime-valid corpus.
+    /// Every function has its formatter: the whole runtime-valid corpus.
     All,
-    /// The default features. A message naming a function whose client
-    /// feature is off is refused by the build (L5d's `build-reject`), so a
-    /// real application in this configuration could not ship it at all:
-    /// the corpus is the rest, built with the default features.
+    /// Numbers in plain digits on each side, and no date formatter. A
+    /// message naming a function that asks for more is refused by the build
+    /// (L5d's `build-reject`), so a real application in this configuration
+    /// could not ship it at all: the corpus is the rest, built with these
+    /// features.
     Default,
 }
 
@@ -219,7 +220,8 @@ pub enum Configuration {
 /// [`Configuration::Default`] the build is asked first — over the whole
 /// corpus, in a directory of its own — which messages it refuses, and the
 /// corpus, the manifest, the generated module and the call sites are then
-/// the messages it accepts, built with the default features. `GATED` still
+/// the messages it accepts, built with the default configuration's
+/// features. `GATED` still
 /// lists the refused ones, so a page can say which of the suite's tests it
 /// cannot hold and why.
 pub fn generate_page(
@@ -246,7 +248,7 @@ pub fn generate_page(
         .into_iter()
         .filter(|t| !gated.contains_key(&t.id))
         .collect();
-    let manifest = build_corpus_with(out, locale, Some(twin), &kept, Features::default())?;
+    let manifest = build_corpus_with(out, locale, Some(twin), &kept, default_features())?;
     let rejected = build_rejected(out, locale, &invalid)?;
     write_cases(out, locale, &kept, &manifest, &rejected, &gated, "")
 }
@@ -392,11 +394,20 @@ fn config(locale: &str) -> Config {
     config
 }
 
-/// Every feature, so that the catalogs carry what layer L4 formats with; the
-/// default configuration (L5d) is the same catalogs with the default
-/// registry, exactly as L4d is.
+/// Every function's formatter on each side, so that the catalogs carry what
+/// layer L4 formats with; the default configuration (L5d) is the same
+/// catalogs with the default registry, exactly as L4d is.
 fn features() -> Features {
-    Features::parse("fn-number,datetime,host-std-datetime-icu,host-web-datetime-icu")
+    Features::parse(
+        "number,host-std-number-builtin,host-web-number-builtin,datetime,host-std-datetime-icu,host-web-datetime-icu",
+    )
+}
+
+/// The default configuration's features: numbers in plain digits on each
+/// side, which a side must name to format a number at all, and no date
+/// formatter.
+fn default_features() -> Features {
+    Features::parse("number,host-std-number-plain,host-web-number-plain")
 }
 
 /// Writes the corpus and builds it: catalogs, manifest and the generated
@@ -498,8 +509,9 @@ fn build_rejected(
 }
 
 /// The same corpus in the **default** configuration (layer L5d): which of
-/// its messages the build refuses because they name a function whose client
-/// feature is off, and what it says about each. This is the build's verdict
+/// its messages the build refuses because they name a function no side has a
+/// formatter for, and what it says about each (the refusal's first clause:
+/// the rest names features and what they cost). This is the build's verdict
 /// standing where L4d has a run-time *Unknown Function* — a translation can
 /// never add formatting code to the wasm by itself, so the build stops
 /// first.
@@ -507,7 +519,7 @@ fn build_gated(out: &Path, locale: &str) -> Result<BTreeMap<String, String>, Err
     let root = out.join("corpus");
     let outcome = Build::at(&root, out.join("default-out"))
         .config(config(locale))
-        .features(Features::default())
+        .features(default_features())
         .check()?;
     let mut gated = BTreeMap::new();
     for diagnostic in &outcome.report.diagnostics {
@@ -524,7 +536,10 @@ fn build_gated(out: &Path, locale: &str) -> Result<BTreeMap<String, String>, Err
                         .map_or_else(String::new, |n| n.to_string_lossy().into_owned()),
                     diagnostic.line,
                     diagnostic.column,
-                    diagnostic.message
+                    diagnostic
+                        .message
+                        .split_once("; ")
+                        .map_or(diagnostic.message.as_str(), |(first, _)| first)
                 )
             });
         }

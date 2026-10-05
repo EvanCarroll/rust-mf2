@@ -309,7 +309,7 @@ mod tests {
         );
         assert_eq!(
             report.features().into_iter().collect::<Vec<_>>(),
-            ["datetime", "fn-number"]
+            ["datetime", "number"]
         );
     }
 

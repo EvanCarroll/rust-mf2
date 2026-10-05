@@ -16,21 +16,21 @@ The features answer four questions:
 | Question | Features |
 |---|---|
 | Where does it run? | `leptos` or `leptos-0-8`, with one of `ssr`, `hydrate`, `csr`; `axum`; `native`; `ratatui`; `clap`; with no framework, `host-std` or `host-web` |
-| What can messages do? | `fn-number`; a date formatter for each side ([Dates](#dates)) |
-| Who supplies locale data? | `number-intl`; the date formatter (`icu`, `intl` or `iso`); `tzdb-bundled` |
+| What can messages do? | a number formatter and a date formatter for each side ([Numbers](#numbers), [Dates](#dates)) |
+| Who formats, and from whose data? | the number formatter (`builtin`, `intl` or `plain`); the date formatter (`icu`, `intl` or `iso`); `tzdb-bundled` |
 | Behaviour and tools | `static-locale`; `mark-fallback-lang`; `compile` |
 
 A feature decides which functions a message may use, so the build script
 and `mf2 check` read the features cargo resolves for the crate, and a
-message that calls a function whose feature is off is the
+message that calls a function no side has a formatter for is the
 [`gated-function`](lints.md#gated-function) error.
 
-`mf2 check` also prints the list for the corpus: the function features its
-messages need, those that are on, those on and unused, and the features to
-write on `mf2` with the modes kept as they are (`--format json` has the same
-under `features`). For dates it names the formatter of each side, the
-features to write when a side has none, and the form of ICU4X the build
-chose and why.
+`mf2 check` also prints the list for the corpus: whether its messages need
+numbers or dates, the features of each that are on, those on and unused, and
+the features to write on `mf2` with the modes kept as they are
+(`--format json` has the same under `features`). For numbers and for dates it
+names the formatter of each side and the features to write when a side has
+none; for dates, also the form of ICU4X the build chose and why.
 
 ## Where does it run?
 
@@ -111,13 +111,15 @@ Formatting in the browser, for a browser application with no Leptos mode.
 
 ## What can messages do?
 
-### `fn-number`
+### Number functions
 
-Numbers in the reader's language: its decimal and grouping separators,
-digits and numbering system for `:number`, `:integer` and unannotated
-numbers; and `:percent`, `:currency` and `:unit`. Without it, a number is
-written with neutral symbols (`1234.5`), and the build says so
-([`neutral-numbers`](lints.md#neutral-numbers)).
+`:number`, `:integer` and `:offset`, `:percent`, `:currency` and `:unit`,
+and choosing a plural form, need a number formatter on each side the
+application formats on. [Numbers](#numbers) below says which to write; with
+none, a message that calls a number function is the
+[`gated-function`](lints.md#gated-function) error, and a number passed to a
+bare placeholder (`{$count}`) prints in plain digits (`1234.5`), which the
+build warns of ([`plain-numbers`](lints.md#plain-numbers)).
 
 ### Date functions
 
@@ -127,32 +129,14 @@ none, a message that calls a date function is the
 [`gated-function`](lints.md#gated-function) error, and a date cannot be
 passed to a message at all.
 
-## Who supplies locale data?
+## Who formats, and from whose data?
 
 Each of these is a choice between **the same answer everywhere** (the data
 in your catalogs, the time-zone database built into your binary) and **the
 platform's data and a smaller build** (the browser's `Intl`, the machine's
-time-zone database).
-
-### `number-intl`
-
-In a browser build, numbers are formatted and plurals chosen by the
-browser's `Intl.NumberFormat` and `Intl.PluralRules` (which needs a browser
-with `Intl.NumberFormat` v3), instead of Rust code in the wasm. Every other
-build keeps the Rust code, and the number and plural data then stay on the
-server rather than in the catalogs the browser downloads.
-
-Write it on the `mf2` dependency line, where both builds see it, never
-under the application's `hydrate` feature:
-
-```toml
-mf2 = { version = "3", features = ["leptos", "fn-number", "number-intl"] }
-```
-
-The server's build decides what goes into the catalogs the browser
-downloads, so it must know that the browser formats numbers itself. With
-the feature on one build only, the two write different catalogs, and the
-browser asks for a catalog file the server does not serve.
+time-zone database). A side's number formatter and its date formatter make
+that choice for numbers and for dates ([Numbers](#numbers),
+[Dates](#dates)); `tzdb-bundled` makes it for time zones.
 
 ### `tzdb-bundled`
 
@@ -183,6 +167,157 @@ attribute or a string cannot carry a `lang` and stays unmarked.
 
 `mf2::compile_str`: an ad-hoc message compiled into a one-message catalog,
 for a server or a test. Never in a client.
+
+## Numbers
+
+### Two sides, one number formatter each
+
+Numbers are formatted on two sides: in a browser build, and in native code
+(a server, a command-line tool, a terminal UI). Each framework has a family
+of features for the side it runs on, and each family has one feature per
+formatter:
+
+| Family | For | Formatters |
+|---|---|---|
+| `leptos-client-number-` | the browser build of a Leptos application (`hydrate`, `csr`) | `builtin`, `intl`, `plain` |
+| `leptos-server-number-` | a Leptos server (`ssr`) | `builtin`, `plain` |
+| `axum-number-` | an Axum server | `builtin`, `plain` |
+| `native-number-` | a command-line tool, a terminal UI | `builtin`, `plain` |
+| `host-web-number-` | a browser build with no framework | `builtin`, `intl`, `plain` |
+| `host-std-number-` | native code with no framework | `builtin`, `plain` |
+
+The formatters:
+
+* **`builtin`**: `mf2`'s own code. The build cuts, for each language, the
+  CLDR number data its messages can ask for (symbols and patterns, plural
+  rules, the currencies and units they name) and puts it in that language's
+  catalog. Every side that uses it writes the same text.
+* **`intl`**: the browser's own `Intl.NumberFormat` and `Intl.PluralRules`.
+  Only a browser has it, and it needs one with `Intl.NumberFormat` v3. The
+  catalogs the browser downloads carry no number data and no plural rules.
+* **`plain`**: plain digits (`1234.5`) in every language, with the
+  catalog's plural rules to choose a plural form and no other number data.
+  A percentage, an amount of money and a measure cannot be written that way,
+  so with `plain` the functions `:percent`, `:currency` and `:unit` are the
+  `gated-function` error.
+
+What each one does:
+
+| Formatter | `:number`, `:integer`, `:offset`, a number in a bare placeholder | `:percent`, `:currency`, `:unit` | Plural selection | Catalog data its side reads |
+|---|---|---|---|---|
+| `builtin` | `mf2`'s code, in the language's own form | `mf2`'s code | `mf2`'s code | plural rules, symbols, patterns, currency and unit data |
+| `intl` | `Intl.NumberFormat` | `Intl.NumberFormat` | `Intl.PluralRules` | none |
+| `plain` | plain digits (`1234.5`) | build error | `mf2`'s code | plural rules |
+| none | a number function is a build error; a bare number prints in plain digits, with a warning | build error | build error | none |
+
+No framework turns a number formatter on for you, and no feature of `mf2`
+is on by default: an application whose messages show no number names none.
+
+### What to write for numbers
+
+| Application | Features of `mf2` |
+|---|---|
+| server-rendered Leptos (`ssr` and `hydrate`) | `leptos-client-number-intl`, `leptos-server-number-builtin` |
+| client-only Leptos (`csr`) | `leptos-client-number-intl` |
+| command-line tool (`native`) | `native-number-builtin` |
+| terminal UI (`ratatui`) | `native-number-builtin` |
+| Axum server, no Leptos | `axum-number-builtin` |
+
+These are what `mf2 init` writes. Write them on the `mf2` dependency line,
+where both builds of a Leptos application see them, not under the
+application's `ssr` or `hydrate` feature. A feature acts only in the builds
+of its own side: `leptos-client-number-intl` changes no code in the server,
+and tells the server's build what the browser reads, so that the server
+keeps out of the browser's catalogs the data the browser never reads.
+
+For a server-rendered Leptos application, in `Cargo.toml`:
+
+```toml
+[dependencies]
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin"] }
+```
+
+When a side has a number message and no formatter, the build fails with
+[`gated-function`](lints.md#gated-function), which names the features to
+write for the frameworks that are on and what each formatter costs.
+`mf2 check` prints the same line.
+
+### What each number formatter costs
+
+From the [cost table](#what-each-feature-costs):
+
+| Formatter | Browser wasm | Native binary | Data |
+|---|---|---|---|
+| `plain` | the smallest that formats a number | the smallest that formats a number | the plural rules, when a message chooses a plural form |
+| `intl` | about 0.5 KB of gzip less than `plain` | — | none of yours: the browser's |
+| `builtin` | about 2.5 KB of gzip more than `plain` | about 10 KB more than `plain` | each language's number data, in its catalog |
+
+`intl` is smaller than `plain` because the calls to the browser replace the
+code that rounds, writes digits and applies plural rules.
+
+### The number features, one by one
+
+#### `leptos-client-number-intl`, `host-web-number-intl`
+
+Numbers formatted and plural forms chosen by the browser's
+`Intl.NumberFormat` and `Intl.PluralRules` in the browser build. The
+catalogs the browser downloads carry no number data and no plural rules.
+
+#### `leptos-client-number-builtin`, `host-web-number-builtin`
+
+Numbers formatted by `mf2`'s own code in the browser build, from the number
+data in each language's catalog: the same text as a server on `builtin`.
+
+#### `leptos-client-number-plain`, `host-web-number-plain`
+
+Plain digits in the browser build, in every language, and plural forms
+chosen by the catalog's rules. No `:percent`, `:currency` or `:unit`.
+
+#### `leptos-server-number-builtin`, `axum-number-builtin`, `native-number-builtin`, `host-std-number-builtin`
+
+Numbers formatted by `mf2`'s own code in native code, from the number data
+in each language's catalog (for a server, in its own table beside the
+catalog when the browser does not read it).
+
+#### `leptos-server-number-plain`, `axum-number-plain`, `native-number-plain`, `host-std-number-plain`
+
+Plain digits in native code, in every language, and plural forms chosen by
+the catalog's rules. No `:percent`, `:currency` or `:unit`.
+
+#### `number`
+
+The number functions themselves, which every feature above turns on. It is
+not written by hand: alone it gives no side a formatter, so a number message
+is still the `gated-function` error.
+
+### One number formatter per build
+
+The server binary and the browser's wasm are two builds, and each formats
+with the formatter of its own side. `leptos-client-number-intl` with
+`leptos-server-number-builtin` is `Intl` in the browser and `mf2`'s own code
+on the server: nothing conflicts.
+
+When more than one number formatter of a side is on, the strongest formats:
+`builtin`, then `intl`, then `plain`. The build warns with
+[`several-formatters`](lints.md#several-formatters) and names the one that
+formats.
+
+### Numbers on the server and in the browser
+
+A server-rendered page is formatted by the server, and again by the browser
+whenever its text changes.
+
+* **`builtin` on the server, `intl` in the browser** (what the tools
+  recommend). The server writes numbers and picks plural forms from your
+  catalogs' data, the browser from its own `Intl` data, so the text can
+  differ slightly between browsers and from the server's rendering. The
+  browser downloads no number data, and the reader needs a browser with
+  `Intl.NumberFormat` v3.
+* **`builtin` on both sides.** The same text on both sides, for about 3 KB
+  of gzip more wasm than `intl` and the number data in each catalog the
+  browser downloads.
+* **`plain` on a side** writes plain digits there, whatever the other side
+  writes.
 
 ## Dates
 
@@ -239,7 +374,7 @@ For a server-rendered Leptos application, in `Cargo.toml`:
 
 ```toml
 [dependencies]
-mf2 = { version = "3", features = ["leptos", "fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin", "leptos-client-datetime-intl", "leptos-server-datetime-icu"] }
 
 [build-dependencies]
 mf2-build = { version = "3", features = ["icu-blob"] }
@@ -347,15 +482,16 @@ one family, or with two frameworks in one build that disagree: a
 command-line tool built with `native-datetime-iso` whose optional web mode
 adds `axum-datetime-icu` formats with ICU4X when the web mode is on, and
 without it stays ISO and links no ICU4X. The build warns with
-[`several-date-formatters`](lints.md#several-date-formatters) and names
-the one that formats.
+[`several-formatters`](lints.md#several-formatters) and names the one that
+formats.
 
 ### A date needs a date function
 
 Only `:date`, `:time` and `:datetime` format a date. A date passed to a
 bare placeholder (`{$when}`) is an error at run time, which the message
 shows as its fallback, `{$when}`; write `{$when :datetime}`. Numbers are
-different: a number in a bare placeholder is still formatted as a number.
+different: a number in a bare placeholder is still formatted as a number,
+by its side's number formatter.
 
 The build fails with [`date-mismatch`](lints.md#date-mismatch) when one
 language's message formats a variable with a date function and another
@@ -404,8 +540,8 @@ Data goes only to a side that reads it:
 |---|---|---|
 | the messages | yes | yes |
 | ICU4X's date slice | only with `icu` in the browser | with `icu` on the server |
-| number and plural data | unless `number-intl` | always, when a message needs it |
-| currency and unit names | unless `number-intl` | always, when a message needs them |
+| the plural rules | with `builtin` or `plain` in the browser | with `builtin` or `plain` on the server |
+| number, currency and unit data | only with `builtin` in the browser | with `builtin` on the server |
 
 A server keeps what only it reads in a table of its own beside each
 catalog, which no browser downloads. A command-line tool or a terminal UI
@@ -456,9 +592,10 @@ Two figures are negative because those features replace code rather than
 add it (the two no-date rows, a few bytes either side of nothing, are a
 date formatter that links nothing when no message shows a date):
 
-* **`number-intl` in the browser.** It takes the Rust code that formats
-  numbers and chooses plurals out of the wasm, and calls the browser's
-  `Intl` in its place. The calls are smaller than the code they replace.
+* **`leptos-client-number-intl` in the browser.** It takes the code that
+  rounds a number, writes its digits and applies plural rules out of the
+  wasm, and calls the browser's `Intl` in its place. The calls are smaller
+  than the code they replace, so it weighs less than `plain`.
 * **`ratatui` natively.** It is set against the same terminal UI making its
   Ratatui `Line` itself from a formatted `String`. Ratatui's conversion from
   a `String` links its tables of character display widths (about 9 KB) and
@@ -472,11 +609,16 @@ date formatter that links nothing when no message shows a date):
 The levers, each with what it saves on the figures above and what it gives
 up:
 
-* **`number-intl` in the browser** saves about 3 KB of gzip. You give up the
-  same text everywhere: the browser's `Intl` data, not your catalog's,
-  writes numbers and picks plural forms, so it can differ slightly between
+* **`intl` rather than `builtin` for numbers in the browser** saves about
+  3 KB of gzip, and the number data in each catalog. You give up the same
+  text everywhere: the browser's `Intl` data, not your catalog's, writes
+  numbers and picks plural forms, so it can differ slightly between
   browsers and from the server's rendering; and the reader needs a browser
   with `Intl.NumberFormat` v3.
+* **`plain` rather than `builtin` for numbers** saves about 2.5 KB of gzip
+  in the browser and 10 KB natively, and the number data. You give up
+  numbers in the reader's language: they are written in plain digits, and
+  `:percent`, `:currency` and `:unit` do not build.
 * **`intl` rather than `icu` in the browser** saves about 59 to 101 KB of gzip,
   and the date slice in each catalog. You give up the same dates
   everywhere: the browser's data writes them in the browser, your
@@ -492,17 +634,16 @@ up:
   give up the same zone rules on every machine, and a container with no
   time-zone data cannot resolve named zones. A server has it on through
   `ssr` or `axum`.
-* **Leaving out a function feature no message uses** saves its whole cost:
-  2.5 KB of gzip in the browser for `fn-number`, 10 KB natively. You give
-  up nothing. A date formatter no message uses already costs nothing, in
-  the browser or natively: its code is linked only when a message calls a
-  date function.
+* **A formatter no message uses** costs nothing, in the browser or
+  natively: a date formatter's code is linked only when a message calls a
+  date function, and a number formatter's only when a message calls a
+  number function, chooses a plural form or has a bare placeholder, which
+  may be handed a number.
 
-You do not have to work out the last one yourself. `mf2 check` prints the
-features the corpus needs, those on and unused, and the line to write on
-`mf2`; and the build warns with
-[`unused-feature`](lints.md#unused-feature) when a function feature is on
-and no message can use it.
+You do not have to work that out yourself. `mf2 check` prints what the
+corpus needs, the features on and unused, and the line to write on `mf2`;
+and the build warns with [`unused-feature`](lints.md#unused-feature) when
+a formatter is on and no message can use it.
 
 ## What a browser build pays for text
 

@@ -25,7 +25,8 @@ use mf2_runtime::{
 
 /// The handlers L4 formats with — the all-features configuration: `:string`,
 /// the localized numeric functions with `:percent`, `:currency` and `:unit`
-/// (`fn-number`), the date/time functions (`datetime`) and the test functions.
+/// (the number formatter `builtin`), the date/time functions and the test
+/// functions.
 pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
     ("currency", &mf2_fn_number::CURRENCY),
     ("date", &mf2_fn_datetime::DATE),
@@ -48,8 +49,9 @@ pub static FUNCTIONS: [(&str, &dyn Function); 13] = [
 pub static REGISTRY: Registry = Registry::new(&FUNCTIONS).with_numbers(&mf2_fn_number::NUMBERS);
 
 /// The handlers of the **default** configuration (L4d): what an application's
-/// generated registry holds with `fn-number` and `datetime` off — `:string`
-/// and the core's neutral `:number`, `:integer`, `:offset` — plus the test
+/// generated registry holds with the number formatter `plain` and no date
+/// formatter — `:string` and the core's `:number`, `:integer`, `:offset`, in
+/// plain digits — plus the test
 /// functions. The gated functions (`:percent`, `:currency`, `:unit`,
 /// `:datetime`, `:date`, `:time`) are absent, so they are Unknown Functions.
 pub static DEFAULT_FUNCTIONS: [(&str, &dyn Function); 7] = [

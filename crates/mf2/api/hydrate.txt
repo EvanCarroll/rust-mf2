@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; mode: hydrate; features: compile,fn-number,leptos-client-datetime-icu,host-std-datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
+# nightly-2026-09-24; mode: hydrate; features: compile,leptos-client-number-builtin,host-std-number-builtin,leptos-client-datetime-icu,host-std-datetime-icu,host-std,leptos,hydrate,static-locale,mark-fallback-lang
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy

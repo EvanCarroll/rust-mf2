@@ -14,8 +14,8 @@ units = "used"
 missing-translation = "allow"
 # `ar` has six plural categories and this corpus does not spell them out.
 missing-plural-category = "allow"
-# The fixture is built with and without `fn-number` on purpose.
-neutral-numbers = "allow"
+# The fixture is built with and without a number formatter on purpose.
+plain-numbers = "allow"
 # The size gates build it under every feature set, the date features
 # included, to measure what each costs; it has no date message.
 unused-feature = "allow"

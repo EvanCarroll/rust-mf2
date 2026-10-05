@@ -1,6 +1,7 @@
-# The `number-intl` host wiring in a browser (tools/e2e/checks/intl-host.mjs): an
-# i18n crate whose generated module chooses the host, built for
-# `wasm32-unknown-unknown` with `number-intl` and both function families. A
+# The `intl` number formatter's host wiring in a browser
+# (tools/e2e/checks/intl-host.mjs): an i18n crate whose generated module
+# chooses the host, built for `wasm32-unknown-unknown` with
+# `host-web-number-intl` and `host-web-datetime-intl`. A
 # standalone workspace (the root excludes it), so that its client features
 # never unify with the root's server ones.
 #
@@ -8,7 +9,7 @@
 #   cd tools/e2e && node run.mjs intl-host --browser all
 [package]
 name = "e2e-intl-host"
-description = "The number-intl host wiring in a browser: numbers and plural selection through the host the generated module names."
+description = "The intl number formatter's host wiring in a browser: numbers and plural selection through the host the generated module names."
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
@@ -21,9 +22,8 @@ crate-type = ["cdylib"]
 
 # `mf2-build` reads the corpus's features from this crate's.
 [features]
-default = ["number-intl", "fn-number", "host-web-datetime-intl"]
-number-intl = ["mf2/number-intl"]
-fn-number = ["mf2/fn-number"]
+default = ["host-web-number-intl", "host-web-datetime-intl"]
+host-web-number-intl = ["mf2/host-web-number-intl"]
 host-web-datetime-intl = ["mf2/host-web-datetime-intl"]
 
 [dependencies]

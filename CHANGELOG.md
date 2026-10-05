@@ -39,23 +39,60 @@ What a version number promises, `mf2`'s feature names among it, is in
   `native-datetime-icu`; an Axum server `axum-datetime-icu`. Within one
   build, when more than one formatter of its side is on, the strongest
   formats (ICU4X, then `Intl`, then ISO), and the new warning
-  `several-date-formatters` names it.
+  `several-formatters` names it.
 * **Breaking: only a date function formats a date.** A date handed to a bare
   placeholder (`{$when}`) is a *Bad Operand*, shown as its fallback; write
   `{$when :datetime}`. Numbers still format by type. The new error
   `date-mismatch` fails the build when one language formats a variable with
   `:datetime`, `:date` or `:time` and another shows it bare. A function of
   your own that formats dates returns `"datetime"` from `Function::part_kind`.
-* **Breaking: `mf2`'s `intl` feature is now `number-intl`.** It says what it
-  hands to the browser. Both builds of an application turn it on, on the
-  `mf2` dependency line, not under `hydrate`: the server's build then keeps
-  the number and plural data out of the catalogs the browser downloads, and
-  with it on one build only the two write different catalogs. Write
-  `features = ["number-intl"]` where 2.x wrote `"intl"`.
-  `mf2-fn-number`'s `intl` feature, which only switched on
-  `mf2-runtime`'s, is removed; `mf2-runtime`'s is now `web-number-intl`
-  (beside a new `web-number-builtin`, which keeps the runtime's own number
-  code when both are on) and `mf2-host-web`'s is `number-intl`.
+* **Breaking: the number features are renamed too, and a number needs a
+  formatter.** A browser build and native code each name their own number
+  formatter, from the same families as the date formatters:
+  `leptos-client-number-`, `leptos-server-number-`, `axum-number-`,
+  `native-number-`, and with no framework `host-web-number-` and
+  `host-std-number-`. Each family has `builtin` (`mf2`'s own code over each
+  language's CLDR number data, in its catalog) and `plain` (plain digits,
+  `1234.5`, with the catalog's plural rules); the browser's families also
+  have `intl` (`Intl.NumberFormat` and `Intl.PluralRules`, with no number
+  data downloaded). No framework turns one on. In place of 2.0's:
+
+  | 2.0 | 3.0 |
+  |---|---|
+  | no number feature | the `plain` feature of each family in use |
+  | `fn-number` | the `builtin` feature of each family in use |
+  | `fn-number` and `intl` | `intl` in the browser's family and `builtin` in the native one |
+
+  A server-rendered Leptos application writes `leptos-client-number-intl`
+  and `leptos-server-number-builtin` on the `mf2` dependency line, where
+  both builds see them; a command-line tool or a terminal UI
+  `native-number-builtin`; an Axum server `axum-number-builtin`. These are
+  what `mf2 init` writes.
+
+  2.x formatted `:number`, `:integer` and `:offset`, and chose plural forms,
+  with no feature at all. Now a side with such a message and no number
+  formatter is the `gated-function` error, which names the features to
+  write and what each costs; `:percent`, `:currency` and `:unit` need
+  `builtin` or `intl`, since plain digits cannot show them. A number in a
+  bare placeholder (`{$count}`) on a side with no formatter still prints,
+  in plain digits, with the warning `plain-numbers` (2.x's
+  `neutral-numbers`). Within one build the strongest of a side's formatters
+  formats (`builtin`, then `intl`, then `plain`), and `several-formatters`
+  names it.
+
+  Each piece of number data goes only where a side reads it: the plural
+  rules to a side on `builtin` or `plain`, the symbols, patterns, currencies
+  and units to a side on `builtin`. A browser on `intl` downloads none of
+  it, and a browser on `plain` only the plural rules.
+
+  `mf2-fn-number`'s `intl` feature, which only switched on `mf2-runtime`'s,
+  is removed; `mf2-runtime`'s is now `web-number-intl` (beside a new
+  `web-number-builtin`, which keeps the runtime's own number code when both
+  are on) and `mf2-host-web`'s is `number-intl`.
+* **`mf2 compile` and `mf2 watch` build with the application's features.**
+  Without `--features` they take what cargo resolves for the crate's `mf2`,
+  as `mf2 check` and `mf2 stats` do; 2.x built with none, which now refuses
+  any message that formats a number or a date.
 * **Breaking: a catalog carries its own canonical-equivalence map, and the
   binary format is version 2.** A compiled catalog now holds a small table
   of the code points that can reach its variant keys and argument names
@@ -116,9 +153,9 @@ What a version number promises, `mf2`'s feature names among it, is in
   language asks), and `[dates]` in `mf2.toml` overrides it.
 * **Changed: a browser that formats dates with `Intl` downloads no date
   data.** Data goes only to the side that reads it: a server keeps what only
-  it reads (ICU4X's date data, and the number data under `number-intl`) in
-  a table of its own beside each catalog, which the browser never
-  downloads. A build check, `unread-data`, fails if a piece goes where no
+  it reads (ICU4X's date data, and the number data of a server on `builtin`
+  whose browser is on `intl` or `plain`) in a table of its own beside each
+  catalog, which the browser never downloads. A build check, `unread-data`, fails if a piece goes where no
   one reads it, and `mf2 stats` lists what ships where for each language.
 * **Changed: a server that formats dates as ISO is rewritten by the
   browser.** With `leptos-server-datetime-iso` and another formatter in the
@@ -126,10 +163,12 @@ What a version number promises, `mf2`'s feature names among it, is in
   browser rewrites every message that formats a date. A reader without
   JavaScript sees the ISO dates.
 * **Changed: `mf2 init --tui` on an existing crate asks for `ratatui,
-  fn-number`.** `mf2 init` now writes one feature list per mode, the same in
-  a new application's manifest and in `cargo add`: an existing crate also
-  gets `fn-number` for `--cli` and `--tui`, and a terminal application
-  names `ratatui` alone, which implies `native`.
+  native-number-builtin`.** `mf2 init` now writes one feature list per mode,
+  the same in a new application's manifest and in `cargo add`: an existing
+  crate also gets its number formatter (`native-number-builtin` for `--cli`
+  and `--tui`; `leptos-client-number-intl` and, with a server,
+  `leptos-server-number-builtin` for the web modes), and a terminal
+  application names `ratatui` alone, which implies `native`.
 * **Changed: `mf2-host-std` no longer depends on `ryu`.** Float text is
   `core`'s own shortest round-trip formatting; `ryu` is now only the test
   oracle. A native binary carries one dependency and about 13 KiB less, and
@@ -156,15 +195,17 @@ What a version number promises, `mf2`'s feature names among it, is in
   names passed through the dynamic API go through it, so they behave the
   same on every host.
 * **Added: `mf2 check` prints the feature list.** After the diagnostics, a
-  block names the function features the corpus needs, those that are on,
-  those on and unused, and the `features = [...]` to write on `mf2` with
-  the modes kept; the JSON report has it as `features`. It also names the date
-  formatter of each side, and the form of ICU4X chosen. Without cargo's answer, the list
-  is the corpus's needs only.
+  block says whether the corpus needs numbers or dates, the features of each
+  that are on, those on and unused, and the `features = [...]` to write on
+  `mf2` with the modes kept; the JSON report has it as `features`. It also
+  names the number formatter and the date formatter of each side the
+  application has, and the form of ICU4X chosen. Without cargo's answer, the
+  list is the corpus's needs only.
 * **Added: the lint `unused-feature` (warn).** The build and `mf2 check`
-  warn when a date formatter is on and no message calls `:datetime`, `:date` or `:time`, or when `fn-number` /
-  `number-intl` is on and nothing formats or selects on a number. Drop the
-  feature, or set `unused-feature = "allow"` in `mf2.toml`.
+  warn when a date formatter is on and no message calls `:datetime`, `:date`
+  or `:time`, or when a number formatter is on and nothing formats or
+  selects on a number. Drop the feature, or set `unused-feature = "allow"`
+  in `mf2.toml`.
 * **Fixed: `intl` now formats numbers and selects plurals in a browser.**
   In 2.0.0 a client built with `intl` formatted no number and selected no
   plural: the host its generated module named had no number formatter, so

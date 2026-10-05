@@ -33,7 +33,7 @@ currencies = "used"
 units = ["USD", "EUR"]
 
 [lints]
-neutral-numbers = "warn"
+plain-numbers = "warn"
 unpaired-markup = "error"
 unused-id = "allow"
 
@@ -58,7 +58,7 @@ fn every_key_of_the_plan_is_read() {
         config.locale_data.units,
         DataSet::Listed(["USD".to_owned(), "EUR".to_owned()].into_iter().collect())
     );
-    assert_eq!(config.level(Lint::NeutralNumbers), Level::Warn);
+    assert_eq!(config.level(Lint::PlainNumbers), Level::Warn);
     assert_eq!(config.level(Lint::UnpairedMarkup), Level::Error);
     assert_eq!(config.level(Lint::UnusedId), Level::Allow);
     // A lint nobody configured keeps its default.
@@ -83,7 +83,7 @@ fn the_defaults_are_the_documented_ones() {
     assert_eq!(config.catalog.missing, Missing::Fallback);
     assert_eq!(config.locale_data.currencies, DataSet::Used);
     assert_eq!(config.level(Lint::GatedFunction), Level::Error);
-    assert_eq!(config.level(Lint::NeutralNumbers), Level::Warn);
+    assert_eq!(config.level(Lint::PlainNumbers), Level::Warn);
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn a_wrong_value_names_what_was_expected() {
     assert!(message.contains("names"), "{message}");
     let message = error("[locale_data]\ncurrencies = \"most\"\n");
     assert!(message.contains("most"), "{message}");
-    let message = error("[lints]\nneutral-numbers = \"shout\"\n");
+    let message = error("[lints]\nplain-numbers = \"shout\"\n");
     assert!(message.contains("shout"), "{message}");
 }
 

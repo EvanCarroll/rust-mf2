@@ -26,7 +26,15 @@ use mf2_l4_runner::{Case, Config as RunConfig, Record, run};
 
 /// The features every function needs (layer L4's registry).
 fn all_features() -> Features {
-    Features::parse("fn-number,datetime,host-std-datetime-icu,host-web-datetime-icu")
+    Features::parse(
+        "number,host-std-number-builtin,host-web-number-builtin,datetime,host-std-datetime-icu,host-web-datetime-icu",
+    )
+}
+
+/// The default configuration's (layer L4d's registry): numbers in plain
+/// digits on each side, and no date formatter.
+fn default_features() -> Features {
+    Features::parse("number,host-std-number-plain,host-web-number-plain")
 }
 
 /// A directory holding one message as a one-locale corpus.
@@ -209,10 +217,10 @@ fn a_gated_function_is_a_build_rejection_in_the_default_configuration() {
         let gated = mf2_conformance::l4::GATED_FUNCTIONS
             .iter()
             .find(|(name, _)| test.src.contains(&format!(":{name}")));
-        let built = build_one(&corpus_dir, &out, test, Features::default());
+        let built = build_one(&corpus_dir, &out, test, default_features());
         match (gated, built) {
-            (Some((name, feature)), Ok(_)) => problems.push(format!(
-                "{}: :{name} needs `{feature}`, and the build did not say so",
+            (Some((name, need)), Ok(_)) => problems.push(format!(
+                "{}: :{name} needs {need}, and the build did not say so",
                 test.key
             )),
             (Some(_), Err(message)) => {
@@ -271,10 +279,13 @@ fn a_gated_function_is_a_build_rejection_in_the_default_configuration() {
 /// configuration name how. Two of those kinds are the build's business,
 /// and this is where the two documents are held together:
 ///
-/// * `unknown-function` — the message names a function only a feature
-///   provides, so `mf2-build` must **refuse** it with `gated-function`;
-/// * `neutral-numbers` — the message formats numbers without `fn-number`, so
-///   `mf2 check` must **warn** `neutral-numbers` (and still build).
+/// * `unknown-function` — the message names a function the configuration
+///   has no formatter for, so `mf2-build` must **refuse** it with
+///   `gated-function`;
+/// * `plain-numbers` — the message shows a number in plain digits. The
+///   default configuration chose them (`plain` on each side), so its build
+///   must **accept** the message and say nothing; with no number formatter
+///   at all, `mf2 check` must **warn** `plain-numbers` (and still build).
 #[test]
 fn the_ledger_and_the_build_agree_on_the_default_configuration() {
     use mf2_build::{Level, Lint};
@@ -289,7 +300,7 @@ fn the_ledger_and_the_build_agree_on_the_default_configuration() {
     let out = out_dir("ledger-out");
 
     let mut gated = 0usize;
-    let mut neutral = 0usize;
+    let mut plain = 0usize;
     let mut problems: Vec<String> = Vec::new();
 
     for entry in &ledger.entries {
@@ -302,7 +313,7 @@ fn the_ledger_and_the_build_agree_on_the_default_configuration() {
         match kind {
             DegradedKind::UnknownFunction => {
                 gated += 1;
-                match build_one(&corpus_dir, &out, test, Features::default()) {
+                match build_one(&corpus_dir, &out, test, default_features()) {
                     Ok(_) => problems.push(format!(
                         "{}: the ledger says the default configuration cannot run \
                          this message, and the build accepted it",
@@ -318,9 +329,18 @@ fn the_ledger_and_the_build_agree_on_the_default_configuration() {
                     }
                 }
             }
-            DegradedKind::NeutralNumbers => {
-                neutral += 1;
-                // The warning is on by default; the build still succeeds.
+            DegradedKind::PlainNumbers => {
+                plain += 1;
+                // The default configuration chose plain digits: it builds.
+                if let Err(message) = build_one(&corpus_dir, &out, test, default_features()) {
+                    problems.push(format!(
+                        "{}: the ledger says numbers show in plain digits here, and the \
+                         default configuration's build refused the message: {message}",
+                        entry.key
+                    ));
+                }
+                // With no number formatter the warning is on by default; the
+                // build still succeeds.
                 let mut config = Config::default();
                 config.source_locale.clone_from(&test.locale);
                 config.catalog.strip.clear();
@@ -341,11 +361,11 @@ fn the_ledger_and_the_build_agree_on_the_default_configuration() {
                     .report
                     .diagnostics
                     .iter()
-                    .any(|d| d.lint == Some(Lint::NeutralNumbers));
+                    .any(|d| d.lint == Some(Lint::PlainNumbers));
                 if !warned {
                     problems.push(format!(
-                        "{}: the ledger says numbers degrade to neutral symbols here, \
-                         and `check` did not warn:\n{}",
+                        "{}: the ledger says numbers show in plain digits here, \
+                         and `check` did not warn of them with no number formatter:\n{}",
                         entry.key,
                         outcome.report.to_text()
                     ));
@@ -363,6 +383,6 @@ fn the_ledger_and_the_build_agree_on_the_default_configuration() {
         problems.join("\n")
     );
     assert!(gated > 0, "the ledger has no L4d unknown-function cells");
-    assert!(neutral > 0, "the ledger has no L4d neutral-numbers cells");
-    eprintln!("ledger: {gated} gated-function and {neutral} neutral-numbers cells agreed");
+    assert!(plain > 0, "the ledger has no L4d plain-numbers cells");
+    eprintln!("ledger: {gated} gated-function and {plain} plain-numbers cells agreed");
 }

@@ -24,11 +24,13 @@ license = "MIT"
 publish = false
 
 [features]
-default = ["native"]
+default = ["native", "native-number-plain"]
 # What a native application turns on: the embedded catalogs, the typed
 # languages and the store.
 native = ["mf2/native"]
-fn-number = ["mf2/fn-number"]
+# The number formatters of a native application.
+native-number-plain = ["mf2/native-number-plain"]
+native-number-builtin = ["mf2/native-number-builtin"]
 # The date formatters of a native application; `icu` cuts the catalogs'
 # date slice, which needs `mf2-build`'s `icu-blob`.
 native-datetime-iso = ["mf2/native-datetime-iso"]

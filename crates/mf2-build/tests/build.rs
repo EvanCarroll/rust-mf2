@@ -11,7 +11,7 @@ use mf2_build::{Build, Config, Features, Loader, Missing};
 use mf2_catalog::Catalog;
 
 fn features() -> Features {
-    Features::parse("fn-number")
+    Features::parse("host-std-number-builtin")
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn a_locale_that_lacks_a_message_falls_back() {
     );
     let out = out_dir("fallback");
     let outcome = Build::at(&root, &out)
-        .features(Features::default())
+        .features(features())
         .run()
         .expect("builds");
 
@@ -206,7 +206,7 @@ fn the_missing_policy_decides_what_a_gap_looks_like() {
         config.catalog.missing = policy;
         let outcome = Build::at(&root, &out)
             .config(config)
-            .features(Features::default())
+            .features(features())
             .run()
             .expect("builds");
         let pl = outcome.catalog("pl").expect("pl");
@@ -241,7 +241,7 @@ fn an_id_the_source_lacks_fails_the_build() {
     );
     let out = out_dir("extra-id");
     let outcome = Build::at(&root, &out)
-        .features(Features::default())
+        .features(features())
         .check()
         .expect("the corpus is readable");
     assert!(!outcome.is_clean());
@@ -268,7 +268,7 @@ fn the_manifest_hash_ignores_a_translation_edit() {
     );
     let out = out_dir("hash");
     let before = Build::at(&root, &out)
-        .features(Features::default())
+        .features(features())
         .run()
         .expect("builds");
 
@@ -278,7 +278,7 @@ fn the_manifest_hash_ignores_a_translation_edit() {
     )
     .expect("edit");
     let after = Build::at(&root, &out)
-        .features(Features::default())
+        .features(features())
         .run()
         .expect("builds again");
 
@@ -323,12 +323,12 @@ fn the_catalogs_can_be_emitted_apart_from_the_module() {
     let build = || {
         (
             Build::at(&root, &module_out)
-                .features(Features::default())
+                .features(features())
                 .emit(mf2_build::Emit::Module)
                 .run()
                 .expect("the module"),
             Build::at(&root, &catalogs_out)
-                .features(Features::default())
+                .features(features())
                 .emit(mf2_build::Emit::Catalogs)
                 .run()
                 .expect("the catalogs"),
@@ -395,6 +395,7 @@ fn the_catalogs_can_be_emitted_apart_from_the_module() {
 fn emitting_only_the_module_does_not_compress() {
     let root = workload();
     let module = Build::at(&root, out_dir("emit-module-cost"))
+        .features(features())
         .emit(mf2_build::Emit::Module)
         .run()
         .expect("builds");
@@ -410,6 +411,7 @@ fn emitting_only_the_module_does_not_compress() {
     // And it still agrees with a full build about what the catalogs are —
     // the names it does not embed are the ones the other crate writes.
     let both = Build::at(&root, out_dir("emit-both-cost"))
+        .features(features())
         .run()
         .expect("builds");
     for (a, b) in module.catalogs.iter().zip(&both.catalogs) {
@@ -428,7 +430,10 @@ fn emitting_only_the_module_does_not_compress() {
 fn emitting_only_the_module_prunes_the_catalogs_it_stopped_writing() {
     let root = workload();
     let out = out_dir("emit-module-prune");
-    Build::at(&root, out.clone()).run().expect("builds");
+    Build::at(&root, out.clone())
+        .features(features())
+        .run()
+        .expect("builds");
     let before = std::fs::read_dir(&out)
         .expect("read_dir")
         .flatten()
@@ -437,6 +442,7 @@ fn emitting_only_the_module_prunes_the_catalogs_it_stopped_writing() {
     assert!(before > 0, "the first build wrote no catalogs");
 
     let after = Build::at(&root, out.clone())
+        .features(features())
         .emit(mf2_build::Emit::Module)
         .run()
         .expect("builds");
@@ -555,7 +561,7 @@ fn pseudo_locales_are_named_by_their_tags() {
             .collect();
         let root = corpus(name, "source_locale = \"en\"\n", &files);
         Build::at(&root, out_dir(name))
-            .features(Features::default())
+            .features(features())
             .run()
             .expect("builds")
     };

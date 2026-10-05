@@ -31,7 +31,7 @@ leptos_axum = { version = "0.8.10", optional = true }
 axum = { version = "0.8.9", optional = true }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"], optional = true }
 wasm-bindgen = "0.2.128"
-mf2 = { path = "{{ROOT}}/crates/mf2", features = ["leptos-0-8"] }
+mf2 = { path = "{{ROOT}}/crates/mf2", features = ["leptos-0-8", "leptos-client-number-plain", "leptos-server-number-plain"] }
 
 [build-dependencies]
 mf2-build = { path = "{{ROOT}}/crates/mf2-build" }

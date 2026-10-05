@@ -31,7 +31,7 @@ struct Cli {
     #[arg(long, short, value_name = "DIR", default_value = "target/build-cost")]
     out: PathBuf,
     /// The client feature set.
-    #[arg(long, value_name = "LIST", default_value = "fn-number")]
+    #[arg(long, value_name = "LIST", default_value = "host-std-number-builtin")]
     features: String,
     /// How many warm passes to time (the median is reported).
     #[arg(long, default_value_t = 5)]

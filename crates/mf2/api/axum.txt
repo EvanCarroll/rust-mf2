@@ -1,5 +1,5 @@
 # The public API that 2.x promises (docs/versioning.md). Written by `cargo xtask api`, checked by `cargo xtask ci`; commit it with the change.
-# nightly-2026-09-24; mode: axum; features: compile,fn-number,axum-datetime-icu,host-std,axum
+# nightly-2026-09-24; mode: axum; features: compile,axum-number-builtin,axum-datetime-icu,host-std,axum
 pub mod mf2
 pub use mf2::Arg
 pub use mf2::BidiStrategy

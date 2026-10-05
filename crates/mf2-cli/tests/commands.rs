@@ -95,8 +95,9 @@ fn i18n_crate(dir: &Path, features: &str) {
     std::fs::write(
         dir.join("mf2/Cargo.toml"),
         "[package]\nname = \"mf2\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
-         [features]\nfn-number = []\ndatetime = []\n\
-         host-std-datetime-icu = [\"datetime\"]\nintl = []\n",
+         [features]\nnumber = []\nhost-std-number-plain = [\"number\"]\n\
+         host-std-number-builtin = [\"number\"]\ndatetime = []\n\
+         host-std-datetime-icu = [\"datetime\"]\n",
     )
     .expect("write");
     std::fs::write(dir.join("mf2/src/lib.rs"), "").expect("write");
@@ -113,7 +114,7 @@ fn i18n_crate(dir: &Path, features: &str) {
 #[test]
 fn check_reports_what_it_finds_and_exits_zero_on_a_clean_corpus() {
     let dir = corpus("cli-check");
-    let out = run(&dir, &["check", "--features", "fn-number"]);
+    let out = run(&dir, &["check", "--features", "host-std-number-builtin"]);
     let text = ok(&out);
     assert!(text.contains("0 error(s)"), "{text}");
     // The pseudo-locales do not spell out Arabic's plural categories, which
@@ -122,7 +123,13 @@ fn check_reports_what_it_finds_and_exits_zero_on_a_clean_corpus() {
 
     let json = ok(&run(
         &dir,
-        &["check", "--features", "fn-number", "--format", "json"],
+        &[
+            "check",
+            "--features",
+            "host-std-number-builtin",
+            "--format",
+            "json",
+        ],
     ));
     let value: serde_json::Value = serde_json::from_str(&json).expect("json");
     assert!(
@@ -151,7 +158,7 @@ fn compile_writes_a_catalog_per_locale_and_the_generated_module() {
         &[
             "compile",
             "--features",
-            "fn-number",
+            "host-std-number-builtin",
             "-o",
             out.to_str().expect("utf-8"),
         ],
@@ -170,12 +177,12 @@ fn compile_writes_a_catalog_per_locale_and_the_generated_module() {
 #[test]
 fn compile_site_writes_the_catalogs_and_their_index_and_nothing_else() {
     let dir = corpus("cli-compile-site");
-    i18n_crate(&dir, "\"fn-number\"");
+    i18n_crate(&dir, "\"host-std-number-builtin\"");
     let site = dir.join("site/i18n");
     let args = [
         "compile",
         "--features",
-        "fn-number",
+        "host-std-number-builtin",
         "--site",
         site.to_str().expect("utf-8"),
     ];
@@ -230,7 +237,8 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("locales/en")).expect("mkdir");
     std::fs::write(dir.join("mf2.toml"), "source_locale = \"en\"\n").expect("write");
-    // `:percent` is a build error without `fn-number`.
+    // `:percent` is a build error without a number formatter that writes
+    // the language's own form.
     std::fs::write(
         dir.join("locales/en/main.mf2"),
         "@locale en\n---\n\nshare = {$n :percent}\n",
@@ -242,36 +250,42 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     // Not a cargo package: nothing to take the functions from.
     let out = run(
         &dir,
-        &["compile", "--features", "fn-number", "--site", site],
+        &[
+            "compile",
+            "--features",
+            "host-std-number-builtin",
+            "--site",
+            site,
+        ],
     );
     assert!(!out.status.success(), "{}", stdout(&out));
     assert!(stderr(&out).contains("no Cargo.toml"), "{}", stderr(&out));
 
-    // Without `--features`, cargo's: the crate turns `mf2`'s `fn-number`
-    // on, so `:percent` builds.
-    i18n_crate(&dir, "\"fn-number\"");
+    // Without `--features`, cargo's: the crate turns `mf2`'s
+    // `host-std-number-builtin` on, so `:percent` builds.
+    i18n_crate(&dir, "\"host-std-number-builtin\"");
     ok(&run(&dir, &["compile", "--site", site]));
-    // The same list, or one that differs only in what no catalog depends on,
-    // is accepted.
+    // The same list, another spelling of it, or one that differs only in
+    // what no catalog depends on, is accepted.
     ok(&run(
         &dir,
         &[
             "compile",
             "--features",
-            "fn-number,number-intl",
+            "number,native-number-builtin,compile,datetime",
             "--site",
             site,
         ],
     ));
 
-    // One that differs is rejected, naming both lists, and writes nothing.
+    // One that differs is rejected, naming both, and writes nothing.
     std::fs::remove_dir_all(dir.join("site")).expect("rm");
     let out = run(
         &dir,
         &[
             "compile",
             "--features",
-            "fn-number,datetime",
+            "host-std-number-builtin,host-std-datetime-iso",
             "--site",
             site,
         ],
@@ -279,18 +293,29 @@ fn compile_site_builds_for_the_i18n_crates_features_and_rejects_others() {
     assert!(!out.status.success(), "{}", stdout(&out));
     let err = stderr(&out);
     assert!(
-        err.contains("--features names [datetime, fn-number]")
-            && err.contains("cargo resolves [fn-number] for mf2 in cli-i18n"),
+        err.contains(
+            "--features names [number functions, percent/currency/unit, date functions, \
+             plural rules, number data]"
+        ) && err.contains(
+            "cargo resolves [number functions, percent/currency/unit, plural rules, number \
+             data] for mf2 in cli-i18n"
+        ),
         "{err}"
     );
     assert!(!dir.join("site").exists());
 
-    // Cargo's features are mf2's as the build enables them: with `fn-number`
-    // no longer on, `--features fn-number` disagrees…
+    // Cargo's features are mf2's as the build enables them: with the number
+    // formatter no longer on, `--features host-std-number-builtin` disagrees…
     i18n_crate(&dir, "");
     let out = run(
         &dir,
-        &["compile", "--features", "fn-number", "--site", site],
+        &[
+            "compile",
+            "--features",
+            "host-std-number-builtin",
+            "--site",
+            site,
+        ],
     );
     assert!(
         stderr(&out).contains("cargo resolves no function features"),
@@ -321,8 +346,7 @@ fn small_corpus(name: &str, locales: &[(&str, &str)]) -> PathBuf {
 
 #[test]
 fn check_takes_the_i18n_crates_features_from_cargo() {
-    // Without `fn-number`, `:percent` is an error (and `:integer` would be a
-    // `neutral-numbers` warning, once the corpus has no errors).
+    // Without a number formatter, `:percent` and `:integer` are errors.
     let dir = small_corpus(
         "cli-check-features",
         &[("en", "share = {$n :percent}\nitems = {$n :integer}\n")],
@@ -343,23 +367,28 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     // The feature list is then the corpus's needs only, and says so.
     assert!(
         stdout(&out).contains("the corpus's needs only")
-            && stdout(&out).contains(r#"features = ["fn-number"]"#),
+            && stdout(&out).contains("the corpus needs: numbers")
+            && stdout(&out).contains("and for numbers, the line of the application's kind:")
+            && stdout(&out).contains(r#""native-number-builtin""#),
         "{}",
         stdout(&out)
     );
     let out = run(&dir, &["check", "--format", "json"]);
     let value: serde_json::Value = serde_json::from_slice(&out.stdout).expect("one JSON document");
-    assert_eq!(value["features"]["needs"], serde_json::json!(["fn-number"]));
+    assert_eq!(value["features"]["needs"], serde_json::json!(["numbers"]));
     assert!(value["features"]["on"].is_null(), "{value}");
 
-    // The crate turns `mf2`'s `fn-number` on: a bare check is clean, as the
-    // build is, and says nothing about cargo.
-    i18n_crate(&dir, "\"fn-number\"");
+    // The crate turns `mf2`'s `host-std-number-builtin` on: a bare check is
+    // clean, as the build is, and says nothing about cargo.
+    i18n_crate(&dir, "\"host-std-number-builtin\"");
     let out = run(&dir, &["check"]);
     let text = ok(&out);
     assert!(text.contains("nothing to report"), "{text}");
     assert!(
-        text.contains("on and unused:    none") && text.contains(r#"features = ["fn-number"]"#),
+        text.contains("on and unused:    none")
+            && text.contains(r#"features = ["host-std-number-builtin"]"#)
+            && text
+                .contains("native code:      `builtin` formats numbers (host-std-number-builtin;"),
         "{text}"
     );
     assert!(stderr(&out).is_empty(), "{}", stderr(&out));
@@ -374,7 +403,19 @@ fn check_takes_the_i18n_crates_features_from_cargo() {
     let out = run(&dir, &["check"]);
     assert!(!out.status.success(), "{}", stdout(&out));
     assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
-    ok(&run(&dir, &["check", "--features", "fn-number"]));
+    ok(&run(
+        &dir,
+        &["check", "--features", "host-std-number-builtin"],
+    ));
+    // `plain` formats `:integer`, and no `:percent`.
+    let out = run(&dir, &["check", "--features", "host-std-number-plain"]);
+    assert!(!out.status.success(), "{}", stdout(&out));
+    let text = stdout(&out);
+    assert!(
+        text.contains(":percent formats a number in the language's own form")
+            && !text.contains(":integer formats"),
+        "{text}"
+    );
 }
 
 /// A crate whose build has fetched only its own platform's packages — a
@@ -400,7 +441,7 @@ fn check_resolves_a_crate_with_a_dependency_for_another_platform() {
         )
         .expect("write");
     };
-    with_windows_dependency("\"fn-number\"");
+    with_windows_dependency("\"host-std-number-builtin\"");
     // A registry that lists `winonly` and holds no copy of it: resolving
     // works offline, downloading it cannot.
     std::fs::create_dir_all(dir.join("registry/index/wi/no")).expect("mkdir");
@@ -425,7 +466,8 @@ fn check_resolves_a_crate_with_a_dependency_for_another_platform() {
     let text = ok(&out);
     assert!(text.contains("nothing to report"), "{text}");
     assert!(stderr(&out).is_empty(), "{}", stderr(&out));
-    // Without `fn-number`, the resolve says so: the answer is cargo's.
+    // Without the number formatter, the resolve says so: the answer is
+    // cargo's.
     with_windows_dependency("");
     let out = run(&dir, &["check"]);
     assert!(stdout(&out).contains("gated-function"), "{}", stdout(&out));
@@ -440,7 +482,7 @@ fn date_app(dir: &Path, features: &str, build: Option<&str>) {
     for (name, list) in [
         (
             "mf2",
-            "fn-number = []\nleptos = []\nnative = []\nratatui = []\naxum = []\n\
+            "leptos = []\nnative = []\nratatui = []\naxum = []\n\
              datetime = []\nhost-std-datetime-icu = [\"datetime\"]\n\
              native-datetime-icu = [\"host-std-datetime-icu\"]\n",
         ),
@@ -526,7 +568,7 @@ fn check_lists_the_date_lines_of_the_frameworks_that_are_on() {
     // A Leptos application before a date formatter is chosen: the Leptos
     // line, not every kind of application's (task 21.10).
     let dir = small_corpus("cli-check-date-lines", &[("en", "when = {$d :datetime}\n")]);
-    date_app(&dir, "\"leptos\", \"fn-number\"", Some(""));
+    date_app(&dir, "\"leptos\"", Some(""));
     let out = run(&dir, &["check"]);
     let text = stdout(&out);
     assert!(
@@ -549,7 +591,7 @@ fn check_lists_the_date_lines_of_the_frameworks_that_are_on() {
     assert!(text.contains("\"native-datetime-icu\""), "{text}");
     assert!(!text.contains("leptos-server-datetime-icu"), "{text}");
     // No framework: every kind's line.
-    date_app(&dir, "\"fn-number\"", Some(""));
+    date_app(&dir, "", Some(""));
     let text = stdout(&run(&dir, &["check"]));
     for (_, features) in mf2_build::kind_lines::<mf2_build::DateBackend>() {
         for feature in features {
@@ -738,7 +780,10 @@ fn do_not_translate_messages_are_not_missing() {
 #[test]
 fn stats_reports_coverage_sizes_and_the_pins() {
     let dir = corpus("cli-stats");
-    let text = ok(&run(&dir, &["stats", "--features", "fn-number"]));
+    let text = ok(&run(
+        &dir,
+        &["stats", "--features", "host-std-number-builtin"],
+    ));
     assert!(text.contains("1600 messages"), "{text}");
     assert!(text.contains("CLDR 48.2.1"), "{text}");
     assert!(text.contains("MF2 spec 5c4ddb27"), "{text}");
@@ -756,8 +801,9 @@ fn stats_reports_coverage_sizes_and_the_pins() {
 
 #[test]
 fn stats_takes_the_i18n_crates_features_from_cargo() {
-    // `:integer` formats with CLDR's number symbols only with `fn-number`,
-    // so whether the catalog carries them says which features stats used.
+    // `:integer` formats with CLDR's number symbols only where a side's
+    // number formatter is `builtin`, so whether the catalog carries them
+    // says which features stats used.
     let dir = small_corpus("cli-stats-features", &[("en", "items = {$n :integer}\n")]);
     let symbols = |dir: &Path| -> bool {
         let out = run(dir, &["stats", "--format", "json"]);
@@ -768,16 +814,22 @@ fn stats_takes_the_i18n_crates_features_from_cargo() {
             .iter()
             .any(|e| e["entry"] == "number.symbols")
     };
-    // The crate turns `mf2`'s `fn-number` on, or leaves it off: stats
-    // counts what that build ships, as `check` checks it.
-    i18n_crate(&dir, "\"fn-number\"");
+    // The crate turns `mf2`'s `builtin` on, or its `plain`: stats counts
+    // what that build ships, as `check` checks it.
+    i18n_crate(&dir, "\"host-std-number-builtin\"");
     assert!(symbols(&dir));
-    i18n_crate(&dir, "");
+    i18n_crate(&dir, "\"host-std-number-plain\"");
     assert!(!symbols(&dir));
     // `--features` still wins over cargo's.
     let out = run(
         &dir,
-        &["stats", "--features", "fn-number", "--format", "json"],
+        &[
+            "stats",
+            "--features",
+            "host-std-number-builtin",
+            "--format",
+            "json",
+        ],
     );
     assert!(ok(&out).contains("number.symbols"));
 }
@@ -820,9 +872,10 @@ fn stats_says_what_ships_where() {
         }
     };
 
-    // `intl` in the browser: no ICU4X slice anywhere, the number entries
-    // in the catalog, read on both sides.
-    let features = "hydrate,fn-number,leptos-client-datetime-intl";
+    // `intl` dates in the browser: no ICU4X slice anywhere. `builtin`
+    // numbers on both sides: the number entries in the catalog, read on
+    // both.
+    let features = "hydrate,leptos-client-number-builtin,leptos-server-number-builtin,leptos-client-datetime-intl";
     let intl = stats(features);
     check(&intl, features);
     for locale in intl["locales"].as_array().expect("an array") {
@@ -835,9 +888,10 @@ fn stats_says_what_ships_where() {
         );
     }
 
-    // `number-intl`: the browser takes numbers from `Intl`, so the number
-    // entries ship in the server-only table, read by native code alone.
-    let features = "hydrate,fn-number,number-intl,leptos-client-datetime-intl";
+    // `intl` numbers in the browser: it takes numbers from `Intl`, so the
+    // number entries ship in the server-only table, read by native code
+    // alone.
+    let features = "hydrate,leptos-client-number-intl,leptos-server-number-builtin,leptos-client-datetime-intl";
     let number_intl = stats(features);
     check(&number_intl, features);
     for locale in number_intl["locales"].as_array().expect("an array") {
@@ -853,7 +907,7 @@ fn stats_says_what_ships_where() {
     // by the browser; the server formats ISO and reads none of it.
     #[cfg(feature = "icu-blob")]
     {
-        let features = "ssr,fn-number,leptos-client-datetime-icu,leptos-server-datetime-iso";
+        let features = "ssr,leptos-client-number-builtin,leptos-server-number-builtin,leptos-client-datetime-icu,leptos-server-datetime-iso";
         let icu = stats(features);
         check(&icu, features);
         for locale in icu["locales"].as_array().expect("an array") {
@@ -867,7 +921,7 @@ fn stats_says_what_ships_where() {
         }
         // `icu` on the server and `intl` in the browser: the slice ships in
         // the server-only table, read by native code alone (task 21.9).
-        let features = "ssr,fn-number,leptos-client-datetime-intl,leptos-server-datetime-icu";
+        let features = "ssr,leptos-client-number-builtin,leptos-server-number-builtin,leptos-client-datetime-intl,leptos-server-datetime-icu";
         let server = stats(features);
         check(&server, features);
         for locale in server["locales"].as_array().expect("an array") {
@@ -881,7 +935,7 @@ fn stats_says_what_ships_where() {
         }
         // A terminal UI with `icu`: the slice is in the catalog, read by
         // native code alone.
-        let features = "ratatui,fn-number,native-datetime-icu";
+        let features = "ratatui,native-number-builtin,native-datetime-icu";
         let native: serde_json::Value = serde_json::from_str(&ok(&run(
             &dir,
             &["stats", "--features", features, "--format", "json"],
@@ -906,7 +960,7 @@ fn stats_says_what_ships_where() {
         "source_locale = \"en\"\n\n[catalog]\nstrip = []\n",
     )
     .expect("write");
-    let features = "hydrate,fn-number,leptos-client-datetime-intl";
+    let features = "hydrate,leptos-client-number-builtin,leptos-server-number-builtin,leptos-client-datetime-intl";
     let kept = stats(features);
     let mut unread_total = 0;
     for locale in kept["locales"].as_array().expect("an array") {
@@ -934,7 +988,7 @@ fn stats_says_what_ships_where() {
         &[
             "stats",
             "--features",
-            "hydrate,fn-number,number-intl,leptos-client-datetime-intl",
+            "hydrate,leptos-client-number-intl,leptos-server-number-builtin,leptos-client-datetime-intl",
         ],
     ));
     assert!(text.contains("what ships where"), "{text}");
@@ -1213,7 +1267,7 @@ fn init_web_modes_make_a_new_application() {
     let app = root.join("my-app");
     let manifest = std::fs::read_to_string(app.join("Cargo.toml")).expect("manifest");
     for line in [
-        "features = [\"leptos\", \"fn-number\"]",
+        "features = [\"leptos\", \"leptos-client-number-intl\", \"leptos-server-number-builtin\"]",
         "\"mf2/ssr\",\n    \"mf2/axum\",",
         "watch-additional-files = [\"locales\"]",
         "output-name = \"my_app\"",
@@ -1269,7 +1323,7 @@ fn init_cli_and_tui_make_a_new_application() {
     let manifest = std::fs::read_to_string(root.join("count/Cargo.toml")).expect("manifest");
     assert!(manifest.contains("name = \"count\""), "{manifest}");
     assert!(
-        manifest.contains("features = [\"native\", \"fn-number\"]"),
+        manifest.contains("features = [\"native\", \"native-number-builtin\"]"),
         "{manifest}"
     );
     assert!(
@@ -1330,11 +1384,26 @@ fn init_writes_each_modes_feature_list_in_both_paths() {
     let root = fresh("cli-init-lists");
     std::fs::create_dir_all(&root).expect("mkdir");
     for (flag, list) in [
-        ("--cli", &["native", "fn-number"][..]),
-        ("--tui", &["ratatui", "fn-number"]),
-        ("--ssr", &["leptos", "fn-number"]),
-        ("--islands", &["leptos", "fn-number", "static-locale"]),
-        ("--csr", &["leptos", "csr", "fn-number"]),
+        ("--cli", &["native", "native-number-builtin"][..]),
+        ("--tui", &["ratatui", "native-number-builtin"]),
+        (
+            "--ssr",
+            &[
+                "leptos",
+                "leptos-client-number-intl",
+                "leptos-server-number-builtin",
+            ],
+        ),
+        (
+            "--islands",
+            &[
+                "leptos",
+                "leptos-client-number-intl",
+                "leptos-server-number-builtin",
+                "static-locale",
+            ],
+        ),
+        ("--csr", &["leptos", "csr", "leptos-client-number-intl"]),
     ] {
         let name = &flag[2..];
         ok(&run(&root, &["init", flag, &format!("new-{name}")]));
@@ -1417,7 +1486,7 @@ fn init_tui_adds_translations_to_an_existing_crate() {
     assert!(text.contains("use crate::prelude::*;"), "{text}");
     let asked = std::fs::read_to_string(&log).expect("cargo ran");
     assert_eq!(
-        asked, "add mf2@3 -F ratatui,fn-number\nadd --build mf2-build@3\n",
+        asked, "add mf2@3 -F ratatui,native-number-builtin\nadd --build mf2-build@3\n",
         "{asked}"
     );
     assert_eq!(
@@ -1478,7 +1547,9 @@ fn init_ssr_adds_translations_to_an_existing_crate() {
     }
     let asked = std::fs::read_to_string(&log).expect("cargo ran");
     assert_eq!(
-        asked, "add mf2@3 -F leptos,fn-number\nadd --build mf2-build@3\n",
+        asked,
+        "add mf2@3 -F leptos,leptos-client-number-intl,leptos-server-number-builtin\n\
+         add --build mf2-build@3\n",
         "{asked}"
     );
     assert!(dir.join("build.rs").is_file());

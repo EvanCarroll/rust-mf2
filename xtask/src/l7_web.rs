@@ -194,7 +194,9 @@ fn build_configuration(root: &Path, dir: &Path, all: bool) -> Result<()> {
         if all {
             format!("{kind},all-functions")
         } else {
-            kind.to_owned()
+            // Plain digits on each side, which a side must name to format a
+            // number at all.
+            format!("{kind},default-functions")
         }
     };
     eprintln!("l7-web: rendering the pages ({}, ssr)", dir.display());

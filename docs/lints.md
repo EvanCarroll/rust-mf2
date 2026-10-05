@@ -117,29 +117,41 @@ Fix: a value the option takes (`minimumFractionDigits=2`).
 
 Default `error`; the lowest `mf2.toml` may set it is `error`.
 
-A message calls a function whose feature of `mf2` is off: `:percent`,
-`:currency` and `:unit` need `fn-number`; `:datetime`, `:date` and `:time`
-need a date formatter for each side the build formats on (`datetime` alone
-is none). A translation can never add formatting code to the application
-by itself.
+A message calls a function this build has no formatter for:
 
-For a date function the message names the features to write, the date
-families of the frameworks that are on and what each formatter costs. A
-server-rendered Leptos application that names only the browser's formatter
-gets it, with `leptos-server-datetime-icu` as the feature to add. The
-recommended formatters are `intl` in the browser and `icu` in native code:
-`leptos-client-datetime-intl` and `leptos-server-datetime-icu` for a
-server-rendered Leptos application, `native-datetime-icu` for a
-command-line tool or a terminal UI, `axum-datetime-icu` for an Axum server.
+* `:number`, `:integer` and `:offset`, and choosing a plural form, need a
+  number formatter for each side the build formats on (`number` alone is
+  none);
+* `:percent`, `:currency` and `:unit` need one that writes the language's
+  own form: `builtin`, or the browser's `intl`. `plain` writes plain digits
+  and does not;
+* `:datetime`, `:date` and `:time` need a date formatter for each side
+  (`datetime` alone is none).
+
+A translation can never add formatting code to the application by itself.
+
+The message names the sides that cannot format the function, the features
+to write, the families of the frameworks that are on and what each
+formatter costs. A server-rendered Leptos application that names only the
+browser's formatter gets it, with the server's as the feature to add. The
+recommended formatters are `intl` in the browser and, in native code,
+`builtin` for numbers and `icu` for dates: for a server-rendered Leptos
+application `leptos-client-number-intl` and `leptos-server-number-builtin`,
+`leptos-client-datetime-intl` and `leptos-server-datetime-icu`; for a
+command-line tool or a terminal UI `native-number-builtin` and
+`native-datetime-icu`; for an Axum server `axum-number-builtin` and
+`axum-datetime-icu`.
 
 ```text
 en   price = It costs {$amount :currency currency=EUR}
 ```
 
-with `mf2 = { …, features = ["ssr"] }`. Fix: turn the feature on
-(`features = ["ssr", "fn-number"]`, see [Features of `mf2`](features.md)),
-or leave the function out of the message. `mf2 check` reads the features
-cargo resolves, or `--features` when it is given.
+with `mf2 = { …, features = ["native", "native-number-plain"] }`. Fix:
+write the formatter the message names
+(`features = ["native", "native-number-builtin"]`, see
+[Features of `mf2`](features.md)), or leave the function out of the
+message. `mf2 check` reads the features cargo resolves, or `--features`
+when it is given.
 
 ### `do-not-translate`
 
@@ -240,42 +252,46 @@ Fix: translate it. `mf2 stats` counts what each language lacks, and
 `@do-not-translate` is never missing. Raise it to `error` to keep a release
 from shipping with gaps.
 
-### `neutral-numbers`
+### `plain-numbers`
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 
-`mf2`'s `fn-number` feature is off and a placeholder can receive a number:
-the number would be written with neutral symbols (`1234.5`), not the
-language's separators, grouping or digits. The build cannot see what a
-call site passes, so a placeholder that only ever receives text raises it
-too.
+A placeholder with no function can receive a number, and a side this build
+formats on has no number formatter: the number would be written there in
+plain digits (`1234.5`), not with the language's separators, grouping or
+digits. The build cannot see what a call site passes, so a placeholder that
+only ever receives text raises it too. A side whose number formatter is
+`plain` chose plain digits, and raises nothing.
 
 ```text
 en   files = {$count} files
 ```
 
-Fix: turn on `fn-number`; or, if these placeholders only receive text,
-`neutral-numbers = "allow"` under `[lints]`.
+with `mf2 = { …, features = ["native"] }`. Fix: write the number formatter
+the message names (`native-number-builtin` here, see
+[Numbers](features.md#numbers)); or, if these placeholders only receive
+text, `plain-numbers = "allow"` under `[lints]`.
 
 ### `unused-feature`
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 
-A function feature is on for this build and no message can use it. It is
-raised once per family, for the whole corpus:
+A formatter is on for this build and no message can use it. It is raised
+once per family, for the whole corpus:
 
+* the number formatters (every `…-number-…` feature that is on, or
+  `number` alone) when no message formats or selects on a number: no
+  numeric function, no plural selection and no plain placeholder that could
+  receive one;
 * the date formatters (every `…-datetime-…` feature that is on, or
   `datetime` alone) when no message calls `:datetime`, `:date` or `:time`.
   Only a date function formats a date: a date handed to a plain
-  placeholder is an error, so no message can use the formatter;
-* the number family (`fn-number`, `number-intl`) when no message formats or
-  selects on a number: no numeric function, no plural selection and no
-  plain placeholder that could receive one.
+  placeholder is an error, so no message can use the formatter.
 
-It is also raised for a date feature of a framework that is off, such as
-`axum-datetime-icu` in a crate without `axum`: it still turns its side's
-formatter on, under a name that says nothing about this build, and the
-message asks for the family of the framework that formats there.
+It is also raised for a formatter's feature of a framework that is off,
+such as `axum-datetime-icu` in a crate without `axum`: it still turns its
+side's formatter on, under a name that says nothing about this build, and
+the message asks for the family of the framework that formats there.
 
 The message says "on for this build": in a workspace another crate may have
 turned the feature on, and cargo builds `mf2` once with the union.
@@ -288,24 +304,24 @@ Fix: drop the feature from `Cargo.toml` (or from the crate that turned it
 on), or write the family of the framework in use; or
 `unused-feature = "allow"` under `[lints]`.
 
-### `several-date-formatters`
+### `several-formatters`
 
 Default `warn`; the lowest `mf2.toml` may set it is `allow`.
 
-More than one date formatter of one side is on: two features of one family,
-or two frameworks' families that disagree. A build formats dates with one,
-the strongest (`icu`, then `intl`, then `iso`), and the message names it.
-The browser and native code are two builds, so `leptos-client-datetime-intl`
-with `leptos-server-datetime-icu` is one formatter on each side and raises
-nothing.
+More than one number formatter, or more than one date formatter, of one
+side is on: two features of one family, or two frameworks' families that
+disagree. A build formats with one of each, the strongest (for numbers
+`builtin`, then `intl`, then `plain`; for dates `icu`, then `intl`, then
+`iso`), and the message names it. The browser and native code are two
+builds, so `leptos-client-datetime-intl` with `leptos-server-datetime-icu`
+is one formatter on each side and raises nothing.
 
 ```text
 en   (native-datetime-iso and native-datetime-icu on)
 ```
 
 Fix: drop the formatters that do not format; or, if another crate of the
-workspace turns one on, `several-date-formatters = "allow"` under
-`[lints]`.
+workspace turns one on, `several-formatters = "allow"` under `[lints]`.
 
 ### `unpaired-markup`
 

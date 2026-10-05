@@ -17,7 +17,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use mf2_build::{Backend, Config, DateBackend, Error, FAMILIES, Framework, Lint, domain_features};
+use mf2_build::{
+    Backend, Config, DateBackend, Error, FAMILIES, Framework, Lint, NumberBackend, domain_features,
+};
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -290,6 +292,11 @@ fn every_date_feature_of_mf2_is_in_the_table() {
             "leptos-client-datetime-icu-cached",
         ],
     );
+}
+
+#[test]
+fn every_number_feature_of_mf2_is_in_the_table() {
+    manifest_matches_table::<NumberBackend>(&mf2_features(), &[]);
 }
 
 #[test]

@@ -87,13 +87,25 @@ impl Mode {
     /// new application's manifest and `cargo add` for an existing crate
     /// write. `ratatui` implies `native`; the server's and the client's
     /// modes (`ssr`, `hydrate`) are forwarded by the crate's own features.
+    /// The starter's messages count things, so each side the application
+    /// builds names its number formatter: the browser's `Intl`, which
+    /// downloads no number data, and `mf2`'s own code natively.
     fn features(self) -> &'static [&'static str] {
         match self {
-            Mode::Cli => &["native", "fn-number"],
-            Mode::Tui => &["ratatui", "fn-number"],
-            Mode::Ssr => &["leptos", "fn-number"],
-            Mode::Islands => &["leptos", "fn-number", "static-locale"],
-            Mode::Csr => &["leptos", "csr", "fn-number"],
+            Mode::Cli => &["native", "native-number-builtin"],
+            Mode::Tui => &["ratatui", "native-number-builtin"],
+            Mode::Ssr => &[
+                "leptos",
+                "leptos-client-number-intl",
+                "leptos-server-number-builtin",
+            ],
+            Mode::Islands => &[
+                "leptos",
+                "leptos-client-number-intl",
+                "leptos-server-number-builtin",
+                "static-locale",
+            ],
+            Mode::Csr => &["leptos", "csr", "leptos-client-number-intl"],
         }
     }
 
@@ -619,6 +631,33 @@ mod tests {
     use super::{Mode, starter_files};
 
     const MODES: [Mode; 5] = [Mode::Cli, Mode::Tui, Mode::Ssr, Mode::Islands, Mode::Csr];
+
+    /// The starters' messages count things, so every build of the
+    /// application has the number formatter of its side: the one the tools
+    /// recommend there, with nothing left for `mf2 check` to add.
+    #[test]
+    fn the_starters_name_a_number_formatter_for_each_build() {
+        use mf2_build::{Backend, Features, NumberBackend, Side};
+        for mode in MODES {
+            // What each build of the application adds to the list.
+            let builds: &[&[&str]] = match mode {
+                Mode::Cli | Mode::Tui | Mode::Csr => &[&[]],
+                Mode::Ssr | Mode::Islands => &[&["ssr"], &["hydrate"]],
+            };
+            for build in builds {
+                let names = mode.features().iter().chain(build.iter()).copied();
+                let features = Features::from_names(names);
+                let what = format!("{}, {build:?}", mode.what());
+                assert!(features.formats::<NumberBackend>(), "{what}");
+                assert!(features.missing::<NumberBackend>().is_empty(), "{what}");
+                for side in Side::ALL {
+                    if let Some(formatter) = features.backend::<NumberBackend>(side) {
+                        assert_eq!(formatter, NumberBackend::recommended(side), "{what}");
+                    }
+                }
+            }
+        }
+    }
 
     /// `plan/08` §3.5: the starters have no date in a message and name no
     /// date feature, so a new application links no date code.

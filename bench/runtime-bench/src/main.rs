@@ -76,7 +76,7 @@ enum Numbers {
         #[arg(default_value_t = 100_000)]
         n: usize,
     },
-    /// The same corpus localized (`fn-number`) over the locale panel, for
+    /// The same corpus localized (`mf2-fn-number`) over the locale panel, for
     /// `loc-diff.cjs` (Phase 4, A3): `:number` and `:percent`, a
     /// `useGrouping` value per case.
     Locale {

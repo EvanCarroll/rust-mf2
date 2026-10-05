@@ -27,7 +27,7 @@ calendars = "gregorian"
 zone-names = false
 
 [lints]
-neutral-numbers = "allow"
+plain-numbers = "allow"
 dropped-markup = "warn"
 
 [functions]
@@ -100,8 +100,9 @@ applies to.
 
 ## `[locale_data]`
 
-How much of CLDR's currency and unit data a catalog carries, when `mf2`'s
-`fn-number` feature is on (without it no number data is carried at all).
+How much of CLDR's currency and unit data a catalog carries, when a side's
+number formatter is `builtin` (with `intl` or `plain` on every side no
+number data is carried at all).
 
 ### `currencies`
 

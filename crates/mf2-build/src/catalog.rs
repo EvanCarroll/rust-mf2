@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
+use mf2_catalog::format::locale_key;
 use mf2_catalog::writer::{self, Options};
 use mf2_catalog::{Dir, Manifest};
 use mf2_locale_data::{CLDR_VERSION, direction, locale_entries};
@@ -12,7 +13,7 @@ use mf2_model::{Message, Pattern, PatternMessage};
 
 use crate::config::{Config, Missing, Strip};
 use crate::error::{Error, Result};
-use crate::features::{DateBackend, Features, Place, Side};
+use crate::features::{DateBackend, Features, NumberBackend, Place, Placement, Side};
 use crate::slice::Slice;
 
 /// Brotli as budget B7 is measured: quality 11, window
@@ -208,9 +209,9 @@ pub fn resolve<'a>(
 }
 
 /// Writes one locale's catalog: the bytes, `.br`, `.gz` and the hash, and
-/// the server-only table. `numbers` is where the plural and number entries
-/// go and `date_slice` where ICU4X's date slice goes, when the corpus needs
-/// them (`plan/08` §4.1).
+/// the server-only table. `placement` is where the plural rules, the number
+/// data and ICU4X's date slice go, when the corpus needs them (`plan/08`
+/// §4.1).
 // Each argument is one independent input of the catalog.
 #[allow(clippy::too_many_arguments)]
 pub fn write(
@@ -221,8 +222,7 @@ pub fn write(
     slice: Slice,
     config: &Config,
     compress: Compress,
-    numbers: Place,
-    date_slice: Place,
+    placement: Placement,
 ) -> Result<Catalog> {
     let dir = direction(tag).map_err(|source| Error::Locale {
         locale: tag.to_owned(),
@@ -232,24 +232,30 @@ pub fn write(
     options.strip_cold = config.catalog.strip.contains(&Strip::Cold);
     options.strip_ids = config.catalog.strip.contains(&Strip::Ids);
     options.cldr_version = Some(CLDR_VERSION);
-    // `locale_entries` gives the plural and number entries alone.
+    // `locale_entries` gives the plural rules and the number data alone,
+    // each of which goes where its own readers look.
     let mut server_entries: Vec<(u32, Vec<u8>)> = Vec::new();
-    match numbers {
-        Place::Catalog => options.locale_entries = locale_entries(tag, &slice.needs)?,
-        Place::Server => server_entries = locale_entries(tag, &slice.needs)?,
-        Place::Nowhere => {}
+    for entry in locale_entries(tag, &slice.needs)? {
+        let place = match entry.0 {
+            locale_key::PLURAL_CARDINAL | locale_key::PLURAL_ORDINAL => placement.plural,
+            _ => placement.numbers,
+        };
+        match place {
+            Place::Catalog => options.locale_entries.push(entry),
+            Place::Server => server_entries.push(entry),
+            // No side reads it, so the slice did not ask for it.
+            Place::Nowhere => {}
+        }
     }
     #[cfg(feature = "icu-blob")]
     if let Some(entry) = crate::slice::icu_entry(tag, &slice)? {
-        match date_slice {
+        match placement.dates {
             Place::Catalog => options.locale_entries.push(entry),
             Place::Server => server_entries.push(entry),
             // No side formats with ICU4X, so the slice was not cut.
             Place::Nowhere => {}
         }
     }
-    #[cfg(not(feature = "icu-blob"))]
-    let _ = date_slice;
     let mut missing = 0;
     let mut fallbacks = 0;
     for (i, origin) in resolved.origins.iter().enumerate() {
@@ -424,12 +430,18 @@ pub struct Readers {
 
 impl Readers {
     /// The readers of the entry `key` under `features`, from the table of
-    /// `plan/08` §4.1 and not from [`Features::number_place`] or
-    /// [`Features::date_slice_place`], so that [`check_read`] holds the
-    /// placement to the readers rather than to itself. A key the table does
-    /// not name has no reader.
+    /// `plan/08` §4.1, entry by entry, and not from
+    /// [`Features::placement`], so that [`check_read`] holds the placement
+    /// to the readers rather than to itself. A key the table does not name
+    /// has no reader.
     pub fn of(key: u32, features: &Features) -> Readers {
-        use mf2_catalog::format::locale_key;
+        let numbers = |reads: fn(NumberBackend) -> bool| {
+            let side = |side| features.backend::<NumberBackend>(side).is_some_and(reads);
+            Readers {
+                browser: side(Side::Browser),
+                native: side(Side::Native),
+            }
+        };
         match key {
             locale_key::ICU_BLOB => {
                 let icu = |side| {
@@ -442,18 +454,16 @@ impl Readers {
                     native: icu(Side::Native),
                 }
             }
-            // A browser formats and selects through `Intl` under
-            // `number-intl` and reads none of them; native code reads them
-            // on every build whose corpus needs them.
-            locale_key::PLURAL_CARDINAL
-            | locale_key::PLURAL_ORDINAL
-            | locale_key::NUMBER_SYMBOLS
+            // A side selects from the plural rules with `builtin` or
+            // `plain`; with `intl` it asks the browser.
+            locale_key::PLURAL_CARDINAL | locale_key::PLURAL_ORDINAL => {
+                numbers(NumberBackend::reads_plural_rules)
+            }
+            // Only `builtin` formats from the number data.
+            locale_key::NUMBER_SYMBOLS
             | locale_key::NUMBER_PATTERNS
             | locale_key::CURRENCY_DATA
-            | locale_key::UNIT_DATA => Readers {
-                browser: !features.number_intl(),
-                native: true,
-            },
+            | locale_key::UNIT_DATA => numbers(NumberBackend::reads_number_data),
             _ => Readers {
                 browser: false,
                 native: false,
@@ -667,7 +677,6 @@ fn sections(bytes: &[u8]) -> Vec<(u16, usize)> {
 
 /// The name of the LOCALE entry `key`, or the key itself.
 fn entry_name(key: u32) -> String {
-    use mf2_catalog::format::locale_key;
     match key {
         locale_key::PLURAL_CARDINAL => "plural.cardinal".to_owned(),
         locale_key::PLURAL_ORDINAL => "plural.ordinal".to_owned(),
@@ -688,6 +697,13 @@ mod tests {
     use crate::error::Error;
     use crate::features::Features;
 
+    const PLURAL: [u32; 2] = [locale_key::PLURAL_CARDINAL, locale_key::PLURAL_ORDINAL];
+    const DATA: [u32; 4] = [
+        locale_key::NUMBER_SYMBOLS,
+        locale_key::NUMBER_PATTERNS,
+        locale_key::CURRENCY_DATA,
+        locale_key::UNIT_DATA,
+    ];
     const NUMBERS: [u32; 6] = [
         locale_key::PLURAL_CARDINAL,
         locale_key::PLURAL_ORDINAL,
@@ -696,6 +712,10 @@ mod tests {
         locale_key::CURRENCY_DATA,
         locale_key::UNIT_DATA,
     ];
+    /// A browser on `intl` beside a server on `builtin`.
+    const INTL: &str = "hydrate,leptos-client-number-intl,leptos-server-number-builtin";
+    /// A browser on `plain` beside a server on `builtin`.
+    const PLAIN: &str = "hydrate,leptos-client-number-plain,leptos-server-number-builtin";
 
     fn entries(keys: &[u32]) -> Vec<(u32, usize)> {
         keys.iter().map(|key| (*key, 8)).collect()
@@ -726,9 +746,14 @@ mod tests {
 
     #[test]
     fn every_entry_where_its_readers_look_passes() {
-        check("hydrate,fn-number", &NUMBERS, &[]).expect("the browser reads them");
-        check("hydrate,fn-number,number-intl", &[], &NUMBERS).expect("the server reads them");
-        check("native,fn-number,number-intl", &NUMBERS, &[]).expect("one reader, one file");
+        check("hydrate,leptos-client-number-builtin", &NUMBERS, &[])
+            .expect("the browser reads them");
+        check(INTL, &[], &NUMBERS).expect("the server reads them");
+        check(PLAIN, &PLURAL, &DATA)
+            .expect("the browser reads the plural rules, the server alone the number data");
+        check("csr,leptos-client-number-plain", &PLURAL, &[])
+            .expect("the browser reads the plural rules");
+        check("native,native-number-builtin", &NUMBERS, &[]).expect("one reader, one file");
         check(
             "ssr,leptos-client-datetime-intl,leptos-server-datetime-icu",
             &[],
@@ -749,8 +774,13 @@ mod tests {
 
     #[test]
     fn number_entries_in_a_catalog_the_browser_never_reads_fail() {
+        unread(check(INTL, &NUMBERS, &[]), "plural.cardinal");
+        // A browser on `plain` reads the plural rules, and none of the
+        // number data.
+        unread(check(PLAIN, &NUMBERS, &[]), "number.symbols");
+        // A browser on `intl` with no server: no one reads either.
         unread(
-            check("hydrate,fn-number,number-intl", &NUMBERS, &[]),
+            check("csr,leptos-client-number-intl", &PLURAL, &[]),
             "plural.cardinal",
         );
     }
@@ -758,15 +788,24 @@ mod tests {
     #[test]
     fn number_entries_in_the_table_while_the_browser_reads_them_fail() {
         unread(
-            check("hydrate,fn-number", &[], &[locale_key::NUMBER_SYMBOLS]),
+            check(
+                "hydrate,leptos-client-number-builtin",
+                &[],
+                &[locale_key::NUMBER_SYMBOLS],
+            ),
             "number.symbols",
         );
+        unread(check(PLAIN, &[], &NUMBERS), "plural.cardinal");
     }
 
     #[test]
     fn a_table_with_no_browser_side_fails() {
         unread(
-            check("native,fn-number", &[], &[locale_key::UNIT_DATA]),
+            check(
+                "native,native-number-builtin",
+                &[],
+                &[locale_key::UNIT_DATA],
+            ),
             "unit.data",
         );
     }
@@ -800,6 +839,6 @@ mod tests {
 
     #[test]
     fn an_entry_no_one_knows_fails() {
-        unread(check("native,fn-number", &[5], &[]), "key 5");
+        unread(check("native,native-number-builtin", &[5], &[]), "key 5");
     }
 }

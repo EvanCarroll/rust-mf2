@@ -112,7 +112,7 @@ Turn on `mark-fallback-lang` and the library does it:
 
 ```toml file=calls/Cargo.toml merge
 [dependencies]
-mf2 = { version = "3", features = ["leptos", "fn-number", "leptos-client-datetime-intl", "leptos-server-datetime-icu", "mark-fallback-lang"] }
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin", "leptos-client-datetime-intl", "leptos-server-datetime-icu", "mark-fallback-lang"] }
 ```
 
 A message the page's catalog borrowed then renders inside a `<span>`

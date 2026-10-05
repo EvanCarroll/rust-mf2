@@ -11,17 +11,16 @@
 //! | Build | Corpus | Features | What it shows |
 //! |---|---|---|---|
 //! | E | nothing a function crate could serve | `hydrate` | the floor |
-//! | F | the same | `hydrate,fn-number,host-web-datetime-iso` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
-//! | A | the fixture's own | `hydrate,fn-number` | a corpus that uses `:integer` |
-//! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,fn-number` | **B13** = B − A: what a corpus that does not use them does not pay |
-//! | G, H | a `:datetime` message | `hydrate,host-web-datetime-intl`, and the same with `host-std-datetime-icu` | **the other side** = H − G must be **+0** |
-//! | I, J | the same | `hydrate,host-web-datetime-icu`, and the same with `host-std-datetime-icu` | **the other side** = J − I must be **+0** |
+//! | F | the same | `hydrate,host-web-number-builtin,host-web-datetime-iso` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
+//! | A | the fixture's own | `hydrate,host-web-number-builtin` | a corpus that uses `:integer` |
+//! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,host-web-number-builtin` | **B13** = B − A: what a corpus that does not use them does not pay |
+//! | each pair of `OTHER_SIDE` | the fixture's own, or a `:datetime` message | a browser's features, and the same with the server's beside them | **the other side** must be **+0** |
 //!
 //! An application writes both sides' features on its one `mf2` line, so its
 //! browser build sees the server's. A feature that belongs to the server —
-//! its date formatter's cache, the load number that cache keys on — must
-//! leave the browser's bytes alone, and the cost table cannot say so: it
-//! builds the client with the client's features only.
+//! its number formatter, its date formatter's cache, the load number that
+//! cache keys on — must leave the browser's bytes alone, and the cost table
+//! cannot say so: it builds the client with the client's features only.
 //!
 //! The size method: `wasm32-unknown-unknown`, profile
 //! `wasm-release`, raw bytes of the client binary — the same figures Phase 5a
@@ -44,16 +43,31 @@ const B13_TOLERANCE: f64 = 0.10;
 /// The other side's features: a browser build, then the same with the
 /// server's feature an application writes beside it. Each pair must weigh
 /// the same.
-const OTHER_SIDE: [(&str, &str, &str); 2] = [
+const OTHER_SIDE: [(&str, &str, &str); 5] = [
+    (
+        "a browser on `Intl` numbers beside a server on mf2's own number code",
+        "hydrate,host-web-number-intl",
+        "hydrate,host-web-number-intl,host-std-number-builtin",
+    ),
+    (
+        "a browser in plain digits beside a server on mf2's own number code",
+        "hydrate,host-web-number-plain",
+        "hydrate,host-web-number-plain,host-std-number-builtin",
+    ),
+    (
+        "a browser on mf2's own number code beside a server in plain digits",
+        "hydrate,host-web-number-builtin",
+        "hydrate,host-web-number-builtin,host-std-number-plain",
+    ),
     (
         "an `Intl` browser beside an ICU4X server",
-        "hydrate,host-web-datetime-intl,corpus-dates",
-        "hydrate,host-web-datetime-intl,host-std-datetime-icu,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-intl,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-intl,host-std-datetime-icu,corpus-dates",
     ),
     (
         "an ICU4X browser beside an ICU4X server",
-        "hydrate,host-web-datetime-icu,corpus-dates",
-        "hydrate,host-web-datetime-icu,host-std-datetime-icu,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-icu,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-icu,host-std-datetime-icu,corpus-dates",
     ),
 ];
 
@@ -65,9 +79,9 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     };
 
     let e = build("hydrate,corpus-plain")?;
-    let f = build("hydrate,fn-number,host-web-datetime-iso,corpus-plain")?;
-    let a = build("hydrate,fn-number")?;
-    let b = build("hydrate,fn-number,corpus-measures")?;
+    let f = build("hydrate,host-web-number-builtin,host-web-datetime-iso,corpus-plain")?;
+    let a = build("hydrate,host-web-number-builtin")?;
+    let b = build("hydrate,host-web-number-builtin,corpus-measures")?;
     let others: Vec<(&str, &str, u64, u64)> = OTHER_SIDE
         .iter()
         .map(|&(what, without, with)| Ok((what, with, build(without)?, build(with)?)))
@@ -81,9 +95,9 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     println!("\n| build | corpus | features | .wasm |");
     println!("|---|---|---|---:|");
     println!("| E | nothing to serve | hydrate | {e} |");
-    println!("| F | the same | hydrate,fn-number,host-web-datetime-iso | {f} |");
-    println!("| A | the fixture's | hydrate,fn-number | {a} |");
-    println!("| B | A plus the measures | hydrate,fn-number | {b} |");
+    println!("| F | the same | hydrate,host-web-number-builtin,host-web-datetime-iso | {f} |");
+    println!("| A | the fixture's | hydrate,host-web-number-builtin | {a} |");
+    println!("| B | A plus the measures | hydrate,host-web-number-builtin | {b} |");
     for (what, with, without_size, with_size) in &others {
         println!("| the other side | {what} | {with} | {without_size} → {with_size} |");
     }

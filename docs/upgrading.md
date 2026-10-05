@@ -48,12 +48,13 @@ hydrate = ["leptos-mf2/hydrate", "hello-i18n/hydrate"]
 ssr = ["leptos-mf2/ssr", "hello-i18n/ssr", "dep:mf2-axum"]
 ```
 
-**2.0**, one crate. The formatting functions are `mf2`'s features, the
-same for both builds; the mode and `axum` are forwarded as `leptos`'s are:
+**2.0**, one crate. What formats numbers and dates is `mf2`'s features,
+written once where both builds see them, each side naming its own; the mode
+and `axum` are forwarded as `leptos`'s are:
 
 ```toml excerpt
 [dependencies]
-mf2 = { version = "3", features = ["leptos", "fn-number"] }
+mf2 = { version = "3", features = ["leptos", "leptos-client-number-intl", "leptos-server-number-builtin"] }
 
 [build-dependencies]
 mf2-build = "3"
