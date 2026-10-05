@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** nothing. A worktree made for a task is removed once its work
+* **In flight:** 22.15. A worktree made for a task is removed once its work
   is merged.
-* **Next:** 22.4–22.11
+* **Next:** 22.4–22.10, the cost table again, 22.11
 
 ## Done
 
@@ -266,6 +266,14 @@ formatter on both sides, or ICU4X on the server and `Intl` in the browser: `plan
 the browser links no rewrite code and the page states no formatter. demo-ssr pays +466 B gz
 and 21 B a page for code that never runs. Confirmed by demo-ssr's gzip bytes (−466 B) and
 17.3's browser test (the ISO page is still rewritten, the ICU4X one is not).
+
+### 22.15 No ICU4X in a native binary that shows no date (from 22.3)
+
+With `native-datetime-icu` on and no message calling a date function, the native canary is
+still 146,080 B bigger (`cargo xtask feature-costs`' finding, 2026-10-05), though the build
+knows no message formats a date (8614ca8 names no date host then). Find what still links
+ICU4X (a symbol diff of the two binaries) and leave it out, keeping every date test. The cost
+table runs once more after the code tasks, before the report. Confirmed by that row: 0 B.
 
 
 ## Phase exit (coordinator)
