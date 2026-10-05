@@ -263,15 +263,18 @@ From the [cost table](#what-each-feature-costs):
 
 | Formatter | Browser wasm | Native binary | Data |
 |---|---|---|---|
-| `intl` | about 240 B of gzip | — | none of yours: the browser's |
-| `icu` | about 43 to 100 KB of gzip, by the form below | about 298 KB more than `iso` | each language's date slice, in its catalog |
-| `iso` | about 6 KB of gzip | about 168 KB, mostly time zones | none |
+| `intl` | about 250 B of gzip more than `iso` | — | none of yours: the browser's |
+| `icu` | about 59 to 101 KB of gzip more than `iso`, by the form below | about 329 KB | each language's date slice, in its catalog |
+| `iso` | about 5 KB of gzip | about 167 KB, mostly time zones | none |
 
 Each figure is against the same application with no date formatter, except
-where it says otherwise.
+where it says otherwise. A formatter on in an application whose messages
+show no date costs nothing: the table measures 2 B less in the browser and
+40 B less natively.
 
 The date slice of one language, added to a catalog and compressed with
-brotli, is a few hundred bytes for a corpus of a handful of date shapes,
+brotli, is a few hundred bytes for a corpus of a handful of date shapes
+(298 to 466 B for the reference workload),
 and about 16 to 18 KB once a message shows a time-zone name. A browser that
 formats with `intl` downloads none of it.
 
@@ -405,8 +408,9 @@ With `icu`, the build links the narrowest form of ICU4X the messages need:
 time-zone names only if some message has `timeZoneStyle`, and calendars
 other than Gregorian only if some language prefers another calendar or a
 message asks for one. The form is a large part of what `icu` costs in the
-browser: 43 KB of gzip for Gregorian dates without zone names, 83 KB for
-every calendar with zone names. `mf2 check` prints the form chosen and why,
+browser: about 59 KB of gzip more than `iso` for Gregorian dates without
+zone names, and about 42 KB more again for every calendar with zone names.
+Natively the widest form adds about 152 KB. `mf2 check` prints the form chosen and why,
 and [`[dates]`](configuration.md#dates) in `mf2.toml` overrides it.
 
 ## Time zones
@@ -437,8 +441,9 @@ kind, and re-measured every night:
 
 {{#include feature-costs.md}}
 
-Two figures are negative, because those features replace code rather than
-add it:
+Two figures are negative because those features replace code rather than
+add it (the two no-date rows, a few bytes either side of nothing, are a
+date formatter that links nothing when no message shows a date):
 
 * **`number-intl` in the browser.** It takes the Rust code that formats
   numbers and chooses plurals out of the wasm, and calls the browser's
@@ -461,24 +466,26 @@ up:
   writes numbers and picks plural forms, so it can differ slightly between
   browsers and from the server's rendering; and the reader needs a browser
   with `Intl.NumberFormat` v3.
-* **`intl` rather than `icu` in the browser** saves 43 to 100 KB of gzip,
+* **`intl` rather than `icu` in the browser** saves about 59 to 101 KB of gzip,
   and the date slice in each catalog. You give up the same dates
   everywhere: the browser's data writes them in the browser, your
   catalogs' on the server ([known differences](#server-rendering-and-the-browser)).
-* **`iso` on the server** with `intl` in the browser saves about 298 KB of
+* **`iso` on the server** with `intl` in the browser saves about 161 KB of
   the server binary and every date slice. You give up localized dates in
   the page as the server sends it: a reader without JavaScript, and a
   crawler, see ISO-style dates.
-* **`iso` in a native application** costs about 168 KB, with time zones;
-  ICU4X adds about 298 KB more, and the slices. You give up dates in the
+* **`iso` in a native application** costs about 167 KB, with time zones;
+  ICU4X costs about 161 KB more, and the slices. You give up dates in the
   reader's language: they are written in a neutral, ISO-style form.
 * **Leaving `tzdb-bundled` off** in a native application saves 248 KB. You
   give up the same zone rules on every machine, and a container with no
   time-zone data cannot resolve named zones. A server has it on through
   `ssr` or `axum`.
 * **Leaving out a function feature no message uses** saves its whole cost:
-  2.5 KB of gzip in the browser for `fn-number`, 8 KB natively; 168 KB
-  natively for a date formatter. You give up nothing.
+  2.5 KB of gzip in the browser for `fn-number`, 10 KB natively. You give
+  up nothing. A date formatter no message uses already costs nothing, in
+  the browser or natively: its code is linked only when a message calls a
+  date function.
 
 You do not have to work out the last one yourself. `mf2 check` prints the
 features the corpus needs, those on and unused, and the line to write on

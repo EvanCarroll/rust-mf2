@@ -109,8 +109,8 @@ What a version number promises, `mf2`'s feature names among it, is in
 * **Changed: a server no longer links ICU4X's data for every language.**
   With ICU4X natively, a server, a command-line tool and a terminal UI
   format over the date data the build cuts for each language's messages,
-  never over ICU4X's compiled-in data for every language (about 4.4 MB in
-  2.0 with `datetime-intl`). The build links the narrowest form of ICU4X
+  never over ICU4X's compiled-in data for every language: the demo's
+  server, stripped, falls from 11,939,208 B in 2.0 to 7,429,888 B. The build links the narrowest form of ICU4X
   the messages need (Gregorian only, no zone names, unless a message or a
   language asks), and `[dates]` in `mf2.toml` overrides it.
 * **Changed: a browser that formats dates with `Intl` downloads no date
