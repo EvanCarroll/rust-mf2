@@ -25,7 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.15. A worktree made for a task is removed once its work
+* **In flight:** 22.4. A worktree made for a task is removed once its work
   is merged.
 * **Next:** 22.4–22.10, the cost table again, 22.11
 
@@ -63,6 +63,11 @@ starts in a fresh session.
   748,592. >10 %: browser icu 99,887 → 59,272; native `fn-number` 8,080 → 9,920 (canary gained a
   placeholder); native icu 893,136 → 748,592 (§1.2). **Unused and not 0: `native-datetime-icu` +146,080 B**
   (client `intl` unused −2 B). Slice brotli ar-XB/en/en-XA/pl: 316/466/298/317 with icu, 0 with intl.
+* 22.15 (bdd27b8): the 146,080 B were jiff's system-zone code, read whenever `datetime` was on;
+  now only the dates host (`ZonesStdHost`, named only when a message calls a date function)
+  reads the zone. The row is −40 B (`STRIP=symbols cargo build --release --manifest-path
+  tools/native-canary/Cargo.toml --features native[,native-datetime-icu,no-date-message]`).
+  Without a date message `time_zone()` answers UTC.
 
 ## Before this phase
 
