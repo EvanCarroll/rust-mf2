@@ -435,6 +435,18 @@ fn size(
         Side::Client => client_size(root, out, build)?,
         Side::Native => native_size(root, out, build.features)?,
     };
+    // The whole build, not only what a feature adds to it: when a figure of
+    // the table moves, this says which of its two builds did.
+    let corpus = if build.side == Side::Client && build.corpus == Corpus::Dates {
+        " with the date messages"
+    } else {
+        ""
+    };
+    eprintln!(
+        "feature-costs: `{}`{corpus} is {size} {} in all",
+        build.features,
+        build.side.unit()
+    );
     sizes.insert(key, size);
     Ok(size)
 }
