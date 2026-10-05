@@ -104,7 +104,7 @@ pub use config::{
 pub use error::{Error, Result};
 #[doc(hidden)]
 pub use features::{BUILTINS, CATALOG_FEATURES, OPTIONS, defines_option};
-pub use features::{DATE_LINES, DateFamily, DateFormatter, Features, Place, Side};
+pub use features::{DATE_LINES, DateFamily, DateFormatter, Features, NumberNames, Place, Side};
 pub use lint::{Level, Lint};
 #[doc(hidden)]
 pub use loader::{Loaded, Loader, Problem, Property, Record, SourceFile};

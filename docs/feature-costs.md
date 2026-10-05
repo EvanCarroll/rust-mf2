@@ -4,6 +4,7 @@
 |---|---|---|---:|---|
 | `fn-number` | browser | no function | 2,494 B gzip | the reference workload, 150 messages with `:number` |
 | `number-intl` | browser | `fn-number` | -3,069 B gzip | the reference workload, 150 messages with `:number` |
+| `leptos-client-number-names-intl` (or `host-web-number-names-intl`) | browser | `fn-number` | 118 B gzip | nine languages with `:currency` and `:unit` (`bench/intl-probe/scripts/7-names.sh`), not this command |
 | `leptos-client-datetime-iso` | browser | `fn-number` | 5,337 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-icu` | browser | `fn-number`, `leptos-client-datetime-iso` | 59,272 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
 | `leptos-client-datetime-intl` | browser | `fn-number`, `leptos-client-datetime-iso` | 253 B gzip | the reference workload, 150 messages with `:number` and 150 with `:datetime` |
@@ -17,6 +18,8 @@
 | `compile` | native | `native` | 8,352,704 B stripped | the canary's messages, and one compiled at run time |
 | `ratatui` | native | `native`, `tui` | -14,936 B stripped | a message drawn as a Ratatui `Line` |
 | `clap` | native | `native`, `cli` | 8,864 B stripped | `--lang` parsed by clap |
+
+**The number split.** The split's row above is what the client gains; the same measurement took 227 to 387 B brotli out of each of the nine languages' catalogs, where the currency and unit names were, so a visitor — who downloads one language — saves roughly 100 to 270 B. `cargo xtask feature-costs` does not re-measure either figure: the reference workload has no `:currency` or `:unit` message.
 
 **The date slice, per language.** The brotli bytes the date data adds to each language's catalog, which a browser downloads: the reference workload with `:datetime` messages, built for `hydrate` with each browser formatter, less the same with `leptos-client-datetime-iso`. With `intl` the browser formats dates itself and no date data is downloaded, so that column should be 0.
 

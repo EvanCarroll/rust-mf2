@@ -233,6 +233,23 @@ impl serde_core::ser::Serialize for mf2_build::Missing
 pub fn mf2_build::Missing::serialize<S: serde_core::ser::Serializer>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error>
 impl<'de> serde_core::de::Deserialize<'de> for mf2_build::Missing
 pub fn mf2_build::Missing::deserialize<__D>(__D) -> core::result::Result<Self, <__D as serde_core::de::Deserializer>::Error> where __D: serde_core::de::Deserializer<'de>
+pub enum mf2_build::NumberNames
+pub mf2_build::NumberNames::Intl
+impl core::clone::Clone for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::clone(&self) -> Self
+impl core::cmp::Eq for mf2_build::NumberNames
+impl core::cmp::Ord for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::cmp(&self, &Self) -> core::cmp::Ordering
+impl core::cmp::PartialEq for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::eq(&self, &Self) -> bool
+impl core::cmp::PartialOrd for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::partial_cmp(&self, &Self) -> core::option::Option<core::cmp::Ordering>
+impl core::fmt::Debug for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::hash::Hash for mf2_build::NumberNames
+pub fn mf2_build::NumberNames::hash<__H: core::hash::Hasher>(&self, &mut __H)
+impl core::marker::Copy for mf2_build::NumberNames
+impl core::marker::StructuralPartialEq for mf2_build::NumberNames
 pub enum mf2_build::Place
 pub mf2_build::Place::Catalog
 pub mf2_build::Place::Nowhere
@@ -433,6 +450,7 @@ pub fn mf2_build::Features::names(&self) -> impl core::iter::traits::iterator::I
 pub fn mf2_build::Features::names_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::no_date_formatter(&self, &str) -> alloc::string::String
 pub fn mf2_build::Features::number_intl(&self) -> bool
+pub fn mf2_build::Features::number_names(&self) -> core::option::Option<mf2_build::NumberNames>
 pub fn mf2_build::Features::number_place(&self) -> mf2_build::Place
 pub fn mf2_build::Features::parse(&str) -> mf2_build::Features
 pub fn mf2_build::Features::provides(&self, &str) -> core::option::Option<bool>

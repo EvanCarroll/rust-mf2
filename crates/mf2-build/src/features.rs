@@ -183,6 +183,55 @@ impl DateFormatter {
     }
 }
 
+/// Where a browser build takes the currency and unit names from
+/// (`plan/08` §6, the number split): an ordered family, as
+/// [`DateFormatter`] is, so that a second source is one variant more.
+/// Only a browser has a choice — native code reads the catalog — so the
+/// family's two prefixes are the browser's.
+///
+/// The order is the rule a build with more than one of them on applies,
+/// the strongest last: [`Features::number_names`] takes the maximum.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum NumberNames {
+    /// The browser's `Intl.NumberFormat`: it writes the name, the symbol
+    /// and the layout around them, and the catalog ships neither
+    /// `currency.data` nor `unit.data` to it. The digits, the rounding and
+    /// the plural selection stay in Rust.
+    Intl,
+}
+
+impl NumberNames {
+    /// The name a family's feature ends with.
+    #[doc(hidden)]
+    pub fn name(self) -> &'static str {
+        match self {
+            NumberNames::Intl => "intl",
+        }
+    }
+
+    /// What it costs and saves, as 22.9 measured it over nine languages
+    /// (`plan/08` §2.7), for `mf2 check`.
+    #[doc(hidden)]
+    pub fn cost(self) -> &'static str {
+        match self {
+            NumberNames::Intl => {
+                "the browser writes the currency and unit names itself: +118 B gzipped in \
+                 the client, 227 to 387 B brotli less in each language's catalog, and 4.0 \
+                 to 7.4 times the time for a currency and 2.5 to 4.5 for a unit. Arabic \
+                 and Hebrew come back with doubled direction marks, Arabic writes a long \
+                 litre as a name after the digits, Chromium has no names for some \
+                 languages (Welsh), and a browser with no name for a currency writes its \
+                 code"
+            }
+        }
+    }
+}
+
+/// The number-name families (`plan/08` §2.7), the framework-free one
+/// first: a feature of a family is its prefix and a [`NumberNames`] name.
+/// Both are the browser's, which is the only side with a choice.
+const NUMBER_NAME_FAMILIES: [&str; 2] = ["host-web-number-names-", "leptos-client-number-names-"];
+
 /// A built-in function and the feature it needs.
 ///
 /// A function that exists only behind a feature
@@ -491,7 +540,8 @@ impl Features {
     }
 
     /// Whether a browser downloads this build's catalogs: a framework or
-    /// host of the browser's side is on, or a browser date formatter is.
+    /// host of the browser's side is on, or a browser date formatter is, or
+    /// a number-name family is — each of those names a browser build.
     /// Without one the catalogs have native readers alone, and keep every
     /// entry (`plan/08` §4.1).
     #[doc(hidden)]
@@ -500,6 +550,7 @@ impl Features {
             .iter()
             .any(|family| family.side == Side::Browser)
             || self.date_formatter(Side::Browser).is_some()
+            || self.number_names().is_some()
     }
 
     /// Where ICU4X's date slice (`icu.blob`) goes (`plan/08` §4.1): into
@@ -858,14 +909,44 @@ impl Features {
         self.has("number-intl")
     }
 
+    /// Where a browser build takes the currency and unit names from
+    /// (`plan/08` §2.7): the strongest of the number-name families' features
+    /// that are on, `None` with none — and then the names come from the
+    /// catalog, as the absence of a date formatter leaves the ISO stand-in.
+    /// The families are `host-web-number-names-` and
+    /// `leptos-client-number-names-`, written on the `mf2` dependency where
+    /// both builds of a Leptos application see them.
+    pub fn number_names(&self) -> Option<NumberNames> {
+        [NumberNames::Intl]
+            .into_iter()
+            .filter(|source| {
+                NUMBER_NAME_FAMILIES
+                    .iter()
+                    .any(|family| self.has(&format!("{family}{}", source.name())))
+            })
+            .max()
+    }
+
+    /// The feature this build's frameworks would write for `source`
+    /// (`plan/08` §2.7), for `mf2 check`: Leptos's name with a Leptos
+    /// feature on, the framework-free one otherwise.
+    #[doc(hidden)]
+    pub fn number_names_feature(&self, source: NumberNames) -> String {
+        let [host, leptos] = NUMBER_NAME_FAMILIES;
+        let family = if self.leptos_on() { leptos } else { host };
+        format!("{family}{}", source.name())
+    }
+
     /// The number split (`plan/08` §6): `:currency` and `:unit` take their
     /// names from the browser's `Intl` on the client, the digits and plural
-    /// selection staying in Rust (`mf2-fn-number`'s and `mf2-host-web`'s
-    /// `intl-names`, which the i18n crate forwards under the same name). The
-    /// currency and unit entries move to the server-only table
+    /// selection staying in Rust. True under either name: one of the
+    /// `-number-names-intl` families ([`Features::number_names`]), which an
+    /// application writes, or the flat `intl-names` of `mf2-fn-number` and
+    /// `mf2-host-web`, which an i18n crate forwards under that name. The
+    /// currency and unit entries then move to the server-only table
     /// ([`Features::names_place`]).
     pub fn intl_names(&self) -> bool {
-        self.has("intl-names")
+        self.has("intl-names") || self.number_names() == Some(NumberNames::Intl)
     }
 
     /// Whether this build provides the built-in function `identifier` (an
@@ -908,7 +989,7 @@ fn quoted(names: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::Features;
-    use super::{DateFormatter, Place, Side};
+    use super::{DateFormatter, NumberNames, Place, Side};
 
     // `plan/08` §3.2, on each side: the formatter is chosen from the
     // features of its own side only; with more than one of a family on, the
@@ -1173,6 +1254,11 @@ mod tests {
             "hydrate,fn-number,intl-names",
             "csr,fn-number,intl-names",
             "host-web,fn-number,intl-names",
+            // The families an application writes (`plan/08` §2.7); the
+            // last names a browser build by itself.
+            "ssr,fn-number,leptos-client-number-names-intl",
+            "hydrate,fn-number,host-web-number-names-intl",
+            "fn-number,host-web-number-names-intl",
         ] {
             assert_eq!(place(list), (Place::Catalog, Place::Server), "{list}");
         }
@@ -1196,6 +1282,41 @@ mod tests {
         assert_eq!(
             Features::parse("native,fn-number,intl-names").for_catalogs(),
             Features::parse("native,fn-number").for_catalogs()
+        );
+    }
+
+    #[test]
+    fn the_number_name_families_are_read_as_the_date_families_are() {
+        for family in [
+            "host-web-number-names-intl",
+            "leptos-client-number-names-intl",
+        ] {
+            let f = Features::parse(&format!("hydrate,fn-number,{family}"));
+            assert_eq!(f.number_names(), Some(NumberNames::Intl), "{family}");
+            assert!(f.intl_names(), "{family}");
+            assert_eq!(f.names_place(), Place::Server, "{family}");
+        }
+        // The flat name an i18n crate forwards counts too, and names no family.
+        let flat = Features::parse("hydrate,fn-number,mf2-fn-number/intl-names");
+        assert!(flat.intl_names());
+        assert_eq!(flat.number_names(), None);
+        // With no feature the names come from the catalog.
+        let off = Features::parse("hydrate,fn-number");
+        assert!(!off.intl_names());
+        assert_eq!(off.number_names(), None);
+        // The feature `mf2 check` advises, by the frameworks that are on.
+        assert_eq!(
+            Features::parse("csr").number_names_feature(NumberNames::Intl),
+            "leptos-client-number-names-intl"
+        );
+        assert_eq!(
+            Features::parse("host-web").number_names_feature(NumberNames::Intl),
+            "host-web-number-names-intl"
+        );
+        // However it is spelled, a catalog knows it by the flat name.
+        assert_eq!(
+            Features::parse("hydrate,fn-number,leptos-client-number-names-intl").for_catalogs(),
+            Features::parse("hydrate,fn-number,intl-names").for_catalogs()
         );
     }
 

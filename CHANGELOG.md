@@ -154,6 +154,22 @@ What a version number promises, `mf2`'s feature names among it, is in
   the key as unsupported. `:string` selection and the matching of argument
   names passed through the dynamic API go through it, so they behave the
   same on every host.
+* **Added: the browser can write the currency and unit names
+  (`host-web-number-names-intl`, `leptos-client-number-names-intl`).** The
+  number split: in a browser build `:currency` and `:unit` take the symbol,
+  the name and the layout around them from `Intl.NumberFormat`, while the
+  digits, the rounding and the plural form stay in Rust over your catalog's
+  symbols, and that browser downloads no currency or unit names. A family
+  named after the side and the framework, as the date formatters are, and
+  off by default: measured over nine languages it adds 118 B gzipped to the
+  client and takes 227 to 387 B brotli out of each language's catalog —
+  roughly 100 to 270 B for a visitor — and costs 4.0 to 7.4 times the time
+  per `:currency` and 2.5 to 4.5 per `:unit`, with the browser's text where
+  it differs from ours (doubled direction marks in Arabic and Hebrew,
+  Arabic's name after the digits for a long litre, no names in Chromium for
+  some languages, and the bare currency code where a browser has no name).
+  `mf2 check` offers it with those figures; `docs/features.md` has the
+  whole trade.
 * **Added: `mf2 check` prints the feature list.** After the diagnostics, a
   block names the function features the corpus needs, those that are on,
   those on and unused, and the `features = [...]` to write on `mf2` with

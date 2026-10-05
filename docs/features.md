@@ -17,7 +17,7 @@ The features answer four questions:
 |---|---|
 | Where does it run? | `leptos` or `leptos-0-8`, with one of `ssr`, `hydrate`, `csr`; `axum`; `native`; `ratatui`; `clap`; with no framework, `host-std` or `host-web` |
 | What can messages do? | `fn-number`; a date formatter for each side ([Dates](#dates)) |
-| Who supplies locale data? | `number-intl`; the date formatter (`icu`, `intl` or `iso`); `tzdb-bundled` |
+| Who supplies locale data? | `number-intl`; `<family>-number-names-intl` for the currency and unit names; the date formatter (`icu`, `intl` or `iso`); `tzdb-bundled` |
 | Behaviour and tools | `static-locale`; `mark-fallback-lang`; `compile` |
 
 A feature decides which functions a message may use, so the build script
@@ -153,6 +153,50 @@ The server's build decides what goes into the catalogs the browser
 downloads, so it must know that the browser formats numbers itself. With
 the feature on one build only, the two write different catalogs, and the
 browser asks for a catalog file the server does not serve.
+
+### `host-web-number-names-intl`, `leptos-client-number-names-intl`
+
+The **number split**: in a browser build, `:currency` and `:unit` take the
+currency symbol, the currency or unit name and the layout around them from
+the browser's `Intl.NumberFormat`, while the digits, the rounding and the
+plural form stay in Rust, written with your catalog's number symbols. That
+browser then downloads no currency or unit names at all. Every other build
+keeps the Rust path, and those names stay on the server.
+
+It is a family named after the side and the framework, as the date
+formatters are, with one source so far — only a browser can ask `Intl`.
+With no feature the names come from the catalog, as with no date feature a
+date is written in the ISO stand-in. Write the Leptos name in a Leptos
+application and `host-web-number-names-intl` with no framework, on the
+`mf2` dependency where both builds see it:
+
+```toml
+mf2 = { version = "3", features = ["leptos", "fn-number", "leptos-client-number-names-intl"] }
+```
+
+Each turns on `fn-number`, which is what formats a currency or a unit at
+all. `number-intl`, which moves the whole of number formatting into the
+browser, takes precedence where both are on.
+
+**It is off by default, and it is a trade.** Measured over nine languages,
+it adds 118 B gzipped to the client and takes 227 to 387 B brotli out of
+each language's catalog, so a visitor, who downloads one language, saves
+roughly 100 to 270 B. It costs 4.0 to 7.4 times the time per `:currency`
+placeholder and 2.5 to 4.5 times per `:unit` one — microseconds either way,
+but the slower path. And the text is the browser's, which in three cases
+is not ours:
+
+* Arabic and Hebrew come back with doubled direction marks around the
+  number. The text reads the same; the bytes differ.
+* Arabic writes a long litre as `لتر1` — the name after the digits, where
+  our catalog puts it before.
+* Chromium has no unit or currency names for some languages (Welsh among
+  them), and writes the unit code instead.
+
+Beyond those, a browser that has no name for a currency writes the bare
+currency code (`XTS`), where the catalog would have the name. Choose it
+when a few hundred bytes per visitor is worth more to you than the same
+text everywhere.
 
 ### `tzdb-bundled`
 
@@ -395,6 +439,7 @@ Data goes only to a side that reads it:
 | the messages | yes | yes |
 | ICU4X's date slice | only with `icu` in the browser | with `icu` on the server |
 | number and plural data | unless `number-intl` | always, when a message needs it |
+| currency and unit names | unless `number-intl` or a `-number-names-intl` feature | always, when a message needs them |
 
 A server keeps what only it reads in a table of its own beside each
 catalog, which no browser downloads. A command-line tool or a terminal UI
@@ -466,6 +511,14 @@ up:
   writes numbers and picks plural forms, so it can differ slightly between
   browsers and from the server's rendering; and the reader needs a browser
   with `Intl.NumberFormat` v3.
+* **The number split in the browser** (`leptos-client-number-names-intl`)
+  saves 227 to 387 B brotli in each language's catalog for 118 B gzipped in
+  the client: roughly 100 to 270 B for a visitor. You give up the same
+  currency and unit names everywhere — Arabic and Hebrew gain direction
+  marks, Arabic writes `لتر1` for a long litre, Chromium has no names for
+  some languages (Welsh), and a browser with no name for a currency writes
+  its code — and pay 4.0 to 7.4 times the time for a currency and 2.5 to
+  4.5 for a unit.
 * **`intl` rather than `icu` in the browser** saves about 59 to 101 KB of gzip,
   and the date slice in each catalog. You give up the same dates
   everywhere: the browser's data writes them in the browser, your

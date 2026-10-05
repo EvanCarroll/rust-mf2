@@ -31,7 +31,7 @@ build = "build.rs"
 # four questions: where does it run (the Leptos line and mode, `axum`,
 # `native`, `ratatui`, `clap`, `host-std`, `host-web`); what can messages do
 # (`fn-number`, `datetime`); who supplies locale data (`number-intl`, the
-# date formatters, `tzdb-bundled`); behaviour and tools
+# number-name family, the date formatters, `tzdb-bundled`); behaviour and tools
 # (`static-locale`, `mark-fallback-lang`, `compile`).
 default = []
 # `compile_str`: parse, validate, analyze and write a one-message catalog
@@ -143,6 +143,26 @@ clap = ["dep:clap"]
 # Intl.NumberFormat v3; every other build (servers, wasm32-wasip1, tests)
 # keeps the Rust path.
 number-intl = ["mf2-runtime/intl", "mf2-host-web?/intl"]
+# The number split (plan/08 §6 and §2.7): in a browser build `:currency` and
+# `:unit` take their names, symbols and the layout around them from the
+# browser's Intl.NumberFormat, the digits, rounding and plural selection
+# staying in Rust, and the catalog that browser downloads carries neither
+# `currency.data` nor `unit.data`. A family named after the side and the
+# framework, as the date formatters are, with one source so far: only a
+# browser can ask Intl, and no feature means the names come from the catalog.
+# `number-intl`, the whole option, takes precedence. It is an opt-in, off by
+# default (owner, 2026-10-05): it saves a visitor roughly 100 to 270 B and
+# costs 4.0 to 7.4 times the time for a currency and 2.5 to 4.5 for a unit,
+# with a few languages' text changed (docs/features.md). Write it on the `mf2`
+# dependency, where both builds of a Leptos application see it: a server's
+# build script reads it to keep out of its catalogs what the browser never
+# reads.
+host-web-number-names-intl = [
+    "fn-number",
+    "mf2-fn-number/intl-names",
+    "mf2-host-web?/intl-names",
+]
+leptos-client-number-names-intl = ["host-web-number-names-intl"]
 # The Leptos line the layer renders with. `leptos` is Leptos 0.9, the
 # default line; `leptos-0-8` is Leptos 0.8. Neither is a default feature: an
 # application writes one on its `mf2` dependency, and a mode needs one. Both
