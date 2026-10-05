@@ -162,6 +162,9 @@ Arabic short one in Chromium; narrow no-break space against space.
    renaming a feature 2.0 shipped was offered and declined. The features
    document therefore puts the two side by side, so a reader meeting one flat
    name and one family does not have to guess. The work is 22.16.
+   Built as an ordered family (`NumberNames` in `mf2-build`, as `DateFormatter`
+   is) with one source so far, so that a second one — an `-iso` member, still
+   with the owner — is a variant more and not a rewrite.
 8. **In 3.0:** the narrowest ICU4X per corpus, the formatter cache, and the
    report of what ships where. **Not in 3.0:** a date formatter of our own in
    place of ICU4X.
@@ -468,6 +471,10 @@ or neither. Until then `fn-number` formats in Rust everywhere and
 As built (18.4): `intl-names` of `mf2-fn-number` and `mf2-host-web` (and the name `mf2-build`
 reads); `Intl` also gives the layout around the name and a currency's own digits, and without it
 the client shows digits and the code, so the Rust currency and unit code is not linked.
+
+22.16 gave it the two features an application writes — `host-web-number-names-intl` and
+`leptos-client-number-names-intl` — which turn the sub-crates' `intl-names` on; `mf2-build`
+reads either spelling, and a catalog still knows the choice by the flat name.
 
 `number-intl` itself is fixed by §4.1: its number data stops going to the
 browser.

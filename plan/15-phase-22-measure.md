@@ -25,8 +25,7 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.16, the number split as an opt-in (the owner's answer of 2026-10-05).
-  A worktree made for a task is removed once its work is merged.
+* **In flight:** nothing. A worktree made for a task is removed once its work is merged.
 * **Next:** the phase exit
 
 ## Done
@@ -68,6 +67,11 @@ starts in a fresh session.
   reads the zone. The row is −40 B (`STRIP=symbols cargo build --release --manifest-path
   tools/native-canary/Cargo.toml --features native[,native-datetime-icu,no-date-message]`).
   Without a date message `time_zone()` answers UTC.
+* 22.16 (39cf62e): the split is a feature an application can write —
+  `host-web-number-names-intl` and `leptos-client-number-names-intl`, an ordered family
+  (`NumberNames`, as `DateFormatter` is) so a second source is one variant more.
+  `intl_names` reads either spelling, `mf2 check` offers it with 22.9's figures and the
+  three text cases, `docs/features.md` and the cost table carry them. Nothing re-measured.
 * 22.4: demo-ssr's server, stripped, 11,939,208 B at 2cbbcac (`fn-datetime` + `datetime-icu`) →
   7,429,888 B now (`leptos-server-datetime-icu` + `leptos-client-datetime-intl`), −4,509,320 B
   (−37.8 %). `cargo leptos build --release --server-only` then `strip -o`, the old one from
