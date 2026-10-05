@@ -138,6 +138,20 @@ Arabic short one in Chromium; narrow no-break space against space.
    and unit names only, digits and plurals in Rust. It becomes the browser's
    default only if it is smaller and no slower, and the owner sees the
    figures before it does. `number-intl` stays an opt-in.
+
+   **Answered (owner, 2026-10-05): an opt-in, off by default.** Measured over
+   nine languages (22.9, `bench/intl-probe/scripts/7-names.sh`): the split adds
+   118 B gz to the client and takes 227–387 B brotli out of each language's
+   catalog — roughly 100 to 270 B net for a visitor, who downloads one language
+   — and formats 4.0–7.4× slower for `:currency` and 2.5–4.5× slower for
+   `:unit`. The text agrees with the Rust path in most cases but not all:
+   Arabic and Hebrew come back with doubled LRM marks, Arabic writes `لتر1` for
+   a long litre, and Welsh has no names in Chromium. So it is not the browser's
+   default: a default that changes Arabic, Hebrew and Welsh output, and costs
+   4–7× the time, to save a visitor a few hundred bytes is the wrong trade. It
+   stays available, with those figures and those three cases written beside it,
+   for an application that would rather have the catalog bytes. The work is
+   22.16.
 8. **In 3.0:** the narrowest ICU4X per corpus, the formatter cache, and the
    report of what ships where. **Not in 3.0:** a date formatter of our own in
    place of ICU4X.

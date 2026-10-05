@@ -25,9 +25,9 @@ starts in a fresh session.
 
 ## State
 
-* **In flight:** 22.11, the owner's report. A worktree made for a task is removed once its work
-  is merged.
-* **Next:** the owner's answer, then the phase exit
+* **In flight:** 22.16, the number split as an opt-in (the owner's answer of 2026-10-05).
+  A worktree made for a task is removed once its work is merged.
+* **Next:** the phase exit
 
 ## Done
 
@@ -313,6 +313,31 @@ knows no message formats a date (8614ca8 names no date host then). Find what sti
 ICU4X (a symbol diff of the two binaries) and leave it out, keeping every date test. The cost
 table runs once more after the code tasks, before the report. Confirmed by that row: 0 B.
 
+
+### 22.16 The number split as an opt-in (from 22.9 and the owner's answer)
+
+The owner's answer to 22.11's question (`plan/08` §2.7, 2026-10-05): the split
+is **an opt-in, off by default** — not the browser's default, because it costs
+4.0–7.4× the time for a currency and 2.5–4.5× for a unit, and changes Arabic,
+Hebrew and Welsh output, to save a visitor roughly 100 to 270 B.
+
+18.4 built it behind `intl-names` of `mf2-fn-number` and `mf2-host-web` and the
+name `mf2-build` reads (`plan/08` §6). It has no feature of `mf2`, so an
+application cannot turn it on. This task gives it one.
+
+1. A feature of `mf2` turns the sub-crates' `intl-names` on, named beside
+   `number-intl`, which it reads as a companion to and not a replacement for;
+   check what `mf2-build` already reads so the two names agree. A build that
+   turns it on without `fn-number`, or on a side that cannot use it, says so
+   the way the date features do.
+2. `docs/features.md` gets its own entry and a line in "A smaller build": the
+   four figures above, and the three text cases named (doubled LRM in Arabic
+   and Hebrew, Arabic's `لتر1`, no names for Welsh in Chromium) — a reader
+   choosing it should see what they are choosing. `docs/feature-costs.md` gets
+   its row.
+3. Checks: `cargo xtask feature-costs` for the new row only if the row needs it,
+   `bash tools/checks/run.sh <label> --only docs,codegen-matrix`, then
+   `cargo xtask ci`. Commit by path with `ci` green.
 
 ## Phase exit (coordinator)
 
