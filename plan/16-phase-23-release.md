@@ -19,10 +19,15 @@ plan pointers in the code, went to the code phases as 19.7.
 
 * **In flight:** nothing.
   A worktree made for a task is removed once its work is merged.
-* **Next:** 23.0b, then 23.1
+* **Next:** 23.1
 
 ## Done
 
+* **23.0b** The two tests that count `UnknownLocale` warnings take a test-only
+  turnstile in `warn`, and the bound test empties that kind's keys and lines
+  before and after filling the budget, so neither depends on the thread order.
+  `KEYS_PER_KIND`, `once_for` and what an application sees are unchanged; the
+  bound is still proved with 100 keys. `ci` green, all 65 steps.
 * **23.0a** `cargo xtask api` puts back a public re-export of a hidden trait
   as it does one of a macro, renumbering into the listing's own build the ids
   the trait names; the records are rewritten. They predated every Phase 22

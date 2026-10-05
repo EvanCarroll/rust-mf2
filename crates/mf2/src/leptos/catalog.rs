@@ -593,7 +593,7 @@ pub use client::{active, changed, set_active, track_locale};
 #[cfg(all(test, feature = "ssr"))]
 #[allow(clippy::expect_used, reason = "a test")]
 mod tests {
-    use crate::warn::{Kind, given};
+    use crate::warn::{Kind, counting, given};
 
     #[test]
     fn a_render_with_no_catalogs_says_so_once() {
@@ -607,6 +607,10 @@ mod tests {
 
     #[test]
     fn an_unknown_language_provided_is_named_once() {
+        // The warning is keyed and the keys are capped per kind, so this takes
+        // the turn of the tests that count warnings of this kind: `warn`'s own
+        // bound test fills the budget and then empties it again.
+        let _counting = counting();
         for _ in 0..3 {
             let _ = super::provide_locale("tlh-test");
         }

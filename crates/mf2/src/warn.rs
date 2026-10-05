@@ -114,6 +114,34 @@ fn emit(kind: Kind, line: &str) {
 #[cfg(test)]
 static LOG: Mutex<Vec<(Kind, String)>> = Mutex::new(Vec::new());
 
+/// Held by each test that counts the warnings of a kind. `SEEN` and `LOG`
+/// belong to the process, and the unit tests of this crate share one: without
+/// this, a test that fills a kind's key budget silences another test's
+/// warning, or is credited with its line, depending on the thread order.
+#[cfg(test)]
+static COUNTING: Mutex<()> = Mutex::new(());
+
+/// Takes the turn of the tests that count warnings; held for as long as the
+/// returned guard lives.
+#[cfg(test)]
+pub(crate) fn counting() -> std::sync::MutexGuard<'static, ()> {
+    COUNTING.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Forgets the warnings of `kind`, keys and lines both, so that a test which
+/// fills that kind's key budget leaves it as it found it. Only the keys and
+/// lines of `kind` go: another kind's test may be running. Test-only; the
+/// budget an application sees is never reset.
+#[cfg(test)]
+pub(crate) fn forget(kind: Kind) {
+    SEEN.lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .retain(|(k, _)| *k != kind);
+    LOG.lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .retain(|(k, _)| *k != kind);
+}
+
 /// The warnings of `kind` given so far in this test process.
 #[cfg(test)]
 pub(crate) fn given(kind: Kind) -> Vec<String> {
@@ -127,11 +155,15 @@ pub(crate) fn given(kind: Kind) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Kind, given, once_for, tag};
+    use super::{Kind, counting, forget, given, once_for, tag};
     use alloc::string::String;
 
     #[test]
     fn a_keyed_warning_is_given_once_per_key_and_the_keys_are_bounded() {
+        // This test fills the key budget of its kind, so it takes the turn of
+        // the tests that count warnings and hands the kind back empty.
+        let _counting = counting();
+        forget(Kind::UnknownLocale);
         for _ in 0..3 {
             once_for(Kind::UnknownLocale, "warn-test-a", || {
                 String::from("warn-test-a")
@@ -148,6 +180,7 @@ mod tests {
             once_for(Kind::UnknownLocale, &key, || key.clone());
         }
         assert!(given(Kind::UnknownLocale).len() <= super::KEYS_PER_KIND);
+        forget(Kind::UnknownLocale);
     }
 
     #[test]
