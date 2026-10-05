@@ -11,9 +11,13 @@ binary catalogs, minimal wasm. A Rust monorepo (one Cargo workspace). License: M
    `.claude/` refuse it; do not work around them. Paths into it appear in code comments and in
    old commit messages — do not follow them. What an agent needs comes from the code, from
    `docs/`, from `CHANGELOG.md`, from this file, or from the owner: ask.
-2. The release state, and what is left before publication: `I_AM_A_DUMB_AI.md` at the root
+2. **Backwards compatibility does not matter** (owner, 2026-10-05). Make the change that is
+   right; if it breaks what a published version did, bump the version, and that is the whole
+   cost. Never raise breakage as a concern, a risk, a trade-off or a reason to wait, and
+   never ask the owner about it. The rule is under Non-negotiables.
+3. The release state, and what is left before publication: `I_AM_A_DUMB_AI.md` at the root
    (untracked, excluded locally). Keep it current — it is where the owner reads it.
-3. **Phases 1–10 are done.**
+4. **Phases 1–10 are done.**
    - Release: 1.0.0 and **2.0.0 are on crates.io** (2.0.0 published 2026-09-30, tag `v2.0.0`);
      1.1.0 was never published.
    - The check suite is `tools/checks/` (its README).
@@ -48,6 +52,20 @@ This section is the canonical statement of the rule; other documents point here.
 
 ## Non-negotiables
 
+* **Backwards compatibility is not a constraint** (owner, 2026-10-05). This is the
+  canonical statement of the rule; other documents point here. The owner does not care
+  about it: to break compatibility, bump the version. So:
+  * a rename, a removal, a changed default, a changed format or API is made when it is the
+    better design, in whatever release is next, and the version is bumped if a published
+    release is broken by it;
+  * nothing is kept for an earlier release's sake: no old name beside the new one, no
+    alias, no shim, no deprecation period;
+  * a design is judged on size, speed, correctness and clarity. What existing applications
+    would have to rewrite is not a cost, and "before the next major" or "the last chance
+    until the one after" is not an argument;
+  * breakage is never written up as a concern, a risk, a caveat or a question for the
+    owner — not in advice, a report, a commit message or the status file. A document that
+    says a name or an API is frozen is not the owner's word on it.
 * **Full MF2, never a subset.** The vendored WG test suite
   (`third_party/message-format-wg/test/`) runs at every layer; every test has a
   ledger entry; a test that cannot pass yet is an `xfail` naming the phase that
@@ -79,6 +97,8 @@ This section is the canonical statement of the rule; other documents point here.
 
 * Rust 2024 edition; no `mod.rs`; dependencies at their latest versions, declared
   once in `[workspace.dependencies]`; `Cargo.lock` is not committed.
+* Versions: a breaking change is made when it is right, and the version is bumped with it.
+  Compatibility with an earlier release is never kept for its own sake (Non-negotiables).
 * Errors: `thiserror`, defined in each crate's `src/error.rs`, conversions via
   `#[from]`.
 * CLI arguments: `clap`. Anything that serves HTTP: `axum`.
