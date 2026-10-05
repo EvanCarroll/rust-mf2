@@ -325,17 +325,28 @@ Hebrew and Welsh output, to save a visitor roughly 100 to 270 B.
 name `mf2-build` reads (`plan/08` §6). It has no feature of `mf2`, so an
 application cannot turn it on. This task gives it one.
 
-1. A feature of `mf2` turns the sub-crates' `intl-names` on, named beside
-   `number-intl`, which it reads as a companion to and not a replacement for;
-   check what `mf2-build` already reads so the two names agree. A build that
-   turns it on without `fn-number`, or on a side that cannot use it, says so
-   the way the date features do.
-2. `docs/features.md` gets its own entry and a line in "A smaller build": the
+1. Two features of `mf2`, named after the framework and the side as the date
+   features are (owner, 2026-10-05; `plan/08` §2.7):
+   `host-web-number-names-intl` and `leptos-client-number-names-intl`, the
+   second forwarding to the first, both turning on `intl-names` of
+   `mf2-fn-number` and `mf2-host-web`. The browser's are the whole set: only a
+   browser can take the names from `Intl`, and no feature means the names come
+   from the catalog. `number-intl` is left as it is.
+2. `mf2-build` reads the new names. Today `Features::intl_names` asks for the
+   flat `intl-names` (`crates/mf2-build/src/features.rs:867`), which is what an
+   i18n crate forwards; it must recognise the two family names as
+   `Features::date_formatter` recognises the date families, and
+   `names_place` keep working off it. `mf2 check` and `mf2 init` advise them
+   where they advise the date features, with what the split costs and saves —
+   including that a browser with no name for a language falls back to the
+   currency code.
+3. `docs/features.md` gets its own entry and a line in "A smaller build": the
    four figures above, and the three text cases named (doubled LRM in Arabic
    and Hebrew, Arabic's `لتر1`, no names for Welsh in Chromium) — a reader
    choosing it should see what they are choosing. `docs/feature-costs.md` gets
-   its row.
-3. Checks: `cargo xtask feature-costs` for the new row only if the row needs it,
+   its row, and the entry sits beside `number-intl`'s so that one flat name
+   and one family are explained together.
+4. Checks: `cargo xtask feature-costs` for the new row only if the row needs it,
    `bash tools/checks/run.sh <label> --only docs,codegen-matrix`, then
    `cargo xtask ci`. Commit by path with `ci` green.
 

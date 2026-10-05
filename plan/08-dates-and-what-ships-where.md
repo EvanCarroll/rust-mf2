@@ -150,8 +150,18 @@ Arabic short one in Chromium; narrow no-break space against space.
    default: a default that changes Arabic, Hebrew and Welsh output, and costs
    4–7× the time, to save a visitor a few hundred bytes is the wrong trade. It
    stays available, with those figures and those three cases written beside it,
-   for an application that would rather have the catalog bytes. The work is
-   22.16.
+   for an application that would rather have the catalog bytes.
+
+   **Named after the framework and the side, as the date features are** (owner,
+   2026-10-05, having read §3's design): `host-web-number-names-intl` and
+   `leptos-client-number-names-intl`, forwarding to the sub-crates' `intl-names`
+   as the date aliases forward to `host-*-datetime-*`. Only the browser can take
+   names from `Intl`, so the browser's two families are the whole set, and the
+   absence of the feature means the names come from the catalog, as the absence
+   of a date feature means the ISO stand-in. `number-intl` keeps its flat name:
+   renaming a feature 2.0 shipped was offered and declined. The features
+   document therefore puts the two side by side, so a reader meeting one flat
+   name and one family does not have to guess. The work is 22.16.
 8. **In 3.0:** the narrowest ICU4X per corpus, the formatter cache, and the
    report of what ships where. **Not in 3.0:** a date formatter of our own in
    place of ICU4X.
