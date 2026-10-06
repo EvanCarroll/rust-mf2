@@ -838,6 +838,23 @@ fn assemble(
         fsx::write(&dir.join(path), text.as_bytes())?;
     }
 
+    // `mf2 convert`, `check` and `import` ask cargo which of mf2's features the
+    // crate has, and ask it `--offline` (crates/mf2-cli/src/cargo.rs). A
+    // registry cache without this project's dependencies makes cargo answer
+    // `no matching package`, and the commands then print the note that stands in
+    // for a feature list instead of what these pages record — so the recorded
+    // output held on a machine that had built the project and failed on one that
+    // had not. The project is generated here, so no cache key covers it: fetch
+    // its dependencies first, and the commands print the same thing either way.
+    let runs = blocks
+        .iter()
+        .filter(|b| b.run.as_deref() == Some(project.name))
+        .count();
+    if runs != 0 && dir.join("Cargo.toml").exists() {
+        eprintln!("==> docs: cargo fetch for {}", project.name);
+        crate::cmd::run_inherit(&crate::cmd::cargo(), &[OsStr::new("fetch")], &dir)?;
+    }
+
     for block in blocks
         .iter()
         .filter(|b| b.run.as_deref() == Some(project.name))
