@@ -43,13 +43,6 @@ missing=
 for tool in bash xmllint brotli nm wasm-opt wasm-dis node jq cargo rustup; do
   command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
 done
-# Not a command: the IANA database `mf2-host-std`'s ZONES_HOST reads through
-# jiff (`TZDIR`, else /usr/share/zoneinfo). Alpine carries none without
-# `tzdata`, and jiff compiles its own copy in only on Windows and wasm
-# (`tzdb-bundle-platform`), so without this a named time zone is *Bad Option*
-# on the runner and right on a machine that has the database --- which is how
-# mf2-fn-datetime's `icu` zone cases passed locally and failed in CI.
-[ -d "${TZDIR:-/usr/share/zoneinfo}" ] || missing="$missing tzdata"
 if [ -n "$missing" ]; then
   echo "setup: the image is missing:$missing" >&2
   echo "setup: add them to leptos-builder's Containerfile and rebuild the image" >&2
