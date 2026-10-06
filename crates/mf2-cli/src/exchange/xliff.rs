@@ -1351,7 +1351,7 @@ mod tests {
         assert_ne!(edited, doc);
         let refused = import(&en, "en", &pl, "pl", &edited, Checks::default()).expect("read");
         assert_eq!(refused.refused.len(), 1);
-        assert!(refused.rewrites.is_empty(), "{:?}", refused.rewrites);
+        assert!(refused.rewrites.is_empty());
         let lands =
             import(&en, "en", &pl, "pl", &edited, Checks { skip_data: true }).expect("read");
         assert_eq!(lands.refused, Vec::<String>::new());

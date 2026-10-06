@@ -273,13 +273,9 @@ mod tests {
     fn empty_text_is_dropped() {
         let mut p = Pattern::new();
         p.push(text(""));
-        assert!(p.is_empty(), "{p:?}");
+        assert!(p.is_empty());
         assert_eq!(p.as_simple_text(), Some(""));
-        assert!(
-            Pattern::from_text(Cow::Borrowed("")).is_empty(),
-            "{:?}",
-            Pattern::from_text(Cow::Borrowed(""))
-        );
+        assert!(Pattern::from_text(Cow::Borrowed("")).is_empty());
         p.push(var("x"));
         p.push(text(""));
         assert_eq!(p.len(), 1);
@@ -338,7 +334,7 @@ mod tests {
         let s: Pattern<'_> = [text("a"), text("b")].into_iter().collect();
         assert_eq!(s.parts(), [text("ab")]);
         let t: Pattern<'_> = vec![].into();
-        assert!(t.is_empty(), "{t:?}");
+        assert!(t.is_empty());
         let collected: alloc::vec::Vec<&PatternPart<'_>> = (&q).into_iter().collect();
         assert_eq!(collected.len(), 3);
         assert_eq!(q.clone().into_parts().len(), 3);

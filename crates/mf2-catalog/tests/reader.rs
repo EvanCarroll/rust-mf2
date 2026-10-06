@@ -214,7 +214,7 @@ fn the_canonical_equivalence_map_round_trips() {
     let bytes = catalog(&manifest, &[Some(&message)], &options).unwrap();
     let cat = Catalog::new(bytes, manifest.hash()).unwrap();
     assert!(!cat.sections().any(|(kind, _, _)| kind == section::NFC));
-    assert!(cat.nfc_map().is_empty(), "{:?}", cat.nfc_map());
+    assert!(cat.nfc_map().is_empty());
 }
 
 #[test]

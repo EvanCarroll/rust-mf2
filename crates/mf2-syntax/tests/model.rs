@@ -109,7 +109,7 @@ fn a_message_with_every_construct() {
         &parts[6],
         PatternPart::Expression(Expression::Function(_))
     ));
-    assert!(s.variants[1].value.is_empty(), "{:?}", s.variants[1].value);
+    assert!(s.variants[1].value.is_empty());
 }
 
 #[test]
@@ -218,9 +218,9 @@ fn values_are_kept_as_written() {
 #[test]
 fn empty_and_whitespace_messages() {
     let m = model("");
-    assert!(pattern_of(&m).is_empty(), "{:?}", pattern_of(&m));
+    assert!(pattern_of(&m).is_empty());
     let m = model("{{}}");
-    assert!(pattern_of(&m).is_empty(), "{:?}", pattern_of(&m));
+    assert!(pattern_of(&m).is_empty());
     assert_eq!(
         model("   "),
         Message::Pattern(PatternMessage {

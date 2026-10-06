@@ -427,11 +427,7 @@ mod tests {
         ] {
             assert!(read(bad).is_err(), "{bad:?} should not read");
         }
-        assert!(
-            read("{}").expect("an empty object is fine").is_empty(),
-            "{:?}",
-            read("{}").expect("an empty object is fine")
-        );
+        assert!(read("{}").expect("an empty object is fine").is_empty());
         assert!(read("\u{feff}{}").is_ok(), "a BOM is fine");
     }
 

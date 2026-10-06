@@ -230,7 +230,7 @@ fn relaxations_and_unknown_fields_are_accepted() {
     let PatternPart::Expression(e) = &parts[1] else {
         panic!("expression")
     };
-    assert!(e.attributes().is_empty(), "{:?}", e.attributes());
+    assert!(e.attributes().is_empty());
     assert!(e.function().is_some_and(|f| f.options.is_empty()));
 }
 
