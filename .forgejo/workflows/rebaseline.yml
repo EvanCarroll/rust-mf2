@@ -148,10 +148,12 @@ jobs:
             echo '| stripped `tui-mf2` | `xtask/src/tui_gate.rs` `SIZE_LIMIT` | native: changes on musl |'
             echo '| the same number again | `tools/checks/compare.sh` | native: changes on musl |'
             echo '| native-canary ICU ceiling | `xtask/src/native_canaries.rs` `ICU_CEILING` | native: changes on musl |'
-            echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/b5.rs` | wasm: only if wasm-opt moved |'
-            echo '| B13 | `xtask/src/b12_generated.rs` | wasm: only if wasm-opt moved |'
-            echo '| B2, B3, B4 | `bench/b12/check.sh` | wasm: only if wasm-opt moved |'
-            echo '| B7 | `crates/mf2-build/tests/sizes.rs` | wasm: only if brotli moved |'
+            echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/b5.rs` | brotli: only if wasm-opt or brotli moved |'
+            echo '| B13 | `xtask/src/b12_generated.rs` | raw wasm bytes, no compressor: only if wasm-opt moved |'
+            echo '| B2, B3, B4 | `bench/b12/check.sh` | brotli: only if wasm-opt or brotli moved |'
+            echo '| B7 | `crates/mf2-build/tests/sizes.rs` | brotli: only if brotli moved |'
+            echo '| the `intl` line | `docs/features.md` | hand-written from the table; still gzip |'
+            echo '| the B1 sentence | `README.md` | hand-written; still gzip |'
             echo
             echo "## Each command's result"
             echo
