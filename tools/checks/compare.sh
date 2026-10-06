@@ -8,7 +8,7 @@
 # Flags: a check that fails in B; B1 beyond ±57 B br; B5 beyond ±0.18 B a site;
 # any other size that moved; demo files that changed (demo-ssr's __wasm_split
 # loader aside: its hash varies between identical builds); stripped tui-mf2
-# above 1,328,664 B; allocations per frame that changed. Frame time is shown,
+# above 1,381,752 B; allocations per frame that changed. Frame time is shown,
 # not judged: it is taken under load.
 set -u
 cd "$(dirname "$0")/../.."
@@ -49,7 +49,7 @@ awk -F'\t' -v B="$b" -v demo="$demo" '
           if (k == "allocs") flag(c ": allocations per frame " w " -> " v)
         }
       }
-      if (k == "tui" && v + 0 > 1328664) flag(c ": stripped tui-mf2 " v " B, above 1328664")
+      if (k == "tui" && v + 0 > 1381752) flag(c ": stripped tui-mf2 " v " B, above 1381752")
       line = line " " s
     }
     if (c == "demos" && demo != "") { line = line " changed: " demo; flag("demos: changed " demo) }

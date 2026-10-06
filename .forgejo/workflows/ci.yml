@@ -208,10 +208,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/ci.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/ci.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -219,11 +224,15 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/ci.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: cargo xtask ci
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/ci.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask ci
 
@@ -234,6 +243,17 @@ jobs:
           name: conformance-report
           path: conformance/REPORT.md
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-ci
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   parser-gate:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -284,10 +304,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -295,11 +320,15 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: D1 gate (release build, median of 31, exit 1 on failure)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo run --release -p parser-gate -- --gate
 
@@ -312,6 +341,17 @@ jobs:
             target/parser-gate/report.md
             target/parser-gate/report.json
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-parser-gate
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   tui-gate:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -362,10 +402,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -373,12 +418,16 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The terminal UI's gate (allocations per frame and stripped size)
         # Three runs: the counts must agree between them. Time is nightly's.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask tui-gate --gate --runs 3
 
@@ -391,6 +440,17 @@ jobs:
             target/tui-gate/report.md
             target/tui-gate/report.json
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-tui-gate
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   native-canaries:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -441,10 +501,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -452,11 +517,15 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: What each feature set links into a native binary
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask native-canaries
 
@@ -467,6 +536,17 @@ jobs:
           name: native-canaries-report
           path: target/native-canaries/report.md
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-native-canaries
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   catalog-size:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -517,10 +597,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/catalog-size.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/catalog-size.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -528,11 +613,15 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/catalog-size.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: B7 on the committed corpus (brotli 11; exit 1 on a failed threshold)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/catalog-size.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask catalog-size --md target/catalog-bench/SIZE.md \
             --json target/catalog-bench/size.json
@@ -546,6 +635,17 @@ jobs:
             target/catalog-bench/SIZE.md
             target/catalog-bench/size.json
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-catalog-size
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   b12:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -596,10 +696,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh wasm-bindgen twiggy
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          sh tools/ci/setup.sh wasm-bindgen twiggy
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -607,21 +712,29 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: B12 check (exit 1 on a panic path or core::fmt in the reader or the runtime)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
           unset CARGO_BUILD_TARGET
           bash bench/b12/check.sh
 
       - name: B1′ and B13 on the generated module (Phase 5b, A10)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask b12-generated
 
       - name: The browser host builds for wasm32-unknown-unknown
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/b12.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo build --release -p mf2-host-web --target wasm32-unknown-unknown
 
@@ -634,6 +747,17 @@ jobs:
             bench/b12/target/b12/b12.txt
             bench/b12/target/b12/size.tsv
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-b12
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   build-pipeline:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -684,10 +808,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -695,18 +824,35 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The generated module in every feature combination, and B6
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask codegen-matrix
 
       - name: The incremental-rebuild scenarios
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask scenarios
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-build-pipeline
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   docs:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -757,10 +903,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -768,13 +919,28 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: Every documentation sample, compiled (server and wasm32)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask docs
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-docs
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   l4-wasi:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -825,10 +991,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh wasmtime
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
+          sh tools/ci/setup.sh wasmtime
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -836,11 +1007,15 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: L4 on wasm32-wasip1 (exit 1 unless byte-identical to native)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask l4-wasi --generated 20000
 
@@ -853,6 +1028,17 @@ jobs:
             target/l4-wasi/native.txt
             target/l4-wasi/wasi.txt
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-l4-wasi
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   msrv:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -903,10 +1089,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/msrv.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/msrv.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -914,18 +1105,35 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/msrv.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The 18 on their rust-version (natively and wasm32, both Leptos lines)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/msrv.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask msrv
 
       - name: The release before it must fail
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/msrv.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask msrv --below
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-msrv
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   docs-rs:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
@@ -976,10 +1184,15 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs-rs.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs-rs.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -987,13 +1200,28 @@ jobs:
         # Into target/xtask-cache, checked against the PIN's digests; --check
         # also holds the vendored suite byte for byte against upstream.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs-rs.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The documentation, as docs.rs builds it
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/docs-rs.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask docs-rs
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-docs-rs
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   release:
     # The dry run repeats the `ci`, `msrv`, `docs-rs` and `package` work, so it
@@ -1049,23 +1277,43 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/release.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/release.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         # Into target/xtask-cache (git-ignored, so the tree stays clean).
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/release.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The release, as a dry run (never publishes)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/release.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask release
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-release
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   report:
     # Everything this run measured, in one file. tools/ci/report.sh folds every
@@ -1130,7 +1378,10 @@ jobs:
           path: artifacts
 
       - name: Set the job up (for the versions the report is headed with)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/report.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Assemble the report
         env:
@@ -1141,6 +1392,8 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           IMAGE: git.coworkunion.com/evancarroll/mf2-ci:latest
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/report.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           sh tools/ci/report.sh artifacts > REPORT.md
@@ -1153,3 +1406,14 @@ jobs:
           name: mf2-report
           path: REPORT.md
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-report
+          path: target/ci-logs/
+          if-no-files-found: warn

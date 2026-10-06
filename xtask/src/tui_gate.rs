@@ -54,12 +54,24 @@ const BINARIES: &[&str] = &["tui-mf2", "tui-upstream"];
 /// 1.x's allocations per frame (A1, the binaries of `3a296a9`), by locale.
 const ALLOCS_1X: &[(&str, u64)] = &[("en", 1816), ("de", 1815), ("es", 1816), ("fr", 1817)];
 
-/// The stripped `tui-mf2`, in bytes, as Phase 13's exit measured it: a later
-/// change may not make it larger. It began as 1.x's `1_965_320` B (A1) and came
-/// down when the native host stopped linking a time-zone database and `ryu`
-/// (Phase 12: `1_454_264`) and again when the normalization tables left the
-/// binary, the catalog's map deciding canonical equivalence instead.
-const SIZE_LIMIT: u64 = 1_328_664;
+/// The stripped `tui-mf2`, in bytes: a later change may not make it larger. It
+/// began as 1.x's `1_965_320` B (A1) and came down when the native host stopped
+/// linking a time-zone database and `ryu` (Phase 12: `1_454_264`) and again when
+/// the normalization tables left the binary, the catalog's map deciding
+/// canonical equivalence instead (Phase 13: `1_328_664`, on glibc).
+///
+/// Measured on musl since 2026-10-06, because that is where the gate runs: the
+/// CI image is Alpine. A static musl binary is not the same size as a glibc one
+/// — the first run measured `1_381_752`, 53,088 B over the glibc figure — and
+/// that is a platform difference, not a regression. The ratchet is kept on the
+/// platform that enforces it. `tui-upstream` was `1_450_048` in the same run, so
+/// ours is still the smaller binary, which is what the figure is for.
+///
+/// One cost of this, for the owner to overrule if it matters: on glibc the
+/// ratchet is now loose by those 53 KB, so a regression smaller than that would
+/// pass locally and fail in CI. Two constants chosen by target would keep both
+/// tight.
+const SIZE_LIMIT: u64 = 1_381_752;
 
 /// What `cargo xtask tui-gate` was asked to do.
 pub(crate) struct Options {

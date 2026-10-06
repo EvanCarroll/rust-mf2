@@ -82,15 +82,22 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh wasm-bindgen twiggy trunk
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
+          sh tools/ci/setup.sh wasm-bindgen twiggy trunk
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
@@ -106,7 +113,10 @@ jobs:
             checks-baseline-
 
       - name: Name this run
-        run: echo "CHECKS_LABEL=v$(echo "${{ github.sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
+          echo "CHECKS_LABEL=v$(echo "${{ github.sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
 
       - name: The suite, without the rows this runner cannot do
         # 15 of the 21. run.sh carries on after a failure and exits 1 at the
@@ -117,6 +127,8 @@ jobs:
         # is no Cargo.lock here. It works because `ci` has already fetched the
         # registry into the cache. Reorder the list and `sizes` fails offline.
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
           bash tools/checks/run.sh "$CHECKS_LABEL" --only \
             ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,b12,b12-generated,conformance-report,api,refusals,tui-gate,native-canaries
@@ -124,12 +136,16 @@ jobs:
       - name: The TUI gate proper (run.sh keeps the baseline; this judges it)
         if: always()
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask tui-gate --gate --runs 3
 
       - name: Against the last verification
         if: always()
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/checks.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           prev=$(cd target/p10-checks && ls -1dt */ 2>/dev/null \
@@ -156,6 +172,17 @@ jobs:
             target/p10-checks/
             target/p10-b2/logs/
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-checks
+          path: target/ci-logs/
+          if-no-files-found: warn
 
   report:
     # One file for the whole verification. See ci.yml's `report` job.
@@ -200,7 +227,10 @@ jobs:
           path: artifacts
 
       - name: Set the job up (for the versions the report is headed with)
-        run: sh tools/ci/setup.sh
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/report.log) 2>&1
+          sh tools/ci/setup.sh
 
       - name: Assemble the report
         env:
@@ -211,6 +241,8 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           IMAGE: git.coworkunion.com/evancarroll/mf2-ci:latest
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/report.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           sh tools/ci/report.sh artifacts > REPORT.md
@@ -223,3 +255,14 @@ jobs:
           name: mf2-report
           path: REPORT.md
           if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-report
+          path: target/ci-logs/
+          if-no-files-found: warn

@@ -74,15 +74,22 @@ jobs:
             cargo-registry-
 
       - name: Set the job up (packages, toolchain, tool versions)
-        run: sh tools/ci/setup.sh wasm-bindgen twiggy
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/figures.log) 2>&1
+          sh tools/ci/setup.sh wasm-bindgen twiggy
 
       - name: Start sccache
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/figures.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
       - name: Fetch the MF2 specification text (not vendored, upstream #1112)
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/figures.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
@@ -91,6 +98,8 @@ jobs:
       # Each command's exit status is recorded instead of ending the job.
       - name: Take every figure again
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/figures.log) 2>&1
           set -u
           unset CARGO_BUILD_TARGET
           mkdir -p target/rebaseline
@@ -118,6 +127,8 @@ jobs:
       - name: Say what has to change, and where
         if: always()
         run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/figures.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cd "$GITHUB_WORKSPACE"
@@ -173,4 +184,15 @@ jobs:
             target/feature-costs/feature-costs.md
             target/native-canaries/report.md
             target/tui-gate/report.md
+          if-no-files-found: warn
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-figures
+          path: target/ci-logs/
           if-no-files-found: warn

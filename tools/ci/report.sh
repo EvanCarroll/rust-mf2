@@ -67,6 +67,9 @@ printf '\n'
 # anything not named here still appears, after them, so nothing is lost.
 order='REPORT.md size.md report.md feature-costs.md SIZE.md b12.txt size.tsv COVERAGE.md'
 
+# How much of a job's log to inline. The whole thing is in the artifact.
+LOG_TAIL=${LOG_TAIL:-120}
+
 listing=$(cd "$dir" && find . -type f | sed 's|^\./||' | sort)
 
 rank() {
@@ -87,6 +90,14 @@ done | sort | cut -f2- | while read -r rel; do
   f="$dir/$rel"
   bytes=$(wc -c < "$f" | tr -d ' ')
   case "$rel" in
+    *.log)
+      # A job's whole output. The end is where the failure is, so the tail goes
+      # in the report and the artifact keeps the rest.
+      printf '### `%s`\n\n%s bytes, %s lines. The last %s:\n\n```\n' \
+        "$rel" "$bytes" "$(wc -l < "$f" | tr -d ' ')" "$LOG_TAIL lines"
+      tail -n "$LOG_TAIL" "$f"
+      printf '```\n\n'
+      ;;
     *.md|*.txt|*.tsv)
       if [ "$bytes" -gt 262144 ]; then
         printf '### `%s`\n\n%s bytes — too large to inline; it is in the artifact.\n\n' "$rel" "$bytes"
