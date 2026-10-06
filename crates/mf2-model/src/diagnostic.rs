@@ -286,7 +286,7 @@ mod tests {
     #[test]
     fn diagnostics_queries() {
         let mut d = Diagnostics::new();
-        assert!(d.is_empty());
+        assert!(d.is_empty(), "{d:?}");
         assert_eq!(d.len(), 0);
         assert!(!d.has(ErrorKind::Syntax));
         d.push(Diagnostic {

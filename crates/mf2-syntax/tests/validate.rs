@@ -286,5 +286,5 @@ fn validate_works_on_models_built_in_code() {
         declarations: Vec::new(),
         pattern: Pattern::from_text("fine".into()),
     });
-    assert!(validate(&ok).is_empty());
+    assert!(validate(&ok).is_empty(), "{:?}", validate(&ok));
 }

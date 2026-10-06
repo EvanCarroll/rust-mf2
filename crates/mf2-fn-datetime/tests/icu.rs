@@ -555,7 +555,10 @@ fn blob_equals_compiled_data() {
             let compiled = run_with(&COMPILED_REGISTRY, &utc, locale, src, &[]);
             assert!(blob.1.is_empty(), "{locale} {src}: {:?}", blob.1);
             assert_eq!(blob, compiled, "{locale} {src}");
-            assert!(!blob.0.is_empty());
+            assert!(
+                !blob.0.is_empty(),
+                "the blob for a locale with dates is empty"
+            );
             compared += 1;
         }
     }

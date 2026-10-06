@@ -376,7 +376,7 @@ mod tests {
     #[test]
     fn options_keep_order_and_duplicates() {
         let mut o = Options::new();
-        assert!(o.is_empty());
+        assert!(o.is_empty(), "{o:?}");
         o.push("b".into(), OptionValue::Literal(lit("1")));
         o.push(
             "a".into(),

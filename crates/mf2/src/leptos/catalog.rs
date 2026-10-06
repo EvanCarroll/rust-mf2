@@ -704,10 +704,16 @@ mod tests {
             .expect("a runtime");
         // Start-up: the route list, with the negotiator on the router.
         let with = server(true);
-        assert!(given(Kind::Unrequested).is_empty());
+        assert!(
+            given(Kind::Unrequested).is_empty(),
+            "a catalog was given before any request"
+        );
         // A request the negotiator answered.
         runtime.block_on(get(with));
-        assert!(given(Kind::Unrequested).is_empty());
+        assert!(
+            given(Kind::Unrequested).is_empty(),
+            "a catalog was given for a request the negotiator answered"
+        );
         // A router without it: the first request says so, the next not again.
         let without = server(false);
         runtime.block_on(get(without.clone()));

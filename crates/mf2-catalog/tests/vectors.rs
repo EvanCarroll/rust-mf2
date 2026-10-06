@@ -131,7 +131,7 @@ fn v2_pattern() {
     assert_eq!(e.operand(), Some(Operand::Variable(VarRef::External(0))));
     let f = e.function().unwrap();
     assert_eq!(cat.function(f.index()), Some("string"));
-    assert!(f.options().is_empty());
+    assert!(f.options().is_empty(), "{:?}", f.options());
     // Unstripped: the attribute comes back.
     let d = decode_report(&cat, ID).unwrap();
     assert!(!d.cold_dropped);

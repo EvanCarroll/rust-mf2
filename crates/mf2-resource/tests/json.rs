@@ -28,7 +28,7 @@ name = Example
 #[test]
 fn the_shape_is_the_documented_one() {
     let (resource, diags) = parse(SRC);
-    assert!(diags.is_empty());
+    assert!(diags.is_empty(), "{diags:?}");
     let json: serde_json::Value = serde_json::to_value(&resource).expect("serializes");
 
     assert_eq!(json["comment"], "About this file.");
