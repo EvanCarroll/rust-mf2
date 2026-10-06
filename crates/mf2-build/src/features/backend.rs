@@ -57,8 +57,9 @@ pub trait Backend: Copy + Ord + core::fmt::Debug + 'static {
     }
 }
 
-/// How a browser's figure is counted: the client wasm, gzipped.
-const GZIPPED: &str = " gzipped";
+/// How a browser's figure is counted: the client wasm, compressed as it is
+/// served. `costs.rs` carries the wording beside the figures, so the two cannot
+/// drift apart — `cargo xtask feature-costs` rewrites both together.
 
 /// A measured figure as a message says it: to the nearest 10 B below 1 KB,
 /// a tenth of a KB below 100 KB, a whole KB above. Rounded so that a figure
@@ -76,8 +77,8 @@ fn rounded(bytes: i64) -> String {
     }
 }
 
-/// A figure set against another formatter's: `+2.5 KB gzipped over
-/// `plain``, or `0.5 KB gzipped less than `plain`` when it is smaller.
+/// A figure set against another formatter's: `+2.5 KB brotli over
+/// `plain``, or `0.5 KB brotli less than `plain`` when it is smaller.
 fn against(bytes: i64, how: &str, base: &str) -> String {
     if bytes < 0 {
         format!("{}{how} less than `{base}`", rounded(bytes))
@@ -161,8 +162,9 @@ impl Backend for DateBackend {
     fn cost(self, side: Side) -> String {
         match (self, side) {
             (DateBackend::Iso, Side::Browser) => format!(
-                "+{} gzipped, with no locale data and no ICU4X",
-                rounded(costs::DATE_ISO_BROWSER)
+                "+{}{}, with no locale data and no ICU4X",
+                rounded(costs::DATE_ISO_BROWSER),
+                costs::BROWSER_UNIT
             ),
             (DateBackend::Iso, Side::Native) => format!(
                 "+{}, mostly time zones, with no locale data and no ICU4X",
@@ -170,12 +172,12 @@ impl Backend for DateBackend {
             ),
             (DateBackend::Intl, _) => format!(
                 "{}, and no date data downloaded",
-                against(costs::DATE_INTL_BROWSER, GZIPPED, "iso")
+                against(costs::DATE_INTL_BROWSER, costs::BROWSER_UNIT, "iso")
             ),
             (DateBackend::Icu, Side::Browser) => format!(
                 "{} (more with zone names or other calendars), and the date slice in each \\
                  catalog",
-                against(costs::DATE_ICU_BROWSER, GZIPPED, "iso")
+                against(costs::DATE_ICU_BROWSER, costs::BROWSER_UNIT, "iso")
             ),
             (DateBackend::Icu, Side::Native) => {
                 format!("+{}, and the date slices", rounded(costs::DATE_ICU_NATIVE))
@@ -184,7 +186,7 @@ impl Backend for DateBackend {
             // carries.
             (DateBackend::IcuCached, _) => format!(
                 "{}, for a date formatted 3 to 10 times faster",
-                against(costs::DATE_ICU_CACHED_BROWSER, GZIPPED, "icu")
+                against(costs::DATE_ICU_CACHED_BROWSER, costs::BROWSER_UNIT, "icu")
             ),
         }
     }
@@ -286,11 +288,11 @@ impl Backend for NumberBackend {
             }
             (NumberBackend::Intl, _) => format!(
                 "{}, and no number or plural data downloaded",
-                against(costs::NUMBER_INTL_BROWSER, GZIPPED, "plain")
+                against(costs::NUMBER_INTL_BROWSER, costs::BROWSER_UNIT, "plain")
             ),
             (NumberBackend::Builtin, Side::Browser) => format!(
                 "{}, and the number data in each catalog",
-                against(costs::NUMBER_BUILTIN_BROWSER, GZIPPED, "plain")
+                against(costs::NUMBER_BUILTIN_BROWSER, costs::BROWSER_UNIT, "plain")
             ),
             (NumberBackend::Builtin, Side::Native) => format!(
                 "{}, and the number data",
@@ -302,7 +304,7 @@ impl Backend for NumberBackend {
 
 #[cfg(test)]
 mod tests {
-    use super::{Backend, DateBackend, NumberBackend, Side, against, rounded};
+    use super::{Backend, DateBackend, NumberBackend, Side, against, costs, rounded};
 
     #[test]
     fn a_figure_is_rounded_so_that_a_few_bytes_do_not_move_it() {
@@ -320,12 +322,12 @@ mod tests {
     #[test]
     fn a_figure_set_against_another_says_which_way() {
         assert_eq!(
-            against(2_514, " gzipped", "plain"),
-            "+2.5 KB gzipped over `plain`"
+            against(2_514, " brotli", "plain"),
+            "+2.5 KB brotli over `plain`"
         );
         assert_eq!(
-            against(-545, " gzipped", "plain"),
-            "550 B gzipped less than `plain`"
+            against(-545, " brotli", "plain"),
+            "550 B brotli less than `plain`"
         );
         assert_eq!(against(9_920, "", "plain"), "+9.9 KB over `plain`");
     }
@@ -340,17 +342,18 @@ mod tests {
                 assert!(!backend.cost(side).is_empty(), "{backend:?}");
             }
         }
-        // A browser's figures are of the gzipped client; native code's of
-        // the binary.
+        // A browser's figures are of the compressed client; native code's of
+        // the binary. The unit comes from costs.rs, which the table writes, so
+        // this follows a regeneration rather than naming a compressor.
         assert!(
             NumberBackend::Builtin
                 .cost(Side::Browser)
-                .contains("gzipped")
+                .contains(costs::BROWSER_UNIT)
         );
         assert!(
             !NumberBackend::Builtin
                 .cost(Side::Native)
-                .contains("gzipped")
+                .contains(costs::BROWSER_UNIT)
         );
     }
 }

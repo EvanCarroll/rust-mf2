@@ -53,6 +53,12 @@ because the compiler, the flags and the output are the same.
 
 ## Two things to know before reading a figure
 
+**The unit is brotli.** Every size figure is `brotli -q 11 --lgwin=22`, the
+setting `mf2-build` compresses catalogs with: almost every visitor downloads the
+`.br` file, and `.gz` only reaches clients without brotli (owner, 2026-10-05,
+extending the same decision made for B7 in Phase 2). The gzip CLI is not needed
+anywhere, which is why the image has no GNU gzip.
+
 **musl.** Everything built as wasm is unaffected by the host's libc, so B1, B5,
 B6, B7, B2, B3, B4 and B13 and the browser column of `docs/feature-costs.md`
 mean here what they mean anywhere. Every figure taken from a *native* binary —
@@ -69,8 +75,10 @@ that with `error: target was empty`.
 
 ## The scripts
 
-* `tools/ci/setup.sh [extra …]` — the packages the image lacks (`xmllint`, which
-  `mf2-cli`'s XLIFF tests fail without rather than skip; GNU gzip; `nm`), the
+* `tools/ci/setup.sh [extra …]` — checks the image carries what the checks need
+  (`bash`, `xmllint`, `brotli`, `nm`, `wasm-opt`, `wasm-dis`, `node`, `jq`) and
+  fails naming anything missing rather than installing it, so a stale image says
+  so once instead of being patched at the start of every job; then the
   toolchain `rust-toolchain.toml` pins, and the extras a job asks for
   (`wasm-bindgen`, `twiggy`, `wasmtime`, `trunk`, `fuzz`). Prints every version.
 * `tools/ci/versions.sh` — just the versions. `setup.sh` and `report.sh` both

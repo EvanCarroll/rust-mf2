@@ -6,6 +6,11 @@
 //! binary; each is the size with the feature less the size without it,
 //! against the build the table names.
 
+/// How a browser's figure is counted, as the message that quotes it says
+/// it. Written here, beside the figures, so that a regenerated table
+/// cannot leave the wording of an older unit behind.
+pub(super) const BROWSER_UNIT: &str = " gzip";
+
 /// `leptos-client-number-builtin`, set against `leptos-client-number-plain`.
 pub(super) const NUMBER_BUILTIN_BROWSER: i64 = 2_514;
 

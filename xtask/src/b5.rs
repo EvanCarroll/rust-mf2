@@ -16,14 +16,14 @@
 //!
 //! The pipeline is the one P0.1 ran:
 //! `wasm32-unknown-unknown`, profile `wasm-release`, `wasm-bindgen`,
-//! `wasm-opt -Oz`, `gzip -9`.
+//! `wasm-opt -Oz`, `brotli -q 11`.
 //!
 //! **What Phase 5b measures.** Without `leptos-mf2` a description does not
 //! render itself yet, so every call site of every template formats to a
 //! `String`. That is the 45 % of real sites that need one anyway, and the
 //! view positions cost the same in `tr` and in its baselines — tachys around
 //! a `String` leaf — so they cancel here. Phase 6 re-measures them with the
-//! real leaf, which is what P0.1's 24.5 B gz was.
+//! real leaf, which is what P0.1's 24.5 B gzip was.
 
 use std::ffi::{OsStr, OsString};
 use std::fmt::Write as _;
@@ -32,8 +32,8 @@ use std::path::{Path, PathBuf};
 use crate::cmd;
 use crate::error::{Error, Result};
 
-/// The budget: B5 ≤ 40 B gz per call site, against the `idlit` baseline.
-const BUDGET: f64 = 40.0;
+/// The budget: B5 ≤ 36 B br per call site, against the `idlit` baseline.
+const BUDGET: f64 = 36.0;
 
 /// One scale of the reference workload: its three knobs, at
 /// the ratios P0.1 used.
@@ -113,10 +113,10 @@ pub(crate) type Measured = Vec<(usize, Vec<(&'static str, Sizes)>)>;
 /// What one built application measured.
 pub(crate) struct Sizes {
     /// After `wasm-bindgen`, before `wasm-opt`.
-    pub(crate) bindgen_gz: u64,
+    pub(crate) bindgen_br: u64,
     /// After `wasm-opt -Oz` — the shipped artifact.
     pub(crate) opt_raw: u64,
-    pub(crate) opt_gz: u64,
+    pub(crate) opt_br: u64,
 }
 
 pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool, mode: Mode) -> Result<()> {
@@ -323,9 +323,9 @@ pub(crate) fn ship(root: &Path, wasm: &Path, pkg: &Path, lib: &str) -> Result<Si
     )?;
 
     Ok(Sizes {
-        bindgen_gz: gzipped(&bg)?,
+        bindgen_br: compressed(&bg)?,
         opt_raw: len(&opt)?,
-        opt_gz: gzipped(&opt)?,
+        opt_br: compressed(&opt)?,
     })
 }
 
@@ -338,29 +338,47 @@ fn len(path: &Path) -> Result<u64> {
         })
 }
 
-/// The file through `gzip -9`, in bytes — the figure B5 is stated in.
-fn gzipped(path: &Path) -> Result<u64> {
+/// Brotli's quality, and its window as a power of two: what `mf2-build`
+/// compresses catalogs with (`crates/mf2-build/src/catalog.rs`), so that every
+/// figure the project states is on one setting.
+const BROTLI_QUALITY: u32 = 11;
+const BROTLI_WINDOW: u32 = 22;
+
+/// The file through `brotli -q 11 --lgwin=22`, in bytes — the figure B5 is
+/// stated in.
+///
+/// Brotli, not gzip: almost every visitor downloads the `.br` file, and the
+/// `.gz` file only reaches clients without brotli, so brotli is the size that
+/// matters. B7 moved for that reason in Phase 2; the wasm figures followed
+/// (owner, 2026-10-05).
+fn compressed(path: &Path) -> Result<u64> {
     let bytes = std::fs::read(path).map_err(|source| Error::IoAt {
         path: path.to_path_buf(),
         source,
     })?;
-    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::new(9));
-    std::io::Write::write_all(&mut encoder, &bytes).map_err(|source| Error::IoAt {
-        path: path.to_path_buf(),
-        source,
-    })?;
-    let out = encoder.finish().map_err(|source| Error::IoAt {
-        path: path.to_path_buf(),
-        source,
-    })?;
+    let mut out = Vec::new();
+    {
+        let mut writer =
+            brotli::CompressorWriter::new(&mut out, 4096, BROTLI_QUALITY, BROTLI_WINDOW);
+        std::io::Write::write_all(&mut writer, &bytes).map_err(|source| Error::IoAt {
+            path: path.to_path_buf(),
+            source,
+        })?;
+        // `Drop` flushes but cannot report; this is where a truncated stream
+        // would otherwise pass silently.
+        std::io::Write::flush(&mut writer).map_err(|source| Error::IoAt {
+            path: path.to_path_buf(),
+            source,
+        })?;
+    }
     Ok(out.len() as u64)
 }
 
 /// What the difference of the differences says, for one baseline.
 pub(crate) struct Delta {
-    /// Bytes gz per call site.
+    /// Bytes brotli per call site.
     pub(crate) marginal: f64,
-    /// Bytes gz that do not depend on the number of sites — B1's territory.
+    /// Bytes brotli that do not depend on the number of sites — B1's territory.
     pub(crate) fixed: f64,
 }
 
@@ -379,7 +397,7 @@ pub(crate) fn delta(
         sizes
             .iter()
             .find(|(t, _)| *t == name)
-            .map(|(_, s)| s.opt_gz)
+            .map(|(_, s)| s.opt_br)
     };
     let (tr_small, tr_big, b_small, b_big) = (
         find(small_sizes, subject)?,
@@ -403,14 +421,14 @@ pub(crate) fn delta(
 /// The per-scale table, shared by both commands.
 pub(crate) fn size_table(measured: &[(usize, Vec<(&str, Sizes)>)]) -> String {
     let mut out = String::from(
-        "\n| workload | template | bindgen gz | opt raw | opt gz |\n|---|---|---:|---:|---:|\n",
+        "\n| workload | template | bindgen br | opt raw | opt br |\n|---|---|---:|---:|---:|\n",
     );
     for (sites, sizes) in measured {
         for (template, s) in sizes {
             let _ = writeln!(
                 out,
                 "| {sites} sites | {template} | {} | {} | {} |",
-                s.bindgen_gz, s.opt_raw, s.opt_gz
+                s.bindgen_br, s.opt_raw, s.opt_br
             );
         }
     }
@@ -434,16 +452,16 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
         sizes
             .iter()
             .find(|(t, _)| *t == name)
-            .map(|(_, s)| s.opt_gz)
+            .map(|(_, s)| s.opt_br)
     };
 
-    println!("\n| workload | template | bindgen gz | opt raw | opt gz |");
+    println!("\n| workload | template | bindgen br | opt raw | opt br |");
     println!("|---|---|---:|---:|---:|");
     for (sites, sizes) in measured {
         for (template, s) in sizes {
             println!(
                 "| {sites} sites | {template} | {} | {} | {} |",
-                s.bindgen_gz, s.opt_raw, s.opt_gz
+                s.bindgen_br, s.opt_raw, s.opt_br
             );
         }
     }
@@ -456,7 +474,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
             stderr: String::new(),
         });
     }
-    println!("\n| baseline | marginal B gz/site | fixed B gz | budget |");
+    println!("\n| baseline | marginal B br/site | fixed B br | budget |");
     println!("|---|---:|---:|---|");
     let mut verdict = None;
     for baseline in [mode.baseline(), "dummy"] {
@@ -490,7 +508,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
     match verdict {
         Some(marginal) if marginal <= BUDGET => {
             println!(
-                "\nb5: {marginal:.1} B gz per call site against `{}` — within {BUDGET:.0}",
+                "\nb5: {marginal:.1} B br per call site against `{}` — within {BUDGET:.0}",
                 mode.baseline()
             );
             Ok(())
@@ -498,7 +516,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
         Some(marginal) => Err(Error::CommandFailed {
             command: "b5".to_owned(),
             status: format!(
-                "B5 is {marginal:.1} B gz per call site, over the budget of {BUDGET:.0}"
+                "B5 is {marginal:.1} B br per call site, over the budget of {BUDGET:.0}"
             ),
             stderr: String::new(),
         }),

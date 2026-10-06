@@ -21,7 +21,7 @@ bench/b12/check.sh          # exit 0: B12 clean; 1: B12 fails (or the control sh
 
 It needs `cargo` (the toolchain of `rust-toolchain.toml`, with the
 `wasm32-unknown-unknown` target), `wasm-opt` and `wasm-dis` (binaryen),
-`twiggy` and `gzip`. It builds with `CARGO_BUILD_JOBS=3` unless set. What it
+`twiggy` and `brotli`. It builds with `CARGO_BUILD_JOBS=3` unless set. What it
 does, per harness:
 
 1. Build with profile `wasm-release` (opt-level z, fat LTO, 1 CGU,
@@ -39,7 +39,8 @@ does, per harness:
    demangles v0 names as `core[…]::fmt::…`; the mangled `4core3fmt` spelling
    is matched too). `b12-control` must show both kinds.
 4. **Data**: no panic message text in the stripped optimised module.
-5. **Size**: raw and `gzip -9 -n` of the stripped optimised modules, and the
+5. **Size**: raw and `brotli -q 11 --lgwin=22` of the stripped optimised
+   modules, and the
    delta `b12-reader` − `b12-base`, plus a twiggy breakdown by crate.
 
 Output: `bench/b12/target/b12/b12.txt` (the report) and `size.tsv`.
@@ -120,7 +121,10 @@ native harnesses, `mf2-host-web`'s for the web ones.
 | `b12-dates-unused` | `b12-runtime`'s registry and walk, `mf2-fn-datetime` linked with both backends' features | B1′ (= `b12-runtime`, +0 B), B13 |
 
 Measured 2026-09-22 on the merged tree (rustc 1.98.1, wasm-opt 120, twiggy
-0.8.0, wasm-bindgen 0.2.128, gzip 1.13; `bench/b12/check.sh`). The date
+0.8.0, wasm-bindgen 0.2.128, gzip 1.13; `bench/b12/check.sh`). **The figures
+and limits in this section are gzip, the unit in force at that date**; the
+unit moved to brotli on 2026-10-05 and the limits moved with it — see "The
+figures are brotli now" at the end. The date
 semantics are 11 B gz under the note they missed by 4 before the `intl`
 option's numeric rework landed beneath them:
 
@@ -146,3 +150,39 @@ retained through the function table by `wasm-bindgen`'s closure glue and
 the Leptos layer's B12 (P6). The ICU4X harnesses show 7 fmt and 11–24 panic symbols, ICU4X's.
 B13: 0 date symbols in `b12-runtime`, `b12-dates-base` and `b12-dates-unused`;
 20 in `b12-dates-semantics`.
+
+## The figures are brotli now (2026-10-05)
+
+Almost every visitor downloads the `.br` file, and the `.gz` file only reaches
+clients without brotli, so brotli is the size that matters. B7 moved for that
+reason in Phase 2; the wasm figures followed (owner, 2026-10-05). `check.sh`
+compresses with `brotli -q 11 --lgwin=22`, the setting `mf2-build` already uses
+for catalogs, and no longer needs `gzip` at all.
+
+The limits are scaled by 0.89 — the worst brotli/gzip ratio measured across
+these figures (0.881, rounded up) — and rounded up to a neat value, so nothing
+is held tighter than it was under gzip. That is the method Phase 2 used when B7
+moved.
+
+Measured from the 2026-10-05 16:11 run's own modules, recompressed: the same
+wasm, a different compressor, so these are measurements and not conversions.
+
+| Figure | Δ gz | **Δ br** | br/gz | limit (was) |
+|---|---:|---:|---:|---|
+| B2 `fn-number` on and used | 2,065 | **1,745** | 0.845 | ≤ 2,816 (3,072) |
+| B3 `+ :currency, :unit` | 5,503 | **4,847** | 0.881 | ≤ 5,120 (5,632) |
+| B4 `intl`, wasm | 4,947 | **4,323** | 0.874 | ≤ 5,632 (6,144) |
+| B4 `intl`, JS glue | 681 | **655** | 0.962 | ≤ 1,024 (1,024) |
+| B4 `icu`, Gregorian, zone styles | 69,338 | **58,329** | 0.841 | ≤ 87,040 (97,280) |
+| … Gregorian, no zone styles | 44,146 | 37,783 | 0.856 | — |
+| B4 `icu`, any calendar, zone styles | 82,533 | **69,200** | 0.838 | ≤ 96,256 (107,520) |
+| … any calendar, no zone styles | 56,921 | 48,134 | 0.846 | — |
+| date semantics | 3,390 | **3,006** | 0.887 | note: ≤ 3,190 (3,584) |
+| + the neutral backend | 3,854 | 3,489 | 0.905 | — |
+| the reader (`reader` − `base`) | 6,984 | **6,332** | 0.907 | — |
+
+Every one passes. B3 is the tightest at 95 % of its limit, as it was under gzip
+(98 %).
+
+B1′ and B13 are untouched: `cargo xtask b12-generated` compares **raw** bytes of
+the client binary, so no compressor enters them.

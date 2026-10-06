@@ -11,10 +11,10 @@ Logs: `target/p10-checks/LABEL/CHECK.log` (measure.sh and e2e.sh also keep their
 
 The TUI gate keeps its binaries in `LABEL/tui-baseline`; `--against EARLIER` alternates them with EARLIER's (`base_us`: EARLIER's binary in the same session) and counts the demo files that changed.
 
-Figures: `b1`, `app` (B gz); `b5`, `b5v` (B gz a site); `b7.LOCALE` (catalog, B brotli); `files`/`changed` (demo files); `tui` (stripped tui-mf2, B); `allocs` (per frame, en/de/es/fr); `us` (median µs a frame); `tests`, `asserts` (passed); `crates`, `rlib`, `L7d`/`L7cd`, `b1p`/`b13`.
+Figures: `b1`, `app` (B br); `b5`, `b5v` (B br a site); `b7.LOCALE` (catalog, B brotli); `files`/`changed` (demo files); `tui` (stripped tui-mf2, B); `allocs` (per frame, en/de/es/fr); `us` (median µs a frame); `tests`, `asserts` (passed); `crates`, `rlib`, `L7d`/`L7cd`, `b1p`/`b13`.
 
     bash tools/checks/test-times.sh target/p10-checks/LABEL/ci.log [ROWS]
 
 `test-times.sh` says where a test run's time went: the test binaries of a `cargo test` log by their own run time, longest first, then the total. At `p14` (2026-10-03) the tests ran for 1,721 of `ci`'s 1,878 s, and two binaries, `generated_l4` and `generated_l3`, for 1,085 of those.
 
-`compare.sh` flags a check failing in LABEL; B1 beyond ±64 B gz; B5 beyond ±0.2 B a site; any other size that moved; demo files that changed (demo-ssr's `__wasm_split` loader aside: its hash varies between identical builds); `tui` above 1,454,264 B; `allocs` that changed. Frame time is shown, not judged (taken under load). Exit 1 if anything is flagged.
+`compare.sh` flags a check failing in LABEL; B1 beyond ±57 B br; B5 beyond ±0.18 B a site; any other size that moved; demo files that changed (demo-ssr's `__wasm_split` loader aside: its hash varies between identical builds); `tui` above 1,454,264 B; `allocs` that changed. Frame time is shown, not judged (taken under load). Exit 1 if anything is flagged.

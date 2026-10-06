@@ -4,7 +4,7 @@
 //! Every cost is a difference of two builds that differ by the one feature,
 //! on a corpus that uses it:
 //!
-//! * **in the browser**, the gzip bytes of the reference workload's client
+//! * **in the browser**, the brotli bytes of the reference workload's client
 //!   wasm at the small scale, built and shipped exactly as `cargo xtask size`
 //!   builds it ([`b5::build`]), from a workload generated with `:number`
 //!   messages and, for the date features, `:datetime` messages too;
@@ -68,7 +68,7 @@ impl Side {
 
     fn unit(self) -> &'static str {
         match self {
-            Side::Client => "B gzip",
+            Side::Client => "B brotli",
             Side::Native => "B stripped",
         }
     }
@@ -380,7 +380,10 @@ pub(crate) fn run(root: &Path, check: bool, keep: bool) -> Result<()> {
 
     if !check {
         fsx::write(&root.join(TABLE), table.as_bytes())?;
-        fsx::write(&root.join(CONSTANTS), constants(&figures).as_bytes())?;
+        fsx::write(
+            &root.join(CONSTANTS),
+            constants(&figures, "brotli").as_bytes(),
+        )?;
         eprintln!("feature-costs: wrote {TABLE} and {CONSTANTS}");
         return Ok(());
     }
@@ -467,14 +470,14 @@ fn workload(root: &Path, out: &Path, corpus: Corpus) -> Result<std::path::PathBu
     Ok(workload)
 }
 
-/// The client wasm of the workload's `tr` app, shipped and gzipped.
+/// The client wasm of the workload's `tr` app, shipped and brotli'd.
 fn client_size(root: &Path, out: &Path, build: Build) -> Result<u64> {
     let workload = workload(root, out, build.corpus)?;
     eprintln!(
         "feature-costs: building the client with `{}`",
         build.features
     );
-    Ok(b5::build(root, &workload, "tr", build.features)?.opt_gz)
+    Ok(b5::build(root, &workload, "tr", build.features)?.opt_br)
 }
 
 /// The canary application, linked with `features` and stripped.
@@ -569,15 +572,20 @@ fn catalogs(workload: &Path, out: &Path, build: Build) -> Result<BTreeMap<String
 
 /// [`CONSTANTS`]: each figure a message of the build quotes, under the name
 /// its row gives it, in the table's order.
-fn constants(figures: &[i64]) -> String {
-    let mut s = String::from(
+fn constants(figures: &[i64], unit: &str) -> String {
+    let mut s = format!(
         "//! What each formatter costs, as `cargo xtask feature-costs` measured it.\n\
          //!\n\
          //! Written by that command beside `docs/feature-costs.md`, and held to that\n\
          //! table by `cargo xtask ci`: do not edit by hand. A browser's figure is\n\
-         //! gzip bytes of the client wasm, native code's bytes of the stripped\n\
+         //! {unit} bytes of the client wasm, native code's bytes of the stripped\n\
          //! binary; each is the size with the feature less the size without it,\n\
-         //! against the build the table names.\n",
+         //! against the build the table names.\n\
+         \n\
+         /// How a browser's figure is counted, as the message that quotes it says\n\
+         /// it. Written here, beside the figures, so that a regenerated table\n\
+         /// cannot leave the wording of an older unit behind.\n\
+         pub(super) const BROWSER_UNIT: &str = \" {unit}\";\n",
     );
     for (cost, figure) in COSTS.iter().zip(figures) {
         let Some(name) = cost.says else { continue };
@@ -679,7 +687,7 @@ fn table(figures: &[i64], slices: &[SliceCost], date: &str, rustc: &str) -> Stri
         "\nA figure is the size with the feature less the size without it. \
          In the browser: the client wasm of the reference workload at 1,860 \
          call sites, built for `hydrate`, through `wasm-bindgen` and \
-         `wasm-opt -Oz`, then `gzip -9`. Native: the smallest native MF2 \
+         `wasm-opt -Oz`, then `brotli -q 11 --lgwin=22`. Native: the smallest native MF2 \
          application (`tools/native-canary`), in release with fat LTO, \
          stripped. `static-locale` and `mark-fallback-lang` change the Leptos \
          layer, which the reference workload does not have, so they are not \
@@ -716,7 +724,27 @@ fn committed(text: &str) -> BTreeMap<String, i64> {
     figures
 }
 
-/// A cell's figure: `12,345 B gzip` as `12345`.
+/// The unit a browser row of the committed table states its figure in:
+/// `2,514 B brotli` gives `brotli`. The wording of a report is not a stability
+/// promise (docs/versioning.md), so it is taken from the table verbatim rather
+/// than mapped, and the table is the one place it is written down.
+fn committed_unit(text: &str) -> String {
+    for line in text.lines() {
+        let cells: Vec<&str> = line.split('|').map(str::trim).collect();
+        if let [_, feature, side, _, adds, _, _] = cells.as_slice()
+            && feature.starts_with('`')
+            && *side == "browser"
+            && figure(adds).is_some()
+            && let Some(unit) = adds.split(' ').nth(2)
+        {
+            return unit.to_owned();
+        }
+    }
+    // No browser row to read: what the command now measures.
+    String::from("brotli")
+}
+
+/// A cell's figure: `12,345 B brotli` as `12345`.
 fn figure(cell: &str) -> Option<i64> {
     let digits: String = cell
         .split(' ')
@@ -847,7 +875,7 @@ mod tests {
             .collect();
         assert_eq!(
             read(CONSTANTS),
-            constants(&figures),
+            constants(&figures, &committed_unit(&read(TABLE))),
             "{CONSTANTS} is not what {TABLE} says: run `cargo xtask feature-costs`"
         );
         assert_eq!(literal(-1_234_567), "-1_234_567");

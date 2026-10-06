@@ -91,7 +91,12 @@ impl Compressors {
             .ok()
             .filter(|o| o.status.success())
             .and_then(|o| String::from_utf8(o.stdout).ok())
-            .and_then(|s| s.lines().next().map(str::to_owned));
+            .and_then(|s| s.lines().next().map(str::to_owned))
+            // On Alpine `gzip` is a busybox applet, which is not what the
+            // `GNU gzip -9 -n` figures were measured with and does not produce
+            // the same bytes. A figure carries its compressor's name, so an
+            // impostor is no compressor at all here.
+            .filter(|line| !line.to_ascii_lowercase().contains("busybox"));
         Compressors { gnu_version }
     }
 

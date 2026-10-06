@@ -5,7 +5,7 @@
 #
 #   bash tools/checks/compare.sh A B     # labels under target/p10-checks/
 #
-# Flags: a check that fails in B; B1 beyond ±64 B gz; B5 beyond ±0.2 B a site;
+# Flags: a check that fails in B; B1 beyond ±57 B br; B5 beyond ±0.18 B a site;
 # any other size that moved; demo files that changed (demo-ssr's __wasm_split
 # loader aside: its hash varies between identical builds); stripped tui-mf2
 # above 1,328,664 B; allocations per frame that changed. Frame time is shown,
@@ -41,8 +41,8 @@ awk -F'\t' -v B="$b" -v demo="$demo" '
         w = old[k]
         if (isnum(v) && isnum(w)) {
           d = v - w; s = s " (" show(d) ")"
-          if (k == "b1" && abs(d) > 64) flag(c ": B1 " w " -> " v " B gz, beyond +-64")
-          if (k == "b5" && abs(d) > 0.2 + 1e-9) flag(c ": B5 " w " -> " v " B gz a site, beyond +-0.2")
+          if (k == "b1" && abs(d) > 57) flag(c ": B1 " w " -> " v " B br, beyond +-57")
+          if (k == "b5" && abs(d) > 0.18 + 1e-9) flag(c ": B5 " w " -> " v " B br a site, beyond +-0.18")
           if (k ~ /^(app|b5v|b7\..*|rlib|b1p|b13)$/) flag(c ": " k " moved " w " -> " v " (" show(d) ")")
         } else {
           s = s " (was " w ")"

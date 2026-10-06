@@ -28,14 +28,26 @@ set -eu
 # empty". Every workflow step that calls cargo unsets it the same way.
 unset CARGO_BUILD_TARGET
 
-# bash: the image has none, and bench/b12/check.sh, tools/checks/*.sh and
-#   tools/fmt-check.sh are bash scripts with arrays and [[ ]].
-# xmllint: crates/mf2-cli/tests/xliff.rs validates every XLIFF export against
-#   the vendored schema and *fails* without it rather than skipping.
-# gzip: GNU gzip, not busybox's — bench/b12/check.sh gzips to get B2, B3 and B4.
-# binutils: nm, which `cargo xtask native-canaries` reads symbols with.
-echo "setup: packages"
-apk add --no-cache bash libxml2-utils gzip binutils >/dev/null
+# The image is expected to carry these. leptos-builder's Containerfile brings
+# bash (the repository's scripts use arrays and [[ ]]), libxml2-utils for
+# xmllint (crates/mf2-cli/tests/xliff.rs *fails* without it rather than
+# skipping), brotli (every size figure is `brotli -q 11 --lgwin=22`, the setting
+# mf2-build compresses catalogs with) and binutils for nm, which
+# `cargo xtask native-canaries` reads symbols with.
+#
+# Verified, not installed: a stale image should say so plainly here rather than
+# be papered over at the start of every job. No gzip — the figures moved to
+# brotli (owner, 2026-10-05) and nothing in CI needs the gzip CLI.
+echo "setup: the image's tools"
+missing=
+for tool in bash xmllint brotli nm wasm-opt wasm-dis node jq cargo rustup; do
+  command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
+done
+if [ -n "$missing" ]; then
+  echo "setup: the image is missing:$missing" >&2
+  echo "setup: add them to leptos-builder's Containerfile and rebuild the image" >&2
+  exit 1
+fi
 
 # No argument: the channel, components and targets named in rust-toolchain.toml.
 echo "setup: toolchain"

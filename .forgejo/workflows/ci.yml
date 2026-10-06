@@ -43,7 +43,9 @@
 # Job `b12`: budget B12 for the catalog reader: bench/b12/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
 # survives in the reader; it also records the reader's size delta (part of
-# B1). It needs binaryen (wasm-opt, wasm-dis), which the image brings, and
+# B1). Every figure is `brotli -q 11 --lgwin=22`, the setting mf2-build
+# compresses catalogs with (owner, 2026-10-05: brotli is what ships, so brotli
+# is what is measured). It needs binaryen (wasm-opt, wasm-dis), which the image brings, and
 # twiggy, which tools/ci/setup.sh installs. The pinned binaryen tarball this
 # job used to download is a glibc build and cannot run on the image, so the
 # image's own wasm-opt is what takes these figures — its version is printed at
@@ -52,8 +54,9 @@
 # Job `catalog-size`: budget B7 on the committed reference corpus and the
 # four generated locales (bench/catalog-bench). Deterministic, ≈ 30 s of release
 # build and 4 s of
-# work. B7 is stated on brotli 11; the gzip figures are
-# reported, not gated, with GNU gzip when the runner has it (else flate2).
+# work. B7 is stated on brotli 11, as every size figure now is; the gzip
+# figures are reported, not gated, and on this image come from flate2 and
+# zlib-rs — Alpine's `gzip` is busybox, which cannot stand in for GNU's.
 #
 # Job `build-pipeline`: Phase 5a's two whole-pipeline checks: `cargo xtask
 # codegen-matrix` compiles the generated module in the 23
@@ -152,7 +155,7 @@ jobs:
     # The runner: Forgejo's `docker` label, in the image the other Rust
     # repositories here build with. It is Alpine, so everything native is musl.
     # tools/ci/setup.sh adds what the image lacks — xmllint (which
-    # `mf2-cli`'s XLIFF tests fail without, rather than skip), GNU gzip, nm —
+    # `mf2-cli`'s XLIFF tests fail without, rather than skip), brotli, nm —
     # installs the toolchain rust-toolchain.toml pins, and prints every tool's
     # version so a figure in the report is attributable.
     runs-on: docker

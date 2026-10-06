@@ -21,10 +21,10 @@
 #     b12-control (a deliberate `write!`) must show both kinds.
 #  3. Data. No panic message text in the stripped optimised module.
 #  4. Size. Each harness as a delta against b12-base (same scaffolding, an
-#     allocation kept alive), raw and gzip -9: the reader (plus its walk), the
+#     allocation kept alive), raw and brotli -q 11: the reader (plus its walk), the
 #     runtime with every core function (B1's runtime part), the runtime with
 #     :string only; the difference of the last two is the core numeric
-#     semantics' share of B1 (≤ 10 KB gz).
+#     semantics' share of B1 (≤ 9 KB br).
 #  5. B13. b12-runtime-nonum links no numeric handler: none of their symbols
 #     (resolution, digit options, rounding, the plural evaluator) — and
 #     b12-runtime, which uses them, shows them (the grep can fail).
@@ -34,10 +34,11 @@
 #     paths are why the own buffer exists.
 #  7. Phase 4: B2 = b12-runtime-fn-number − b12-runtime
 #     (mf2-fn-number on and used: the localized :number, :integer, :offset,
-#     :percent and unannotated numbers) ≤ 3 KB gz; B1′ = b12-runtime-fn-number-
+#     :percent and unannotated numbers) ≤ 2.75 KB br; B1′ = b12-runtime-fn-number-
 #     unused − b12-runtime (the crate linked, the registry the core's) = +0 B.
 #     B3 = b12-runtime-fn-number-measure − b12-runtime-fn-number (:currency
-#     and :unit too) ≤ 5.5 KB gz (restated by the owner, 2026-09-22). All are
+#     and :unit too) ≤ 5 KB br (5.5 KB gzip, restated by the owner 2026-09-22,
+#     scaled when the wasm figures moved to brotli, 2026-10-05). All are
 #     B12-checked like the runtime.
 #  8. The `intl` client option (owner decision 4), built in their own cargo invocation (their `intl` features must
 #     not reach the others): b12-runtime-intl (the core's numeric functions
@@ -56,17 +57,18 @@
 #     b12-dates-base (that walk, the core registry):
 #     * b12-dates-semantics: the date semantics every backend needs (a
 #       backend writing one byte of the plan) — reported beside B4's
-#       3.5 KB gz note; b12-dates-neutral: with the neutral stub backend.
+#       note (≤ 3,190 B br, 3,584 gzip scaled; measured 3,006);
+#       b12-dates-neutral: with the neutral stub backend.
 #       Both B12-gated.
 #     * B4 icu: b12-dates-icu-{greg,any}-{nozones,zones} (ICU4X over
-#       the catalog's icu.blob): Gregorian with zone styles ≤ 95 KB gz, any
-#       calendar with zone styles ≤ 105 KB gz; the no-zone variants reported.
+#       the catalog's icu.blob): Gregorian with zone styles ≤ 85 KB br, any
+#       calendar with zone styles ≤ 94 KB br; the no-zone variants reported.
 #       B12 reported, not gated: ICU4X keeps its own core::fmt and panic
 #       paths, the feature's documented cost (06 B4).
 #     * B4 intl: b12-dates-intl (Intl.DateTimeFormat through
 #       mf2-host-web's INTL_HOST) − b12-dates-web-base (the same walk on
-#       mf2-host-web's HOST), both through wasm-bindgen: wasm ≤ 6 KB gz and
-#       JS glue ≤ 1 KB gz. mf2-host-web's own glue (js-sys) has a panic
+#       mf2-host-web's HOST), both through wasm-bindgen: wasm ≤ 5.5 KB br and
+#       JS glue ≤ 1 KB br. mf2-host-web's own glue (js-sys) has a panic
 #       path, reported with the web base; b12-dates-intl must add no fmt or
 #       panic symbol, panic import or panic text to it.
 #     * B13: b12-dates-unused (datetime linked with both backend
@@ -82,12 +84,12 @@
 # target/b12/size.tsv (under bench/b12/).
 #
 # Tools: cargo (rust-toolchain.toml, with the wasm32-unknown-unknown target),
-# wasm-opt and wasm-dis (binaryen), twiggy, gzip, and the wasm-bindgen CLI
+# wasm-opt and wasm-dis (binaryen), twiggy, brotli, and the wasm-bindgen CLI
 # of the version the harnesses resolve (0.2.128).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-for tool in cargo wasm-opt wasm-dis twiggy gzip wasm-bindgen; do
+for tool in cargo wasm-opt wasm-dis twiggy brotli wasm-bindgen; do
   command -v "$tool" >/dev/null 2>&1 || { echo "b12: $tool not found on PATH" >&2; exit 2; }
 done
 
@@ -137,7 +139,7 @@ bad() { say "  FAIL: $*"; fail=1; }
 say "B12 — catalog reader and runtime (mf2-catalog and mf2-runtime, no features), $(rustc --version)"
 say "wasm-opt: $(wasm-opt --version); twiggy: $(twiggy --version)"
 
-declare -A RAW GZ JS TEXT
+declare -A RAW BR JS TEXT
 for c in "${CRATES[@]}" runtime-fixed dates-web-plain "${INTL_CRATES[@]}"; do
   file="b12_${c//-/_}"
   rel="target/$TARGET/wasm-release/$file.wasm"
@@ -152,9 +154,9 @@ for c in "${CRATES[@]}" runtime-fixed dates-web-plain "${INTL_CRATES[@]}"; do
     rel="$OUT/web/$c/h_bg.wasm"
     syms="$OUT/web-syms/$c/h_bg.wasm"
     # The JS a page loads: the glue, and each snippet the glue imports.
-    js=$(gzip -9 -n -c "$OUT/web/$c/h.js" | wc -c)
+    js=$(brotli -q 11 --lgwin=22 -c "$OUT/web/$c/h.js" | wc -c)
     for snippet in $(sed -nE "s/^import .* from '\.\/(snippets\/[^']*)';$/\1/p" "$OUT/web/$c/h.js"); do
-      js=$((js + $(gzip -9 -n -c "$OUT/web/$c/$snippet" | wc -c)))
+      js=$((js + $(brotli -q 11 --lgwin=22 -c "$OUT/web/$c/$snippet" | wc -c)))
     done
     JS[$c]=$js
   fi
@@ -163,7 +165,7 @@ for c in "${CRATES[@]}" runtime-fixed dates-web-plain "${INTL_CRATES[@]}"; do
   wasm-opt -Oz "${FEATURES[@]}" "$rel" -o "$opt"
   wasm-opt -Oz --debuginfo "${FEATURES[@]}" "$syms" -o "$syms_opt"
   RAW[$c]=$(stat -c %s "$opt")
-  GZ[$c]=$(gzip -9 -n -c "$opt" | wc -c)
+  BR[$c]=$(brotli -q 11 --lgwin=22 -c "$opt" | wc -c)
 
   say "== b12-$c"
   # 1. Imports of the stripped, optimised module (what ships).
@@ -288,79 +290,79 @@ else
   say "  b12-dates-web-base (HOST, date features on): its JS imports no snippet"
 fi
 if [ "${RAW[dates-web-base]}" -eq "${RAW[dates-web-plain]}" ] && [ "${JS[dates-web-base]}" -eq "${JS[dates-web-plain]}" ]; then
-  say "  b12-dates-web-base = b12-dates-web-plain (without the features): ${RAW[dates-web-base]} B wasm, ${JS[dates-web-base]} B gz JS"
+  say "  b12-dates-web-base = b12-dates-web-plain (without the features): ${RAW[dates-web-base]} B wasm, ${JS[dates-web-base]} B br JS"
 else
-  bad "B1': mf2-host-web's date features cost HOST $((RAW[dates-web-base] - RAW[dates-web-plain])) B wasm, $((JS[dates-web-base] - JS[dates-web-plain])) B gz JS"
+  bad "B1': mf2-host-web's date features cost HOST $((RAW[dates-web-base] - RAW[dates-web-plain])) B wasm, $((JS[dates-web-base] - JS[dates-web-plain])) B br JS"
 fi
 
 # 4. Size: each harness as a delta against the base.
 {
-  printf 'harness\traw\tgz\tdelta_raw\tdelta_gz\n'
-  printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${GZ[base]}"
+  printf 'harness\traw\tbr\tdelta_raw\tdelta_br\n'
+  printf 'base\t%d\t%d\t-\t-\n' "${RAW[base]}" "${BR[base]}"
   for c in reader runtime runtime-nonum runtime-fixed runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure "${INTL_CRATES[@]}"; do
-    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
-      $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
+    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${BR[$c]}" \
+      $((RAW[$c] - RAW[base])) $((BR[$c] - BR[base]))
   done
   printf 'numbers (runtime - runtime-nonum)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime] - RAW[runtime-nonum])) $((GZ[runtime] - GZ[runtime-nonum]))
+    $((RAW[runtime] - RAW[runtime-nonum])) $((BR[runtime] - BR[runtime-nonum]))
   printf 'numbers over fixed_decimal (runtime-fixed - runtime-nonum)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime-fixed] - RAW[runtime-nonum])) $((GZ[runtime-fixed] - GZ[runtime-nonum]))
+    $((RAW[runtime-fixed] - RAW[runtime-nonum])) $((BR[runtime-fixed] - BR[runtime-nonum]))
   printf 'B2: fn-number on and used (runtime-fn-number - runtime)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime-fn-number] - RAW[runtime])) $((GZ[runtime-fn-number] - GZ[runtime]))
+    $((RAW[runtime-fn-number] - RAW[runtime])) $((BR[runtime-fn-number] - BR[runtime]))
   printf "B1': fn-number on, unused (runtime-fn-number-unused - runtime)\t-\t-\t%d\t%d\n" \
-    $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((GZ[runtime-fn-number-unused] - GZ[runtime]))
+    $((RAW[runtime-fn-number-unused] - RAW[runtime])) $((BR[runtime-fn-number-unused] - BR[runtime]))
   printf 'B3: + :currency, :unit (runtime-fn-number-measure - runtime-fn-number)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime-fn-number-measure] - RAW[runtime-fn-number])) $((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
+    $((RAW[runtime-fn-number-measure] - RAW[runtime-fn-number])) $((BR[runtime-fn-number-measure] - BR[runtime-fn-number]))
   for c in dates-base dates-semantics dates-neutral dates-unused dates-icu-greg-nozones dates-icu-greg-zones \
     dates-icu-any-nozones dates-icu-any-zones dates-web-base dates-web-plain dates-intl; do
-    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${GZ[$c]}" \
-      $((RAW[$c] - RAW[base])) $((GZ[$c] - GZ[base]))
+    printf '%s\t%d\t%d\t%d\t%d\n' "$c" "${RAW[$c]}" "${BR[$c]}" \
+      $((RAW[$c] - RAW[base])) $((BR[$c] - BR[base]))
   done
   printf 'date semantics (dates-semantics - dates-base)\t-\t-\t%d\t%d\n' \
-    $((RAW[dates-semantics] - RAW[dates-base])) $((GZ[dates-semantics] - GZ[dates-base]))
+    $((RAW[dates-semantics] - RAW[dates-base])) $((BR[dates-semantics] - BR[dates-base]))
   printf 'semantics + neutral backend (dates-neutral - dates-base)\t-\t-\t%d\t%d\n' \
-    $((RAW[dates-neutral] - RAW[dates-base])) $((GZ[dates-neutral] - GZ[dates-base]))
+    $((RAW[dates-neutral] - RAW[dates-base])) $((BR[dates-neutral] - BR[dates-base]))
   for c in dates-icu-greg-nozones dates-icu-greg-zones dates-icu-any-nozones dates-icu-any-zones; do
     printf 'B4 icu: %s - dates-base\t-\t-\t%d\t%d\n' "${c#dates-icu-}" \
-      $((RAW[$c] - RAW[dates-base])) $((GZ[$c] - GZ[dates-base]))
+      $((RAW[$c] - RAW[dates-base])) $((BR[$c] - BR[dates-base]))
   done
   printf 'B4 intl: wasm (dates-intl - dates-web-base)\t-\t-\t%d\t%d\n' \
-    $((RAW[dates-intl] - RAW[dates-web-base])) $((GZ[dates-intl] - GZ[dates-web-base]))
-  printf 'B4 intl: JS glue gz (dates-intl %d - dates-web-base %d)\t-\t-\t-\t%d\n' \
+    $((RAW[dates-intl] - RAW[dates-web-base])) $((BR[dates-intl] - BR[dates-web-base]))
+  printf 'B4 intl: JS glue br (dates-intl %d - dates-web-base %d)\t-\t-\t-\t%d\n' \
     "${JS[dates-intl]}" "${JS[dates-web-base]}" $((JS[dates-intl] - JS[dates-web-base]))
   printf "B1': datetime on, unused (dates-unused - runtime)\t-\t-\t%d\t%d\n" \
-    $((RAW[dates-unused] - RAW[runtime])) $((GZ[dates-unused] - GZ[runtime]))
+    $((RAW[dates-unused] - RAW[runtime])) $((BR[dates-unused] - BR[runtime]))
   printf 'intl core, stub formatter (runtime-intl - runtime)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime-intl] - RAW[runtime])) $((GZ[runtime-intl] - GZ[runtime]))
+    $((RAW[runtime-intl] - RAW[runtime])) $((BR[runtime-intl] - BR[runtime]))
   printf 'intl + fn-number (runtime-fn-number-intl - runtime-fn-number-measure)\t-\t-\t%d\t%d\n' \
-    $((RAW[runtime-fn-number-intl] - RAW[runtime-fn-number-measure])) $((GZ[runtime-fn-number-intl] - GZ[runtime-fn-number-measure]))
+    $((RAW[runtime-fn-number-intl] - RAW[runtime-fn-number-measure])) $((BR[runtime-fn-number-intl] - BR[runtime-fn-number-measure]))
   printf "B1': intl on, unused (runtime-intl-unused - runtime-nonum)\t-\t-\t%d\t%d\n" \
-    $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((GZ[runtime-intl-unused] - GZ[runtime-nonum]))
+    $((RAW[runtime-intl-unused] - RAW[runtime-nonum])) $((BR[runtime-intl-unused] - BR[runtime-nonum]))
 } > "$OUT/size.tsv"
-# B4: intl ≤ 6 KB gz wasm + ≤ 1 KB gz
-# JS; icu ≤ 95 KB gz Gregorian, ≤ 105 KB gz any calendar (with zone
+# B4: intl ≤ 5.5 KB br wasm + ≤ 1 KB br
+# JS; icu ≤ 85 KB br Gregorian, ≤ 94 KB br any calendar (with zone
 # styles, the widest of each); B1′ = +0 B for datetime on but unused.
-b4_intl=$((GZ[dates-intl] - GZ[dates-web-base]))
-[ "$b4_intl" -le 6144 ] || bad "B4: intl costs $b4_intl B gz of wasm (> 6,144)"
+b4_intl=$((BR[dates-intl] - BR[dates-web-base]))
+[ "$b4_intl" -le 5632 ] || bad "B4: intl costs $b4_intl B br of wasm (> 5,632)"
 b4_js=$((JS[dates-intl] - JS[dates-web-base]))
-[ "$b4_js" -le 1024 ] || bad "B4: intl costs $b4_js B gz of JS (> 1,024)"
-b4_greg=$((GZ[dates-icu-greg-zones] - GZ[dates-base]))
-[ "$b4_greg" -le 97280 ] || bad "B4: icu, Gregorian, costs $b4_greg B gz (> 97,280)"
-b4_any=$((GZ[dates-icu-any-zones] - GZ[dates-base]))
-[ "$b4_any" -le 107520 ] || bad "B4: icu, any calendar, costs $b4_any B gz (> 107,520)"
+[ "$b4_js" -le 1024 ] || bad "B4: intl costs $b4_js B br of JS (> 1,024)"
+b4_greg=$((BR[dates-icu-greg-zones] - BR[dates-base]))
+[ "$b4_greg" -le 87040 ] || bad "B4: icu, Gregorian, costs $b4_greg B br (> 87,040)"
+b4_any=$((BR[dates-icu-any-zones] - BR[dates-base]))
+[ "$b4_any" -le 96256 ] || bad "B4: icu, any calendar, costs $b4_any B br (> 96,256)"
 [ "${RAW[dates-unused]}" -eq "${RAW[runtime]}" ] \
   || bad "B1': datetime on but unused is not +0 B (raw ${RAW[dates-unused]} vs ${RAW[runtime]})"
-# B3 ≤ 5.5 KB gz more (restated 2026-09-22).
-b3=$((GZ[runtime-fn-number-measure] - GZ[runtime-fn-number]))
-[ "$b3" -le 5632 ] || bad "B3: :currency + :unit cost $b3 B gz (> 5,632)"
-# B2 ≤ 3 KB gz; B1′ = +0 B.
-b2=$((GZ[runtime-fn-number] - GZ[runtime]))
-[ "$b2" -le 3072 ] || bad "B2: fn-number on and used costs $b2 B gz (> 3,072)"
+# B3 ≤ 5 KB br more (5.5 KB gzip, restated 2026-09-22).
+b3=$((BR[runtime-fn-number-measure] - BR[runtime-fn-number]))
+[ "$b3" -le 5120 ] || bad "B3: :currency + :unit cost $b3 B br (> 5,120)"
+# B2 ≤ 2.75 KB br; B1′ = +0 B.
+b2=$((BR[runtime-fn-number] - BR[runtime]))
+[ "$b2" -le 2816 ] || bad "B2: fn-number on and used costs $b2 B br (> 2,816)"
 [ "${RAW[runtime-intl-unused]}" -le "${RAW[runtime-nonum]}" ] \
   || bad "B1': intl on but unused costs more than +0 B (raw ${RAW[runtime-intl-unused]} vs ${RAW[runtime-nonum]})"
 [ "${RAW[runtime-fn-number-unused]}" -eq "${RAW[runtime]}" ] \
   || bad "B1': fn-number on but unused is not +0 B (raw ${RAW[runtime-fn-number-unused]} vs ${RAW[runtime]})"
-say "== size (wasm-release, wasm-opt -Oz, gzip -9 -n; delta against b12-base)"
+say "== size (wasm-release, wasm-opt -Oz, brotli -q 11 --lgwin=22; delta against b12-base)"
 awk -F '\t' '{ printf "  %-72s %8s %8s %10s %10s\n", $1, $2, $3, $4, $5 }' "$OUT/size.tsv" | tee -a "$REPORT"
 # Where the reader's bytes are (shallow code bytes after wasm-opt, by crate).
 csv="$OUT/reader.syms.opt.csv"

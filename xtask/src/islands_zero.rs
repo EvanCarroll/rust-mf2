@@ -5,10 +5,10 @@
 //! `more-server`, which adds one more server-only component holding a call
 //! site in every position (text, attribute, argument, markup) — each by
 //! the size method (`wasm32-unknown-unknown` / `wasm-release` /
-//! `wasm-bindgen` / `wasm-opt -Oz` / `gzip -9`).
+//! `wasm-bindgen` / `wasm-opt -Oz` / `brotli -q 11`).
 //!
 //! **What "zero" means, measured.** The first run (2026-09-23) found the two
-//! shipped files 1 byte apart raw and equal gzipped, with the same functions
+//! shipped files 1 byte apart raw and equal compressed, with the same functions
 //! and the same data — in a different *order*: a string constant the
 //! server-only component shares with an island ("card") moves where the
 //! linker merges it, and the padding between constants moves with it. So
@@ -16,7 +16,7 @@
 //!
 //! * the **code** section is the same size, with the same function count;
 //! * the **data** section differs by at most [`PADDING`] bytes;
-//! * the shipped file, raw and gzipped, by at most the same.
+//! * the shipped file, raw and brotli, by at most the same.
 
 use std::ffi::{OsStr, OsString};
 use std::path::Path;
@@ -53,22 +53,22 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     let (data_with, _) = section(&sections_with, DATA);
 
     println!("# A server-only component's client cost\n");
-    println!("| Build | code section | functions | data section | shipped, raw | shipped, gz |");
+    println!("| Build | code section | functions | data section | shipped, raw | shipped, br |");
     println!("|---|---:|---:|---:|---:|---:|");
     println!(
         "| demo-islands | {code_without} | {functions_without} | {data_without} | {} | {} |",
-        without.opt_raw, without.opt_gz
+        without.opt_raw, without.opt_br
     );
     println!(
         "| + more-server | {code_with} | {functions_with} | {data_with} | {} | {} |",
-        with.opt_raw, with.opt_gz
+        with.opt_raw, with.opt_br
     );
     println!(
-        "\nDifference: code {} B, data {} B, shipped {} B raw / {} B gz; the files are {}.",
+        "\nDifference: code {} B, data {} B, shipped {} B raw / {} B br; the files are {}.",
         signed(code_with, code_without),
         signed(data_with, data_without),
         signed(with.opt_raw, without.opt_raw),
-        signed(with.opt_gz, without.opt_gz),
+        signed(with.opt_br, without.opt_br),
         if bytes_with == bytes_without {
             "byte-identical"
         } else {
@@ -81,7 +81,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     } else if data_with.abs_diff(data_without) > PADDING {
         Some("a server-only component changed the client's data by more than padding")
     } else if with.opt_raw.abs_diff(without.opt_raw) > PADDING
-        || with.opt_gz.abs_diff(without.opt_gz) > PADDING
+        || with.opt_br.abs_diff(without.opt_br) > PADDING
     {
         Some("a server-only component changed the shipped client by more than padding")
     } else {
