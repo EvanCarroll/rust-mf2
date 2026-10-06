@@ -184,5 +184,5 @@ fn a_rule_disabled_leaves_its_sites_reported_and_the_comparison_fails() {
         .filter(|f| f.code == Code::LfCall && f.message.contains("`move-tr-view`"))
         .count();
     assert!(reported > 100, "{}", report.to_text());
-    assert!(!differing(&files, &rewritten).is_empty());
+    assert_ne!(differing(&files, &rewritten), Vec::<String>::new());
 }

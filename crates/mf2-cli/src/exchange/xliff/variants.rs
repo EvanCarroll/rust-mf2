@@ -375,7 +375,7 @@ mod tests {
         assert!(o.selects_differently);
         assert_eq!(o.units.len(), 1);
         assert_eq!(o.units[0].source.as_simple_text(), Some("many"));
-        assert!(o.units[0].keys.is_empty());
+        assert_eq!(o.units[0].keys, Vec::new());
         // Both plain: one unit, no group.
         let plain = parse("hi");
         assert!(offers(&plain, None, "pl").expect("rules").is_none());

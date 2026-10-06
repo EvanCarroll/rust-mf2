@@ -201,7 +201,7 @@ mod tests {
             &[correct("ox", 460)],
         );
         assert_eq!(out.status, Status::BaselineOnly);
-        assert!(out.checks.is_empty());
+        assert_eq!(out.checks, Vec::new());
     }
 
     #[test]
