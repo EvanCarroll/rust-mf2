@@ -728,6 +728,8 @@ fn committed(text: &str) -> BTreeMap<String, i64> {
 /// `2,514 B brotli` gives `brotli`. The wording of a report is not a stability
 /// promise (docs/versioning.md), so it is taken from the table verbatim rather
 /// than mapped, and the table is the one place it is written down.
+/// Only the test needs it: the writer states the unit it measured.
+#[cfg(test)]
 fn committed_unit(text: &str) -> String {
     for line in text.lines() {
         let cells: Vec<&str> = line.split('|').map(str::trim).collect();
