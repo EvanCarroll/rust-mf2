@@ -47,8 +47,8 @@ One macro works in every position: text, attributes, props, strings and
 * **No locale data in the wasm**: no message text, ids, argument names or
   plural rules. A translation edit leaves the wasm byte-for-byte the same,
   so readers keep their cached copy. The library's client code costs
-  25,875 bytes gzipped, plus 8.4 bytes a call site: 41,466 bytes for an
-  application with 1,860 call sites (`cargo xtask size`, 2026-09-25).
+  28,046 bytes brotli, plus 2.6 bytes a call site: 32,956 bytes for an
+  application with 1,860 call sites (`cargo xtask size`, 2026-10-06).
 * **The whole specification**: the MF2 working group's test suite passes at
   every layer, from the parser to the browser, and every normative
   statement has a test ([`conformance/REPORT.md`](conformance/REPORT.md),

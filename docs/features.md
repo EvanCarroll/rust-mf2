@@ -249,8 +249,8 @@ From the [cost table](#what-each-feature-costs):
 | Formatter | Browser wasm | Native binary | Data |
 |---|---|---|---|
 | `plain` | the smallest that formats a number | the smallest that formats a number | the plural rules, when a message chooses a plural form |
-| `intl` | about 0.5 KB of gzip less than `plain` | — | none of yours: the browser's |
-| `builtin` | about 2.5 KB of gzip more than `plain` | about 10 KB more than `plain` | each language's number data, in its catalog |
+| `intl` | about 150 B of brotli less than `plain` | — | none of yours: the browser's |
+| `builtin` | about 2 KB of brotli more than `plain` | about 10 KB more than `plain` | each language's number data, in its catalog |
 
 `intl` is smaller than `plain` because the calls to the browser replace the
 code that rounds, writes digits and applies plural rules.
@@ -313,8 +313,8 @@ whenever its text changes.
   differ slightly between browsers and from the server's rendering. The
   browser downloads no number data, and the reader needs a browser with
   `Intl.NumberFormat` v3.
-* **`builtin` on both sides.** The same text on both sides, for about 3 KB
-  of gzip more wasm than `intl` and the number data in each catalog the
+* **`builtin` on both sides.** The same text on both sides, for about 2 KB
+  of brotli more wasm than `intl` and the number data in each catalog the
   browser downloads.
 * **`plain` on a side** writes plain digits there, whatever the other side
   writes.
@@ -347,8 +347,8 @@ The formatters:
   server carries no date data for the languages it does not serve. It needs
   `mf2-build`'s `icu-blob` feature (below).
 * **`icu-cached`**: `icu` with its formatter cache, for a browser build. The
-  same text, a date formatted 3 to 10 times faster, and about 2.2 KB of
-  gzip more wasm. Native code's `icu` always has the cache, which costs no
+  same text, a date formatted 3 to 10 times faster, and about 1.4 KB of
+  brotli more wasm. Native code's `icu` always has the cache, which costs no
   download there, so only the browser's families have the feature.
 * **`iso`**: a neutral stand-in that writes ISO-style dates
   (`2006-01-02 15:04`) in every language, with no locale data and no ICU4X.
@@ -402,15 +402,15 @@ From the [cost table](#what-each-feature-costs):
 
 | Formatter | Browser wasm | Native binary | Data |
 |---|---|---|---|
-| `intl` | about 250 B of gzip more than `iso` | — | none of yours: the browser's |
-| `icu` | about 59 to 101 KB of gzip more than `iso`, by the form below | about 329 KB | each language's date slice, in its catalog |
-| `icu-cached` | about 2.2 KB of gzip more than `icu` | — (native `icu` has the cache) | the same slice |
-| `iso` | about 5 KB of gzip | about 167 KB, mostly time zones | none |
+| `intl` | about 250 B of brotli more than `iso` | — | none of yours: the browser's |
+| `icu` | about 45 KB of brotli more than `iso`, and more by the form below | about 330 KB | each language's date slice, in its catalog |
+| `icu-cached` | about 1.4 KB of brotli more than `icu` | — (native `icu` has the cache) | the same slice |
+| `iso` | about 3.4 KB of brotli | about 167 KB, mostly time zones | none |
 
 Each figure is against the same application with no date formatter, except
 where it says otherwise. A formatter on in an application whose messages
-show no date costs nothing: the table measures 7 B less in the browser and
-40 B less natively.
+show no date costs next to nothing: the table measures 260 B more in the
+browser and 128 B less natively.
 
 The date slice of one language, added to a catalog and compressed with
 brotli, is a few hundred bytes for a corpus of a handful of date shapes
@@ -442,7 +442,7 @@ language's catalog: the same text as an ICU4X server. Needs `mf2-build`'s
 The same ICU4X formatter with its cache: ICU4X's data is set up once for
 each catalog and a formatter is kept for each language and date shape,
 where `icu` builds both again for every placeholder. The text is the same.
-It adds about 2.2 KB of gzip to the client of the reference workload (the
+It adds about 1.4 KB of brotli to the client of the reference workload (the
 [cost table](#what-each-feature-costs)), and formats a date 3 to 10 times
 faster than `icu` does, as `tools/e2e/datetime/speed.sh` measures it on a
 module of its own (3.3 to 10.4 times in its last run, by language and date
@@ -546,8 +546,9 @@ With `icu`, the build links the narrowest form of ICU4X the messages need:
 time-zone names only if some message has `timeZoneStyle`, and calendars
 other than Gregorian only if some language prefers another calendar or a
 message asks for one. The form is a large part of what `icu` costs in the
-browser: about 59 KB of gzip more than `iso` for Gregorian dates without
-zone names, and about 42 KB more again for every calendar with zone names.
+browser: about 45 KB of brotli more than `iso` for Gregorian dates without
+zone names, and about 42 KB of gzip more again for every calendar with zone
+names — that increment has not been measured again on brotli.
 Natively the widest form adds about 152 KB. `mf2 check` prints the form chosen and why,
 and [`[dates]`](configuration.md#dates) in `mf2.toml` overrides it.
 
@@ -618,27 +619,27 @@ The levers, each with what it saves on the figures above and what it gives
 up:
 
 * **`intl` rather than `builtin` for numbers in the browser** saves about
-  3 KB of gzip, and the number data in each catalog. You give up the same
+  2 KB of brotli, and the number data in each catalog. You give up the same
   text everywhere: the browser's `Intl` data, not your catalog's, writes
   numbers and picks plural forms, so it can differ slightly between
   browsers and from the server's rendering; and the reader needs a browser
   with `Intl.NumberFormat` v3.
-* **`plain` rather than `builtin` for numbers** saves about 2.5 KB of gzip
+* **`plain` rather than `builtin` for numbers** saves about 2 KB of brotli
   in the browser and 10 KB natively, and the number data. You give up
   numbers in the reader's language: they are written in plain digits, and
   `:percent`, `:currency` and `:unit` do not build.
-* **`intl` rather than `icu` in the browser** saves about 59 to 101 KB of gzip,
-  and the date slice in each catalog. You give up the same dates
+* **`intl` rather than `icu` in the browser** saves about 45 KB of brotli,
+  more by the form, and the date slice in each catalog. You give up the same dates
   everywhere: the browser's data writes them in the browser, your
   catalogs' on the server ([known differences](#server-rendering-and-the-browser)).
-* **`iso` on the server** with `intl` in the browser saves about 161 KB of
+* **`iso` on the server** with `intl` in the browser saves about 163 KB of
   the server binary and every date slice. You give up localized dates in
   the page as the server sends it: a reader without JavaScript, and a
   crawler, see ISO-style dates.
 * **`iso` in a native application** costs about 167 KB, with time zones;
-  ICU4X costs about 161 KB more, and the slices. You give up dates in the
+  ICU4X costs about 163 KB more, and the slices. You give up dates in the
   reader's language: they are written in a neutral, ISO-style form.
-* **Leaving `tzdb-bundled` off** in a native application saves 248 KB. You
+* **Leaving `tzdb-bundled` off** in a native application saves 249 KB. You
   give up the same zone rules on every machine, and a container with no
   time-zone data cannot resolve named zones. A server has it on through
   `ssr` or `axum`.
