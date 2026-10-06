@@ -153,7 +153,7 @@ fn every_config_key_has_a_section() {
 #[test]
 fn every_config_sample_parses() {
     let samples = blocks(&page("configuration.md"), "toml");
-    assert!(!samples.is_empty());
+    assert!(!samples.is_empty(), "configuration.md has no toml block");
     for sample in samples {
         if let Err(e) = Config::parse(&sample, Path::new("mf2.toml")) {
             panic!("docs/configuration.md: {e}\n{sample}");

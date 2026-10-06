@@ -163,7 +163,7 @@ fn init_is_green_and_round_trips() {
     let suite = suite();
     let ledger = Ledger::init(&suite);
     assert_eq!(ledger.current_phase, Phase::P0);
-    assert!(check(&suite, &ledger).is_empty());
+    assert!(check(&suite, &ledger).is_empty(), "{:?}", check(&suite, &ledger));
     let reparsed = Ledger::parse(&ledger.to_toml()).unwrap();
     assert_eq!(reparsed, ledger);
     // Every applicable cell is xfail until the layer's phase; the rest n/a.
@@ -316,7 +316,7 @@ fn an_overdue_open_note_is_red() {
     // Closed at P3: L4 formats every test from both catalogs.
     let note = &ledger.notes[i];
     assert_eq!((note.status.as_str(), note.until), ("pass", None));
-    assert!(check(&suite, &ledger).is_empty());
+    assert!(check(&suite, &ledger).is_empty(), "{:?}", check(&suite, &ledger));
     // Reopened with a phase that has come: red.
     let current = ledger.current_phase;
     let note = &mut ledger.notes[i];
@@ -328,7 +328,7 @@ fn an_overdue_open_note_is_red() {
     ));
     // Open until a later phase: an obligation, green.
     ledger.notes[i].until = Some(Phase::P9);
-    assert!(check(&suite, &ledger).is_empty());
+    assert!(check(&suite, &ledger).is_empty(), "{:?}", check(&suite, &ledger));
 }
 
 #[test]
@@ -384,7 +384,7 @@ fn skip_by_tag_is_red_and_skip_by_fact_is_not() {
             reason: "expects output the spec leaves implementation-defined".to_owned(),
         },
     );
-    assert!(check(&suite, &ledger).is_empty());
+    assert!(check(&suite, &ledger).is_empty(), "{:?}", check(&suite, &ledger));
 }
 
 #[test]

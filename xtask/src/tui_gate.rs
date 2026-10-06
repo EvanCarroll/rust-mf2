@@ -576,7 +576,7 @@ mod tests {
             measured("tui-upstream", [1517; 4], 1_400_000, 260.0),
             measured("tui-mf2 (baseline)", [1816; 4], 1_965_320, 300.0),
         ];
-        assert!(judge(&rotation).is_empty());
+        assert!(judge(&rotation).is_empty(), "{:?}", judge(&rotation));
     }
 
     // The negative controls: each limit, crossed alone, is refused.

@@ -765,7 +765,7 @@ mod tests {
         };
         assert_eq!(at(western), [3, 6, 9]);
         assert_eq!(at(indian), [3, 5, 7, 9]);
-        assert!(at(Grouping::NONE).is_empty());
+        assert!(at(Grouping::NONE).is_empty(), "{:?}", at(Grouping::NONE));
         assert_eq!(Grouping::from_byte(0x23), indian);
         assert_eq!(indian.to_byte(), Some(0x23));
     }

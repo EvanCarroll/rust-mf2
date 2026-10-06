@@ -39,7 +39,7 @@ fn the_reference_workload_builds() {
     for catalog in &outcome.catalogs {
         assert_eq!(catalog.missing, 0, "{}", catalog.tag);
         assert_eq!(catalog.fallbacks, 0, "{}", catalog.tag);
-        assert!(!catalog.bytes.is_empty());
+        assert!(!catalog.bytes.is_empty(), "{}", catalog.tag);
         assert!(catalog.br.len() < catalog.bytes.len(), "{}", catalog.tag);
         assert_eq!(catalog.hash.len(), 16);
         assert!(catalog.file_name().starts_with(&catalog.tag));
@@ -107,7 +107,7 @@ fn a_second_build_writes_nothing_and_a_fresh_one_is_identical() {
         .features(features())
         .run()
         .expect("builds");
-    assert!(!first.written.is_empty());
+    assert!(!first.written.is_empty(), "the first build wrote nothing");
 
     let second = Build::at(&root, &out)
         .features(features())
@@ -118,7 +118,7 @@ fn a_second_build_writes_nothing_and_a_fresh_one_is_identical() {
         "rewrote {:?} though nothing changed",
         second.written
     );
-    assert!(second.removed.is_empty());
+    assert!(second.removed.is_empty(), "{:?}", second.removed);
 
     // A build in another directory gives the same bytes (F8).
     let elsewhere = out_dir("elsewhere");
@@ -606,6 +606,6 @@ fn pseudo_locales_are_named_by_their_tags() {
 
     // Without pseudo-locales, the build adds nothing.
     let outcome = build("pseudo-names-none", 2);
-    assert!(outcome.added.is_empty());
+    assert!(outcome.added.is_empty(), "{:?}", outcome.added);
     assert_eq!(outcome.manifest.ids.len(), 3);
 }

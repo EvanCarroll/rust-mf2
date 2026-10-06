@@ -222,7 +222,7 @@ fn relaxations_and_unknown_fields_are_accepted() {
     let Message::Pattern(p) = m else {
         panic!("pattern message")
     };
-    assert!(p.declarations.is_empty());
+    assert!(p.declarations.is_empty(), "{:?}", p.declarations);
     let parts = p.pattern.parts();
     assert_eq!(parts.len(), 3);
     // "a", "" and "b" normalize to one text part.

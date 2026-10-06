@@ -74,7 +74,7 @@ fn syntax_90() {
         "fr",
         &[("one", Arg::Float(1.3)), ("two", Arg::Float(4.2))],
     );
-    assert!(e.is_empty());
+    assert!(e.is_empty(), "{e:?}");
     assert_eq!(s, "1,3 et 4,2");
 }
 

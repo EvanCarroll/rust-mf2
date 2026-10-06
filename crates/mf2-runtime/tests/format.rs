@@ -317,7 +317,7 @@ fn bidi() {
 #[test]
 fn parts_output() {
     let (p, e) = parts("{#tag foo=bar u:id=x}content{/tag}{#img/}", &[]);
-    assert!(e.is_empty());
+    assert!(e.is_empty(), "{e:?}");
     assert_eq!(
         p,
         "[markup Open tag id=x foo=Some(\"bar\")][text \"content\"][markup Close tag][markup Standalone img]"

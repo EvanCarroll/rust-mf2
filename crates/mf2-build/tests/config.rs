@@ -137,7 +137,7 @@ fn a_chain_ends_at_the_source_locale() {
     assert_eq!(config.chain("de-AT"), ["de", "en"]);
     assert_eq!(config.chain("pl"), ["en"]);
     // The source locale falls back to nothing.
-    assert!(config.chain("en").is_empty());
+    assert!(config.chain("en").is_empty(), "{:?}", config.chain("en"));
 }
 
 #[test]

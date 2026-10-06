@@ -1189,13 +1189,16 @@ mod tests {
         assert!(
             target_gated(&crates.join("mf2-host-web"))
                 .unwrap()
-                .is_empty()
+                .is_empty(),
+            "{:?}",
+            target_gated(&crates.join("mf2-host-web")).unwrap()
         );
         // The negative control: a crate that does gate code on the target.
         assert!(
             !target_gated(&crates.join("mf2-runtime"))
                 .unwrap()
-                .is_empty()
+                .is_empty(),
+            "mf2-runtime gates no code on the target"
         );
     }
 
@@ -1222,7 +1225,7 @@ mod tests {
 
     #[test]
     fn the_first_release_needs_every_name_free() {
-        assert!(name_problems(&free(&["mf2", "mf2-model"]), "1.0.0", None, &local()).is_empty());
+        assert!(name_problems(&free(&["mf2", "mf2-model"]), "1.0.0", None, &local()).is_empty(), "{:?}", name_problems(&free(&["mf2", "mf2-model"]), "1.0.0", None, &local()));
     }
 
     // Negative controls: a name taken by someone else, before and after
@@ -1248,7 +1251,7 @@ mod tests {
             ("mf2-model", taken(&["1.0.0"], &["owner", "other"])),
             ("mf2-new", Registered::Free),
         ];
-        assert!(name_problems(&found, "1.0.1", Some("1.0.0"), &local()).is_empty());
+        assert!(name_problems(&found, "1.0.1", Some("1.0.0"), &local()).is_empty(), "{:?}", name_problems(&found, "1.0.1", Some("1.0.0"), &local()));
     }
 
     #[test]
@@ -1273,7 +1276,7 @@ mod tests {
             ("mf2-resource", taken(&["1.0.0"], &["owner"])),
             ("mf2-new", Registered::Free),
         ];
-        assert!(name_problems(&found, "1.0.1", Some("1.0.0"), &local()).is_empty());
+        assert!(name_problems(&found, "1.0.1", Some("1.0.0"), &local()).is_empty(), "{:?}", name_problems(&found, "1.0.1", Some("1.0.0"), &local()));
     }
 
     #[test]
@@ -1299,7 +1302,7 @@ mod tests {
             ("mf2", Registered::Free),
             ("mf2-model", out("1.0.0", &["owner"], "aaaa")),
         ];
-        assert!(name_problems(&found, "1.0.0", None, &local()).is_empty());
+        assert!(name_problems(&found, "1.0.0", None, &local()).is_empty(), "{:?}", name_problems(&found, "1.0.0", None, &local()));
         assert_eq!(released(&found, &local()), ["mf2-model"]);
         assert_eq!(
             publish_args(&released(&found, &local())),
@@ -1318,7 +1321,7 @@ mod tests {
               published version cannot be replaced)"
             ]
         );
-        assert!(released(&found, &local()).is_empty());
+        assert!(released(&found, &local()).is_empty(), "{:?}", released(&found, &local()));
     }
 
     #[test]

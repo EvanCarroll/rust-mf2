@@ -678,7 +678,7 @@ fn unused_feature_names_a_family_without_its_framework() {
     );
     // A host family needs no framework.
     let dates = only_en("when = {$at :date}\n");
-    assert!(unused(&dates, "host-std host-std-datetime-iso").is_empty());
+    assert!(unused(&dates, "host-std host-std-datetime-iso").is_empty(), "{:?}", unused(&dates, "host-std host-std-datetime-iso"));
 }
 
 /// The messages `lint` gave for `body` under `features`.
@@ -729,15 +729,13 @@ fn a_date_function_with_no_formatter_names_the_features_to_write() {
         ssr[0]
     );
     // With the server's formatter too, it builds.
-    assert!(
-        said(
-            Lint::GatedFunction,
-            "gated-ssr-both",
-            body,
-            "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
-        )
-        .is_empty()
+    let ssr_both = said(
+        Lint::GatedFunction,
+        "gated-ssr-both",
+        body,
+        "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
     );
+    assert!(ssr_both.is_empty(), "{ssr_both:#?}");
     // A command-line tool and an Axum server get their own family's line.
     let cli = said(Lint::GatedFunction, "gated-native", body, "native");
     assert!(cli[0].contains("Write `native-datetime-icu`"), "{}", cli[0]);
@@ -766,15 +764,13 @@ fn several_formatters_names_the_one_that_formats() {
     assert!(browser[0].contains("for the browser"), "{}", browser[0]);
     assert!(browser[0].contains("that is `intl`"), "{}", browser[0]);
     // One formatter on each side is not several.
-    assert!(
-        said(
-            Lint::SeveralFormatters,
-            "several-split",
-            body,
-            "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
-        )
-        .is_empty()
+    let split = said(
+        Lint::SeveralFormatters,
+        "several-split",
+        body,
+        "leptos ssr leptos-client-datetime-intl leptos-server-datetime-icu",
     );
+    assert!(split.is_empty(), "{split:#?}");
     // Numbers, the same: the strongest of a side's formats.
     let count = "n = {$n :integer}\n";
     let numbers = said(
@@ -797,15 +793,13 @@ fn several_formatters_names_the_one_that_formats() {
         "{}",
         numbers[0]
     );
-    assert!(
-        said(
-            Lint::SeveralFormatters,
-            "several-numbers-split",
-            count,
-            "leptos ssr leptos-client-number-intl leptos-server-number-builtin",
-        )
-        .is_empty()
+    let numbers_split = said(
+        Lint::SeveralFormatters,
+        "several-numbers-split",
+        count,
+        "leptos ssr leptos-client-number-intl leptos-server-number-builtin",
     );
+    assert!(numbers_split.is_empty(), "{numbers_split:#?}");
 }
 
 #[test]
@@ -825,15 +819,13 @@ fn a_number_function_with_no_formatter_names_the_features_to_write() {
         none[0]
     );
     // `plain` formats it, and no `:currency`.
-    assert!(
-        said(
-            Lint::GatedFunction,
-            "gated-number-plain",
-            body,
-            "native native-number-plain",
-        )
-        .is_empty()
+    let plain = said(
+        Lint::GatedFunction,
+        "gated-number-plain",
+        body,
+        "native native-number-plain",
     );
+    assert!(plain.is_empty(), "{plain:#?}");
     let money = said(
         Lint::GatedFunction,
         "gated-currency-plain",
@@ -876,21 +868,19 @@ fn a_bare_placeholder_with_no_number_formatter_is_plain_numbers() {
         );
     }
     // A corpus with no bare placeholder has nothing that could print one.
-    assert!(
-        said(
-            Lint::PlainNumbers,
-            "plain-numbers-text",
-            "save = Save\n",
-            "native"
-        )
-        .is_empty()
+    let no_placeholder = said(
+        Lint::PlainNumbers,
+        "plain-numbers-text",
+        "save = Save\n",
+        "native",
     );
+    assert!(no_placeholder.is_empty(), "{no_placeholder:#?}");
 }
 
 #[test]
 fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     let text = only_en("a = Save\n");
-    assert!(unused(&text, "").is_empty());
+    assert!(unused(&text, "").is_empty(), "{:?}", unused(&text, ""));
     // Any of the three date functions uses the family.
     for function in ["datetime", "date", "time"] {
         let dates = only_en(&format!("when = {{$at :{function}}}\n"));
@@ -899,7 +889,7 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     }
     // A plain placeholder can receive a number.
     let plain = only_en("hello = Hello, {$name}!\n");
-    assert!(unused(&plain, "host-std-number-builtin").is_empty());
+    assert!(unused(&plain, "host-std-number-builtin").is_empty(), "{:?}", unused(&plain, "host-std-number-builtin"));
     // So does a numeric function, and a plural selection with no placeholder.
     for function in ["{$n :integer}", "{$n :percent}", "{$n :unit unit=meter}"] {
         let numeric = only_en(&format!("n = {function}\n"));
@@ -908,7 +898,7 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     }
     let select =
         only_en("count =\n  .input {$n :number}\n  .match $n\n  one {{one}}\n  * {{many}}\n");
-    assert!(unused(&select, "host-std-number-builtin").is_empty());
+    assert!(unused(&select, "host-std-number-builtin").is_empty(), "{:?}", unused(&select, "host-std-number-builtin"));
     // `allow` silences it.
     let mut config = Config::default();
     config.lints.insert(Lint::UnusedFeature, Level::Allow);

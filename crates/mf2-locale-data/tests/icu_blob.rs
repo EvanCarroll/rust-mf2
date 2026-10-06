@@ -262,7 +262,9 @@ fn deterministic_and_nested() {
     assert!(
         icu_blob("en", &spec(true, true, &DateNeeds::default()))
             .unwrap()
-            .is_empty()
+            .is_empty(),
+        "{:?}",
+        icu_blob("en", &spec(true, true, &DateNeeds::default())).unwrap()
     );
 }
 

@@ -517,7 +517,7 @@ fn the_context_time_zone() {
     let mut cx = cx();
     cx.time_zone = TimeZone::named("Asia/Kolkata").unwrap();
     let (s, e) = run(&REGISTRY, &cx, "{:zone}", &[]);
-    assert!(e.is_empty());
+    assert!(e.is_empty(), "{e:?}");
     assert_eq!(s, "named Asia/Kolkata");
     // The host defaults: no zone data, no date formatter.
     assert_eq!(HOST.zone_offset("Asia/Kolkata", 0), None);
