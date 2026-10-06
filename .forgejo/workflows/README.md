@@ -39,10 +39,33 @@ release. This is the one gap in what CI judges, and every report names it.
 ## Two things the owner sets up on the Forgejo side
 
 1. A runner with the label `docker`, registered for this repository.
-2. `REGISTRY_TOKEN` as a repository or organisation secret, with read access to
-   the package namespace `leptos-builder` is published in — it lives under a
-   different owner than this repository, so the repository's own token is not
-   enough.
+2. The image, published once by `devops/sync-ci-image.sh` — see below. **No
+   secret.** The jobs carry no `credentials:` block, so nothing has to be
+   configured for them to pull.
+
+### Why the image is a copy
+
+The image the other Rust repositories here build with is
+`coworkunion/chattyness/leptos-builder`, and that organisation is private.
+Forgejo (15.0.3) has no per-package visibility setting: a package is exactly as
+visible as its owner. Checked on this instance, anonymously, on 2026-10-06 —
+`/api/v1/orgs/coworkunion` is 404 and `/api/v1/packages/coworkunion` is 403,
+while `/api/v1/packages/EvanCarroll` is 200 and that owner's existing container
+package can be pulled with an anonymous token. So it cannot be made public
+where it is, but a copy under the public owner can be.
+
+`devops/sync-ci-image.sh` makes that copy. It refuses to publish an image that
+does not carry everything `tools/ci/setup.sh` verifies, so a source older than
+the checks' needs cannot be mirrored silently — the failure would otherwise
+reappear in every job's setup step. Run it again whenever the source image
+changes.
+
+A `credentials:` block was the first thing tried, copying `ci-actions`. It
+cannot work here: that is a *reusable* workflow receiving secrets through the
+caller's `secrets: inherit`, every sibling using a container directly pulls a
+public image with no credentials, and this repository is under a different owner
+than the image. act_runner reports an unset secret as `failed to handle
+credentials: failed to interpolate container.credentials.password`.
 
 The runner's capacity matters: the twelve `ci.yml` jobs have no `needs:` between
 them and each builds the workspace from scratch, so at capacity twelve that is

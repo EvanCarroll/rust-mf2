@@ -99,14 +99,11 @@ concurrency:
 
 jobs:
   long-runs:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -273,14 +270,11 @@ jobs:
     # three generated Leptos applications each, built for the client and
     # measured after `wasm-opt -Oz`. Nightly rather than on every push: six
     # fat-LTO wasm builds.
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -406,14 +400,11 @@ jobs:
     # every other job builds on it; this one builds and tests the 0.8
     # opt-in (`default-features = false, features = ["leptos-0-8"]`). Both
     # lines are in the one lock file, so it runs in the checkout.
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -482,14 +473,11 @@ jobs:
     # which is not the same as each feature being valid by itself. This job
     # compiles each of `mf2`'s features alone, on the target the table says
     # it needs.
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -555,14 +543,11 @@ jobs:
 
   fmt-check:
     # See the header.
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -633,14 +618,11 @@ jobs:
             examples/demo-csr/target/wasm32-unknown-unknown/debug/demo-csr.wasm
 
   tui-gate:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -737,14 +719,11 @@ jobs:
       - fmt-check
       - tui-gate
     if: always()
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -790,7 +769,7 @@ jobs:
           GIT_SHA: ${{ github.sha }}
           GIT_REF: ${{ github.ref }}
           RUN_NUMBER: ${{ github.run_number }}
-          IMAGE: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+          IMAGE: git.coworkunion.com/evancarroll/mf2-ci:latest
         run: |
           set -eu
           unset CARGO_BUILD_TARGET

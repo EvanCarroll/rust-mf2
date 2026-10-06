@@ -121,8 +121,12 @@
 # seeing that they did not run. Uploaded as `mf2-report` and printed into the
 # job's log, so a run can be read without downloading anything.
 #
-# The runner: Forgejo's `docker` label and the image the other Rust
-# repositories here build with, pulled with REGISTRY_TOKEN. It is Alpine, so
+# The runner: Forgejo's `docker` label and `evancarroll/mf2-ci`, a public copy
+# of the image the other Rust repositories here build with — made by
+# `devops/sync-ci-image.sh`, because the original's owner is private and Forgejo
+# has no per-package visibility. Public, so no `credentials:` and no secret: an
+# empty one is what act_runner reports as "failed to interpolate
+# container.credentials.password". It is Alpine, so
 # everything native is musl. tools/ci/setup.sh adds what the image lacks and
 # names every tool version; every step that calls cargo unsets
 # CARGO_BUILD_TARGET first, because the image pins the musl triple and that
@@ -160,10 +164,7 @@ jobs:
     # version so a figure in the report is attributable.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -235,14 +236,11 @@ jobs:
           if-no-files-found: error
 
   parser-gate:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -316,14 +314,11 @@ jobs:
           if-no-files-found: error
 
   tui-gate:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -398,14 +393,11 @@ jobs:
           if-no-files-found: error
 
   native-canaries:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -477,14 +469,11 @@ jobs:
           if-no-files-found: error
 
   catalog-size:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -559,14 +548,11 @@ jobs:
           if-no-files-found: error
 
   b12:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -650,14 +636,11 @@ jobs:
           if-no-files-found: error
 
   build-pipeline:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -726,14 +709,11 @@ jobs:
           cargo xtask scenarios
 
   docs:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -797,14 +777,11 @@ jobs:
           cargo xtask docs
 
   l4-wasi:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -878,14 +855,11 @@ jobs:
           if-no-files-found: error
 
   msrv:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -954,14 +928,11 @@ jobs:
           cargo xtask msrv --below
 
   docs-rs:
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -1030,14 +1001,11 @@ jobs:
     # release --publish` refuses to run where CI is set, by design — publishing
     # stays the owner's, on the owner's machine.
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
@@ -1121,14 +1089,11 @@ jobs:
       - docs-rs
       - release
     if: always()
-    # See the `ci` job: the `docker` label, the leptos-builder image,
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
     container:
-      image: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.REGISTRY_TOKEN }}
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
     steps:
       - name: Fetch sources (plain git)
         env:
@@ -1174,7 +1139,7 @@ jobs:
           GIT_SHA: ${{ github.sha }}
           GIT_REF: ${{ github.ref }}
           RUN_NUMBER: ${{ github.run_number }}
-          IMAGE: git.coworkunion.com/coworkunion/chattyness/leptos-builder:latest
+          IMAGE: git.coworkunion.com/evancarroll/mf2-ci:latest
         run: |
           set -eu
           unset CARGO_BUILD_TARGET
