@@ -116,18 +116,31 @@ fn features_or_assumed(
     if let Some(given) = args.given() {
         return (given, Source::Given, None);
     }
-    if let Ok(resolved) = resolve(dir, true) {
-        let written = resolved.written;
-        return (
-            resolved.features,
-            Source::Cargo { written },
-            resolved.icu_blob,
-        );
-    }
+    let why = match resolve(dir, true) {
+        Ok(resolved) => {
+            let written = resolved.written;
+            return (
+                resolved.features,
+                Source::Cargo { written },
+                resolved.icu_blob,
+            );
+        }
+        Err(why) => why,
+    };
+    // Why it could not say, not only that it could not. `resolve` asks cargo
+    // `--offline`, so a registry cache without this crate's dependencies is
+    // enough to land here — which is what happens to a freshly generated
+    // project on a machine that has not built it yet.
+    //
+    // On one line, and cargo's own message folded onto it: this note sits beside
+    // a JSON document on stdout, and a test holds stderr to a single line.
+    let why = why.to_string();
+    let why: Vec<&str> = why.split_whitespace().collect();
     eprintln!(
         "note: cargo could not say which of mf2's features this crate has, so every \
          function is assumed on; name them with --features (for example \
-         --features native,native-number-builtin)"
+         --features native,native-number-builtin); cargo said: {}",
+        why.join(" ")
     );
     // A formatter's feature, not `datetime`, which alone formats no date
     // (`plan/08` §3.3); with no framework named, one formatter covers both

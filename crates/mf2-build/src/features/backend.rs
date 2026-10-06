@@ -57,9 +57,10 @@ pub trait Backend: Copy + Ord + core::fmt::Debug + 'static {
     }
 }
 
-/// How a browser's figure is counted: the client wasm, compressed as it is
-/// served. `costs.rs` carries the wording beside the figures, so the two cannot
-/// drift apart — `cargo xtask feature-costs` rewrites both together.
+// How a browser's figure is counted — the client wasm, compressed as it is
+// served — is `costs::BROWSER_UNIT`, written into the generated `costs.rs`
+// beside the figures, so the wording and the numbers cannot drift apart:
+// `cargo xtask feature-costs` rewrites both together.
 
 /// A measured figure as a message says it: to the nearest 10 B below 1 KB,
 /// a tenth of a KB below 100 KB, a whole KB above. Rounded so that a figure

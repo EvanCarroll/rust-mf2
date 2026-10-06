@@ -92,6 +92,18 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         ("CARGO_TARGET_DIR", target_dir.as_os_str()),
         ("DOCS_RS", one),
     ];
+    // Every target the metadata names needs its standard library for the pinned
+    // nightly. On a glibc machine `x86_64-unknown-linux-gnu` is the host and is
+    // already there, so this was invisible until CI ran on Alpine and rustdoc
+    // said `can't find crate for core`. rustdoc does not link, so the standard
+    // library is all a target needs here — no cross linker.
+    let mut wanted: Vec<&String> = presented.iter().flat_map(|c| &c.targets).collect();
+    wanted.sort_unstable();
+    wanted.dedup();
+    for target in wanted {
+        crate::cmd::rustup_install(root, crate::api::NIGHTLY, target)?;
+    }
+
     let mut failed = Vec::new();
     let mut unguided = Vec::new();
     for crate_ in &presented {
