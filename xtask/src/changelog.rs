@@ -142,12 +142,20 @@ mod tests {
 
     #[test]
     fn the_newest_entry_is_accepted() {
-        assert!(problems(TWO, "1.0.1").is_empty(), "{:?}", problems(TWO, "1.0.1"));
+        assert!(
+            problems(TWO, "1.0.1").is_empty(),
+            "{:?}",
+            problems(TWO, "1.0.1")
+        );
     }
 
     #[test]
     fn the_earlier_versions_are_those_below_the_entry() {
         assert_eq!(earlier(TWO, "1.0.1"), ["1.0.0"]);
-        assert!(earlier(TWO, "1.0.0").is_empty(), "{:?}", earlier(TWO, "1.0.0"));
+        assert!(
+            earlier(TWO, "1.0.0").is_empty(),
+            "{:?}",
+            earlier(TWO, "1.0.0")
+        );
     }
 }

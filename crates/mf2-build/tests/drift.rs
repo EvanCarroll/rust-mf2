@@ -678,7 +678,11 @@ fn unused_feature_names_a_family_without_its_framework() {
     );
     // A host family needs no framework.
     let dates = only_en("when = {$at :date}\n");
-    assert!(unused(&dates, "host-std host-std-datetime-iso").is_empty(), "{:?}", unused(&dates, "host-std host-std-datetime-iso"));
+    assert!(
+        unused(&dates, "host-std host-std-datetime-iso").is_empty(),
+        "{:?}",
+        unused(&dates, "host-std host-std-datetime-iso")
+    );
 }
 
 /// The messages `lint` gave for `body` under `features`.
@@ -889,7 +893,11 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     }
     // A plain placeholder can receive a number.
     let plain = only_en("hello = Hello, {$name}!\n");
-    assert!(unused(&plain, "host-std-number-builtin").is_empty(), "{:?}", unused(&plain, "host-std-number-builtin"));
+    assert!(
+        unused(&plain, "host-std-number-builtin").is_empty(),
+        "{:?}",
+        unused(&plain, "host-std-number-builtin")
+    );
     // So does a numeric function, and a plural selection with no placeholder.
     for function in ["{$n :integer}", "{$n :percent}", "{$n :unit unit=meter}"] {
         let numeric = only_en(&format!("n = {function}\n"));
@@ -898,7 +906,11 @@ fn unused_feature_is_silent_where_the_feature_is_used_or_off() {
     }
     let select =
         only_en("count =\n  .input {$n :number}\n  .match $n\n  one {{one}}\n  * {{many}}\n");
-    assert!(unused(&select, "host-std-number-builtin").is_empty(), "{:?}", unused(&select, "host-std-number-builtin"));
+    assert!(
+        unused(&select, "host-std-number-builtin").is_empty(),
+        "{:?}",
+        unused(&select, "host-std-number-builtin")
+    );
     // `allow` silences it.
     let mut config = Config::default();
     config.lints.insert(Lint::UnusedFeature, Level::Allow);

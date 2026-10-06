@@ -191,7 +191,11 @@ mod tests {
         assert_eq!(listing.lines().count(), 2);
         assert!(listing.lines().next().unwrap().ends_with("  a/c.md"));
         let want = parse_digests(&listing).unwrap();
-        assert!(digest_problems(&files, &want).is_empty(), "{:?}", digest_problems(&files, &want));
+        assert!(
+            digest_problems(&files, &want).is_empty(),
+            "{:?}",
+            digest_problems(&files, &want)
+        );
 
         let mut altered = want.clone();
         altered.insert("b.md".to_owned(), "0".repeat(64));

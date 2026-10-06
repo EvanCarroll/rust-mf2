@@ -223,8 +223,16 @@ fn lookup_truncates_then_falls_back_to_root() {
     );
     assert_eq!(plural_rules(c, "und").expect("und").locale, "und");
     assert_eq!(plural_rules(c, "xx-YY").expect("xx").locale, "und");
-    assert!(plural_entry(c, "xx").expect("xx").is_empty(), "{:?}", plural_entry(c, "xx").expect("xx"));
-    assert!(plural_entry(c, "ja").expect("ja").is_empty(), "{:?}", plural_entry(c, "ja").expect("ja"));
+    assert!(
+        plural_entry(c, "xx").expect("xx").is_empty(),
+        "{:?}",
+        plural_entry(c, "xx").expect("xx")
+    );
+    assert!(
+        plural_entry(c, "ja").expect("ja").is_empty(),
+        "{:?}",
+        plural_entry(c, "ja").expect("ja")
+    );
     assert_eq!(
         plural_entry(c, "en").expect("en"),
         [0x21, 0x01, 0x05, 0x82, 0x01]

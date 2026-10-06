@@ -1470,7 +1470,11 @@ mod tests {
         let both =
             Features::parse("leptos,ssr,leptos-client-datetime-intl,leptos-server-datetime-icu");
         assert!(both.formats::<DateBackend>());
-        assert!(both.missing::<DateBackend>().is_empty(), "{:?}", both.missing::<DateBackend>());
+        assert!(
+            both.missing::<DateBackend>().is_empty(),
+            "{:?}",
+            both.missing::<DateBackend>()
+        );
     }
 
     #[test]
@@ -1516,7 +1520,11 @@ mod tests {
     #[test]
     fn with_no_framework_the_message_names_every_line() {
         let none = Features::default();
-        assert!(none.sides_without::<DateBackend>().is_empty(), "{:?}", none.sides_without::<DateBackend>());
+        assert!(
+            none.sides_without::<DateBackend>().is_empty(),
+            "{:?}",
+            none.sides_without::<DateBackend>()
+        );
         assert!(!none.formats::<DateBackend>());
         let message = none.refusal::<DateBackend>("time");
         for (_, features) in super::kind_lines::<DateBackend>() {
@@ -1579,7 +1587,11 @@ mod tests {
             ["axum-datetime-icu"]
         );
         let with = Features::parse("axum,axum-datetime-icu,ssr,leptos-client-datetime-intl");
-        assert!(with.without_framework::<DateBackend>().is_empty(), "{:?}", with.without_framework::<DateBackend>());
+        assert!(
+            with.without_framework::<DateBackend>().is_empty(),
+            "{:?}",
+            with.without_framework::<DateBackend>()
+        );
         assert_eq!(
             Features::parse("native-datetime-iso,leptos-server-datetime-icu")
                 .without_framework::<DateBackend>(),
