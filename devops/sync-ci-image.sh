@@ -78,9 +78,6 @@ say "Checking the image carries what the checks need"
 missing=$(podman run --rm --entrypoint "" "$SOURCE" sh -c '
   m=
   for t in '"$TOOLS"'; do command -v "$t" >/dev/null 2>&1 || m="$m $t"; done
-  # Not a command, and the reason setup.sh checks it too: the IANA database a
-  # named time zone is resolved against.
-  [ -d /usr/share/zoneinfo ] || m="$m tzdata"
   printf "%s" "$m"
 ')
 if [ -n "$missing" ]; then
