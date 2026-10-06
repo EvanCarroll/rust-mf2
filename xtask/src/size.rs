@@ -10,9 +10,9 @@
 //!
 //! | Gate | What it is | Limit |
 //! |---|---|---|
-//! | **B1** | the part that does not grow with the call sites: the reader, the evaluator, the call-site library, the Leptos glue, the boot | ≤ 27 KB br |
+//! | **B1** | the part that does not grow with the call sites: the reader, the evaluator, the call-site library, the Leptos glue, the boot | ≤ 28,046 B br |
 //! | **B5** | the part that does, per site, weighted by the workload's mix | ≤ 36 B br |
-//! | **whole app** | B1 + sites × B5 at the reference scale | ≤ the ambition, `27 KB + sites × 36 B` |
+//! | **whole app** | B1 + sites × B5 at the reference scale | ≤ the ambition, `28,046 B + sites × 36 B` |
 //!
 //! Against the `idlit` baseline throughout, with `dummy` reported as the
 //! conservative bound (06 §3 says why that baseline and not the other).
@@ -28,9 +28,17 @@ use crate::b5;
 use crate::error::{Error, Result};
 use crate::fsx;
 
-/// B1: everything fixed, in bytes brotli (KB is 1024 bytes here, as in
-/// B7's `0.91 × 25 KB`).
-const B1: f64 = 27.0 * 1024.0;
+/// B1: everything fixed, in bytes brotli. The measured figure, from the
+/// first run to take it on brotli (`rebaseline.yml` run index 18 at
+/// `d930f4d`: musl, brotli 1.2.0, `--lgwin=22`).
+///
+/// It was `27.0 * 1024.0`, carried over from gzip. B1 is not measured
+/// directly: it is `Δ@1860` less `sites × marginal`, so it moves when either
+/// term does. Brotli took 8,510 B off the total and 10,681 B off the per-site
+/// part, which leaves 2,171 B more over — every build got smaller and B1 rose.
+/// A ratchet with no headroom, as `tui_gate`'s `SIZE_LIMIT` is;
+/// `tools/checks/compare.sh` flags a move beyond ±57 B.
+const B1: f64 = 28_046.0;
 /// B5: per call site, in bytes brotli.
 const B5: f64 = 36.0;
 
