@@ -16,7 +16,14 @@
 //!
 //! * the **code** section is the same size, with the same function count;
 //! * the **data** section differs by at most [`PADDING`] bytes;
-//! * the shipped file, raw and brotli, by at most the same.
+//! * the shipped file, raw, by at most the same.
+//!
+//! The brotli size is printed and decides nothing (owner, 2026-10-07): the
+//! same constants in another order compress differently. Nightly run 25 read
+//! data +8 B, raw +8 B and brotli +72 B; a local build of the same commit read
+//! data and raw +0 B and brotli +27 B, its only difference `"row"` and
+//! `"card"` stored as `cardrow` instead of `rowcard`. Whatever a component
+//! adds to the client is code or data, and shows in the raw size.
 
 use std::ffi::{OsStr, OsString};
 use std::path::Path;
@@ -80,9 +87,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         Some("a server-only component changed the client's code")
     } else if data_with.abs_diff(data_without) > PADDING {
         Some("a server-only component changed the client's data by more than padding")
-    } else if with.opt_raw.abs_diff(without.opt_raw) > PADDING
-        || with.opt_br.abs_diff(without.opt_br) > PADDING
-    {
+    } else if with.opt_raw.abs_diff(without.opt_raw) > PADDING {
         Some("a server-only component changed the shipped client by more than padding")
     } else {
         None
