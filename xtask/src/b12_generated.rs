@@ -68,7 +68,7 @@ const SHOWN: usize = 40;
 /// The other side's features: a browser build, then the same with the
 /// server's feature an application writes beside it. Each pair must link the
 /// same symbols.
-const OTHER_SIDE: [(&str, &str, &str); 6] = [
+const OTHER_SIDE: [(&str, &str, &str); 7] = [
     (
         "a browser on `Intl` numbers beside a server on mf2's own number code",
         "hydrate,host-web-number-intl",
@@ -93,6 +93,11 @@ const OTHER_SIDE: [(&str, &str, &str); 6] = [
         "an ICU4X browser beside an ICU4X server",
         "hydrate,host-web-number-plain,host-web-datetime-icu,corpus-dates",
         "hydrate,host-web-number-plain,host-web-datetime-icu,host-std-datetime-icu,corpus-dates",
+    ),
+    (
+        "an ICU4X browser beside an ISO server",
+        "hydrate,host-web-number-plain,host-web-datetime-icu,corpus-dates",
+        "hydrate,host-web-number-plain,host-web-datetime-icu,host-std-datetime-iso,corpus-dates",
     ),
     (
         "a cached ICU4X browser beside an ICU4X server",
@@ -121,6 +126,9 @@ struct Pair {
     /// The other direction: a symbol the server's features took *away*. Not a
     /// leak, but not something to pass over in silence either.
     only_alone: Vec<String>,
+    /// What crossed with nothing of its own name going back the other way:
+    /// the verdict.
+    net: Vec<String>,
 }
 
 pub(crate) fn run(root: &Path) -> Result<()> {
@@ -174,19 +182,22 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     for p in &others {
         #[allow(clippy::cast_possible_wrap)]
         let delta = p.beside.size as i64 - p.alone.size as i64;
-        let crossed = p.only_beside.len();
-        let lost = p.only_alone.len();
         println!(
-            "the other side, {}: {crossed} symbol(s) crossed, {lost} only without \
-             (must be 0 and 0; bytes {delta:+})",
-            p.what
+            "the other side, {}: {} symbol(s) crossed with nothing of that name going \
+             back (must be 0; {} crossed and {} only without in all; bytes {delta:+})",
+            p.what,
+            p.net.len(),
+            p.only_beside.len(),
+            p.only_alone.len()
         );
-        if crossed > 0 || lost > 0 {
+        if !p.net.is_empty() {
             failures.push(format!(
-                "the other side's features changed what this one links ({} crossed, {} \
-                 only without; {}; with `{}`): a feature of the server reached the \
-                 browser's build",
-                crossed, lost, p.what, p.with
+                "the other side's features put {} symbol(s) in this one's build that its \
+                 own did not ({}; with `{}`): {}",
+                p.net.len(),
+                p.what,
+                p.with,
+                p.net.join(", ")
             ));
         }
     }
@@ -196,6 +207,8 @@ pub(crate) fn run(root: &Path) -> Result<()> {
             detail(p);
         }
     }
+    // Printed whether or not it failed: a swap says codegen moved, which is
+    // worth seeing beside a pair that did fail.
     if b1 != 0 {
         failures.push(format!(
             "B1′ is {b1:+} B: a function crate that the generated registry never names \
@@ -235,11 +248,14 @@ fn pair(
     let beside = build_named(root, target, with, &format!("other-{i}-with"))?;
     let here = symbols(root, &alone.kept)?;
     let there = symbols(root, &beside.kept)?;
+    let only_beside: Vec<String> = there.difference(&here).cloned().collect();
+    let only_alone: Vec<String> = here.difference(&there).cloned().collect();
     Ok(Pair {
         what,
         with,
-        only_beside: there.difference(&here).cloned().collect(),
-        only_alone: here.difference(&there).cloned().collect(),
+        net: net_crossings(&only_beside, &only_alone),
+        only_beside,
+        only_alone,
         alone,
         beside,
     })
@@ -253,6 +269,19 @@ fn detail(p: &Pair) {
         "\n#### what the other side's features changed: {}\n",
         p.what
     );
+    if p.net.is_empty() {
+        println!(
+            "Nothing crossed net: every symbol below has one of its own name going \
+             the other way, which is codegen picking a different instantiation of \
+             the same operation.\n"
+        );
+    } else {
+        println!("**Crossed, with nothing of that name going back:**\n");
+        for name in &p.net {
+            println!("* `{name}`");
+        }
+        println!();
+    }
     for (title, names) in [
         ("linked only with the server's features", &p.only_beside),
         ("linked only without them", &p.only_alone),
@@ -324,6 +353,37 @@ fn symbols(root: &Path, wasm: &Path) -> Result<BTreeSet<String>> {
 /// of them, so leaving it in would put a difference in every set.
 fn is_summary(item: &str) -> bool {
     item.starts_with('Σ') || item.starts_with("... and ") || item.starts_with("… and ")
+}
+
+/// What crossed with no counterpart going the other way (owner, 2026-10-07).
+/// Between two builds codegen may pick a different instantiation of the same
+/// operation --- run 23 traded `Arc<dyn ArgSource>`'s drop glue for
+/// `Arc<dyn CustomValue>`'s, in both directions --- and that is not the
+/// server's code arriving in this build. A *new* operation is, and that is
+/// what this returns.
+///
+/// The counterpart is matched on the symbol's last `::` segment, the
+/// operation's name. Coarse on purpose, and the limit is worth knowing: a
+/// build that gained one `fmt` and lost an unrelated `fmt` would cancel. Both
+/// full lists are printed for that reason, so the cancellation is always
+/// visible.
+fn net_crossings(only_beside: &[String], only_alone: &[String]) -> Vec<String> {
+    let mut spare: Vec<&str> = only_alone.iter().map(|s| operation(s)).collect();
+    let mut net = Vec::new();
+    for symbol in only_beside {
+        let op = operation(symbol);
+        if let Some(i) = spare.iter().position(|s| *s == op) {
+            spare.swap_remove(i);
+        } else {
+            net.push(symbol.clone());
+        }
+    }
+    net
+}
+
+/// The operation a symbol names: its last `::` segment.
+fn operation(symbol: &str) -> &str {
+    symbol.rsplit("::").next().unwrap_or(symbol)
 }
 
 /// A symbol as this gate compares it. Two builds of a pair name the same
@@ -555,7 +615,45 @@ fn read(path: &Path) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{erase_hashes, is_summary, normalize, strip_local_suffix};
+    use super::{erase_hashes, is_summary, net_crossings, normalize, strip_local_suffix};
+
+    #[test]
+    fn run_23s_swap_cancels_and_the_fmt_leak_does_not() {
+        let arc_arg = "<alloc::sync::Arc<dyn mf2::arg::ArgSource>>::drop_slow".to_owned();
+        let arc_custom =
+            "<alloc::sync::Arc<dyn mf2_runtime::value::CustomValue + core::marker::Sync>>::drop_slow"
+                .to_owned();
+        // The two pairs whose only difference was the swap, in both
+        // directions: nothing crossed net.
+        assert!(net_crossings(&[arc_arg.clone()], &[arc_custom.clone()]).is_empty());
+        assert!(net_crossings(&[arc_custom.clone()], &[arc_arg.clone()]).is_empty());
+        // The ICU4X pair: the swap cancels, the three fmt impls do not.
+        let crossed = vec![
+            arc_custom,
+            "<u8 as core::fmt::Display>::fmt".to_owned(),
+            "<u8 as core::fmt::LowerHex>::fmt".to_owned(),
+            "<u8 as core::fmt::UpperHex>::fmt".to_owned(),
+        ];
+        let net = net_crossings(&crossed, &[arc_arg]);
+        assert_eq!(
+            net,
+            vec![
+                "<u8 as core::fmt::Display>::fmt",
+                "<u8 as core::fmt::LowerHex>::fmt",
+                "<u8 as core::fmt::UpperHex>::fmt"
+            ]
+        );
+        // One counterpart cancels one crossing, not every one of that name.
+        let three = vec![
+            "<a::T as core::fmt::Display>::fmt".to_owned(),
+            "<b::T as core::fmt::Display>::fmt".to_owned(),
+            "<c::T as core::fmt::Display>::fmt".to_owned(),
+        ];
+        assert_eq!(
+            net_crossings(&three, &["<d::T as core::fmt::Debug>::fmt".to_owned()]).len(),
+            2
+        );
+    }
 
     #[test]
     fn run_23s_pairs_normalise_to_the_same_name() {
