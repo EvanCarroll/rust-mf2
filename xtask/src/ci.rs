@@ -11,7 +11,7 @@
 //! tests, then the host sets.
 //!
 //! The release-build gates are jobs of their own beside it, not steps:
-//! `parser-vs-ox`, and `tui-allocs-vs-trippy` (`cargo xtask tui-allocs-vs-trippy --gate`: the terminal
+//! `parser-vs-ox`, and `tui-allocs-vs-pseudotrippy` (`cargo xtask tui-allocs-vs-pseudotrippy --gate`: the terminal
 //! UI's allocations per frame and stripped size on every push; its time
 //! against the 1.x binary nightly).
 //!

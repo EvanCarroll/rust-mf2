@@ -39,7 +39,7 @@ mod report;
 mod scenarios;
 mod size;
 mod spec_sync;
-mod tui_allocs_vs_trippy;
+mod tui_allocs_vs_pseudotrippy;
 mod uts35_sync;
 mod wasi_matches_native;
 mod xliff_sync;
@@ -193,7 +193,7 @@ enum Command {
     /// `examples/tui`'s trippy-shaped frame drawn with MF2 and with an
     /// in-house re-implementation of trippy's own approach — allocations and
     /// time per frame, and stripped sizes. The binaries run alternately.
-    TuiAllocsVsTrippy {
+    TuiAllocsVsPseudotrippy {
         /// Runs of each binary; the time reported is their median.
         #[arg(long, default_value_t = 31)]
         runs: usize,
@@ -204,7 +204,7 @@ enum Command {
         #[arg(long, value_name = "DIR")]
         baseline: Option<PathBuf>,
         /// Alternate with the binaries built from git revision REV (the 1.x
-        /// binaries: A1's commit), built in a worktree under target/tui-allocs-vs-trippy.
+        /// binaries: A1's commit), built in a worktree under target/tui-allocs-vs-pseudotrippy.
         #[arg(long, value_name = "REV", conflicts_with = "baseline")]
         baseline_rev: Option<String>,
         /// Keep this build's binaries in DIR, for a later `--baseline`.
@@ -552,7 +552,7 @@ fn run(command: Command) -> Result<()> {
                 baseline_rev,
             },
         ),
-        Command::TuiAllocsVsTrippy {
+        Command::TuiAllocsVsPseudotrippy {
             runs,
             frames,
             baseline,
@@ -560,9 +560,9 @@ fn run(command: Command) -> Result<()> {
             save_baseline,
             gate,
             book,
-        } => tui_allocs_vs_trippy::run(
+        } => tui_allocs_vs_pseudotrippy::run(
             &root,
-            &tui_allocs_vs_trippy::Options {
+            &tui_allocs_vs_pseudotrippy::Options {
                 runs,
                 frames,
                 baseline,

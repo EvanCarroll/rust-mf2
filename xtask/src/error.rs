@@ -57,8 +57,8 @@ pub(crate) enum Error {
     #[error("release: {0}")]
     Release(String),
     /// The terminal UI's measurement could not be made, or did not repeat.
-    #[error("tui-allocs-vs-trippy: {0}")]
-    TuiAllocsVsTrippy(String),
+    #[error("tui-allocs-vs-pseudotrippy: {0}")]
+    TuiAllocsVsPseudotrippy(String),
     /// A feature set links a crate a row forbids, or none of a crate a row
     /// requires — or the canary application could not be linked or read.
     #[error("native-no-heavy-crates: {0}")]

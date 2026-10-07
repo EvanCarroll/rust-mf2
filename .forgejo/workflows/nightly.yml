@@ -64,11 +64,11 @@
 #   which `xtask/src/feature_sets.rs` states — the way a dependent that turns
 #   on one thing compiles it (`cargo xtask each-feature-alone`). One `cargo check`
 #   per feature, which is why it is nightly and not in `ci`.
-# * `tui-allocs-vs-trippy` (a job of its own): examples/tui's
+# * `tui-allocs-vs-pseudotrippy` (a job of its own): examples/tui's
 #   frame on 2.0 against 1.x's binaries, built from commit 3a296a9 in a
 #   worktree and run alternately — allocations, stripped size, and the
 #   median time per frame, which may not exceed 1.x's
-#   (`cargo xtask tui-allocs-vs-trippy --gate --baseline-rev`). Load-sensitive.
+#   (`cargo xtask tui-allocs-vs-pseudotrippy --gate --baseline-rev`). Load-sensitive.
 #
 # * `report` (a job of its own): one file for the whole night, as in ci.yml.
 #
@@ -745,7 +745,7 @@ jobs:
           path: target/ci-logs/
           if-no-files-found: warn
 
-  tui-allocs-vs-trippy:
+  tui-allocs-vs-pseudotrippy:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -802,13 +802,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -817,7 +817,7 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
@@ -826,18 +826,18 @@ jobs:
         # build's, 31 runs each: a time is only comparable within one run.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask tui-allocs-vs-trippy --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
+          cargo xtask tui-allocs-vs-pseudotrippy --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
 
       - name: Upload the gate report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: tui-allocs-vs-trippy-nightly-report
+          name: tui-allocs-vs-pseudotrippy-nightly-report
           path: |
-            target/tui-allocs-vs-trippy/report.md
-            target/tui-allocs-vs-trippy/report.json
+            target/tui-allocs-vs-pseudotrippy/report.md
+            target/tui-allocs-vs-pseudotrippy/report.json
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -847,7 +847,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-tui-allocs-vs-trippy
+          name: log-tui-allocs-vs-pseudotrippy
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -865,7 +865,7 @@ jobs:
       - leptos-0-8
       - each-feature-alone
       - no-fmt-in-demos
-      - tui-allocs-vs-trippy
+      - tui-allocs-vs-pseudotrippy
     if: always()
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.

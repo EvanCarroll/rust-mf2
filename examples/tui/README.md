@@ -38,12 +38,12 @@ cargo test                         # both renderers, every language
 From the repository root:
 
 ```sh
-cargo xtask tui-allocs-vs-trippy                      # allocations, time per frame, stripped sizes
-cargo xtask tui-allocs-vs-trippy --save-baseline DIR  # and keep these binaries
-cargo xtask tui-allocs-vs-trippy --baseline DIR       # alternate with binaries kept earlier
-cargo xtask tui-allocs-vs-trippy --book               # add the user guide's native projects
-cargo xtask tui-allocs-vs-trippy --gate --runs 3      # the CI gate: allocations and size
-cargo xtask tui-allocs-vs-trippy --gate --baseline-rev 3a296a920952239a8c62399f2e8d51aad46f84ec
+cargo xtask tui-allocs-vs-pseudotrippy                      # allocations, time per frame, stripped sizes
+cargo xtask tui-allocs-vs-pseudotrippy --save-baseline DIR  # and keep these binaries
+cargo xtask tui-allocs-vs-pseudotrippy --baseline DIR       # alternate with binaries kept earlier
+cargo xtask tui-allocs-vs-pseudotrippy --book               # add the user guide's native projects
+cargo xtask tui-allocs-vs-pseudotrippy --gate --runs 3      # the CI gate: allocations and size
+cargo xtask tui-allocs-vs-pseudotrippy --gate --baseline-rev 3a296a920952239a8c62399f2e8d51aad46f84ec
                                           # the nightly gate: and time, against 1.x
 ```
 
@@ -56,5 +56,5 @@ baseline MF2 binary's.
 `src/bin/tui-mf2.rs` and `src/bin/tui-upstream.rs` are the measured
 binaries: each draws the frame in every language, counts the allocations
 of one frame with a counting global allocator, and times a run of frames.
-`cargo xtask tui-allocs-vs-trippy` runs them alternately and takes the median time; the
+`cargo xtask tui-allocs-vs-pseudotrippy` runs them alternately and takes the median time; the
 allocation counts must be the same in every run.

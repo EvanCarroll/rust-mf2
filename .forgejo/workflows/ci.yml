@@ -25,9 +25,12 @@
 # why it is a job of its own rather than a step of `cargo xtask ci`; whether it
 # runs on every push is the owner's call.
 #
-# The terminal UI's allocation and size check against the trippy-shaped
-# baseline (`tui-allocs-vs-trippy`) runs nightly only: a push does not wait
-# on it (owner, 2026-10-06).
+# Job `tui-allocs-vs-pseudotrippy`: the terminal UI's allocations and size (`cargo xtask tui-allocs-vs-pseudotrippy --gate`):
+# examples/tui's frame, drawn
+# with MF2, allocates no more than 1.x's did and no more than the in-house
+# re-implementation of trippy's approach, in every language — counts that
+# are the same in every run, so they are held on every push — and stripped
+# `tui-mf2` is no larger than 1.x's. Its time per frame is the nightly's.
 #
 # Job `native-no-heavy-crates`: guard rail 1 of `plan/01` §6.1 (`cargo xtask
 # native-no-heavy-crates`): the smallest native application (`tools/native-canary`)
@@ -35,7 +38,7 @@
 # and its symbols read — so that a feature set that must not pull a heavy
 # crate in cannot start doing so unnoticed. The report says which of jiff,
 # unicode-normalization, ryu, sha2 and sys-locale each set links. A job of
-# its own: it is two release builds.
+# its own, beside `tui-allocs-vs-pseudotrippy`: it is two release builds.
 #
 # Job `browser-wasm-budgets`: the catalog reader in the browser: bench/browser-no-fmt/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
@@ -128,7 +131,7 @@
 # names every tool version; every step that calls cargo unsets
 # CARGO_BUILD_TARGET first, because the image pins the musl triple and that
 # would move artifacts out of target/{debug,release}, where `cargo xtask docs`,
-# and native-no-heavy-crates look for them. An empty value is not the same
+# native-no-heavy-crates and tui-allocs-vs-pseudotrippy look for them. An empty value is not the same
 # thing: cargo refuses it.
 #
 # Actions: only Forgejo-maintained forks. upload-artifact and download-artifact
@@ -370,6 +373,106 @@ jobs:
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
           name: log-parser-vs-ox
+          path: target/ci-logs/
+          if-no-files-found: warn
+
+  tui-allocs-vs-pseudotrippy:
+    continue-on-error: true
+    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
+    # tools/ci/setup.sh.
+    runs-on: docker
+    container:
+      image: git.coworkunion.com/evancarroll/mf2-ci:latest
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+    steps:
+      - name: Fetch sources (plain git)
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # arrays and [[ ]]. This is every job's first step, so bash is here
+          # before anything needs it. tools/ci/setup.sh asks for it too, in case
+          # this stops being the first step.
+          apk add --no-cache bash >/dev/null
+          git init --quiet .
+          git remote add origin "$SERVER/$REPOSITORY.git"
+          if [ -n "$TOKEN" ]; then
+            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+            git -c "http.extraHeader=Authorization: Basic $auth" \
+              fetch --quiet --depth=1 origin "$SHA"
+          else
+            git fetch --quiet --depth=1 origin "$SHA"
+          fi
+          git checkout --quiet --detach FETCH_HEAD
+
+      - name: Cache the cargo registry
+        uses: https://code.forgejo.org/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry/index/
+            /root/.cargo/registry/cache/
+            /root/.cargo/git/db/
+          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-registry-
+
+      - name: Set the job up (packages, toolchain, tool versions)
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
+          sh tools/ci/setup.sh
+
+      - name: Start sccache
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
+          sccache --start-server || true
+          sccache --show-stats
+
+      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
+        # Into target/xtask-cache, checked against the PIN's digests; --check
+        # also holds the vendored suite byte for byte against upstream.
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
+          unset CARGO_BUILD_TARGET
+          cargo xtask spec-sync --check
+
+      - name: The terminal UI's gate (allocations per frame and stripped size)
+        # Three runs: the counts must agree between them. Time is nightly's.
+        run: |
+          mkdir -p target/ci-logs
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-pseudotrippy.log) 2>&1
+          unset CARGO_BUILD_TARGET
+          cargo xtask tui-allocs-vs-pseudotrippy --gate --runs 3
+
+      - name: Upload the gate report
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: tui-allocs-vs-pseudotrippy-report
+          path: |
+            target/tui-allocs-vs-pseudotrippy/report.md
+            target/tui-allocs-vs-pseudotrippy/report.json
+          if-no-files-found: error
+
+      - name: Upload this job's log
+        # The only way to read what a step printed: this Forgejo serves no job
+        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
+        # but artifacts download fine, anonymously, by run id.
+        if: always()
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
+        with:
+          name: log-tui-allocs-vs-pseudotrippy
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -1256,6 +1359,7 @@ jobs:
     needs:
       - lint-and-test
       - parser-vs-ox
+      - tui-allocs-vs-pseudotrippy
       - native-no-heavy-crates
       - catalog-size
       - browser-wasm-budgets

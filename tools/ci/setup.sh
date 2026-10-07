@@ -23,7 +23,7 @@ set -eu
 # The image sets CARGO_BUILD_TARGET=x86_64-unknown-linux-musl. The host is
 # Alpine, so unsetting it still builds musl — but artifacts stay in
 # target/{debug,release}, where `cargo xtask docs` (target/debug/mf2),
-# native-no-heavy-crates, tui-allocs-vs-trippy and the nightly differential look for them.
+# native-no-heavy-crates, tui-allocs-vs-pseudotrippy and the nightly differential look for them.
 # An empty value is not the same thing: cargo refuses it with "target was
 # empty". Every workflow step that calls cargo unsets it the same way.
 unset CARGO_BUILD_TARGET

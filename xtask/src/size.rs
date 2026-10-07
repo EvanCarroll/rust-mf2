@@ -36,7 +36,7 @@ use crate::fsx;
 /// directly: it is `Δ@1860` less `sites × marginal`, so it moves when either
 /// term does. Brotli took 8,510 B off the total and 10,681 B off the per-site
 /// part, which leaves 2,171 B more over — every build got smaller and B1 rose.
-/// A ratchet with no headroom, as `tui_allocs_vs_trippy`'s `SIZE_LIMIT` is;
+/// A ratchet with no headroom, as `tui_allocs_vs_pseudotrippy`'s `SIZE_LIMIT` is;
 /// `tools/checks/compare.sh` flags a move beyond ±57 B.
 const B1: f64 = 28_046.0;
 /// B5: per call site, in bytes brotli.

@@ -58,7 +58,7 @@ exclude = [
     "examples/demo-ssr",
     "examples/demo-islands",
     # The terminal UI (Phase 10 A1, C8): a native application measured by
-    # `cargo xtask tui-allocs-vs-trippy`.
+    # `cargo xtask tui-allocs-vs-pseudotrippy`.
     "examples/tui",
     # The native canaries' workload (`plan/01` §6.1): linked once per
     # feature set by `cargo xtask native-no-heavy-crates`, so its feature sets must

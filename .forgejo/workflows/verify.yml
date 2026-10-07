@@ -131,7 +131,7 @@ jobs:
           exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
           bash tools/checks/run.sh "$CHECKS_LABEL" --only \
-            ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,browser-no-fmt,browser-pay-for-use,conformance-report,api,refusals,tui-allocs-vs-trippy,native-no-heavy-crates
+            ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,browser-no-fmt,browser-pay-for-use,conformance-report,api,refusals,tui-allocs-vs-pseudotrippy,native-no-heavy-crates
 
       - name: The TUI gate proper (run.sh keeps the baseline; this judges it)
         if: always()
@@ -139,7 +139,7 @@ jobs:
           mkdir -p target/ci-logs
           exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask tui-allocs-vs-trippy --gate --runs 3
+          cargo xtask tui-allocs-vs-pseudotrippy --gate --runs 3
 
       - name: Against the last verification
         if: always()

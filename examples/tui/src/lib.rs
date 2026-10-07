@@ -1,6 +1,6 @@
 //! A trippy-shaped terminal UI in four languages, drawn into a Ratatui
 //! buffer, twice: [`ui`] with MF2, [`upstream`] the way trippy itself
-//! translates. `cargo xtask tui-allocs-vs-trippy` measures both (allocations and time
+//! translates. `cargo xtask tui-allocs-vs-pseudotrippy` measures both (allocations and time
 //! per frame, executable size); `cargo run` prints one frame.
 //!
 //! The messages are in `locales/`; `build.rs` compiles them, and the include

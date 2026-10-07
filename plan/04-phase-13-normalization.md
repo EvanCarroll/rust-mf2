@@ -61,7 +61,7 @@ exit", then stops: the next phase starts in a fresh session.
   10.3 B a site; the reference catalogs 6–110 B brotli smaller; allocations
   per frame unchanged; ledger 612/612, no gaps. The fuzz exit run: 50,270
   execs in 3,901 s, clean. `SIZE_LIMIT` lowered to 1,328,664 in
-  `xtask/src/tui_allocs_vs_trippy.rs` and `tools/checks/compare.sh` (`2696155`). trippy
+  `xtask/src/tui_allocs_vs_pseudotrippy.rs` and `tools/checks/compare.sh` (`2696155`). trippy
   measured on `mf2-jiff`: 8,366,240 → 8,244,072 B, −122,168 (119.3 KiB)
   against 118.5 KiB estimated — `plan/01` §1.4 has the row and the caveat.
   Decision 6 (no general NFC) and task 14.5 came out of the phase (`099585a`).
@@ -199,7 +199,7 @@ and §4.3 change in the same commit.
    before and after.
 2. The fuzz exit run: the new target for at least one hour, clean, with no
    build running on the machine meanwhile (`fuzz/README.md` has the command).
-3. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` and `tools/checks/compare.sh`
+3. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_pseudotrippy.rs` and `tools/checks/compare.sh`
    to the measured size. One commit, with the old and new bytes.
 4. Ask the owner, in plain English, whether to measure trippy again now: it
    means switching the checkout in `vendor/trippy` to its `mf2-jiff` branch

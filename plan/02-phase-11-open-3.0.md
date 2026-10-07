@@ -286,7 +286,7 @@ It lands with:
   binary. This answers `plan/01` §8, "`native` links by use": put the result
   there in one line.
 
-Wire it in: a job in `.forgejo/workflows/ci.yml` beside `tui-allocs-vs-trippy`, and a
+Wire it in: a job in `.forgejo/workflows/ci.yml` beside `tui-allocs-vs-pseudotrippy`, and a
 check in `tools/checks/run.sh` (and its README).
 
 Done when: the command passes, the report is in §8, `cargo xtask ci` is green.

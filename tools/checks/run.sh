@@ -15,7 +15,7 @@
 set -u
 cd "$(dirname "$0")/../.."
 all=(ci sizes demos docs docs-rs codegen-matrix scenarios msrv leptos-0-8 churn l6-web l7-web
-     e2e-0-9 e2e-0-8 browser-no-fmt browser-pay-for-use conformance-report api refusals tui-allocs-vs-trippy native-no-heavy-crates)
+     e2e-0-9 e2e-0-8 browser-no-fmt browser-pay-for-use conformance-report api refusals tui-allocs-vs-pseudotrippy native-no-heavy-crates)
 usage='usage: run.sh LABEL [--against EARLIER] [--only CHECK,...] [--summarize]'
 label=${1:?$usage}; shift
 against= only= summarize=
@@ -66,8 +66,8 @@ exec_check() {
       [ "$(sha256sum conformance/REPORT.md conformance/COVERAGE.md)" = "$before" ] ||
         { echo "run.sh: conformance/REPORT.md or COVERAGE.md changed"; return 1; } ;;
     api) CARGO_BUILD_JOBS=3 cargo xtask api --check ;;
-    tui-allocs-vs-trippy)
-      CARGO_BUILD_JOBS=3 cargo xtask tui-allocs-vs-trippy --save-baseline "$out/tui-baseline" \
+    tui-allocs-vs-pseudotrippy)
+      CARGO_BUILD_JOBS=3 cargo xtask tui-allocs-vs-pseudotrippy --save-baseline "$out/tui-baseline" \
         ${against:+--baseline "target/p10-checks/$against/tui-baseline"} ;;
   esac
 }
@@ -107,7 +107,7 @@ figures() {
     browser-pay-for-use) sed -n -e 's/^B1′ = .* = \([+-]*[0-9]*\) B.*/b1p=\1 /p' \
                           -e 's/^B13 = .* = \([+-]*[0-9]*\) B.*/b13=\1 /p' "$f" ;;
     native-no-heavy-crates) sed -n 's/^native-no-heavy-crates: \([0-9]*\) feature sets linked.*/sets=\1 /p' "$f" ;;
-    tui-allocs-vs-trippy) awk -F'|' '$2 ~ /`tui-mf2`/ { s = $3; a = $4; u = $6 } $2 ~ /`tui-mf2 \(baseline\)`/ { b = $6 }
+    tui-allocs-vs-pseudotrippy) awk -F'|' '$2 ~ /`tui-mf2`/ { s = $3; a = $4; u = $6 } $2 ~ /`tui-mf2 \(baseline\)`/ { b = $6 }
                 END { gsub(/ /, "", s); gsub(/ /, "", a); gsub(/ /, "", u); gsub(/ /, "", b)
                       if (s != "") printf "tui=%s allocs=%s us=%s ", s, a, u; if (b != "") printf "base_us=%s", b }' "$f" ;;
   esac | tr -d '\n'

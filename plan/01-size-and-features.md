@@ -456,8 +456,8 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
    MF2, a workspace of its own; `nm` reads the symbols. Phase 11 lands the
    command with the positive control and the report only: the forbidding
    rows arrive with the phases that make them true.
-2. **`tui-allocs-vs-trippy`'s limit follows the measurement.** `SIZE_LIMIT` in
-   `xtask/src/tui_allocs_vs_trippy.rs` (1,965,320 B, also written in
+2. **`tui-allocs-vs-pseudotrippy`'s limit follows the measurement.** `SIZE_LIMIT` in
+   `xtask/src/tui_allocs_vs_pseudotrippy.rs` (1,965,320 B, also written in
    `tools/checks/compare.sh`) is lowered to the measured size of `tui-mf2` at
    the end of each phase that shrinks it. `examples/tui` is the in-tree
    measurement; trippy is the owner's, measured beside it.

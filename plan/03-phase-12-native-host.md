@@ -41,7 +41,7 @@ exit", then stops: the next phase starts in a fresh session.
   ~11.8 KiB, which formats no float of its own, but `tui-mf2` — which does —
   is smaller, so `ryu` is gone for good and nothing is reverted.
 
-  Step 2: `5c59a94` lowers `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` from
+  Step 2: `5c59a94` lowers `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_pseudotrippy.rs` from
   `1_965_320` to `1_454_264`, with the same figure in `tools/checks/compare.sh`
   and the suite's README. The gate's fixtures now read `SIZE_LIMIT` and
   `SIZE_LIMIT + 1` rather than repeating the number, so the next phase to
@@ -216,7 +216,7 @@ Done when: the command and `cargo xtask ci` are green.
 
 1. `bash tools/checks/run.sh p12 --against p11b`. Expected: `tui-mf2` smaller;
    B1 and B5 within their bands (the client is not touched).
-2. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` and the same number in
+2. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_pseudotrippy.rs` and the same number in
    `tools/checks/compare.sh` to the measured size of `tui-mf2`. One commit;
    its message gives the old and new bytes and the command.
 3. Add a Done entry for the exit: the bytes before and after.

@@ -120,7 +120,7 @@ jobs:
           take browser-no-fmt             bash bench/browser-no-fmt/check.sh
           take browser-pay-for-use   cargo xtask browser-pay-for-use
           take native-no-heavy-crates cargo xtask native-no-heavy-crates
-          take tui-allocs-vs-trippy        cargo xtask tui-allocs-vs-trippy --runs 3
+          take tui-allocs-vs-pseudotrippy        cargo xtask tui-allocs-vs-pseudotrippy --runs 3
           echo "--- status ---"
           cat target/rebaseline/status.txt
 
@@ -153,7 +153,7 @@ jobs:
             echo
             echo '| figure | where | what it is |'
             echo '|---|---|---|'
-            echo '| stripped `tui-mf2` | `xtask/src/tui_allocs_vs_trippy.rs` `SIZE_LIMIT` | native: changes on musl |'
+            echo '| stripped `tui-mf2` | `xtask/src/tui_allocs_vs_pseudotrippy.rs` `SIZE_LIMIT` | native: changes on musl |'
             echo '| the same number again | `tools/checks/compare.sh` | native: changes on musl |'
             echo '| native-canary ICU ceiling | `xtask/src/native_no_heavy_crates.rs` `ICU_CEILING` | native: changes on musl |'
             echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/browser_app_size.rs` | brotli: only if wasm-opt or brotli moved |'
@@ -183,7 +183,7 @@ jobs:
             target/size/report.md
             target/feature-costs/feature-costs.md
             target/native-no-heavy-crates/report.md
-            target/tui-allocs-vs-trippy/report.md
+            target/tui-allocs-vs-pseudotrippy/report.md
           if-no-files-found: warn
 
       - name: Upload this job's log
