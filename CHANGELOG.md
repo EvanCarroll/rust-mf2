@@ -7,7 +7,7 @@ minimum Rust version says so here.
 
 ## 3.0.0
 
-**Not yet published.** A major release: it makes the changes 2.x could not.
+A major release: it makes the changes 2.x could not.
 Time zones and normalization tables come only with the builds that use
 them, a catalog answers canonical equivalence itself, and `mf2`'s features
 are renamed where 2.0 named them badly. The breaking changes come first.

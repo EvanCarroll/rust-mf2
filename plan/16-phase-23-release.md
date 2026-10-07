@@ -3,9 +3,9 @@
 The last phase (`plan/01-size-and-features.md` §7,
 `plan/08-dates-and-what-ships-where.md` §8). It publishes the crates at
 3.0.0 to crates.io, tags the release, and makes the documents say so. There
-are sixteen, or seventeen if task 16.1 gave the ICU4X date backend a crate of
-its own; where this file says sixteen, read the count `cargo xtask release`
-prints.
+are seventeen: task 16.1 gave the ICU4X date backend's browser side a crate of
+its own, `mf2-fn-datetime-web-icu`, which `mf2-fn-datetime` depends on for
+`wasm32-unknown-unknown` (the dry run of 2026-10-07 packaged all seventeen).
 
 Publishing cannot be undone, so this phase has one stop for the owner's word
 (23.2). Everything before it is a rehearsal that changes nothing outside the
@@ -196,7 +196,7 @@ heading, and the pre-flight is run again from step 1.
 
 Stop and ask the owner, in plain English, in one message:
 
-* what will be published: sixteen crates at 3.0.0, named;
+* what will be published: seventeen crates at 3.0.0, named;
 * that the dry run passed, with the date and the commit;
 * the measured sizes: `tui-mf2` before and after, the client's fixed cost
   (B1) before and after, and trippy if it was measured;
@@ -213,7 +213,7 @@ On yes:
    in dependency order, waits on crates.io's rate limit, and can be run again
    if it stops: crates already published with identical content are skipped.
 2. `git tag -a v3.0.0 -m "rust-mf2 3.0.0"` (the command it prints).
-3. Confirm on crates.io that all sixteen show 3.0.0.
+3. Confirm on crates.io that all seventeen show 3.0.0.
 
 On no, or on any answer that is not a clear yes: stop here and record the
 answer under Done.
