@@ -269,8 +269,8 @@ fn sections(path: &Path) -> Result<Vec<(String, u64)>> {
         let id = *bytes.get(at).ok_or_else(|| malformed("a section id"))?;
         at += 1;
         let rest = bytes.get(at..).ok_or_else(|| malformed("a section size"))?;
-        let (size, read) = uleb(rest).ok_or_else(|| malformed("a section size"))?;
-        at += read;
+        let (size, used) = uleb(rest).ok_or_else(|| malformed("a section size"))?;
+        at += used;
         let end = at
             .checked_add(size)
             .filter(|end| *end <= bytes.len())
@@ -289,7 +289,7 @@ fn sections(path: &Path) -> Result<Vec<(String, u64)>> {
 /// A custom section's name, which its payload begins with.
 fn custom_name(payload: &[u8]) -> String {
     match uleb(payload) {
-        Some((len, read)) => match read.checked_add(len).and_then(|end| payload.get(read..end)) {
+        Some((len, used)) => match used.checked_add(len).and_then(|end| payload.get(used..end)) {
             Some(text) => format!("custom {}", String::from_utf8_lossy(text)),
             None => "custom (a name past the end)".to_owned(),
         },
@@ -384,7 +384,12 @@ fn build_named(root: &Path, target: &Path, features: &str, label: &str) -> Resul
 
 /// Builds the fixture's client binary with `features` and returns the path it
 /// wrote. Every feature set writes the same path.
-fn compile(root: &Path, target: &Path, features: &str, extra: &[(&str, &OsStr)]) -> Result<PathBuf> {
+fn compile(
+    root: &Path,
+    target: &Path,
+    features: &str,
+    extra: &[(&str, &OsStr)],
+) -> Result<PathBuf> {
     let cargo = cmd::cargo();
     let args: Vec<&OsStr> = vec![
         OsStr::new("build"),
