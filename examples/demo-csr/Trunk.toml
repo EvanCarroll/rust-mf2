@@ -6,8 +6,9 @@ target = "index.html"
 dist = "dist"
 offline = true
 
-[tools]
-wasm_bindgen = "0.2.128"
+# No `[tools] wasm_bindgen`: trunk takes the version from this directory's
+# Cargo.lock, which is the version the installed CLI has to match. A pinned
+# version went stale the day wasm-bindgen 0.2.129 was released (verify run 33).
 
 # The catalogs and their index, into the staged site's `i18n/`, after the
 # wasm is built and before the site is moved into `dist/`. `mf2` is this
