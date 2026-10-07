@@ -41,11 +41,14 @@ if [ -n "${NEEDS_JSON:-}" ] && command -v jq >/dev/null 2>&1; then
   printf '%s' "$NEEDS_JSON" \
     | jq -r 'to_entries | sort_by(.key) | .[] | "| `\(.key)` | \(.value.result) |"'
   printf '\n'
-  failed=$(printf '%s' "$NEEDS_JSON" | jq -r '[to_entries[] | select(.value.result != "success") | .key] | join(", ")')
+  # `skipped` is not a failure: `release` is skipped on every plain push, by
+  # its own `if:`. ci.yml fails the run on this same rule, in the last step of
+  # the report job.
+  failed=$(printf '%s' "$NEEDS_JSON" | jq -r '[to_entries[] | select(.value.result != "success" and .value.result != "skipped") | .key] | join(", ")')
   if [ -n "$failed" ]; then
     printf '**Not green: %s.** Read that job'"'"'s section below, and its log.\n\n' "$failed"
   else
-    printf 'Every job is green.\n\n'
+    printf 'Every job passed, or was skipped.\n\n'
   fi
 else
   printf 'No job results were passed to this script (`NEEDS_JSON` empty).\n\n'

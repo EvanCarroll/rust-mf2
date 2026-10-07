@@ -154,8 +154,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every gate job below is `continue-on-error: true`, and the `report` job at
+# the end is what fails the run. The jobs have no `needs:` between them and
+# each builds the workspace from scratch, but one of them going red used to
+# cancel the others mid-build and leave the rest unstarted: run 20 (2026-10-06)
+# lost `ci`, `docs` and `l4-wasi` part-built and never started `msrv`,
+# `docs-rs`, `release` or `report`, so a single failure cost the whole run's
+# evidence and the next thing wrong could only be found one push at a time.
+# Continuing means every job reaches its verdict and `report` — which needs
+# them all — says in one place what passed. The run is still red: the last step
+# of `report` exits 1 unless every result is `success` or `skipped`.
 jobs:
   ci:
+    continue-on-error: true
     # The runner: Forgejo's `docker` label, in the image the other Rust
     # repositories here build with. It is Alpine, so everything native is musl.
     # tools/ci/setup.sh adds what the image lacks — xmllint (which
@@ -256,6 +267,7 @@ jobs:
           if-no-files-found: warn
 
   parser-gate:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -354,6 +366,7 @@ jobs:
           if-no-files-found: warn
 
   tui-gate:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -453,6 +466,7 @@ jobs:
           if-no-files-found: warn
 
   native-canaries:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -549,6 +563,7 @@ jobs:
           if-no-files-found: warn
 
   catalog-size:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -648,6 +663,7 @@ jobs:
           if-no-files-found: warn
 
   b12:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -760,6 +776,7 @@ jobs:
           if-no-files-found: warn
 
   build-pipeline:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -855,6 +872,7 @@ jobs:
           if-no-files-found: warn
 
   docs:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -943,6 +961,7 @@ jobs:
           if-no-files-found: warn
 
   l4-wasi:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -1041,6 +1060,7 @@ jobs:
           if-no-files-found: warn
 
   msrv:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -1136,6 +1156,7 @@ jobs:
           if-no-files-found: warn
 
   docs-rs:
+    continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -1224,6 +1245,7 @@ jobs:
           if-no-files-found: warn
 
   release:
+    continue-on-error: true
     # The dry run repeats the `ci`, `msrv`, `docs-rs` and `package` work, so it
     # is not run on every push: a tag, or asked for by hand. `cargo xtask
     # release --publish` refuses to run where CI is set, by design — publishing
@@ -1417,3 +1439,23 @@ jobs:
           name: log-report
           path: target/ci-logs/
           if-no-files-found: warn
+
+      - name: The run is red unless every job passed
+        # Last, so that REPORT.md is written and uploaded first: the report is
+        # wanted most when something failed. `skipped` passes — `release` is
+        # skipped on every plain push, by its own `if:`. jq is in the image and
+        # tools/ci/setup.sh checks for it, so this cannot fail for want of it.
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -eu
+          bad=$(printf '%s' "$NEEDS_JSON" | jq -r '
+            [ to_entries[]
+              | select(.value.result != "success" and .value.result != "skipped")
+              | "\(.key)=\(.value.result)" ] | join(" ")')
+          if [ -n "$bad" ]; then
+            echo "not green: $bad" >&2
+            echo "REPORT.md and each job's log artifact say why." >&2
+            exit 1
+          fi
+          echo "every job passed or was skipped"
