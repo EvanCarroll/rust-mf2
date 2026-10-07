@@ -14,27 +14,39 @@
 //! | F | the same | `hydrate,host-web-number-builtin,host-web-datetime-iso` | **B1′** = F − E must be **+0**: two function crates linked, neither reachable from the generated registry |
 //! | A | the fixture's own | `hydrate,host-web-number-builtin` | a corpus that uses `:integer` |
 //! | B | the same plus `:currency`, `:unit`, `:percent` | `hydrate,host-web-number-builtin` | **B13** = B − A: what a corpus that does not use them does not pay |
-//! | each pair of `OTHER_SIDE` | the fixture's own, or a `:datetime` message | a browser's features, and the same with the server's beside them | **the other side** must be **+0** |
+//! | each pair of `OTHER_SIDE` | the fixture's own, or a `:datetime` message | a browser's features, and the same with the server's beside them | **the other side** must link **no symbol** the browser's own features did not |
 //!
 //! An application writes both sides' features on its one `mf2` line, so its
 //! browser build sees the server's. A feature that belongs to the server —
 //! its number formatter, its date formatter's cache, the load number that
-//! cache keys on — must leave the browser's bytes alone, and the cost table
-//! cannot say so: it builds the client with the client's features only.
+//! cache keys on — must leave the browser alone, and the cost table cannot say
+//! so: it builds the client with the client's features only.
 //!
-//! The size method: `wasm32-unknown-unknown`, profile
-//! `wasm-release`, raw bytes of the client binary — the same figures Phase 5a
-//! reported, so the two are comparable.
+//! B1′ and B13 are bytes: `wasm32-unknown-unknown`, profile `wasm-release`,
+//! raw size of the client binary — the same figures Phase 5a reported, so the
+//! two are comparable.
 //!
-//! A pair that is not +0 does not stop at the number. Every build's artifact
-//! is kept, so the failing pair is printed section by section — 113 B of code
-//! and 113 B of data segments are different faults — and when it is the code
-//! section that moved, the pair is built again with the name section kept and
-//! `twiggy diff` names the symbols. A leak across the side boundary is then a
-//! list to fix rather than a byte count to guess at. The diagnosis never
-//! decides the gate: if it cannot be made, it says so and the budget still
-//! fails.
+//! **The other side is symbols, not bytes** (owner, 2026-10-07). It was bytes,
+//! and had to stop being: the server's features change the feature set of
+//! `mf2-fn-datetime`, `mf2-runtime` and `mf2-catalog`, so those crates compile
+//! under a different `-Cmetadata` and every symbol in them is renamed, even
+//! where the server's code is `cfg`'d out of this target and the bodies are
+//! identical. Asking two such compilations for byte-identical wasm asks rustc
+//! for something it does not promise: run 22 (2026-10-06) read +113 B, and a
+//! `twiggy diff` of 187 rows was renames — every row that was not hidden by
+//! the listing paired off to the byte, same function, same size, opposite
+//! sign.
+//!
+//! So each pair is built with the name section kept, `twiggy top` lists what
+//! each build linked, the crate disambiguators are erased, and the two sets
+//! must be equal. That is the rule itself rather than a proxy for it, and it
+//! is the stronger test: a symbol the server's features drag in fails even if
+//! it costs nothing, where the byte count would have let a size-neutral one
+//! through. The bytes are still printed, because a jump worth looking at is
+//! worth seeing; they decide nothing. A failing pair also prints its sections,
+//! which says whether what moved was code, data or a custom section.
 
+use std::collections::BTreeSet;
 use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 
@@ -50,12 +62,12 @@ const BIN: &str = "mf2-i18n-client";
 const B13_EXPECTED: i64 = 13_599;
 const B13_TOLERANCE: f64 = 0.10;
 
-/// How many items `twiggy diff` lists for a failing pair.
-const DIFF_ITEMS: &str = "40";
+/// How many symbols a failing pair lists before it stops.
+const SHOWN: usize = 40;
 
 /// The other side's features: a browser build, then the same with the
-/// server's feature an application writes beside it. Each pair must weigh
-/// the same.
+/// server's feature an application writes beside it. Each pair must link the
+/// same symbols.
 const OTHER_SIDE: [(&str, &str, &str); 6] = [
     (
         "a browser on `Intl` numbers beside a server on mf2's own number code",
@@ -97,11 +109,26 @@ struct Built {
     kept: PathBuf,
 }
 
+/// One pair of `OTHER_SIDE`, built and read.
+struct Pair {
+    what: &'static str,
+    with: &'static str,
+    alone: Built,
+    beside: Built,
+    /// Symbols the build with the server's features linked and the browser's
+    /// own did not. Any at all is the leak this gate exists to catch.
+    only_beside: Vec<String>,
+    /// The other direction: a symbol the server's features took *away*. Not a
+    /// leak, but not something to pass over in silence either.
+    only_alone: Vec<String>,
+}
+
 pub(crate) fn run(root: &Path) -> Result<()> {
-    let target = root.join("target").join("b12-generated");
+    let stripped = root.join("target").join("b12-generated");
+    let named = root.join("target").join("b12-generated-names");
     let build = |features: &str, label: &str| -> Result<Built> {
         eprintln!("b12-generated: building --features {features}");
-        build_one(root, &target, features, label)
+        build_one(root, &stripped, features, label, &[])
     };
 
     let e = build("hydrate,corpus-plain", "e")?.size;
@@ -112,18 +139,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     .size;
     let a = build("hydrate,host-web-number-builtin", "a")?.size;
     let b = build("hydrate,host-web-number-builtin,corpus-measures", "b")?.size;
-    let others: Vec<(&str, &str, &str, Built, Built)> = OTHER_SIDE
+    let others: Vec<Pair> = OTHER_SIDE
         .iter()
         .enumerate()
-        .map(|(i, &(what, without, with))| {
-            Ok((
-                what,
-                without,
-                with,
-                build(without, &format!("other-{i}-without"))?,
-                build(with, &format!("other-{i}-with"))?,
-            ))
-        })
+        .map(|(i, &(what, without, with))| pair(root, &named, i, what, without, with))
         .collect::<Result<_>>()?;
 
     #[allow(clippy::cast_possible_wrap)]
@@ -137,34 +156,45 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     println!("| F | the same | hydrate,host-web-number-builtin,host-web-datetime-iso | {f} |");
     println!("| A | the fixture's | hydrate,host-web-number-builtin | {a} |");
     println!("| B | A plus the measures | hydrate,host-web-number-builtin | {b} |");
-    for (what, _, with, lhs, rhs) in &others {
+    for p in &others {
         println!(
-            "| the other side | {what} | {with} | {} → {} |",
-            lhs.size, rhs.size
+            "| the other side | {} | {} | {} → {} |",
+            p.what, p.with, p.alone.size, p.beside.size
         );
     }
+    println!(
+        "\nThe other side's four figures above are the names-kept build, which is \
+         larger than the shipped one and is not what B1′ and B13 measure: this row \
+         is judged on its symbols, not its bytes."
+    );
     println!("\nB1′ = F − E = {b1:+} B (must be +0)");
     println!("B13 = B − A = {b13:+} B avoided (Phase 5a: {B13_EXPECTED:+})");
 
     let mut failures = Vec::new();
-    let mut leaking = Vec::new();
-    for (what, without, with, lhs, rhs) in &others {
+    for p in &others {
         #[allow(clippy::cast_possible_wrap)]
-        let delta = rhs.size as i64 - lhs.size as i64;
-        println!("the other side, {what}: {delta:+} B (must be +0)");
-        if delta != 0 {
+        let delta = p.beside.size as i64 - p.alone.size as i64;
+        let crossed = p.only_beside.len();
+        let lost = p.only_alone.len();
+        println!(
+            "the other side, {}: {crossed} symbol(s) crossed, {lost} only without \
+             (must be 0 and 0; bytes {delta:+})",
+            p.what
+        );
+        if crossed > 0 || lost > 0 {
             failures.push(format!(
-                "the other side's features cost this one {delta:+} B ({what}; with \
-                 `{with}`): a feature of the server changed the browser's build"
+                "the other side's features changed what this one links ({} crossed, {} \
+                 only without; {}; with `{}`): a feature of the server reached the \
+                 browser's build",
+                crossed, lost, p.what, p.with
             ));
-            leaking.push((*what, *without, *with, lhs, rhs));
         }
     }
-    // After every verdict is printed, so that the diagnosis cannot be
-    // mistaken for one, and so a long `twiggy diff` does not sit between the
-    // rows.
-    for (what, without, with, lhs, rhs) in leaking {
-        diagnose(root, what, without, with, lhs, rhs);
+    // After every verdict, so that the detail cannot be mistaken for one.
+    for p in &others {
+        if !p.only_beside.is_empty() || !p.only_alone.is_empty() {
+            detail(p);
+        }
     }
     if b1 != 0 {
         failures.push(format!(
@@ -182,7 +212,7 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         ));
     }
     if failures.is_empty() {
-        eprintln!("b12-generated: B1′, B13 and the other side's +0 hold");
+        eprintln!("b12-generated: B1′, B13 and the other side's symbols hold");
         return Ok(());
     }
     Err(Error::CommandFailed {
@@ -192,44 +222,135 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     })
 }
 
-/// What moved in a pair that is not +0: the sections side by side, and, when
-/// the code section is one of them, the symbols `twiggy` names.
-///
-/// A diagnostic, so every failure here is printed and swallowed: the budget
-/// has already failed, and a missing tool must not change which error the
-/// gate reports.
-fn diagnose(root: &Path, what: &str, without: &str, with: &str, lhs: &Built, rhs: &Built) {
-    println!("\n#### what the other side's features added: {what}\n");
-    let rows = match section_delta(&lhs.kept, &rhs.kept) {
-        Ok(rows) => rows,
-        Err(err) => {
-            println!("the sections could not be read: {err}");
-            return;
+/// Builds one pair with the name section kept and reads what each linked.
+fn pair(
+    root: &Path,
+    target: &Path,
+    i: usize,
+    what: &'static str,
+    without: &'static str,
+    with: &'static str,
+) -> Result<Pair> {
+    let alone = build_named(root, target, without, &format!("other-{i}-without"))?;
+    let beside = build_named(root, target, with, &format!("other-{i}-with"))?;
+    let here = symbols(root, &alone.kept)?;
+    let there = symbols(root, &beside.kept)?;
+    Ok(Pair {
+        what,
+        with,
+        only_beside: there.difference(&here).cloned().collect(),
+        only_alone: here.difference(&there).cloned().collect(),
+        alone,
+        beside,
+    })
+}
+
+/// What a failing pair linked that its partner did not, and which sections
+/// moved. Printed, never fatal: the budget has already failed, and an
+/// unreadable module must not change which error the gate reports.
+fn detail(p: &Pair) {
+    println!(
+        "\n#### what the other side's features changed: {}\n",
+        p.what
+    );
+    for (title, names) in [
+        ("linked only with the server's features", &p.only_beside),
+        ("linked only without them", &p.only_alone),
+    ] {
+        if names.is_empty() {
+            continue;
         }
-    };
-    println!("| section | browser alone | with the server's features | delta |");
-    println!("|---|---:|---:|---:|");
-    let mut code_moved = false;
-    for (name, alone, beside) in &rows {
-        #[allow(clippy::cast_possible_wrap)]
-        let delta = *beside as i64 - *alone as i64;
-        if delta != 0 && name == "code" {
-            code_moved = true;
+        println!("{} ({}):\n", title, names.len());
+        for name in names.iter().take(SHOWN) {
+            println!("* `{name}`");
         }
-        println!("| `{name}` | {alone} | {beside} | {delta:+} |");
+        if names.len() > SHOWN {
+            println!("* … and {} more", names.len() - SHOWN);
+        }
+        println!();
     }
-    if !code_moved {
-        println!(
-            "\nThe code section is the same in both, so nothing crossed as code: \
-             read the section that moved."
-        );
-        return;
+    match section_delta(&p.alone.kept, &p.beside.kept) {
+        Ok(rows) => {
+            println!("| section | browser alone | with the server's features | delta |");
+            println!("|---|---:|---:|---:|");
+            for (name, alone, beside) in &rows {
+                #[allow(clippy::cast_possible_wrap)]
+                let delta = *beside as i64 - *alone as i64;
+                println!("| `{name}` | {alone} | {beside} | {delta:+} |");
+            }
+        }
+        Err(err) => println!("the sections could not be read: {err}"),
     }
-    println!("\nThe code section moved. Building the pair again with the name section kept.");
-    match twiggy_diff(root, without, with) {
-        Ok(text) => println!("\n```\n{}\n```", text.trim_end()),
-        Err(err) => println!("the symbol diff could not be made: {err}"),
+}
+
+/// Every symbol a module links, as `twiggy top` lists it, with the crate
+/// disambiguators erased so that the same function compiled under a different
+/// `-Cmetadata` is the same name here. twiggy is in the image at the version
+/// `tools/ci/setup.sh` pins, for `bench/b12/check.sh` and
+/// `tools/fmt-check.sh`.
+fn symbols(root: &Path, wasm: &Path) -> Result<BTreeSet<String>> {
+    let out = cmd::run_capture(
+        OsStr::new("twiggy"),
+        &[
+            OsStr::new("top"),
+            OsStr::new("-n"),
+            OsStr::new("1000000"),
+            wasm.as_os_str(),
+        ],
+        root,
+        &[],
+    )?;
+    let text = String::from_utf8_lossy(&out);
+    let mut names = BTreeSet::new();
+    for line in text.lines() {
+        // ` 3584 ┊ 17.48% ┊ <item>`, as tools/fmt-check.sh reads it. The
+        // header and the rule above the rows separate with `│`, not `┊`, so
+        // they fall out here; twiggy's closing rows do have three fields and
+        // `is_summary` is what drops those.
+        let mut fields = line.split('┊');
+        let (Some(_), Some(_), Some(item)) = (fields.next(), fields.next(), fields.next()) else {
+            continue;
+        };
+        let item = item.trim();
+        if !item.is_empty() && !is_summary(item) {
+            names.insert(erase_hashes(item));
+        }
     }
+    Ok(names)
+}
+
+/// twiggy's own closing rows, which are not symbols. `Σ [n Total Rows]`
+/// counts the rows, and the two builds of a pair do not have the same number
+/// of them, so leaving it in would put a difference in every set.
+fn is_summary(item: &str) -> bool {
+    item.starts_with('Σ') || item.starts_with("... and ") || item.starts_with("… and ")
+}
+
+/// `foo[0123456789abcdef]::bar` without the `[…]`: the crate disambiguator,
+/// which changes with a crate's feature set and so differs between the two
+/// builds of a pair for every symbol, saying nothing about what was linked.
+fn erase_hashes(item: &str) -> String {
+    let mut out = String::with_capacity(item.len());
+    let mut rest = item;
+    while let Some(open) = rest.find('[') {
+        let after = &rest[open + 1..];
+        let hash = after
+            .find(']')
+            .filter(|end| *end == 16)
+            .filter(|end| after[..*end].bytes().all(|b| b.is_ascii_hexdigit()));
+        match hash {
+            Some(end) => {
+                out.push_str(&rest[..open]);
+                rest = &after[end + 1..];
+            }
+            None => {
+                out.push_str(&rest[..=open]);
+                rest = after;
+            }
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 /// Every section of both modules, by name, in the order the first carries
@@ -331,32 +452,16 @@ fn uleb(bytes: &[u8]) -> Option<(usize, usize)> {
     None
 }
 
-/// The pair built again with the name section kept, through `twiggy diff`.
-/// twiggy is in the image at the version `tools/ci/setup.sh` pins, for
-/// `bench/b12/check.sh` and `tools/fmt-check.sh`.
-fn twiggy_diff(root: &Path, without: &str, with: &str) -> Result<String> {
-    let target = root.join("target").join("b12-generated-names");
-    let alone = build_named(root, &target, without, "without")?;
-    let beside = build_named(root, &target, with, "with")?;
-    let out = cmd::run_capture(
-        OsStr::new("twiggy"),
-        &[
-            OsStr::new("diff"),
-            OsStr::new("-n"),
-            OsStr::new(DIFF_ITEMS),
-            alone.as_os_str(),
-            beside.as_os_str(),
-        ],
-        root,
-        &[],
-    )?;
-    Ok(String::from_utf8_lossy(&out).into_owned())
-}
-
 /// Builds the fixture's client binary with `features`, keeps the artifact as
 /// `label`, and returns what it measured.
-fn build_one(root: &Path, target: &Path, features: &str, label: &str) -> Result<Built> {
-    let wasm = compile(root, target, features, &[])?;
+fn build_one(
+    root: &Path,
+    target: &Path,
+    features: &str,
+    label: &str,
+    extra: &[(&str, &OsStr)],
+) -> Result<Built> {
+    let wasm = compile(root, target, features, extra)?;
     let bytes = read(&wasm)?;
     let kept = target.join("kept").join(format!("{label}.wasm"));
     fsx::write(&kept, &bytes)?;
@@ -367,19 +472,17 @@ fn build_one(root: &Path, target: &Path, features: &str, label: &str) -> Result<
 }
 
 /// The same build with the name section kept, which the `wasm-release`
-/// profile strips. Its own target directory, so the stripped artifacts the
-/// figures came from are not rebuilt over.
-fn build_named(root: &Path, target: &Path, features: &str, label: &str) -> Result<PathBuf> {
+/// profile strips. Only the name section makes a symbol readable, and the
+/// other side is judged on symbols.
+fn build_named(root: &Path, target: &Path, features: &str, label: &str) -> Result<Built> {
     eprintln!("b12-generated: building --features {features} with the names kept");
-    let wasm = compile(
+    build_one(
         root,
         target,
         features,
+        label,
         &[("CARGO_PROFILE_WASM_RELEASE_STRIP", OsStr::new("none"))],
-    )?;
-    let kept = target.join("kept").join(format!("{label}.wasm"));
-    copy(&wasm, &kept)?;
-    Ok(kept)
+    )
 }
 
 /// Builds the fixture's client binary with `features` and returns the path it
@@ -426,7 +529,43 @@ fn read(path: &Path) -> Result<Vec<u8>> {
     })
 }
 
-fn copy(from: &Path, to: &Path) -> Result<()> {
-    let bytes = read(from)?;
-    fsx::write(to, &bytes)
+#[cfg(test)]
+mod tests {
+    use super::{erase_hashes, is_summary};
+
+    #[test]
+    fn a_disambiguator_is_erased_and_nothing_else_is() {
+        assert_eq!(
+            erase_hashes("mf2_runtime[bf3a5801a21e5773]::number::decimal::split_literal"),
+            "mf2_runtime::number::decimal::split_literal"
+        );
+        // Both sides of a rename pair become the same name, which is the whole
+        // point: run 22's diff was 187 rows of exactly this.
+        assert_eq!(
+            erase_hashes("mf2_fn_datetime[4ac354dc10a0fb5e]::literal::parse_literal"),
+            erase_hashes("mf2_fn_datetime[a2a5270a0ad98b97]::literal::parse_literal")
+        );
+        // A bracket that is not a disambiguator stays: a slice type, a length,
+        // twiggy's own `Σ [187 Total Rows]`.
+        assert_eq!(
+            erase_hashes("<[u8; 32] as Foo>::bar"),
+            "<[u8; 32] as Foo>::bar"
+        );
+        assert_eq!(erase_hashes("Σ [187 Total Rows]"), "Σ [187 Total Rows]");
+        // twiggy's closing rows are not symbols, and the row count differs
+        // between the two builds of a pair.
+        assert!(is_summary("Σ [187 Total Rows]"));
+        assert!(is_summary("... and 147 more."));
+        assert!(!is_summary("mf2_runtime::number::decimal::split_literal"));
+        // Sixteen characters, but not hex.
+        assert_eq!(
+            erase_hashes("a[zzzzzzzzzzzzzzzz]::b"),
+            "a[zzzzzzzzzzzzzzzz]::b"
+        );
+        // Two of them, and a tail after the last.
+        assert_eq!(
+            erase_hashes("<a[0123456789abcdef]::T as b[fedcba9876543210]::U>::run"),
+            "<a::T as b::U>::run"
+        );
+    }
 }
