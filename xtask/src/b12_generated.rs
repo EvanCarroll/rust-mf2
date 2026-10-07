@@ -313,7 +313,7 @@ fn symbols(root: &Path, wasm: &Path) -> Result<BTreeSet<String>> {
         };
         let item = item.trim();
         if !item.is_empty() && !is_summary(item) {
-            names.insert(erase_hashes(item));
+            names.insert(normalize(item));
         }
     }
     Ok(names)
@@ -326,9 +326,33 @@ fn is_summary(item: &str) -> bool {
     item.starts_with('Σ') || item.starts_with("... and ") || item.starts_with("… and ")
 }
 
+/// A symbol as this gate compares it. Two builds of a pair name the same
+/// function differently in two ways, neither of which says anything about what
+/// was linked, and run 23 found both: the crate disambiguator, and LLVM's
+/// numeric suffix on a local symbol.
+fn normalize(item: &str) -> String {
+    erase_hashes(strip_local_suffix(item))
+}
+
+/// `…::write_char.190` without the `.190`. LLVM numbers local symbols by
+/// where they fall in the module, so the same function carries a different
+/// number in two builds that link a different number of things --- which is
+/// every pair here.
+fn strip_local_suffix(item: &str) -> &str {
+    match item.rsplit_once('.') {
+        Some((head, tail)) if !tail.is_empty() && tail.bytes().all(|b| b.is_ascii_digit()) => head,
+        _ => item,
+    }
+}
+
 /// `foo[0123456789abcdef]::bar` without the `[…]`: the crate disambiguator,
 /// which changes with a crate's feature set and so differs between the two
 /// builds of a pair for every symbol, saying nothing about what was linked.
+///
+/// It is a hexadecimal run of no fixed width --- `mf2_catalog[cd525ef543e6c17]`
+/// in run 23 is fifteen characters --- so the width is a range. Eight at the
+/// least, which is what keeps a type's own brackets (`[u8; 32]`) out of it,
+/// the hexadecimal test being the other half.
 fn erase_hashes(item: &str) -> String {
     let mut out = String::with_capacity(item.len());
     let mut rest = item;
@@ -336,7 +360,7 @@ fn erase_hashes(item: &str) -> String {
         let after = &rest[open + 1..];
         let hash = after
             .find(']')
-            .filter(|end| *end == 16)
+            .filter(|end| (8..=16).contains(end))
             .filter(|end| after[..*end].bytes().all(|b| b.is_ascii_hexdigit()));
         match hash {
             Some(end) => {
@@ -531,7 +555,45 @@ fn read(path: &Path) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{erase_hashes, is_summary};
+    use super::{erase_hashes, is_summary, normalize, strip_local_suffix};
+
+    #[test]
+    fn run_23s_pairs_normalise_to_the_same_name() {
+        // LLVM's suffix: the same function, numbered by where it falls in a
+        // module that links a different number of things.
+        assert_eq!(
+            normalize("<alloc::string::String as core::fmt::Write>::write_char.190"),
+            normalize("<alloc::string::String as core::fmt::Write>::write_char.184")
+        );
+        // A fifteen-character disambiguator, and a suffix, in one symbol.
+        assert_eq!(
+            normalize("<mf2_catalog[cd525ef543e6c17]::reader::Catalog>::text.141"),
+            normalize("<mf2_catalog[a0b1c2d3e4f5061]::reader::Catalog>::text.135")
+        );
+        assert_eq!(
+            normalize("<mf2_catalog[cd525ef543e6c17]::reader::Catalog>::text.141"),
+            "<mf2_catalog::reader::Catalog>::text"
+        );
+        // What must NOT collapse: these are the leak run 23 found, and they
+        // have no suffix and no disambiguator to lose.
+        assert_ne!(
+            normalize("<u8 as core::fmt::Display>::fmt"),
+            normalize("<u8 as core::fmt::LowerHex>::fmt")
+        );
+        assert_ne!(
+            normalize("<alloc::sync::Arc<dyn mf2_runtime::value::CustomValue>>::drop_slow"),
+            normalize("<alloc::sync::Arc<dyn mf2::arg::ArgSource>>::drop_slow")
+        );
+        // A trailing dot-digits is only a suffix when it is all digits.
+        assert_eq!(
+            strip_local_suffix("custom section '.debug_info'"),
+            "custom section '.debug_info'"
+        );
+        assert_eq!(
+            strip_local_suffix("<u8 as core::fmt::Display>::fmt"),
+            "<u8 as core::fmt::Display>::fmt"
+        );
+    }
 
     #[test]
     fn a_disambiguator_is_erased_and_nothing_else_is() {
