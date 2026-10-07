@@ -113,7 +113,14 @@ for extra in "$@"; do
       trunk --version
       ;;
     fuzz)
-      rustup toolchain install nightly --profile minimal
+      # The nightly `cargo xtask api` pins, not `nightly`: the image carries a
+      # `nightly` of its own, and updating it fails in the job's container
+      # (rustup renames a directory of the image's layer: "Cross-device
+      # link", nightly runs 3 and 25). A dated toolchain installs beside it.
+      toolchain=$(sed -n 's/^pub(crate) const NIGHTLY: &str = "\(.*\)";$/\1/p' xtask/src/api.rs)
+      [ -n "$toolchain" ] || { echo "setup: no NIGHTLY in xtask/src/api.rs" >&2; exit 2; }
+      rustup toolchain install "$toolchain" --profile minimal
+      echo "FUZZ_TOOLCHAIN=$toolchain" >> "${GITHUB_ENV:-/dev/null}"
       command -v cargo-fuzz >/dev/null 2>&1 || cargo install --locked cargo-fuzz
       cargo fuzz --version
       ;;

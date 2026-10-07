@@ -1,6 +1,6 @@
 # Dates, `Intl`, and what ships where
 
-Status: **proposal, 2026-10-03, with the owner's decisions of that day (§2).**
+Status: **built, 2026-10-07 (3.0.0); proposed 2026-10-03, with the owner's decisions of that day (§2). Nothing in §9 is still unverified.**
 It replaces what `plan/01-size-and-features.md` says about the date features
 (its §3.3 and §3.4: `fn-datetime`, `datetime-icu`, `datetime-intl`, "both date
 backends on at once"). The rest of `plan/01` stands. Phases 16 to 19 write

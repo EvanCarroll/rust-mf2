@@ -1,10 +1,10 @@
 # The 3.0 feature structure and native binary size
 
-Status: design, 2026-10-01; the owner's decisions of the same day are in §2.
-Nothing here is built yet. The work is six phases, 11 to 16, one file each
-(§7); this file is the design they read from. Every saving below is an
-estimate made by subtracting measured component sizes, not a rebuilt binary;
-each change lands with the binary measured again.
+Status: built, 2026-10-07 (3.0.0); designed 2026-10-01, with the owner's
+decisions of that day in §2. The work was six phases, 11 to 16, one file each
+(§7); this file is the design they read from. The savings below were
+estimated by subtracting measured component sizes; §1.4 has the binaries
+measured at the exits of Phases 12 and 13 beside those estimates.
 
 **The date features are replaced** (owner, 2026-10-03):
 `plan/08-dates-and-what-ships-where.md` supersedes what §3.3 and §3.4 say

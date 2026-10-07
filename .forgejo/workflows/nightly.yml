@@ -233,7 +233,7 @@ jobs:
           unset CARGO_BUILD_TARGET
           cargo xtask fuzz-seed
           cd fuzz
-          cargo +nightly fuzz run parse -- -dict=mf2.dict -max_len=16384 -timeout=10 \
+          cargo +"$FUZZ_TOOLCHAIN" fuzz run parse -- -dict=mf2.dict -max_len=16384 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Fuzz the catalog reader and decoder (30 minutes)
@@ -243,7 +243,7 @@ jobs:
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
-          cargo +nightly fuzz run catalog -- -dict=mf2.dict -max_len=131072 -timeout=10 \
+          cargo +"$FUZZ_TOOLCHAIN" fuzz run catalog -- -dict=mf2.dict -max_len=131072 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Fuzz the formatter (30 minutes)
@@ -253,7 +253,7 @@ jobs:
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
-          cargo +nightly fuzz run format -- -dict=mf2.dict -max_len=131072 -timeout=10 \
+          cargo +"$FUZZ_TOOLCHAIN" fuzz run format -- -dict=mf2.dict -max_len=131072 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Fuzz the canonical-equivalence check (30 minutes)
@@ -263,7 +263,7 @@ jobs:
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
-          cargo +nightly fuzz run nfc -- -max_len=4096 -timeout=10 \
+          cargo +"$FUZZ_TOOLCHAIN" fuzz run nfc -- -max_len=4096 -timeout=10 \
             -rss_limit_mb=2048 -max_total_time=1800
 
       - name: Reader bench (median of 31, exit 1 on failure)
