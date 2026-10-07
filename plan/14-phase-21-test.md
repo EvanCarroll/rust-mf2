@@ -53,8 +53,8 @@ in the same session or a fresh one.
   sets, so the ISO page's server is ISO; `dates-formatter.mjs` judged by date function, the
   owner's rule): `l6-web` 20/20, `l7-web` 70/70. `e2e-0-8` took 21.3 min (11 at `p14`):
   Phase 22's. 892a345 hides the 19 `mf2-build` helpers (owner, 2026-10-04).
-* 21.5: `feature-sets`, `msrv --below`, the parser gate, `islands-zero`, the demos' debug
-  builds and `fmt-check` pass; `l4-wasi` passes once `wasmtime` 49.0.0 is in `target/tools`
+* 21.5: `each-feature-alone`, `msrv --below`, the parser gate, `islands-zero`, the demos' debug
+  builds and `no-fmt-in-demos` pass; `wasi-matches-native` passes once `wasmtime` 49.0.0 is in `target/tools`
   (47,600 records identical); `l4-web` (chromium, firefox — no WebKit on this machine) passes
   after 70092b8 (16.1 left the browser L4 on the ISO stub). Owed: the canaries fail with
   their forbidden features; `mf2 stats`' page corrected (e91b7db); `mf2 check` recommends
@@ -166,15 +166,15 @@ A check that passes with a figure that moved is not a failure here.
 
 Each once, in this order; a failure is fixed by "Fixing a failure":
 
-* `cargo xtask feature-sets` — every feature of `mf2` compiled alone. The
+* `cargo xtask each-feature-alone` — every feature of `mf2` compiled alone. The
   date features were renamed, so this is the first run that matters.
 * `cargo xtask msrv --below`
-* `cargo xtask l4-wasi --generated 20000`
+* `cargo xtask wasi-matches-native --generated 20000`
 * `cargo xtask l4-web` — the `intl` build (17.2).
-* `cargo run --release -p parser-gate -- --gate`
+* `cargo run --release -p parser-vs-ox -- --gate`
 * `cargo xtask islands-zero`
-* `bash tools/fmt-check.sh` over the three demos' wasm files, as the
-  `fmt-check` job of `.forgejo/workflows/nightly.yml` calls it.
+* `bash tools/no-fmt-in-demos.sh` over the three demos' wasm files, as the
+  `no-fmt-in-demos` job of `.forgejo/workflows/nightly.yml` calls it.
 
 And what the code phases owed:
 

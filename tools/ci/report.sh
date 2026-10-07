@@ -41,7 +41,7 @@ if [ -n "${NEEDS_JSON:-}" ] && command -v jq >/dev/null 2>&1; then
   printf '%s' "$NEEDS_JSON" \
     | jq -r 'to_entries | sort_by(.key) | .[] | "| `\(.key)` | \(.value.result) |"'
   printf '\n'
-  # `skipped` is not a failure: `release` is skipped on every plain push, by
+  # `skipped` is not a failure: `release-dry-run` is skipped on every plain push, by
   # its own `if:`. ci.yml fails the run on this same rule, in the last step of
   # the report job.
   failed=$(printf '%s' "$NEEDS_JSON" | jq -r '[to_entries[] | select(.value.result != "success" and .value.result != "skipped") | .key] | join(", ")')

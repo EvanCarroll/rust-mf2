@@ -72,7 +72,7 @@ stops: the next phase starts in a fresh session.
   measures the old figures exactly (`run.sh p11base --only sizes`), and the
   133 B is 1072 permuted bodies — `-C metadata`. Nothing to take out (§8).
 
-* **11.4** `cargo xtask native-canaries` links `tools/native-canary` (a new
+* **11.4** `cargo xtask native-no-heavy-crates` links `tools/native-canary` (a new
   workspace of its own, the smallest MF2 application) once per row,
   unstripped, in the release profile, and reads its symbols by owning crate.
   Positive control green; no forbidding rows yet. `native` links jiff,
@@ -82,7 +82,7 @@ stops: the next phase starts in a fresh session.
   features, target, builds-or-refused, the commands that use them; `ci`,
   `codegen-matrix`, `msrv` and `refusals` read it, and the capture of their
   cargo command lines is byte-identical to the one taken first. New nightly
-  `cargo xtask feature-sets` (`--list` prints the table): all 19 alone, green.
+  `cargo xtask each-feature-alone` (`--list` prints the table): all 19 alone, green.
 
 * **11.1** The workspace is 3.0.0: the version and the fifteen pins, `mf2`'s
   `links = "mf2-v3"` with `DEP_MF2_V3_*` through `mf2-build`, the CLI's
@@ -264,7 +264,7 @@ Also:
 
 Done when: the captures match and `cargo xtask ci` is green.
 
-### 11.4 `cargo xtask native-canaries`
+### 11.4 `cargo xtask native-no-heavy-crates`
 
 Design: `plan/01` §6.1.
 
@@ -286,7 +286,7 @@ It lands with:
   binary. This answers `plan/01` §8, "`native` links by use": put the result
   there in one line.
 
-Wire it in: a job in `.forgejo/workflows/ci.yml` beside `tui-gate`, and a
+Wire it in: a job in `.forgejo/workflows/ci.yml` beside `tui-allocs-vs-trippy`, and a
 check in `tools/checks/run.sh` (and its README).
 
 Done when: the command passes, the report is in §8, `cargo xtask ci` is green.

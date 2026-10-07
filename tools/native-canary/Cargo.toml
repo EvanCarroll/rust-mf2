@@ -1,4 +1,4 @@
-# The workload of `cargo xtask native-canaries` (`plan/01` §6.1): the
+# The workload of `cargo xtask native-no-heavy-crates` (`plan/01` §6.1): the
 # smallest native application that uses MF2 — a typed language, a plain
 # message, a number and, with a date formatter, a date — so that what a feature
 # set *links* can be read out of the binary's symbols.

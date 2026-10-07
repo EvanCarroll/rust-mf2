@@ -5,7 +5,7 @@ Written in Phase 10 (in `probes/p10-checks/` until the phase's exit) for the lea
     bash tools/checks/run.sh LABEL [--against EARLIER] [--only CHECK,...] [--summarize]
     bash tools/checks/compare.sh EARLIER LABEL
 
-`run.sh` runs the existing checks one at a time, `ci` first, and carries on after a failure: ci; sizes (`measure.sh`; `regen.sh` regenerates its workloads after a template change) and demos (`demo-hashes.sh`); docs, docs-rs, codegen-matrix, scenarios, msrv, leptos-0-8, churn, l6-web, l7-web; e2e-0-9 and e2e-0-8 (`e2e.sh`; the 0.8 copies from `demos-0-8.py`); b12, b12-generated, conformance-report (the xtask has no `--check`: REPORT.md and COVERAGE.md must come out unchanged), api `--check`, refusals, tui-gate, native-canaries (what each feature set links into a native binary, `plan/01` §6.1).
+`run.sh` runs the existing checks one at a time, `ci` first, and carries on after a failure: ci; sizes (`measure.sh`; `regen.sh` regenerates its workloads after a template change) and demos (`demo-hashes.sh`); docs, docs-rs, codegen-matrix, scenarios, msrv, leptos-0-8, churn, l6-web, l7-web; e2e-0-9 and e2e-0-8 (`e2e.sh`; the 0.8 copies from `demos-0-8.py`); browser-no-fmt, browser-pay-for-use, conformance-report (the xtask has no `--check`: REPORT.md and COVERAGE.md must come out unchanged), api `--check`, refusals, tui-allocs-vs-trippy, native-no-heavy-crates (what each feature set links into a native binary, `plan/01` §6.1).
 
 Logs: `target/p10-checks/LABEL/CHECK.log` (measure.sh and e2e.sh also keep theirs under `target/p10-b2/` and `target/p10-b1/e2e/`). stdout: one line per check, then the table, also written as `summary.tsv`. Exit 1 if any check failed. `--summarize` rebuilds the table from the logs.
 

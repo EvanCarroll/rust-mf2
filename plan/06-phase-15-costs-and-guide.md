@@ -84,7 +84,7 @@ writes one Markdown table that the guide includes.
   (`examples/demo-islands`, `examples/demo-csr`), or left out with a line
   that says so.
 * **Native:** stripped bytes of a small binary (the fixtures of
-  `cargo xtask native-canaries`), with and without: `fn-number`,
+  `cargo xtask native-no-heavy-crates`), with and without: `fn-number`,
   `fn-datetime`, `tzdb-bundled`, `compile`, `ratatui`, `clap`.
 * Each cost is measured on a corpus that uses the feature, and the table says
   so; a feature that is on and unused should cost nothing, and a row that

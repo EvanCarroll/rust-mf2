@@ -5,7 +5,7 @@
 //! `Intl.NumberFormat` and `Intl.PluralRules` through
 //! `mf2_host_web::ZONES_NUMBERS_HOST` (dates: ICU4X over the catalog's blob,
 //! zone offsets from the browser). One canonical record per case, the same line
-//! `mf2-l4-wasi` writes, for the native side to judge.
+//! `mf2-wasi-matches-native` writes, for the native side to judge.
 
 use mf2_runtime::Host;
 use wasm_bindgen::prelude::wasm_bindgen;

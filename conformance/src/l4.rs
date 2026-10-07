@@ -4,7 +4,7 @@
 //! compile (`mf2::compile_str`) refuses the message with exactly those
 //! kinds. Every other test is compiled for its `locale`, **unstripped and
 //! stripped**, and formatted from each catalog by `mf2-l4-runner` — the
-//! same code `cargo xtask l4-wasi` runs on `wasm32-wasip1` — with its
+//! same code `cargo xtask wasi-matches-native` runs on `wasm32-wasip1` — with its
 //! `params` (named, and positionally through the catalog's slot names), its
 //! `bidiIsolation`, and the suite's `:test:*` functions:
 //!

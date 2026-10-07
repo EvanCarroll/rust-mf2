@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Phase 10 B4: the size workloads that `tools/checks/measure.sh` keeps
 # (target/p10-b2/size and target/p10-b2/b5v), generated again in place from
-# the tree's templates, as `cargo xtask size` and `cargo xtask b5 --view`
+# the tree's templates, as `cargo xtask size` and `cargo xtask browser-app-size --view`
 # generate them. The generator replaces only what it writes (each app's
 # manifest and sources), so every app keeps its Cargo.lock and its build
 # directory. `--keep` alone reuses a workload as it stands, so it cannot

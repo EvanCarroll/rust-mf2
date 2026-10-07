@@ -13,7 +13,7 @@
 #   deterministic, named = positional, parts = string, stripped = unstripped
 #   (≈ 1 minute); and a sample of 200,000 of them (every fifth) on
 #   wasm32-wasip1 under the pinned wasmtime, byte-identical to native
-#   (`cargo xtask l4-wasi --generated`, ≈ 80 s; the bundle is held in memory,
+#   (`cargo xtask wasi-matches-native --generated`, ≈ 80 s; the bundle is held in memory,
 #   so not all million).
 # * `l5-generated`: 50,000 generated
 #   messages as a corpus `mf2-build` compiles and `tr!` calls, each held to
@@ -50,25 +50,25 @@
 #   0.8, mf2's Leptos layer linted for ssr, hydrate and csr, its render,
 #   churn and fallback_lang tests and conformance layer L6
 #   (`cargo xtask leptos-0-8`). Not allowed to fail: 0.8 is supported.
-# * `fmt-check` (a job of its own): the demos
+# * `no-fmt-in-demos` (a job of its own): the demos
 #   are what readers copy, so no `Display` or `Debug` impl of ours may reach
 #   their clients. A debug-profile client build of each demo (a release
 #   build, even with names kept, misses the wrapper traps), then
-#   `tools/fmt-check.sh` over the three wasm files, through twiggy.
+#   `tools/no-fmt-in-demos.sh` over the three wasm files, through twiggy.
 # * `B10`: formatting speed on the four
 #   production catalogs — simple ≤ 100 ns / 0 allocations, 1-argument pattern
 #   ≤ 500 ns / ≤ 1 allocation on `en`, P0.8's figures within 1.5×
 #   (bench/runtime-bench); load-sensitive too.
-# * `feature-sets` (a job of its own; plan/01 §6.3): every feature of `mf2`
+# * `each-feature-alone` (a job of its own; plan/01 §6.3): every feature of `mf2`
 #   compiled alone — with the Leptos line or the browser target it needs,
 #   which `xtask/src/feature_sets.rs` states — the way a dependent that turns
-#   on one thing compiles it (`cargo xtask feature-sets`). One `cargo check`
+#   on one thing compiles it (`cargo xtask each-feature-alone`). One `cargo check`
 #   per feature, which is why it is nightly and not in `ci`.
-# * `tui-gate` (a job of its own): examples/tui's
+# * `tui-allocs-vs-trippy` (a job of its own): examples/tui's
 #   frame on 2.0 against 1.x's binaries, built from commit 3a296a9 in a
 #   worktree and run alternately — allocations, stripped size, and the
 #   median time per frame, which may not exceed 1.x's
-#   (`cargo xtask tui-gate --gate --baseline-rev`). Load-sensitive.
+#   (`cargo xtask tui-allocs-vs-trippy --gate --baseline-rev`). Load-sensitive.
 #
 # * `report` (a job of its own): one file for the whole night, as in ci.yml.
 #
@@ -98,7 +98,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  long-runs:
+  fuzz-and-million-messages:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -118,8 +118,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -149,13 +149,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           sh tools/ci/setup.sh wasmtime fuzz
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -164,44 +164,44 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: Generated input, 1,000,000 messages
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated
 
       - name: Generated input through the catalog (L3), 1,000,000 messages
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l3
 
       - name: Generated input formatted from the catalog (L4), 1,000,000 messages
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           MF2_GEN_CASES=1000000 cargo test --release -p mf2-conformance --test generated_l4
 
       - name: Generated input on wasm32-wasip1 (L4), 200,000 of the million
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           # wasmtime is already on PATH: tools/ci/setup.sh installed it.
-          cargo xtask l4-wasi --generated 200000
+          cargo xtask wasi-matches-native --generated 200000
 
       - name: Layer L5 on generated input (50,000 messages)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           MF2_L5_GENERATED=50000 cargo test -p mf2-l5-generated --release --test generated
@@ -209,7 +209,7 @@ jobs:
       - name: Differential against ox (90,000 messages)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cargo build --release -p mf2-conformance --example differential
@@ -228,7 +228,7 @@ jobs:
       - name: Fuzz the parser (30 minutes)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cargo xtask fuzz-seed
@@ -239,7 +239,7 @@ jobs:
       - name: Fuzz the catalog reader and decoder (30 minutes)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
@@ -249,7 +249,7 @@ jobs:
       - name: Fuzz the formatter (30 minutes)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
@@ -259,7 +259,7 @@ jobs:
       - name: Fuzz the canonical-equivalence check (30 minutes)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           cd fuzz
@@ -269,7 +269,7 @@ jobs:
       - name: Reader bench (median of 31, exit 1 on failure)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo run --release -p catalog-bench -- bench --gate \
             --md target/catalog-bench/READER.md --json target/catalog-bench/reader.json
@@ -277,7 +277,7 @@ jobs:
       - name: B10 formatting bench (median of 31, exit 1 on failure)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/long-runs.log) 2>&1
+          exec > >(tee -a target/ci-logs/fuzz-and-million-messages.log) 2>&1
           unset CARGO_BUILD_TARGET
           mkdir -p target/runtime-bench
           cargo run --release -p runtime-bench -- b10 --gate \
@@ -302,11 +302,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-long-runs
+          name: log-fuzz-and-million-messages
           path: target/ci-logs/
           if-no-files-found: warn
 
-  b5:
+  browser-app-size:
     # Budget B5: the marginal wasm
     # per call site, by P0.1's method — two scales of the reference workload,
     # three generated Leptos applications each, built for the client and
@@ -332,8 +332,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -363,13 +363,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           sh tools/ci/setup.sh wasm-bindgen
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -378,23 +378,23 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The size gate — B1 fixed, B5 per site, and the whole app
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           unset CARGO_BUILD_TARGET
-          mkdir -p target/b5-steps
+          mkdir -p target/browser-app-size-steps
           # `cmd | tee f` exits with tee's status, not the command's, so a
           # breached budget would have read as a pass. Keep the output and the
           # status both: the figures go in the artifact either way, and a
           # breach fails the job.
           rc=0
-          cargo xtask size > target/b5-steps/size.md 2>&1 || rc=$?
-          tee size.md < target/b5-steps/size.md
+          cargo xtask size > target/browser-app-size-steps/size.md 2>&1 || rc=$?
+          tee size.md < target/browser-app-size-steps/size.md
           [ "$rc" -eq 0 ] || exit "$rc"
 
       # A server-only component in an
@@ -402,16 +402,16 @@ jobs:
       - name: A server-only component costs the client nothing
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           unset CARGO_BUILD_TARGET
-          mkdir -p target/b5-steps
+          mkdir -p target/browser-app-size-steps
           # `cmd | tee f` exits with tee's status, not the command's, so a
           # breached budget would have read as a pass. Keep the output and the
           # status both: the figures go in the artifact either way, and a
           # breach fails the job.
           rc=0
-          cargo xtask islands-zero > target/b5-steps/islands-zero.md 2>&1 || rc=$?
-          tee -a size.md < target/b5-steps/islands-zero.md
+          cargo xtask islands-zero > target/browser-app-size-steps/islands-zero.md 2>&1 || rc=$?
+          tee -a size.md < target/browser-app-size-steps/islands-zero.md
           [ "$rc" -eq 0 ] || exit "$rc"
 
       # The migration of the reference
@@ -419,7 +419,7 @@ jobs:
       - name: The reference application migrated from leptos-fluent
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask fluent-migrate
 
@@ -429,16 +429,16 @@ jobs:
       - name: Each feature's measured cost holds
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b5.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-app-size.log) 2>&1
           unset CARGO_BUILD_TARGET
-          mkdir -p target/b5-steps
+          mkdir -p target/browser-app-size-steps
           # `cmd | tee f` exits with tee's status, not the command's, so a
           # breached budget would have read as a pass. Keep the output and the
           # status both: the figures go in the artifact either way, and a
           # breach fails the job.
           rc=0
-          cargo xtask feature-costs --check > target/b5-steps/feature-costs.md 2>&1 || rc=$?
-          tee -a size.md < target/b5-steps/feature-costs.md
+          cargo xtask feature-costs --check > target/browser-app-size-steps/feature-costs.md 2>&1 || rc=$?
+          tee -a size.md < target/browser-app-size-steps/feature-costs.md
           [ "$rc" -eq 0 ] || exit "$rc"
 
       - name: Upload the size report
@@ -459,7 +459,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-b5
+          name: log-browser-app-size
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -488,8 +488,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -556,7 +556,7 @@ jobs:
           path: target/ci-logs/
           if-no-files-found: warn
 
-  feature-sets:
+  each-feature-alone:
     # plan/01 §6.3: `ci` builds the feature sets applications really use,
     # which is not the same as each feature being valid by itself. This job
     # compiles each of `mf2`'s features alone, on the target the table says
@@ -581,8 +581,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -612,13 +612,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/feature-sets.log) 2>&1
+          exec > >(tee -a target/ci-logs/each-feature-alone.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/feature-sets.log) 2>&1
+          exec > >(tee -a target/ci-logs/each-feature-alone.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -627,16 +627,16 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/feature-sets.log) 2>&1
+          exec > >(tee -a target/ci-logs/each-feature-alone.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: Every feature of mf2, alone
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/feature-sets.log) 2>&1
+          exec > >(tee -a target/ci-logs/each-feature-alone.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask feature-sets
+          cargo xtask each-feature-alone
 
       - name: Upload this job's log
         # The only way to read what a step printed: this Forgejo serves no job
@@ -645,11 +645,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-feature-sets
+          name: log-each-feature-alone
           path: target/ci-logs/
           if-no-files-found: warn
 
-  fmt-check:
+  no-fmt-in-demos:
     # See the header.
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -671,8 +671,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -702,20 +702,20 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/fmt-check.log) 2>&1
+          exec > >(tee -a target/ci-logs/no-fmt-in-demos.log) 2>&1
           sh tools/ci/setup.sh twiggy
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/fmt-check.log) 2>&1
+          exec > >(tee -a target/ci-logs/no-fmt-in-demos.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
       - name: The demos' clients, debug profile (names kept)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/fmt-check.log) 2>&1
+          exec > >(tee -a target/ci-logs/no-fmt-in-demos.log) 2>&1
           set -eu
           unset CARGO_BUILD_TARGET
           for demo in demo-ssr demo-islands; do
@@ -727,9 +727,9 @@ jobs:
       - name: No Display / Debug of ours in a client
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/fmt-check.log) 2>&1
+          exec > >(tee -a target/ci-logs/no-fmt-in-demos.log) 2>&1
           unset CARGO_BUILD_TARGET
-          bash tools/fmt-check.sh \
+          bash tools/no-fmt-in-demos.sh \
             examples/demo-ssr/target/wasm32-unknown-unknown/debug/demo_ssr.wasm \
             examples/demo-islands/target/wasm32-unknown-unknown/debug/demo_islands.wasm \
             examples/demo-csr/target/wasm32-unknown-unknown/debug/demo-csr.wasm
@@ -741,11 +741,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-fmt-check
+          name: log-no-fmt-in-demos
           path: target/ci-logs/
           if-no-files-found: warn
 
-  tui-gate:
+  tui-allocs-vs-trippy:
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
     runs-on: docker
@@ -768,8 +768,8 @@ jobs:
           BASE: 3a296a920952239a8c62399f2e8d51aad46f84ec
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -802,13 +802,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -817,7 +817,7 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
@@ -826,18 +826,18 @@ jobs:
         # build's, 31 runs each: a time is only comparable within one run.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/tui-allocs-vs-trippy.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask tui-gate --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
+          cargo xtask tui-allocs-vs-trippy --gate --baseline-rev "3a296a920952239a8c62399f2e8d51aad46f84ec"
 
       - name: Upload the gate report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: tui-gate-nightly-report
+          name: tui-allocs-vs-trippy-nightly-report
           path: |
-            target/tui-gate/report.md
-            target/tui-gate/report.json
+            target/tui-allocs-vs-trippy/report.md
+            target/tui-allocs-vs-trippy/report.json
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -847,7 +847,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-tui-gate
+          name: log-tui-allocs-vs-trippy
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -860,12 +860,12 @@ jobs:
     # `mf2-report` and printed into this job's log, so the run can be read
     # without downloading anything.
     needs:
-      - long-runs
-      - b5
+      - fuzz-and-million-messages
+      - browser-app-size
       - leptos-0-8
-      - feature-sets
-      - fmt-check
-      - tui-gate
+      - each-feature-alone
+      - no-fmt-in-demos
+      - tui-allocs-vs-trippy
     if: always()
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -881,8 +881,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.

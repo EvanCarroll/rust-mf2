@@ -8,7 +8,7 @@
 #  2. ECMA-402: P0.5's differential against node's Intl.NumberFormat (when
 #     node is on PATH; a local tool, no network).
 #  3. Speed and allocations: `numbers speed`, interleaved rounds.
-#  4. Size and B12: bench/b12/check.sh (b12-runtime vs b12-runtime-fixed).
+#  4. Size and B12: bench/browser-no-fmt/check.sh (b12-runtime vs b12-runtime-fixed).
 #
 # Exit 1 if the outputs differ.
 set -euo pipefail

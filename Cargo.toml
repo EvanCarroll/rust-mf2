@@ -29,14 +29,14 @@ members = [
     "conformance/l5-generated",
     "bench/build-cost",
     "bench/workload-gen",
-    "bench/parser-gate",
+    "bench/parser-vs-ox",
     "bench/catalog-bench",
     "bench/runtime-bench",
     "tools/i18n-fixture",
 ]
 # Standalone workspaces: the cargo-fuzz targets
 # (nightly only), the B12 wasm harnesses (no_std cdylibs with their own
-# panic handler and allocator; bench/b12/check.sh), the `intl` probe, L4
+# panic handler and allocator; bench/browser-no-fmt/check.sh), the `intl` probe, L4
 # in the browser for the `intl` build (`cargo xtask l4-web`), whose `intl`
 # features must not unify into this workspace's builds, and the
 # `datetime-intl` browser check (tools/e2e/datetime), conformance L6 in the
@@ -44,7 +44,7 @@ members = [
 # exclusive), and the Phase 6 example, for the same reason.
 exclude = [
     "fuzz",
-    "bench/b12",
+    "bench/browser-no-fmt",
     "bench/intl-probe",
     # The churn harness (Phase 7 A5): a `csr` cdylib, which must not unify
     # with this workspace's `ssr`.
@@ -58,10 +58,10 @@ exclude = [
     "examples/demo-ssr",
     "examples/demo-islands",
     # The terminal UI (Phase 10 A1, C8): a native application measured by
-    # `cargo xtask tui-gate`.
+    # `cargo xtask tui-allocs-vs-trippy`.
     "examples/tui",
     # The native canaries' workload (`plan/01` §6.1): linked once per
-    # feature set by `cargo xtask native-canaries`, so its feature sets must
+    # feature set by `cargo xtask native-no-heavy-crates`, so its feature sets must
     # not unify into this workspace's builds either.
     "tools/native-canary",
     # The 2.0.0 pointer releases of `leptos-mf2` and `mf2-axum`: each a
@@ -164,7 +164,7 @@ unicode-properties = { version = "0.1.4", default-features = false, features = [
 # mf2-conformance: validates model JSON against spec/data-model/message.json.
 jsonschema = { version = "0.56.0", default-features = false }
 # The one exact pin (the audited alpha, plans/05-tooling.md §1): a dependency of
-# bench/parser-gate and a dev-dependency (differential oracle) of mf2-conformance.
+# bench/parser-vs-ox and a dev-dependency (differential oracle) of mf2-conformance.
 ox_mf2_parser = "=0.14.0-alpha.12"
 # bench/catalog-bench (B7 sizes, plans/06 §3): brotli quality 11 / window 22 as
 # P0.7 measured; two pure-Rust gzip implementations beside GNU `gzip -9 -n`

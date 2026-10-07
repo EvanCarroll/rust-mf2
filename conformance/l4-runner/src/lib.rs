@@ -1,5 +1,5 @@
 //! Conformance layer L4, the client side: what runs from a compiled catalog —
-//! natively inside the `mf2-conformance` harness, and as `mf2-l4-wasi`
+//! natively inside the `mf2-conformance` harness, and as `mf2-wasi-matches-native`
 //! under wasmtime on `wasm32-wasip1` — so the two can be compared byte for
 //! byte.
 //!

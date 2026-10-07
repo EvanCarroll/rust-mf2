@@ -11,7 +11,7 @@ Phase 2's measurements of the `.mf2b` catalog:
 * **`bench`** — the native half of task A9 (B9/B10 natively). It times
   `Catalog::new`, `get`, `text` and view walks on the four production
   catalogs, counts allocations, checks 0 copies at load and compares with
-  P0.8. It uses the parser gate's method (`bench/parser-gate`).
+  P0.8. It uses the parser gate's method (`bench/parser-vs-ox`).
   Committed run: [READER-P2.md](READER-P2.md) ([reader-p2.json](reader-p2.json)).
 
 ## Running it

@@ -1,4 +1,4 @@
-//! `cargo xtask tui-gate`: what translating a terminal UI costs, measured on
+//! `cargo xtask tui-allocs-vs-trippy`: what translating a terminal UI costs, measured on
 //! the trippy-shaped frame of `examples/tui`
 //! (a gate from C8).
 //!
@@ -20,7 +20,7 @@
 //! puts a kept build's back into the rotation: a later build is compared
 //! with an earlier one by alternating the two, never one run after the
 //! other. `--baseline-rev REV` builds the rotation's baseline from a git
-//! revision instead, in a worktree under `target/tui-gate` (nightly CI
+//! revision instead, in a worktree under `target/tui-allocs-vs-trippy` (nightly CI
 //! builds A1's 1.x binaries so). `--book` adds the sizes of the user guide's
 //! native projects, as `cargo xtask docs` assembles them, stripped.
 //!
@@ -34,8 +34,8 @@
 //!   at most the baseline `tui-mf2`'s: nightly, alternating with the 1.x
 //!   binary, since a time is only comparable within one session.
 //!
-//! The report goes to standard output and to `target/tui-gate/report.md`,
-//! the figures to `target/tui-gate/report.json`.
+//! The report goes to standard output and to `target/tui-allocs-vs-trippy/report.md`,
+//! the figures to `target/tui-allocs-vs-trippy/report.json`.
 
 use std::ffi::OsStr;
 use std::fmt::Write as _;
@@ -73,7 +73,7 @@ const ALLOCS_1X: &[(&str, u64)] = &[("en", 1816), ("de", 1815), ("es", 1816), ("
 /// tight.
 const SIZE_LIMIT: u64 = 1_381_752;
 
-/// What `cargo xtask tui-gate` was asked to do.
+/// What `cargo xtask tui-allocs-vs-trippy` was asked to do.
 pub(crate) struct Options {
     /// Runs of each binary.
     pub(crate) runs: usize,
@@ -107,7 +107,7 @@ pub(crate) fn run(root: &Path, opts: &Options) -> Result<()> {
     if opts.runs == 0 || opts.frames == 0 {
         return Err(gate("--runs and --frames must be at least 1"));
     }
-    let out = root.join("target/tui-gate");
+    let out = root.join("target/tui-allocs-vs-trippy");
     let release = build(
         root,
         &root.join("examples/tui/Cargo.toml"),
@@ -139,7 +139,7 @@ pub(crate) fn run(root: &Path, opts: &Options) -> Result<()> {
     let frames = opts.frames.to_string();
     let load = load_average();
     eprintln!(
-        "tui-gate: {} runs of {} binaries, alternating (load {load})",
+        "tui-allocs-vs-trippy: {} runs of {} binaries, alternating (load {load})",
         opts.runs,
         rotation.len()
     );
@@ -173,7 +173,7 @@ pub(crate) fn run(root: &Path, opts: &Options) -> Result<()> {
         if !failures.is_empty() {
             return Err(gate(&failures.join("; ")));
         }
-        eprintln!("tui-gate: the gate holds");
+        eprintln!("tui-allocs-vs-trippy: the gate holds");
     }
     Ok(())
 }
@@ -264,7 +264,7 @@ fn build_at(root: &Path, rev: &str, out: &Path) -> Result<PathBuf> {
 /// returns the directory they are in.
 fn build(root: &Path, manifest: &Path, target: &Path, features: &[&str]) -> Result<PathBuf> {
     eprintln!(
-        "tui-gate: building {} (release, stripped)",
+        "tui-allocs-vs-trippy: building {} (release, stripped)",
         manifest.display()
     );
     let mut args = vec![
@@ -389,7 +389,7 @@ fn save(root: &Path, dir: &Path, release: &Path) -> Result<()> {
         &[],
     )?;
     let note = format!(
-        "Built by `cargo xtask tui-gate --save-baseline` at {}{}\n",
+        "Built by `cargo xtask tui-allocs-vs-trippy --save-baseline` at {}{}\n",
         String::from_utf8_lossy(&head).trim(),
         if status.is_empty() {
             ""
@@ -399,7 +399,7 @@ fn save(root: &Path, dir: &Path, release: &Path) -> Result<()> {
     );
     fsx::write(&dir.join("BUILT-AT"), note.as_bytes())?;
     eprintln!(
-        "tui-gate: kept {} and {} in {}",
+        "tui-allocs-vs-trippy: kept {} and {} in {}",
         BINARIES[0],
         BINARIES[1],
         dir.display()
@@ -445,7 +445,7 @@ fn load_average() -> String {
 }
 
 fn report(rotation: &[Measured], book: &[(String, u64)], opts: &Options, load: &str) -> String {
-    let mut out = String::from("# tui-gate\n\n");
+    let mut out = String::from("# tui-allocs-vs-trippy\n\n");
     let locales = rotation
         .first()
         .map(|b| b.locales.join(" / "))
@@ -514,7 +514,7 @@ fn figures(rotation: &[Measured], book: &[(String, u64)], opts: &Options, load: 
 }
 
 fn gate(message: &str) -> Error {
-    Error::TuiGate(message.to_owned())
+    Error::TuiAllocsVsTrippy(message.to_owned())
 }
 
 #[cfg(test)]

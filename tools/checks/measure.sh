@@ -48,7 +48,7 @@ CARGO_BUILD_JOBS=3 run size cargo xtask size --out "$out/size" "${keep[@]}"
 hashes "$out/size" '*.wasm' >"$logs/size-wasm.sha256"
 find "$out/size" -name Cargo.lock -not -path '*/target-apps/*' -print0 | sort -z | xargs -0 sha256sum >"$logs/size-locks.sha256"
 cp "$out/size/report.md" "$logs/size-report.md"
-CARGO_BUILD_JOBS=3 run b5v cargo xtask b5 --view --out "$out/b5v" "${keep[@]}"
+CARGO_BUILD_JOBS=3 run b5v cargo xtask browser-app-size --view --out "$out/b5v" "${keep[@]}"
 hashes "$out/b5v" '*.wasm' >"$logs/b5v-wasm.sha256"
 CARGO_BUILD_JOBS=3 run catalog-size cargo xtask catalog-size
 mkdir -p "$out/catalog-bench/$label"

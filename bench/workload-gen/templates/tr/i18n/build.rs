@@ -9,7 +9,7 @@ fn main() {
     let Some(root) = std::env::var_os("MF2_WORKLOAD_LOCALES") else {
         println!(
             "cargo::error=MF2_WORKLOAD_LOCALES is not set: it must name a generated workload \
-             directory (the one with locales/), which `cargo xtask b5` sets"
+             directory (the one with locales/), which `cargo xtask browser-app-size` sets"
         );
         std::process::exit(1);
     };

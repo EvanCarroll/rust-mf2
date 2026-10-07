@@ -6,7 +6,7 @@
 #
 # Extras, each named by the job that wants it:
 #   wasm-bindgen  the CLI, at the version the workspace resolves to
-#   twiggy        0.8.0 — bench/b12/check.sh and tools/fmt-check.sh read it
+#   twiggy        0.8.0 — bench/browser-no-fmt/check.sh and tools/no-fmt-in-demos.sh read it
 #   wasmtime      49.0.0 into target/tools — conformance layer L4 on wasip1
 #   trunk         demo-csr, built by tools/checks/measure.sh
 #   fuzz          a nightly toolchain and cargo-fuzz
@@ -23,7 +23,7 @@ set -eu
 # The image sets CARGO_BUILD_TARGET=x86_64-unknown-linux-musl. The host is
 # Alpine, so unsetting it still builds musl — but artifacts stay in
 # target/{debug,release}, where `cargo xtask docs` (target/debug/mf2),
-# native-canaries, tui-gate and the nightly differential look for them.
+# native-no-heavy-crates, tui-allocs-vs-trippy and the nightly differential look for them.
 # An empty value is not the same thing: cargo refuses it with "target was
 # empty". Every workflow step that calls cargo unsets it the same way.
 unset CARGO_BUILD_TARGET
@@ -33,7 +33,7 @@ unset CARGO_BUILD_TARGET
 # xmllint (crates/mf2-cli/tests/xliff.rs *fails* without it rather than
 # skipping), brotli (every size figure is `brotli -q 11 --lgwin=22`, the setting
 # mf2-build compresses catalogs with) and binutils for nm, which
-# `cargo xtask native-canaries` reads symbols with.
+# `cargo xtask native-no-heavy-crates` reads symbols with.
 #
 # Verified, not installed: a stale image should say so plainly here rather than
 # be papered over at the start of every job. No gzip — the figures moved to
@@ -88,7 +88,7 @@ for extra in "$@"; do
       fi
       ;;
     twiggy)
-      # Pinned: bench/b12/README.md's figures were read with this one, and a
+      # Pinned: bench/browser-no-fmt/README.md's figures were read with this one, and a
       # different twiggy reads a different number. Checked by version, not by
       # presence, so an image that starts shipping twiggy cannot change a figure
       # without anyone noticing.

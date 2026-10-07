@@ -1,4 +1,4 @@
-//! `cargo xtask b12-generated`: budgets **B1′** and **B13** on the module
+//! `cargo xtask browser-pay-for-use`: budgets **B1′** and **B13** on the module
 //! `mf2-build` generates, and the rule that the other side's features cost
 //! this side nothing.
 //!
@@ -42,7 +42,11 @@
 //! must be equal. That is the rule itself rather than a proxy for it, and it
 //! is the stronger test: a symbol the server's features drag in fails even if
 //! it costs nothing, where the byte count would have let a size-neutral one
-//! through. The bytes are still printed, because a jump worth looking at is
+//! through. A symbol naming only the standard library does not count either
+//! way: codegen inlines such a helper or keeps it as it likes, so it comes and
+//! goes between two builds of the same code, where the server's code would
+//! bring its crate's name with it (`standard_library_only`). The bytes are
+//! still printed, because a jump worth looking at is
 //! worth seeing; they decide nothing. A failing pair also prints its sections,
 //! which says whether what moved was code, data or a custom section.
 
@@ -132,10 +136,10 @@ struct Pair {
 }
 
 pub(crate) fn run(root: &Path) -> Result<()> {
-    let stripped = root.join("target").join("b12-generated");
-    let named = root.join("target").join("b12-generated-names");
+    let stripped = root.join("target").join("browser-pay-for-use");
+    let named = root.join("target").join("browser-pay-for-use-names");
     let build = |features: &str, label: &str| -> Result<Built> {
-        eprintln!("b12-generated: building --features {features}");
+        eprintln!("browser-pay-for-use: building --features {features}");
         build_one(root, &stripped, features, label, &[])
     };
 
@@ -183,8 +187,9 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         #[allow(clippy::cast_possible_wrap)]
         let delta = p.beside.size as i64 - p.alone.size as i64;
         println!(
-            "the other side, {}: {} symbol(s) crossed with nothing of that name going \
-             back (must be 0; {} crossed and {} only without in all; bytes {delta:+})",
+            "the other side, {}: {} symbol(s) of a crate crossed with nothing of that \
+             name going back (must be 0; {} crossed and {} only without in all; bytes \
+             {delta:+})",
             p.what,
             p.net.len(),
             p.only_beside.len(),
@@ -225,11 +230,11 @@ pub(crate) fn run(root: &Path) -> Result<()> {
         ));
     }
     if failures.is_empty() {
-        eprintln!("b12-generated: B1′, B13 and the other side's symbols hold");
+        eprintln!("browser-pay-for-use: B1′, B13 and the other side's symbols hold");
         return Ok(());
     }
     Err(Error::CommandFailed {
-        command: "b12-generated".to_owned(),
+        command: "browser-pay-for-use".to_owned(),
         status: format!("{} budget(s) failed", failures.len()),
         stderr: failures.join("\n"),
     })
@@ -253,7 +258,10 @@ fn pair(
     Ok(Pair {
         what,
         with,
-        net: net_crossings(&only_beside, &only_alone),
+        net: net_crossings(&only_beside, &only_alone)
+            .into_iter()
+            .filter(|symbol| !standard_library_only(symbol))
+            .collect(),
         only_beside,
         only_alone,
         alone,
@@ -315,8 +323,8 @@ fn detail(p: &Pair) {
 /// Every symbol a module links, as `twiggy top` lists it, with the crate
 /// disambiguators erased so that the same function compiled under a different
 /// `-Cmetadata` is the same name here. twiggy is in the image at the version
-/// `tools/ci/setup.sh` pins, for `bench/b12/check.sh` and
-/// `tools/fmt-check.sh`.
+/// `tools/ci/setup.sh` pins, for `bench/browser-no-fmt/check.sh` and
+/// `tools/no-fmt-in-demos.sh`.
 fn symbols(root: &Path, wasm: &Path) -> Result<BTreeSet<String>> {
     let out = cmd::run_capture(
         OsStr::new("twiggy"),
@@ -332,7 +340,7 @@ fn symbols(root: &Path, wasm: &Path) -> Result<BTreeSet<String>> {
     let text = String::from_utf8_lossy(&out);
     let mut names = BTreeSet::new();
     for line in text.lines() {
-        // ` 3584 ┊ 17.48% ┊ <item>`, as tools/fmt-check.sh reads it. The
+        // ` 3584 ┊ 17.48% ┊ <item>`, as tools/no-fmt-in-demos.sh reads it. The
         // header and the rule above the rows separate with `│`, not `┊`, so
         // they fall out here; twiggy's closing rows do have three fields and
         // `is_summary` is what drops those.
@@ -381,6 +389,48 @@ fn net_crossings(only_beside: &[String], only_alone: &[String]) -> Vec<String> {
     net
 }
 
+/// Whether every path in `symbol` starts at `core`, `alloc` or `std` ---
+/// `<u8 as core::fmt::LowerHex>::fmt`, `<alloc::alloc::Global>::alloc_impl`
+/// --- so that no crate of the build's own is named (owner, 2026-10-07).
+/// Codegen gives such a helper a symbol of its own or inlines it into its
+/// callers as it likes: run 23 had `u8`'s three `fmt` impls only with the
+/// server's features, and a local build of the same pair (2026-10-07) had them
+/// only without, the browser alone already linking `core::fmt::write` and
+/// forty other `fmt` items through ICU4X. The server's code reaching this
+/// build brings a symbol of its crate --- `mf2_*`, `icu_*`, `serde`, `sha2`
+/// --- and that is still a failure; a generic over one
+/// (`drop_in_place::<mf2::arg::ArgSource>`) names it, so it counts too. A
+/// symbol naming no path at all (`memcpy`) is not the standard library's
+/// either, and counts.
+fn standard_library_only(symbol: &str) -> bool {
+    let mut roots = path_roots(symbol).peekable();
+    roots.peek().is_some() && roots.all(|root| matches!(root, "core" | "alloc" | "std"))
+}
+
+/// The first segment of every path in `symbol`: an identifier followed by
+/// `::` that does not itself follow one.
+fn path_roots(symbol: &str) -> impl Iterator<Item = &str> {
+    let bytes = symbol.as_bytes();
+    let ident = |b: u8| b.is_ascii_alphanumeric() || b == b'_';
+    let mut roots = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        if !ident(bytes[i]) {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        while i < bytes.len() && ident(bytes[i]) {
+            i += 1;
+        }
+        let after_path = start >= 2 && &bytes[start - 2..start] == b"::";
+        if !after_path && bytes[i..].starts_with(b"::") {
+            roots.push(&symbol[start..i]);
+        }
+    }
+    roots.into_iter()
+}
+
 /// The operation a symbol names: its last `::` segment.
 fn operation(symbol: &str) -> &str {
     symbol.rsplit("::").next().unwrap_or(symbol)
@@ -422,15 +472,12 @@ fn erase_hashes(item: &str) -> String {
             .find(']')
             .filter(|end| (8..=16).contains(end))
             .filter(|end| after[..*end].bytes().all(|b| b.is_ascii_hexdigit()));
-        match hash {
-            Some(end) => {
-                out.push_str(&rest[..open]);
-                rest = &after[end + 1..];
-            }
-            None => {
-                out.push_str(&rest[..=open]);
-                rest = after;
-            }
+        if let Some(end) = hash {
+            out.push_str(&rest[..open]);
+            rest = &after[end + 1..];
+        } else {
+            out.push_str(&rest[..=open]);
+            rest = after;
         }
     }
     out.push_str(rest);
@@ -559,7 +606,7 @@ fn build_one(
 /// profile strips. Only the name section makes a symbol readable, and the
 /// other side is judged on symbols.
 fn build_named(root: &Path, target: &Path, features: &str, label: &str) -> Result<Built> {
-    eprintln!("b12-generated: building --features {features} with the names kept");
+    eprintln!("browser-pay-for-use: building --features {features} with the names kept");
     build_one(
         root,
         target,
@@ -615,7 +662,37 @@ fn read(path: &Path) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{erase_hashes, is_summary, net_crossings, normalize, strip_local_suffix};
+    use super::{
+        erase_hashes, is_summary, net_crossings, normalize, standard_library_only,
+        strip_local_suffix,
+    };
+
+    #[test]
+    fn only_a_crates_symbol_counts() {
+        // Run 23's three, and what a local build of the same pair traded the
+        // other way: the standard library's alone.
+        for std_only in [
+            "<u8 as core::fmt::Display>::fmt",
+            "<u8 as core::fmt::LowerHex>::fmt",
+            "<u8 as core::fmt::UpperHex>::fmt",
+            "<alloc::alloc::Global>::alloc_impl_runtime",
+            "<alloc::string::String as core::fmt::Write>::write_char",
+            "<&str as core::fmt::Display>::fmt",
+            "<std::panicking::panic_handler::StaticStrPayload as core::fmt::Display>::fmt",
+        ] {
+            assert!(standard_library_only(std_only), "{std_only}");
+        }
+        // A crate's own, a generic over one, and no path at all.
+        for counts in [
+            "zerotrie::reader::get_branch",
+            "<smallvec::CollectionAllocErr as core::fmt::Debug>::fmt",
+            "<alloc::sync::Arc<dyn mf2::arg::ArgSource>>::drop_slow",
+            "core::ptr::drop_in_place::<icu_provider::DataError>",
+            "memcpy",
+        ] {
+            assert!(!standard_library_only(counts), "{counts}");
+        }
+    }
 
     #[test]
     fn run_23s_swap_cancels_and_the_fmt_leak_does_not() {
@@ -625,8 +702,20 @@ mod tests {
                 .to_owned();
         // The two pairs whose only difference was the swap, in both
         // directions: nothing crossed net.
-        assert!(net_crossings(&[arc_arg.clone()], &[arc_custom.clone()]).is_empty());
-        assert!(net_crossings(&[arc_custom.clone()], &[arc_arg.clone()]).is_empty());
+        assert_eq!(
+            net_crossings(
+                std::slice::from_ref(&arc_arg),
+                std::slice::from_ref(&arc_custom)
+            ),
+            [] as [std::string::String; 0]
+        );
+        assert_eq!(
+            net_crossings(
+                std::slice::from_ref(&arc_custom),
+                std::slice::from_ref(&arc_arg)
+            ),
+            [] as [std::string::String; 0]
+        );
         // The ICU4X pair: the swap cancels, the three fmt impls do not.
         let crossed = vec![
             arc_custom,

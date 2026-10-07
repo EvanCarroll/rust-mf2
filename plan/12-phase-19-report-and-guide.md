@@ -46,7 +46,7 @@ question.
   slice table (brotli, `icu`/`intl`) built in-process (`mf2-build` now a normal
   xtask dependency); row ids include the corpus. Canary: plain placeholder in
   the base corpus, canary-only `no-date-message`.
-* 19.3: `native-canaries` forbids `icu_*` (a prefix entry) and `mf2_fn_datetime`
+* 19.3: `native-no-heavy-crates` forbids `icu_*` (a prefix entry) and `mf2_fn_datetime`
   in every dateless row and ICU4X in the ISO row; a `native-datetime-icu` row
   requires ICU4X, ceiling 2,000,000 B stripped (`strip -o`). The client check
   is in `codegen_matrix.rs` (the B6 grep; `size.rs` greps nothing): `cargo tree`
@@ -67,9 +67,9 @@ question.
   in brackets (dropped by script); about 150 reworded by hand; no fact lost. Left for 21.2's
   generators: `mf2-locale-data/data/{numbers,currencies,units}.txt`, `mf2/src/matching/cldr.rs`,
   `conformance/{REPORT,COVERAGE}.md`, `ledger.toml`'s header, `bench/catalog-bench/{SIZE,READER}-P2.md`,
-  `bench/parser-gate/GATE-P1.md`, `bench/fluent-ab/SNAPSHOT.md`, `third_party/cldr-json/PIN`.
+  `bench/parser-vs-ox/GATE-P1.md`, `bench/fluent-ab/SNAPSHOT.md`, `third_party/cldr-json/PIN`.
   Hand-written records with no generator, 8 lines: `bench/intl-probe/RESULTS.md`,
-  `bench/parser-gate/BASELINE.md`, `bench/runtime-bench/NUMBER-AB-P3.md`: left as they are,
+  `bench/parser-vs-ox/BASELINE.md`, `bench/runtime-bench/NUMBER-AB-P3.md`: left as they are,
   as are about 140–290 bare section marks the removed citations orphaned (owner, 2026-10-04:
   no upside worth a rebuild). No page on the catalog's byte format: internal (owner).
   Shared scratch names let one agent's script touch another's files; each agent repaired
@@ -169,7 +169,7 @@ Done when: the rows are committed. Phase 22 compares each new row with
 
 Design: `plan/08` §7.
 
-Build, in `cargo xtask native-canaries`:
+Build, in `cargo xtask native-no-heavy-crates`:
 
 * no date feature, a plain placeholder in the corpus: no symbol of `jiff`,
   `icu_*` or `mf2_fn_datetime`;
@@ -181,7 +181,7 @@ And for the client, in the check that already greps the wasm for locale
 data: with `leptos-client-datetime-intl`, no ICU4X symbol, and no `icu_*`
 crate in `cargo tree` for the browser target.
 
-Starts at: `xtask/src/native_canaries.rs`, `tools/native-canary/`;
+Starts at: `xtask/src/native_no_heavy_crates.rs`, `tools/native-canary/`;
 `xtask/src/size.rs`.
 
 Done when: the rows are committed. Phase 21 runs them, and for each swaps

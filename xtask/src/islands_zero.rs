@@ -21,7 +21,7 @@
 use std::ffi::{OsStr, OsString};
 use std::path::Path;
 
-use crate::b5::{self, Sizes};
+use crate::browser_app_size::{self, Sizes};
 use crate::cmd;
 use crate::error::{Error, Result};
 
@@ -171,5 +171,5 @@ fn build(root: &Path, app: &Path, out: &Path, features: &str, name: &str) -> Res
         .join("wasm32-unknown-unknown")
         .join("wasm-release")
         .join(format!("{LIB}.wasm"));
-    b5::ship(root, &wasm, &out.join(name), LIB)
+    browser_app_size::ship(root, &wasm, &out.join(name), LIB)
 }

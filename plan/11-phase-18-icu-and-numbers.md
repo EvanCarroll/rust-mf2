@@ -116,7 +116,7 @@ Starts at: `crates/mf2-locale-data/src/icu_blob.rs` (`DateNeeds`,
 
 Tests (written here, run in Phase 21): one for each of the four forms; the
 date goldens under the form each language gets. Phase 21 also holds
-`bench/b12/check.sh` to its limits.
+`bench/browser-no-fmt/check.sh` to its limits.
 
 Phase 22 measures, for a corpus of Gregorian languages with no zone name,
 the narrow form against the widest: the client's gzip bytes with

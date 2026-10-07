@@ -12,7 +12,7 @@
 //! - A key hint is bolded by slicing the translated word: the key when the
 //!   word starts with it, else `[key]` before the word.
 //!
-//! It is what `cargo xtask tui-gate` measures the MF2 renderer against, not
+//! It is what `cargo xtask tui-allocs-vs-trippy` measures the MF2 renderer against, not
 //! a pattern to follow: each of the points above is a class of bug MF2
 //! removes, and the plural and the word order are visibly wrong in some of
 //! the four languages.

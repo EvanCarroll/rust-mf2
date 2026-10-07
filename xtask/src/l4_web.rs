@@ -1,7 +1,7 @@
 //! `cargo xtask l4-web`: conformance layer L4 in the browser for the `intl`
 //! client option.
 //!
-//! Every L4 case `cargo xtask l4-wasi` runs — the suite in the all-features
+//! Every L4 case `cargo xtask wasi-matches-native` runs — the suite in the all-features
 //! and the default configuration, unstripped and stripped, and the
 //! locale-output goldens — is compiled natively, formatted natively (the
 //! Rust path) and, by `conformance/l4-web` built for

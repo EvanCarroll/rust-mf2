@@ -91,7 +91,7 @@ feature-cost table — is a musl figure and is not comparable with a glibc one.
 **`CARGO_BUILD_TARGET`.** The image pins it to the musl triple. Every step that
 calls cargo unsets it first, because with it set cargo writes to
 `target/x86_64-unknown-linux-musl/…`, and `cargo xtask docs` (which wants
-`target/debug/mf2`), `native-canaries` and `tui-gate` look in
+`target/debug/mf2`), `native-no-heavy-crates` and `tui-allocs-vs-trippy` look in
 `target/{debug,release}`. The host is Alpine either way, so unsetting it still
 builds musl. Setting it to the empty string is not the same thing: cargo refuses
 that with `error: target was empty`.

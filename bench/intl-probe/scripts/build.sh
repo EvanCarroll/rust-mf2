@@ -8,7 +8,7 @@
 # wasm/Cargo.toml has that feature), in its own cargo invocation so no
 # feature unifies: the 06 §3 method — profile `wasm-release` (opt-level z,
 # fat LTO, 1 CGU, panic=abort, strip) → `wasm-bindgen --target web` →
-# `wasm-opt -Oz` (bench/b12/check.sh's feature flags) → `gzip -9 -n`; raw and
+# `wasm-opt -Oz` (bench/browser-no-fmt/check.sh's feature flags) → `gzip -9 -n`; raw and
 # gz of the wasm and of the JS glue (probe.js + snippets/), each as a delta
 # against `base`. The same with profile `wasm-syms` (names kept) for twiggy.
 #

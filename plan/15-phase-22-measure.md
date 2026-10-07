@@ -151,7 +151,7 @@ old date features on.
 | `b5` / `b5v`, B gz a site | 8.2 / 10.4 |
 | `b7`, a catalog, B brotli: en / pl / en-XA / ar-XB | 17,962 / 24,081 / 21,531 / 18,417 |
 | `rlib` (codegen-matrix), B | 46,316 |
-| `b1p` / `b13` (b12-generated), B | +0 / +13,573 |
+| `b1p` / `b13` (browser-pay-for-use), B | +0 / +13,573 |
 | `tui`, stripped, B | 1,328,664 |
 | `allocs` a frame, en/de/es/fr | 1329 / 1329 / 1329 / 1328 |
 | demo files | 31 |

@@ -311,7 +311,7 @@ fn split_increment(n: u16) -> (Increment, i16) {
 // Inlined into `resolve`, its one caller on a client's path: the Rust
 // backend's `plan` (reached only through `Number::format_by_host`, which a
 // client without `intl` never links) is a second caller that otherwise keeps
-// it out of line, +54 B raw in `b12-runtime` (bench/b12/check.sh).
+// it out of line, +54 B raw in `b12-runtime` (bench/browser-no-fmt/check.sh).
 #[allow(clippy::inline_always)]
 #[inline(always)]
 pub(crate) fn digit_plan(o: &NumOpts, frac: FracDefaults, errs: &mut dyn ErrorSink) -> DigitPlan {

@@ -4,8 +4,8 @@
 //! upstreams named in `third_party/*/PIN` (see `CLAUDE.md`, "Boundary").
 
 mod api;
-mod b12_generated;
-mod b5;
+mod browser_app_size;
+mod browser_pay_for_use;
 mod changelog;
 mod churn;
 mod ci;
@@ -23,14 +23,13 @@ mod fsx;
 mod fuzz_seed;
 mod git;
 mod islands_zero;
-mod l4_wasi;
 mod l4_web;
 mod l6_web;
 mod l7_web;
 mod leptos_0_8;
 mod locale_data;
 mod msrv;
-mod native_canaries;
+mod native_no_heavy_crates;
 mod package;
 mod packages;
 mod pin;
@@ -40,8 +39,9 @@ mod report;
 mod scenarios;
 mod size;
 mod spec_sync;
-mod tui_gate;
+mod tui_allocs_vs_trippy;
 mod uts35_sync;
+mod wasi_matches_native;
 mod xliff_sync;
 
 use std::ffi::OsString;
@@ -132,7 +132,7 @@ enum Command {
     },
     /// Conformance L4 on wasm32-wasip1: format every L4 case under wasmtime and
     /// require the native output byte for byte.
-    L4Wasi {
+    WasiMatchesNative {
         /// Also N generated cases (conformance/src/l4gen.rs), unstripped and
         /// stripped, evenly spaced over the nightly's 1,000,000.
         #[arg(long, value_name = "N")]
@@ -193,7 +193,7 @@ enum Command {
     /// `examples/tui`'s trippy-shaped frame drawn with MF2 and with an
     /// in-house re-implementation of trippy's own approach — allocations and
     /// time per frame, and stripped sizes. The binaries run alternately.
-    TuiGate {
+    TuiAllocsVsTrippy {
         /// Runs of each binary; the time reported is their median.
         #[arg(long, default_value_t = 31)]
         runs: usize,
@@ -204,7 +204,7 @@ enum Command {
         #[arg(long, value_name = "DIR")]
         baseline: Option<PathBuf>,
         /// Alternate with the binaries built from git revision REV (the 1.x
-        /// binaries: A1's commit), built in a worktree under target/tui-gate.
+        /// binaries: A1's commit), built in a worktree under target/tui-allocs-vs-trippy.
         #[arg(long, value_name = "REV", conflicts_with = "baseline")]
         baseline_rev: Option<String>,
         /// Keep this build's binaries in DIR, for a later `--baseline`.
@@ -227,7 +227,7 @@ enum Command {
     /// read. A row fails when it links a crate it forbids, or none of a
     /// crate it requires; the report says which of jiff,
     /// unicode-normalization, ryu, sha2 and sys-locale each row carries.
-    NativeCanaries,
+    NativeNoHeavyCrates,
     /// What each function and data feature of `mf2` adds (`plan/01` §6.4):
     /// the gzip bytes of the reference workload's client wasm and the
     /// stripped bytes of `tools/native-canary`, with and without the
@@ -259,7 +259,7 @@ enum Command {
     /// compiled alone, with the Leptos line or the target it needs, the way
     /// a dependent that turns on one thing compiles it. Nightly: one
     /// `cargo check` each.
-    FeatureSets {
+    EachFeatureAlone {
         /// Print the whole feature-set table instead — every set the
         /// workspace compiles, with its target, outcome and the commands
         /// that use it.
@@ -426,12 +426,12 @@ enum Command {
     /// Budgets B1′ and B13 on the generated module (Phase 5b, A10): the same
     /// corpus with and without a feature it does not use, and with and
     /// without the gated measure functions.
-    B12Generated,
+    BrowserPayForUse,
     /// Budget B5 (Phase 5b, A6): the marginal wasm per call site, by P0.1's
     /// method — two scales of the reference workload, `tr` against the
     /// `idlit` baseline and the `dummy` bound.
-    B5 {
-        /// Where to generate and build [default: target/b5].
+    BrowserAppSize {
+        /// Where to generate and build [default: target/browser-app-size].
         #[arg(long, value_name = "DIR")]
         out: Option<PathBuf>,
         /// Reuse what is already generated and built there.
@@ -527,7 +527,7 @@ fn run(command: Command) -> Result<()> {
             },
         ),
         Command::Leptos08 { negative_control } => leptos_0_8::run(&root, negative_control),
-        Command::FeatureSets { list } => {
+        Command::EachFeatureAlone { list } => {
             if list {
                 feature_sets::list();
                 Ok(())
@@ -552,7 +552,7 @@ fn run(command: Command) -> Result<()> {
                 baseline_rev,
             },
         ),
-        Command::TuiGate {
+        Command::TuiAllocsVsTrippy {
             runs,
             frames,
             baseline,
@@ -560,9 +560,9 @@ fn run(command: Command) -> Result<()> {
             save_baseline,
             gate,
             book,
-        } => tui_gate::run(
+        } => tui_allocs_vs_trippy::run(
             &root,
-            &tui_gate::Options {
+            &tui_allocs_vs_trippy::Options {
                 runs,
                 frames,
                 baseline,
@@ -572,7 +572,7 @@ fn run(command: Command) -> Result<()> {
                 book,
             },
         ),
-        Command::NativeCanaries => native_canaries::run(&root),
+        Command::NativeNoHeavyCrates => native_no_heavy_crates::run(&root),
         Command::FeatureCosts { check, keep } => feature_costs::run(&root, check, keep),
         Command::Churn { browser, no_build } => churn::run(&root, &browser, !no_build),
         Command::L6Web { browser, no_build } => {
@@ -603,7 +603,7 @@ fn run(command: Command) -> Result<()> {
             l7_web::run(&root, &browser, !no_build, promote)
         }
         Command::Goldens => goldens(&root),
-        Command::L4Wasi { generated } => l4_wasi::run(&root, generated),
+        Command::WasiMatchesNative { generated } => wasi_matches_native::run(&root, generated),
         Command::L4Web { browser, no_run } => {
             let engines: Vec<String> = if browser == "all" {
                 l4_web::ENGINES.iter().map(|e| (*e).to_owned()).collect()
@@ -620,17 +620,17 @@ fn run(command: Command) -> Result<()> {
         }
         Command::CodegenMatrix { quick } => codegen_matrix::run(&root, quick),
         Command::Scenarios { keep, split } => scenarios::run(&root, keep, split),
-        Command::B5 { out, keep, view } => b5::run(
+        Command::BrowserAppSize { out, keep, view } => browser_app_size::run(
             &root,
             out,
             keep,
             if view {
-                b5::Mode::View
+                browser_app_size::Mode::View
             } else {
-                b5::Mode::String
+                browser_app_size::Mode::String
             },
         ),
-        Command::B12Generated => b12_generated::run(&root),
+        Command::BrowserPayForUse => browser_pay_for_use::run(&root),
         Command::FuzzSeed => fuzz_seed::run(&root),
         Command::GenWorkload { args } => {
             let mut full: Vec<OsString> = ["run", "--release", "-p", "workload-gen", "--"]

@@ -1,5 +1,5 @@
 [package]
-name = "parser-gate"
+name = "parser-vs-ox"
 description = "The D1 parser gate: mf2-syntax against the ox_mf2_parser baseline on the committed corpora."
 version.workspace = true
 edition.workspace = true

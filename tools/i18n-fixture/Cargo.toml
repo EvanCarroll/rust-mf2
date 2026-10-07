@@ -56,7 +56,7 @@ native = ["mf2/native"]
 # A plain Axum server's module, with no Leptos: `Locale` as an extractor,
 # `Locale::format`, and `install()` giving `mf2::axum` the catalogs.
 axum = ["mf2/axum"]
-# The B1′ and B13 corpora (`cargo xtask b12-generated`): a
+# The B1′ and B13 corpora (`cargo xtask browser-pay-for-use`): a
 # corpus with nothing a function crate could serve, and this crate's corpus
 # plus the three measure functions. Exactly one corpus feature at a time.
 corpus-plain = []

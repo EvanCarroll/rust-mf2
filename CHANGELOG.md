@@ -633,8 +633,8 @@ unless it says otherwise.
 | the reference application's i18n, 1,860 call sites | ≤ 30 KB + 40 B a site (105,120 B) | 41,466 B gz | `cargo xtask size` |
 | locale data in the wasm | none | none | `cargo xtask codegen-matrix` |
 | the 1,600-message `en` catalog on the wire | ≤ 23,296 B brotli | 18,072 B | `cargo xtask catalog-size` |
-| `core::fmt` and panic formatting in the client runtime | absent | absent | `bench/b12/check.sh` |
-| an unused function's code in the wasm | absent | absent | `bench/b12/check.sh`, `cargo xtask b12-generated` |
+| `core::fmt` and panic formatting in the client runtime | absent | absent | `bench/browser-no-fmt/check.sh` |
+| an unused function's code in the wasm | absent | absent | `bench/browser-no-fmt/check.sh`, `cargo xtask browser-pay-for-use` |
 | a simple message / a one-argument message, native | ≤ 100 / 500 ns | 20–35 / 118–137 ns, `en` (2026-09-21) | `cargo run --release -p runtime-bench -- b10` |
 
 Against `leptos-fluent`, on the same application of 1,600 messages and

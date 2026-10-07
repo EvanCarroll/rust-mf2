@@ -15,7 +15,7 @@
 set -u
 cd "$(dirname "$0")/../.."
 all=(ci sizes demos docs docs-rs codegen-matrix scenarios msrv leptos-0-8 churn l6-web l7-web
-     e2e-0-9 e2e-0-8 b12 b12-generated conformance-report api refusals tui-gate native-canaries)
+     e2e-0-9 e2e-0-8 browser-no-fmt browser-pay-for-use conformance-report api refusals tui-allocs-vs-trippy native-no-heavy-crates)
 usage='usage: run.sh LABEL [--against EARLIER] [--only CHECK,...] [--summarize]'
 label=${1:?$usage}; shift
 against= only= summarize=
@@ -51,13 +51,13 @@ exec_check() {
     demos)
       bash tools/checks/demo-hashes.sh "${against:-$label}" "$label" &&
         cp "target/p10-b2/logs/hashes/$label.sha256" "$out/demo-files.sha256" ;;
-    docs|docs-rs|codegen-matrix|scenarios|msrv|leptos-0-8|churn|l6-web|l7-web|b12-generated|refusals|native-canaries)
+    docs|docs-rs|codegen-matrix|scenarios|msrv|leptos-0-8|churn|l6-web|l7-web|browser-pay-for-use|refusals|native-no-heavy-crates)
       CARGO_BUILD_JOBS=3 cargo xtask "$1" ;;
     e2e-0-9) bash tools/checks/e2e.sh . "$label-leptos-0-9" ;;
     e2e-0-8)
       CARGO_BUILD_JOBS=3 python3 tools/checks/demos-0-8.py p10-checks &&
         bash tools/checks/e2e.sh target/a7-demo-0-8/p10-checks "$label-leptos-0-8" ;;
-    b12) CARGO_BUILD_JOBS=3 bash bench/b12/check.sh ;;
+    browser-no-fmt) CARGO_BUILD_JOBS=3 bash bench/browser-no-fmt/check.sh ;;
     conformance-report)
       # The xtask has no --check: it checks the ledger and rewrites REPORT.md
       # and COVERAGE.md, which must come out as they were.
@@ -66,8 +66,8 @@ exec_check() {
       [ "$(sha256sum conformance/REPORT.md conformance/COVERAGE.md)" = "$before" ] ||
         { echo "run.sh: conformance/REPORT.md or COVERAGE.md changed"; return 1; } ;;
     api) CARGO_BUILD_JOBS=3 cargo xtask api --check ;;
-    tui-gate)
-      CARGO_BUILD_JOBS=3 cargo xtask tui-gate --save-baseline "$out/tui-baseline" \
+    tui-allocs-vs-trippy)
+      CARGO_BUILD_JOBS=3 cargo xtask tui-allocs-vs-trippy --save-baseline "$out/tui-baseline" \
         ${against:+--baseline "target/p10-checks/$against/tui-baseline"} ;;
   esac
 }
@@ -88,7 +88,7 @@ figures() {
        END { if (t) printf "tests=%d ", p; if (x) printf "tests_failed=%d ", x; if (s) printf "asserts=%d/%d ", ap, at }' "$f"
   case $c in
     sizes) awk -F'|' '/^\| B1, fixed/ { b1 = $3 } /^\| B5, per site/ { b5 = $3 } /^\| whole app/ { app = $3 }
-             /^b5: / { split($0, w, " "); b5v = w[2] }
+             /^per call site: / { split($0, w, " "); b5v = w[4] }
              /^\| [^|]* \| B7 brotli/ { l = $2; gsub(/ /, "", l); v = $4; gsub(/[^0-9]/, "", v); b7 = b7 " b7." l "=" v }
              END { gsub(/[^0-9.]/, "", b1); gsub(/[^0-9.]/, "", b5); gsub(/[^0-9.]/, "", app)
                    printf "b1=%s b5=%s app=%s b5v=%s%s", b1, b5, app, b5v, b7 }' "$f" ;;
@@ -104,10 +104,10 @@ figures() {
     conformance-report) sed -n -e 's/^conformance-report: \([0-9]*\) tests, \([0-9]*\) ledger entries.*/suite=\1 ledger=\2 /p' \
                                -e 's/^conformance-report: [0-9]* normative statements, \([0-9]*\) gap.*/gaps=\1 /p' "$f" ;;
     l7-web) sed -n 's/^l7-web: \(L7c*d\) \([0-9]*\/[0-9]*\) .*/\1=\2 /p' "$f" ;;
-    b12-generated) sed -n -e 's/^B1′ = .* = \([+-]*[0-9]*\) B.*/b1p=\1 /p' \
+    browser-pay-for-use) sed -n -e 's/^B1′ = .* = \([+-]*[0-9]*\) B.*/b1p=\1 /p' \
                           -e 's/^B13 = .* = \([+-]*[0-9]*\) B.*/b13=\1 /p' "$f" ;;
-    native-canaries) sed -n 's/^native-canaries: \([0-9]*\) feature sets linked.*/sets=\1 /p' "$f" ;;
-    tui-gate) awk -F'|' '$2 ~ /`tui-mf2`/ { s = $3; a = $4; u = $6 } $2 ~ /`tui-mf2 \(baseline\)`/ { b = $6 }
+    native-no-heavy-crates) sed -n 's/^native-no-heavy-crates: \([0-9]*\) feature sets linked.*/sets=\1 /p' "$f" ;;
+    tui-allocs-vs-trippy) awk -F'|' '$2 ~ /`tui-mf2`/ { s = $3; a = $4; u = $6 } $2 ~ /`tui-mf2 \(baseline\)`/ { b = $6 }
                 END { gsub(/ /, "", s); gsub(/ /, "", a); gsub(/ /, "", u); gsub(/ /, "", b)
                       if (s != "") printf "tui=%s allocs=%s us=%s ", s, a, u; if (b != "") printf "base_us=%s", b }' "$f" ;;
   esac | tr -d '\n'

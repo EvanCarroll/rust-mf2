@@ -41,7 +41,7 @@ exit", then stops: the next phase starts in a fresh session.
   ~11.8 KiB, which formats no float of its own, but `tui-mf2` — which does —
   is smaller, so `ryu` is gone for good and nothing is reverted.
 
-  Step 2: `5c59a94` lowers `SIZE_LIMIT` in `xtask/src/tui_gate.rs` from
+  Step 2: `5c59a94` lowers `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` from
   `1_965_320` to `1_454_264`, with the same figure in `tools/checks/compare.sh`
   and the suite's README. The gate's fixtures now read `SIZE_LIMIT` and
   `SIZE_LIMIT + 1` rather than repeating the number, so the next phase to
@@ -52,7 +52,7 @@ exit", then stops: the next phase starts in a fresh session.
   `zone_offset`. `mf2` names the right one through `crate::NATIVE_HOST` and
   a cfg-split `__use_host!`, which `native_host` now calls; native code reads
   the system's zone only with `fn-datetime`. `native` links no jiff: 622800 B
-  against 1029736 B with dates (`cargo xtask native-canaries`).
+  against 1029736 B with dates (`cargo xtask native-no-heavy-crates`).
 * **12.2 The system's database, unless the bundle is asked for.**
   `time-zones` is now jiff's `tzdb-zoneinfo` and `tzdb-bundle-platform`; the
   weak `tzdb-bundled` asks the bundle instead, and `mf2`'s `tzdb-bundled`
@@ -81,7 +81,7 @@ exit", then stops: the next phase starts in a fresh session.
 ## Before this phase
 
 * Phase 11 is done: the version is 3.0.0, `plan/01` §8 has the answer F2
-  (jiff's feature names), `cargo xtask native-canaries` exists.
+  (jiff's feature names), `cargo xtask native-no-heavy-crates` exists.
 
 ## Standing rules
 
@@ -124,7 +124,7 @@ Build:
 Leave for 12.3: `mf2`'s own jiff dependency and `native/zone.rs`.
 
 Done when: every date test passes unchanged and `cargo xtask ci` is green.
-The Done entry says whether `cargo xtask native-canaries` still reports
+The Done entry says whether `cargo xtask native-no-heavy-crates` still reports
 `jiff` in a `native,fn-number` binary. It should not; if it does, say what
 still refers to it, for 12.3.
 
@@ -205,7 +205,7 @@ Done when: the test and `cargo xtask ci` are green.
 
 Design: `plan/01` §6.1.
 
-Build: rows in `cargo xtask native-canaries` that forbid `jiff` and `ryu`
+Build: rows in `cargo xtask native-no-heavy-crates` that forbid `jiff` and `ryu`
 symbols in the sets `native`, `native,fn-number`, `ratatui,fn-number` and
 `axum`; the positive control stays. If `tzdb-bundled` leaves a recognisable
 symbol, a row that forbids it in `native,fn-datetime`.
@@ -216,7 +216,7 @@ Done when: the command and `cargo xtask ci` are green.
 
 1. `bash tools/checks/run.sh p12 --against p11b`. Expected: `tui-mf2` smaller;
    B1 and B5 within their bands (the client is not touched).
-2. Lower `SIZE_LIMIT` in `xtask/src/tui_gate.rs` and the same number in
+2. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` and the same number in
    `tools/checks/compare.sh` to the measured size of `tui-mf2`. One commit;
    its message gives the old and new bytes and the command.
 3. Add a Done entry for the exit: the bytes before and after.

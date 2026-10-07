@@ -12,7 +12,7 @@
 # Not a built-in: it needs its own directory, because it carries the i18n
 # crate its generated app depends on (`i18n/`) and names it through
 # `{{template_dir}}`. Use it as `-t bench/workload-gen/templates/tr`, which is
-# what `cargo xtask b5` does.
+# what `cargo xtask browser-app-size` does.
 #
 # Format: see bench/workload-gen/README.md.
 

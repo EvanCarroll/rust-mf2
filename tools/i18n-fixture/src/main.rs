@@ -30,7 +30,7 @@ fn main() {
     let save = std::hint::black_box(mf2_i18n_fixture::tr!("plain"));
     std::hint::black_box(save.id().raw());
     // The B1′ corpus has nothing a function crate could serve, so it has no
-    // `items` either (`cargo xtask b12-generated`).
+    // `items` either (`cargo xtask browser-pay-for-use`).
     #[cfg(not(feature = "corpus-plain"))]
     {
         let items = std::hint::black_box(mf2_i18n_fixture::tr!("items", count = 2));

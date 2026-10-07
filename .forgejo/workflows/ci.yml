@@ -1,6 +1,6 @@
 # CI for rust-mf2.
 #
-# Job `ci`: the only work step is `cargo xtask ci`: it runs exactly what this
+# Job `lint-and-test`: the only work step is `cargo xtask ci`: it runs exactly what this
 # job checks (cargo fmt --check, clippy -D warnings — natively, and for
 # wasm32-unknown-unknown with the `intl` client option, whose code compiles
 # only there — cargo test for the workspace and again for `mf2-resource`'s
@@ -19,28 +19,25 @@
 # cache (it is not vendored — upstream #1112; every job does this first) and
 # publish conformance/REPORT.md.
 #
-# Job `parser-gate`: the D1 gate — mf2-syntax against
+# Job `parser-vs-ox`: the D1 gate — mf2-syntax against
 # ox_mf2_parser, same process, release build — so a later regression is
 # visible. Its cost (a fat-LTO release build plus ≈ 15 s of measurement) is
 # why it is a job of its own rather than a step of `cargo xtask ci`; whether it
 # runs on every push is the owner's call.
 #
-# Job `tui-gate`: the terminal UI's gate (`cargo xtask tui-gate --gate`):
-# examples/tui's frame, drawn
-# with MF2, allocates no more than 1.x's did and no more than the in-house
-# re-implementation of trippy's approach, in every language — counts that
-# are the same in every run, so they are held on every push — and stripped
-# `tui-mf2` is no larger than 1.x's. Its time per frame is the nightly's.
+# The terminal UI's allocation and size check against the trippy-shaped
+# baseline (`tui-allocs-vs-trippy`) runs nightly only: a push does not wait
+# on it (owner, 2026-10-06).
 #
-# Job `native-canaries`: guard rail 1 of `plan/01` §6.1 (`cargo xtask
-# native-canaries`): the smallest native application (`tools/native-canary`)
+# Job `native-no-heavy-crates`: guard rail 1 of `plan/01` §6.1 (`cargo xtask
+# native-no-heavy-crates`): the smallest native application (`tools/native-canary`)
 # is linked once per feature set, unstripped, in the profile releases use,
 # and its symbols read — so that a feature set that must not pull a heavy
 # crate in cannot start doing so unnoticed. The report says which of jiff,
 # unicode-normalization, ryu, sha2 and sys-locale each set links. A job of
-# its own, beside `tui-gate`: it is two release builds.
+# its own: it is two release builds.
 #
-# Job `b12`: budget B12 for the catalog reader: bench/b12/check.sh builds no_std wasm
+# Job `browser-wasm-budgets`: the catalog reader in the browser: bench/browser-no-fmt/check.sh builds no_std wasm
 # harnesses (fat LTO, wasm-opt -Oz) and fails if a panic path or core::fmt
 # survives in the reader; it also records the reader's size delta (part of
 # B1). Every figure is `brotli -q 11 --lgwin=22`, the setting mf2-build
@@ -58,7 +55,7 @@
 # figures are reported, not gated, and on this image come from flate2 and
 # zlib-rs — Alpine's `gzip` is busybox, which cannot stand in for GNU's.
 #
-# Job `build-pipeline`: Phase 5a's two whole-pipeline checks: `cargo xtask
+# Job `codegen-all-features`: Phase 5a's two whole-pipeline checks: `cargo xtask
 # codegen-matrix` compiles the generated module in the 23
 # feature combinations of the facade the feature-set table holds
 # (`xtask/src/feature_sets.rs`: 8 server, 5 native, 10 client on
@@ -67,7 +64,7 @@
 # incremental-rebuild scenarios of P0.9 on tools/i18n-fixture, where a
 # translation-only edit must leave the client wasm byte-identical.
 #
-# Job `docs`: the mdBook content is assembled and its checked application
+# Job `docs-examples-compile`: the mdBook content is assembled and its checked application
 # examples are compiled (Phase 7 A13). `cargo xtask docs` assembles the
 # `rust`, `toml` and `mf2` blocks of docs/*.md — running the `mf2 init` the
 # pages show and checking generated files against their examples — then
@@ -78,7 +75,7 @@
 # separately builds and deploys the rendered book once the repository is on
 # GitHub. `cargo xtask ci` assembles examples without building them.
 #
-# Job `l4-wasi`: conformance layer L4 on wasm32-wasip1: `cargo xtask l4-wasi` compiles
+# Job `wasi-matches-native`: conformance layer L4 on wasm32-wasip1: `cargo xtask wasi-matches-native` compiles
 # every L4 case natively, formats it natively and with the same runner built
 # for wasm32-wasip1 under wasmtime, and fails unless every record is
 # identical byte for byte — and the same for 20,000 generated cases
@@ -101,7 +98,7 @@
 # broken intra-doc link among them), and each front page pointing to the
 # user guide.
 #
-# Job `release`: the release's dry run (owner question 4): `cargo xtask release`
+# Job `release-dry-run`: the release's dry run (owner question 4): `cargo xtask release`
 # without `--publish` — the tree
 # clean, the changelog entry, the metadata, the 18 names on crates.io (its
 # API, a second apart), the public API against the published version with
@@ -131,7 +128,7 @@
 # names every tool version; every step that calls cargo unsets
 # CARGO_BUILD_TARGET first, because the image pins the musl triple and that
 # would move artifacts out of target/{debug,release}, where `cargo xtask docs`,
-# native-canaries and tui-gate look for them. An empty value is not the same
+# and native-no-heavy-crates look for them. An empty value is not the same
 # thing: cargo refuses it.
 #
 # Actions: only Forgejo-maintained forks. upload-artifact and download-artifact
@@ -156,7 +153,7 @@ concurrency:
 
 # One red job still costs this run its evidence, and `continue-on-error` does
 # not buy it back: this runner (`cow` v12.6.3) does not honour it at job level.
-# Run 20 lost `ci`, `docs` and `l4-wasi` part-built and never started `msrv`,
+# Run 20 lost `ci`, `docs` and `wasi-matches-native` part-built and never started `msrv`,
 # `docs-rs`, `release` or `report`; run 21, with every gate job marked
 # `continue-on-error: true`, died the same way 171 s in when `ci` failed its
 # first step. The lines below are kept because they say the intent and will
@@ -170,7 +167,7 @@ concurrency:
 # to record its own verdict into the artifact it already uploads, for `report`
 # to collect — not done, and the owner's to want.
 jobs:
-  ci:
+  lint-and-test:
     continue-on-error: true
     # The runner: Forgejo's `docker` label, in the image the other Rust
     # repositories here build with. It is Alpine, so everything native is musl.
@@ -195,8 +192,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -226,13 +223,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/ci.log) 2>&1
+          exec > >(tee -a target/ci-logs/lint-and-test.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/ci.log) 2>&1
+          exec > >(tee -a target/ci-logs/lint-and-test.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -241,7 +238,7 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/ci.log) 2>&1
+          exec > >(tee -a target/ci-logs/lint-and-test.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
@@ -254,7 +251,7 @@ jobs:
         # a quarter of an hour; it should answer more than one question.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/ci.log) 2>&1
+          exec > >(tee -a target/ci-logs/lint-and-test.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask ci --keep-going
 
@@ -273,11 +270,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-ci
+          name: log-lint-and-test
           path: target/ci-logs/
           if-no-files-found: warn
 
-  parser-gate:
+  parser-vs-ox:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -298,8 +295,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -329,13 +326,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/parser-vs-ox.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/parser-vs-ox.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -344,25 +341,25 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/parser-vs-ox.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: D1 gate (release build, median of 31, exit 1 on failure)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/parser-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/parser-vs-ox.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo run --release -p parser-gate -- --gate
+          cargo run --release -p parser-vs-ox -- --gate
 
       - name: Upload the gate report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: parser-gate-report
+          name: parser-vs-ox-report
           path: |
-            target/parser-gate/report.md
-            target/parser-gate/report.json
+            target/parser-vs-ox/report.md
+            target/parser-vs-ox/report.json
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -372,11 +369,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-parser-gate
+          name: log-parser-vs-ox
           path: target/ci-logs/
           if-no-files-found: warn
 
-  tui-gate:
+  native-no-heavy-crates:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -397,8 +394,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -428,13 +425,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/native-no-heavy-crates.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
+          exec > >(tee -a target/ci-logs/native-no-heavy-crates.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -443,123 +440,23 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
-          unset CARGO_BUILD_TARGET
-          cargo xtask spec-sync --check
-
-      - name: The terminal UI's gate (allocations per frame and stripped size)
-        # Three runs: the counts must agree between them. Time is nightly's.
-        run: |
-          mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/tui-gate.log) 2>&1
-          unset CARGO_BUILD_TARGET
-          cargo xtask tui-gate --gate --runs 3
-
-      - name: Upload the gate report
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: tui-gate-report
-          path: |
-            target/tui-gate/report.md
-            target/tui-gate/report.json
-          if-no-files-found: error
-
-      - name: Upload this job's log
-        # The only way to read what a step printed: this Forgejo serves no job
-        # logs over its API (checked 2026-10-06 — 314 routes, none for logs),
-        # but artifacts download fine, anonymously, by run id.
-        if: always()
-        uses: https://code.forgejo.org/forgejo/upload-artifact@v5
-        with:
-          name: log-tui-gate
-          path: target/ci-logs/
-          if-no-files-found: warn
-
-  native-canaries:
-    continue-on-error: true
-    # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
-    # tools/ci/setup.sh.
-    runs-on: docker
-    container:
-      image: git.coworkunion.com/evancarroll/mf2-ci:latest
-    env:
-      CARGO_TERM_COLOR: always
-      CARGO_INCREMENTAL: "0"
-      SCCACHE_GHA_ENABLED: "true"
-      RUSTC_WRAPPER: sccache
-    steps:
-      - name: Fetch sources (plain git)
-        env:
-          TOKEN: ${{ github.token }}
-          SERVER: ${{ github.server_url }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
-          # arrays and [[ ]]. This is every job's first step, so bash is here
-          # before anything needs it. tools/ci/setup.sh asks for it too, in case
-          # this stops being the first step.
-          apk add --no-cache bash >/dev/null
-          git init --quiet .
-          git remote add origin "$SERVER/$REPOSITORY.git"
-          if [ -n "$TOKEN" ]; then
-            auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
-            git -c "http.extraHeader=Authorization: Basic $auth" \
-              fetch --quiet --depth=1 origin "$SHA"
-          else
-            git fetch --quiet --depth=1 origin "$SHA"
-          fi
-          git checkout --quiet --detach FETCH_HEAD
-
-      - name: Cache the cargo registry
-        uses: https://code.forgejo.org/actions/cache@v4
-        with:
-          path: |
-            /root/.cargo/registry/index/
-            /root/.cargo/registry/cache/
-            /root/.cargo/git/db/
-          key: cargo-registry-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            cargo-registry-
-
-      - name: Set the job up (packages, toolchain, tool versions)
-        run: |
-          mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
-          sh tools/ci/setup.sh
-
-      - name: Start sccache
-        run: |
-          mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
-          sccache --start-server || true
-          sccache --show-stats
-
-      - name: Fetch the MF2 specification text (not vendored, upstream #1112)
-        # Into target/xtask-cache, checked against the PIN's digests; --check
-        # also holds the vendored suite byte for byte against upstream.
-        run: |
-          mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
+          exec > >(tee -a target/ci-logs/native-no-heavy-crates.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: What each feature set links into a native binary
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/native-canaries.log) 2>&1
+          exec > >(tee -a target/ci-logs/native-no-heavy-crates.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask native-canaries
+          cargo xtask native-no-heavy-crates
 
       - name: Upload the canaries' report
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: native-canaries-report
-          path: target/native-canaries/report.md
+          name: native-no-heavy-crates-report
+          path: target/native-no-heavy-crates/report.md
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -569,7 +466,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-native-canaries
+          name: log-native-no-heavy-crates
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -594,8 +491,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -673,7 +570,7 @@ jobs:
           path: target/ci-logs/
           if-no-files-found: warn
 
-  b12:
+  browser-wasm-budgets:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -694,8 +591,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -725,13 +622,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           sh tools/ci/setup.sh wasm-bindgen twiggy
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -740,28 +637,28 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: B12 check (exit 1 on a panic path or core::fmt in the reader or the runtime)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           unset CARGO_BUILD_TARGET
-          bash bench/b12/check.sh
+          bash bench/browser-no-fmt/check.sh
 
       - name: B1′ and B13 on the generated module (Phase 5b, A10)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask b12-generated
+          cargo xtask browser-pay-for-use
 
       - name: The browser host builds for wasm32-unknown-unknown
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/b12.log) 2>&1
+          exec > >(tee -a target/ci-logs/browser-wasm-budgets.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo build --release -p mf2-host-web --target wasm32-unknown-unknown
 
@@ -769,10 +666,10 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: b12-report
+          name: browser-wasm-budgets-report
           path: |
-            bench/b12/target/b12/b12.txt
-            bench/b12/target/b12/size.tsv
+            bench/browser-no-fmt/target/b12/b12.txt
+            bench/browser-no-fmt/target/b12/size.tsv
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -782,11 +679,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-b12
+          name: log-browser-wasm-budgets
           path: target/ci-logs/
           if-no-files-found: warn
 
-  build-pipeline:
+  codegen-all-features:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -807,8 +704,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -838,13 +735,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          exec > >(tee -a target/ci-logs/codegen-all-features.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          exec > >(tee -a target/ci-logs/codegen-all-features.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -853,21 +750,21 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          exec > >(tee -a target/ci-logs/codegen-all-features.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The generated module in every feature combination, and B6
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          exec > >(tee -a target/ci-logs/codegen-all-features.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask codegen-matrix
 
       - name: The incremental-rebuild scenarios
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/build-pipeline.log) 2>&1
+          exec > >(tee -a target/ci-logs/codegen-all-features.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask scenarios
 
@@ -878,11 +775,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-build-pipeline
+          name: log-codegen-all-features
           path: target/ci-logs/
           if-no-files-found: warn
 
-  docs:
+  docs-examples-compile:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -903,8 +800,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -934,13 +831,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/docs.log) 2>&1
+          exec > >(tee -a target/ci-logs/docs-examples-compile.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/docs.log) 2>&1
+          exec > >(tee -a target/ci-logs/docs-examples-compile.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -949,14 +846,14 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/docs.log) 2>&1
+          exec > >(tee -a target/ci-logs/docs-examples-compile.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: Every documentation sample, compiled (server and wasm32)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/docs.log) 2>&1
+          exec > >(tee -a target/ci-logs/docs-examples-compile.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask docs
 
@@ -967,11 +864,11 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-docs
+          name: log-docs-examples-compile
           path: target/ci-logs/
           if-no-files-found: warn
 
-  l4-wasi:
+  wasi-matches-native:
     continue-on-error: true
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -992,8 +889,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -1023,13 +920,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
+          exec > >(tee -a target/ci-logs/wasi-matches-native.log) 2>&1
           sh tools/ci/setup.sh wasmtime
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
+          exec > >(tee -a target/ci-logs/wasi-matches-native.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -1038,25 +935,25 @@ jobs:
         # also holds the vendored suite byte for byte against upstream.
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
+          exec > >(tee -a target/ci-logs/wasi-matches-native.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: L4 on wasm32-wasip1 (exit 1 unless byte-identical to native)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/l4-wasi.log) 2>&1
+          exec > >(tee -a target/ci-logs/wasi-matches-native.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask l4-wasi --generated 20000
+          cargo xtask wasi-matches-native --generated 20000
 
       - name: Upload the records
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: l4-wasi-records
+          name: wasi-matches-native-records
           path: |
-            target/l4-wasi/native.txt
-            target/l4-wasi/wasi.txt
+            target/wasi-matches-native/native.txt
+            target/wasi-matches-native/wasi.txt
           if-no-files-found: error
 
       - name: Upload this job's log
@@ -1066,7 +963,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-l4-wasi
+          name: log-wasi-matches-native
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -1091,8 +988,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -1187,8 +1084,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -1255,7 +1152,7 @@ jobs:
           path: target/ci-logs/
           if-no-files-found: warn
 
-  release:
+  release-dry-run:
     continue-on-error: true
     # The dry run repeats the `ci`, `msrv`, `docs-rs` and `package` work, so it
     # is not run on every push: a tag, or asked for by hand. `cargo xtask
@@ -1281,8 +1178,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -1312,13 +1209,13 @@ jobs:
       - name: Set the job up (packages, toolchain, tool versions)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/release.log) 2>&1
+          exec > >(tee -a target/ci-logs/release-dry-run.log) 2>&1
           sh tools/ci/setup.sh
 
       - name: Start sccache
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/release.log) 2>&1
+          exec > >(tee -a target/ci-logs/release-dry-run.log) 2>&1
           sccache --start-server || true
           sccache --show-stats
 
@@ -1326,14 +1223,14 @@ jobs:
         # Into target/xtask-cache (git-ignored, so the tree stays clean).
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/release.log) 2>&1
+          exec > >(tee -a target/ci-logs/release-dry-run.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask spec-sync --check
 
       - name: The release, as a dry run (never publishes)
         run: |
           mkdir -p target/ci-logs
-          exec > >(tee -a target/ci-logs/release.log) 2>&1
+          exec > >(tee -a target/ci-logs/release-dry-run.log) 2>&1
           unset CARGO_BUILD_TARGET
           cargo xtask release
 
@@ -1344,7 +1241,7 @@ jobs:
         if: always()
         uses: https://code.forgejo.org/forgejo/upload-artifact@v5
         with:
-          name: log-release
+          name: log-release-dry-run
           path: target/ci-logs/
           if-no-files-found: warn
 
@@ -1357,18 +1254,17 @@ jobs:
     # `mf2-report` and printed into this job's log, so the run can be read
     # without downloading anything.
     needs:
-      - ci
-      - parser-gate
-      - tui-gate
-      - native-canaries
+      - lint-and-test
+      - parser-vs-ox
+      - native-no-heavy-crates
       - catalog-size
-      - b12
-      - build-pipeline
-      - docs
-      - l4-wasi
+      - browser-wasm-budgets
+      - codegen-all-features
+      - docs-examples-compile
+      - wasi-matches-native
       - msrv
       - docs-rs
-      - release
+      - release-dry-run
     if: always()
     # See the `ci` job in ci.yml: the `docker` label, the public `mf2-ci` image,
     # tools/ci/setup.sh.
@@ -1384,8 +1280,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.

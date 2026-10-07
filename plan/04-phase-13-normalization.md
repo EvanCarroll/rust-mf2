@@ -34,7 +34,7 @@ exit", then stops: the next phase starts in a fresh session.
   above U+0300 reaches gets no map. Oracle `unicode-normalization`: every code
   point, and mark sequences, over seven key sets.
 * **13.2** The differential fuzz target (`fuzz/fuzz_targets/nfc.rs`, in the
-  `long-runs` job and `fuzz/README.md`): index bytes split on `0xFF` draw a key
+  `fuzz-and-million-messages` job and `fuzz/README.md`): index bytes split on `0xFF` draw a key
   set and a candidate from decomposable characters and marks; every pair is
   checked against NFD equality. Seeds walk the alphabet in blocks (54 files).
   A 241 s run (3,640 execs, 15/s — the map build dominates) was clean.
@@ -61,7 +61,7 @@ exit", then stops: the next phase starts in a fresh session.
   10.3 B a site; the reference catalogs 6–110 B brotli smaller; allocations
   per frame unchanged; ledger 612/612, no gaps. The fuzz exit run: 50,270
   execs in 3,901 s, clean. `SIZE_LIMIT` lowered to 1,328,664 in
-  `xtask/src/tui_gate.rs` and `tools/checks/compare.sh` (`2696155`). trippy
+  `xtask/src/tui_allocs_vs_trippy.rs` and `tools/checks/compare.sh` (`2696155`). trippy
   measured on `mf2-jiff`: 8,366,240 → 8,244,072 B, −122,168 (119.3 KiB)
   against 118.5 KiB estimated — `plan/01` §1.4 has the row and the caveat.
   Decision 6 (no general NFC) and task 14.5 came out of the phase (`099585a`).
@@ -120,7 +120,7 @@ Build: a target in `fuzz/` (declared in `fuzz/Cargo.toml` as the existing
 five are) that draws a key set and a string from decomposable characters and
 combining marks, builds the map, and fails when the check and full NFC
 comparison disagree. Seeds through `cargo xtask fuzz-seed`. Add it to the
-fuzz step of the `long-runs` job in `.forgejo/workflows/nightly.yml` and to
+fuzz step of the `fuzz-and-million-messages` job in `.forgejo/workflows/nightly.yml` and to
 `fuzz/README.md`.
 
 Done when: the target builds and a short run is clean. The long run is the
@@ -170,13 +170,13 @@ Build:
   and from every host: `mf2-host-std` (which drops `unicode-normalization`),
   `mf2-host-web` (the `normalize` glue), the hosts in `conformance/`, `bench/`
   and tests. Tests that need full NFC use `unicode-normalization` directly.
-* A row in `cargo xtask native-canaries`: no `unicode_normalization` symbol
+* A row in `cargo xtask native-no-heavy-crates`: no `unicode_normalization` symbol
   in `native`, `native,fn-number`, `ratatui,fn-number` and `axum`; and a
   positive control with `compile`.
 * The API listings (`cargo xtask api`).
 
 Done when: `cargo xtask ci`, `cargo xtask docs-rs` and `bash
-bench/b12/check.sh` (the client's no-panic, no-`fmt` check) are green.
+bench/browser-no-fmt/check.sh` (the client's no-panic, no-`fmt` check) are green.
 
 ## Gate and fallback
 
@@ -199,7 +199,7 @@ and §4.3 change in the same commit.
    before and after.
 2. The fuzz exit run: the new target for at least one hour, clean, with no
    build running on the machine meanwhile (`fuzz/README.md` has the command).
-3. Lower `SIZE_LIMIT` in `xtask/src/tui_gate.rs` and `tools/checks/compare.sh`
+3. Lower `SIZE_LIMIT` in `xtask/src/tui_allocs_vs_trippy.rs` and `tools/checks/compare.sh`
    to the measured size. One commit, with the old and new bytes.
 4. Ask the owner, in plain English, whether to measure trippy again now: it
    means switching the checkout in `vendor/trippy` to its `mf2-jiff` branch

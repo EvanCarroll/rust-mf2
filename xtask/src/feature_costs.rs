@@ -6,10 +6,10 @@
 //!
 //! * **in the browser**, the brotli bytes of the reference workload's client
 //!   wasm at the small scale, built and shipped exactly as `cargo xtask size`
-//!   builds it ([`b5::build`]), from a workload generated with `:number`
+//!   builds it ([`browser_app_size::build`]), from a workload generated with `:number`
 //!   messages and, for the date features, `:datetime` messages too;
 //! * **in a native binary**, the stripped bytes of `tools/native-canary`, the
-//!   application `cargo xtask native-canaries` links, in its release profile.
+//!   application `cargo xtask native-no-heavy-crates` links, in its release profile.
 //!
 //! The date features are measured under the family names an application
 //! turns on (`plan/08` §7): `leptos-client-datetime-*` in the browser,
@@ -34,7 +34,7 @@ use std::fs;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::b5;
+use crate::browser_app_size;
 use crate::cmd;
 use crate::error::{Error, Result};
 use crate::fsx;
@@ -465,8 +465,14 @@ fn workload(root: &Path, out: &Path, corpus: Corpus) -> Result<std::path::PathBu
         path: out.join(name),
         source,
     })?;
-    let [scale, _] = &b5::SCALES;
-    b5::generate(root, &workload, scale, b5::Mode::String, extra)?;
+    let [scale, _] = &browser_app_size::SCALES;
+    browser_app_size::generate(
+        root,
+        &workload,
+        scale,
+        browser_app_size::Mode::String,
+        extra,
+    )?;
     Ok(workload)
 }
 
@@ -477,7 +483,7 @@ fn client_size(root: &Path, out: &Path, build: Build) -> Result<u64> {
         "feature-costs: building the client with `{}`",
         build.features
     );
-    Ok(b5::build(root, &workload, "tr", build.features)?.opt_br)
+    Ok(browser_app_size::build(root, &workload, "tr", build.features)?.opt_br)
 }
 
 /// The canary application, linked with `features` and stripped.

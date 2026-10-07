@@ -1,4 +1,4 @@
-//! What `cargo xtask native-canaries` reads the symbols of: one call site
+//! What `cargo xtask native-no-heavy-crates` reads the symbols of: one call site
 //! per function family, each behind the feature that serves it, formatted in
 //! a named language so that nothing but the row's features is linked.
 

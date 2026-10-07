@@ -286,10 +286,10 @@ Build:
   signature is public API.
 
 No new data and no new dependency: no client-path crate gains
-`unicode-normalization` (`cargo xtask native-canaries` stays green), and B1
+`unicode-normalization` (`cargo xtask native-no-heavy-crates` stays green), and B1
 must not move.
 
-Done when: `cargo xtask ci` is green, `bash bench/b12/check.sh` is clean, and
+Done when: `cargo xtask ci` is green, `bash bench/browser-no-fmt/check.sh` is clean, and
 B1 is reported before and after.
 
 ## Phase exit (coordinator)

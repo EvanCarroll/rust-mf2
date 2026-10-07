@@ -12,7 +12,7 @@
 //! A powerset is not practical: the modes exclude each other, several sets
 //! exist for one target only, and a few carry the test targets that only
 //! they build. What the table does give is one place to add a feature to,
-//! and `cargo xtask feature-sets`, which compiles each of `mf2`'s features
+//! and `cargo xtask each-feature-alone`, which compiles each of `mf2`'s features
 //! alone — with the Leptos line or the target that feature needs, which the
 //! table states — the way a dependent that turns on one thing does.
 
@@ -83,7 +83,7 @@ pub(crate) enum Use {
     Msrv(&'static str),
     /// `cargo xtask refusals`, on whichever side `outcome` says.
     Refusals,
-    /// `cargo xtask feature-sets`: one `mf2` feature alone (nightly).
+    /// `cargo xtask each-feature-alone`: one `mf2` feature alone (nightly).
     Alone,
 }
 
@@ -94,7 +94,7 @@ impl Use {
             Use::CodegenMatrix(_) => "codegen-matrix",
             Use::Msrv(_) => "msrv",
             Use::Refusals => "refusals",
-            Use::Alone => "feature-sets",
+            Use::Alone => "each-feature-alone",
         }
     }
 }
@@ -172,7 +172,7 @@ impl Set {
 
     /// Whether this set is one `mf2` feature alone.
     pub(crate) fn alone(&self) -> bool {
-        self.has("feature-sets")
+        self.has("each-feature-alone")
     }
 }
 
@@ -895,7 +895,7 @@ pub(crate) const SETS: &[Set] = &[
         &[Use::Refusals],
         "`axum` beside `csr`, on the host",
     ),
-    // `cargo xtask feature-sets` (nightly): each of `mf2`'s features alone,
+    // `cargo xtask each-feature-alone` (nightly): each of `mf2`'s features alone,
     // as a dependent that turns on one thing compiles it. A mode needs a
     // Leptos line, and the browser's host and the client-only options need
     // the browser target; everything else is valid by itself.
@@ -1075,7 +1075,7 @@ pub(crate) fn used_by(mut keep: impl FnMut(&'static Set) -> bool) -> Vec<&'stati
     SETS.iter().filter(|set| keep(set)).collect()
 }
 
-/// `cargo xtask feature-sets`: each of `mf2`'s features alone, checked on
+/// `cargo xtask each-feature-alone`: each of `mf2`'s features alone, checked on
 /// the target it needs. Nightly, not `ci`: it is one `cargo check` per
 /// feature.
 pub(crate) fn check_each(root: &std::path::Path) -> Result<()> {
@@ -1088,18 +1088,18 @@ pub(crate) fn check_each(root: &std::path::Path) -> Result<()> {
             args.push(triple);
         }
         args.extend(set.selection());
-        eprintln!("==> feature-sets: {}", set.what);
+        eprintln!("==> each-feature-alone: {}", set.what);
         let args: Vec<&std::ffi::OsStr> = args.iter().map(std::ffi::OsStr::new).collect();
         crate::cmd::run_inherit(&cargo, &args, root)?;
     }
     eprintln!(
-        "feature-sets: each of the {} features of `mf2` compiles alone",
+        "each-feature-alone: each of the {} features of `mf2` compiles alone",
         sets.len()
     );
     Ok(())
 }
 
-/// `cargo xtask feature-sets --list`: the whole table.
+/// `cargo xtask each-feature-alone --list`: the whole table.
 pub(crate) fn list() {
     for set in SETS {
         let uses: Vec<&str> = set.uses.iter().map(Use::label).collect();

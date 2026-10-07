@@ -12,7 +12,7 @@ node v23.11.0 (ICU 76.1), wasm-opt 120; timings under load (load average
 
 ```sh
 bash bench/runtime-bench/number-ab.sh      # output, ECMA-402, speed and allocations
-bash bench/b12/check.sh                    # size and B12 (b12-runtime vs b12-runtime-fixed)
+bash bench/browser-no-fmt/check.sh                    # size and B12 (b12-runtime vs b12-runtime-fixed)
 ```
 
 | Row | Own buffer | `fixed_decimal` 0.7.2 | Verdict |

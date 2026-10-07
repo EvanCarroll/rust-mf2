@@ -81,7 +81,7 @@
 #
 # Exit status: 0 when B12 holds, 1 when it does not (or the control shows the
 # check is broken), 2 when a tool is missing. Report: target/b12/b12.txt and
-# target/b12/size.tsv (under bench/b12/).
+# target/b12/size.tsv (under bench/browser-no-fmt/).
 #
 # Tools: cargo (rust-toolchain.toml, with the wasm32-unknown-unknown target),
 # wasm-opt and wasm-dis (binaryen), twiggy, brotli, and the wasm-bindgen CLI
@@ -95,7 +95,7 @@ done
 
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-3}"
 TARGET=wasm32-unknown-unknown
-OUT=target/b12
+OUT=target/browser-no-fmt
 FEATURES=(--enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext
   --enable-mutable-globals --enable-reference-types --enable-multivalue)
 CRATES=(base reader runtime runtime-nonum runtime-fn-number runtime-fn-number-unused runtime-fn-number-measure control
@@ -130,7 +130,7 @@ cargo build -q --target "$TARGET" --profile wasm-release -p b12-dates-web-plain
 cargo build -q --target "$TARGET" --profile wasm-syms -p b12-dates-web-plain
 mkdir -p "$OUT"
 
-REPORT="$OUT/b12.txt"
+REPORT="$OUT/browser-no-fmt.txt"
 : > "$REPORT"
 say() { printf '%s\n' "$*" | tee -a "$REPORT"; }
 fail=0

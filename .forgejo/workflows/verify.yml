@@ -53,8 +53,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -131,7 +131,7 @@ jobs:
           exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
           bash tools/checks/run.sh "$CHECKS_LABEL" --only \
-            ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,b12,b12-generated,conformance-report,api,refusals,tui-gate,native-canaries
+            ci,sizes,docs,docs-rs,codegen-matrix,scenarios,msrv,leptos-0-8,browser-no-fmt,browser-pay-for-use,conformance-report,api,refusals,tui-allocs-vs-trippy,native-no-heavy-crates
 
       - name: The TUI gate proper (run.sh keeps the baseline; this judges it)
         if: always()
@@ -139,7 +139,7 @@ jobs:
           mkdir -p target/ci-logs
           exec > >(tee -a target/ci-logs/checks.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask tui-gate --gate --runs 3
+          cargo xtask tui-allocs-vs-trippy --gate --runs 3
 
       - name: Against the last verification
         if: always()
@@ -201,8 +201,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.

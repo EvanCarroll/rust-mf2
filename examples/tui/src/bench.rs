@@ -7,7 +7,7 @@
 //! - `ns_per_frame`: the mean time of a frame over `frames` frames in each
 //!   locale, switching language between them as a live switch does.
 //!
-//! `cargo xtask tui-gate` runs the binaries alternately and takes the median
+//! `cargo xtask tui-allocs-vs-trippy` runs the binaries alternately and takes the median
 //! of the runs' `ns_per_frame`; the allocation counts must be the same in
 //! every run.
 

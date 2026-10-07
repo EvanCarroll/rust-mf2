@@ -9,7 +9,7 @@ allocation totals and build info.
 ## Command
 
 ```sh
-CARGO_BUILD_JOBS=3 cargo run --release -p parser-gate -- --gate --json bench/parser-gate/baseline.json
+CARGO_BUILD_JOBS=3 cargo run --release -p parser-vs-ox -- --gate --json bench/parser-vs-ox/baseline.json
 ```
 
 The defaults are 31 samples per cell, each ≥ 20 ms, interleaved over all 12

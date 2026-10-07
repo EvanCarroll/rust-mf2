@@ -1,8 +1,8 @@
-//! `parser-gate`: runs the D1 parser benchmark and, with `--gate`, applies the
+//! `parser-vs-ox`: runs the D1 parser benchmark and, with `--gate`, applies the
 //! gate. Run it in the release profile:
 //!
 //! ```sh
-//! cargo run --release -p parser-gate -- [--gate] [--runs 31] …
+//! cargo run --release -p parser-vs-ox -- [--gate] [--runs 31] …
 //! ```
 
 use std::fs;
@@ -11,15 +11,15 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use clap::Parser;
-use parser_gate::corpus::{self, CorpusId};
-use parser_gate::gate::{MIN_RUNS, Status};
-use parser_gate::measure::Settings;
-use parser_gate::{Error, Plan, Result, correctness, repo_root, run};
+use parser_vs_ox::corpus::{self, CorpusId};
+use parser_vs_ox::gate::{MIN_RUNS, Status};
+use parser_vs_ox::measure::Settings;
+use parser_vs_ox::{Error, Plan, Result, correctness, repo_root, run};
 
 /// The D1 parser gate: `mf2-syntax` against the `ox_mf2_parser` baseline, on
 /// the committed corpora.
 #[derive(Debug, Parser)]
-#[command(name = "parser-gate", version)]
+#[command(name = "parser-vs-ox", version)]
 struct Cli {
     /// Timing samples per row and parser (the gate requires at least 30).
     #[arg(long, default_value_t = 31)]
@@ -46,11 +46,11 @@ struct Cli {
     #[arg(long)]
     suite_dir: Option<PathBuf>,
 
-    /// Markdown report [default: <repo>/target/parser-gate/report.md].
+    /// Markdown report [default: <repo>/target/parser-vs-ox/report.md].
     #[arg(long)]
     md: Option<PathBuf>,
 
-    /// JSON report [default: <repo>/target/parser-gate/report.json].
+    /// JSON report [default: <repo>/target/parser-vs-ox/report.json].
     #[arg(long)]
     json: Option<PathBuf>,
 
@@ -80,7 +80,7 @@ fn main_inner(cli: Cli) -> Result<ExitCode> {
     if cli.gate {
         if cfg!(debug_assertions) {
             return Err(Error::Settings(
-                "--gate needs a release build (`cargo run --release -p parser-gate`)".to_owned(),
+                "--gate needs a release build (`cargo run --release -p parser-vs-ox`)".to_owned(),
             ));
         }
         if cli.runs < MIN_RUNS {
@@ -108,7 +108,7 @@ fn main_inner(cli: Cli) -> Result<ExitCode> {
     };
     let report = run(&plan, |line| eprintln!("  {line}"))?;
 
-    let out_dir = repo_root().join("target").join("parser-gate");
+    let out_dir = repo_root().join("target").join("parser-vs-ox");
     let md_path = cli.md.unwrap_or_else(|| out_dir.join("report.md"));
     let json_path = cli.json.unwrap_or_else(|| out_dir.join("report.json"));
     let markdown = report.to_markdown();
@@ -138,7 +138,7 @@ fn main() -> ExitCode {
     match main_inner(Cli::parse()) {
         Ok(code) => code,
         Err(e) => {
-            eprintln!("parser-gate: {e}");
+            eprintln!("parser-vs-ox: {e}");
             ExitCode::from(2)
         }
     }

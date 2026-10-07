@@ -233,7 +233,7 @@ fn rows(report: &mut Report, messages: &[Measured], markup_label: &str) {
     report.info("messages", target::MESSAGES.to_string(), n.to_string());
     report.pct("no variable (simple)", 79.0, by_vars(0), n);
     report.info(
-        "  of which placeholder-free (parser-gate subset)",
+        "  of which placeholder-free (parser-vs-ox subset)",
         "",
         format!(
             "{:.2} % ({})",

@@ -3,7 +3,7 @@
 # the blanket `ToString` over one, or the `Debug` writers? (A9's check, as B1
 # moved it to the merged crate.)
 #
-#   tools/fmt-check.sh WASM...   (names kept: a debug-profile client build)
+#   tools/no-fmt-in-demos.sh WASM...   (names kept: a debug-profile client build)
 #
 # A release build, even with names kept, misses the wrapper traps (A9), so
 # the input is a debug build. twiggy demangles the v0 symbols, with crate

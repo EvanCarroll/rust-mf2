@@ -459,7 +459,7 @@ fn build(root: &Path, out: &Path, wl: &Path) -> Result<()> {
             app.lib
         ));
         let pkg = out.join(format!("pkg-size-{}", app.dir));
-        crate::b5::ship(root, &wasm, &pkg, app.lib)?;
+        crate::browser_app_size::ship(root, &wasm, &pkg, app.lib)?;
     }
     // The site the browser times: the lazy routes are `wasm_split` imports,
     // which only `cargo leptos --split` resolves, so the served application

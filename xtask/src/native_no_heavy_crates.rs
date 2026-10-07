@@ -1,4 +1,4 @@
-//! `cargo xtask native-canaries`: what a feature set *links* into a native
+//! `cargo xtask native-no-heavy-crates`: what a feature set *links* into a native
 //! binary (`plan/01` §6.1, guard rail 1).
 //!
 //! A size claim about a feature is only worth what the linker does with it.
@@ -17,7 +17,7 @@
 //! on it.
 //!
 //! The report — which of the crates each row links, and the binary's size —
-//! is printed on every run and written to `target/native-canaries/report.md`.
+//! is printed on every run and written to `target/native-no-heavy-crates/report.md`.
 //! It is what answers `plan/01` §8, "`native` links by use".
 //!
 //! Phase 12 made jiff conditional (`mf2-host-std`'s feature `time-zones`,
@@ -204,12 +204,15 @@ struct Linked {
 }
 
 pub(crate) fn run(root: &Path) -> Result<()> {
-    let out = root.join("target/native-canaries");
+    let out = root.join("target/native-no-heavy-crates");
     let manifest = root.join("tools/native-canary/Cargo.toml");
     let target = out.join("target");
     let mut rows = Vec::with_capacity(ROWS.len());
     for row in ROWS {
-        eprintln!("native-canaries: linking `{}`: {}", row.features, row.what);
+        eprintln!(
+            "native-no-heavy-crates: linking `{}`: {}",
+            row.features, row.what
+        );
         build(root, &manifest, &target, row.features)?;
         let bin = target.join("release").join(BIN);
         let size = file_size(&bin)?;
@@ -236,10 +239,10 @@ pub(crate) fn run(root: &Path) -> Result<()> {
     fsx::write(&out.join("report.md"), report.as_bytes())?;
     let failures = judge(&rows);
     if !failures.is_empty() {
-        return Err(Error::NativeCanaries(failures.join("; ")));
+        return Err(Error::NativeNoHeavyCrates(failures.join("; ")));
     }
     eprintln!(
-        "native-canaries: {} feature sets linked, every row holds",
+        "native-no-heavy-crates: {} feature sets linked, every row holds",
         rows.len()
     );
     Ok(())
@@ -387,13 +390,13 @@ fn length_prefixed(s: &str) -> Option<&str> {
     s.get(digits..digits.checked_add(length)?)
 }
 
-/// The report, printed and written to `target/native-canaries/report.md`.
+/// The report, printed and written to `target/native-no-heavy-crates/report.md`.
 fn report(rows: &[Linked]) -> String {
     let mut s = String::from(
         "# Native canaries\n\n\
          Which crates a feature set links into a native binary, read from the\n\
          symbols of an unstripped release build of `tools/native-canary`\n\
-         (`cargo xtask native-canaries`).\n\n\
+         (`cargo xtask native-no-heavy-crates`).\n\n\
          | feature set | binary |",
     );
     for crate_name in CRATES {

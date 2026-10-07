@@ -442,7 +442,7 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
 
 ## 6. Guard rails
 
-1. **Native canaries** (`cargo xtask native-canaries`). Small native binaries
+1. **Native canaries** (`cargo xtask native-no-heavy-crates`). Small native binaries
    are linked for a few feature sets, unstripped, and their symbols read. A
    row says which crates' symbols must be absent or present for a set: no
    `jiff` and no `ryu` without dates, no `unicode_normalization` without
@@ -456,8 +456,8 @@ the full tables go behind a feature `nfc` on `mf2-host-std`, enabled by
    MF2, a workspace of its own; `nm` reads the symbols. Phase 11 lands the
    command with the positive control and the report only: the forbidding
    rows arrive with the phases that make them true.
-2. **`tui-gate`'s limit follows the measurement.** `SIZE_LIMIT` in
-   `xtask/src/tui_gate.rs` (1,965,320 B, also written in
+2. **`tui-allocs-vs-trippy`'s limit follows the measurement.** `SIZE_LIMIT` in
+   `xtask/src/tui_allocs_vs_trippy.rs` (1,965,320 B, also written in
    `tools/checks/compare.sh`) is lowered to the measured size of `tui-mf2` at
    the end of each phase that shrinks it. `examples/tui` is the in-tree
    measurement; trippy is the owner's, measured beside it.
@@ -530,7 +530,7 @@ Task 11.2 answers F1–F3 here, in at most ten lines in all.
   `single` passes `compile_str`'s NFC externals through. Keys and names are
   normalized inside `encode_all`'s one pass, so §4.3's map is collected there.
 * **`native` links by use** — measured (11.4, `cargo xtask
-  native-canaries`): a native application that formats text and a number
+  native-no-heavy-crates`): a native application that formats text and a number
   links neither `sha2` nor `sys-locale`, and one that formats a date in a
   named zone links `jiff`; but jiff, `unicode-normalization` and `ryu` are
   linked with no date at all, which is what §4.1–§4.3 remove.

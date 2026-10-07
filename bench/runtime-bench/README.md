@@ -17,6 +17,6 @@ Timings on the development machine drift with its clock (the report
 records the MHz): compare two builds by alternating their binaries, never
 one run after another.
 
-The size and B12 rows of the A/B come from `bench/b12/check.sh`
+The size and B12 rows of the A/B come from `bench/browser-no-fmt/check.sh`
 (`b12-runtime` against `b12-runtime-fixed`). The binary links
 `catalog-bench`'s counting allocator.

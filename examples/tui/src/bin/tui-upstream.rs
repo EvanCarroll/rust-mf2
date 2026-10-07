@@ -1,5 +1,5 @@
 //! One measurement run of the baseline renderer (`demo_tui::bench`), for
-//! `cargo xtask tui-gate`.
+//! `cargo xtask tui-allocs-vs-trippy`.
 
 use clap::Parser;
 use demo_tui::bench::{self, Args, Renderer};

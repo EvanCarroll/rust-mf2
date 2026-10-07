@@ -3,7 +3,7 @@
 Task A9 of Phase 2: budget B12, the reader's share of B1, and the
 client-path rules (panic-free and fmt-free).
 
-A standalone workspace (the root workspace excludes `bench/b12`) of three
+A standalone workspace (the root workspace excludes `bench/browser-no-fmt`) of three
 `#![no_std]` `cdylib`s for `wasm32-unknown-unknown`:
 
 | Crate | What it links |
@@ -16,7 +16,7 @@ A standalone workspace (the root workspace excludes `bench/b12`) of three
 ## Command
 
 ```sh
-bench/b12/check.sh          # exit 0: B12 clean; 1: B12 fails (or the control shows the check is broken); 2: tool missing
+bench/browser-no-fmt/check.sh          # exit 0: B12 clean; 1: B12 fails (or the control shows the check is broken); 2: tool missing
 ```
 
 It needs `cargo` (the toolchain of `rust-toolchain.toml`, with the
@@ -43,7 +43,7 @@ does, per harness:
    modules, and the
    delta `b12-reader` − `b12-base`, plus a twiggy breakdown by crate.
 
-Output: `bench/b12/target/b12/b12.txt` (the report) and `size.tsv`.
+Output: `bench/browser-no-fmt/target/b12/b12.txt` (the report) and `size.tsv`.
 
 ## Measured (2026-09-21)
 
@@ -121,7 +121,7 @@ native harnesses, `mf2-host-web`'s for the web ones.
 | `b12-dates-unused` | `b12-runtime`'s registry and walk, `mf2-fn-datetime` linked with both backends' features | B1′ (= `b12-runtime`, +0 B), B13 |
 
 Measured 2026-09-22 on the merged tree (rustc 1.98.1, wasm-opt 120, twiggy
-0.8.0, wasm-bindgen 0.2.128, gzip 1.13; `bench/b12/check.sh`). **The figures
+0.8.0, wasm-bindgen 0.2.128, gzip 1.13; `bench/browser-no-fmt/check.sh`). **The figures
 and limits in this section are gzip, the unit in force at that date**; the
 unit moved to brotli on 2026-10-05 and the limits moved with it — see "The
 figures are brotli now" at the end. The date
@@ -184,5 +184,5 @@ wasm, a different compressor, so these are measurements and not conversions.
 Every one passes. B3 is the tightest at 95 % of its limit, as it was under gzip
 (98 %).
 
-B1′ and B13 are untouched: `cargo xtask b12-generated` compares **raw** bytes of
+B1′ and B13 are untouched: `cargo xtask browser-pay-for-use` compares **raw** bytes of
 the client binary, so no compressor enters them.

@@ -2,7 +2,7 @@
 //! vendored `message.abnf`, steered towards the runtime's functions and
 //! options, compiled for a random locale with generated arguments
 //! ([`mf2_conformance::l4gen`]), formatted by `mf2-l4-runner` — the code
-//! `cargo xtask l4-wasi --generated` runs on `wasm32-wasip1`:
+//! `cargo xtask wasi-matches-native --generated` runs on `wasm32-wasip1`:
 //!
 //! * formatting never panics — valid messages and messages with data-model
 //!   errors alike (the writer accepts both);

@@ -4,7 +4,7 @@
 //! thing the ambition is actually about: what an application pays for i18n in
 //! total, on the reference workload, end to end.
 //!
-//! It is the same measurement `cargo xtask b5` makes — two scales, three
+//! It is the same measurement `cargo xtask browser-app-size` makes — two scales, three
 //! templates, `wasm32-unknown-unknown` / `wasm-release` / `wasm-bindgen` /
 //! `wasm-opt -Oz` / `brotli -q 11` — read three ways:
 //!
@@ -24,7 +24,7 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-use crate::b5;
+use crate::browser_app_size;
 use crate::error::{Error, Result};
 use crate::fsx;
 
@@ -36,7 +36,7 @@ use crate::fsx;
 /// directly: it is `Δ@1860` less `sites × marginal`, so it moves when either
 /// term does. Brotli took 8,510 B off the total and 10,681 B off the per-site
 /// part, which leaves 2,171 B more over — every build got smaller and B1 rose.
-/// A ratchet with no headroom, as `tui_gate`'s `SIZE_LIMIT` is;
+/// A ratchet with no headroom, as `tui_allocs_vs_trippy`'s `SIZE_LIMIT` is;
 /// `tools/checks/compare.sh` flags a move beyond ±57 B.
 const B1: f64 = 28_046.0;
 /// B5: per call site, in bytes brotli.
@@ -44,15 +44,20 @@ const B5: f64 = 36.0;
 
 pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
     let dir = out.unwrap_or_else(|| root.join("target").join("size"));
-    let measured = b5::measure(root, Some(dir.clone()), keep, b5::Mode::String)?;
+    let measured = browser_app_size::measure(
+        root,
+        Some(dir.clone()),
+        keep,
+        browser_app_size::Mode::String,
+    )?;
     let sites = measured
         .first()
         .map(|(sites, _)| *sites)
         .ok_or_else(|| gate("no workload was measured"))?;
 
-    let idlit = b5::delta(&measured, "tr", "idlit")
+    let idlit = browser_app_size::delta(&measured, "tr", "idlit")
         .ok_or_else(|| gate("the `tr` or `idlit` app did not build"))?;
-    let dummy = b5::delta(&measured, "tr", "dummy");
+    let dummy = browser_app_size::delta(&measured, "tr", "dummy");
 
     #[allow(clippy::cast_precision_loss)]
     let scale = sites as f64;
@@ -60,7 +65,7 @@ pub(crate) fn run(root: &Path, out: Option<PathBuf>, keep: bool) -> Result<()> {
     let ambition = B1 + scale * B5;
 
     let mut report = String::from("# Size gate\n");
-    report.push_str(&b5::size_table(&measured));
+    report.push_str(&browser_app_size::size_table(&measured));
     let _ = write!(
         report,
         "\n| Gate | Measured | Limit | Verdict |\n|---|---:|---:|---|\n\

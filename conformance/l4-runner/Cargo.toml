@@ -31,8 +31,8 @@ mf2-runtime.workspace = true
 unicode-normalization = { workspace = true, features = ["std"] }
 
 [[bin]]
-name = "mf2-l4-wasi"
-path = "src/bin/mf2-l4-wasi.rs"
+name = "mf2-wasi-matches-native"
+path = "src/bin/mf2-wasi-matches-native.rs"
 
 [lints]
 workspace = true

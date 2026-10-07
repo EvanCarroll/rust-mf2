@@ -3,7 +3,7 @@
 //! includes.
 //!
 //! Two features swap the corpus for a smaller one, so that B1′ and B13 can be
-//! *gated* rather than measured by hand (`cargo xtask b12-generated`):
+//! *gated* rather than measured by hand (`cargo xtask browser-pay-for-use`):
 //! `corpus-plain` has nothing a function crate could serve,
 //! and `corpus-measures` is this crate's corpus plus the three measure
 //! functions. A third, `corpus-dates`, has a `:datetime` message, for

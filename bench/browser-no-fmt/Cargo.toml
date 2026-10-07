@@ -1,6 +1,6 @@
 # B12 check for the catalog reader.
 #
-# A standalone workspace (the root workspace excludes `bench/b12`): the
+# A standalone workspace (the root workspace excludes `bench/browser-no-fmt`): the
 # harnesses are `no_std` cdylibs for wasm32-unknown-unknown with their own
 # `#[panic_handler]` and `#[global_allocator]`, which the root workspace's
 # host builds must never see. `check.sh` builds them and runs the check.

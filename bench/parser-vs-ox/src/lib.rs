@@ -1,4 +1,4 @@
-//! `parser-gate` — the D1 gate: `mf2-syntax` against the `ox_mf2_parser` baseline.
+//! `parser-vs-ox` — the D1 gate: `mf2-syntax` against the `ox_mf2_parser` baseline.
 //!
 //! Measures parsers on the committed corpora (`bench/corpora/`) in the same
 //! process, interleaved: ns/msg and MB/s (median of the samples), allocations
@@ -9,7 +9,7 @@
 //! (Phase 1) is the second [`adapter::Adapter`] in [`contenders`], held to the
 //! gate's rules ([`gate`]).
 //!
-//! The benchmark is the binary (`cargo run --release -p parser-gate`); the
+//! The benchmark is the binary (`cargo run --release -p parser-vs-ox`); the
 //! library's unit tests use tiny inputs only.
 
 // Statistics over counts and nanoseconds, all far below 2^52: `as f64` is exact
@@ -130,7 +130,7 @@ pub fn run(plan: &Plan, mut progress: impl FnMut(&str)) -> Result<Report> {
 
     let gate = gate::evaluate(&rows, &correctness);
     Ok(Report {
-        tool: format!("parser-gate {}", env!("CARGO_PKG_VERSION")),
+        tool: format!("parser-vs-ox {}", env!("CARGO_PKG_VERSION")),
         build: Build::current(),
         settings: SettingsInfo::from(&plan.settings),
         available_parallelism: std::thread::available_parallelism().map_or(0, usize::from),

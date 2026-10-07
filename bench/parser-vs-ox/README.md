@@ -1,10 +1,10 @@
-# parser-gate — the D1 gate
+# parser-vs-ox — the D1 gate
 
 The permanent benchmark behind decision D1: `mf2-syntax` must be at least as fast, allocate no more, and be strictly
 more correct than `ox_mf2_parser`, on every row. Phase 0 (task P0.12) built the
 harness and measured the baseline, ox alone ([BASELINE.md](BASELINE.md)).
 Phase 1 added `mf2-syntax` as the second adapter; `--gate` is a real
-pass/fail, run by CI (`.forgejo/workflows/ci.yml`, job `parser-gate`). The
+pass/fail, run by CI (`.forgejo/workflows/ci.yml`, job `parser-vs-ox`). The
 Phase 1 exit run is [GATE-P1.md](GATE-P1.md) (machine-readable:
 [gate-p1.json](gate-p1.json)): **pass on every row**, 3.2–15.9× faster than ox,
 fewer allocations everywhere and none for placeholder-free messages on the
@@ -16,9 +16,9 @@ model rows, 462/462 against ox's 460.
 ## Running it
 
 ```sh
-CARGO_BUILD_JOBS=3 cargo run --release -p parser-gate              # every row; table to stdout
-CARGO_BUILD_JOBS=3 cargo run --release -p parser-gate -- --gate    # + apply the gate (exit 1 on failure)
-cargo run --release -p parser-gate -- --corpus workload --runs 5   # quick look at one corpus
+CARGO_BUILD_JOBS=3 cargo run --release -p parser-vs-ox              # every row; table to stdout
+CARGO_BUILD_JOBS=3 cargo run --release -p parser-vs-ox -- --gate    # + apply the gate (exit 1 on failure)
+cargo run --release -p parser-vs-ox -- --corpus workload --runs 5   # quick look at one corpus
 ```
 
 Always use `--release`. It builds with the workspace `release` profile:
@@ -33,8 +33,8 @@ to run on one. A full run of ox alone takes 10–15 s.
 | `--corpus C` | all | `suite`, `workload`, `placeholder-free`; repeatable (`--gate` needs all three) |
 | `--corpora-dir DIR` | `bench/corpora` | where `suite.json` and `workload-1600.json` are |
 | `--suite-dir DIR` | `third_party/message-format-wg/test/tests` | the vendored WG suite (supplies the expected errors) |
-| `--md FILE` | `target/parser-gate/report.md` | Markdown report (it is also printed to stdout) |
-| `--json FILE` | `target/parser-gate/report.json` | machine-readable report: every sample statistic, allocation totals, build info, the gate's checks |
+| `--md FILE` | `target/parser-vs-ox/report.md` | Markdown report (it is also printed to stdout) |
+| `--json FILE` | `target/parser-vs-ox/report.json` | machine-readable report: every sample statistic, allocation totals, build info, the gate's checks |
 | `--gate` | off | apply the gate rules; exit 1 if any fails. With ox alone: "baseline only", exit 0 |
 
 Exit status: 0 on success (or baseline only), 1 when the gate fails, 2 on an
@@ -156,13 +156,13 @@ placeholder-free model rows allocate nothing.
 To re-run the exit measurement:
 
 ```sh
-CARGO_BUILD_JOBS=3 cargo run --release -p parser-gate -- --gate \
-    --json bench/parser-gate/gate-p1.json --md bench/parser-gate/GATE-P1.md
+CARGO_BUILD_JOBS=3 cargo run --release -p parser-vs-ox -- --gate \
+    --json bench/parser-vs-ox/gate-p1.json --md bench/parser-vs-ox/GATE-P1.md
 ```
 
 ## Tests
 
-`cargo test -p parser-gate` takes well under a second and uses tiny inputs:
+`cargo test -p parser-vs-ox` takes well under a second and uses tiny inputs:
 allocator accounting, corpus sizes and the placeholder-free definition,
 quartiles, the gate's rules, both adapters (fresh = reused; classification;
 the zero-allocation rows of `mf2-syntax`), one tiny measured row, and the

@@ -286,7 +286,7 @@ literal and arguments are dropped (the "no i18n" size baseline);
 arguments, with one shared `lookup` in the support module (opaque to the
 optimiser: `boot()` fills its map from `<html data-catalog>`).
 
-Two more built-ins serve budget **B5** (`cargo xtask b5`):
+Two more built-ins serve budget **B5** (`cargo xtask browser-app-size`):
 **`idlit`** — every site is a `String` from a short per-site literal (the
 message's `MsgId` as text), in the same positions as the `tr` template's, so
 the delta against it is the call site's own cost and nothing of the app
@@ -299,7 +299,7 @@ measured `dummy` 11.4 B gz per site smaller than `idlit`, which is why
 `bench/workload-gen/templates/tr`, because it carries the i18n crate its app
 depends on (`i18n/`, pointed at the generated workload through
 `MF2_WORKLOAD_LOCALES`) and names it with `{{template_dir}}`. Use it as
-`-t bench/workload-gen/templates/tr`, which is what `cargo xtask b5` does.
+`-t bench/workload-gen/templates/tr`, which is what `cargo xtask browser-app-size` does.
 
 Two directories serve the `leptos-fluent` migration:
 **`fluent-view`** — the reference application on `leptos-fluent` 0.3.1, each

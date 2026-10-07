@@ -176,10 +176,10 @@ them out.
 2. `CHANGELOG.md` has a complete `## 3.0.0` entry, breaking changes first,
    and no "not yet published" line.
 3. The suite, against Phase 21's run:
-   `bash tools/checks/run.sh p23 --against p21 --only sizes,demos,docs,codegen-matrix,scenarios,leptos-0-8,churn,l6-web,l7-web,e2e-0-9,e2e-0-8,b12,b12-generated,conformance-report,api,refusals,tui-gate,native-canaries`.
+   `bash tools/checks/run.sh p23 --against p21 --only sizes,demos,docs,codegen-matrix,scenarios,leptos-0-8,churn,l6-web,l7-web,e2e-0-9,e2e-0-8,browser-no-fmt,browser-pay-for-use,conformance-report,api,refusals,tui-allocs-vs-trippy,native-no-heavy-crates`.
    Every check passes, and `bash tools/checks/compare.sh p21 p23` flags
    nothing that Phase 22's report did not tell the owner.
-4. `cargo xtask tui-gate --gate` passes.
+4. `cargo xtask tui-allocs-vs-trippy --gate` passes.
 5. `cargo xtask release` (no flag: the dry run). It checks the tree, the
    changelog, the crates' metadata, the names on crates.io, the API against
    the published 2.0.0 with `cargo-semver-checks`, then runs `ci`, the

@@ -40,7 +40,7 @@ gz with ISO, 758,909 with ICU4X and 699,832 with `Intl`, so `Intl` is about
 formatter that no message uses costs the browser nothing (unused `intl`:
 −2 B).
 
-The size harness (`bench/b12/README.md`, 2026-09-22) had ICU4X by form:
+The size harness (`bench/browser-no-fmt/README.md`, 2026-09-22) had ICU4X by form:
 Gregorian without zone names 42,820 B; Gregorian with zone names 69,641; any
 calendar without zone names 55,476; any calendar with zone names 83,028. Those
 four forms were *not re-measured*; what 18.1's choice between them saves was.
@@ -551,7 +551,7 @@ browser.
   for `iso` and `icu`; a row for a date feature that is on in an application
   with no date and a plain placeholder (F10); the slice's bytes per language
   in a browser catalog.
-* **`cargo xtask native-canaries`:** no date feature means no symbol of
+* **`cargo xtask native-no-heavy-crates`:** no date feature means no symbol of
   `jiff`, `icu_*` or `mf2_fn_datetime`, with a plain placeholder in the
   corpus; `iso` means no `icu_*`; an `icu` binary stays under a ceiling that
   compiled-in data would break.

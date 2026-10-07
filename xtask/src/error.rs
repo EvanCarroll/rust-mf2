@@ -57,12 +57,12 @@ pub(crate) enum Error {
     #[error("release: {0}")]
     Release(String),
     /// The terminal UI's measurement could not be made, or did not repeat.
-    #[error("tui-gate: {0}")]
-    TuiGate(String),
+    #[error("tui-allocs-vs-trippy: {0}")]
+    TuiAllocsVsTrippy(String),
     /// A feature set links a crate a row forbids, or none of a crate a row
     /// requires — or the canary application could not be linked or read.
-    #[error("native-canaries: {0}")]
-    NativeCanaries(String),
+    #[error("native-no-heavy-crates: {0}")]
+    NativeNoHeavyCrates(String),
     /// A fresh measurement of a feature's cost is off from the committed
     /// table, or a row is missing from it.
     #[error("feature-costs: {0}")]

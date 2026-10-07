@@ -78,7 +78,7 @@ impl From<&Settings> for SettingsInfo {
 /// Everything a run produced.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Report {
-    /// `parser-gate <version>`.
+    /// `parser-vs-ox <version>`.
     pub tool: String,
     /// How the harness was built.
     pub build: Build,

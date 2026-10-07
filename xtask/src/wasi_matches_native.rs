@@ -1,8 +1,8 @@
-//! `cargo xtask l4-wasi`: conformance layer L4 on `wasm32-wasip1`. Every
+//! `cargo xtask wasi-matches-native`: conformance layer L4 on `wasm32-wasip1`. Every
 //! L4 case of the suite — each test that is not a syntax or data-model
 //! error, compiled natively for its locale, unstripped and stripped, in the
 //! all-features and in the default configuration (L4d) — is formatted by
-//! `mf2-l4-runner` natively and by its `mf2-l4-wasi` binary under wasmtime;
+//! `mf2-l4-runner` natively and by its `mf2-wasi-matches-native` binary under wasmtime;
 //! the two outputs must be identical byte for byte.
 //!
 //! `--generated N` adds N generated cases (`mf2_conformance::l4gen`),
@@ -96,11 +96,11 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
         })
         .collect();
 
-    let dir = root.join("target/l4-wasi");
+    let dir = root.join("target/wasi-matches-native");
     let bundle = mf2_l4_runner::encode_cases(&cases);
     fsx::write(&dir.join("cases.bin"), &bundle)?;
     eprintln!(
-        "l4-wasi: {} cases; building mf2-l4-wasi for wasm32-wasip1",
+        "wasi-matches-native: {} cases; building mf2-wasi-matches-native for wasm32-wasip1",
         cases.len()
     );
     cmd::run_inherit(
@@ -113,13 +113,13 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
             "-p",
             "mf2-l4-runner",
             "--bin",
-            "mf2-l4-wasi",
+            "mf2-wasi-matches-native",
         ]
         .map(OsStr::new),
         root,
     )?;
-    let wasm = root.join("target/wasm32-wasip1/release/mf2-l4-wasi.wasm");
-    eprintln!("l4-wasi: running under {}", version.trim());
+    let wasm = root.join("target/wasm32-wasip1/release/mf2-wasi-matches-native.wasm");
+    eprintln!("wasi-matches-native: running under {}", version.trim());
     let mut child = Command::new(&wasmtime)
         .arg("run")
         .arg(&wasm)
@@ -142,8 +142,8 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
             stderr: String::new(),
         });
     }
-    let wasi_text =
-        String::from_utf8(output.stdout).map_err(|e| Error::Utf8("mf2-l4-wasi".to_owned(), e))?;
+    let wasi_text = String::from_utf8(output.stdout)
+        .map_err(|e| Error::Utf8("mf2-wasi-matches-native".to_owned(), e))?;
     let wasi: Vec<&str> = wasi_text.lines().collect();
     fsx::write(
         &dir.join("native.txt"),
@@ -158,7 +158,7 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
             Some(w) => {
                 differ += 1;
                 if differ <= 10 {
-                    eprintln!("l4-wasi: differs\n  native {n}\n  wasi   {w}");
+                    eprintln!("wasi-matches-native: differs\n  native {n}\n  wasi   {w}");
                 }
             }
             None => differ += 1,
@@ -166,7 +166,7 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
     }
     if wasi.len() != native.len() {
         eprintln!(
-            "l4-wasi: {} native records, {} from wasm",
+            "wasi-matches-native: {} native records, {} from wasm",
             native.len(),
             wasi.len()
         );
@@ -175,12 +175,12 @@ pub(crate) fn run(root: &Path, generated: Option<u64>) -> Result<()> {
     if differ > 0 || wasi.len() != native.len() || errors > 0 {
         return Err(Error::L4(format!(
             "{differ} of {} records differ between native and wasm32-wasip1; {errors} runner errors \
-             (target/l4-wasi/native.txt, wasi.txt)",
+             (target/wasi-matches-native/native.txt, wasi.txt)",
             native.len()
         )));
     }
     eprintln!(
-        "l4-wasi: {} records identical on native and wasm32-wasip1 ({} suite tests, unstripped and \
+        "wasi-matches-native: {} records identical on native and wasm32-wasip1 ({} suite tests, unstripped and \
          stripped, in both configurations; {golden_cases} golden cases; {} generated cases, \
          unstripped and stripped)",
         native.len(),

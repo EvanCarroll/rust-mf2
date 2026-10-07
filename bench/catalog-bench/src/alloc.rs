@@ -1,4 +1,4 @@
-//! The counting global allocator (the parser gate's, `bench/parser-gate`).
+//! The counting global allocator (the parser gate's, `bench/parser-vs-ox`).
 //!
 //! Every allocation made by the **calling thread** is counted: the number of
 //! calls to `alloc`, `alloc_zeroed` and `realloc`, and the bytes they request

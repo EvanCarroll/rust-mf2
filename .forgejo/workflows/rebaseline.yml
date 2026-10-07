@@ -45,8 +45,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -eu
-          # The image is Alpine and has no bash, but bench/b12/check.sh,
-          # tools/checks/*.sh and tools/fmt-check.sh are bash scripts with
+          # The image is Alpine and has no bash, but bench/browser-no-fmt/check.sh,
+          # tools/checks/*.sh and tools/no-fmt-in-demos.sh are bash scripts with
           # arrays and [[ ]]. This is every job's first step, so bash is here
           # before anything needs it. tools/ci/setup.sh asks for it too, in case
           # this stops being the first step.
@@ -117,10 +117,10 @@ jobs:
           take feature-costs   cargo xtask feature-costs
           take size            cargo xtask size
           take catalog-size    cargo xtask catalog-size
-          take b12             bash bench/b12/check.sh
-          take b12-generated   cargo xtask b12-generated
-          take native-canaries cargo xtask native-canaries
-          take tui-gate        cargo xtask tui-gate --runs 3
+          take browser-no-fmt             bash bench/browser-no-fmt/check.sh
+          take browser-pay-for-use   cargo xtask browser-pay-for-use
+          take native-no-heavy-crates cargo xtask native-no-heavy-crates
+          take tui-allocs-vs-trippy        cargo xtask tui-allocs-vs-trippy --runs 3
           echo "--- status ---"
           cat target/rebaseline/status.txt
 
@@ -153,12 +153,12 @@ jobs:
             echo
             echo '| figure | where | what it is |'
             echo '|---|---|---|'
-            echo '| stripped `tui-mf2` | `xtask/src/tui_gate.rs` `SIZE_LIMIT` | native: changes on musl |'
+            echo '| stripped `tui-mf2` | `xtask/src/tui_allocs_vs_trippy.rs` `SIZE_LIMIT` | native: changes on musl |'
             echo '| the same number again | `tools/checks/compare.sh` | native: changes on musl |'
-            echo '| native-canary ICU ceiling | `xtask/src/native_canaries.rs` `ICU_CEILING` | native: changes on musl |'
-            echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/b5.rs` | brotli: only if wasm-opt or brotli moved |'
-            echo '| B13 | `xtask/src/b12_generated.rs` | raw wasm bytes, no compressor: only if wasm-opt moved |'
-            echo '| B2, B3, B4 | `bench/b12/check.sh` | brotli: only if wasm-opt or brotli moved |'
+            echo '| native-canary ICU ceiling | `xtask/src/native_no_heavy_crates.rs` `ICU_CEILING` | native: changes on musl |'
+            echo '| B1, B5 | `xtask/src/size.rs`, `xtask/src/browser_app_size.rs` | brotli: only if wasm-opt or brotli moved |'
+            echo '| B13 | `xtask/src/browser_pay_for_use.rs` | raw wasm bytes, no compressor: only if wasm-opt moved |'
+            echo '| B2, B3, B4 | `bench/browser-no-fmt/check.sh` | brotli: only if wasm-opt or brotli moved |'
             echo '| B7 | `crates/mf2-build/tests/sizes.rs` | brotli: only if brotli moved |'
             echo '| the `intl` line | `docs/features.md` | hand-written from the table; still gzip |'
             echo '| the B1 sentence | `README.md` | hand-written; still gzip |'
@@ -182,8 +182,8 @@ jobs:
             crates/mf2-build/src/features/costs.rs
             target/size/report.md
             target/feature-costs/feature-costs.md
-            target/native-canaries/report.md
-            target/tui-gate/report.md
+            target/native-no-heavy-crates/report.md
+            target/tui-allocs-vs-trippy/report.md
           if-no-files-found: warn
 
       - name: Upload this job's log

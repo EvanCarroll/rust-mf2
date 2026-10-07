@@ -1,4 +1,4 @@
-//! `cargo xtask b5`: budget **B5**, the marginal wasm per call site.
+//! `cargo xtask browser-app-size`: budget **B5**, the marginal wasm per call site.
 //!
 //! P0.1's method, on the real crates. Two generated applications of the same
 //! shape at two scales are built for the client, and the per-site cost is the
@@ -133,7 +133,7 @@ pub(crate) fn measure(
     keep: bool,
     mode: Mode,
 ) -> Result<Measured> {
-    let out = out.unwrap_or_else(|| root.join("target").join("b5"));
+    let out = out.unwrap_or_else(|| root.join("target").join("browser-app-size"));
     // Absolute, because the workload's path reaches the i18n crate's build
     // script (`MF2_WORKLOAD_LOCALES`), which runs in another directory.
     let out = std::path::absolute(&out).map_err(|source| Error::IoAt {
@@ -158,7 +158,7 @@ pub(crate) fn measure(
         let sites = site_count(&workload)?;
         let mut sizes = Vec::new();
         for template in mode.templates() {
-            eprintln!("b5: building app-{template} at {sites} sites");
+            eprintln!("browser-app-size: building app-{template} at {sites} sites");
             sizes.push((template, build(root, &workload, template, "hydrate")?));
         }
         measured.push((sites, sizes));
@@ -177,11 +177,11 @@ pub(crate) fn generate(
     extra: &[&str],
 ) -> Result<()> {
     if workload.join(".workload-gen").is_file() {
-        eprintln!("b5: reusing {}", workload.display());
+        eprintln!("browser-app-size: reusing {}", workload.display());
         return Ok(());
     }
     eprintln!(
-        "b5: generating {} sites, {} messages",
+        "browser-app-size: generating {} sites, {} messages",
         scale.sites, scale.messages
     );
     let cargo = cmd::cargo();
@@ -443,7 +443,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
         .map(|((a, b), (c, d))| ((*a, b), (*c, d)))
     else {
         return Err(Error::CommandFailed {
-            command: "b5".to_owned(),
+            command: "browser-app-size".to_owned(),
             status: "two scales are needed".to_owned(),
             stderr: String::new(),
         });
@@ -469,7 +469,7 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
     let span = big.saturating_sub(small);
     if span == 0 {
         return Err(Error::CommandFailed {
-            command: "b5".to_owned(),
+            command: "browser-app-size".to_owned(),
             status: "the two scales have the same number of sites".to_owned(),
             stderr: String::new(),
         });
@@ -508,20 +508,20 @@ fn report(measured: &[(usize, Vec<(&str, Sizes)>)], mode: Mode) -> Result<()> {
     match verdict {
         Some(marginal) if marginal <= BUDGET => {
             println!(
-                "\nb5: {marginal:.1} B br per call site against `{}` — within {BUDGET:.0}",
+                "\nper call site: {marginal:.1} B br against `{}` — within {BUDGET:.0}",
                 mode.baseline()
             );
             Ok(())
         }
         Some(marginal) => Err(Error::CommandFailed {
-            command: "b5".to_owned(),
+            command: "browser-app-size".to_owned(),
             status: format!(
                 "B5 is {marginal:.1} B br per call site, over the budget of {BUDGET:.0}"
             ),
             stderr: String::new(),
         }),
         None => Err(Error::CommandFailed {
-            command: "b5".to_owned(),
+            command: "browser-app-size".to_owned(),
             status: format!(
                 "the `{}` or `{}` app did not build",
                 mode.subject(),

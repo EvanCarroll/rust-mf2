@@ -37,7 +37,7 @@ during the runs), shared with other agents' builds (1-minute load 2–7).
 
 `bench/intl-probe/scripts/build.sh` (06 §3: profile `wasm-release` — opt-level
 z, fat LTO, 1 CGU, `panic = "abort"`, strip — then `wasm-bindgen --target
-web`, `wasm-opt -Oz` with `bench/b12/check.sh`'s feature flags, `gzip -9 -n`;
+web`, `wasm-opt -Oz` with `bench/browser-no-fmt/check.sh`'s feature flags, `gzip -9 -n`;
 the JS glue is `probe.js` plus the `inline_js` snippet, each gzipped). Every
 variant has the same harness and exports; Δ against `base` (`:string` only).
 
@@ -54,7 +54,7 @@ At **732da4c** (`INTL_PROBE_REV=732da4c bench/intl-probe/scripts/build.sh`):
 | `intl-codes` (`intl`, key design A) | 84,427 | 40,191 | +12,494 | **+6,215** | 19,693 | 4,981 | +2,838 | **+1,263** | **+7,478** |
 
 At **3fc4735** (`INTL_PROBE_REV=3fc4735 …`, base 33,787 B gz): `rust`
-+5,150 B gz (B1's numeric share, measured 5,137 in `bench/b12`), `intl`
++5,150 B gz (B1's numeric share, measured 5,137 in `bench/browser-no-fmt`), `intl`
 +6,689 + 774 JS = **+7,463**, `intl-loc` +7,497, `intl-cu` +8,218,
 `intl-codes` +6,128 + 1,263 JS = +7,391 (no `rust-loc`: `mf2-fn-number` did
 not exist). The builds are deterministic: rebuilding gives the same bytes.
