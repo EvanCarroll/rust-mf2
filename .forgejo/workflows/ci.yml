@@ -154,16 +154,21 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Every gate job below is `continue-on-error: true`, and the `report` job at
-# the end is what fails the run. The jobs have no `needs:` between them and
-# each builds the workspace from scratch, but one of them going red used to
-# cancel the others mid-build and leave the rest unstarted: run 20 (2026-10-06)
-# lost `ci`, `docs` and `l4-wasi` part-built and never started `msrv`,
-# `docs-rs`, `release` or `report`, so a single failure cost the whole run's
-# evidence and the next thing wrong could only be found one push at a time.
-# Continuing means every job reaches its verdict and `report` — which needs
-# them all — says in one place what passed. The run is still red: the last step
-# of `report` exits 1 unless every result is `success` or `skipped`.
+# One red job still costs this run its evidence, and `continue-on-error` does
+# not buy it back: this runner (`cow` v12.6.3) does not honour it at job level.
+# Run 20 lost `ci`, `docs` and `l4-wasi` part-built and never started `msrv`,
+# `docs-rs`, `release` or `report`; run 21, with every gate job marked
+# `continue-on-error: true`, died the same way 171 s in when `ci` failed its
+# first step. The lines below are kept because they say the intent and will
+# work when the runner does, but nothing here relies on them yet — and the
+# `report` job's closing step, which fails the run unless every result is
+# `success` or `skipped`, only judges a run that reaches it.
+#
+# What does help today is inside a job: `cargo xtask ci --keep-going` runs
+# every step past a failure instead of stopping at the first, so one `ci` job
+# lists everything wrong with the tree. Doing the same across jobs needs each
+# to record its own verdict into the artifact it already uploads, for `report`
+# to collect — not done, and the owner's to want.
 jobs:
   ci:
     continue-on-error: true
@@ -241,11 +246,17 @@ jobs:
           cargo xtask spec-sync --check
 
       - name: cargo xtask ci
+        # `--keep-going`: every step even after one fails, `cargo test` with
+        # `--no-fail-fast`, and the failed steps listed at the end (still exit
+        # 1). Without it this stops at the first, which is how run 21 spent a
+        # job to say only that `cargo fmt --all --check` was unhappy and left
+        # clippy, the tests and the docs check unknown. A run here costs about
+        # a quarter of an hour; it should answer more than one question.
         run: |
           mkdir -p target/ci-logs
           exec > >(tee -a target/ci-logs/ci.log) 2>&1
           unset CARGO_BUILD_TARGET
-          cargo xtask ci
+          cargo xtask ci --keep-going
 
       - name: Upload the conformance report
         if: always()
