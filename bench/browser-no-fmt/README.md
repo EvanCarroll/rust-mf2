@@ -43,7 +43,7 @@ does, per harness:
    modules, and the
    delta `b12-reader` − `b12-base`, plus a twiggy breakdown by crate.
 
-Output: `bench/browser-no-fmt/target/b12/b12.txt` (the report) and `size.tsv`.
+Output: `bench/browser-no-fmt/target/browser-no-fmt/browser-no-fmt.txt` (the report) and `size.tsv`.
 
 ## Measured (2026-09-21)
 

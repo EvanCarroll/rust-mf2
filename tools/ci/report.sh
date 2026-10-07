@@ -68,7 +68,7 @@ printf '\n'
 # ------------------------------------------------------------------ bodies
 # Text reports, inlined. Ordered so the ones a release is judged on come first;
 # anything not named here still appears, after them, so nothing is lost.
-order='REPORT.md size.md report.md feature-costs.md SIZE.md b12.txt size.tsv COVERAGE.md'
+order='REPORT.md size.md report.md feature-costs.md SIZE.md browser-no-fmt.txt size.tsv COVERAGE.md'
 
 # How much of a job's log to inline. The whole thing is in the artifact.
 LOG_TAIL=${LOG_TAIL:-120}
