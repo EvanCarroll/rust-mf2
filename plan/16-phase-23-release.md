@@ -244,6 +244,10 @@ Asked with 23.2, answered before this phase closes:
 * **The two pointer crates** (`pointers/`: `leptos-mf2` and `mf2-axum`, at
   2.0.0, outside the workspace): should they get a 3.0.0 that points at
   `mf2` 3.0, or stay as they are?
+  **Answered (owner, 2026-10-08): neither.** The 2.0.0 pointers were never
+  published, and nothing uses either crate: `mf2-axum` is deleted from
+  crates.io, and `pointers/` is removed. `leptos-mf2` cannot be deleted,
+  `mf2` 1.0.0 requiring it, so the owner yanks it with `mf2` 1.0.0.
 * **The plan files:** `plan/01` to `plan/16` are finished work once this
   phase is done. Move them to `plan/archive/` now, or leave them until the
   next plan is written? If they move, the citations of them in the code are

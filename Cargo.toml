@@ -64,9 +64,6 @@ exclude = [
     # feature set by `cargo xtask native-no-heavy-crates`, so its feature sets must
     # not unify into this workspace's builds either.
     "tools/native-canary",
-    # The 2.0.0 pointer releases of `leptos-mf2` and `mf2-axum`: each a
-    # `compile_error!` (plans/18 question 34).
-    "pointers",
 ]
 
 [workspace.package]
